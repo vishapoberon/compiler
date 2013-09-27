@@ -22,7 +22,7 @@ Strings.Append (ccOpt, cmd);
 ext := ".c";
 Strings.Append (ext, m);
 Strings.Append(m, cmd);
-Console.Ln; Console.String (cmd); Console.Ln;
+(*Console.Ln; Console.String (cmd); Console.Ln;*)
 Unix.system(cmd);
 END Assemble;
 
@@ -50,7 +50,7 @@ Strings.Append(" -o ", cmd);
 Strings.Append(m, cmd);
 Strings.Append(" ", cmd);
 Strings.Append(ccOpt, cmd);
-Console.Ln; Console.String(cmd); Console.Ln;
+(*Console.Ln; Console.String(cmd); Console.Ln;*) (* may be it's feasible to add debug mode later *)
 Unix.system(cmd);
 END LinkMain;
 
