@@ -1,0 +1,26 @@
+==how to port to a new platform==
+0) generate voc.par file for the target platform(if it's not exist in src/par).
+   you can do it by compiling vocparam, and running it as "./vocparam > voc.par"
+1) generate voc, ocat, showdef source for target platform by running
+   make port0
+2) transfer source to a target platform and write
+   make port1
+   (or use a crosscompiler)
+   now you have voc, showdef, and ocat binaries for your target platform
+3) cp voc vocstatic
+   make -f makefile for your target.
+that's how I've done x86 port.
+voc was originally run on x86_64.
+
+notes** in practice everything is not always simple, because you may need to edit Unix.Mod, Args.Mod and SYSTEM.h, and put them to src/lib/system/gnuc/<yourtarget>, and create new makefile for your target.
+
+
+==how to add a new option==
+
+define it in OPM as a constant before defopt is defined.
+define a BOOLEAN variable in OPM which will describe if setting is set.
+add handling of a new option in OPM.ScanOptions
+set your BOOLEAN value in OPM.OpenPari (or in ScanOptions, after the CASE) so you can check it later.
+check your boolean when necessary, (see useParFile in OPM.GetOptions)
+add it in OPC.GenHeaderMsg function.
+
