@@ -65,13 +65,13 @@ VAR mname : ARRAY 256 OF CHAR; (* noch *)
 (* noch *)
         IF done THEN
 	  IF ~OPM.dontAsm THEN
-	     IF ~(OPM.mainProg OR OPM.mainLinkStat) THEN
+	     (*IF ~(OPM.mainProg OR OPM.mainLinkStat) THEN*)
 	        extTools.Assemble(OPM.modName);
-	     ELSE
-                IF ~OPM.dontLink THEN
+	     (*ELSE*)
+                IF ~OPM.dontLink & (OPM.mainProg OR OPM.mainLinkStat) THEN
                    extTools.LinkMain (OPM.modName, OPM.mainLinkStat);
 		END;
-	     END;
+	     (*END;*)
 	  END;
 	END
 
