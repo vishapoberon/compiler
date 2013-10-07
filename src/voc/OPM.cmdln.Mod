@@ -234,6 +234,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
    IF lineno IN opt THEN useLineNo := TRUE; curpos := 256; errpos := curpos; lasterrpos := curpos - 10
     ELSE useLineNo := FALSE;
     END;
+
+      IF useparfile IN opt THEN useParFile := TRUE ELSE useParFile := FALSE END; (* this check must be made before calling getproperties,  noch *)
+      IF dontasm IN opt THEN dontAsm := TRUE ELSE dontAsm := FALSE END;
+      IF dontlink IN opt THEN dontLink := TRUE ELSE dontLink := FALSE END;
+      IF mainprog IN opt THEN mainProg := TRUE ELSE mainProg := FALSE END;
+      IF mainlinkstat IN opt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
+
   END InitOptions;
 
   PROCEDURE Init*(VAR done: BOOLEAN; VAR mname : ARRAY OF CHAR);  (* get the source for one translation *)

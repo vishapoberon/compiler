@@ -4,7 +4,7 @@ MODULE voc;  (* J. Templ 3.2.95 *)
     SYSTEM, Unix, Kernel,
     OPP, OPB, OPT,
     OPV, OPC, OPM,
-    extTools;
+    extTools, Strings := oocOakStrings;
 
 VAR mname : ARRAY 256 OF CHAR; (* noch *)
 
@@ -62,26 +62,15 @@ VAR mname : ARRAY 256 OF CHAR; (* noch *)
     OPM.CloseFiles; OPT.Close;
     OPM.LogWLn; done := OPM.noerr;
 
-(* noch *)
-        IF done THEN
-	  IF ~OPM.dontAsm THEN
-	     (*IF ~(OPM.mainProg OR OPM.mainLinkStat) THEN*)
-	        extTools.Assemble(OPM.modName);
-	     (*ELSE*)
-                IF ~OPM.dontLink & (OPM.mainProg OR OPM.mainLinkStat) THEN
-                   extTools.LinkMain (OPM.modName, OPM.mainLinkStat);
-		END;
-	     (*END;*)
-	  END;
-	END
-
 
 
   END Module;
 
   PROCEDURE Translate*;
     VAR done: BOOLEAN;
+    VAR modulesobj: ARRAY 2048 OF CHAR; (* here we hold all modules name given on the command line, to add corresponding .o files to the external compiler options *)
   BEGIN
+    modulesobj := "";
     OPM.OpenPar; (* gclock();   slightly faste rtranslation but may lead to opening "too many files" *)
     OPT.bytetyp.size := OPM.ByteSize;
     OPT.sysptrtyp.size := OPM.PointerSize;
@@ -99,8 +88,24 @@ VAR mname : ARRAY 256 OF CHAR; (* noch *)
       OPM.InitOptions;
       Kernel.GC(FALSE);
       Module(done);
-      IF ~done THEN Unix.Exit(1) END
-    END
+      IF ~done THEN Unix.Exit(1) END;
+
+      (* noch *)
+        IF done THEN
+	  IF ~OPM.dontAsm THEN
+	        extTools.Assemble(OPM.modName);
+		IF ~(OPM.mainProg OR OPM.mainLinkStat) THEN Strings.Append(" ",modulesobj); Strings.Append(OPM.modName, modulesobj); Strings.Append(".o ", modulesobj) END;
+
+                IF ~OPM.dontLink & (OPM.mainProg OR OPM.mainLinkStat) THEN
+                   extTools.LinkMain (OPM.modName, OPM.mainLinkStat, modulesobj);
+		END;
+	  END;
+	END
+
+
+
+
+    END (* loop *)
   END Translate;
 
 BEGIN
