@@ -94,7 +94,8 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 	BEGIN
 		indentLevel := 0;
 		ptrinit := OPM.ptrinit IN OPM.opt;
-		mainprog := OPM.mainprog IN OPM.opt;
+		(*mainprog := OPM.mainprog IN OPM.opt;*)
+		mainprog := OPM.mainProg OR OPM.mainLinkStat;
 		ansi := OPM.ansi IN OPM.opt;
 		IF ansi THEN BodyNameExt := "__init(void)" ELSE BodyNameExt := "__init()" END
 	END Init;

@@ -27,7 +27,7 @@ Unix.system(cmd);
 END Assemble;
 
 
-PROCEDURE LinkMain*(VAR m : ARRAY OF CHAR; statically : BOOLEAN);
+PROCEDURE LinkMain*(VAR m : ARRAY OF CHAR; statically : BOOLEAN; additionalopts : ARRAY OF CHAR);
 VAR lpath : ARRAY 256 OF CHAR;
 cc : ARRAY 256 OF CHAR;
 ccopt : ARRAY 256 OF CHAR;
@@ -45,6 +45,7 @@ COPY (cc, cmd);
 Strings.Append(" ", cmd);
 Strings.Append(m, cmd);
 Strings.Append(ext, cmd);
+Strings.Append(additionalopts, cmd);
 IF statically THEN Strings.Append(" -static ", cmd) END;
 Strings.Append(" -o ", cmd);
 Strings.Append(m, cmd);
