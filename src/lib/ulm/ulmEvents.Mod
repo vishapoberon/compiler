@@ -294,22 +294,20 @@ MODULE ulmEvents;
       loghandler := log;
    END GetLog;
 
-   (* noch *)
-   PROCEDURE -getaddr(handler: EventHandler): LONGINT
-   "(LONGINT)&handler";
-
    PROCEDURE NilHandler*(event: Event);
       (* an empty event handler *)
    END NilHandler;
 
 (* now QueueHandler will translate partly like
- i = (long)&handler;
- j = (long)&ulmEvents_NilHandler;
- b = i != j;
- if (!(b)) {SYSTEM_assert = 0; SYSTEM_HALT(-1);};
-
-; noch
+        BOOLEAN b;
+        handler_EventHandler tmphandler;
+        LONGINT i, j;
+        i = (LONGINT)handler;
+        tmphandler = handler_NilHandler;
+        j = (LONGINT)tmphandler;
+        b = i != j;
 *)
+(* changed because voc cannot compara handler and NilHandler -- noch *)
 
    PROCEDURE QueueHandler*(handler: EventHandler);
       (* setup an alternative handler of events
@@ -317,11 +315,14 @@ MODULE ulmEvents;
 	 of their unsufficient priority
       *)
       VAR b : BOOLEAN; (* noch *)
+      tmphandler : EventHandler;
       i,j : LONGINT;
    BEGIN
-      i := getaddr(handler);
-      j := getaddr(NilHandler);
+      i := SYSTEM.VAL(LONGINT, handler);
+      tmphandler := NilHandler;
+      j := SYSTEM.VAL(LONGINT, tmphandler);
       b := i # j;
+      b := handler # tmphandler;
       (*ASSERT (handler # NilHandler);*)
       ASSERT(b);
       queueHandler := handler;
