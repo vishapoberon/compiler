@@ -137,6 +137,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
 	$(VOCSTATIC) -sP ulmObjects.Mod ulmDisciplines.Mod
 	$(VOCSTATIC) -sP ulmPriorities.Mod ulmServices.Mod ulmEvents.Mod ulmResources.Mod  ulmForwarders.Mod ulmRelatedEvents.Mod
+	$(VOCSTATIC) -sP ulmIO.Mod
 
 stage7:
 	#objects := $(wildcard *.o)
