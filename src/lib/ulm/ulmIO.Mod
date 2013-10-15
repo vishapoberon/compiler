@@ -30,16 +30,27 @@ MODULE ulmIO;
       (* len is the minimal length of the generated string  *)
       (* neg means: "the number is negative" for btyp = dec *)
 
-      CONST
-	 NumberLen = 11;
+      (*CONST
+	 NumberLen = 11;*) 
+	 (* we need it as variable to change the value depending on architecture; -- noch *)
       VAR 
-	 digits          : ARRAY NumberLen+1 OF CHAR;
+	 (*digits          : ARRAY NumberLen+1 OF CHAR;*)
+	 digits          : POINTER TO ARRAY OF CHAR;
 	 base            : INTEGER;
 	 cnt, ix         : INTEGER;
 	 maxlen          : LONGINT;
 	 dig             : LONGINT;
-
+         NumberLen       : SHORTINT;
    BEGIN 
+
+      IF SIZE(LONGINT) = 4 THEN
+         NumberLen := 11
+      ELSIF SIZE(LONGINT) = 8 THEN
+         NumberLen := 21
+      ELSE
+         NumberLen := 11 (* default value, corresponds to 32 bit *)
+      END;
+      NEW(digits, NumberLen + 1 );
       ASSERT(num >= 0);
       ix := 1;
       WHILE ix <= NumberLen DO
@@ -103,11 +114,7 @@ MODULE ulmIO;
       CHAR);
    (* conversion of an integer decimal number to a string *)
    BEGIN 
-      IF num = MIN(LONGINT) THEN
-	 COPY("-2147483648", str); (* need fix, it's 32 bit only; -- noch *)
-      ELSE
 	 ConvertNumber(ABS(num),len,dec,num < 0,str);
-      END;
    END ConvertInteger;
 
    (* ========================= terminal ============================ *)
@@ -180,13 +187,13 @@ MODULE ulmIO;
    END InitIO;
 
    PROCEDURE WriteInt*(arg: LONGINT);
-      VAR field: ARRAY 12 OF CHAR;
-   BEGIN
+      VAR field: ARRAY 23 OF CHAR;
+   BEGIN (* the field size should be big enough to hold the long number. it was 12 to hold just 32 bit numbers, now it can hold 64 bit numbers; need to be more for 128bit numbers; -- noch *)
       ConvertInteger(arg, 1, field);
       WriteString(field);
    END WriteInt;
 
-   PROCEDURE ReadInt*(VAR arg: INTEGER);
+   PROCEDURE ReadInt*(VAR arg: LONGINT);
       VAR ch: CHAR;
 	  minus: BOOLEAN;
    BEGIN
