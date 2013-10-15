@@ -145,7 +145,7 @@ stage7:
 	$(ARCHIVE) *.o 
 	#$(ARCHIVE) objects
 	$(LD) *.o
-	echo "$(PREFIX)/lib" >> 05vishap.conf
+	echo "$(PREFIX)/lib" > 05vishap.conf
 
 clean:
 #	rm_objects := rm $(wildcard *.o)
