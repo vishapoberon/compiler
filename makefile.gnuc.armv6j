@@ -9,7 +9,7 @@ RELEASE = 1.0
 
 INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/gnuc:src/lib/ooc2:src/lib/ooc2/gnuc:src/lib/ooc:src/lib/ooc/lowlevel:src/voc:src/voc/gnuc:src/voc/gnuc/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
+SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
 
 VOC = voc
 VOCSTATIC = $(SETPATH) ./vocstatic
@@ -137,7 +137,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
 	$(VOCSTATIC) -sP ulmObjects.Mod ulmDisciplines.Mod
 	$(VOCSTATIC) -sP ulmPriorities.Mod ulmServices.Mod ulmEvents.Mod ulmResources.Mod  ulmForwarders.Mod ulmRelatedEvents.Mod
-        $(VOCSTATIC) -sP ulmIO.Mod ulmProcess.Mod
+	$(VOCSTATIC) -sP ulmIO.Mod ulmProcess.Mod ulmTypes.Mod ulmStreams.Mod
 
 stage7:
 	#objects := $(wildcard *.o)
