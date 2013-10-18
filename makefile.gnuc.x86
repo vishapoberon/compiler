@@ -133,6 +133,7 @@ stage6:
 	$(VOCSTATIC) -sP ooc2IntStr.Mod
 	$(VOCSTATIC) -sP ooc2Real0.Mod
 	$(VOCSTATIC) -sP oocLowReal.Mod oocLowLReal.Mod
+	$(VOCSTATIC) -sP oocRealMath.Mod oocOakMath.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
