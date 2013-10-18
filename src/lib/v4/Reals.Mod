@@ -3,10 +3,10 @@ MODULE Reals;
 
   IMPORT S := SYSTEM;
 
-
+(*
   PROCEDURE -ecvt (x: LONGREAL; ndigit, decpt, sign: LONGINT): LONGINT
       "ecvt (x, ndigit, decpt, sign)";
-
+*)
   PROCEDURE Ten*(e: INTEGER): REAL;
     VAR r, power: LONGREAL;
   BEGIN r := 1.0;
@@ -65,18 +65,28 @@ MODULE Reals;
       d[k] := CHR(i MOD 10 + 48); i := i DIV 10; INC(k)
     END
   END Convert;
-  
+
+  PROCEDURE ConvertL*(x: LONGREAL; n: INTEGER; VAR d: ARRAY OF CHAR);
+    VAR i, k: LONGINT;
+  BEGIN
+    i := ENTIER(x); k := 0;
+    WHILE k < n DO
+      d[k] := CHR(i MOD 10 + 48); i := i DIV 10; INC(k)
+    END
+  END ConvertL;
+ 
+(* (*commented because ecvt returns smth strange on x86_64, may be types must be checked, but anyway, getting rid of libc dependency is good *)
   PROCEDURE ConvertL*(x: LONGREAL; n: INTEGER; VAR d: ARRAY OF CHAR);
     VAR decpt, sign, i: LONGINT; buf: LONGINT;
   BEGIN
     (*x := x - 0.5; already rounded in ecvt*)
     buf := ecvt(x, n+2, S.ADR(decpt), S.ADR(sign));
     i := 0;
-    WHILE i < decpt DO S.GET(buf + i, d[n - i -1]); INC(i) END ;
+    WHILE i < decpt DO S.GET(buf + i, d[n - i -1]); INC(i) END ; (* showdef was crashing here on oocLowLReal.sym because of ecvt *)
     i := n - i - 1;
     WHILE i >= 0 DO d[i] := "0"; DEC(i) END ;
   END ConvertL;
-
+*)
   PROCEDURE Unpack(VAR b, d: ARRAY OF S.BYTE);
     VAR i, k: SHORTINT; len: LONGINT;
   BEGIN i := 0; len := LEN(b);
