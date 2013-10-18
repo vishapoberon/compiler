@@ -12,7 +12,7 @@ INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
 SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
 
 VOC = voc
-VOCSTATIC = $(SETPATH) ./vocstatic
+VOCSTATIC = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
 VOCPARAM = $(shell ./vocparam > voc.par)
 VERSION = GNU_Linux_$(TARCH)
 LIBNAME = VishapOberon

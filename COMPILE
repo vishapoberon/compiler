@@ -1,6 +1,6 @@
 currently three bootstrap static binaries provided, for x86_64, x86, and armv6j_hardfp (works on raspberry pi) gnu/linux targets.
 
-0)
+0) (* NOT NECESSARY ANYMORE *)
    copy statically compiled voc compiler for your platform as vocstatic.
    for instance, if your platform is armv6j_hardfp (like raspberry pi)
    # cp vocstatic.linux.gnuc.armv6j_hardfp vocstatic
