@@ -1,7 +1,7 @@
 #SHELL := /bin/bash
 BUILDID=$(shell date +%Y/%m/%d)
 TOS = linux
-TARCH = armv7a_hardfp
+TARCH = armv7a_hardfp 
 #TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp
 CCOMP = gnuc
 RELEASE = 1.0
@@ -74,6 +74,7 @@ stage3:
 	$(VOCSTATIC) -sPS Args.Mod Console.Mod Unix.Mod 
 	$(VOCSTATIC) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel.Mod Modules.Mod
 	$(VOCSTATIC) -sxPS Files.Mod 
+	$(VOCSTATIC) -sxPS OakFiles.Mod 
 	$(VOCSTATIC) -sPS Reals.Mod CmdlnTexts.Mod errors.Mod
 
 # build the compiler
@@ -90,7 +91,7 @@ stage4:
 #this is a way to create a bootstrap binary.
 stage5:
 	$(CC) SYSTEM.c Args.c Console.c Modules.c Unix.c \
-	oocOakStrings.c architecture.c version.c Kernel.c Files.c Reals.c CmdlnTexts.c \
+	oocOakStrings.c architecture.c version.c Kernel.c Files.c OakFiles.c Reals.c CmdlnTexts.c \
 	version.c extTools.c \
 	OPM.c OPS.c OPT.c OPC.c OPV.c OPB.c OPP.c errors.c
 
@@ -140,6 +141,7 @@ stage6:
 	$(VOCSTATIC) -sP oocLRealConv.Mod oocLRealStr.Mod
 	$(VOCSTATIC) -sP oocRealConv.Mod oocRealStr.Mod
 	$(VOCSTATIC) -sP oocMsg.Mod oocChannel.Mod
+	$(VOCSTATIC) -sP oocStrings2.Mod oocRts.Mod oocFilenames.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
