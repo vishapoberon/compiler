@@ -239,7 +239,10 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
   BEGIN
     IF name # "" THEN
       IF HasDir(name) THEN dir := ""; COPY(name, path)
-      ELSE pos := 0; (*ScanPath(pos, dir);*) MakeFileName(dir, name, path); (*ScanPath(pos, dir)*)
+      ELSE 
+         pos := 0;
+	 COPY(name, path); (* -- noch *)
+	 (*ScanPath(pos, dir);*) (*MakeFileName(dir, name, path);*) (*ScanPath(pos, dir)*)
       END ;
       LOOP
         fd := Unix.Open(path, Unix.rdwr, {}); done := fd >= 0; errno := Unix.errno();
@@ -270,7 +273,8 @@ END ;
             RETURN f
           END
         ELSIF dir = "" THEN RETURN NIL
-        ELSE MakeFileName(dir, name, path); (*ScanPath(pos, dir)*)
+        ELSE (*MakeFileName(dir, name, path);*) (*ScanPath(pos, dir)*)
+	RETURN NIL
         END
       END
     ELSE RETURN NIL
