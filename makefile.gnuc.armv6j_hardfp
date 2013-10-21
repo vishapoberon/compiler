@@ -1,7 +1,7 @@
 #SHELL := /bin/bash
 BUILDID=$(shell date +%Y/%m/%d)
 TOS = linux
-TARCH = armv6j_hardfp
+TARCH = armv6j_hardfp 
 #TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp
 CCOMP = gnuc
 RELEASE = 1.0
@@ -135,7 +135,10 @@ stage6:
 	$(VOCSTATIC) -sP oocLowReal.Mod oocLowLReal.Mod
 	$(VOCSTATIC) -sP oocRealMath.Mod oocOakMath.Mod
 	$(VOCSTATIC) -sP oocLRealMath.Mod
-	$(VOCSTATIC) -sP oocLongInts.Mod oocLRealConv.Mod oocLRealStr.Mod
+	$(VOCSTATIC) -sP oocLongInts.Mod
+	$(VOCSTATIC) -sP oocLRealConv.Mod oocLRealStr.Mod
+	$(VOCSTATIC) -sP oocRealConv.Mod oocRealStr.Mod
+	$(VOCSTATIC) -sP oocMsg.Mod oocChannel.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
