@@ -406,6 +406,11 @@ TYPE
       r := sys(cmd);
    END system;
 
-
+   PROCEDURE System*(cmd : ARRAY OF CHAR): INTEGER;
+   VAR r : INTEGER;
+   BEGIN
+      r := sys(cmd);
+      RETURN r
+   END System;
 
 END Unix.

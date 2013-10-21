@@ -49,5 +49,17 @@ MODULE Args;  (* jt, 8.12.94 *)
     IF p # NIL THEN COPY(p^, val) END
   END GetEnv;
 
+  PROCEDURE getEnv*(var: ARRAY OF CHAR; VAR val: ARRAY OF CHAR): BOOLEAN;
+    VAR p: ArgPtr;
+  BEGIN
+    p := getenv(var);
+    IF p # NIL THEN
+       COPY(p^, val);
+       RETURN TRUE
+    ELSE
+       RETURN FALSE
+    END
+  END getEnv;
+
 BEGIN argc := Argc(); argv := Argv()
 END Args.
