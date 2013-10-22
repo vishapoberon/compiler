@@ -1,7 +1,7 @@
 (* Oberon Library      -    SunOS 4.1    -      AFB 8/90 *)
 (* (c) University of Ulm, Sektion Informatik, D-7900 Ulm *)
 
-MODULE MC68881;
+MODULE ulmMC68881;
 
    (* library interface to MC68881 instructions *)
 
@@ -170,14 +170,14 @@ MODULE MC68881;
       float must consist of at least floatlen bytes
    *)
 
-   PROCEDURE RealToFloat*(real: LONGREAL; VAR float: ARRAY OF BYTE);
+   PROCEDURE RealToFloat*(real: LONGREAL; VAR float: ARRAY OF SYS.BYTE);
    BEGIN
-      SYS.WMOVE(SYS.ADR(real), SYS.ADR(float), floatlen DIV 4);
+      (*SYS.WMOVE(SYS.ADR(real), SYS.ADR(float), floatlen DIV 4);*)
    END RealToFloat;
 
-   PROCEDURE FloatToReal*(float: ARRAY OF BYTE; VAR real: LONGREAL);
+   PROCEDURE FloatToReal*(float: ARRAY OF SYS.BYTE; VAR real: LONGREAL);
    BEGIN
-      SYS.WMOVE(SYS.ADR(float), SYS.ADR(real), floatlen DIV 4);
+      (*SYS.WMOVE(SYS.ADR(float), SYS.ADR(real), floatlen DIV 4);*)
    END FloatToReal;
 
-END MC68881.
+END ulmMC68881.

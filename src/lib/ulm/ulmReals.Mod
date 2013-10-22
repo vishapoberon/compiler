@@ -31,9 +31,9 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Reals;
+MODULE ulmReals;
 
-   IMPORT IEEE, MC68881;
+   IMPORT IEEE := ulmIEEE, MC68881 := ulmMC68881;
 
    CONST
       (* for REAL *)
@@ -310,4 +310,4 @@ BEGIN
    sigdigits[8] := 21;  sigdigits[9] := 20;  sigdigits[10] := 19;
    sigdigits[11] := 18; sigdigits[12] := 17; sigdigits[13] := 17;
    sigdigits[14] := 16; sigdigits[15] := 16; sigdigits[16] := 16;
-END Reals.
+END ulmReals.

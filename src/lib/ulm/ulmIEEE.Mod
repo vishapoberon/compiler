@@ -58,7 +58,11 @@ MODULE ulmIEEE;
 
    CONST
       (*patternlen = SYS.SIZE(LONGREAL) DIV SYS.SIZE(SET);*)
-      patternlen = SIZE(LONGREAL) DIV SIZE(SET);
+      patternlen = SIZE(LONGREAL) DIV SIZE(SET) + 23; (* in ulm Oberon system, size of longreal is 12, size of set is 4, so this will be 3
+                                                    in voc 32 bit we have it as 8 DIV 4
+						    in voc 64 bit we have it as 8 DIV 8
+						    may be it worth just to add some number to the result of division -- noch
+						   *)
 
    VAR
       plusInfinity*: REAL;
