@@ -142,6 +142,7 @@ stage6:
 	$(VOCSTATIC) -sP oocRealConv.Mod oocRealStr.Mod
 	$(VOCSTATIC) -sP oocMsg.Mod oocChannel.Mod
 	$(VOCSTATIC) -sP oocStrings2.Mod oocRts.Mod oocFilenames.Mod
+	$(VOCSTATIC) -sP oocTextRider.Mod oocBinaryRider.Mod oocJulianDay.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
