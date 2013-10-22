@@ -31,11 +31,11 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE StreamDisciplines;
+MODULE ulmStreamDisciplines;
 
    (* definition of general-purpose disciplines for streams *)
 
-   IMPORT ASCII, Disciplines := IndirectDisciplines, Events, Sets, Streams;
+   IMPORT ASCII := ulmASCII, Disciplines := ulmIndirectDisciplines, Events := ulmEvents, Sets := ulmSets, Streams := ulmStreams, SYSTEM;
 
    TYPE
       LineTerminator* = ARRAY 4 OF CHAR;
@@ -77,7 +77,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF ~Disciplines.Seek(s, id, disc) THEN
+      IF ~Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 InitDiscipline(disc);
       END;
       disc.lineterm := lineterm;
@@ -89,7 +89,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF Disciplines.Seek(s, id, disc) THEN
+      IF Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 lineterm := disc.lineterm;
       ELSE
 	 lineterm := defaultLineTerm;
@@ -121,7 +121,7 @@ MODULE StreamDisciplines;
 	 Events.Raise(event);
 	 RETURN
       END;
-      IF ~Disciplines.Seek(s, id, disc) THEN
+      IF ~Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 InitDiscipline(disc);
       END;
       disc.fieldseps := fieldsepset;
@@ -134,7 +134,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF Disciplines.Seek(s, id, disc) THEN
+      IF Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 fieldsepset := disc.fieldseps;
       ELSE
 	 fieldsepset := defaultFieldSeps;
@@ -145,7 +145,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF ~Disciplines.Seek(s, id, disc) THEN
+      IF ~Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 InitDiscipline(disc);
       END;
       Sets.InclChar(disc.fieldseps, fieldsep);
@@ -161,7 +161,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF Disciplines.Seek(s, id, disc) THEN
+      IF Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 fieldsep := disc.fieldsep;
       ELSE
 	 fieldsep := defaultFieldSep;
@@ -173,7 +173,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF Disciplines.Seek(s, id, disc) THEN
+      IF Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 whitespace := disc.whitespace;
       ELSE
 	 whitespace := defaultWhiteSpace;
@@ -184,7 +184,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF ~Disciplines.Seek(s, id, disc) THEN
+      IF ~Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 InitDiscipline(disc);
       END;
       disc.whitespace := whitespace;
@@ -196,7 +196,7 @@ MODULE StreamDisciplines;
 	 disc: StreamDiscipline;
    BEGIN
       IF indentwidth >= 0 THEN
-	 IF ~Disciplines.Seek(s, id, disc) THEN
+	 IF ~Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	    InitDiscipline(disc);
 	 END;
 	 disc.indentwidth := indentwidth;
@@ -208,7 +208,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF Disciplines.Seek(s, id, disc) THEN
+      IF Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 indentwidth := disc.indentwidth;
       ELSE
 	 indentwidth := defaultIndentWidth;
@@ -219,7 +219,7 @@ MODULE StreamDisciplines;
       VAR
 	 disc: StreamDiscipline;
    BEGIN
-      IF ~Disciplines.Seek(s, id, disc) THEN
+      IF ~Disciplines.Seek(s, id, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	 InitDiscipline(disc);
       END;
       IF disc.indentwidth + incr >= 0 THEN
@@ -243,4 +243,4 @@ BEGIN
    Sets.InclChar(defaultWhiteSpace, ASCII.np);
    Sets.InclChar(defaultWhiteSpace, ASCII.nl);
    defaultIndentWidth := 0;
-END StreamDisciplines.
+END ulmStreamDisciplines.
