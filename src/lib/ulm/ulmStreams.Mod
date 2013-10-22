@@ -280,7 +280,7 @@ MODULE ulmStreams;
 	 so, connections with the standard UNIX streams must be
 	 done by other modules
       *)
-      stdin*, stdout, stderr: Stream;
+      stdin*, stdout*, stderr*: Stream;
       errormsg*: ARRAY errorcodes OF Events.Message;
       error*: Events.EventType;
 
