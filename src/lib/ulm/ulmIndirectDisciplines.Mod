@@ -31,7 +31,7 @@
 
 MODULE ulmIndirectDisciplines;
 
-   IMPORT Disciplines := ulmDisciplines, Forwarders := ulmForwarders;
+   IMPORT Disciplines := ulmDisciplines, Forwarders := ulmForwarders, SYSTEM;
 
    TYPE
       Object* = Disciplines.Object;
@@ -72,7 +72,7 @@ MODULE ulmIndirectDisciplines;
       VAR
 	 disc: IndDiscipline;
    BEGIN
-      WHILE Disciplines.Seek(object, discID, disc) DO
+      WHILE Disciplines.Seek(object, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) DO
 	 object := disc.forwardTo;
       END;
       Disciplines.Add(object, discipline);
@@ -88,7 +88,7 @@ MODULE ulmIndirectDisciplines;
 	    Disciplines.Remove(object, id);
 	    EXIT
 	 END;
-	 IF ~Disciplines.Seek(object, discID, disc) THEN
+	 IF ~Disciplines.Seek(object, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	    EXIT
 	 END;
 	 object := disc.forwardTo;
@@ -104,7 +104,7 @@ MODULE ulmIndirectDisciplines;
 	 IF Disciplines.Seek(object, id, discipline) THEN
 	    RETURN TRUE
 	 END;
-	 IF ~Disciplines.Seek(object, discID, disc) THEN
+	 IF ~Disciplines.Seek(object, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
 	    RETURN FALSE
 	 END;
 	 object := disc.forwardTo;
