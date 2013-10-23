@@ -28,9 +28,9 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE SysTypes;
+MODULE ulmSysTypes;
 
-   IMPORT Types;
+   IMPORT Types := ulmTypes;
 
    TYPE
       Address* = Types.Address;
@@ -67,4 +67,4 @@ MODULE SysTypes;
       IdType = INTEGER; (* idPid .. idLwpid *)
    *)
 
-END SysTypes.
+END ulmSysTypes.

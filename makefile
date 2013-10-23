@@ -154,8 +154,13 @@ stage6:
 	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod ulmStreamDisciplines.Mod
 	$(VOCSTATIC) -sP ulmIEEE.Mod ulmMC68881.Mod ulmReals.Mod
 	$(VOCSTATIC) -sP ulmPrint.Mod
-	$(VOCSTATIC) -sP ulmTexts.Mod ulmStrings.Mod ulmConstStrings.Mod
+	$(VOCSTATIC) -sP ulmTexts.Mod
+	$(VOCSTATIC) -sP ulmStrings.Mod ulmConstStrings.Mod
+	$(VOCSTATIC) -sP ulmConstStrings.Mod
 	$(VOCSTATIC) -sP ulmPlotters.Mod
+	$(VOCSTATIC) -sP ulmSysTypes.Mod
+	$(VOCSTATIC) -sP ulmSys.Mod
+	$(VOCSTATIC) -sP ulmSysConversions.Mod
 
 stage7:
 	#objects := $(wildcard *.o)
