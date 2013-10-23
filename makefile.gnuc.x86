@@ -12,7 +12,8 @@ INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
 SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
 
 VOC = voc
-VOCSTATIC = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
+VOCSTATIC0 = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
+VOCSTATIC = $(SETPATH) ./voc
 VOCPARAM = $(shell ./vocparam > voc.par)
 VERSION = GNU_Linux_$(TARCH)
 LIBNAME = VishapOberon
@@ -70,22 +71,22 @@ stage2:
 # this prepares modules necessary to build the compiler itself
 stage3:
 
-	$(VOCSTATIC) -siapxPS SYSTEM.Mod 
-	$(VOCSTATIC) -sPS Args.Mod Console.Mod Unix.Mod 
-	$(VOCSTATIC) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel.Mod Modules.Mod
-	$(VOCSTATIC) -sxPS Files.Mod 
-	$(VOCSTATIC) -sxPS OakFiles.Mod 
-	$(VOCSTATIC) -sPS Reals.Mod CmdlnTexts.Mod errors.Mod
+	$(VOCSTATIC0) -siapxPS SYSTEM.Mod 
+	$(VOCSTATIC0) -sPS Args.Mod Console.Mod Unix.Mod 
+	$(VOCSTATIC0) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel.Mod Modules.Mod
+	$(VOCSTATIC0) -sxPS Files.Mod 
+	$(VOCSTATIC0) -sxPS OakFiles.Mod 
+	$(VOCSTATIC0) -sPS Reals.Mod CmdlnTexts.Mod errors.Mod
 
 # build the compiler
 stage4:
-	$(VOCSTATIC) -sPS extTools.Mod
-	$(VOCSTATIC) -sPS OPM.cmdln.Mod 
-	$(VOCSTATIC) -sxPS OPS.Mod 
-	$(VOCSTATIC) -sPS OPT.Mod OPC.Mod OPV.Mod OPB.Mod OPP.Mod
-	$(VOCSTATIC) -smPS voc.Mod
-	$(VOCSTATIC) -smPS BrowserCmd.Mod
-	$(VOCSTATIC) -smPS OCatCmd.Mod
+	$(VOCSTATIC0) -sPS extTools.Mod
+	$(VOCSTATIC0) -sPS OPM.cmdln.Mod 
+	$(VOCSTATIC0) -sxPS OPS.Mod 
+	$(VOCSTATIC0) -sPS OPT.Mod OPC.Mod OPV.Mod OPB.Mod OPP.Mod
+	$(VOCSTATIC0) -smPS voc.Mod
+	$(VOCSTATIC0) -smPS BrowserCmd.Mod
+	$(VOCSTATIC0) -smPS OCatCmd.Mod
 
 #this is to build the compiler from C sources.
 #this is a way to create a bootstrap binary.
@@ -153,6 +154,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod ulmStreamDisciplines.Mod
 	$(VOCSTATIC) -sP ulmIEEE.Mod ulmMC68881.Mod ulmReals.Mod
 	$(VOCSTATIC) -sP ulmPrint.Mod
+	$(VOCSTATIC) -sP ulmTexts.Mod ulmStrings.Mod ulmConstStrings.Mod
 
 stage7:
 	#objects := $(wildcard *.o)
@@ -166,11 +168,11 @@ clean:
 #	rm_objects := rm $(wildcard *.o)
 #	objects
 	rm *.o
-	rm *.sym
+	rm *.so
 	rm *.h
 	rm *.c
 	rm *.a
-	rm *.so
+	rm *.sym
 
 coco:
 	$(JET) Sets.Mod Oberon.Mod CRS.Mod CRT.Mod CRA.Mod CRX.Mod CRP.Mod Coco.Mod -m
