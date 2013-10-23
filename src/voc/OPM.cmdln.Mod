@@ -64,7 +64,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     MaxGPtr* = MAX(LONGINT);
 
     (* maximal number of hidden fields in an exported record: *)
-    MaxHdFld* = 512;
+    MaxHdFld* = 2048;
     
     HdPtrName* = "@ptr";
     HdProcName* = "@proc";

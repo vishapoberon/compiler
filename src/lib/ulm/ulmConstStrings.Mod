@@ -45,12 +45,12 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE ConstStrings;
+MODULE ulmConstStrings;
 
    (* WORM-device for strings *)
 
-   IMPORT Disciplines, Events, Objects, Process, Services, Streams, Strings,
-      Texts, Types;
+   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Process := ulmProcess, Services := ulmServices, Streams := ulmStreams, Strings := ulmStrings,
+      Texts := ulmTexts, Types := ulmTypes;
 
    CONST
       tabsize = 1031;		(* should be a prime number *)
@@ -74,8 +74,8 @@ MODULE ConstStrings;
 	 RECORD
 	    (Disciplines.ObjectRec)
 	    (* read-only *)
-	    len*: Streams.Count;	(* length of string in bytes *)
-	    hashval*: LONGINT;	(* hash value *)
+	    len-: Streams.Count;	(* length of string in bytes *)
+	    hashval-: LONGINT;	(* hash value *)
 	    (* private part *)
 	    domain: Domain;
 	    length: Streams.Count; (* private copy of length *)
@@ -84,7 +84,7 @@ MODULE ConstStrings;
 	    next: String;	(* list of strings with same hash value *)
 	 END;
 
-   TYPE
+  TYPE
       DomainRec* =
 	 RECORD
 	    (Disciplines.ObjectRec)
@@ -214,9 +214,9 @@ MODULE ConstStrings;
       offset := buf.free;
       WHILE len > 0 DO
 	 IF len <= bufsize - domain.tail.free THEN
-	    INC(domain.tail.free, len); len := 0;
+	    INC(domain.tail.free, SHORT(len)); len := 0;
 	 ELSE
-	    DEC(len, bufsize - domain.tail.free);
+	    DEC(len, bufsize - LONG(domain.tail.free));
 	    domain.tail.free := bufsize;
 	    NewBuffer;
 	 END;
@@ -427,7 +427,7 @@ MODULE ConstStrings;
 	    INC(count, s.count);
 	    EXIT
 	 END;
-	 INC(count, bytes); DEC(len, bytes); INC(offset, bytes);
+	 INC(count, bytes); DEC(len, bytes); INC(offset, SHORT(bytes));
 	 IF offset >= bufsize THEN
 	    buf := buf.next;
 	    offset := 0;
@@ -480,7 +480,7 @@ MODULE ConstStrings;
       END;
    END ReadByte;
 
-   PROCEDURE ReadBuf(s: Streams.Stream; VAR buf: ARRAY OF BYTE;
+   PROCEDURE ReadBuf(s: Streams.Stream; VAR buf: ARRAY OF Types.Byte(*BYTE*);
                      off, cnt: Streams.Count) : Streams.Count;
       VAR
          bytes, max: Streams.Count;
@@ -530,10 +530,10 @@ MODULE ConstStrings;
 	    END;
 	    WHILE s.pos < realpos DO
 	       IF realpos - s.pos < bufsize - s.offset THEN
-		  INC(s.offset, realpos - s.pos);
+		  INC(s.offset, SHORT(realpos - s.pos));
 		  s.pos := realpos;
 	       ELSE
-		  INC(s.pos, bufsize - s.offset);
+		  INC(s.pos, LONG(bufsize - s.offset));
 		  s.offset := 0;
 		  s.buf := s.buf.next;
 	       END;
@@ -572,4 +572,4 @@ BEGIN
    if.tell := Tell;
    Events.Handler(Process.startOfGarbageCollection, FreeHandler);
    Services.CreateType(type, "ConstStrings.ReadStream", "Streams.Stream");
-END ConstStrings.
+END ulmConstStrings.
