@@ -40,11 +40,11 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Operations;
+MODULE ulmOperations;
 
    (* generic support of arithmetic operations *)
 
-   IMPORT Events, Objects, PersistentDisciplines, PersistentObjects, Services;
+   IMPORT Events := ulmEvents, Objects := ulmObjects, PersistentDisciplines := ulmPersistentDisciplines, PersistentObjects := ulmPersistentObjects, Services := ulmServices;
 
    CONST
       add* = 0; sub* = 1; mul* = 2; div* = 3; cmp* = 4;
@@ -231,4 +231,4 @@ MODULE Operations;
 BEGIN
    PersistentObjects.RegisterType(operandType,
       "Operations.Operand", "PersistentDisciplines.Object", NIL);
-END Operations.
+END ulmOperations.
