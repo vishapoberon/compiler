@@ -155,6 +155,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmIEEE.Mod ulmMC68881.Mod ulmReals.Mod
 	$(VOCSTATIC) -sP ulmPrint.Mod
 	$(VOCSTATIC) -sP ulmTexts.Mod ulmStrings.Mod ulmConstStrings.Mod
+	$(VOCSTATIC) -sP ulmPlotters.Mod
 
 stage7:
 	#objects := $(wildcard *.o)
