@@ -31,11 +31,12 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Errors;
+MODULE ulmErrors;
 
    (* translate events to errors *)
 
-   IMPORT Disciplines, Events, Objects, RelatedEvents, Streams, Strings;
+   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, RelatedEvents := ulmRelatedEvents, Streams := ulmStreams, Strings := ulmStrings,
+   SYS := SYSTEM;
 
    CONST
       (* Kind = (debug, message, warning, error, fatal, bug) *)
@@ -115,7 +116,7 @@ MODULE Errors;
       VAR
 	 writeDiscipline: WriteDiscipline;
    BEGIN
-      IF Disciplines.Seek(event.type, writeDiscId, writeDiscipline) THEN
+      IF Disciplines.Seek(event.type, writeDiscId, SYS.VAL(Disciplines.Discipline, writeDiscipline)) THEN
 	 writeDiscipline.write(s, event);
       ELSE
 	 IF ~Streams.WritePart(s, event.message, 0,
@@ -128,7 +129,7 @@ MODULE Errors;
       VAR
 	 disc: HandlerDiscipline;
    BEGIN
-      IF Disciplines.Seek(event.type, handlerDiscId, disc) &
+      IF Disciplines.Seek(event.type, handlerDiscId, SYS.VAL(Disciplines.Discipline, disc)) &
 	    (disc.kind IN disc.hs.handlerSet) THEN
 	 disc.hs.handler[disc.kind](event, disc.kind);
       END;
@@ -154,4 +155,4 @@ BEGIN
    kindText[error] := "error";
    kindText[fatal] := "fatal";
    kindText[bug] := "bug";
-END Errors.
+END ulmErrors.
