@@ -57,7 +57,7 @@ MODULE ulmTexts;
 	    cont: ARRAY bufsize OF Byte;
 	    next: BufferLink;
 	 END;
-      Text = POINTER TO TextRec;
+      Text* = POINTER TO TextRec;
       TextRec* =
 	 RECORD
 	    (Streams.StreamRec)
