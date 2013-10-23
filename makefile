@@ -161,6 +161,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmSysTypes.Mod
 	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSysConversions.Mod
+	$(VOCSTATIC) -sP ulmErrors.Mod
 
 stage7:
 	#objects := $(wildcard *.o)
