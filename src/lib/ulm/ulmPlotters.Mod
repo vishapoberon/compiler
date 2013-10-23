@@ -26,9 +26,9 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Plotters;
+MODULE ulmPlotters;
 
-   IMPORT Events, Objects, Resources, Services, SYS := SYSTEM;
+   IMPORT Events := ulmEvents, Objects := ulmObjects, Resources := ulmResources, Services := ulmServices, SYS := ulmSYSTEM;
 
    TYPE
       Plotter* = POINTER TO PlotterRec;
@@ -116,7 +116,7 @@ MODULE Plotters;
       Services.CreateType(plotterType, "Plotters.Plotter", "");
    END InitModule;
 
-   PROCEDURE ^ Close(plotter: Plotter);
+   PROCEDURE ^ Close*(plotter: Plotter);
 
    PROCEDURE TerminationHandler(event: Events.Event);
       VAR
@@ -265,4 +265,4 @@ MODULE Plotters;
 
 BEGIN
    InitModule;
-END Plotters.
+END ulmPlotters.
