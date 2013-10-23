@@ -35,11 +35,11 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Texts;
+MODULE ulmTexts;
 
    (* management of texts (dynamic strings) *)
 
-   IMPORT Events, Priorities, RelatedEvents, Services, Streams;
+   IMPORT Events := ulmEvents, Priorities := ulmPriorities, RelatedEvents := ulmRelatedEvents, Services := ulmServices, Streams := ulmStreams;
 
    CONST
       bufsize = 512;
@@ -307,4 +307,4 @@ BEGIN
 	    Streams.seek, Streams.tell, Streams.trunc, Streams.close};
    Services.CreateType(type, "Texts.Text", "Streams.Stream");
    InitErrorHandling;
-END Texts.
+END ulmTexts.
