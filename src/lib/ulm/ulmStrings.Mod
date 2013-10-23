@@ -34,10 +34,10 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Strings;
+MODULE ulmStrings;
 
-   IMPORT Events, Priorities, RelatedEvents, Services, Streams,
-      SYS := SYSTEM, Types;
+   IMPORT Events := ulmEvents, Priorities := ulmPriorities, RelatedEvents := ulmRelatedEvents, Services := ulmServices, Streams := ulmStreams,
+      SYS := SYSTEM, Types := ulmTypes;
 
    TYPE
       Address = Types.Address;
@@ -246,7 +246,7 @@ MODULE Strings;
    PROCEDURE WriteByte(stream: Streams.Stream; byte: Byte) : BOOLEAN;
    BEGIN
       WITH stream: Stream DO
-	 IF ORD(byte) = 0 THEN RETURN FALSE END;
+	 IF ORD(SYS.VAL(CHAR, byte)) = 0 THEN RETURN FALSE END;
 	 IF stream.pos < stream.termindex THEN
 	    SYS.PUT(stream.addr + stream.pos, byte);
 	    INC(stream.pos);
@@ -379,4 +379,4 @@ BEGIN
    Events.Define(error);
    Events.SetPriority(error, Priorities.liberrors);
    Events.Ignore(error);
-END Strings.
+END ulmStrings.
