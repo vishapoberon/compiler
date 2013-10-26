@@ -9,7 +9,7 @@ RELEASE = 1.0
 
 INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
+SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/lib/pow:src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
 
 VOC = voc
 VOCSTATIC0 = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
@@ -127,6 +127,7 @@ stage6:
 #	$(CC)		oocMsg.c
 
 
+	#ooc2 libs
 	$(VOCSTATIC) -sP ooc2Strings.Mod
 	$(VOCSTATIC) -sP ooc2Ascii.Mod
 	$(VOCSTATIC) -sP ooc2CharClass.Mod
@@ -134,6 +135,7 @@ stage6:
 	$(VOCSTATIC) -sP ooc2IntConv.Mod
 	$(VOCSTATIC) -sP ooc2IntStr.Mod
 	$(VOCSTATIC) -sP ooc2Real0.Mod
+	#ooc libs
 	$(VOCSTATIC) -sP oocLowReal.Mod oocLowLReal.Mod
 	$(VOCSTATIC) -sP oocRealMath.Mod oocOakMath.Mod
 	$(VOCSTATIC) -sP oocLRealMath.Mod
@@ -145,6 +147,8 @@ stage6:
 	$(VOCSTATIC) -sP oocStrings2.Mod oocRts.Mod oocFilenames.Mod
 	$(VOCSTATIC) -sP oocTextRider.Mod oocBinaryRider.Mod oocJulianDay.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
+
+	#Ulm's Oberon system libs
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
 	$(VOCSTATIC) -sP ulmObjects.Mod ulmDisciplines.Mod
@@ -162,6 +166,12 @@ stage6:
 	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSysConversions.Mod
 	$(VOCSTATIC) -sP ulmErrors.Mod
+	$(VOCSTATIC) -sP ulmSysErrors.Mod
+	
+	
+	#pow32 libs
+	$(VOCSTATIC) -sP powStrings.Mod
+	
 
 stage7:
 	#objects := $(wildcard *.o)
