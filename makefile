@@ -112,6 +112,9 @@ stage5:
 
 # build all library files
 stage6:
+	#more v4 libs
+	$(VOCSTATIC) -sP	Printer.Mod
+	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod
 	$(VOCSTATIC) -sP	oocStrings.Mod
 	$(VOCSTATIC) -sP	oocStrings2.Mod
