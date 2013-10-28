@@ -31,18 +31,54 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Write;
+MODULE ulmWrite;
 
-   IMPORT ASCII, Print, StreamDisciplines, Streams;
+   IMPORT ASCII := ulmASCII, Print := ulmPrint, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, SYSTEM;
+   
+      TYPE barr = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
+          pbarr = POINTER TO barr;
+      TYPE lrarr = ARRAY SIZE(LONGREAL) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
+          plrarr = POINTER TO barr;
+	      
+   PROCEDURE LongToByteArr ( l : LONGINT; VAR bar : barr); (* noch *)
+   VAR b : SYSTEM.BYTE;
+       p : pbarr;
+       i : LONGINT;
+   BEGIN
+      p := SYSTEM.VAL(pbarr, SYSTEM.ADR(l));
+      FOR i := 0 TO SIZE(LONGINT) -1 DO
+         b := p^[i]; bar[i] := b;
+      END
+   END LongToByteArr;
+
+   PROCEDURE LRealToByteArr ( l : LONGREAL; VAR lar : lrarr); (* noch *)
+   VAR b : SYSTEM.BYTE;
+       p : plrarr;
+       i : LONGINT;
+   BEGIN
+      p := SYSTEM.VAL(plrarr, SYSTEM.ADR(l));
+      FOR i := 0 TO SIZE(LONGREAL) -1 DO
+         b := p^[i]; lar[i] := b;
+      END
+   END LRealToByteArr;
+
+
+
 
    PROCEDURE IntS*(s: Streams.Stream; int: LONGINT; width: LONGINT);
+   VAR b, b0 : barr; 
    BEGIN
-      Print.S2(s, "%*d", width, int);
+      LongToByteArr(int, b);
+      LongToByteArr(width, b0);
+      Print.S2(s, "%*d", b0, b);
    END IntS;
 
    PROCEDURE RealS*(s: Streams.Stream; real: LONGREAL; width: LONGINT);
+   VAR b : barr; lr : lrarr;
    BEGIN
-      Print.S2(s, "%*e", width, real);
+      LRealToByteArr(real, lr);
+      LongToByteArr(width,  b);
+      Print.S2(s, "%*e", b, lr);
    END RealS;
 
    PROCEDURE CharS*(s: Streams.Stream; ch: CHAR);
@@ -50,7 +86,7 @@ MODULE Write;
       IF ~Streams.WriteByte(s, ch) THEN END;
    END CharS;
 
-   PROCEDURE ByteS*(s: Streams.Stream; byte: BYTE);
+   PROCEDURE ByteS*(s: Streams.Stream; byte: SYSTEM.BYTE);
    BEGIN
       IF ~Streams.WriteByte(s, byte) THEN END;
    END ByteS;
@@ -160,7 +196,7 @@ MODULE Write;
       CharS(Streams.stdout, ch);
    END Char;
 
-   PROCEDURE Byte*(byte: BYTE);
+   PROCEDURE Byte*(byte: SYSTEM.BYTE);
    BEGIN
       ByteS(Streams.stdout, byte);
    END Byte;
@@ -185,4 +221,4 @@ MODULE Write;
       IndentS(Streams.stdout);
    END Indent;
 
-END Write.
+END ulmWrite.
