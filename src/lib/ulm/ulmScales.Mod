@@ -36,10 +36,10 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Scales;
+MODULE ulmScales;
 
-   IMPORT Disciplines, Events, Objects, Operations, PersistentObjects,
-      RelatedEvents, Services;
+   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Operations := ulmOperations, PersistentObjects := ulmPersistentObjects,
+      RelatedEvents := ulmRelatedEvents, Services := ulmServices, SYS := SYSTEM;
 
    TYPE
       Scale* = POINTER TO ScaleRec;
@@ -319,26 +319,27 @@ MODULE Scales;
 
    PROCEDURE Assign(VAR target: Operations.Operand; source: Operations.Operand);
    BEGIN
-      WITH source: Measure DO WITH target: Measure DO
+      (*WITH source: Measure DO WITH target: Measure DO*)
+      WITH source: Measure DO IF target IS Measure THEN   (* WITH is replaced by IS -- noch *)
 	 (* target is already initialized but possibly to a dummy operand
 	    by CreateOperand
 	 *)
-	 IF target.type = undefined THEN
+	 IF target(Measure).type = undefined THEN   (* type guard introduced *)
 	    (* init target with the scale of source *)
-	    CreateMeasure(source.scale, target, source.type);
+	    CreateMeasure(source.scale, SYS.VAL(Measure, target), source.type); (* need to cast *)
 	 END;
-	 IF target.scale # source.scale THEN
+	 IF target(Measure).scale # source.scale THEN
 	    (* adapt scale type from source --
 	       this could lead to a type guard failure if
 	       target is not of the appropiate type
 	    *)
-	    CreateMeasure(source.scale, target, source.type);
+	    CreateMeasure(source.scale, SYS.VAL(Measure, target), source.type);
 	 END;
-	 IF target.type # source.type THEN
+	 IF target(Measure).type # source.type THEN
 	    (* adapt measure type from source *)
-	    CreateMeasure(target.scale, target, source.type);
+	    CreateMeasure(target(Measure).scale, SYS.VAL(Measure, target), source.type);
 	 END;
-	 source.scale.if.assign(target, source);
+	 source.scale.if.assign(SYS.VAL(Measure, target), source);
       END; END;
    END Assign;
 
@@ -380,12 +381,13 @@ MODULE Scales;
 	 *)
 	 VAR ok: BOOLEAN;
       BEGIN
-	 WITH op1: Measure DO WITH op2: Measure DO
+	 (*WITH op1: Measure DO WITH op2: Measure DO*)
+	 IF op1 IS Measure THEN IF op2 IS Measure THEN 
 	    CASE op OF
 	    | Operations.add: (* only abs + abs is invalid *)
-			      ok := (op1.type = relative) OR
-				    (op2.type = relative);
-			      IF op1.type = op2.type THEN
+			      ok := (op1(Measure).type = relative) OR
+				    (op2(Measure).type = relative);
+			      IF op1(Measure).type = op2(Measure).type THEN
 				 (* both are relative *)
 				 restype := relative;
 			      ELSE
@@ -393,8 +395,8 @@ MODULE Scales;
 				 restype := absolute;
 			      END;
 	    | Operations.sub: (* only rel - abs is invalid *)
-			      ok := op1.type <= op2.type;
-			      IF op1.type # op2.type THEN
+			      ok := op1(Measure).type <= op2(Measure).type;
+			      IF op1(Measure).type # op2(Measure).type THEN
 				 (* abs - rel *)
 				 restype := absolute;
 			      ELSE
@@ -408,11 +410,11 @@ MODULE Scales;
 
    BEGIN (* Op *)
       (* result is already of type Measure; this is guaranteed by Operations *)
-      WITH result: Measure DO
+      IF result IS Measure THEN
 	 CheckTypes(restype);
 	 CheckCompatibility(op1, op2, m1, m2);
-	 CreateMeasure(m1.scale, result, restype);
-	 m1.scale.if.op(op, m1, m2, result);
+	 CreateMeasure(m1.scale, SYS.VAL(Measure, result), restype);
+	 m1.scale.if.op(op, m1, m2, SYS.VAL(Measure, result));
       END;
    END Op;
 
@@ -440,4 +442,4 @@ BEGIN
    InitInterface;
    PersistentObjects.RegisterType(measureType,
 		     "Scales.Measure", "Operations.Operand", NIL);
-END Scales.
+END ulmScales.
