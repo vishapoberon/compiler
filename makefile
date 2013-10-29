@@ -196,6 +196,10 @@ stage6:
 	
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
+
+	#misc libs
+	$(VOCSTATIC) -sP MultiArrays.Mod
+	$(VOCSTATIC) -sP MultiArrayRiders.Mod
 	
 
 stage7:
