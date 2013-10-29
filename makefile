@@ -172,6 +172,11 @@ stage6:
 	$(VOCSTATIC) -sP ulmErrors.Mod
 	$(VOCSTATIC) -sP ulmSysErrors.Mod
 	$(VOCSTATIC) -sP ulmSysIO.Mod
+	$(VOCSTATIC) -sP ulmLoader.Mod
+	$(VOCSTATIC) -sP ulmNetIO.Mod
+	$(VOCSTATIC) -sP ulmPersistentObjects.Mod
+	$(VOCSTATIC) -sP ulmPersistentDisciplines.Mod
+	$(VOCSTATIC) -sP ulmOperations.Mod
 	
 	
 	#pow32 libs

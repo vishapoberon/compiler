@@ -69,7 +69,7 @@ MODULE ulmConstStrings;
 	    next: Buffer;
 	 END;
 
-      String = POINTER TO StringRec;
+      String* = POINTER TO StringRec;
       StringRec* =
 	 RECORD
 	    (Disciplines.ObjectRec)
