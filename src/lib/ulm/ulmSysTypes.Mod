@@ -39,7 +39,7 @@ MODULE ulmSysTypes;
       Size* = Types.Size;
       Byte* = Types.Byte;
 
-      File* = INTEGER;
+      File* = (*INTEGER*)LONGINT; (* in ulm's system both INTEGER and LONGINT are 4 bytes long *)
       Offset* = LONGINT;
       Device* = INTEGER;
       Inode* = LONGINT;

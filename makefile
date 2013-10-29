@@ -152,6 +152,7 @@ stage6:
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 
 	#Ulm's Oberon system libs
+	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
 	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
 	$(VOCSTATIC) -sP ulmObjects.Mod ulmDisciplines.Mod
@@ -161,15 +162,16 @@ stage6:
 	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod ulmStreamDisciplines.Mod
 	$(VOCSTATIC) -sP ulmIEEE.Mod ulmMC68881.Mod ulmReals.Mod
 	$(VOCSTATIC) -sP ulmPrint.Mod
+	$(VOCSTATIC) -sP ulmWrite.Mod
 	$(VOCSTATIC) -sP ulmTexts.Mod
 	$(VOCSTATIC) -sP ulmStrings.Mod ulmConstStrings.Mod
 	$(VOCSTATIC) -sP ulmConstStrings.Mod
 	$(VOCSTATIC) -sP ulmPlotters.Mod
 	$(VOCSTATIC) -sP ulmSysTypes.Mod
-	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSysConversions.Mod
 	$(VOCSTATIC) -sP ulmErrors.Mod
 	$(VOCSTATIC) -sP ulmSysErrors.Mod
+	$(VOCSTATIC) -sP ulmSysIO.Mod
 	
 	
 	#pow32 libs
