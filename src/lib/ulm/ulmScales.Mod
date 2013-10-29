@@ -36,10 +36,10 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE ulmScales;
+MODULE Scales;
 
-   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Operations := ulmOperations, PersistentObjects := ulmPersistentObjects,
-      RelatedEvents := ulmRelatedEvents, Services := ulmServices;
+   IMPORT Disciplines, Events, Objects, Operations, PersistentObjects,
+      RelatedEvents, Services;
 
    TYPE
       Scale* = POINTER TO ScaleRec;
@@ -440,4 +440,4 @@ BEGIN
    InitInterface;
    PersistentObjects.RegisterType(measureType,
 		     "Scales.Measure", "Operations.Operand", NIL);
-END ulmScales.
+END Scales.
