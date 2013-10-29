@@ -138,8 +138,8 @@ MODULE ulmSysErrors;
       EventRec* =
 	 RECORD
 	    (Events.EventRec)
-	    errno*: INTEGER;
-	    syscall*: INTEGER; (* number of system call *)
+	    errno*: (*INTEGER*)LONGINT;
+	    syscall*: (*INTEGER*)LONGINT; (* number of system call *)
 	    text*: ARRAY textlen OF CHAR;
 	 END;
 
@@ -150,7 +150,7 @@ MODULE ulmSysErrors;
       syserror*: ARRAY ncodes OF Events.EventType;
 
    PROCEDURE Raise*(errors: RelatedEvents.Object;
-		   errno, syscall: INTEGER; text: ARRAY OF CHAR);
+		   errno, syscall: (*INTEGER*)LONGINT; text: ARRAY OF CHAR); (* in ulm's system INTEGER and LONGINT have the same size *)
       (* raises the events syserrors and syserrors[syscall];
 	 `text' contains additional information (e.g. filenames);
 	 further, the syserrors[syscall] event is passed to
@@ -192,9 +192,9 @@ MODULE ulmSysErrors;
 	 IF ~Streams.WriteByte(s, ch) THEN END;
       END Write;
 
-      PROCEDURE WriteInt(intval: INTEGER);
+      PROCEDURE WriteInt(intval: LONGINT);
 	 VAR
-	    rest: INTEGER;
+	    rest: LONGINT;
       BEGIN
 	 rest := intval DIV 10;
 	 IF rest > 0 THEN

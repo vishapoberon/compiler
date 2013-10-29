@@ -275,6 +275,9 @@ TYPE
   PROCEDURE -Dup2*(fd1, fd2: LONGINT): LONGINT
     "dup(fd1, fd2)";
 
+  PROCEDURE -Pipe*(fds : LONGINT): LONGINT
+    "pipe(fds)";
+
   PROCEDURE -Getpid*(): LONGINT
     "getpid()";
 
