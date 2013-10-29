@@ -3,6 +3,35 @@ IMPORT SYSTEM, Unix, Sys := ulmSys;
 
 TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      pstring = POINTER TO ARRAY 1024 OF CHAR;
+
+      TYPE bytearray* = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
+          pbytearray* = POINTER TO bytearray;
+      TYPE longrealarray* = ARRAY SIZE(LONGREAL) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
+          plongrealarray* = POINTER TO bytearray;
+
+   PROCEDURE LongToByteArr* ( l : LONGINT; VAR bar : bytearray); (* noch *)
+   VAR b : SYSTEM.BYTE;
+       p : pbytearray;
+       i : LONGINT;
+   BEGIN
+      p := SYSTEM.VAL(pbytearray, SYSTEM.ADR(l));
+      FOR i := 0 TO SIZE(LONGINT) -1 DO
+         b := p^[i]; bar[i] := b;
+      END
+   END LongToByteArr;
+
+   PROCEDURE LRealToByteArr* ( l : LONGREAL; VAR lar : longrealarray); (* noch *)
+   VAR b : SYSTEM.BYTE;
+       p : plongrealarray;
+       i : LONGINT;
+   BEGIN
+      p := SYSTEM.VAL(plongrealarray, SYSTEM.ADR(l));
+      FOR i := 0 TO SIZE(LONGREAL) -1 DO
+         b := p^[i]; lar[i] := b;
+      END
+   END LRealToByteArr;
+
+
 (*
         PROCEDURE -Write(adr, n: LONGINT): LONGINT
 	  "write(1/*stdout*/, adr, n)";

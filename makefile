@@ -154,17 +154,30 @@ stage6:
 	#Ulm's Oberon system libs
 	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
-	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
-	$(VOCSTATIC) -sP ulmObjects.Mod ulmDisciplines.Mod
-	$(VOCSTATIC) -sP ulmPriorities.Mod ulmServices.Mod ulmEvents.Mod ulmResources.Mod  ulmForwarders.Mod ulmRelatedEvents.Mod
-	$(VOCSTATIC) -sP ulmIO.Mod ulmProcess.Mod ulmTypes.Mod ulmStreams.Mod
+	$(VOCSTATIC) -sP ulmASCII.Mod
+	$(VOCSTATIC) -sP ulmSets.Mod
+	$(VOCSTATIC) -sP ulmObjects.Mod
+	$(VOCSTATIC) -sP ulmDisciplines.Mod
+	$(VOCSTATIC) -sP ulmPriorities.Mod
+	$(VOCSTATIC) -sP ulmServices.Mod
+	$(VOCSTATIC) -sP ulmEvents.Mod
+	$(VOCSTATIC) -sP ulmResources.Mod
+	$(VOCSTATIC) -sP ulmForwarders.Mod
+	$(VOCSTATIC) -sP ulmRelatedEvents.Mod
+	$(VOCSTATIC) -sP ulmIO.Mod
+	$(VOCSTATIC) -sP ulmProcess.Mod
+	$(VOCSTATIC) -sP ulmTypes.Mod
+	$(VOCSTATIC) -sP ulmStreams.Mod
 	$(VOCSTATIC) -sP ulmAssertions.Mod
-	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod ulmStreamDisciplines.Mod
-	$(VOCSTATIC) -sP ulmIEEE.Mod ulmMC68881.Mod ulmReals.Mod
+	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod
+	$(VOCSTATIC) -sP ulmStreamDisciplines.Mod
+	$(VOCSTATIC) -sP ulmIEEE.Mod
+	$(VOCSTATIC) -sP ulmMC68881.Mod
+	$(VOCSTATIC) -sP ulmReals.Mod
 	$(VOCSTATIC) -sP ulmPrint.Mod
 	$(VOCSTATIC) -sP ulmWrite.Mod
 	$(VOCSTATIC) -sP ulmTexts.Mod
-	$(VOCSTATIC) -sP ulmStrings.Mod ulmConstStrings.Mod
+	$(VOCSTATIC) -sP ulmStrings.Mod
 	$(VOCSTATIC) -sP ulmConstStrings.Mod
 	$(VOCSTATIC) -sP ulmPlotters.Mod
 	$(VOCSTATIC) -sP ulmSysTypes.Mod
@@ -177,6 +190,8 @@ stage6:
 	$(VOCSTATIC) -sP ulmPersistentObjects.Mod
 	$(VOCSTATIC) -sP ulmPersistentDisciplines.Mod
 	$(VOCSTATIC) -sP ulmOperations.Mod
+	$(VOCSTATIC) -sP ulmScales.Mod
+	$(VOCSTATIC) -sP ulmTimes.Mod
 	
 	
 	#pow32 libs

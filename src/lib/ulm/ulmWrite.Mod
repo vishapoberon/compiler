@@ -33,8 +33,8 @@
 
 MODULE ulmWrite;
 
-   IMPORT ASCII := ulmASCII, Print := ulmPrint, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, SYSTEM;
-   
+   IMPORT ASCII := ulmASCII, Print := ulmPrint, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, SYSTEM, SYS := ulmSYSTEM;
+  (* 
       TYPE barr = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
           pbarr = POINTER TO barr;
       TYPE lrarr = ARRAY SIZE(LONGREAL) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
@@ -63,21 +63,21 @@ MODULE ulmWrite;
    END LRealToByteArr;
 
 
-
+*)
 
    PROCEDURE IntS*(s: Streams.Stream; int: LONGINT; width: LONGINT);
-   VAR b, b0 : barr; 
+   VAR b, b0 : SYS.bytearray; 
    BEGIN
-      LongToByteArr(int, b);
-      LongToByteArr(width, b0);
+      SYS.LongToByteArr(int, b);
+      SYS.LongToByteArr(width, b0);
       Print.S2(s, "%*d", b0, b);
    END IntS;
 
    PROCEDURE RealS*(s: Streams.Stream; real: LONGREAL; width: LONGINT);
-   VAR b : barr; lr : lrarr;
+   VAR b : SYS.bytearray; lr : SYS.longrealarray;
    BEGIN
-      LRealToByteArr(real, lr);
-      LongToByteArr(width,  b);
+      SYS.LRealToByteArr(real, lr);
+      SYS.LongToByteArr(width,  b);
       Print.S2(s, "%*e", b, lr);
    END RealS;
 
