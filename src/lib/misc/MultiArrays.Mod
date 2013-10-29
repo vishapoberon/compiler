@@ -257,7 +257,7 @@ TYPE
       VAR i, n: LONGINT;
           AA: SIntArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS SIntArray) THEN NEW(AA) ELSE WITH A: SIntArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS SIntArray) THEN NEW(AA) ELSE IF A IS SIntArray THEN AA := A(SIntArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         IF data=NIL THEN NEW(data,n); copy := FALSE END;
@@ -276,7 +276,7 @@ TYPE
       VAR i, n: LONGINT;
           AA: IntArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS IntArray) THEN NEW(AA) ELSE WITH A: IntArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS IntArray) THEN NEW(AA) ELSE IF A IS IntArray THEN AA := A(IntArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         IF data=NIL THEN NEW(data,n); copy := FALSE END;
@@ -295,7 +295,7 @@ TYPE
       VAR i, n: LONGINT;
           AA: LIntArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS LIntArray) THEN NEW(AA) ELSE WITH A: LIntArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS LIntArray) THEN NEW(AA) ELSE IF A IS LIntArray THEN AA := A(LIntArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         IF data=NIL THEN NEW(data,n); copy := FALSE END;
@@ -333,7 +333,7 @@ TYPE
       VAR i, n:LONGINT;
           AA:RealArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS RealArray) THEN NEW(AA) ELSE WITH A:RealArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS RealArray) THEN NEW(AA) ELSE IF A IS RealArray THEN AA := A(RealArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         IF data=NIL THEN NEW(data,n); copy := FALSE END;
@@ -352,7 +352,7 @@ TYPE
       VAR i, n: LONGINT;
           AA: LRealArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS LRealArray) THEN NEW(AA) ELSE WITH A:LRealArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS LRealArray) THEN NEW(AA) ELSE IF A IS LRealArray THEN AA := A(LRealArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         IF data=NIL THEN NEW(data,n); copy := FALSE END;
@@ -371,7 +371,7 @@ TYPE
       VAR i, n: LONGINT;
           AA: BoolArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS BoolArray) THEN NEW(AA) ELSE WITH A: BoolArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS BoolArray) THEN NEW(AA) ELSE IF A IS BoolArray THEN AA := A(BoolArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         IF data=NIL THEN NEW(data,n); copy := FALSE END;
@@ -391,7 +391,7 @@ TYPE
       VAR i, n: LONGINT;
           AA: ComplexArray;
       BEGIN
-        IF (A=NIL) OR ~(A IS ComplexArray) THEN NEW(AA) ELSE WITH A: ComplexArray DO AA := A END END;
+        IF (A=NIL) OR ~(A IS ComplexArray) THEN NEW(AA) ELSE IF A IS ComplexArray THEN AA := A(ComplexArray) END END;
         n := 1;
         FOR i := 0 TO LEN(dimension^)-1 DO n := n*dimension[i] END;
         ASSERT (LEN(dataR^)=n); ASSERT (LEN(dataI^)=n);
