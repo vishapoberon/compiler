@@ -59,7 +59,7 @@ MODULE ulmScales;
 	    unit: Unit;
 	    next: UnitList;
 	 END;
-      Interface = POINTER TO InterfaceRec;
+      Interface* = POINTER TO InterfaceRec;
       ScaleRec* =
 	 RECORD
 	    (Disciplines.ObjectRec)
