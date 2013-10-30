@@ -84,8 +84,9 @@ MODULE Kernel;
 
   PROCEDURE GetClock* (VAR t, d: LONGINT);
     VAR tv: Unix.Timeval; tz: Unix.Timezone; time: RealTime;
+    l : LONGINT;
   BEGIN
-    Unix.Gettimeofday(tv, tz);
+    l := Unix.Gettimeofday(tv, tz);
     time := localtime(tv.sec);
     t := time.sec + ASH(time.min, 6) + ASH(time.hour, 12);
     d := time.mday + ASH(time.mon+1, 5) + ASH(time.year MOD 100, 9); 
@@ -98,8 +99,9 @@ MODULE Kernel;
 
   PROCEDURE Time*(): LONGINT;
     VAR timeval: Unix.Timeval; timezone: Unix.Timezone;
+    l : LONGINT;
   BEGIN
-    Unix.Gettimeofday(timeval, timezone);
+    l := Unix.Gettimeofday(timeval, timezone);
     RETURN (timeval.usec DIV 1000 + timeval.sec * 1000 - timeStart) MOD 7FFFFFFFH
   END  Time;
 
