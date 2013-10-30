@@ -254,7 +254,7 @@ TYPE
   PROCEDURE -Select*(width: LONGINT; VAR readfds, writefds, exceptfds: FdSet; VAR timeout: Timeval): LONGINT
     "select(width, readfds, writefds, exceptfds, timeout)";
 
-  PROCEDURE -Gettimeofday* (VAR tv: Timeval; VAR tz: Timezone)
+  PROCEDURE -Gettimeofday* (VAR tv: Timeval; VAR tz: Timezone) : LONGINT
     "gettimeofday(tv, tz)";
 
   PROCEDURE -Read* (fd, buf, nbyte: LONGINT): LONGINT
