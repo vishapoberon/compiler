@@ -26,6 +26,13 @@ add it in OPC.GenHeaderMsg function.
 
 ==known bugs==
 
-when SYSTEM.LSH(s, n) where s is SET c compiler generates an error: "error: duplicate 'unsigned'", that's because SET is defined as unsigned already and LSH is defined in SYSTEM.h as ((t)((unsigned t)(x)<<(n))), that's why currently it's not possible to make SYSTEM.LSH with type SET.
-I don't want to prohibit it at the parser level because C backend is only one of possible backends.
-The solution currently is to cast set type to longint before lsh-ing it. And then casting it back to set if necessary.
+when using SYSTEM.LSH(s, n) where s is SET, 
+c compiler generates an error like
+"error: duplicate 'unsigned'", 
+that's because SET is defined as unsigned in SYSTEM.h,
+while LSH is defined in SYSTEM.h as ((t)((unsigned t)(x)<<(n))), 
+and it makes not possible to make SYSTEM.LSH with type SET.
+I don't want to prohibit it at the parser level 
+because C backend is only one of possible backends.
+The solution currently is to cast set type to longint before lsh-ing it.
+And then casting it back to set if necessary.
