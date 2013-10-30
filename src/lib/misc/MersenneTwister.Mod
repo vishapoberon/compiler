@@ -1,9 +1,9 @@
-<* O2EXTENSIONS + *>
-<* IOVERFLOW - *>
-MODULE Random;
+(*<* O2EXTENSIONS + *>
+<* IOVERFLOW - *>*)
+MODULE MersenneTwister;
 
   IMPORT
-    Sys:=SYSTEM,Win:=Windows,MathL;
+    SYS:=SYSTEM,(*Win:=Windows*) SysClock := oocSysClock, MathL := oocLRealMath;
 
   CONST
     (* Period parameter *)
@@ -11,51 +11,56 @@ MODULE Random;
 
     (* Period parameters *)
     MT19937M=397;
-    MT19937MATRIX_A  =Sys.VAL(SET,9908b0dfH);  -- constant vector a
-    MT19937UPPER_MASK=Sys.VAL(SET,80000000H);  -- most significant w-r bits
-    MT19937LOWER_MASK=Sys.VAL(SET,7fffffffH);  -- least significant r bits
+    (*MT19937MATRIXA  =SYS.VAL(SET,-1727483681(*9908b0dfH*)); (* -- constant vector a*)
+    MT19937UPPERMASK=SYS.VAL(SET,80000000H); (* -- most significant w-r bits*)
+    MT19937LOWERMASK=SYS.VAL(SET,7fffffffH); (* -- least significant r bits*)
 
     (* Tempering parameters *)
-    TEMPERING_MASK_B=Sys.VAL(SET,9d2c5680H);
-    TEMPERING_MASK_C=Sys.VAL(SET,0efc60000H);
-
+    TEMPERINGMASKB=SYS.VAL(SET,9d2c5680H);
+    TEMPERINGMASKC=SYS.VAL(SET,0efc60000H);
+*)
     Seed0=4357;
   TYPE
-    tMT19937StateArray=ARRAY MT19937N OF SET; -- the array for the state vector
+    tMT19937StateArray=ARRAY MT19937N OF SET; (*-- the array for the state vector*)
 
   VAR
     Seed-:LONGINT;
 
+    MT19937MATRIXA, MT19937UPPERMASK, MT19937LOWERMASK : SET;
+    TEMPERINGMASKB, TEMPERINGMASKC : SET;
     mt : tMT19937StateArray;
-    mti: LONGINT; -- mti=MT19937N+1 means mt[] is not initialized
+    mti: LONGINT; (*-- mti=MT19937N+1 means mt[] is not initialized*)
 
     GaussRandomBuf:LONGREAL;
     GaussRandomBufFilled:BOOLEAN;
 
   (* Initializing the array with a seed *)
   PROCEDURE SetSeed*(seed:LONGINT);(* sgenrand_MT19937 *)
-    CONST
-      HighBits=Sys.VAL(SET,0ffff0000H);
+    (*CONST
+      HighBits=SYS.VAL(SET, 0ffff0000H);*)
     VAR
+      HighBits : SET;
       i:LONGINT;
     BEGIN
+      HighBits := SYS.VAL(SET, -65536(*0ffff0000H*));
       Seed:=seed;
       FOR i:=0 TO MT19937N-1 DO
-        mt[i]:=Sys.VAL(SET,seed) * HighBits;
+        mt[i]:=SYS.VAL(SET,seed) * HighBits;
         seed:=69069*seed+1;
-        mt[i]:=mt[i] + (Sys.SHIFT(Sys.VAL(SET,seed) * HighBits,-16));
+        (*mt[i]:=mt[i] + (SYS.SHIFT(SYS.VAL(SET,seed) * HighBits,-16));*)
+        mt[i]:=mt[i] + SYS.VAL(SET, (SYS.LSH(seed * SYS.VAL(LONGINT, HighBits),-16)));
         seed:=69069*seed+1;
       END;
       mti := MT19937N;
     END SetSeed;
 
   (* Initialization by array of seeds *)
-  PROCEDURE SetSeeds*(seed_array-:tMT19937StateArray); (* lsgenrand_MT19937 *)
+  PROCEDURE SetSeeds*(seedarray:tMT19937StateArray); (* lsgenrand_MT19937 *)
     VAR
       i:LONGINT;
     BEGIN
       FOR i:=0 TO MT19937N-1 DO
-        mt[i]:=seed_array[i];
+        mt[i]:=seedarray[i];
       END;
       mti:=MT19937N;
     END SetSeeds;
@@ -70,61 +75,77 @@ MODULE Random;
       kk:LONGINT;
     BEGIN
       mag01[0]:={};
-      mag01[1]:=MT19937MATRIX_A;
+      mag01[1]:=MT19937MATRIXA;
 
       IF mti>=MT19937N THEN (* generate MT19937N longints at one time *)
-        IF mti=(MT19937N+1) THEN  -- if sgenrand_MT19937() has not been called,
-          SetSeed(Seed0);   -- default initial seed is used
+        IF mti=(MT19937N+1) THEN  (*-- if sgenrand_MT19937() has not been called,*)
+          SetSeed(Seed0);   (*-- default initial seed is used*)
         END;
         FOR kk:=0 TO MT19937N-MT19937M-1 DO
-           y:=(mt[kk] * MT19937UPPER_MASK) + (mt[kk+1] * MT19937LOWER_MASK);
-           mt[kk]:=mt[kk+MT19937M]/Sys.SHIFT(y,-1)/mag01[Sys.VAL(LONGINT,y * {0})];
+           y:=(mt[kk] * MT19937UPPERMASK) + (mt[kk+1] * MT19937LOWERMASK);
+           (*mt[kk]:=mt[kk+MT19937M]/SYS.SHIFT(y,-1)/mag01[SYS.VAL(LONGINT,y * {0})];*)
+           
+	   (*mt[kk]:=mt[kk+MT19937M]/SYS.LSH(y,-1)/mag01[SYS.VAL(LONGINT,y * {0})];*)
+	   mt[kk]:=mt[kk+MT19937M]/SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),-1))/mag01[SYS.VAL(LONGINT,y * {0})];
+
+	   (*mt[kk] := mt[kk+MT19937M];
+	   mt[kk] := mt[kk]/SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),-1));
+	   mt[kk] := mt[kk] / mag01[SYS.VAL(LONGINT,y * {0})];*)
         END;
         FOR kk:=MT19937N-MT19937M TO MT19937N-2 DO
-          y:=(mt[kk] * MT19937UPPER_MASK) + (mt[kk+1] * MT19937LOWER_MASK);
-          mt[kk]:=mt[kk+(MT19937M-MT19937N)]/Sys.SHIFT(y,-1)/mag01[Sys.VAL(LONG
-INT,y * {0})];
+          y:=(mt[kk] * MT19937UPPERMASK) + (mt[kk+1] * MT19937LOWERMASK);
+          (*mt[kk]:=mt[kk+(MT19937M-MT19937N)]/SYS.LSH(y,-1)/mag01[SYS.VAL(LONGINT,y * {0})];*)
+          mt[kk]:=mt[kk+(MT19937M-MT19937N)]/SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),-1))/mag01[SYS.VAL(LONGINT,y * {0})];
         END;
-        y:=(mt[MT19937N-1] * MT19937UPPER_MASK) + (mt[0] * MT19937LOWER_MASK);
-        mt[MT19937N-1]:=mt[MT19937M-1]/Sys.SHIFT(y,-1)/mag01[Sys.VAL(LONGINT,y
-* {0})];
+        y:=(mt[MT19937N-1] * MT19937UPPERMASK) + (mt[0] * MT19937LOWERMASK);
+        (*mt[MT19937N-1]:=mt[MT19937M-1]/SYS.LSH(y,-1)/mag01[SYS.VAL(LONGINT,y* {0})];*)
+        mt[MT19937N-1]:=mt[MT19937M-1]/SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),-1))/mag01[SYS.VAL(LONGINT,y* {0})];
         mti:=0;
       END;
       y:=mt[mti]; INC(mti);
-      y:=y/Sys.SHIFT(y,-11);
-      y:=y/(Sys.SHIFT(y,7) * TEMPERING_MASK_B);
-      y:=y/(Sys.SHIFT(y,15) * TEMPERING_MASK_C);
-      y:=y/Sys.SHIFT(y,-18);
-      RETURN Sys.VAL(LONGINT,y);
+      y:=y/SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),-11));
+      y:=y/(SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),7)) * TEMPERINGMASKB);
+      y:=y/(SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),15)) * TEMPERINGMASKC);
+      y:=y/SYS.VAL(SET, SYS.LSH(SYS.VAL(LONGINT, y),-18));
+      RETURN SYS.VAL(LONGINT,y);
     END Int;
 
   (*randomization*)
   PROCEDURE Randomize*(); (* Randomize_MT19937 *)
-    VAR
-      ST:Win.SYSTEMTIME;
+    VAR sec, usec, l : LONGINT;
+      (*ST:Win.SYSTEMTIME;*)
     BEGIN
-      Win.GetSystemTime(ST);
-      SetSeed(((Sys.VAL(LONGINT,ST.wHour)*60+ST.wMinute)*60+ST.wSecond)*1000+S
-T.wMilliseconds);
+      (*Win.GetSYS.emTime(ST);
+      SetSeed(((SYS.VAL(LONGINT,ST.wHour)*60+ST.wMinute)*60+ST.wSecond)*1000+S
+T.wMilliseconds);*)
+    l := SysClock.GetTimeOfDay(sec, usec);
+    IF l = 0 THEN SetSeed(sec*usec) ELSE HALT(1) END
+    (*IF l = 0 THEN SetSeed(sec*1000 + usec / 1000) ELSE HALT(1) END*) (* this way it'll repeat every 24 days; -- noch *)
+    (*IF l = 0 THEN SetSeed(sec*100 + usec / 100) ELSE HALT(1) END*) (* this way it'll repeat every 248 days; -- noch *)
     END Randomize;
 
   (*integer RANDOM with positive range*)
-  -- bug fixed 21.6.2000.
+  (*-- bug fixed 21.6.2000.*)
   PROCEDURE IntRange*(Range:LONGINT):LONGINT; (* RandInt_MT19937 *)
     TYPE
     VAR
-      X:Sys.CARD64;
+      (*X:SYS.CARD64;*)
+      X:LONGINT;
     BEGIN
       X:=Range;
-      X:=X * Sys.VAL(Sys.CARD64,Int());
-      Sys.MOVE(Sys.ADR(X)+4,Sys.ADR(Range),4);
+      (*X:=X * SYS.VAL(SYS.CARD64,Int());*)
+      X:=X * Int();
+      SYS.MOVE(SYS.ADR(X)+SIZE(INTEGER)(*4*),SYS.ADR(Range),SIZE(INTEGER)(*4*));
       RETURN Range;
     END IntRange;
 
   (*float RANDOM on 0..1 interval*)
   PROCEDURE Real*():LONGREAL; (* RandFloat_MT19937 *)
+    VAR l : LONGINT;
     BEGIN
-      RETURN Sys.VAL(Sys.CARD32,Int())/(1.0*MAX(Sys.CARD32)+1)
+      (*RETURN SYS.VAL(SYS.CARD32,Int())/(1.0*MAX(SYS.CARD32)+1)*)
+      l := Int();
+      RETURN l/(1.0*MAX(LONGINT)+1)
     END Real;
 
   PROCEDURE Gauss*(mean,std:LONGREAL):LONGREAL;
@@ -143,15 +164,23 @@ T.wMilliseconds);
         result:=r1*s*std+mean;
         GaussRandomBuf:=r2*s;
       END;
-      GaussRandomBufFilled:=NOT GaussRandomBufFilled;
+      (*GaussRandomBufFilled:=NOT GaussRandomBufFilled;*)
+      GaussRandomBufFilled := ~GaussRandomBufFilled;
       RETURN result
     END Gauss;
 
 BEGIN
+  MT19937MATRIXA := SYS.VAL(SET,-1727483681)(*9908b0dfH*); (* -- constant vector a*)
+  MT19937UPPERMASK := SYS.VAL(SET,80000000H); (* -- most significant w-r bits*)
+  MT19937LOWERMASK := SYS.VAL(SET, 2147483647 (* 7fffffffH*)); (* -- least significant r bits*)
+
+  (* Tempering parameters *)
+  TEMPERINGMASKB := SYS.VAL(SET, -1658038656  (*9d2c5680H*));
+  TEMPERINGMASKC := SYS.VAL(SET, -272236544 (*0efc60000H*));
   Seed:=Seed0;
   mti:=MT19937N+1;
   GaussRandomBufFilled:=FALSE;
-END Random.
+END MersenneTwister.
 
 (*----------------------------------------------------------------------
    Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
