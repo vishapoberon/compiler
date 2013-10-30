@@ -200,6 +200,7 @@ stage6:
 	#misc libs
 	$(VOCSTATIC) -sP MultiArrays.Mod
 	$(VOCSTATIC) -sP MultiArrayRiders.Mod
+	$(VOCSTATIC) -sP MersenneTwister.Mod
 	
 
 stage7:
