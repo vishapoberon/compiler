@@ -1,7 +1,7 @@
 (* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
-MODULE MD5;  (** portable *) (* ejz  *)
+MODULE ethMD5;  (** portable *) (* ejz  *)
   IMPORT SYSTEM;
 
 (** The MD5 Message-Digest Algorithm (RFC1321)
@@ -292,4 +292,4 @@ under a public-key cryptosystem such as RSA. *)
     str[32] := 0X
   END ToString;
 
-END MD5.
+END ethMD5.

@@ -1,7 +1,7 @@
 (* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
-MODULE ZlibDeflate;  (** Stefan Walthert  **)
+MODULE ethZlibDeflate;  (** Stefan Walthert  **)
 
   (**
     Compression of byte streams with deflate algorithm
@@ -13,7 +13,7 @@ MODULE ZlibDeflate;  (** Stefan Walthert  **)
   *)
   
 IMPORT
-  SYSTEM, Zlib, ZlibBuffers;
+  SYSTEM, Zlib := ethZlib, ZlibBuffers := ethZlibBuffers;
 
 CONST
   (** Result codes for compression/decompression functions **)
@@ -1489,4 +1489,4 @@ BEGIN
     ConfigTable[8].MaxChain := 1024; ConfigTable[8].Compress :=  CompressSlow;
   ConfigTable[9].GoodLen := 32; ConfigTable[9].MaxLazy := 128; ConfigTable[9].NiceLen := 258; 
     ConfigTable[9].MaxChain := 4096; ConfigTable[9].Compress :=  CompressSlow;            (* maximum compression *)
-END ZlibDeflate.
+END ethZlibDeflate.

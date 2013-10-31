@@ -1,7 +1,7 @@
 (* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
-MODULE ZlibInflate;  (** eos  **)
+MODULE ethZlibInflate;  (** eos  **)
 
   (**
     Decompression of deflated byte streams
@@ -18,7 +18,7 @@ MODULE ZlibInflate;  (** eos  **)
   *)
   
   IMPORT
-    SYSTEM, Zlib, ZlibBuffers;
+    SYSTEM, Zlib := ethZlib, ZlibBuffers := ethZlibBuffers;
   
   CONST
     (** result codes **)
@@ -1227,4 +1227,4 @@ BEGIN
   Order[0] := 16; Order[1] := 17; Order[2] := 18; Order[3] := 0; Order[4] := 8; Order[5] := 7; Order[6] := 9;
   Order[7] := 6; Order[8] := 10; Order[9] := 5; Order[10] := 11; Order[11] := 4; Order[12] := 12; Order[13] := 3;
   Order[14] := 13; Order[15] := 2; Order[16] := 14; Order[17] := 1; Order[18] := 15
-END ZlibInflate.
+END ethZlibInflate.

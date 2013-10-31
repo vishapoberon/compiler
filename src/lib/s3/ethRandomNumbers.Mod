@@ -1,7 +1,7 @@
 (* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
-MODULE RandomNumbers;  (** portable *)
+MODULE ethRandomNumbers;  (** portable *)
 (* Random Number Generator, page 12 *)
 IMPORT Math := oocOakMath, Oberon := Kernel, SYSTEM;
 
@@ -37,4 +37,4 @@ END InitSeed;
 BEGIN
   Oberon.GetClock(t, d);
   Z := SYSTEM.VAL(LONGINT, SYSTEM.VAL(SET, t) / SYSTEM.VAL(SET, d))
-END RandomNumbers.  (* Copyright M. Reiser, 1992 *)
+END ethRandomNumbers.  (* Copyright M. Reiser, 1992 *)
