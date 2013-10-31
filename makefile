@@ -212,6 +212,7 @@ stage6:
 	$(VOCSTATIC) -sP ZlibReaders.Mod
 	$(VOCSTATIC) -sP ZlibWriters.Mod
 	$(VOCSTATIC) -sP Zip.Mod
+	$(VOCSTATIC) -sP RandomNumbers.Mod
 
 
 stage7:
