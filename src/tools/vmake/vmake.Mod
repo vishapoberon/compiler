@@ -28,6 +28,22 @@ TYPE
     next: Import;
   END ;
 
+PROCEDURE showhelp;
+BEGIN
+Out.String ("vmake topologically sorts a set of Oberon source file names according to their import relationships"); Out.Ln;
+Out.String ("so that they are in a correct compilation order. The generated list can be prepended with the"); Out.Ln;
+Out.String ("command voc and can be compiled"); Out.Ln;
+Out.Ln;
+Out.String ("vmake {filename} ~"); Out.Ln;
+Out.String ("reads a list of file names describing Oberon modules. The import relationships of these"); Out.Ln;
+Out.String ("modules are inspected and the modules are sorted accordingly. The sorted list of file names"); Out.Ln;
+Out.String ("is written to the standard output."); Out.Ln;
+Out.String ("in case modules in different directories must be checked, it is also possible to use MODULES environment variable"); Out.Ln;
+Out.String ("which may contain module paths."); Out.Ln
+
+END showhelp;
+
+
 PROCEDURE Append (VAR name: ModuleName; ext: ARRAY OF CHAR);
   VAR i, j: INTEGER;
 BEGIN
@@ -40,9 +56,12 @@ PROCEDURE ReadModuleList (VAR list: Module);
   VAR m: Module; name: ModuleName;
 BEGIN
   In.Open; list := NIL; In.Name(name);
-  WHILE In.Done DO
-    NEW(m); m.name := name; m.imports := NIL; m.ref := 0; m.next := list; list := m;
-    In.Name(name)
+  IF ~In.Done THEN showhelp
+  ELSE
+     WHILE In.Done DO
+       NEW(m); m.name := name; m.imports := NIL; m.ref := 0; m.next := list; list := m;
+       In.Name(name)
+     END
   END
 END ReadModuleList;
 
