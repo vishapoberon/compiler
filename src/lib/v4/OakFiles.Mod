@@ -626,6 +626,11 @@ Especially Length would become fairly complex.
     Write(R, CHR(x MOD 128))
   END WriteNum;
 
+  PROCEDURE GetName*(f: File; VAR name: ARRAY OF CHAR);
+  BEGIN
+     COPY (f.workName, name);
+  END GetName;
+
   PROCEDURE Finalize(o: SYSTEM.PTR);
     VAR f: File; res: LONGINT;
   BEGIN
