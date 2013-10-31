@@ -1,10 +1,10 @@
 (* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
-MODULE ZlibWriters;  (** Stefan Walthert  **)
+MODULE ethZlibWriters;  (** Stefan Walthert  **)
 
 IMPORT
-  Files := OakFiles, Zlib, ZlibBuffers, ZlibDeflate;
+  Files := OakFiles, Zlib := ethZlib, ZlibBuffers := ethZlibBuffers, ZlibDeflate := ethZlibDeflate;
 
 CONST
   (** result codes **)
@@ -158,4 +158,4 @@ BEGIN
 END Compress;
   
 
-END ZlibWriters.
+END ethZlibWriters.

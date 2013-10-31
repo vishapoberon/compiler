@@ -1,7 +1,7 @@
 (* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
-MODULE Zlib;  (** Stefan Walthert  **)
+MODULE ethZlib;  (** Stefan Walthert  **)
 
 IMPORT
   SYSTEM;
@@ -157,4 +157,4 @@ END CRC32;
 
 BEGIN
   InitCRCTable();
-END Zlib.
+END ethZlib.

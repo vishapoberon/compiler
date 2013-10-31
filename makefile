@@ -203,16 +203,19 @@ stage6:
 	$(VOCSTATIC) -sP MersenneTwister.Mod
 	
 	#s3 libs
-	$(VOCSTATIC) -sP BTrees.Mod
-	$(VOCSTATIC) -sP MD5.Mod
-	$(VOCSTATIC) -sP Zlib.Mod
-	$(VOCSTATIC) -sP ZlibBuffers.Mod
-	$(VOCSTATIC) -sP ZlibInflate.Mod
-	$(VOCSTATIC) -sP ZlibDeflate.Mod
-	$(VOCSTATIC) -sP ZlibReaders.Mod
-	$(VOCSTATIC) -sP ZlibWriters.Mod
-	$(VOCSTATIC) -sP Zip.Mod
-	$(VOCSTATIC) -sP RandomNumbers.Mod
+	$(VOCSTATIC) -sP ethBTrees.Mod
+	$(VOCSTATIC) -sP ethMD5.Mod
+	$(VOCSTATIC) -sP ethSets.Mod
+	$(VOCSTATIC) -sP ethZlib.Mod
+	$(VOCSTATIC) -sP ethZlibBuffers.Mod
+	$(VOCSTATIC) -sP ethZlibInflate.Mod
+	$(VOCSTATIC) -sP ethZlibDeflate.Mod
+	$(VOCSTATIC) -sP ethZlibReaders.Mod
+	$(VOCSTATIC) -sP ethZlibWriters.Mod
+	$(VOCSTATIC) -sP ethZip.Mod
+	$(VOCSTATIC) -sP ethRandomNumbers.Mod
+	$(VOCSTATIC) -sP ethGZReaders.Mod
+	$(VOCSTATIC) -sP ethGZWriters.Mod
 
 
 stage7:
