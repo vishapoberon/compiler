@@ -8,9 +8,10 @@ Make.Order {filename} ~
   modules are inspected and the modules are sorted accordingly. The sorted list of file names
   is written to the standard output.
 -----------------------------------------------------------------------*)
+(* taken from trianus system source ; -- noch *)
 
-MODULE Make;  (*HM 94-06-22 /  *)
-IMPORT Texts, In, Out;
+MODULE vmake;  (*HM 94-06-22 /  *)
+IMPORT Texts := CmdlnTexts, In := compatIn, Out := Console;
 
 TYPE
   ModuleName = ARRAY 32 OF CHAR;
@@ -90,7 +91,7 @@ BEGIN
     IF prev = NIL THEN list := m.next ELSE prev.next := m.next END ;
     imp := m.imports; WHILE imp # NIL DO DEC(imp.mod.ref); imp := imp.next END ;
     Print(list);
-    Out.String(m.name); Out.String("/s"); Out.Ln
+    Out.String(m.name); (*Out.String(" -s");*) Out.Ln
   END
 END Print;
 
@@ -103,7 +104,10 @@ BEGIN
   Print(list)
 END Order;
 
-END Make.
+BEGIN
+Order
+
+END vmake.
 
 Make.Order
 POPB.Mod

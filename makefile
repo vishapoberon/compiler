@@ -9,7 +9,7 @@ RELEASE = 1.0
 
 INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
+SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
 
 VOC = voc
 VOCSTATIC0 = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
@@ -87,6 +87,8 @@ stage4:
 	$(VOCSTATIC0) -smPS voc.Mod
 	$(VOCSTATIC0) -smPS BrowserCmd.Mod
 	$(VOCSTATIC0) -smPS OCatCmd.Mod
+	$(VOCSTATIC0) -sPS compatIn.Mod
+	$(VOCSTATIC0) -smPS vmake.Mod
 
 #this is to build the compiler from C sources.
 #this is a way to create a bootstrap binary.
@@ -107,7 +109,9 @@ stage5:
 
 	$(CL) OCatCmd.c -o ocat \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
-
+	
+	$(CC) compatIn.c
+	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o version.o architecture.o
 
 
 # build all library files
@@ -246,6 +250,7 @@ install:
 	cp voc $(PREFIX)/bin/
 	cp showdef $(PREFIX)/bin/
 	cp ocat $(PREFIX)/bin/
+	cp vmake $(PREFIX)/bin/
 	cp -a src $(PREFIX)/
 
 	test -d $(PREFIX)/lib/voc | mkdir -p $(PREFIX)/lib/voc
