@@ -14,7 +14,7 @@ MODULE vmake;  (*HM 94-06-22 /  *)
 IMPORT Texts := CmdlnTexts, In := compatIn, Out := Console;
 
 TYPE
-  ModuleName = ARRAY 32 OF CHAR;
+  ModuleName = ARRAY 64 OF CHAR;
   Import = POINTER TO ImportDesc;
   Module = POINTER TO ModuleDesc;
   ModuleDesc = RECORD
