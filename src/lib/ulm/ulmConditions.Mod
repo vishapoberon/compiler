@@ -142,7 +142,7 @@ MODULE ulmConditions;
 	    gettime*: GetTimeProc;
 	    preconditions*: PreConditionsProc;
 	 END;
-      Description = POINTER TO DescriptionRec;
+      Description* = POINTER TO DescriptionRec;
       DescriptionRec* =
 	 RECORD
 	    (Objects.ObjectRec)
