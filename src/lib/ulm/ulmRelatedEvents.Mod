@@ -80,7 +80,7 @@ MODULE ulmRelatedEvents;
 	    object*: Object;
 	    event*: Events.Event;
 	 END;
-      Queue = POINTER TO QueueRec;
+      Queue* = POINTER TO QueueRec;
       QueueRec* =
 	 RECORD
 	    (Objects.ObjectRec)
