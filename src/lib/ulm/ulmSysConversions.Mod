@@ -63,7 +63,7 @@ MODULE ulmSysConversions;
       Oberon data types:
 
       a: Address
-      b: BYTE
+      b: SYS.BYTE
       B: BOOLEAN
       c: CHAR
       s: SHORTINT

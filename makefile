@@ -203,6 +203,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmConditions.Mod
 	$(VOCSTATIC) -sP ulmStreamConditions.Mod
 	$(VOCSTATIC) -sP ulmTimeConditions.Mod
+	$(VOCSTATIC) -sP ulmSysConversions.Mod
 	
 	
 	#pow32 libs
