@@ -199,6 +199,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmScales.Mod
 	$(VOCSTATIC) -sP ulmTimes.Mod
 	$(VOCSTATIC) -sP ulmClocks.Mod
+	$(VOCSTATIC) -sP ulmTimers.Mod
 	
 	
 	#pow32 libs
