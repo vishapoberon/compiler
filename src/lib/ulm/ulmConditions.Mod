@@ -91,7 +91,7 @@ MODULE ulmConditions;
 	 END;
 
       BucketTable = ARRAY tags OF ConditionList;
-      ConditionSet = POINTER TO ConditionSetRec;
+      ConditionSet* = POINTER TO ConditionSetRec;
       ConditionSetRec* =
 	 RECORD
 	    (Objects.ObjectRec)
