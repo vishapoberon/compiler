@@ -9,7 +9,7 @@ RELEASE = 1.0
 
 INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/lib/pow:src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/coco:src/test
+SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
 
 VOC = voc
 VOCSTATIC0 = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
@@ -87,6 +87,8 @@ stage4:
 	$(VOCSTATIC0) -smPS voc.Mod
 	$(VOCSTATIC0) -smPS BrowserCmd.Mod
 	$(VOCSTATIC0) -smPS OCatCmd.Mod
+	$(VOCSTATIC0) -sPS compatIn.Mod
+	$(VOCSTATIC0) -smPS vmake.Mod
 
 #this is to build the compiler from C sources.
 #this is a way to create a bootstrap binary.
@@ -107,13 +109,17 @@ stage5:
 
 	$(CL) OCatCmd.c -o ocat \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
-
+	
+	$(CC) compatIn.c
+	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o version.o architecture.o
 
 
 # build all library files
 stage6:
 	#more v4 libs
 	$(VOCSTATIC) -sP	Printer.Mod
+	$(VOCSTATIC) -sP	Strings.Mod
+
 	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod
 	$(VOCSTATIC) -sP	oocStrings.Mod
@@ -152,29 +158,78 @@ stage6:
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 
 	#Ulm's Oberon system libs
+	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSYSTEM.Mod
-	$(VOCSTATIC) -sP ulmASCII.Mod ulmSets.Mod
-	$(VOCSTATIC) -sP ulmObjects.Mod ulmDisciplines.Mod
-	$(VOCSTATIC) -sP ulmPriorities.Mod ulmServices.Mod ulmEvents.Mod ulmResources.Mod  ulmForwarders.Mod ulmRelatedEvents.Mod
-	$(VOCSTATIC) -sP ulmIO.Mod ulmProcess.Mod ulmTypes.Mod ulmStreams.Mod
+	$(VOCSTATIC) -sP ulmASCII.Mod
+	$(VOCSTATIC) -sP ulmSets.Mod
+	$(VOCSTATIC) -sP ulmObjects.Mod
+	$(VOCSTATIC) -sP ulmDisciplines.Mod
+	$(VOCSTATIC) -sP ulmPriorities.Mod
+	$(VOCSTATIC) -sP ulmServices.Mod
+	$(VOCSTATIC) -sP ulmEvents.Mod
+	$(VOCSTATIC) -sP ulmResources.Mod
+	$(VOCSTATIC) -sP ulmForwarders.Mod
+	$(VOCSTATIC) -sP ulmRelatedEvents.Mod
+	$(VOCSTATIC) -sP ulmIO.Mod
+	$(VOCSTATIC) -sP ulmProcess.Mod
+	$(VOCSTATIC) -sP ulmTypes.Mod
+	$(VOCSTATIC) -sP ulmStreams.Mod
 	$(VOCSTATIC) -sP ulmAssertions.Mod
-	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod ulmStreamDisciplines.Mod
-	$(VOCSTATIC) -sP ulmIEEE.Mod ulmMC68881.Mod ulmReals.Mod
+	$(VOCSTATIC) -sP ulmIndirectDisciplines.Mod
+	$(VOCSTATIC) -sP ulmStreamDisciplines.Mod
+	$(VOCSTATIC) -sP ulmIEEE.Mod
+	$(VOCSTATIC) -sP ulmMC68881.Mod
+	$(VOCSTATIC) -sP ulmReals.Mod
 	$(VOCSTATIC) -sP ulmPrint.Mod
+	$(VOCSTATIC) -sP ulmWrite.Mod
 	$(VOCSTATIC) -sP ulmTexts.Mod
-	$(VOCSTATIC) -sP ulmStrings.Mod ulmConstStrings.Mod
+	$(VOCSTATIC) -sP ulmStrings.Mod
 	$(VOCSTATIC) -sP ulmConstStrings.Mod
 	$(VOCSTATIC) -sP ulmPlotters.Mod
 	$(VOCSTATIC) -sP ulmSysTypes.Mod
-	$(VOCSTATIC) -sP ulmSys.Mod
 	$(VOCSTATIC) -sP ulmSysConversions.Mod
 	$(VOCSTATIC) -sP ulmErrors.Mod
 	$(VOCSTATIC) -sP ulmSysErrors.Mod
+	$(VOCSTATIC) -sP ulmSysIO.Mod
+	$(VOCSTATIC) -sP ulmLoader.Mod
+	$(VOCSTATIC) -sP ulmNetIO.Mod
+	$(VOCSTATIC) -sP ulmPersistentObjects.Mod
+	$(VOCSTATIC) -sP ulmPersistentDisciplines.Mod
+	$(VOCSTATIC) -sP ulmOperations.Mod
+	$(VOCSTATIC) -sP ulmScales.Mod
+	$(VOCSTATIC) -sP ulmTimes.Mod
+	$(VOCSTATIC) -sP ulmClocks.Mod
+	$(VOCSTATIC) -sP ulmTimers.Mod
+	$(VOCSTATIC) -sP ulmConditions.Mod
+	$(VOCSTATIC) -sP ulmStreamConditions.Mod
+	$(VOCSTATIC) -sP ulmTimeConditions.Mod
+	$(VOCSTATIC) -sP ulmSysConversions.Mod
+	$(VOCSTATIC) -sP ulmSysStat.Mod
 	
 	
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
+
+	#misc libs
+	$(VOCSTATIC) -sP MultiArrays.Mod
+	$(VOCSTATIC) -sP MultiArrayRiders.Mod
+	$(VOCSTATIC) -sP MersenneTwister.Mod
 	
+	#s3 libs
+	$(VOCSTATIC) -sP ethBTrees.Mod
+	$(VOCSTATIC) -sP ethMD5.Mod
+	$(VOCSTATIC) -sP ethSets.Mod
+	$(VOCSTATIC) -sP ethZlib.Mod
+	$(VOCSTATIC) -sP ethZlibBuffers.Mod
+	$(VOCSTATIC) -sP ethZlibInflate.Mod
+	$(VOCSTATIC) -sP ethZlibDeflate.Mod
+	$(VOCSTATIC) -sP ethZlibReaders.Mod
+	$(VOCSTATIC) -sP ethZlibWriters.Mod
+	$(VOCSTATIC) -sP ethZip.Mod
+	$(VOCSTATIC) -sP ethRandomNumbers.Mod
+	$(VOCSTATIC) -sP ethGZReaders.Mod
+	$(VOCSTATIC) -sP ethGZWriters.Mod
+
 
 stage7:
 	#objects := $(wildcard *.o)
@@ -204,6 +259,7 @@ install:
 	cp voc $(PREFIX)/bin/
 	cp showdef $(PREFIX)/bin/
 	cp ocat $(PREFIX)/bin/
+	cp vmake $(PREFIX)/bin/
 	cp -a src $(PREFIX)/
 
 	test -d $(PREFIX)/lib/voc | mkdir -p $(PREFIX)/lib/voc
