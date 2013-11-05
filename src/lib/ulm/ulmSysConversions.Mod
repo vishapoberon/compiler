@@ -139,7 +139,7 @@ MODULE ulmSysConversions;
 	    size1, size2: Address; elementsleft: INTEGER; flags: Flags;
 	 END;
 
-      Format = POINTER TO FormatRec;
+      Format* = POINTER TO FormatRec;
       FormatRec* =
 	 RECORD
 	    (Objects.ObjectRec)
