@@ -206,9 +206,10 @@ typedef struct
   Status* = RECORD (* struct stat *)
     dev* : LONGINT; (* dev_t 8 *)
     ino* : LONGINT; (* ino 8 *)
-    mode*(*nlink**) : LONGINT;
-    nlink*(*mode**) : INTEGER;
+    nlink* : LONGINT;
+    mode* : INTEGER;
     uid*, gid*: INTEGER;
+    pad0* : INTEGER;
     rdev* : LONGINT;
     size* : LONGINT;
     blksize* : LONGINT;
@@ -219,7 +220,7 @@ typedef struct
     mtimensec* : LONGINT;
     ctime* : LONGINT;
     ctimensec* : LONGINT; 
-    unused4*, unused5*: LONGINT;
+    unused0*, unused1*, unused2*: LONGINT;
   END ;
  
 (* from /usr/include/bits/time.h

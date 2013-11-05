@@ -103,7 +103,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      d0 := Unix.Pipe(arg1);
      RETURN d0 >= 0;
   ELSIF syscall = Sys.newstat THEN
-     d0 := Unix.Stat(arg1, arg2);
+     (*d0 := Unix.Stat(arg1, arg2);*)
      RETURN d0 >= 0;
   END
 
