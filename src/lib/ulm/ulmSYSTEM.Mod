@@ -3,6 +3,7 @@ IMPORT SYSTEM, Unix, Sys := ulmSys;
 
 TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      pstring = POINTER TO ARRAY 1024 OF CHAR;
+     pstatus = POINTER TO Unix.Status;
 
       TYPE bytearray* = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
           pbytearray* = POINTER TO bytearray;
@@ -55,6 +56,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
       ch : CHAR;
       pch : pchar;
       pstr : pstring; 
+      pst : pstatus;
   BEGIN
   
   IF syscall = Sys.read THEN
@@ -103,7 +105,13 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      d0 := Unix.Pipe(arg1);
      RETURN d0 >= 0;
   ELSIF syscall = Sys.newstat THEN
-     (*d0 := Unix.Stat(arg1, arg2);*)
+     pst := SYSTEM.VAL(pstatus, arg2);
+     pstr := SYSTEM.VAL(pstring, arg1);
+     d0 := Unix.Stat(pstr^, pst^);
+     RETURN d0 >= 0
+  ELSIF syscall = Sys.newfstat THEN
+     pst := SYSTEM.VAL(pstatus, arg2);
+     d0 := Unix.Fstat(arg1, pst^);
      RETURN d0 >= 0;
   END
 

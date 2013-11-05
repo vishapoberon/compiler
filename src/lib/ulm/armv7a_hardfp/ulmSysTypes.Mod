@@ -41,7 +41,7 @@ MODULE ulmSysTypes;
 
       File* = (*INTEGER*)LONGINT; (* in ulm's system both INTEGER and LONGINT are 4 bytes long *)
       Offset* = LONGINT;
-      Device* = INTEGER;
+      Device* = LONGINT;
       Inode* = LONGINT;
       Time* = LONGINT;
 
