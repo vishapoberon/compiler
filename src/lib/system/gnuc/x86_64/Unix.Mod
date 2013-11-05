@@ -206,8 +206,8 @@ typedef struct
   Status* = RECORD (* struct stat *)
     dev* : LONGINT; (* dev_t 8 *)
     ino* : LONGINT; (* ino 8 *)
-    nlink* : LONGINT;
-    mode* : INTEGER;
+    mode*(*nlink**) : LONGINT;
+    nlink*(*mode**) : INTEGER;
     uid*, gid*: INTEGER;
     rdev* : LONGINT;
     size* : LONGINT;
