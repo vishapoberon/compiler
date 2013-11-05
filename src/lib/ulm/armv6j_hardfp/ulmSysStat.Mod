@@ -39,7 +39,7 @@ MODULE ulmSysStat;
 
    (* examine inode: stat(2) and fstat(2) *)
 
-   IMPORT RelatedEvents := ulmRelatedEvents, Sys := ulmSys, SYS := SYSTEM, SysConversions := ulmSysConversions, SysError := ulmSysErrors,
+   IMPORT RelatedEvents := ulmRelatedEvents, Sys := ulmSys, SYS := SYSTEM, uSYS := ulmSYSTEM, SysConversions := ulmSysConversions, SysErrors := ulmSysErrors,
       SysTypes := ulmSysTypes;
 
    CONST
@@ -156,7 +156,7 @@ MODULE ulmSysStat;
 	 d0, d1, d2: LONGINT;
 	 origbuf: UnixStatRec;
    BEGIN
-      IF SYS.UNIXCALL(Sys.newstat, d0, d1, SYS.ADR(path), SYS.ADR(origbuf), d2) THEN
+      IF uSYS.UNIXCALL(Sys.newstat, d0, d1, SYS.ADR(path), SYS.ADR(origbuf), d2) THEN
 	 SysConversions.ByFmtFromC(origbuf, buf, statbuffmt);
 	 RETURN TRUE
       ELSE
@@ -164,7 +164,7 @@ MODULE ulmSysStat;
 	 RETURN FALSE
       END;
    END Stat;
-
+(*
    PROCEDURE Lstat*(path: ARRAY OF CHAR; VAR buf: StatRec;
 		   errors: RelatedEvents.Object) : BOOLEAN;
       VAR
@@ -179,14 +179,14 @@ MODULE ulmSysStat;
 	 RETURN FALSE
       END;
    END Lstat;
-
+*)
    PROCEDURE Fstat*(fd: SysTypes.File; VAR buf: StatRec;
 		   errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-	 d0, d1: INTEGER;
+	 d0, d1, d2: LONGINT;
 	 origbuf: UnixStatRec;
    BEGIN
-      IF SYS.UNIXCALL(Sys.newfstat, d0, d1, fd, SYS.ADR(origbuf)) THEN
+      IF uSYS.UNIXCALL(Sys.newfstat, d0, d1, fd, SYS.ADR(origbuf), d2) THEN
 	 SysConversions.ByFmtFromC(origbuf, buf, statbuffmt);
 	 RETURN TRUE
       ELSE

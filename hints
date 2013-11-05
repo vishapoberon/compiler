@@ -2,7 +2,8 @@
 0) generate voc.par file for the target platform(if it's not exist in src/par).
    you can do it by compiling vocparam, and running it as "./vocparam > voc.par"
 1) generate voc, ocat, showdef source for target platform by running
-   make port0
+   make -f makefile.gnuc.<arch> port0
+   (or copy corresponding voc.par to the source directory yourself, remove stage2 from port0 section of the makefile, and run make port0)
 2) transfer source to a target platform and write
    make port1
    (or use a crosscompiler)
