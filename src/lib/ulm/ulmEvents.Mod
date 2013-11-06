@@ -39,7 +39,7 @@
 
 MODULE ulmEvents;
 
-   IMPORT Objects := ulmObjects, Priorities := ulmPriorities, Services := ulmServices, SYS := ulmSYSTEM, SYSTEM;
+   IMPORT Objects := ulmObjects, Priorities := ulmPriorities, Services := ulmServices, SYS := ulmSYSTEM;
 
    TYPE
       EventType* = POINTER TO EventTypeRec;
@@ -316,12 +316,13 @@ MODULE ulmEvents;
       *)
       VAR b : BOOLEAN; (* noch *)
       tmphandler : EventHandler;
-      i,j : LONGINT;
+      (*i,j : LONGINT;*)
    BEGIN
-      i := SYSTEM.VAL(LONGINT, handler);
+      (*i := SYSTEM.VAL(LONGINT, handler);*)
       tmphandler := NilHandler;
-      j := SYSTEM.VAL(LONGINT, tmphandler);
-      b := i # j;
+      (*b := tmphandler = handler;*)
+      (*j := SYSTEM.VAL(LONGINT, tmphandler);
+      b := i # j;*)
       b := handler # tmphandler;
       (*ASSERT (handler # NilHandler);*)
       ASSERT(b);
