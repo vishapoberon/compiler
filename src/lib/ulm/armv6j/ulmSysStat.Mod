@@ -98,9 +98,9 @@ MODULE ulmSysStat;
 					   a directory entry for this file *)
 	    inode*: SysTypes.Inode;	(* inode number *)
 	    mode*: SET;			(* file mode; see mknod(2) *)
-	    nlinks*: INTEGER;		(* number of links *)
-	    uid*: INTEGER;		(* user id of the file's owner *)
-	    gid*: INTEGER;		(* group id of the file's group *)
+	    nlinks*: LONGINT;		(* number of links *)
+	    uid*: LONGINT;		(* user id of the file's owner *)
+	    gid*: LONGINT;		(* group id of the file's group *)
 	    rdev*: SysTypes.Device;	(* ID of device
 					   this entry is defined only for
 					   character special or block
@@ -146,7 +146,8 @@ MODULE ulmSysStat;
    CONST
       statbufconv =
       (*"is=dev/-s=pad1/ll=ino/Ss=mode/4*is=nlink+uid+gid+rdev/-s=pad2/ll=size/2*ll=blksize,blocks/il=atime/-l/il=mtime/-l/il=ctime/3*-l";*)
-      "ls=dev/-s=pad1/lL=ino/Ss=mode/4*is=nlink+uid+gid+rdev/-s=pad2/lL=size/2*lL=blksize,blocks/lL=atime/-l/lL=mtime/-l/lL=ctime/3*-l";
+      (*"ls=dev/-s=pad1/lL=ino/Ss=mode/4*is=nlink+uid+gid+rdev/-s=pad2/lL=size/2*lL=blksize,blocks/lL=atime/-l/lL=mtime/-l/lL=ctime/3*-l";*)
+      "ll=dev/-l=devx/-s=pad1/ll=ino/Sl=mode/ll=nlink/ll=uid/ll=gid/ll=rdev/-l=rdevx/-s=pad2/ll=size/2*ll=blksize,blocks/lL=atime/-l/lL=mtime/-l/lL=ctime/3*-l";
    VAR
       statbuffmt: SysConversions.Format;
 
