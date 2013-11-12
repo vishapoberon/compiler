@@ -1,5 +1,5 @@
 (* This module is obsolete.  Don't use it. *)
-MODULE oocFilenames;
+MODULE Filenames;
 (* Note: It is not checked whether the concatenated strings fit into the
    variables given for them or not *)
 
@@ -184,4 +184,5 @@ PROCEDURE ExpandPath*(VAR full: ARRAY OF CHAR; path: ARRAY OF CHAR);
     END
   END ExpandPath;
 
-END oocFilenames.
+END Filenames.
+
