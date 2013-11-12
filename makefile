@@ -155,8 +155,8 @@ stage6:
 	$(VOCSTATIC) -sP oocMsg.Mod oocChannel.Mod
 	$(VOCSTATIC) -sP oocStrings2.Mod oocRts.Mod oocFilenames.Mod
 	$(VOCSTATIC) -sP oocTextRider.Mod oocBinaryRider.Mod oocJulianDay.Mod
-	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP oocFilenames.Mod
+	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 
 	#Ulm's Oberon system libs
 	$(VOCSTATIC) -sP ulmSys.Mod
