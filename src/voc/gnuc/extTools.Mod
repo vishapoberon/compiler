@@ -10,7 +10,7 @@ CC = cc $(CCOPT) -c
 VAR incPath0, incPath1, ccOpt, ccString, CFLAGS, tmp0, tmp1 : ARRAY 256 OF CHAR;
 
 PROCEDURE Assemble*(m : ARRAY OF CHAR);
-VAR cmd : ARRAY 256 OF CHAR;
+VAR cmd : ARRAY 1024 OF CHAR;
 cc : ARRAY 23 OF CHAR;
 ext : ARRAY 5 OF CHAR;
 BEGIN
