@@ -7,11 +7,11 @@ CLOBERONOPTS = -fPIC $(INCLUDEPATH) -L. -L/usr/lib -lOberon -static -g
 CC = cc $(CCOPT) -c
 *)
 
-VAR incPath0, incPath1, ccOpt, ccString, CFLAGS, tmp0, tmp1 : ARRAY 256 OF CHAR;
+VAR incPath0, incPath1, ccOpt, ccString, CFLAGS, tmp0, tmp1 : ARRAY 1023 OF CHAR;
 
 PROCEDURE Assemble*(m : ARRAY OF CHAR);
-VAR cmd : ARRAY 1024 OF CHAR;
-cc : ARRAY 23 OF CHAR;
+VAR cmd : ARRAY 1023 OF CHAR;
+cc : ARRAY 1023 OF CHAR;
 ext : ARRAY 5 OF CHAR;
 BEGIN
 COPY (ccString, cc);
@@ -28,10 +28,10 @@ END Assemble;
 
 
 PROCEDURE LinkMain*(VAR m : ARRAY OF CHAR; statically : BOOLEAN; additionalopts : ARRAY OF CHAR);
-VAR lpath : ARRAY 256 OF CHAR;
-cc : ARRAY 256 OF CHAR;
-ccopt : ARRAY 256 OF CHAR;
-cmd : ARRAY 256 OF CHAR;
+VAR lpath : ARRAY 1023 OF CHAR;
+cc : ARRAY 1023 OF CHAR;
+ccopt : ARRAY 1023 OF CHAR;
+cmd : ARRAY 1023 OF CHAR;
 ext : ARRAY 5 OF CHAR;
 BEGIN
 (*
@@ -51,7 +51,7 @@ Strings.Append(" -o ", cmd);
 Strings.Append(m, cmd);
 Strings.Append(" ", cmd);
 Strings.Append(ccOpt, cmd);
-(*Console.Ln; Console.String(cmd); Console.Ln;*) (* may be it's feasible to add debug mode later *)
+Console.Ln; Console.String(cmd); Console.Ln; (* may be it's feasible to add debug mode later *)
 Unix.system(cmd);
 END LinkMain;
 
