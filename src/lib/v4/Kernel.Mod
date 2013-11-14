@@ -169,9 +169,10 @@ BEGIN
   Args.GetEnv("OBERON", OBERON);
   (* always have current directory in module search path, noch *)
   Strings.Append(":.:", OBERON);
+  Strings.Append(MODULES, OBERON);
+  Strings.Append(":", OBERON);
   Strings.Append(version.prefix, OBERON);
   Strings.Append("/lib/voc/sym:", OBERON);
-  Strings.Append(MODULES, OBERON);
   Args.GetEnv("OBERON_LIB", LIB);
   TimeUnit := 1000; timeStart := 0; timeStart := Time()
 END Kernel.
