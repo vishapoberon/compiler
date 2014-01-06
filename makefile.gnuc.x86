@@ -2,7 +2,7 @@
 BUILDID=$(shell date +%Y/%m/%d)
 TOS = linux
 TARCH = x86
-#TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp
+#TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp powerpc
 CCOMP = gnuc
 RELEASE = 1.0
 

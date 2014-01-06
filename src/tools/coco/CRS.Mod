@@ -7,7 +7,7 @@ CONST
   EOL = 0DX;
   EOF = 0X;
   maxLexLen = 127;
-  noSym = 38;
+  noSym = 41;
 
 TYPE
   ErrorProc* = PROCEDURE (n: INTEGER; pos: LONGINT);
@@ -35,8 +35,11 @@ VAR
 
 PROCEDURE NextCh; (*return global variable ch*)
 BEGIN
-  Texts.Read(r, ch); INC(chPos);
-  IF ch = EOL THEN INC(chLine); lineStart := chPos + 1 END
+  IF oldEols > 0 THEN DEC(oldEols); ch := EOL
+  ELSE
+    Texts.Read(r, ch); INC(chPos);
+    IF ch = EOL THEN INC(chLine); lineStart := chPos + 1 END
+  END
 END NextCh;
 
 
@@ -52,8 +55,9 @@ BEGIN (*Comment*)
         IF (ch ="*") THEN
           NextCh;
           IF (ch =")") THEN
-            DEC(level); oldEols := chLine - startLine; NextCh;
-            IF level=0 THEN RETURN TRUE END
+            DEC(level);
+            IF level=0 THEN oldEols := chLine - startLine; NextCh; RETURN TRUE END;
+            NextCh;
           END;
         ELSIF (ch ="(") THEN
           NextCh;
@@ -79,33 +83,33 @@ VAR state: INTEGER; lexeme: ARRAY maxLexLen+1 OF CHAR;
     IF nextLen < maxLexLen THEN lexeme[nextLen] := 0X END;
     IF (lexeme[0] >= "A") & (lexeme[0] <= "W") THEN
       CASE lexeme[0] OF
-      | "A": IF lexeme = "ANY" THEN sym := 25
+      | "A": IF lexeme = "ANY" THEN sym := 26
         END
-      | "C": IF lexeme = "CASE" THEN sym := 19
-        ELSIF lexeme = "CHARACTERS" THEN sym := 11
-        ELSIF lexeme = "CHR" THEN sym := 22
-        ELSIF lexeme = "COMMENTS" THEN sym := 14
-        ELSIF lexeme = "COMPILER" THEN sym := 4
-        ELSIF lexeme = "CONTEXT" THEN sym := 33
+      | "C": IF lexeme = "CASE" THEN sym := 20
+        ELSIF lexeme = "CHARACTERS" THEN sym := 12
+        ELSIF lexeme = "CHR" THEN sym := 23
+        ELSIF lexeme = "COMMENTS" THEN sym := 15
+        ELSIF lexeme = "COMPILER" THEN sym := 5
+        ELSIF lexeme = "CONTEXT" THEN sym := 34
         END
-      | "E": IF lexeme = "END" THEN sym := 10
+      | "E": IF lexeme = "END" THEN sym := 11
         END
-      | "F": IF lexeme = "FROM" THEN sym := 15
+      | "F": IF lexeme = "FROM" THEN sym := 16
         END
-      | "I": IF lexeme = "IGNORE" THEN sym := 18
-        ELSIF lexeme = "IMPORT" THEN sym := 5
+      | "I": IF lexeme = "IGNORE" THEN sym := 19
+        ELSIF lexeme = "IMPORT" THEN sym := 6
         END
-      | "N": IF lexeme = "NESTED" THEN sym := 17
+      | "N": IF lexeme = "NESTED" THEN sym := 18
         END
-      | "P": IF lexeme = "PRAGMAS" THEN sym := 13
-        ELSIF lexeme = "PRODUCTIONS" THEN sym := 7
+      | "P": IF lexeme = "PRAGMAS" THEN sym := 14
+        ELSIF lexeme = "PRODUCTIONS" THEN sym := 8
         END
-      | "S": IF lexeme = "SYNC" THEN sym := 32
+      | "S": IF lexeme = "SYNC" THEN sym := 33
         END
-      | "T": IF lexeme = "TO" THEN sym := 16
-        ELSIF lexeme = "TOKENS" THEN sym := 12
+      | "T": IF lexeme = "TO" THEN sym := 17
+        ELSIF lexeme = "TOKENS" THEN sym := 13
         END
-      | "W": IF lexeme = "WEAK" THEN sym := 27
+      | "W": IF lexeme = "WEAK" THEN sym := 28
         END
       ELSE
       END
@@ -129,42 +133,50 @@ BEGIN
     |  1: IF (ch>="0") & (ch<="9") OR (ch>="A") & (ch<="Z") OR (ch>="a") & (ch<="z") THEN 
           ELSE sym := 1; CheckLiteral; RETURN
           END;
-    |  2: IF (ch<=CHR(12)) OR (ch>=CHR(14)) & (ch<="!") OR (ch>="#") THEN 
-          ELSIF (ch =CHR(34)) THEN state := 3; 
-          ELSE sym := noSym; RETURN
-          END;
-    |  3: sym := 2; RETURN
-    |  4: IF (ch<=CHR(12)) OR (ch>=CHR(14)) & (ch<="&") OR (ch>="(") THEN 
-          ELSIF (ch ="'") THEN state := 3; 
-          ELSE sym := noSym; RETURN
+    |  2: sym := 2; RETURN
+    |  3: sym := 3; RETURN
+    |  4: IF (ch>="0") & (ch<="9") THEN 
+          ELSE sym := 4; RETURN
           END;
     |  5: IF (ch>="0") & (ch<="9") THEN 
-          ELSE sym := 3; RETURN
+          ELSE sym := 42; RETURN
           END;
-    |  6: IF (ch>="0") & (ch<="9") THEN 
-          ELSE sym := 39; RETURN
+    |  6: IF (ch<=CHR(12)) OR (ch>=CHR(14)) & (ch<="!") OR (ch>="#") THEN 
+          ELSIF (ch=CHR(13)) THEN state := 3; 
+          ELSIF (ch =CHR(34)) THEN state := 2; 
+          ELSE sym := noSym; RETURN
           END;
-    |  7: sym := 6; RETURN
-    |  8: sym := 8; RETURN
-    |  9: IF (ch =")") THEN state := 22; 
-          ELSE sym := 9; RETURN
+    |  7: IF (ch<=CHR(12)) OR (ch>=CHR(14)) & (ch<="&") OR (ch>="(") THEN 
+          ELSIF (ch=CHR(13)) THEN state := 3; 
+          ELSIF (ch ="'") THEN state := 2; 
+          ELSE sym := noSym; RETURN
           END;
-    | 10: sym := 20; RETURN
+    |  8: sym := 7; RETURN
+    |  9: sym := 9; RETURN
+    | 10: IF (ch =">") THEN state := 23; 
+          ELSIF (ch =")") THEN state := 25; 
+          ELSE sym := 10; RETURN
+          END;
     | 11: sym := 21; RETURN
-    | 12: IF (ch =".") THEN state := 21; 
-          ELSE sym := 23; RETURN
+    | 12: sym := 22; RETURN
+    | 13: IF (ch =".") THEN state := 24; 
+          ELSE sym := 24; RETURN
           END;
-    | 13: sym := 24; RETURN
-    | 14: sym := 26; RETURN
-    | 15: sym := 28; RETURN
+    | 14: sym := 25; RETURN
+    | 15: sym := 27; RETURN
     | 16: sym := 29; RETURN
     | 17: sym := 30; RETURN
     | 18: sym := 31; RETURN
-    | 19: sym := 34; RETURN
-    | 20: sym := 35; RETURN
+    | 19: sym := 32; RETURN
+    | 20: IF (ch =".") THEN state := 22; 
+          ELSE sym := 35; RETURN
+          END;
     | 21: sym := 36; RETURN
     | 22: sym := 37; RETURN
-    | 23: sym := 0; ch := 0X; RETURN
+    | 23: sym := 38; RETURN
+    | 24: sym := 39; RETURN
+    | 25: sym := 40; RETURN
+    | 26: sym := 0; ch := 0X; RETURN
 
       END (*CASE*)
     ELSE sym := noSym; RETURN (*NextCh already done*)
@@ -195,7 +207,7 @@ BEGIN
 END Reset;
 
 BEGIN
-  start[0]:=23; start[1]:=0; start[2]:=0; start[3]:=0; 
+  start[0]:=26; start[1]:=0; start[2]:=0; start[3]:=0; 
   start[4]:=0; start[5]:=0; start[6]:=0; start[7]:=0; 
   start[8]:=0; start[9]:=0; start[10]:=0; start[11]:=0; 
   start[12]:=0; start[13]:=0; start[14]:=0; start[15]:=0; 
@@ -203,28 +215,29 @@ BEGIN
   start[20]:=0; start[21]:=0; start[22]:=0; start[23]:=0; 
   start[24]:=0; start[25]:=0; start[26]:=0; start[27]:=0; 
   start[28]:=0; start[29]:=0; start[30]:=0; start[31]:=0; 
-  start[32]:=0; start[33]:=0; start[34]:=2; start[35]:=0; 
-  start[36]:=6; start[37]:=0; start[38]:=0; start[39]:=4; 
-  start[40]:=12; start[41]:=13; start[42]:=0; start[43]:=10; 
-  start[44]:=0; start[45]:=11; start[46]:=9; start[47]:=0; 
-  start[48]:=5; start[49]:=5; start[50]:=5; start[51]:=5; 
-  start[52]:=5; start[53]:=5; start[54]:=5; start[55]:=5; 
-  start[56]:=5; start[57]:=5; start[58]:=0; start[59]:=7; 
-  start[60]:=19; start[61]:=8; start[62]:=20; start[63]:=0; 
+  start[32]:=0; start[33]:=0; start[34]:=6; start[35]:=0; 
+  start[36]:=5; start[37]:=0; start[38]:=0; start[39]:=7; 
+  start[40]:=13; start[41]:=14; start[42]:=0; start[43]:=11; 
+  start[44]:=0; start[45]:=12; start[46]:=10; start[47]:=0; 
+  start[48]:=4; start[49]:=4; start[50]:=4; start[51]:=4; 
+  start[52]:=4; start[53]:=4; start[54]:=4; start[55]:=4; 
+  start[56]:=4; start[57]:=4; start[58]:=0; start[59]:=8; 
+  start[60]:=20; start[61]:=9; start[62]:=21; start[63]:=0; 
   start[64]:=0; start[65]:=1; start[66]:=1; start[67]:=1; 
   start[68]:=1; start[69]:=1; start[70]:=1; start[71]:=1; 
   start[72]:=1; start[73]:=1; start[74]:=1; start[75]:=1; 
   start[76]:=1; start[77]:=1; start[78]:=1; start[79]:=1; 
   start[80]:=1; start[81]:=1; start[82]:=1; start[83]:=1; 
   start[84]:=1; start[85]:=1; start[86]:=1; start[87]:=1; 
-  start[88]:=1; start[89]:=1; start[90]:=1; start[91]:=15; 
-  start[92]:=0; start[93]:=16; start[94]:=0; start[95]:=0; 
+  start[88]:=1; start[89]:=1; start[90]:=1; start[91]:=16; 
+  start[92]:=0; start[93]:=17; start[94]:=0; start[95]:=0; 
   start[96]:=0; start[97]:=1; start[98]:=1; start[99]:=1; 
   start[100]:=1; start[101]:=1; start[102]:=1; start[103]:=1; 
   start[104]:=1; start[105]:=1; start[106]:=1; start[107]:=1; 
   start[108]:=1; start[109]:=1; start[110]:=1; start[111]:=1; 
   start[112]:=1; start[113]:=1; start[114]:=1; start[115]:=1; 
   start[116]:=1; start[117]:=1; start[118]:=1; start[119]:=1; 
-  start[120]:=1; start[121]:=1; start[122]:=1; start[123]:=17; 
-  start[124]:=14; start[125]:=18; start[126]:=0; start[127]:=0; 
+  start[120]:=1; start[121]:=1; start[122]:=1; start[123]:=18; 
+  start[124]:=15; start[125]:=19; start[126]:=0; start[127]:=0; 
+
 END CRS.

@@ -2,7 +2,7 @@
 BUILDID=$(shell date +%Y/%m/%d)
 TOS = linux
 TARCH = x86_64
-#TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp
+#TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp powerpc
 CCOMP = gnuc
 RELEASE = 1.0
 
@@ -249,11 +249,6 @@ clean:
 	rm *.c
 	rm *.a
 	rm *.sym
-
-coco:
-	$(JET) Sets.Mod Oberon.Mod CRS.Mod CRT.Mod CRA.Mod CRX.Mod CRP.Mod Coco.Mod -m
-	$(CC) Sets.c Oberon.c CRS.c CRT.c CRA.c CRX.c CRP.c
-	$(CL) -static -o Coco Coco.c Sets.o Oberon.o CRS.o CRT.o CRA.o CRX.o CRP.o CmdlnTexts.o SYSTEM.o Files.o -L. -lOberon -L/usr/lib -ldl
 
 install:
 	test -d $(PREFIX)/bin | mkdir -p $(PREFIX)/bin

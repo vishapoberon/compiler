@@ -19,7 +19,7 @@
 ==========================================================================*)
 MODULE Coco;
 
-IMPORT Oberon, (*TextFrames,*) Texts := CmdlnTexts,(* Viewers,*) CRS, CRP, CRT;
+IMPORT Oberon, TextFrames, Texts, Viewers, CRS, CRP, CRT;
 
 CONST minErrDist = 8;
 
@@ -42,55 +42,59 @@ BEGIN
   |  0: Msg("EOF expected")
   |  1: Msg("ident expected")
   |  2: Msg("string expected")
-  |  3: Msg("number expected")
-  |  4: Msg("'COMPILER' expected")
-  |  5: Msg("'IMPORT' expected")
-  |  6: Msg("';' expected")
-  |  7: Msg("'PRODUCTIONS' expected")
-  |  8: Msg("'=' expected")
-  |  9: Msg("'.' expected")
-  | 10: Msg("'END' expected")
-  | 11: Msg("'CHARACTERS' expected")
-  | 12: Msg("'TOKENS' expected")
-  | 13: Msg("'PRAGMAS' expected")
-  | 14: Msg("'COMMENTS' expected")
-  | 15: Msg("'FROM' expected")
-  | 16: Msg("'TO' expected")
-  | 17: Msg("'NESTED' expected")
-  | 18: Msg("'IGNORE' expected")
-  | 19: Msg("'CASE' expected")
-  | 20: Msg("'+' expected")
-  | 21: Msg("'-' expected")
-  | 22: Msg("'CHR' expected")
-  | 23: Msg("'(' expected")
-  | 24: Msg("')' expected")
-  | 25: Msg("'ANY' expected")
-  | 26: Msg("'|' expected")
-  | 27: Msg("'WEAK' expected")
-  | 28: Msg("'[' expected")
-  | 29: Msg("']' expected")
-  | 30: Msg("'{' expected")
-  | 31: Msg("'}' expected")
-  | 32: Msg("'SYNC' expected")
-  | 33: Msg("'CONTEXT' expected")
-  | 34: Msg("'<' expected")
-  | 35: Msg("'>' expected")
-  | 36: Msg("'(.' expected")
-  | 37: Msg("'.)' expected")
-  | 38: Msg("??? expected")
-  | 39: Msg("invalid TokenFactor")
-  | 40: Msg("invalid Factor")
-  | 41: Msg("invalid Factor")
-  | 42: Msg("invalid Term")
-  | 43: Msg("invalid Symbol")
-  | 44: Msg("invalid SimSet")
-  | 45: Msg("this symbol not expected in TokenDecl")
-  | 46: Msg("invalid TokenDecl")
-  | 47: Msg("invalid Declaration")
-  | 48: Msg("invalid Declaration")
-  | 49: Msg("invalid Declaration")
-  | 50: Msg("this symbol not expected in Coco")
-  | 51: Msg("invalid start of the program")
+  |  3: Msg("badString expected")
+  |  4: Msg("number expected")
+  |  5: Msg("'COMPILER' expected")
+  |  6: Msg("'IMPORT' expected")
+  |  7: Msg("';' expected")
+  |  8: Msg("'PRODUCTIONS' expected")
+  |  9: Msg("'=' expected")
+  | 10: Msg("'.' expected")
+  | 11: Msg("'END' expected")
+  | 12: Msg("'CHARACTERS' expected")
+  | 13: Msg("'TOKENS' expected")
+  | 14: Msg("'PRAGMAS' expected")
+  | 15: Msg("'COMMENTS' expected")
+  | 16: Msg("'FROM' expected")
+  | 17: Msg("'TO' expected")
+  | 18: Msg("'NESTED' expected")
+  | 19: Msg("'IGNORE' expected")
+  | 20: Msg("'CASE' expected")
+  | 21: Msg("'+' expected")
+  | 22: Msg("'-' expected")
+  | 23: Msg("'CHR' expected")
+  | 24: Msg("'(' expected")
+  | 25: Msg("')' expected")
+  | 26: Msg("'ANY' expected")
+  | 27: Msg("'|' expected")
+  | 28: Msg("'WEAK' expected")
+  | 29: Msg("'[' expected")
+  | 30: Msg("']' expected")
+  | 31: Msg("'{' expected")
+  | 32: Msg("'}' expected")
+  | 33: Msg("'SYNC' expected")
+  | 34: Msg("'CONTEXT' expected")
+  | 35: Msg("'<' expected")
+  | 36: Msg("'>' expected")
+  | 37: Msg("'<.' expected")
+  | 38: Msg("'.>' expected")
+  | 39: Msg("'(.' expected")
+  | 40: Msg("'.)' expected")
+  | 41: Msg("??? expected")
+  | 42: Msg("invalid TokenFactor")
+  | 43: Msg("invalid Factor")
+  | 44: Msg("invalid Factor")
+  | 45: Msg("invalid Term")
+  | 46: Msg("invalid Symbol")
+  | 47: Msg("invalid SimSet")
+  | 48: Msg("this symbol not expected in TokenDecl")
+  | 49: Msg("invalid TokenDecl")
+  | 50: Msg("invalid Attribs")
+  | 51: Msg("invalid Declaration")
+  | 52: Msg("invalid Declaration")
+  | 53: Msg("invalid Declaration")
+  | 54: Msg("this symbol not expected in CR")
+  | 55: Msg("invalid CR")
     ELSE Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)
     END
   ELSE
@@ -112,11 +116,13 @@ BEGIN
     | 215: Msg("undefined name")
     | 216: Msg("attributes not allowed in token declaration")
     | 217: Msg("name does not match name in heading")
+    | 218: Msg("bad string in semantic action")
+    | 219: Msg("Missing end of previous semantic action")
     | 220: Msg("token may be empty")
     | 221: Msg("token must not start with an iteration")
     | 222: Msg("only characters allowed in comment declaration")
     | 223: Msg("only terminals may be weak")
-    | 224:
+    | 224: Msg("tokens must not contain blanks")
     | 225: Msg("comment delimiter must not exceed 2 characters")
     | 226: Msg("character set contains more than one character")
     ELSE Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)
@@ -128,7 +134,7 @@ END Error;
 PROCEDURE Options(VAR s: Texts.Scanner);
   VAR i: INTEGER;
 BEGIN
-  IF s.nextCh = "/" THEN Texts.Scan(s); Texts.Scan(s);
+  IF s.nextCh = "\" THEN Texts.Scan(s); Texts.Scan(s);
     IF s.class = Texts.Name THEN i := 0;
       WHILE s.s[i] # 0X DO
         IF CAP(s.s[i]) = "X" THEN CRT.ddt[7] := TRUE
@@ -142,19 +148,19 @@ END Options;
 
 
 PROCEDURE Compile*;
-  VAR (*v: Viewers.Viewer;*)(* f: TextFrames.Frame; *) s: Texts.Scanner; src, t: Texts.Text;
+  VAR v: Viewers.Viewer; f: TextFrames.Frame; s: Texts.Scanner; src, t: Texts.Text;
     pos, beg, end, time: LONGINT; i: INTEGER;
 BEGIN
- (* Texts.OpenScanner(s, Oberon.Par.text, Oberon.Par.pos); Texts.Scan(s);
+  Texts.OpenScanner(s, Oberon.Par.text, Oberon.Par.pos); Texts.Scan(s);
   f := Oberon.Par.frame(TextFrames.Frame);
   src := NIL; pos := 0;
   IF (s.class = Texts.Char) & (s.c = "^") THEN
     Oberon.GetSelection(t, beg, end, time);
     IF time >= 0 THEN Texts.OpenScanner(s, t, beg); Texts.Scan(s) END
-  END;*)
+  END;
   IF s.class = Texts.Name THEN
     NEW(src); Texts.Open(src, s.s);
-  (*ELSIF (s.class = Texts.Char) & (s.c = "*") THEN
+  ELSIF (s.class = Texts.Char) & (s.c = "*") THEN
     v := Oberon.MarkedViewer();
     IF (v # NIL) & (v.dsc.next IS TextFrames.Frame) THEN
       src := v.dsc.next(TextFrames.Frame).text;
@@ -162,7 +168,7 @@ BEGIN
     END
   ELSIF (s.class = Texts.Char) & (s.c = "@") THEN
     Oberon.GetSelection(t, beg, end, time);
-    IF time >= 0 THEN src := t; pos := beg; s.s := " " END*)
+    IF time >= 0 THEN src := t; pos := beg; s.s := " " END
   END;
   IF src # NIL THEN
     Texts.WriteString (w, "Coco/R - Compiler-Compiler V2.2"); Texts.Append(Oberon.Log, w.buf);
@@ -175,6 +181,6 @@ BEGIN
 END Compile;
 
 BEGIN
-  Texts.OpenWriter(w);
-  Compile;
+  Texts.OpenWriter(w)
 END Coco.
+
