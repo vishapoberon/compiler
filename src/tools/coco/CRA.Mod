@@ -1,6 +1,14 @@
-MODULE CRA;  (* handles the DFA *)
+(* The following check seems to be unnecessary. It reported an error if a symbol + context
+          was a prefix of another symbol, e.g.:
+            s1 = "a" "b" "c".
+            s2 = "a" CONTEXT("b").
+          But this is ok
+        IF t.state.endOf # CRT.noSym THEN
+          PutS("$Ambiguous CONTEXT clause.$"); correct := FALSE
+        END*)
+MODULE CRA;  (* handles the DFA *) 
 
-IMPORT Oberon, Texts := CmdlnTexts, Sets, CRS, CRT;
+IMPORT Oberon, Texts, Sets, CRS, CRT;
 
 CONST
   maxStates = 300;
@@ -30,6 +38,9 @@ TYPE
     next:   Target;
   END;
 
+  
+
+
   Comment    = POINTER TO CommentNode;
   CommentNode = RECORD   (* info about a comment syntax *)
     start,stop: ARRAY 2 OF CHAR;
@@ -43,7 +54,6 @@ TYPE
     state: State;      (* new state *)
     next:  Melted;
   END;
-    
 
 VAR
   firstState: State;
@@ -53,9 +63,9 @@ VAR
   stateNr: INTEGER;  (*number of last allocated state*)
   firstMelted:  Melted;       (* list of melted states *)
   firstComment: Comment;      (* list of comments      *)
+  dirtyDFA: BOOLEAN;  (* DFA may be nondeterministic *)
   out: Texts.Writer;  (* current output *)
   fram: Texts.Reader;  (* scanner frame input *)
-
 
 PROCEDURE SemErr(nr: INTEGER);
 BEGIN CRS.Error(200+nr, CRS.pos)
@@ -101,8 +111,9 @@ BEGIN
   END;
   (*----- print ranges *)
   IF (top = 1) & (lo[0] = 0X) & (hi[1] = 7FX) & (CHR(ORD(hi[0]) + 2) = lo[1]) THEN
-    Sets.Fill(s1); Sets.Differ(s1, s); PutS("~ ("); PutRange(s1); Put(")")
+    Sets.Fill(s1); Sets.Differ(s1, s); PutS("~ "); PutRange(s1)
   ELSE
+    PutS("(");
     i := 0;
     WHILE i <= top DO
       IF hi[i] = lo[i] THEN   PutS("(ch="); PutC(lo[i])
@@ -113,7 +124,8 @@ BEGIN
       Put(")");
       IF i < top THEN PutS(" OR ") END;
       INC(i)
-    END
+    END;
+    PutS(")");
   END
 END PutRange;
 
@@ -217,6 +229,7 @@ END NewState;
 PROCEDURE NewTransition(from, to: State; typ, sym, tc: INTEGER);
   VAR a: Action; t: Target;
 BEGIN
+  IF to = firstState THEN SemErr(21) END;
   NEW(t); t^.state := to; t^.next := NIL;
   NEW(a); a^.typ := typ; a^.sym := sym; a^.tc := tc; a^.target := t;
   AddAction(a, from.firstAction)
@@ -359,17 +372,33 @@ BEGIN
   DelUnused
 END DeleteRedundantStates;
 
-
 PROCEDURE ConvertToStates*(gp0, sp: INTEGER);
 (*note: gn.line is abused as a state number!*)
-  VAR n: INTEGER; S: ARRAY maxStates OF State; gn: CRT.GraphNode;
+  VAR n: INTEGER; S: ARRAY maxStates OF State; visited: CRT.MarkList;
 
+  PROCEDURE NumberNodes (gp: INTEGER; state: State);
+    VAR gn: CRT.GraphNode;
+  BEGIN
+    IF gp = 0 THEN RETURN END; (*end of graph*)
+    CRT.GetNode(gp, gn);
+    IF gn.line # 0 THEN RETURN END; (*already visited*)
+    IF state = NIL THEN state := NewState() END;
+    INC(n); S[n] := state; gn.line := n; CRT.PutNode(gp, gn);
+    IF CRT.DelGraph(gp) THEN state.endOf := sp END; (*state is final state*)
+    CASE gn.typ OF
+      CRT.class, CRT.char: NumberNodes(ABS(gn.next), NIL)
+    |  CRT.opt: NumberNodes(ABS(gn.next), NIL); NumberNodes(gn.p1, state)
+    |  CRT.iter: NumberNodes(ABS(gn.next), state); NumberNodes(gn.p1, state)
+    |  CRT.alt: NumberNodes(gn.p1, state); NumberNodes(gn.p2, state)
+    END
+  END NumberNodes;
+  
   PROCEDURE TheState(gp: INTEGER): State;
     VAR state: State; gn: CRT.GraphNode;
   BEGIN
     IF gp = 0 THEN state := NewState(); state.endOf := sp; RETURN state
     ELSE CRT.GetNode(gp, gn); RETURN S[gn.line]
-    END 
+    END
   END TheState;
   
   PROCEDURE Step(from: State; gp: INTEGER);
@@ -384,45 +413,39 @@ PROCEDURE ConvertToStates*(gp0, sp: INTEGER);
     END
   END Step;
 
-  PROCEDURE FindTrans(gp: INTEGER; state: State);
-    VAR gn: CRT.GraphNode; new: BOOLEAN;
+  PROCEDURE FindTrans (gp: INTEGER; start: BOOLEAN);
+    VAR gn: CRT.GraphNode;
   BEGIN
-    IF gp = 0 THEN RETURN END;  (*end of graph*)
-    CRT.GetNode(gp, gn); 
-    IF gn.line # 0 THEN RETURN END;  (*already visited*)
-    new := state = NIL;
-    IF new THEN state := NewState() END;
-    INC(n); S[n] := state; gn.line := n; CRT.PutNode(gp, gn);
-    IF CRT.DelGraph(gp) THEN state.endOf := sp END; (*state is end state*)
+    IF (gp = 0) OR Sets.In(visited, gp) THEN RETURN END;
+    Sets.Incl(visited, gp); CRT.GetNode(gp, gn);
+    IF start THEN Step(S[gn.line], gp) END; (*start of group of equally numbered nodes*)
     CASE gn.typ OF
-      CRT.class, CRT.char: FindTrans(ABS(gn.next), NIL);
-    | CRT.opt:  FindTrans(ABS(gn.next), NIL); FindTrans(gn.p1, state)
-    | CRT.iter: FindTrans(ABS(gn.next), state); FindTrans(gn.p1, state)
-    | CRT.alt:  FindTrans(gn.p1, state); FindTrans(gn.p2, state)
-    END;
-    IF new OR (state = firstState) & (gp = gp0) THEN (*start of a group of equally numbered nodes*)
-      Step(state, gp)
+      CRT.class, CRT.char: FindTrans(ABS(gn.next), TRUE)
+    |  CRT.opt: FindTrans(ABS(gn.next), TRUE); FindTrans(gn.p1, FALSE)
+    |  CRT.iter: FindTrans(ABS(gn.next), FALSE); FindTrans(gn.p1, FALSE)
+    |  CRT.alt: FindTrans(gn.p1, FALSE); FindTrans(gn.p2, FALSE)
     END
   END FindTrans;
   
 BEGIN
   IF CRT.DelGraph(gp0) THEN SemErr(20) END;
-  CRT.GetNode(gp0, gn);
-  IF gn.typ = CRT.iter THEN SemErr(21) END;
-  n := 0; FindTrans(gp0, firstState)
+  n := 0; NumberNodes(gp0, firstState);
+  CRT.ClearMarkList(visited); FindTrans(gp0, TRUE)
 END ConvertToStates;
 
 
 PROCEDURE MatchDFA* (s: ARRAY OF CHAR; sp: INTEGER; VAR matchedSp: INTEGER);
-  VAR state, to: State; a: Action; i, len: INTEGER;
+  VAR state, to: State; a: Action; i, len: INTEGER; weakMatch: BOOLEAN;
 BEGIN (*s with quotes*)
-  state := firstState; i := 1; len := Length(s) - 1;
+  state := firstState; i := 1; len := Length(s) - 1; weakMatch := FALSE;
   LOOP (*try to match s against existing DFA*)
     IF i = len THEN EXIT END;
     a := TheAction(state, s[i]);
     IF a = NIL THEN EXIT END;
+    IF a^.typ = CRT.class THEN weakMatch := TRUE END;
     state := a.target.state; INC(i)
   END;
+  IF weakMatch & (i < len) THEN state := firstState; i := 1; dirtyDFA := TRUE END;
   WHILE i < len DO (*make new DFA for s[i..len-1]*)
     to := NewState();
     NewTransition(state, to, CRT.char, ORD(s[i]), CRT.normTrans);
@@ -542,11 +565,7 @@ VAR
           correct:=FALSE
         END
       END;
-      IF t^.state.ctx THEN ctx := TRUE;
-        IF t.state.endOf # CRT.noSym THEN
-          PutS("$Ambiguous CONTEXT clause.$"); correct := FALSE
-        END
-      END;
+      IF t^.state.ctx THEN ctx := TRUE;  END;
       t := t^.next
     END
   END GetStateSet;
@@ -594,7 +613,6 @@ BEGIN
   END;
   Texts.Append(Oberon.Log, out.buf)
 END MeltStates;
-
 
 PROCEDURE MakeDeterministic*(VAR correct: BOOLEAN);
   VAR state: State; changed: BOOLEAN;
@@ -677,56 +695,60 @@ BEGIN
 END PrintStates;
 
 
-PROCEDURE GenComment(com:Comment);
-  
+PROCEDURE GenComment(com:Comment; i: INTEGER);
+
   PROCEDURE GenBody;
   BEGIN
-    PutS("      LOOP$");
-    PutS("        IF "); PutChCond(com^.stop[0]); PutS(" THEN$");
+    PutS("    LOOP$");
+    PutS("      IF "); PutChCond(com^.stop[0]); PutS(" THEN$");
     IF Length(com^.stop) = 1 THEN
-      PutS("          DEC(level); oldEols := chLine - startLine; NextCh;$");
-      PutS("          IF level = 0 THEN RETURN TRUE END;$");
+      PutS("        DEC(level);$");
+      PutS("        IF level = 0 THEN oldEols := chLine - startLine; NextCh; RETURN TRUE END;$");
+      PutS("        NextCh;$");
     ELSE
+      PutS("        NextCh;$");
+      PutS("        IF "); PutChCond(com^.stop[1]); PutS(" THEN$");
+      PutS("          DEC(level);$");
+      PutS("          IF level=0 THEN oldEols := chLine - startLine; NextCh; RETURN TRUE END;$");
       PutS("          NextCh;$");
-      PutS("          IF "); PutChCond(com^.stop[1]); PutS(" THEN$");
-      PutS("            DEC(level); oldEols := chLine - startLine; NextCh;$");
-      PutS("            IF level=0 THEN RETURN TRUE END$");
-      PutS("          END;$");
+      PutS("        END;$");
     END;
     IF com^.nested THEN
-      PutS("        ELSIF "); PutChCond(com^.start[0]); PutS(" THEN$");
+      PutS("      ELSIF "); PutChCond(com^.start[0]); PutS(" THEN$");
       IF Length(com^.start) = 1 THEN
-        PutS("          INC(level); NextCh;$");
+        PutS("        INC(level); NextCh;$");
       ELSE
-        PutS("          NextCh;$");
-        PutS("          IF "); PutChCond(com^.start[1]); PutS(" THEN$");
-        PutS("            INC(level); NextCh;$");
-        PutS("          END;$");
+        PutS("        NextCh;$");
+        PutS("        IF "); PutChCond(com^.start[1]); PutS(" THEN$");
+        PutS("          INC(level); NextCh;$");
+        PutS("        END;$");
       END;
       END;
-    PutS("        ELSIF ch = EOF THEN RETURN FALSE$");
-    PutS("        ELSE NextCh END;$");
-    PutS("      END;$");
+    PutS("      ELSIF ch = EOF THEN RETURN FALSE$");
+    PutS("      ELSE NextCh END;$");
+    PutS("    END;$");
     END GenBody;
     
 BEGIN
-  PutS("  IF "); PutChCond(com^.start[0]); PutS(" THEN$");
+  PutS("PROCEDURE Comment"); PutI(i); PutS("(): BOOLEAN;$");
+  PutS("  VAR level, startLine: INTEGER; oldLineStart: LONGINT;$");
+  PutS("BEGIN$");
+  PutS("  level := 1; startLine := chLine; oldLineStart := lineStart;$");
   IF Length(com^.start) = 1 THEN
-    PutS("    NextCh;$");
+    PutS("  NextCh;$");
     GenBody;
-    PutS("  END;");
   ELSE
+    PutS("  NextCh;$");
+    PutS("  IF "); PutChCond(com^.start[1]); PutS(" THEN$");
     PutS("    NextCh;$");
-    PutS("    IF "); PutChCond(com^.start[1]); PutS(" THEN$");
-    PutS("      NextCh;$");
     GenBody;
-    PutS("    ELSE$");
-    PutS("      IF ch = EOL THEN DEC(chLine); lineStart := oldLineStart END;$");
-    PutS("      DEC(chPos, 2); Texts.OpenReader(r, src, chPos+1); NextCh; RETURN FALSE$");
-    PutS("    END$");
-    PutS("  END;");
+    PutS("  ELSE$");
+    PutS("    IF ch = EOL THEN DEC(chLine); lineStart := oldLineStart END;$");
+    PutS("    DEC(chPos, 2); Texts.OpenReader(r, src, chPos+1); NextCh; RETURN FALSE$");
+    PutS("  END$");
   END;
-  END GenComment;
+  PutS("END Comment"); PutI(i); PutS(";$$$")
+END GenComment;
 
 
 PROCEDURE CopyFramePart (stopStr: ARRAY OF CHAR); (*Copy from file <fram> to file <out> until <stopStr>*)
@@ -829,7 +851,7 @@ PROCEDURE *Show (t: Texts.Text; op: INTEGER; beg, end: LONGINT);
 END Show;
   
 
-PROCEDURE WriteScanner*;
+PROCEDURE WriteScanner* (VAR ok: BOOLEAN);
 VAR
   scanner: ARRAY 32 OF CHAR;
   name:     ARRAY 64 OF CHAR;
@@ -863,6 +885,7 @@ VAR
   END FillStartTab;
     
 BEGIN
+  IF dirtyDFA THEN MakeDeterministic(ok) END;
   FillStartTab;
   CRT.GetNode(CRT.root, gn); CRT.GetSym(gn.p1, sn);
   COPY(sn.name, scanner); l := Length(scanner); scanner[l] := "S"; scanner[l+1] := 0X;
@@ -877,22 +900,22 @@ BEGIN
   CopyFramePart("-->modulename"); PutS(scanner);
   CopyFramePart("-->declarations"); PutS("  noSym = "); PutI(CRT.maxT); Put(";");
   CopyFramePart("-->comment");
-  com := firstComment;
-  WHILE com # NIL DO GenComment(com); com := com^.next END;
+  com := firstComment; i := 0;
+  WHILE com # NIL DO GenComment(com, i); com := com^.next; INC(i) END;
   CopyFramePart("-->literals"); GenLiterals;
   
   CopyFramePart("-->GetSy1");
-  IF ~ Sets.In(CRT.ignored, ORD(EOL)) THEN PutS("  IF oldEols > 0 THEN DEC(oldEols); ch := EOL END;$") END;
   PutS("  WHILE (ch=20X)"); IF ~ Sets.Empty(CRT.ignored) THEN PutS(" OR ") END;
   PutRange(CRT.ignored); PutS(" DO NextCh END;");
   IF firstComment # NIL THEN
-    PutS("$    IF ("); com := firstComment;
+    PutS("$    IF "); com := firstComment; i := 0;
     WHILE com # NIL DO
       PutChCond(com^.start[0]);
+      PutS(" & Comment"); PutI(i); PutS("() ");
       IF com^.next # NIL THEN PutS(" OR ") END;
-      com := com^.next
+      com := com^.next; INC(i)
     END;
-    PutS(") & Comment() THEN Get(sym); RETURN END;")
+    PutS(" THEN Get(sym); RETURN END;")
   END;
   CopyFramePart("-->GetSy2");
   state := firstState.next;
@@ -912,7 +935,7 @@ BEGIN
   END;
   
   CopyFramePart("-->modulename"); PutS(scanner); Put(".");
-  NEW(t); (*t.notify := Show;*) Texts.Open(t, ""); Texts.Append(t, out.buf);
+  NEW(t); t.notify := Show; Texts.Open(t, ""); Texts.Append(t, out.buf);
   l := Length(scanner); scanner[l] := "."; scanner[l+1] := "M"; scanner[l+2] := "o"; scanner[l+3] := "d"; scanner[l+4] := 0X;
   Texts.Close(t, scanner)
 END WriteScanner;
@@ -922,9 +945,11 @@ PROCEDURE Init*;
 BEGIN
   firstState := NIL; lastState := NIL; stateNr := -1;
   rootState := NewState();
-  firstMelted := NIL; firstComment := NIL
+  firstMelted := NIL; firstComment := NIL;
+  dirtyDFA := FALSE
 END Init;
 
 BEGIN
   Texts.OpenWriter(out)
 END CRA.
+

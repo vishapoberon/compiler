@@ -1,6 +1,6 @@
-MODULE CRT; (* H.Moessenboeck 17.11.93, Cocol-R Tables *)
+MODULE CRT; (* Cocol-R Tables *)
 
-IMPORT Texts := CmdlnTexts, Oberon, Sets;
+IMPORT Texts := CmdlnTexts,(* Oberon, Sets;
 
 CONST
   maxSymbols* = 300;  (*max nr of t, nt, and pragmas*)
@@ -27,7 +27,7 @@ TYPE
   Name* = ARRAY 16 OF CHAR;  (*symbol name*)
   Position*   = RECORD     (*position of stretch of source text*)
     beg*: LONGINT;  (*start relative to beginning of file*)
-    len*: INTEGER;  (*length*)
+    len*: LONGINT;  (*length*)
     col*: INTEGER;  (*column number of start position*)
   END;
   
@@ -129,7 +129,7 @@ BEGIN
   HALT(99)
 END Restriction;
       
-PROCEDURE ClearMarkList(VAR m: MarkList);
+PROCEDURE ClearMarkList*(VAR m: MarkList);
   VAR i: INTEGER;
 BEGIN
   i := 0; WHILE i < maxNodes DIV Sets.size DO m[i] := {}; INC(i) END;
@@ -303,10 +303,10 @@ PROCEDURE CompFollowSets;
     WHILE j <= lastNt - firstNt DO (* for all nonterminals *)
       IF Sets.In(follow[i].nts, j) THEN
         Complete(j); Sets.Unite(follow[i].ts, follow[j].ts);
-        Sets.Excl(follow[i].nts, j)
+        IF i = curSy THEN Sets.Excl(follow[i].nts, j) END
       END;
       INC(j)
-    END;
+    END
   END Complete;
 
 BEGIN (* CompFollowSets *)
@@ -323,7 +323,7 @@ BEGIN (* CompFollowSets *)
     INC(curSy)
   END;
   CompFol(root); (*curSy=lastNt+1*)
-  
+
   curSy := 0;                  (*add indirect successors to follow.ts*)
   WHILE curSy <= lastNt - firstNt DO
     ClearMarkList(visited); Complete(curSy);
@@ -945,9 +945,8 @@ PROCEDURE TestIfNtToTerm* (VAR ok: BOOLEAN);
   BEGIN
     WHILE gp > 0 DO
       GetNode(gp, gn);
-      IF (gn.typ = nt) & ~ Sets.In(termList, gn.p1)
-      OR (gn.typ = alt) & ~ IsTerm(gn.p1) & ~ IsTerm(gn.p2) THEN RETURN FALSE
-      END;
+      IF (gn.typ = nt) & ~ Sets.In(termList, gn.p1) THEN RETURN FALSE END;
+      IF (gn.typ = alt) & ~ IsTerm(gn.p1) & ((gn.p2 = 0) OR ~IsTerm(gn.p2)) THEN RETURN FALSE END;
       gp := gn.next
     END;
     RETURN TRUE
@@ -992,3 +991,4 @@ BEGIN (* CRT *)
   gn[0].typ := -1; gn[0].p1 := 0; gn[0].p2 := 0; gn[0].next := 0; gn[0].line := 0;
   Texts.OpenWriter(w)
 END CRT.
+
