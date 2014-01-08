@@ -450,6 +450,15 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        MaxSInt := 7FH; MaxInt := 7FFFH; MaxLInt := 7FFFFFFFH;  (*2147483647*)
        MaxSet := SetSize * 8 -1; (* noch *)
       *)
+    ELSIF (version.defaultTarget = version.gnupowerpc) THEN
+      Console.String (" GNU ");
+      Console.String (version.arch); Console.String (" target"); Console.Ln;
+       ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
+       SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
+       CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
+       SetAlign := 4; RealAlign := 4; LRealAlign := 8; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
+
+
     ELSIF version.defaultTarget = version.gnux86 THEN
         Console.String("GNU "); Console.String(version.arch); Console.String(" target"); Console.Ln;
        ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
