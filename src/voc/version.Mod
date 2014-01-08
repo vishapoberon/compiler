@@ -2,7 +2,7 @@ MODULE version;
    IMPORT Strings := oocOakStrings, architecture;
 CONST     
 (* targets *)
-    gnux86* = 0; gnux8664* = 1; gnuarmv6j* = 2; gnuarmv6jhardfp* = 3;  gnuarmv7ahardfp* = 4;
+    gnux86* = 0; gnux8664* = 1; gnuarmv6j* = 2; gnuarmv6jhardfp* = 3;  gnuarmv7ahardfp* = 4; gnupowerpc* = 5;
 
 VAR arch-, version-, date-, versionLong-, prefix0-, prefix- : ARRAY 23 OF CHAR;
 defaultTarget* : INTEGER;
@@ -31,6 +31,8 @@ Strings.Append(date, versionLong);
     defaultTarget := gnuarmv6jhardfp
  ELSIF arch = "armv7a_hardfp" THEN
     defaultTarget := gnuarmv7ahardfp
+ ELSIF arch = "powerpc" THEN
+    defaultTarget := gnupowerpc
  ELSE
     defaultTarget := gnux8664
  END
