@@ -65,7 +65,7 @@ MODULE ulmTypes;
    CONST
       bigEndian* = 0;    (* SPARC, M68K etc *)
       littleEndian* = 1; (* Intel 80x86, VAX etc *)
-      byteorder* = littleEndian; (* machine-dependent constant *)
+      byteorder* = bigEndian; (* machine-dependent constant *)
    TYPE
       ByteOrder* = SHORTINT; (* bigEndian or littleEndian *)
 
