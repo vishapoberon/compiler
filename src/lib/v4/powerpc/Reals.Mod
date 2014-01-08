@@ -38,7 +38,8 @@ MODULE Reals;
   PROCEDURE ExpoL*(x: LONGREAL): INTEGER;
     VAR h: LONGINT;
   BEGIN
-    S.GET(S.ADR(x)+4, h);
+    (*S.GET(S.ADR(x)+4, h);*) (* commented out, powerpc is big endian *)
+    S.GET(S.ADR(x), h);
     RETURN SHORT(ASH(h, -20) MOD 2048)
   END ExpoL;
   
@@ -52,9 +53,11 @@ MODULE Reals;
     CONST expo = {1..11};
     VAR h: SET;
   BEGIN
-    S.GET(S.ADR(x)+4, h);
+    (*S.GET(S.ADR(x)+4, h);*) (* big endian *)
+    S.GET(S.ADR(x), h);
     h := h - expo + S.VAL(SET, ASH(LONG(e), 20));
-    S.PUT(S.ADR(x)+4, h)
+    (*S.PUT(S.ADR(x)+4, h)*)
+    S.PUT(S.ADR(x), h)
   END SetExpoL;
   
   PROCEDURE Convert*(x: REAL; n: INTEGER; VAR d: ARRAY OF CHAR);
