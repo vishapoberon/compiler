@@ -209,8 +209,8 @@ stage6:
 	$(VOCSTATIC) -sP ulmCiphers.Mod
 	$(VOCSTATIC) -sP ulmCipherOps.Mod
 	$(VOCSTATIC) -sP ulmBlockCiphers.Mod
-	
-	
+	$(VOCSTATIC) -sP ulmAsymmetricCiphers.Mod
+
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
 
