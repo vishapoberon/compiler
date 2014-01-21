@@ -206,6 +206,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmTimeConditions.Mod
 	$(VOCSTATIC) -sP ulmSysConversions.Mod
 	$(VOCSTATIC) -sP ulmSysStat.Mod
+	$(VOCSTATIC) -sP ulmCiphers.Mod
 	
 	
 	#pow32 libs
