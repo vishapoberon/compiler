@@ -44,7 +44,7 @@ TYPE
    InterfaceRec* = RECORD
       (Objects.ObjectRec)
       (* public *)
-      encrypt*, decrypt : CryptProc;
+      encrypt*, decrypt* : CryptProc;
    END;
 
 TYPE
