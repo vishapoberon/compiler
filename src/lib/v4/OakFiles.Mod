@@ -392,6 +392,11 @@ END ;
     r.offset := offset + 1; r.res := 0
   END Write;
 
+  PROCEDURE WriteByte* (VAR r : Rider; x : SYSTEM.BYTE); (* added for compatibility with PO 2013, -- noch *)
+  BEGIN
+     Write(r, x);
+  END WriteByte;
+
   PROCEDURE WriteBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
@@ -426,17 +431,6 @@ BEGIN
   END ;
   buf.data[offset] := x; r.offset := offset + 1; buf.chg := TRUE
 END Write;
-
-PROCEDURE WriteByte* (VAR r: Rider; x: SYSTEM.BYTE); (* added for compatibility with PO 2013, -- noch *)
-  VAR buf: Buffer; offset: LONGINT;
-BEGIN
-  buf := r.buf; offset := r.offset;
-  IF (offset >= bufsize) OR (r.org # buf.org) THEN 
-    Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset;
-  END ;
-  buf.data[offset] := x; r.offset := offset + 1; buf.chg := TRUE
-END Write;
-
 
 
 PROCEDURE WriteBytes ...
