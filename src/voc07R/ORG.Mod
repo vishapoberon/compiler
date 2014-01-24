@@ -1,5 +1,5 @@
 MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
-  IMPORT SYSTEM, Files, ORS, ORB;
+  IMPORT SYSTEM, Files := OakFiles, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
      Procedure Close writes code-files*)
@@ -513,20 +513,33 @@ MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
 
   PROCEDURE Singleton*(VAR x: Item);  (* x := {x} *)
   BEGIN
-    IF x.mode = ORB.Const THEN x.a := LSL(1, x.a)
-    ELSE load(x); Put1(Mov, RH, 0, 1); Put0(Lsl, x.r, RH,  x.r)
+    IF x.mode = ORB.Const THEN 
+       (*x.a := LSL(1, x.a)*) (* o7 -> o2 *)
+       x.a := ASH(1, x.a)
+    ELSE 
+       load(x); Put1(Mov, RH, 0, 1); Put0(Lsl, x.r, RH,  x.r)
     END
   END Singleton;
 
   PROCEDURE Set*(VAR x, y: Item);   (* x := {x .. y} *)
   BEGIN
     IF (x.mode = ORB.Const) & ( y.mode = ORB.Const) THEN
-      IF x.a <= y.a THEN x.a := LSL(2, y.a) - LSL(1, x.a) ELSE x.a := 0 END
+      IF x.a <= y.a THEN 
+         (*x.a := LSL(2, y.a) - LSL(1, x.a)*) (* o7 -> o2 *)
+         x.a := ASH(2, y.a) - ASH(1, x.a)
+      ELSE 
+         x.a := 0 
+      END
     ELSE
-      IF (x.mode = ORB.Const) & (x.a < 10H) THEN x.a := LSL(-1, x.a)
+      IF (x.mode = ORB.Const) & (x.a < 10H) THEN 
+         (*x.a := LSL(-1, x.a)*) (* o7 -> o2 *)
+         x.a := ASH(-1, x.a)
       ELSE load(x); Put1(Mov, RH, 0, -1); Put0(Lsl, x.r, RH, x.r)
       END ;
-      IF (y.mode = ORB.Const) & (y.a < 10H) THEN Put1(Mov, RH, 0, LSL(-2, y.a)); y.mode := Reg; y.r := RH; INC(RH)
+      IF (y.mode = ORB.Const) & (y.a < 10H) THEN 
+         (*Put1(Mov, RH, 0, LSL(-2, y.a)); *) (* o7 -> o2 *)
+         Put1(Mov, RH, 0, ASH(-2, y.a)); 
+	 y.mode := Reg; y.r := RH; INC(RH)
       ELSE load(y); Put1(Mov, RH, 0, -2); Put0(Lsl, y.r, RH, y.r)
       END ;
       IF x.mode = ORB.Const THEN
@@ -842,11 +855,15 @@ MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
     VAR zr: LONGINT;
   BEGIN loadAdr(x); zr := RH; Put2(Ldr, RH, x.r, 0); incR;
     IF inorex = 0 THEN (*include*)
-      IF y.mode = ORB.Const THEN Put1(Ior, zr, zr, LSL(1, y.a))
+      IF y.mode = ORB.Const THEN 
+         (*Put1(Ior, zr, zr, LSL(1, y.a))*) (* o7 -> o2 *)
+         Put1(Ior, zr, zr, ASH(1, y.a))
       ELSE load(y); Put1(Mov, RH, 0, 1); Put0(Lsl, y.r, RH, y.r); Put0(Ior, zr, zr, y.r); DEC(RH)
       END
     ELSE (*exclude*)
-      IF y.mode = ORB.Const THEN Put1(And, zr, zr, -LSL(1, y.a)-1)
+      IF y.mode = ORB.Const THEN 
+         (*Put1(And, zr, zr, -LSL(1, y.a)-1)*) (* o7 -> o2 *)
+         Put1(And, zr, zr, - ASH(1, y.a)-1)
       ELSE load(y); Put1(Mov, RH, 0, 1); Put0(Lsl, y.r, RH, y.r); Put1(Xor, y.r, y.r, -1); Put0(And, zr, zr, y.r); DEC(RH)
       END
     END ;
@@ -1037,7 +1054,9 @@ MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
   PROCEDURE FindPtrs(VAR R: Files.Rider; typ: ORB.Type; adr: LONGINT);
     VAR fld: ORB.Object; i, s: LONGINT;
   BEGIN
-    IF (typ.form = ORB.Pointer) OR (typ.form = ORB.NilTyp) THEN Files.WriteInt(R, adr)
+    IF (typ.form = ORB.Pointer) OR (typ.form = ORB.NilTyp) THEN 
+       (*Files.WriteInt(R, adr)*) (* o7 -> o2 *)
+       Files.WriteNum(R, adr)
     ELSIF typ.form = ORB.Record THEN
       fld := typ.dsc;
       WHILE fld # NIL DO FindPtrs(R, fld.type, fld.val + adr); fld := fld.next END
@@ -1070,41 +1089,70 @@ MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
     size := varsize + strx + comsize + (pc + nofimps + nofent + nofptrs + 1)*4;  (*varsize includes type descriptors*)
 
     ORB.MakeFileName(name, modid, ".rsc"); (*write code file*)
-    F := Files.New(name); Files.Set(R, F, 0); Files.WriteString(R, modid); Files.WriteInt(R, key); Files.WriteByte(R, version);
-    Files.WriteInt(R, size);
+    F := Files.New(name); Files.Set(R, F, 0); Files.WriteString(R, modid); 
+    (*Files.WriteInt(R, key); *) (* o7 -> o2 *)
+    Files.WriteNum(R, key); 
+    (*Files.WriteByte(R, version);*)
+    Files.WriteByte(R, SHORT(version));
+    (*Files.WriteInt(R, size);*)
+    Files.WriteNum(R, size);
     obj := ORB.topScope.next;
     WHILE (obj # NIL) & (obj.class = ORB.Mod) DO  (*imports*)
-      IF obj.dsc # ORB.system THEN Files.WriteString(R, obj(ORB.Module).orgname); Files.WriteInt(R, obj.val) END ;
-      obj := obj.next
-    END ;
-    Files.Write(R, 0X);
-    Files.WriteInt(R, tdx*4);
-    i := 0;
-    WHILE i < tdx DO Files.WriteInt(R, data[i]); INC(i) END ; (*type descriptors*)
-    Files.WriteInt(R, varsize - tdx*4);  (*data*)
-    Files.WriteInt(R, strx);
-    FOR i := 0 TO strx-1 DO Files.Write(R, str[i]) END ;  (*strings*)
-    Files.WriteInt(R, pc);  (*code len*)
-    FOR i := 0 TO pc-1 DO Files.WriteInt(R, code[i]) END ;  (*program*)
-    obj := ORB.topScope.next;
-    WHILE obj # NIL DO  (*commands*)
-      IF (obj.exno # 0) & (obj.class = ORB.Const) & (obj.type.form = ORB.Proc) &
-          (obj.type.nofpar = 0) & (obj.type.base = ORB.noType) THEN
-        Files.WriteString(R, obj.name); Files.WriteInt(R, obj.val)
+      IF obj.dsc # ORB.system THEN 
+         Files.WriteString(R, obj(ORB.Module).orgname); 
+         (*Files.WriteInt(R, obj.val) *)
+         Files.WriteNum(R, obj.val) 
       END ;
       obj := obj.next
     END ;
     Files.Write(R, 0X);
-    Files.WriteInt(R, nofent); Files.WriteInt(R, entry);
+    (*Files.WriteInt(R, tdx*4);*)
+    Files.WriteNum(R, tdx*4);
+    i := 0;
+    WHILE i < tdx DO 
+       (*Files.WriteInt(R, data[i]); *)
+       Files.WriteNum(R, data[i]); 
+       INC(i) 
+    END ; (*type descriptors*)
+    (*Files.WriteInt(R, varsize - tdx*4);*)  (*data*)
+    Files.WriteNum(R, varsize - tdx*4);  (*data*)
+    (*Files.WriteInt(R, strx);*)
+    Files.WriteNum(R, strx);
+    FOR i := 0 TO strx-1 DO Files.Write(R, str[i]) END ;  (*strings*)
+    (*Files.WriteInt(R, pc);*)  (*code len*)
+    Files.WriteNum(R, pc);  (*code len*)
+    FOR i := 0 TO pc-1 DO 
+       (*Files.WriteInt(R, code[i]) *)
+       Files.WriteNum(R, code[i]) 
+    END ;  (*program*)
+    obj := ORB.topScope.next;
+    WHILE obj # NIL DO  (*commands*)
+      IF (obj.exno # 0) & (obj.class = ORB.Const) & (obj.type.form = ORB.Proc) &
+          (obj.type.nofpar = 0) & (obj.type.base = ORB.noType) THEN
+        Files.WriteString(R, obj.name); 
+	(*Files.WriteInt(R, obj.val)*)
+	Files.WriteNum(R, obj.val)
+      END ;
+      obj := obj.next
+    END ;
+    Files.Write(R, 0X);
+    (*Files.WriteInt(R, nofent);*)
+    Files.WriteNum(R, nofent);
+    (*Files.WriteInt(R, entry);*)
+    Files.WriteNum(R, entry);
     obj := ORB.topScope.next;
     WHILE obj # NIL DO  (*entries*)
       IF obj.exno # 0 THEN
         IF (obj.class = ORB.Const) & (obj.type.form = ORB.Proc) OR (obj.class = ORB.Var) THEN
-          Files.WriteInt(R, obj.val)
+          (*Files.WriteInt(R, obj.val)*)
+          Files.WriteNum(R, obj.val)
         ELSIF obj.class = ORB.Typ THEN
-          IF obj.type.form = ORB.Record THEN Files.WriteInt(R,  obj.type.len MOD 10000H)
+          IF obj.type.form = ORB.Record THEN
+	     (*Files.WriteInt(R,  obj.type.len MOD 10000H)*)
+	     Files.WriteNum(R,  obj.type.len MOD 10000H)
           ELSIF (obj.type.form = ORB.Pointer) & ((obj.type.base.typobj = NIL) OR (obj.type.base.typobj.exno = 0)) THEN
-            Files.WriteInt(R, obj.type.base.len MOD 10000H)
+            (*Files.WriteInt(R, obj.type.base.len MOD 10000H)*)
+            Files.WriteNum(R, obj.type.base.len MOD 10000H)
           END
         END
       END ;
@@ -1116,7 +1164,14 @@ MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
       obj := obj.next
     END ;
     Files.WriteInt(R, -1);
-    Files.WriteInt(R, fixorgP); Files.WriteInt(R, fixorgD); Files.WriteInt(R, fixorgT); Files.WriteInt(R, entry);
+    (*Files.WriteInt(R, fixorgP);*)
+    Files.WriteNum(R, fixorgP);
+    (*Files.WriteInt(R, fixorgD);*)
+    Files.WriteNum(R, fixorgD);
+    (*Files.WriteInt(R, fixorgT);*)
+    Files.WriteNum(R, fixorgT);
+    (*Files.WriteInt(R, entry);*)
+    Files.WriteNum(R, entry);
     Files.Write(R, "O"); Files.Register(F)
   END Close;
 

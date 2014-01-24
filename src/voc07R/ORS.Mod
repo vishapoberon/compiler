@@ -1,5 +1,5 @@
 MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
-  IMPORT SYSTEM, Texts, Oberon;
+  IMPORT SYSTEM, Texts := CmdlnTexts, Console, S := SYSTEM;
 
 (* Oberon Scanner does lexical analysis. Input is Oberon-Text, output is
   sequence of symbols, i.e identifiers, numbers, strings, and special symbols.
@@ -60,8 +60,8 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
     VAR p: LONGINT;
   BEGIN p := Pos();
     IF (p > errpos) & (errcnt < 25) THEN
-      Texts.WriteLn(W); Texts.WriteString(W, "  pos "); Texts.WriteInt(W, p, 1); Texts.Write(W, " ");
-      Texts.WriteString(W, msg); Texts.Append(Oberon.Log, W.buf)
+      Console.Ln; Console.String("  pos "); Console.Int(p, 1); Console.Char(" ");
+      Console.String(msg)
     END ;
     INC(errcnt); errpos := p + 4
   END Mark;
@@ -166,7 +166,8 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
           IF h < maxM THEN k := h ELSE Mark("too many digits*") END ;
           DEC(e); Texts.Read(R, ch)
         END ;
-        x := FLT(k);
+        (*x := FLT(k);*)
+        x := S.VAL(REAL, k);
         IF (ch = "E") OR (ch = "D") THEN  (*scale factor*)
           Texts.Read(R, ch); s := 0; 
           IF ch = "-" THEN negE := TRUE; Texts.Read(R, ch)
@@ -272,7 +273,10 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
   END Init;
 
   PROCEDURE EnterKW(sym: INTEGER; name: ARRAY OF CHAR);
-  BEGIN keyTab[k].id := name; keyTab[k].sym := sym; INC(k)
+  BEGIN 
+     (*keyTab[k].id := name; *)
+     COPY(name, keyTab[k].id); 
+     keyTab[k].sym := sym; INC(k)
   END EnterKW;
 
 BEGIN Texts.OpenWriter(W); k := 0; KWX[0] := 0; KWX[1] := 0;
