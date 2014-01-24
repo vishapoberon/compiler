@@ -120,6 +120,7 @@ stage6:
 	$(VOCSTATIC) -sP	Printer.Mod
 	$(VOCSTATIC) -sP	Strings.Mod
 	$(VOCSTATIC) -sP	Sets.Mod
+	$(VOCSTATIC) -sP	Sets0.Mod
 
 	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod

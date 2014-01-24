@@ -19,7 +19,7 @@
 ==========================================================================*)
 MODULE Coco;
 
-IMPORT Oberon, TextFrames, Texts, Viewers, CRS, CRP, CRT;
+IMPORT (*Oberon, TextFrames,*) Texts := CmdlnTexts,(* Viewers,*) CRS, CRP, CRT, Out := Console;
 
 CONST minErrDist = 8;
 
@@ -29,7 +29,9 @@ VAR w: Texts.Writer; lastErrPos: LONGINT;
 PROCEDURE Error (n: INTEGER; pos: LONGINT);
   
   PROCEDURE Msg (s: ARRAY OF CHAR);
-  BEGIN Texts.WriteString(w, s)
+  BEGIN 
+  (*Texts.WriteString(w, s)*)
+  Out.String(s);
   END Msg;
   
 BEGIN
@@ -95,7 +97,8 @@ BEGIN
   | 53: Msg("invalid Declaration")
   | 54: Msg("this symbol not expected in CR")
   | 55: Msg("invalid CR")
-    ELSE Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)
+    ELSE (*Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)*)
+        Out.String("error "); Out.Int(n, 0)
     END
   ELSE
     CASE n OF
@@ -125,13 +128,30 @@ BEGIN
     | 224: Msg("tokens must not contain blanks")
     | 225: Msg("comment delimiter must not exceed 2 characters")
     | 226: Msg("character set contains more than one character")
-    ELSE Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)
+    ELSE (*Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)*)
+         Out.String("error "); Out.Int(n, 0);
     END
   END;
-Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf)
+(*Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf)*)
+Out.Ln
 END Error;
 
 PROCEDURE Options(VAR s: Texts.Scanner);
+  VAR i: INTEGER;
+BEGIN
+  IF s.nextCh = "\" THEN Texts.Scan(s); Texts.Scan(s);
+    IF s.class = Texts.Name THEN i := 0;
+      WHILE s.s[i] # 0X DO
+        IF CAP(s.s[i]) = "X" THEN CRT.ddt[7] := TRUE
+        ELSIF CAP(s.s[i]) = "S" THEN CRT.ddt[1] := TRUE
+        END;
+        INC(i)
+      END
+    END
+  END;
+END Options;
+
+PROCEDURE Options0(VAR s: ARRAY OF CHAR);
   VAR i: INTEGER;
 BEGIN
   IF s.nextCh = "\" THEN Texts.Scan(s); Texts.Scan(s);
