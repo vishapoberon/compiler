@@ -1,9 +1,9 @@
 MODULE Sets;
 
-IMPORT Texts;
+IMPORT Texts := CmdlnTexts;
 
-CONST size* = 32;
-
+CONST (*size* = 32;*)
+      size* = MAX(SET) + 1;
 
 PROCEDURE Clear*(VAR s: ARRAY OF SET);
   VAR i: INTEGER;
@@ -134,4 +134,4 @@ BEGIN
   Texts.Write(f, "}")
 END Print;
 
-
+END Sets.
