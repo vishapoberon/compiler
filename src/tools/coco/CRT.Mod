@@ -1,6 +1,6 @@
 MODULE CRT; (* Cocol-R Tables *)
 
-IMPORT Texts := CmdlnTexts,(* Oberon, Sets;
+IMPORT Texts := CmdlnTexts, Out := Console, (*Oberon,*) Sets;
 
 CONST
   maxSymbols* = 300;  (*max nr of t, nt, and pragmas*)
@@ -109,11 +109,14 @@ PROCEDURE ^MovePragmas;
 PROCEDURE ^DelNode*(gn: GraphNode): BOOLEAN;
 
 PROCEDURE Str(s: ARRAY OF CHAR);
-BEGIN Texts.WriteString(w, s)
+BEGIN 
+(*Texts.WriteString(w, s)*)
+Out.String(s)
 END Str;
 
 PROCEDURE NL;
-BEGIN Texts.WriteLn(w)
+BEGIN 
+Out.Ln(*Texts.WriteLn(w)*)
 END NL;
 
 PROCEDURE Length(s: ARRAY OF CHAR): INTEGER;
@@ -125,7 +128,8 @@ END Length;
 
 PROCEDURE Restriction(n: INTEGER);
 BEGIN
-  NL; Str("Restriction "); Texts.WriteInt(w, n, 0); NL; Texts.Append(Oberon.Log, w.buf);
+  NL; Str("Restriction "); 
+  Out.Int(n, 0); NL; (*Texts.Append(Oberon.Log, w.buf);*)
   HALT(99)
 END Restriction;
       
@@ -216,7 +220,7 @@ BEGIN
     INC(i)
   END;
   IF empty THEN Str("-- empty set --") END;
-  NL; Texts.Append(Oberon.Log, w.buf)
+  NL; (*Texts.Append(Oberon.Log, w.buf)*)
 END PrintSet;
 
 PROCEDURE CompFirstSet*(gp: INTEGER; VAR fs: Set);
@@ -432,7 +436,7 @@ BEGIN
     IF sn.deletable THEN Str("  "); Str(sn.name); Str(" deletable"); NL END;
     INC(i);
   END;
-  Texts.Append(Oberon.Log, w.buf)
+  (*Texts.Append(Oberon.Log, w.buf)*)
 END CompDeletableSymbols;
 
 
@@ -462,7 +466,7 @@ BEGIN
       Str("     set["); Texts.WriteInt (w, i, 2); Str("] = "); PrintSet(set[i], 16);
       INC (i)
     END;
-    NL; NL; Texts.Append(Oberon.Log, w.buf)
+    NL; NL; (*Texts.Append(Oberon.Log, w.buf)*)
   END;
 END CompSymbolSets;
 
@@ -519,7 +523,7 @@ BEGIN (* PrintSymbolTable *)
     Texts.WriteInt(w, st[i].line, 6); NL;
     IF i = maxT THEN i := firstNt ELSE INC(i) END
   END;
-  NL; NL; Texts.Append(Oberon.Log, w.buf)
+  NL; NL; (*Texts.Append(Oberon.Log, w.buf)*)
 END PrintSymbolTable;
 
 PROCEDURE NewClass*(name: Name; set: Set): INTEGER;
@@ -620,7 +624,7 @@ BEGIN (* XRef *)
     IF i = maxT THEN NL; Str("Pragmas:"); NL END;
     IF i = maxP THEN NL; Str("Nonterminals:"); NL; i := firstNt ELSE INC(i) END
   END;
-  NL; NL; Texts.Append(Oberon.Log, w.buf)
+  NL; NL; (*Texts.Append(Oberon.Log, w.buf)*)
 END XRef;
 
 
@@ -741,7 +745,7 @@ BEGIN (* PrintGraph *)
     NL;
     INC(i);
   END;
-  NL; NL; Texts.Append(Oberon.Log, w.buf)
+  NL; NL; (*Texts.Append(Oberon.Log, w.buf)*)
 END PrintGraph;
 
 PROCEDURE FindCircularProductions* (VAR ok: BOOLEAN);
@@ -818,7 +822,7 @@ BEGIN (* FindCircularProductions *)
     END;
     INC(i)
   END;
-  Texts.Append(Oberon.Log, w.buf)
+  (*Texts.Append(Oberon.Log, w.buf)*)
 END FindCircularProductions;
 
 
@@ -836,7 +840,7 @@ PROCEDURE LL1Test* (VAR ll1: BOOLEAN);
     | 2: Str(" start & successor of deletable structure")
     | 3: Str(" an ANY node that matchs no symbol")
     END;
-    NL; Texts.Append(Oberon.Log, w.buf)
+    NL; (*Texts.Append(Oberon.Log, w.buf)*)
   END LL1Error;
 
   PROCEDURE Check (cond: INTEGER; VAR s1, s2: Set);
@@ -891,7 +895,7 @@ BEGIN
   WHILE sp <= lastNt DO  (*for all nonterminals*)
     GetSym (sp, sn);
     IF sn.struct = 0 THEN
-      ok := FALSE; NL; Str("  No production for "); Str(sn.name); Texts.Append(Oberon.Log, w.buf)
+      ok := FALSE; NL; Str("  No production for "); Str(sn.name); (*Texts.Append(Oberon.Log, w.buf)*)
     END;
     INC(sp)
   END
@@ -931,7 +935,7 @@ BEGIN (* TestIfAllNtReached *)
     END;
     INC(sp)
   END;
-  Texts.Append(Oberon.Log, w.buf)
+  (*Texts.Append(Oberon.Log, w.buf)*)
 END TestIfAllNtReached;
 
 
@@ -972,7 +976,7 @@ BEGIN (* TestIfNtToTerm *)
     END;
     INC(sp)
   END;
-  Texts.Append(Oberon.Log, w.buf)
+  (*Texts.Append(Oberon.Log, w.buf)*)
 END TestIfNtToTerm;
 
 PROCEDURE Init*;
