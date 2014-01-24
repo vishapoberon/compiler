@@ -1,6 +1,6 @@
 MODULE CRX;
 
-IMPORT Oberon, Texts, Sets, CRS, CRT, SYSTEM;
+IMPORT Out := Console, (*Oberon,*) Texts := CmdlnTexts, Sets := Sets0, CRS, CRT, SYSTEM;
 
 CONST
   symSetSize  = 100;
@@ -23,8 +23,10 @@ VAR
 
 PROCEDURE Restriction(n: INTEGER);
 BEGIN
-  Texts.WriteLn(w); Texts.WriteString(w, "Restriction ");
-  Texts.WriteInt(w, n, 0); Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf);
+  (*Texts.WriteLn(w); Texts.WriteString(w, "Restriction ");*)
+  Out.Ln; Out.String("Restriction ");
+  (*Texts.WriteInt(w, n, 0); Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf);*)
+  Out.Int(n, 0); Out.Ln;
   HALT(99)
 END Restriction;
 
@@ -415,8 +417,9 @@ BEGIN
 
   NEW(t); Texts.Open(t, "Parser.FRM"); Texts.OpenReader(fram, t, 0);
   IF t.len = 0 THEN
-    Texts.WriteString(w, "Parser.FRM not found"); Texts.WriteLn(w);
-    Texts.Append(Oberon.Log, w.buf); HALT(99)
+    (*Texts.WriteString(w, "Parser.FRM not found"); Texts.WriteLn(w);*)
+    Out.String("Parser.FRM not found"); Out.Ln;
+    (*Texts.Append(Oberon.Log, w.buf);*) HALT(99)
   END ;
 
   Texts.OpenWriter(err); Texts.WriteLn(err);
@@ -425,7 +428,9 @@ BEGIN
 
   (*----- write *P.Mod -----*)
   Texts.OpenWriter(syn);
-  NEW(t); t.notify := Show; Texts.Open(t, "");
+  NEW(t); 
+  (*t.notify := Show; *)
+  Texts.Open(t, "");
   CopyFramePart("-->modulename"); PutS(parser);
   CopyFramePart("-->scanner"); PutS(scanner);
   IF CRT.importPos.beg >= 0 THEN PutS(", "); CopySourcePart(CRT.importPos, 0) END ;
@@ -457,11 +462,16 @@ END GenCompiler;
 
 PROCEDURE WriteStatistics*;
 BEGIN
-  Texts.WriteInt (w, CRT.maxT + 1, 0); Texts.WriteString(w, " t, ");
+  (*Texts.WriteInt (w, CRT.maxT + 1, 0); Texts.WriteString(w, " t, ");*)
+  Out.Int (CRT.maxT + 1, 0); Out.String(" t, ");
   Texts.WriteInt (w, CRT.maxSymbols - CRT.firstNt + CRT.maxT + 1, 0); Texts.WriteString(w, " syms, ");
-  Texts.WriteInt (w, CRT.nNodes, 0); Texts.WriteString(w, " nodes, ");
-  Texts.WriteInt (w, maxSS, 0); Texts.WriteString(w, "sets");
-  Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf)
+  (*Texts.WriteInt (w, CRT.nNodes, 0); Texts.WriteString(w, " nodes, ");*)
+  Out.Int (CRT.nNodes, 0); Out.String(" nodes, ");
+  (*Texts.WriteInt (w, maxSS, 0); Texts.WriteString(w, "sets");*)
+  Out.Int (maxSS, 0); Out.String("sets");
+  (*Texts.WriteLn(w); *)
+  Out.Ln; 
+  (*Texts.Append(Oberon.Log, w.buf)*)
 END WriteStatistics;
 
 PROCEDURE Init*;

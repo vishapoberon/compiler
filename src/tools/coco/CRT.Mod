@@ -1,6 +1,6 @@
 MODULE CRT; (* Cocol-R Tables *)
 
-IMPORT Texts := CmdlnTexts, Out := Console, (*Oberon,*) Sets;
+IMPORT Texts := CmdlnTexts, Out := Console, (*Oberon,*) Sets := Sets0;
 
 CONST
   maxSymbols* = 300;  (*max nr of t, nt, and pragmas*)

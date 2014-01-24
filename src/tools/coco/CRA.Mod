@@ -8,7 +8,7 @@
         END*)
 MODULE CRA;  (* handles the DFA *) 
 
-IMPORT Oberon, Texts, Sets, CRS, CRT;
+IMPORT Out := Console, (*Oberon,*) Texts := CmdlnTexts, Sets := Sets0, CRS, CRT;
 
 CONST
   maxStates = 300;
@@ -72,22 +72,37 @@ BEGIN CRS.Error(200+nr, CRS.pos)
 END SemErr;
 
 PROCEDURE Put(ch: CHAR);
-BEGIN Texts.Write(out, ch) END Put;
+BEGIN 
+   (*Texts.Write(out, ch)*)
+   Out.Char(ch)
+END Put;
 
 PROCEDURE PutS(s: ARRAY OF CHAR);
   VAR i: INTEGER;
 BEGIN i := 0;
   WHILE (i < LEN(s)) & (s[i] # 0X) DO
-    IF s[i] = "$" THEN Texts.WriteLn(out) ELSE Texts.Write(out, s[i]) END;
+    IF s[i] = "$" THEN 
+       (*Texts.WriteLn(out)*)
+       Out.Ln
+    ELSE
+       (*Texts.Write(out, s[i])*)
+       Out.Char(s[i])
+    END;
     INC(i)
   END
 END PutS;
 
 PROCEDURE PutI(i: INTEGER);
-BEGIN Texts.WriteInt(out, i, 0) END PutI;
+BEGIN
+   (*Texts.WriteInt(out, i, 0)*)
+   Out.Int(i, 0)
+END PutI;
 
 PROCEDURE PutI2(i, n: INTEGER);
-BEGIN Texts.WriteInt(out, i, n) END PutI2;
+BEGIN 
+(*Texts.WriteInt(out, i, n) *)
+Out.Int(i, n) 
+END PutI2;
 
 PROCEDURE PutC(ch: CHAR);
 BEGIN
@@ -611,7 +626,7 @@ BEGIN
     END;
     action := action^.next
   END;
-  Texts.Append(Oberon.Log, out.buf)
+  (*Texts.Append(Oberon.Log, out.buf)*)
 END MeltStates;
 
 PROCEDURE MakeDeterministic*(VAR correct: BOOLEAN);
@@ -688,10 +703,11 @@ BEGIN
   i := 0;
   WHILE i <= CRT.maxC DO
     CRT.GetClass(i, set); CRT.GetClassName(i, name); PutS(name); PutS(": ");
-    Sets.Print(out, set, 80, 13); Texts.WriteLn(out);
+    (*Sets.Print(out, set, 80, 13); Texts.WriteLn(out);*)
+    Sets.Write(set, 80, 13); Out.Ln;
     INC(i)
   END;
-  Texts.Append(Oberon.Log, out.buf)
+  (*Texts.Append(Oberon.Log, out.buf)*)
 END PrintStates;
 
 
@@ -763,8 +779,16 @@ BEGIN
         Texts.Read (fram, ch); INC(i);
       UNTIL ch # stopStr[i];
       (*stopStr[0..i-1] found; 1 unrecognized character*)
-      j := 0; WHILE j < i DO Texts.Write(out, stopStr[j]); INC(j) END
-    ELSE Texts.Write (out, ch); Texts.Read(fram, ch)
+      j := 0;
+      WHILE j < i DO 
+         (*Texts.Write(out, stopStr[j]);*)
+         Out.Char(stopStr[j]);
+	 INC(j)
+      END
+    ELSE
+       (*Texts.Write (out, ch);*)
+       Out.Char (ch);
+       Texts.Read(fram, ch)
     END
   END
 END CopyFramePart;
@@ -891,10 +915,11 @@ BEGIN
   COPY(sn.name, scanner); l := Length(scanner); scanner[l] := "S"; scanner[l+1] := 0X;
   NEW(t); Texts.Open(t, "Scanner.FRM"); Texts.OpenReader(fram, t, 0);
   IF t.len = 0 THEN
-    Texts.WriteString(out, "Scanner.FRM not found"); Texts.WriteLn(out);
-    Texts.Append(Oberon.Log, out.buf); HALT(99)
+    (*Texts.WriteString(out, "Scanner.FRM not found"); Texts.WriteLn(out);*)
+    Out.String("Scanner.FRM not found"); Out.Ln;
+    (*Texts.Append(Oberon.Log, out.buf);*) HALT(99)
   END;
-  Texts.Append(Oberon.Log, out.buf);
+  (*Texts.Append(Oberon.Log, out.buf);*)
   
   (*------- *S.MOD -------*)
   CopyFramePart("-->modulename"); PutS(scanner);
@@ -930,12 +955,13 @@ BEGIN
       PutS("start["); PutI(4*i+j); PutS("]:="); PutI(startTab[4*i+j]); PutS("; ");
       INC(j)
     END;
-    Texts.WriteLn(out); 
+    (*Texts.WriteLn(out); *)
+    Out.Ln; 
     INC(i)
   END;
   
   CopyFramePart("-->modulename"); PutS(scanner); Put(".");
-  NEW(t); t.notify := Show; Texts.Open(t, ""); Texts.Append(t, out.buf);
+  NEW(t); (*t.notify := Show;*) Texts.Open(t, ""); Texts.Append(t, out.buf);
   l := Length(scanner); scanner[l] := "."; scanner[l+1] := "M"; scanner[l+2] := "o"; scanner[l+3] := "d"; scanner[l+4] := 0X;
   Texts.Close(t, scanner)
 END WriteScanner;
