@@ -119,6 +119,7 @@ stage6:
 	#more v4 libs
 	$(VOCSTATIC) -sP	Printer.Mod
 	$(VOCSTATIC) -sP	Strings.Mod
+	$(VOCSTATIC) -sP        Sets.Mod
 
 	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod
