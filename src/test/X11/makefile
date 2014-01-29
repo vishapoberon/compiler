@@ -1,3 +1,5 @@
+#for old systems like RHEL4 use
+#CFLAGS=-L/usr/X11R6/lib -lX11
 CFLAGS=-lX11
 export CFLAGS
 
