@@ -12,6 +12,4 @@ all:
 
 clean:
 	rm *.c
-	rm *.h
 	rm *.o
-	rm *.sym
