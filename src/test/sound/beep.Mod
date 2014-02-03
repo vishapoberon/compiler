@@ -1,8 +1,8 @@
 MODULE beep;
 IMPORT Files := OakFiles, rm:=oocRealMath, Unix;
 
-CONST (*pi2=6.28318;*)
-pi2 = 6.2831802368164062;
+CONST pi2=6.28318;
+(*pi2 = 6.2831802368164062;*)
 rate=44.1E3;
 lf=20.0;
 seconds=2.0;
