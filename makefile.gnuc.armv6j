@@ -227,6 +227,7 @@ stage6:
 	$(VOCSTATIC) -sP MultiArrays.Mod
 	$(VOCSTATIC) -sP MultiArrayRiders.Mod
 	$(VOCSTATIC) -sP MersenneTwister.Mod
+	$(VOCSTATIC) -sP Listen.Mod
 	
 	#s3 libs
 	$(VOCSTATIC) -sP ethBTrees.Mod
