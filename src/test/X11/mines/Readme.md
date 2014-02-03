@@ -1,3 +1,7 @@
+This is a game historycal source taken from http://web.archive.org/web/20050212180221/http://www.vis.inf.ethz.ch/~andy/Oberon.html
+
+It serves as an example of XYplane module useage
+
 Build by typing
 
 # make
