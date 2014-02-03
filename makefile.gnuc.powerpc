@@ -23,6 +23,10 @@ ifndef PREFIX
 PREFIX = /opt/voc-$(RELEASE)
 endif
 
+ifndef PREFIXLN
+PREFIXLN = /opt/voc
+endif
+
 CCOPT = -fPIC $(INCLUDEPATH) -g
 
 CC = cc $(CCOPT) -c 
@@ -87,8 +91,6 @@ stage4:
 	$(VOCSTATIC0) -smPS voc.Mod
 	$(VOCSTATIC0) -smPS BrowserCmd.Mod
 	$(VOCSTATIC0) -smPS OCatCmd.Mod
-	$(VOCSTATIC0) -sPS compatIn.Mod
-	$(VOCSTATIC0) -smPS vmake.Mod
 
 #this is to build the compiler from C sources.
 #this is a way to create a bootstrap binary.
@@ -110,17 +112,8 @@ stage5:
 	$(CL) OCatCmd.c -o ocat \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
 	
-	$(CC) compatIn.c
-	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o version.o architecture.o
-
-
 # build all library files
 stage6:
-	#more v4 libs
-	$(VOCSTATIC) -sP	Printer.Mod
-	$(VOCSTATIC) -sP	Strings.Mod
-	$(VOCSTATIC) -sP	Sets.Mod
-	$(VOCSTATIC) -sP	Sets0.Mod
 
 	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod
@@ -220,6 +213,13 @@ stage6:
 	$(VOCSTATIC) -sP ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sP ulmTCrypt.Mod
 
+	#more v4 libs
+	$(VOCSTATIC) -sP	Printer.Mod
+	$(VOCSTATIC) -sP	Strings.Mod
+	$(VOCSTATIC) -sP	Sets.Mod
+	$(VOCSTATIC) -sP	Sets0.Mod
+	$(VOCSTATIC) -sP	compatIn.Mod
+
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
 
@@ -245,6 +245,14 @@ stage6:
 	$(VOCSTATIC) -sP ethGZWriters.Mod
 
 
+# build remaining tools
+#	$(VOCSTATIC0) -sPS compatIn.Mod
+#	$(VOCSTATIC0) -smPS vmake.Mod
+#	$(CC) compatIn.c
+#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o oocIntStr.o oocConvTypes.o oocIntConv.o version.o architecture.o
+
+
+
 stage7:
 	#objects := $(wildcard *.o)
 	#$(LD) objects
@@ -268,7 +276,7 @@ install:
 	cp voc $(PREFIX)/bin/
 	cp showdef $(PREFIX)/bin/
 	cp ocat $(PREFIX)/bin/
-	cp vmake $(PREFIX)/bin/
+	#cp vmake $(PREFIX)/bin/
 	cp -a src $(PREFIX)/
 
 	test -d $(PREFIX)/lib/voc | mkdir -p $(PREFIX)/lib/voc
@@ -284,7 +292,9 @@ install:
 
 	cp 05vishap.conf /etc/ld.so.conf.d/
 	ldconfig
+	ln -s $(PREFIX) $(PREFIXLN)
 
 #        cp *.o $(PREFIX)/lib/voc/$(RELEASE)/obj/
 uninstall:
 	rm -rf $(PREFIX)
+	rm -rf $(PREFIXLN)
