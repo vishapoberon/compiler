@@ -9,6 +9,7 @@ all:
 	$(VOC) -s Gdk.Mod
 	$(VOC) -s Gtk.Mod
 	$(VOC) -s Glade.Mod
+	$(VOC) -s handlers.Mod
 	$(VOC) -m HelloWorld.Mod
 
 test0:
