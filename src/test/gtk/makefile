@@ -4,15 +4,13 @@ export CFLAGS
 VOC = /opt/voc/bin/voc
 
 all:
-	$(VOC) -s G.Mod
-	$(VOC) -s Pango.Mod
-	$(VOC) -s Gdk.Mod
-	$(VOC) -s Gtk.Mod
-	$(VOC) -s Glade.Mod
-	$(VOC) -s handlers.Mod
-	$(VOC) -m HelloWorld.Mod
-
-test0:
+#	$(VOC) -s G.Mod
+#	$(VOC) -s Pango.Mod
+#	$(VOC) -s Gdk.Mod
+#	$(VOC) -s Gtk.Mod
+#	$(VOC) -s Glade.Mod
+#	$(VOC) -s handlers.Mod
+#	$(VOC) -m HelloWorld.Mod
 	$(VOC) -s G.Mod Pango.Mod Gdk.Mod Gtk.Mod Glade.Mod handlers.Mod HelloWorld.Mod -m
 
 clean:
