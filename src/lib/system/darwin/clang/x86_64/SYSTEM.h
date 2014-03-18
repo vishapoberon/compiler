@@ -12,10 +12,11 @@ uses double # as concatenation operator
 */
 
 #include <alloca.h>
-#include <string.h>
+//#include <string.h>
 
-extern void *memcpy(void *dest, const void *src, long n);
-extern void *malloc(long size);
+extern void *memcpy(void *dest, const void *src, unsigned long n);
+//extern char *memcpy();
+extern void *malloc(unsigned long size);
 extern void exit(int status);
 
 #define export

@@ -23,23 +23,23 @@ struct {CHAR ch;} rec0;
 struct {CHAR ch; LONGREAL x;} rec1;
 struct {char x[65];} rec2;
 
-void main()
+int main()
 {
 	long x, y;
 	/* get size and alignment of standard types */
-	printf("CHAR %d %d\n", sizeof(CHAR), (char*)&c.x - (char*)&c);
-	printf("BOOLEAN %d %d\n", sizeof(BOOLEAN), (char*)&b.x - (char*)&b);
-	printf("SHORTINT %d %d\n", sizeof(SHORTINT), (char*)&si.x - (char*)&si);
-	printf("INTEGER %d %d\n", sizeof(INTEGER), (char*)&i.x - (char*)&i);
-	printf("LONGINT %d %d\n", sizeof(LONGINT), (char*)&li.x - (char*)&li);
-	printf("SET %d %d\n", sizeof(SET), (char*)&s.x - (char*)&s);
-	printf("REAL %d %d\n", sizeof(REAL), (char*)&r.x - (char*)&r);
-	printf("LONGREAL %d %d\n", sizeof(LONGREAL), (char*)&lr.x - (char*)&lr);
-	printf("PTR %d %d\n", sizeof p.x, (char*)&p.x - (char*)&p);
-	printf("PROC %d %d\n", sizeof f.x, (char*)&f.x - (char*)&f);
-	printf("RECORD %d %d\n", (sizeof rec2 == 65) == (sizeof rec0 == 1), sizeof rec2 - 64);
+	printf("CHAR %lu %lu\n", sizeof(CHAR), (char*)&c.x - (char*)&c);
+	printf("BOOLEAN %lu %lu\n", sizeof(BOOLEAN), (char*)&b.x - (char*)&b);
+	printf("SHORTINT %lu %lu\n", sizeof(SHORTINT), (char*)&si.x - (char*)&si);
+	printf("INTEGER %lu %lu\n", sizeof(INTEGER), (char*)&i.x - (char*)&i);
+	printf("LONGINT %lu %lu\n", sizeof(LONGINT), (char*)&li.x - (char*)&li);
+	printf("SET %lu %lu\n", sizeof(SET), (char*)&s.x - (char*)&s);
+	printf("REAL %lu %lu\n", sizeof(REAL), (char*)&r.x - (char*)&r);
+	printf("LONGREAL %lu %lu\n", sizeof(LONGREAL), (char*)&lr.x - (char*)&lr);
+	printf("PTR %lu %lu\n", sizeof p.x, (char*)&p.x - (char*)&p);
+	printf("PROC %lu %lu\n", sizeof f.x, (char*)&f.x - (char*)&f);
+	printf("RECORD %d %lu\n", (sizeof rec2 == 65) == (sizeof rec0 == 1), sizeof rec2 - 64);
 	x = 1;
-	printf("ENDIAN %d %d\n", *(char*)&x, 0);
+	printf("ENDIAN %hhd %d\n", *(char*)&x, 0);
 
 	if (sizeof(CHAR)!=1) printf("error: CHAR should have size 1\n");
 	if (sizeof(BOOLEAN)!=1) printf("error: BOOLEAN should have size 1\n");
@@ -47,7 +47,7 @@ void main()
 	if (sizeof(long)!=sizeof p.x) printf("error: LONGINT should have the same size as pointers\n");
 	if (sizeof(long)!=sizeof f.x) printf("error: LONGINT should have the same size as function pointers\n");
 	if (((sizeof rec2 == 65) == (sizeof rec0 == 1)) && ((sizeof rec2 - 64) != sizeof rec0))
-		printf("error: unsupported record layout  sizeof rec0 = %d  sizeof rec2 = %d\n", sizeof rec0, sizeof rec2);
+		printf("error: unsupported record layout  sizeof rec0 = %lu  sizeof rec2 = %lu\n", sizeof rec0, sizeof rec2);
 
 	/* test the __ASHR macro */
 	if (__ASHR(-1, 1) != -1) printf("error: ASH(-1, -1) # -1\n");

@@ -166,6 +166,10 @@ TYPE
   END;
 
   JmpBuf* = RECORD
+    (* macosx darwin 64bit, cpp /usr/include/setjmp.h
+       typedef int jmp_buf[((9 * 2) + 3 + 16)];
+    *)
+
     (*bx*, si*, di*, bp*, sp*, pc*: LONGINT;*)
     (* bits/setjmp.h sets up longer array in GNU libc *)
     (*
@@ -175,7 +179,10 @@ TYPE
          typedef int __jmp_buf[6];
          # endif
     *)
-    bx*, si*, di*, bp*, sp*, pc*, ki*, ku*: LONGINT;
+    (*bx*, si*, di*, bp*, sp*, pc*, ki*, ku*: LONGINT;*)
+    f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15,
+    f16, f17, f18, f19, f20, f21, f22, f23, f24, f25, f26, f27, f28, f29, 
+    f30, f31, f32, f33, f34, f35, f36: INTEGER;
     (*  setjmp.h
 /* Calling environment, plus possibly a saved signal mask.  */
 struct __jmp_buf_tag
@@ -191,7 +198,7 @@ struct __jmp_buf_tag
 
     *)
     (*maskWasSaved*, savedMask*: LONGINT;*)
-    maskWasSaved*: INTEGER; 
+    (*maskWasSaved*: INTEGER; *)
     (* 
    # define _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
 typedef struct
@@ -200,27 +207,27 @@ typedef struct
   } __sigset_t; 
     
     *)
-    savedMask*: sigsett;
+    (*savedMask*: sigsett;*)
   END ;
 
   Status* = RECORD (* struct stat *)
-    dev* : LONGINT; (* dev_t 8 *)
-    ino* : LONGINT; (* ino 8 *)
-    nlink* : LONGINT;
-    mode* : INTEGER;
-    uid*, gid*: INTEGER;
-    pad0* : INTEGER;
-    rdev* : LONGINT;
-    size* : LONGINT;
-    blksize* : LONGINT;
+    dev* : INTEGER; (* dev_t 4 *)
+    mode*: SHORTINT; mode1*: SHORTINT; (* mode_t 2 *)
+    nlink* : SHORTINT; nlink1*: SHORTINT; (* nlink_t 2 *)
+    ino* : LONGINT (* __darwin_ino64_t 8 *)
+    uid*, gid*: INTEGER; (* uid_t, gid_t 4 *)
+    rdev*: INTEGER; (* dev_t 4 *)
+    atime* : LONGINT; atimences* : LONGINT; (* struct timespec 16 *)
+    mtime* : LONGINT; mtimences* : LONGINT; (* struct timespec 16 *)
+    ctime* : LONGINT; ctimences* : LONGINT; (* struct timespec 16 *)
+    birthtime* : LONGINT; birthtimences* : LONGINT; (* struct timespec 16 *)
+    size*: LONGINT; (* off_t 8 *) 
     blocks* : LONGINT;
-    atime* : LONGINT;
-    atimences* : LONGINT;
-    mtime* : LONGINT;
-    mtimensec* : LONGINT;
-    ctime* : LONGINT;
-    ctimensec* : LONGINT; 
-    unused0*, unused1*, unused2*: LONGINT;
+    blksize* : INTEGER;
+    flags* : INTEGER;
+    gen* : INTEGER;
+    lspare* : INTEGER;
+    qspare*, qspare1*: LONGINT;
   END ;
  
 (* from /usr/include/bits/time.h
