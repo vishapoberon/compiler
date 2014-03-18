@@ -214,7 +214,7 @@ typedef struct
     dev* : INTEGER; (* dev_t 4 *)
     mode*: SHORTINT; mode1*: SHORTINT; (* mode_t 2 *)
     nlink* : SHORTINT; nlink1*: SHORTINT; (* nlink_t 2 *)
-    ino* : LONGINT (* __darwin_ino64_t 8 *)
+    ino* : LONGINT; (* __darwin_ino64_t 8 *)
     uid*, gid*: INTEGER; (* uid_t, gid_t 4 *)
     rdev*: INTEGER; (* dev_t 4 *)
     atime* : LONGINT; atimences* : LONGINT; (* struct timespec 16 *)
