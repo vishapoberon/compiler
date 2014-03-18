@@ -1,21 +1,21 @@
 #SHELL := /bin/bash
 BUILDID=$(shell date +%Y/%m/%d)
 TOS = linux
-TARCH = x86
+TARCH = x86_64
 #TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp powerpc
 CCOMP = gnuc
 RELEASE = 1.0
 
 
-INCLUDEPATH = -Isrc/lib/system/$(CCOMP)/$(TARCH)
+INCLUDEPATH = -Isrc/lib/system/$(TOS)/$(CCOMP)/$(TARCH)
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/v4/$(TARCH):src/lib/system:src/lib/system/$(CCOMP):src/lib/system/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(CCOMP):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(CCOMP):src/lib/ooc:src/lib/ooc/$(CCOMP)/$(TARCH):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(CCOMP):src/voc/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
+SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/v4/$(TARCH):src/lib/system/$(TOS)/$(CCOMP):src/lib/system/$(TOS)/$(CCOMP)/$(TARCH):src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(TOS)/$(CCOMP):src/lib/ooc:src/lib/ooc/$(TOS)/$(CCOMP)/$(TARCH):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(TOS)/$(CCOMP):src/voc/$(TOS)/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
 
 VOC = voc
+VERSION = $(TOS).$(CCOMP).$(TARCH)
 VOCSTATIC0 = $(SETPATH) ./vocstatic.$(TOS).$(CCOMP).$(TARCH)
 VOCSTATIC = $(SETPATH) ./voc
 VOCPARAM = $(shell ./vocparam > voc.par)
-VERSION = GNU_Linux_$(TARCH)
 LIBNAME = VishapOberon
 LIBRARY = lib$(LIBNAME)
 
