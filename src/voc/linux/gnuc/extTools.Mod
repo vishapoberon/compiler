@@ -57,7 +57,7 @@ END LinkMain;
 
 BEGIN
 
-incPath0 := "src/lib/system/gnuc";
+incPath0 := "src/lib/system/linux/gnuc";
 incPath1 := "lib/voc/obj ";
 ccOpt := " -fPIC -g -I ";
 COPY (version.prefix, tmp1);
