@@ -265,11 +265,11 @@ clean:
 #	rm_objects := rm $(wildcard *.o)
 #	objects
 	rm *.o
-	rm *.so
 	rm *.h
 	rm *.c
-	rm *.a
 	rm *.sym
+	rm *.a
+	rm *.so
 
 install:
 	test -d $(PREFIX)/bin | mkdir -p $(PREFIX)/bin
