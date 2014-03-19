@@ -47,6 +47,9 @@ MODULE Kernel;
 (* for localtime *)
   PROCEDURE -includetime()
     '#include "time.h"';
+(* for getcwd() *)
+  PROCEDURE -includeUnistd()
+    '#include <unistd.h>';
 
   PROCEDURE -Lock*()
     "SYSTEM_lock++";
