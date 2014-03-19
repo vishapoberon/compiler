@@ -8,8 +8,10 @@ RELEASE = 1.0
 
 
 INCLUDEPATH = -Isrc/lib/system/$(TOS)/$(CCOMP)/$(TARCH)
+#ADDITIONALFLAGS = "-Wno-implicit-function-declaration -Wno-pointer-sign -Wno-implicit-int -Wno-logical-op-parentheses"
+ADDITIONALFLAGS = ""
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/v4/$(TARCH):src/lib/system/$(TOS)/$(CCOMP):src/lib/system/$(TOS)/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(TOS)/$(CCOMP):src/lib/ooc:src/lib/ooc/$(TOS)/$(CCOMP)/$(TARCH):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(TOS)/$(CCOMP):src/voc/$(TOS)/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
+SETPATH = CFLAGS="$(ADDITIONALFLAGS) $(INCLUDEPATH)"  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/v4/$(TARCH):src/lib/system/$(TOS)/$(CCOMP):src/lib/system/$(TOS)/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(TOS)/$(CCOMP):src/lib/ooc:src/lib/ooc/$(TOS)/$(CCOMP)/$(TARCH):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(TOS)/$(CCOMP):src/voc/$(TOS)/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
 
 VOC = voc
 VERSION = $(TOS).$(CCOMP).$(TARCH)
@@ -27,7 +29,7 @@ ifndef PREFIXLN
 PREFIXLN = /opt/voc
 endif
 
-CCOPT = -fPIC $(INCLUDEPATH) -g
+CCOPT = -fPIC $(ADDITIONALFLAGS) $(INCLUDEPATH) -g
 
 CC = cc $(CCOPT) -c 
 CL = cc $(CCOPT) 
@@ -98,16 +100,16 @@ stage5:
 	$(CC) SYSTEM.c Args.c Console.c Modules.c Unix.c \
 	oocOakStrings.c architecture.c version.c Kernel.c Files.c OakFiles.c Reals.c CmdlnTexts.c \
 	version.c extTools.c \
-	OPM.c OPS.c OPT.c OPC.c OPV.c OPB.c OPP.c errors.c
+	OPM.c OPS.c OPT.c OPC.c OPV.c OPB.c OPP.c errors.c 
 
-	$(CL) -static  voc.c -o voc \
+	$(CL)   voc.c -o voc \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o \
 	oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
 	extTools.o \
 	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	$(CL) BrowserCmd.c -o showdef \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
-	OPM.o OPS.o OPT.o OPV.o OPC.o errors.o
+	OPM.o OPS.o OPT.o OPV.o OPC.o errors.o 
 
 	$(CL) OCatCmd.c -o ocat \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
@@ -256,10 +258,10 @@ stage6:
 stage7:
 	#objects := $(wildcard *.o)
 	#$(LD) objects
-	$(ARCHIVE) *.o 
+	###$(ARCHIVE) *.o 
 	#$(ARCHIVE) objects
-	$(LD) *.o
-	echo "$(PREFIX)/lib" > 05vishap.conf
+	###$(LD) *.o
+###	echo "$(PREFIX)/lib" > 05vishap.conf
 
 clean:
 #	rm_objects := rm $(wildcard *.o)
