@@ -317,8 +317,36 @@ from man gettimeofday
   PROCEDURE -includeStat()
     "#include <sys/stat.h>";
 
+    (* for select() *)
+  PROCEDURE -includeSelect()
+    "#include <sys/select.h>";
+
+     (* for kill() *)
+  PROCEDURE -includeSignal()
+     "#include <signal.h>";
+
+     (* for read() also *)
+     PROCEDURE -includeTypes()
+        "#include <sys/types.h>";
+
+	PROCEDURE -includeUio()
+	 "#include <sys/uio.h>";
+
+    (* for getpid(), lseek(), close(), fsync(), ftruncate(), read() *)
+  PROCEDURE -includeUnistd()
+     "#include <unistd.h>";
+
+
+     (* for rename() *)
+  PROCEDURE -includeStdio()
+     "#include <stdio.h>";
+
   PROCEDURE -includeErrno()
     "#include <errno.h>";
+
+      (* for open() *)
+  PROCEDURE -includeFcntl()
+     "#include <fcntl.h>";
 
   PROCEDURE -err(): LONGINT
     "errno";

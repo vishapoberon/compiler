@@ -66,6 +66,10 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
   PROCEDURE -includetime()
       '#include "time.h"';
 
+(* for getcwd() *)
+  PROCEDURE -includeUnistd()
+      '#include <unistd.h>';
+
   PROCEDURE -localtime(VAR clock: LONGINT): Time
     "(OakFiles_Time) localtime(clock)";
 

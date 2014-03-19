@@ -7,6 +7,9 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
   VAR line: ARRAY 128 OF CHAR;
     pos: INTEGER;
 
+  PROCEDURE -includeUnistd()
+    "#include <unistd.h>";
+
   PROCEDURE -Write(adr, n: LONGINT)
     "write(1/*stdout*/, adr, n)";
 
