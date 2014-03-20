@@ -255,6 +255,8 @@ stage6:
 
 
 stage7:
+	#remove non library objects
+	rm -f architecture.o prf.o version.o extTools.o OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	#objects := $(wildcard *.o)
 	#$(LD) objects
 	$(ARCHIVE) *.o 
