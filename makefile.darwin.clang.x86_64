@@ -33,7 +33,8 @@ CCOPT = -fPIC $(ADDITIONALFLAGS) $(INCLUDEPATH) -g
 
 CC = cc $(CCOPT) -c 
 CL = cc $(CCOPT) 
-LD = cc -shared -o $(LIBRARY).so
+#LD = cc -shared -o $(LIBRARY).so
+LD = cc -dynamiclib -o $(LIBRARY).dylib
 # s is necessary to create index inside a archive
 ARCHIVE = ar rcs $(LIBRARY).a
 
@@ -155,9 +156,10 @@ stage6:
 	$(VOCSTATIC) -sP oocFilenames.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP oocC.Mod
-	$(VOCSTATIC) -sP oocX11.Mod
-	$(VOCSTATIC) -sP oocXutil.Mod
-	$(VOCSTATIC) -sP oocXYplane.Mod
+	#no X11 under macosx
+	#$(VOCSTATIC) -sP oocX11.Mod
+	#$(VOCSTATIC) -sP oocXutil.Mod
+	#$(VOCSTATIC) -sP oocXYplane.Mod
 
 	#Ulm's Oberon system libs
 	$(VOCSTATIC) -sP ulmSys.Mod
@@ -258,20 +260,20 @@ stage6:
 stage7:
 	#objects := $(wildcard *.o)
 	#$(LD) objects
-	###$(ARCHIVE) *.o 
+	$(ARCHIVE) *.o 
 	#$(ARCHIVE) objects
-	###$(LD) *.o
+	$(LD) *.o
 ###	echo "$(PREFIX)/lib" > 05vishap.conf
 
 clean:
 #	rm_objects := rm $(wildcard *.o)
 #	objects
 	rm *.o
-	rm *.so
+	rm *.sym
 	rm *.h
 	rm *.c
 	rm *.a
-	rm *.sym
+	rm *.dylib
 
 install:
 	test -d $(PREFIX)/bin | mkdir -p $(PREFIX)/bin
