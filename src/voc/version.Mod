@@ -4,7 +4,7 @@ CONST
 (* targets *)
     gnux86* = 0; gnux8664* = 1; gnuarmv6j* = 2; gnuarmv6jhardfp* = 3;  gnuarmv7ahardfp* = 4; gnupowerpc* = 5;
 
-VAR arch-, version-, date-, versionLong-, prefix0-, prefix- : ARRAY 23 OF CHAR;
+VAR arch-, version-, date-, versionLong-, prefix0-, prefix- : ARRAY 256 OF CHAR;
 defaultTarget* : INTEGER;
 BEGIN
 arch := architecture.arch;
