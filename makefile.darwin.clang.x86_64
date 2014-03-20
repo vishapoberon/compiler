@@ -21,13 +21,13 @@ VOCPARAM = $(shell ./vocparam > voc.par)
 LIBNAME = VishapOberon
 LIBRARY = lib$(LIBNAME)
 
-ifndef PREFIX
-PREFIX = /opt/voc-$(RELEASE)
+ifndef PRF
+#PRF = "/opt"
+PRF = "/Users/noch/local/voc"
 endif
+PREFIX = $(PRF)/voc-$(RELEASE)
+PREFIXLN = $(PRF)/voc
 
-ifndef PREFIXLN
-PREFIXLN = /opt/voc
-endif
 
 CCOPT = -fPIC $(ADDITIONALFLAGS) $(INCLUDEPATH) -g
 
@@ -74,12 +74,15 @@ stage2:
 #	cp src/par/voc.par.gnu.x86 voc.par
 #	cp src/par/voc.par.gnu.armv6 voc.par
 #	cp src/par/voc.par.gnu.armv7 voc.par
+	cp src/voc/prf.Mod_default src/voc/prf.Mod
 
 # this prepares modules necessary to build the compiler itself
 stage3:
 
 	$(VOCSTATIC0) -siapxPS SYSTEM.Mod 
 	$(VOCSTATIC0) -sPS Args.Mod Console.Mod Unix.Mod 
+	sed -i.tmp "s#/opt#$(PRF)#g" src/voc/prf.Mod
+	$(VOCSTATIC0) -sPS prf.Mod
 	$(VOCSTATIC0) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel.Mod Modules.Mod
 	$(VOCSTATIC0) -sxPS Files.Mod 
 	$(VOCSTATIC0) -sxPS OakFiles.Mod 
@@ -105,7 +108,7 @@ stage5:
 
 	$(CL)   voc.c -o voc \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o \
-	oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
+	oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
 	extTools.o \
 	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	$(CL) BrowserCmd.c -o showdef \

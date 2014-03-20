@@ -19,19 +19,17 @@ VOCPARAM = $(shell ./vocparam > voc.par)
 LIBNAME = VishapOberon
 LIBRARY = lib$(LIBNAME)
 
-ifndef PREFIX
-PREFIX = /opt/voc-$(RELEASE)
+ifndef PRF
+PRF = "/opt"
 endif
-
-ifndef PREFIXLN
-PREFIXLN = /opt/voc
-endif
+PREFIX = $(PRF)/voc-$(RELEASE)
+PREFIXLN = $(PRF)/voc
 
 CCOPT = -fPIC $(INCLUDEPATH) -g
 
 CC = cc $(CCOPT) -c 
 CL = cc $(CCOPT) 
-LD = cc -shared -o $(LIBRARY).so
+LD = cc -shared -lX11 -o $(LIBRARY).so
 # s is necessary to create index inside a archive
 ARCHIVE = ar rcs $(LIBRARY).a
 
@@ -71,12 +69,15 @@ stage2:
 #	cp src/par/voc.par.gnu.x86 voc.par
 #	cp src/par/voc.par.gnu.armv6 voc.par
 #	cp src/par/voc.par.gnu.armv7 voc.par
+	cp src/voc/prf.Mod_default src/voc/prf.Mod
 
 # this prepares modules necessary to build the compiler itself
 stage3:
 
 	$(VOCSTATIC0) -siapxPS SYSTEM.Mod 
-	$(VOCSTATIC0) -sPS Args.Mod Console.Mod Unix.Mod 
+	$(VOCSTATIC0) -sPS Args.Mod Console.Mod Unix.Mod
+	sed -i.tmp "s#/opt#$(PRF)#g" src/voc/prf.Mod
+	$(VOCSTATIC0) -sPS prf.Mod
 	$(VOCSTATIC0) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel.Mod Modules.Mod
 	$(VOCSTATIC0) -sxPS Files.Mod 
 	$(VOCSTATIC0) -sxPS OakFiles.Mod 
@@ -96,21 +97,21 @@ stage4:
 #this is a way to create a bootstrap binary.
 stage5:
 	$(CC) SYSTEM.c Args.c Console.c Modules.c Unix.c \
-	oocOakStrings.c architecture.c version.c Kernel.c Files.c OakFiles.c Reals.c CmdlnTexts.c \
-	version.c extTools.c \
+	oocOakStrings.c architecture.c prf.c version.c Kernel.c Files.c OakFiles.c Reals.c CmdlnTexts.c \
+	extTools.c \
 	OPM.c OPS.c OPT.c OPC.c OPV.c OPB.c OPP.c errors.c
 
 	$(CL) -static  voc.c -o voc \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o \
-	oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
+	oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
 	extTools.o \
 	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	$(CL) BrowserCmd.c -o showdef \
-	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
+	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
 	OPM.o OPS.o OPT.o OPV.o OPC.o errors.o
 
 	$(CL) OCatCmd.c -o ocat \
-	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
+	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
 	
 # build all library files
 stage6:
@@ -249,7 +250,7 @@ stage6:
 #	$(VOCSTATIC0) -sPS compatIn.Mod
 #	$(VOCSTATIC0) -smPS vmake.Mod
 #	$(CC) compatIn.c
-#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o oocIntStr.o oocConvTypes.o oocIntConv.o version.o architecture.o
+#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o oocIntStr.o oocConvTypes.o oocIntConv.o prf.o version.o architecture.o
 
 
 
@@ -265,9 +266,9 @@ clean:
 #	rm_objects := rm $(wildcard *.o)
 #	objects
 	rm *.o
+	rm *.sym
 	rm *.h
 	rm *.c
-	rm *.sym
 	rm *.a
 	rm *.so
 

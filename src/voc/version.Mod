@@ -1,5 +1,5 @@
 MODULE version;
-   IMPORT Strings := oocOakStrings, architecture;
+   IMPORT Strings := oocOakStrings, architecture, prf;
 CONST     
 (* targets *)
     gnux86* = 0; gnux8664* = 1; gnuarmv6j* = 2; gnuarmv6jhardfp* = 3;  gnuarmv7ahardfp* = 4; gnupowerpc* = 5;
@@ -15,7 +15,8 @@ COPY(version, versionLong);
 Strings.Append (" ", versionLong);
 Strings.Append(date, versionLong);
   prefix := "";
-  prefix0 := "/opt";
+  (*prefix0 := "/opt";*)
+  COPY(prf.prefix, prefix0);
   COPY (prefix0, prefix);
   Strings.Append ("/voc-", prefix);
   Strings.Append(version, prefix); (* /opt/voc-1.0 *)
