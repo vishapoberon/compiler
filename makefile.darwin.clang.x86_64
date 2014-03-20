@@ -30,7 +30,7 @@ CCOPT = -fPIC $(INCLUDEPATH) -g
 
 CC = cc $(CCOPT) -c 
 CL = cc $(CCOPT) 
-LD = cc -dynamiclib -o $(LIBRARY).dylib
+LD = libtool -dynamic -lSystem -compatibility_version $(RELEASE) -current_version $(RELEASE) -install_name $(PREFIX)/lib/$(LIBRARY).dylib -o $(LIBRARY).dylib
 # s is necessary to create index inside a archive
 ARCHIVE = ar rcs $(LIBRARY).a
 
