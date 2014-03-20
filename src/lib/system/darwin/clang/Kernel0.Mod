@@ -1,15 +1,17 @@
-MODULE Kernel; 
+MODULE Kernel0; 
 (*
   J. Templ, 16.4.95 
   communication with C-runtime and storage management
 *)
-  
-  IMPORT SYSTEM, Unix, Args;
+(* version for bootstrapping voc *)
+
+  IMPORT SYSTEM, Unix, Args, Strings := oocOakStrings, version;
 
   TYPE
     RealTime = POINTER TO TimeDesc;
     TimeDesc = RECORD
       sec, min, hour, mday, mon, year, wday, isdst, zone, gmtoff: LONGINT
+(*      sec, min, hour, mday, mon, year, wday, isdst, zone, gmtoff: INTEGER*)
     END ;
 
     KeyCmd* = PROCEDURE;
@@ -35,9 +37,11 @@ MODULE Kernel;
 
     LIB*, CWD*: ARRAY 256 OF CHAR;
     OBERON*: ARRAY 1024 OF CHAR;
+    MODULES-: ARRAY 1024 OF CHAR;
 
-
+    prefix*, fullprefix* : ARRAY 256 OF CHAR;
     timeStart: LONGINT; (* milliseconds *)
+
 
   PROCEDURE -includesetjmp()
     '#include "setjmp.h"';
@@ -55,19 +59,19 @@ MODULE Kernel;
     "exit(n)";
 
   PROCEDURE -sigsetjmp*(VAR env: Unix.JmpBuf; savemask: LONGINT): LONGINT
-      "__sigsetjmp(env, savemask)";
+    "__sigsetjmp(env, savemask)";
 
-  PROCEDURE -siglongjmp*(VAR env:Unix. JmpBuf; val: LONGINT)
-      "siglongjmp(env, val)";
+  PROCEDURE -siglongjmp*(VAR env:Unix.JmpBuf; val: LONGINT)
+    "siglongjmp(env, val)";
 
   PROCEDURE -heapsize*(): LONGINT
-      "SYSTEM_heapsize";
+    "SYSTEM_heapsize";
 
   PROCEDURE -allocated*(): LONGINT
       "SYSTEM_allocated";
 
   PROCEDURE -localtime(VAR clock: LONGINT): RealTime
-      "(Kernel_RealTime)localtime(clock)";
+      "(Kernel0_RealTime)localtime(clock)";
 
   PROCEDURE -malloc*(size: LONGINT): LONGINT
       "(LONGINT)malloc(size)";
@@ -160,8 +164,16 @@ BEGIN
   EndianTest();
   SetHalt(Halt);
   CWD := ""; OBERON := "."; LIB := "";
+  MODULES := ""; (* additional modules path which can be specified on commandline and will be added to the OBERON variable; noch *)
   getcwd(CWD);
+  Args.GetEnv ("MODULES", MODULES);
   Args.GetEnv("OBERON", OBERON);
+  (* always have current directory in module search path, noch *)
+  Strings.Append(":.:", OBERON);
+  Strings.Append(MODULES, OBERON);
+  Strings.Append(":", OBERON);
+  Strings.Append(version.prefix, OBERON);
+  Strings.Append("/lib/voc/sym:", OBERON);
   Args.GetEnv("OBERON_LIB", LIB);
   TimeUnit := 1000; timeStart := 0; timeStart := Time()
-END Kernel.
+END Kernel0.

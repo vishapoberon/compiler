@@ -20,7 +20,7 @@ Strings.Append(date, versionLong);
   COPY (prefix0, prefix);
   Strings.Append ("/voc-", prefix);
   Strings.Append(version, prefix); (* /opt/voc-1.0 *)
- (* will be used later in Kernel.Mod to set OBERON default path *)
+ (* will be used later in Kernel0.Mod to set OBERON default path *)
 
  IF arch = "x86_64" THEN
     defaultTarget := gnux8664

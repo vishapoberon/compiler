@@ -8,7 +8,7 @@ MODULE ethGZReaders;  (** Stefan Walthert  **)
   **)
   
   IMPORT
-    Files := OakFiles, ZlibReaders := ethZlibReaders;
+    Files, ZlibReaders := ethZlibReaders;
     
   
   CONST

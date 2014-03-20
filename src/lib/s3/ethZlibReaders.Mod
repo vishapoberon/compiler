@@ -4,7 +4,7 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 MODULE ethZlibReaders;  (** Stefan Walthert  **)
 
 IMPORT
-  Files := OakFiles, Zlib := ethZlib, ZlibBuffers := ethZlibBuffers, ZlibInflate := ethZlibInflate;
+  Files, Zlib := ethZlib, ZlibBuffers := ethZlibBuffers, ZlibInflate := ethZlibInflate;
 
 CONST
   (** result codes **)

@@ -1,6 +1,9 @@
-MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files *)
-(* modified version of Files, which opens only the file provided and does not scan any path in any environment variable, also ReadLine procedure added; -- noch *)
-  IMPORT SYSTEM, Unix, Kernel, Args, Console;
+MODULE Files0;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files *)
+
+(* this module is not for use by developers and inteded to bootstrap voc *)
+(* for general use import Files module *)
+
+  IMPORT SYSTEM, Unix, Kernel := Kernel0, Args, Console;
 
   (* standard data type I/O 
 
@@ -66,12 +69,8 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
   PROCEDURE -includetime()
       '#include "time.h"';
 
-(* for getcwd() *)
-  PROCEDURE -includeUnistd()
-      '#include <unistd.h>';
-
   PROCEDURE -localtime(VAR clock: LONGINT): Time
-    "(OakFiles_Time) localtime(clock)";
+    "(Files0_Time) localtime(clock)";
 
   PROCEDURE -getcwd(VAR cwd: Unix.Name)
     "getcwd(cwd, cwd__len)";
@@ -189,7 +188,7 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
     f.fd := noDesc; f.state := create; f.len := 0; f.pos := 0; f.swapper := -1; (*all f.buf[i] = NIL*)
     RETURN f
   END New;
-(*
+
   PROCEDURE ScanPath(VAR pos: INTEGER; VAR dir: ARRAY OF CHAR);  (* supports ~, ~user and blanks inside path *)
     VAR i: INTEGER; ch: CHAR; home: ARRAY 256 OF CHAR;
   BEGIN
@@ -207,7 +206,7 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
     WHILE (i > 0) & (dir[i-1] = " ") DO DEC(i) END ;
     dir[i] := 0X
   END ScanPath;
-*)
+
   PROCEDURE HasDir(VAR name: ARRAY OF CHAR): BOOLEAN;
     VAR i: INTEGER; ch: CHAR;
   BEGIN i := 0; ch := name[0];
@@ -243,10 +242,7 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
   BEGIN
     IF name # "" THEN
       IF HasDir(name) THEN dir := ""; COPY(name, path)
-      ELSE 
-         pos := 0;
-	 COPY(name, path); (* -- noch *)
-	 (*ScanPath(pos, dir);*) (*MakeFileName(dir, name, path);*) (*ScanPath(pos, dir)*)
+      ELSE pos := 0; ScanPath(pos, dir); MakeFileName(dir, name, path); ScanPath(pos, dir)
       END ;
       LOOP
         fd := Unix.Open(path, Unix.rdwr, {}); done := fd >= 0; errno := Unix.errno();
@@ -262,7 +258,7 @@ MODULE OakFiles;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix fil
           fd := Unix.Open(path, Unix.rdonly, {}); done :=  fd >= 0; errno := Unix.errno()
         END ;
 IF (~done) & (errno # Unix.ENOENT) THEN 
-  Console.String("warning Files.Old "); Console.String(name); 
+  Console.String("warning Files0.Old "); Console.String(name); 
   Console.String(" errno = "); Console.Int(errno, 0); Console.Ln;
 END ;
         IF done THEN
@@ -277,8 +273,7 @@ END ;
             RETURN f
           END
         ELSIF dir = "" THEN RETURN NIL
-        ELSE (*MakeFileName(dir, name, path);*) (*ScanPath(pos, dir)*)
-	RETURN NIL
+        ELSE MakeFileName(dir, name, path); ScanPath(pos, dir)
         END
       END
     ELSE RETURN NIL
@@ -396,11 +391,6 @@ END ;
     r.offset := offset + 1; r.res := 0
   END Write;
 
-  PROCEDURE WriteByte* (VAR r : Rider; x : SYSTEM.BYTE); (* added for compatibility with PO 2013, -- noch *)
-  BEGIN
-     Write(r, x);
-  END WriteByte;
-
   PROCEDURE WriteBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
@@ -435,7 +425,6 @@ BEGIN
   END ;
   buf.data[offset] := x; r.offset := offset + 1; buf.chg := TRUE
 END Write;
-
 
 PROCEDURE WriteBytes ...
 
@@ -564,23 +553,7 @@ Especially Length would become fairly complex.
   BEGIN i := 0;
     REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X
   END ReadString;
-
-  (* need to read line; -- noch *)
-  PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR; b : BOOLEAN;
-  BEGIN i := 0;
-        b := FALSE;
-    REPEAT 
-       Read(R, ch); 
-       IF ((ch = 0X) OR (ch = 0AX) OR (ch = 0DX)) THEN 
-       b := TRUE
-       ELSE
-       x[i] := ch;
-       INC(i);
-       END;
-    UNTIL b
-  END ReadLine;
- 
+  
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
     VAR s: SHORTINT; ch: CHAR; n: LONGINT;
   BEGIN s := 0; n := 0; Read(R, ch);
@@ -636,11 +609,6 @@ Especially Length would become fairly complex.
     Write(R, CHR(x MOD 128))
   END WriteNum;
 
-  PROCEDURE GetName*(f: File; VAR name: ARRAY OF CHAR);
-  BEGIN
-     COPY (f.workName, name);
-  END GetName;
-
   PROCEDURE Finalize(o: SYSTEM.PTR);
     VAR f: File; res: LONGINT;
   BEGIN
@@ -659,4 +627,4 @@ Especially Length would become fairly complex.
   END Init;
 
 BEGIN Init
-END OakFiles.
+END Files0.

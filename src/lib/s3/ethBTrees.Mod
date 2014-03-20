@@ -2,7 +2,7 @@
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
 MODULE ethBTrees;  (** portable *) (* ejz,  *)
-  IMPORT Files := OakFiles;
+  IMPORT Files;
 
 (** BTrees is a utility module that manages b-trees with string (64 characters) or longint keys. Each key is linked to
     a longint value (org) which normaly is an offset to where the data for that key is stored. *)
