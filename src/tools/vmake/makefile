@@ -5,7 +5,7 @@ VOC = /opt/voc/bin/voc
 
 
 all:
-	$(VOC) -M vmake.Mod
+	$(VOC) -s compatIn.Mod vmake.Mod -M
 
 clean:
 	rm *.o

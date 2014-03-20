@@ -3,7 +3,7 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 
 MODULE ethSets;  (** portable *)
 
-IMPORT Texts := CmdlnTexts;
+IMPORT Texts;
 
 CONST size* = SIZE(LONGINT)* 8(*32*);
 

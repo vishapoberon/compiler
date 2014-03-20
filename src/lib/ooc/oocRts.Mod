@@ -1,5 +1,5 @@
 MODULE oocRts;  (* module is written from scratch by noch to wrap around Unix.Mod and Args.Mod and provide compatibility for some ooc libraries *)
-IMPORT Args, Unix, Files := OakFiles, Strings := oocStrings(*, Console*);
+IMPORT Args, Unix, Files, Strings := oocStrings(*, Console*);
 CONST
   pathSeperator* = "/";
 

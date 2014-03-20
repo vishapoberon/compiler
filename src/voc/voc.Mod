@@ -1,7 +1,7 @@
 MODULE voc;  (* J. Templ 3.2.95 *)
 
   IMPORT
-    SYSTEM, Unix, Kernel,
+    SYSTEM, Unix, Kernel := Kernel0,
     OPP, OPB, OPT,
     OPV, OPC, OPM,
     extTools, Strings := oocOakStrings;

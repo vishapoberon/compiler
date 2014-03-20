@@ -1,6 +1,6 @@
 MODULE Sets;
 
-IMPORT Texts := CmdlnTexts;
+IMPORT Texts;
 
 CONST (*size* = 32;*)
       size* = MAX(SET) + 1;

@@ -78,10 +78,9 @@ stage3:
 	$(VOCSTATIC0) -sPS Args.Mod Console.Mod Unix.Mod
 	sed -i.tmp "s#/opt#$(PRF)#g" src/voc/prf.Mod
 	$(VOCSTATIC0) -sPS prf.Mod
-	$(VOCSTATIC0) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel.Mod Modules.Mod
-	$(VOCSTATIC0) -sxPS Files.Mod 
-	$(VOCSTATIC0) -sxPS OakFiles.Mod 
-	$(VOCSTATIC0) -sPS Reals.Mod CmdlnTexts.Mod errors.Mod
+	$(VOCSTATIC0) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel0.Mod Modules.Mod
+	$(VOCSTATIC0) -sxPS Files0.Mod 
+	$(VOCSTATIC0) -sPS Reals.Mod Texts0.Mod errors.Mod
 
 # build the compiler
 stage4:
@@ -97,24 +96,32 @@ stage4:
 #this is a way to create a bootstrap binary.
 stage5:
 	$(CC) SYSTEM.c Args.c Console.c Modules.c Unix.c \
-	oocOakStrings.c architecture.c prf.c version.c Kernel.c Files.c OakFiles.c Reals.c CmdlnTexts.c \
+	oocOakStrings.c architecture.c prf.c version.c Kernel0.c Files0.c Reals.c Texts0.c \
 	extTools.c \
 	OPM.c OPS.c OPT.c OPC.c OPV.c OPB.c OPP.c errors.c
 
 	$(CL) -static  voc.c -o voc \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o \
-	oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
+	oocOakStrings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o \
 	extTools.o \
 	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	$(CL) BrowserCmd.c -o showdef \
-	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o \
+	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o \
 	OPM.o OPS.o OPT.o OPV.o OPC.o errors.o
 
 	$(CL) OCatCmd.c -o ocat \
-	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel.o Files.o Reals.o CmdlnTexts.o
+	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o
 	
 # build all library files
 stage6:
+	#v4 libs
+	$(VOCSTATIC) -sP	Kernel.Mod
+	$(VOCSTATIC) -sP	Files.Mod
+	$(VOCSTATIC) -sP	Texts.Mod
+	$(VOCSTATIC) -sP	Printer.Mod
+	$(VOCSTATIC) -sP	Strings.Mod
+	$(VOCSTATIC) -sP	Sets.Mod
+	$(VOCSTATIC) -sP	Sets0.Mod
 
 	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod
@@ -214,13 +221,6 @@ stage6:
 	$(VOCSTATIC) -sP ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sP ulmTCrypt.Mod
 
-	#more v4 libs
-	$(VOCSTATIC) -sP	Printer.Mod
-	$(VOCSTATIC) -sP	Strings.Mod
-	$(VOCSTATIC) -sP	Sets.Mod
-	$(VOCSTATIC) -sP	Sets0.Mod
-	$(VOCSTATIC) -sP	compatIn.Mod
-
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
 
@@ -250,13 +250,13 @@ stage6:
 #	$(VOCSTATIC0) -sPS compatIn.Mod
 #	$(VOCSTATIC0) -smPS vmake.Mod
 #	$(CC) compatIn.c
-#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o CmdlnTexts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o oocIntStr.o oocConvTypes.o oocIntConv.o prf.o version.o architecture.o
+#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o Texts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o oocIntStr.o oocConvTypes.o oocIntConv.o
 
 
 
 stage7:
 	#remove non library objects
-	rm -f architecture.o prf.o version.o extTools.o OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
+	rm -f Kernel0.o Files0.o Texts0.o architecture.o prf.o version.o extTools.o OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	#objects := $(wildcard *.o)
 	#$(LD) objects
 	$(ARCHIVE) *.o 
@@ -267,10 +267,10 @@ stage7:
 clean:
 #	rm_objects := rm $(wildcard *.o)
 #	objects
-	rm *.o
-	rm *.sym
 	rm *.h
 	rm *.c
+	rm *.sym
+	rm *.o
 	rm *.a
 	rm *.so
 

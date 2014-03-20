@@ -1,4 +1,4 @@
-MODULE CmdlnTexts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**)  (* << RC, MB, JT *)
+MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**)  (* << RC, MB, JT *)
   IMPORT
     Files, Modules, Reals;
 
@@ -856,4 +856,4 @@ MODULE CmdlnTexts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12
   END Close;
 
 BEGIN del := NIL; NEW(FontsDefault); FontsDefault.name := "Syntax10.Scn.Fnt"
-END CmdlnTexts.
+END Texts.

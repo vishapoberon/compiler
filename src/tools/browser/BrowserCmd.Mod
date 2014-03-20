@@ -2,7 +2,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
 
   IMPORT
     OPM, OPS, OPT, OPV,
-    Texts := CmdlnTexts, Console, Args;
+    Texts := Texts0, Console, Args;
 
   CONST
     OptionChar = "-";

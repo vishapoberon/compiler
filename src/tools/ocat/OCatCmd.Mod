@@ -2,7 +2,7 @@ MODULE OCatCmd;  (* J. Templ, 13-Jan-96 *)
 
 (* looks at the OBERON search path and writes one or more Oberon or ascii texts to standard out *)
 
-  IMPORT Args, Console, Files, Texts := CmdlnTexts;
+  IMPORT Args, Console, Files := Files0, Texts := Texts0;
 
   PROCEDURE Cat*;
     VAR path: ARRAY 128 OF CHAR; i: INTEGER; T: Texts.Text; R: Texts.Reader; ch: CHAR; tab: BOOLEAN;
