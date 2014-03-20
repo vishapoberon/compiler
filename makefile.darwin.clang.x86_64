@@ -20,7 +20,8 @@ LIBNAME = VishapOberon
 LIBRARY = lib$(LIBNAME)
 
 ifndef PRF
-PRF = "/opt"
+#PRF = "/opt"
+PRF = "/Users/noch/local"
 endif
 PREFIX = $(PRF)/voc-$(RELEASE)
 PREFIXLN = $(PRF)/voc
@@ -295,7 +296,7 @@ install:
 	cp *.sym $(PREFIX)/lib/voc/sym/
 
 	#cp 05vishap.conf /etc/ld.so.conf.d/
-	ldconfig
+	#ldconfig
 	ln -s $(PREFIX) $(PREFIXLN)
 
 #        cp *.o $(PREFIX)/lib/voc/$(RELEASE)/obj/
