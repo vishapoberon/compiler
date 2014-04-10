@@ -76,7 +76,7 @@ Strings.Append ("/lib ", ccOpt);
 Args.GetEnv("CFLAGS", CFLAGS);
 Strings.Append (CFLAGS, ccOpt);
 Strings.Append (" ", ccOpt);
-ccString := "cc ";
+ccString := "clang ";
 (*Strings.Append (ccOpt, ccString);*)
 
 END extTools.
