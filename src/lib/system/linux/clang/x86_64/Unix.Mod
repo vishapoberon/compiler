@@ -313,6 +313,14 @@ from man gettimeofday
   PROCEDURE -includeErrno()
     "#include <errno.h>";
 
+  (* for read(), write() *)
+  PROCEDURE -includeUnistd()
+    "#include <unistd.h>";
+
+  (* for system() *)
+  PROCEDURE -includeStdlib()
+    "#include <stdlib.h>";
+
   PROCEDURE -err(): LONGINT
     "errno";
 
