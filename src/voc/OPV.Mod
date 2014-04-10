@@ -698,6 +698,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                 expr(r, exprPrec)
               END
           ELSE
+	    IF (subclass = and) OR ((form = Set) & ((subclass = times) OR (subclass = minus))) THEN OPM.Write(OpenParen); END; (* to silence clang warnings; -- noch *)
             expr(l, exprPrec);
             CASE subclass OF
               times:
@@ -724,7 +725,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             |  or:
                   OPM.WriteString(" || ")
             END;
-            expr(r, exprPrec)
+            expr(r, exprPrec);
+	    IF (subclass = and) OR ((form = Set) & ((subclass = times) OR (subclass = minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
           END
     |  Ncall:
           IF (l^.obj # NIL) & (l^.obj^.mode = TProc) THEN
