@@ -332,7 +332,7 @@ from man gettimeofday
 	PROCEDURE -includeUio()
 	 "#include <sys/uio.h>";
 
-    (* for getpid(), lseek(), close(), fsync(), ftruncate(), read() *)
+    (* for getpid(), lseek(), close(), fsync(), ftruncate(), read(), sleep() *)
   PROCEDURE -includeUnistd()
      "#include <unistd.h>";
 
@@ -482,6 +482,11 @@ from man gettimeofday
   PROCEDURE -Sigsetmask*(mask: LONGINT): LONGINT
     "sigsetmask(mask)";
 
+  PROCEDURE -Sleep*(ms : INTEGER): INTEGER
+      "sleep(ms)";
+
+  PROCEDURE -Nanosleep*(VAR req : Timeval; VAR rem : Timeval): INTEGER
+    "nanosleep(req, rem)";
 
   (* TCP/IP networking *)
 

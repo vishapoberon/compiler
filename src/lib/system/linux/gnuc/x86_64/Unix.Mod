@@ -313,6 +313,22 @@ from man gettimeofday
   PROCEDURE -includeErrno()
     "#include <errno.h>";
 
+  (* for read(), write() and sleep() *)
+  PROCEDURE -includeUnistd()
+    "#include <unistd.h>";
+
+  (* for system() *)
+  PROCEDURE -includeStdlib()
+    "#include <stdlib.h>";
+
+  (* for nanosleep() *)
+   PROCEDURE -includeTime()
+     "#include <time.h>";
+
+   (* for select() *)
+   PROCEDURE -includeSelect()
+     "#include <sys/select.h>";
+
   PROCEDURE -err(): LONGINT
     "errno";
 
@@ -447,6 +463,11 @@ from man gettimeofday
   PROCEDURE -Sigsetmask*(mask: LONGINT): LONGINT
     "sigsetmask(mask)";
 
+  PROCEDURE -Sleep*(ms : INTEGER): INTEGER
+      "sleep(ms)";
+
+  PROCEDURE -Nanosleep*(VAR req : Timeval; VAR rem : Timeval): INTEGER
+    "nanosleep(req, rem)";
 
   (* TCP/IP networking *)
 

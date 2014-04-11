@@ -234,6 +234,23 @@ TYPE
   PROCEDURE -includeErrno()
     "#include <errno.h>";
 
+  (* for read(), write() and sleep() *)
+  PROCEDURE -includeUnistd()
+    "#include <unistd.h>";
+
+  (* for system() *)
+(* commented, doesn't compile on 32bit GNU/Linux platforms
+   PROCEDURE -includeStdlib()
+    "#include <stdlib.h>";
+*)
+   (* for nanosleep() *)
+   PROCEDURE -includeTime()
+     "#include <time.h>";
+
+   (* for select() *)
+   PROCEDURE -includeSelect()
+     "#include <sys/select.h>";
+
   PROCEDURE -err(): LONGINT
     "errno";
 
@@ -367,6 +384,11 @@ TYPE
   PROCEDURE -Sigsetmask*(mask: LONGINT): LONGINT
     "sigsetmask(mask)";
 
+  PROCEDURE -Sleep*(ms : LONGINT): LONGINT
+    "sleep(ms)";
+
+ PROCEDURE -Nanosleep*(VAR req : Timeval; VAR rem : Timeval): LONGINT
+    "nanosleep(req, rem)";
 
   (* TCP/IP networking *)
 
