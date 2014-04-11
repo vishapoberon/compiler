@@ -1,7 +1,7 @@
 MODULE vt100;
 
 IMPORT Console, Strings, IntStr := oocIntStr;
-
+ (* reference http://en.wikipedia.org/wiki/ANSI_escape_code *)
 CONST
 
    Escape* = 1BX;
@@ -30,10 +30,18 @@ CONST
       CSI* : ARRAY 5 OF CHAR;
       tmpstr : ARRAY 32 OF CHAR;
 
+   PROCEDURE EscSeq0 (letter : ARRAY OF CHAR);
+      VAR
+       cmd : ARRAY 9 OF CHAR;
+   BEGIN
+      COPY(CSI, cmd);
+      Strings.Append (letter, cmd);
+      Console.String (cmd);
+   END EscSeq0;
 
    PROCEDURE EscSeq (n : INTEGER; letter : ARRAY OF CHAR);
       VAR nstr : ARRAY 2 OF CHAR;
-       cmd : ARRAY 5 OF CHAR;
+       cmd : ARRAY 7 OF CHAR;
    BEGIN
       IntStr.IntToStr (n, nstr);
       COPY(CSI, cmd);
@@ -42,13 +50,21 @@ CONST
       Console.String (cmd);
    END EscSeq;
 
+  PROCEDURE EscSeqSwapped (n : INTEGER; letter : ARRAY OF CHAR);
+      VAR nstr : ARRAY 2 OF CHAR;
+       cmd : ARRAY 7 OF CHAR;
+   BEGIN
+      IntStr.IntToStr (n, nstr);
+      COPY(CSI, cmd);
+      Strings.Append (letter, cmd);
+      Strings.Append (nstr, cmd);
+      Console.String (cmd);
+   END EscSeqSwapped;
 
    PROCEDURE EscSeq2(n, m : INTEGER; letter : ARRAY OF CHAR);
       VAR nstr, mstr : ARRAY 5 OF CHAR;
           cmd : ARRAY 12 OF CHAR;
    BEGIN
-      IF n < 1 THEN n := 1 END;
-      IF m < 1 THEN m := 1 END;
       IntStr.IntToStr(n, nstr);
       IntStr.IntToStr(m, mstr);
 
@@ -165,34 +181,63 @@ CONST
       EscSeq2 (n, m, 'f');
    END HVP;
 
-   (* wrappers *)
-   PROCEDURE EraseDisplay*;
-   BEGIN
-      ED(2);
-   END EraseDisplay;
+(* Select Graphic Rendition
+   Sets SGR parameters, including text color. After CSI can be zero or more parameters separated with ;. With no parameters, CSI m is treated as CSI 0 m (reset / normal), which is typical of most of the ANSI escape sequences *)
 
-   (* pascal crt like wrapper *)
-   PROCEDURE ClrScr*;
+   PROCEDURE SGR*( n : INTEGER);
    BEGIN
-      ED(2);
-   END ClrScr;
+         EscSeq(n, 'm');
+   END SGR;
 
-   (* pascal crt like wrapper *)
-   PROCEDURE GotoXY* (x, y: INTEGER);
+   PROCEDURE SGR2*( n, m : INTEGER);
    BEGIN
-      CUP (y, x);
-   END GotoXY;
+         EscSeq2(n, m, 'm');
+   END SGR2;
+
+(* Device Status Report
+   Reports the cursor position (CPR) to the application as (as though typed at the keyboard) ESC[n;mR, where n is the row and m is the column.)  *)
+
+   PROCEDURE DSR*(n : INTEGER);
+   BEGIN
+         EscSeq(6, 'n');
+   END DSR;
+
+(* Save Cursor Position *)
+
+   PROCEDURE SCP*;
+   BEGIN
+      EscSeq0('s');
+   END SCP;
+
+(* Restore Cursor Position *)
+
+   PROCEDURE RCP*;
+   BEGIN
+      EscSeq0('u');
+   END RCP;
+
+(* Hide the cursor *)
+   PROCEDURE DECTCEMl*;
+   BEGIN
+      EscSeq0("?25l")
+   END DECTCEMl;
+
+(* shows the cursor *)
+   PROCEDURE DECTCEMh*;
+   BEGIN
+      EscSeq0("?25h")
+   END DECTCEMh;
 
    BEGIN
    (* init CSI sequence *)
       COPY(Escape, CSI);
       Strings.Append(LeftCrotchet, CSI);
-
+(*
       EraseDisplay;
       GotoXY (0, 0);
       COPY(CSI, tmpstr);
       Strings.Append(Green, tmpstr);
       Strings.Append("hello", tmpstr);
       Console.String(tmpstr); Console.Ln;
-
+*)
    END vt100.
