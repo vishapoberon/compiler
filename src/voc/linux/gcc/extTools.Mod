@@ -6,6 +6,7 @@ CCOPT = -fPIC $(INCLUDEPATH) -g
 CLOBERONOPTS = -fPIC $(INCLUDEPATH) -L. -L/usr/lib -lOberon -static -g
 CC = cc $(CCOPT) -c
 *)
+CONST compiler="gcc";
 
 VAR incPath0, incPath1, ccOpt, ccString, CFLAGS, tmp0, tmp1 : ARRAY 1023 OF CHAR;
 
@@ -62,7 +63,8 @@ END LinkMain;
 
 BEGIN
 
-incPath0 := "src/lib/system/linux/gnuc";
+incPath0 := "src/lib/system/linux/";
+Strings.Append (compiler, incPath0);
 incPath1 := "lib/voc/obj ";
 ccOpt := " -fPIC -g ";
 
@@ -77,15 +79,10 @@ Strings.Append(version.prefix, tmp1);
 Strings.Append("/", tmp1);
 Strings.Append(incPath1, tmp1);
 Strings.Append(tmp1, ccOpt);
-(*
-Strings.Append ("-lVishapOberon -L. -L", ccOpt);
-Strings.Append (version.prefix, ccOpt);
-Strings.Append ("/lib ", ccOpt);
-*)
 Args.GetEnv("CFLAGS", CFLAGS);
 Strings.Append (CFLAGS, ccOpt);
 Strings.Append (" ", ccOpt);
-ccString := "cc ";
-(*Strings.Append (ccOpt, ccString);*)
+ccString := compiler;
+Strings.Append (" ", ccString);
 
 END extTools.

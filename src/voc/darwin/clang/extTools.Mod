@@ -6,6 +6,7 @@ CCOPT = -fPIC $(INCLUDEPATH) -g
 CLOBERONOPTS = -fPIC $(INCLUDEPATH) -L. -L/usr/lib -lVishapOberon -static -g
 CC = cc $(CCOPT) -c
 *)
+CONST compiler="clang";
 
 VAR incPath0, incPath1, ccOpt, ccString, CFLAGS, tmp0, tmp1 : ARRAY 1023 OF CHAR;
 
@@ -33,7 +34,6 @@ cc : ARRAY 1023 OF CHAR;
 ccopt : ARRAY 1023 OF CHAR;
 cmd : ARRAY 1023 OF CHAR;
 ext : ARRAY 5 OF CHAR;
-
 cmd2 : ARRAY 1023 OF CHAR;
 BEGIN
 (*
@@ -80,7 +80,8 @@ END LinkMain;
 
 BEGIN
 
-incPath0 := "src/lib/system/darwin/clang";
+incPath0 := "src/lib/system/darwin/";
+Strings.Append (compiler, incPath0);
 incPath1 := "lib/voc/obj ";
 ccOpt := " -fPIC -g ";
 
@@ -98,7 +99,7 @@ Strings.Append(tmp1, ccOpt);
 Args.GetEnv("CFLAGS", CFLAGS);
 Strings.Append (CFLAGS, ccOpt);
 Strings.Append (" ", ccOpt);
-ccString := "cc ";
-(*Strings.Append (ccOpt, ccString);*)
+ccString := compiler;
+Strings.Append (" ", ccString);
 
 END extTools.
