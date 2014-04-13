@@ -1,30 +1,69 @@
 MODULE vt100;
 
 IMPORT Console, Strings, IntStr := oocIntStr;
- (* reference http://en.wikipedia.org/wiki/ANSI_escape_code *)
+ (* reference http://en.wikipedia.org/wiki/ANSI_escape_code
+  & http://misc.flogisoft.com/bash/tip_colors_and_formatting
+ *)
 CONST
 
    Escape* = 1BX;
-   SynchronousIdle = 16X;
+   SynchronousIdle* = 16X;
    LeftCrotchet* = '[';
 
-   (* colors *)
-   Black*        = "22;30m";
-   Red*          = "22;31m";
-   Green*        = "22;32m";
-   Brown*        = "22;33m";
-   Blue*         = "22;34m";
-   Magenta*      = "22;35m";
-   Cyan*         = "22;36m";
-   Gray*         = "22;37m";
-   DarkGray*     = "01;30m";
-   LightRed*     = "01;31m";
-   LightGreen*   = "01;32m";
-   Yellow*       = "01;33m";
-   LightBlue*    = "01;34m";
-   LightMagenta* = "01;35m";
-   LightCyan*    = "01;36m";
-   White*        = "01;37m";
+   (* formatting *)
+   Bold*        = "1m";
+   Dim*         = "2m";
+   Underlined*  = "4m";
+   Blink*       = "5m"; (* does not work with most emulators, works in tty and xterm *)
+   Reverse*     = "7m"; (* invert the foreground and background colors *)
+   Hidden*      = "8m"; (* useful for passwords *)
+
+   (* reset *)
+   ResetAll*        = "0m";
+   ResetBold*       = "21m";
+   ResetDim*        = "22m";
+   ResetUnderlined* = "24m";
+   ResetBlink*      = "25m";
+   ResetReverse*    = "27m";
+   ResetHidden*     = "28m";
+
+   (* foreground colors *)
+   Black*        = "30m";
+   Red*          = "31m";
+   Green*        = "32m";
+   Yellow*       = "33m";
+   Blue*         = "34m";
+   Magenta*      = "35m";
+   Cyan*         = "36m";
+   LightGray*    = "37m";
+   Default*      = "39m";
+   DarkGray*     = "90m";
+   LightRed*     = "91m";
+   LightGreen*   = "92m";
+   LightYellow*  = "93m";
+   LightBlue*    = "94m";
+   LightMagenta* = "95m";
+   LightCyan*    = "96m";
+   White*        = "97m";
+
+   (* background colors *)
+   BBlack*       = "40m";
+   BRed*         = "41m";
+   BGreen*       = "42m";
+   BYellow*      = "43m";
+   BBlue*        = "44m";
+   BMagenta*     = "45m";
+   BCyan*        = "46m";
+   BLightGray*   = "47m";
+   BDefault*     = "49m";
+   BDarkGray*    = "100m";
+   BLightRed*    = "101m";
+   BLightGreen*  = "102m";
+   BLightYellow* = "103m";
+   BLightBlue*   = "104m";
+   BLightMagenta*= "105m";
+   BLightCyan*   = "106m";
+   BWhite*       = "107m";
 
    VAR 
       CSI* : ARRAY 5 OF CHAR;
