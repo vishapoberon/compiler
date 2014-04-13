@@ -239,9 +239,10 @@ TYPE
     "#include <unistd.h>";
 
   (* for system() *)
-  PROCEDURE -includeStdlib()
+(* commented, doesn't compile on 32bit GNU/Linux platforms
+   PROCEDURE -includeStdlib()
     "#include <stdlib.h>";
-
+*)
    (* for nanosleep() *)
    PROCEDURE -includeTime()
      "#include <time.h>";

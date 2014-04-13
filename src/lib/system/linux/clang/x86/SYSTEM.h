@@ -15,7 +15,7 @@ uses double # as concatenation operator
 
 //extern void *memcpy(void *dest, const void *src, long n);
 extern void *memcpy(void *dest, const void *src, size_t n);
-extern void *malloc(long size);
+extern void *malloc(unsigned int size);
 extern void exit(int status);
 
 #define export
