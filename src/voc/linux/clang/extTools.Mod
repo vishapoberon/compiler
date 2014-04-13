@@ -50,6 +50,11 @@ IF statically THEN Strings.Append(" -static ", cmd) END;
 Strings.Append(" -o ", cmd);
 Strings.Append(m, cmd);
 Strings.Append(" ", cmd);
+
+Strings.Append (" -lVishapOberon -L. -L", ccOpt);
+Strings.Append (version.prefix, ccOpt);
+Strings.Append ("/lib ", ccOpt);
+
 Strings.Append(ccOpt, cmd);
 Console.Ln; Console.String(cmd); Console.Ln; (* may be it's feasible to add debug mode later *)
 Unix.system(cmd);
@@ -59,8 +64,10 @@ BEGIN
 
 incPath0 := "src/lib/system/linux/clang";
 incPath1 := "lib/voc/obj ";
-ccOpt := " -fPIC -g -I ";
-COPY (version.prefix, tmp1);
+ccOpt := " -fPIC -g ";
+
+COPY ("-I ", tmp1);
+Strings.Append (version.prefix, tmp1);
 Strings.Append("/", tmp1);
 Strings.Append(incPath0, tmp1);
 Strings.Append("/", tmp1);
@@ -70,9 +77,6 @@ Strings.Append(version.prefix, tmp1);
 Strings.Append("/", tmp1);
 Strings.Append(incPath1, tmp1);
 Strings.Append(tmp1, ccOpt);
-Strings.Append ("-lVishapOberon -L. -L", ccOpt);
-Strings.Append (version.prefix, ccOpt);
-Strings.Append ("/lib ", ccOpt);
 Args.GetEnv("CFLAGS", CFLAGS);
 Strings.Append (CFLAGS, ccOpt);
 Strings.Append (" ", ccOpt);
