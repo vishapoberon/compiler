@@ -82,8 +82,10 @@ BEGIN
 
 incPath0 := "src/lib/system/darwin/clang";
 incPath1 := "lib/voc/obj ";
-ccOpt := " -fPIC -g -I ";
-COPY (version.prefix, tmp1);
+ccOpt := " -fPIC -g ";
+
+COPY ("-I ", tmp1);
+Strings.Append (version.prefix, tmp1);
 Strings.Append("/", tmp1);
 Strings.Append(incPath0, tmp1);
 Strings.Append("/", tmp1);
