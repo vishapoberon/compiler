@@ -1,9 +1,9 @@
 #SHELL := /bin/bash
 BUILDID=$(shell date +%Y/%m/%d)
 TOS = linux
-TARCH = armv7a_hardfp
+TARCH = x86
 #TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp powerpc
-CCOMP = gnuc
+CCOMP = gcc
 RELEASE = 1.0
 
 
@@ -26,10 +26,10 @@ PREFIX = $(PRF)/voc-$(RELEASE)
 PREFIXLN = $(PRF)/voc
 
 CCOPT = -fPIC $(INCLUDEPATH) -g
-
-CC = cc $(CCOPT) -c 
-CL = cc $(CCOPT) 
-LD = cc -shared -lX11 -o $(LIBRARY).so
+SHRLIBEXT = so
+CC = $(CCOMP) $(CCOPT) -c
+CL = $(CCOMP) $(CCOPT)
+LD = $(CCOMP) -shared -lX11 -o $(LIBRARY).$(SHRLIBEXT)
 # s is necessary to create index inside a archive
 ARCHIVE = ar rcs $(LIBRARY).a
 
@@ -272,7 +272,7 @@ clean:
 	rm *.sym
 	rm *.o
 	rm *.a
-	rm *.so
+	rm *.$(SHRLIBEXT)
 
 install:
 	test -d $(PREFIX)/bin | mkdir -p $(PREFIX)/bin
@@ -287,7 +287,7 @@ install:
 	test -d $(PREFIX)/lib/voc/obj | mkdir -p $(PREFIX)/lib/voc/obj
 	test -d $(PREFIX)/lib/voc/sym | mkdir -p $(PREFIX)/lib/voc/sym
 
-	cp $(LIBRARY).so $(PREFIX)/lib
+	cp $(LIBRARY).$(SHRLIBEXT) $(PREFIX)/lib
 	cp $(LIBRARY).a $(PREFIX)/lib
 	cp *.c $(PREFIX)/lib/voc/obj/
 	cp *.h $(PREFIX)/lib/voc/obj/

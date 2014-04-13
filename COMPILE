@@ -3,17 +3,17 @@ currently three bootstrap static binaries provided, for x86_64, x86, and armv6j_
 0) (* NOT NECESSARY ANYMORE *)
    copy statically compiled voc compiler for your platform as vocstatic.
    for instance, if your platform is armv6j_hardfp (like raspberry pi)
-   # cp vocstatic.linux.gnuc.armv6j_hardfp vocstatic
+   # cp vocstatic.linux.gcc.armv6j_hardfp vocstatic
    and if your platform is x86 (32bit) gnu/linux then
-   # cp vocstatic.linux.gnuc.x86 vocstatic
+   # cp vocstatic.linux.gcc.x86 vocstatic
    and if it's x86_64 then do nothing or
-   # cp vocstatic.linux.gnuc.x86_64 vocstatic
+   # cp vocstatic.linux.gcc.x86_64 vocstatic
 
 1) make with corresponding makefile
    if it's rasp pi or other armhf platform then do
-   # make -f makefile.gnuc.armv6j_hardfp
+   # make -f makefile.gcc.armv6j_hardfp
    if it's x86 then
-   # make -f makefile.gnuc.x86
+   # make -f makefile.gcc.x86
    and if it's x86_64, then default makefile is for this platform
    # make
 

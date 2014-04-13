@@ -27,10 +27,10 @@ PREFIX = $(PRF)/voc-$(RELEASE)
 PREFIXLN = $(PRF)/voc
 
 CCOPT = -fPIC $(INCLUDEPATH) -g
-
-CC = cc $(CCOPT) -c 
-CL = cc $(CCOPT) 
-LD = libtool -dynamic -lSystem -compatibility_version $(RELEASE) -current_version $(RELEASE) -install_name $(PREFIX)/lib/$(LIBRARY).dylib -o $(LIBRARY).dylib
+SHRLIBEXT = dylib
+CC = $(CCOMP) $(CCOPT) -c
+CL = $(CCOMP) $(CCOPT)
+LD = libtool -dynamic -lSystem -compatibility_version $(RELEASE) -current_version $(RELEASE) -install_name $(PREFIX)/lib/$(LIBRARY).$(SHRLIBEXT) -o $(LIBRARY).$(SHRLIBEXT)
 # s is necessary to create index inside a archive
 ARCHIVE = ar rcs $(LIBRARY).a
 
@@ -274,7 +274,7 @@ clean:
 	rm *.sym
 	rm *.o
 	rm *.a
-	rm *.dylib
+	rm *.$(SHRLIBEXT)
 
 install:
 	test -d $(PREFIX)/bin | mkdir -p $(PREFIX)/bin
@@ -289,7 +289,7 @@ install:
 	test -d $(PREFIX)/lib/voc/obj | mkdir -p $(PREFIX)/lib/voc/obj
 	test -d $(PREFIX)/lib/voc/sym | mkdir -p $(PREFIX)/lib/voc/sym
 
-	cp $(LIBRARY).dylib $(PREFIX)/lib
+	cp $(LIBRARY).$(SHRLIBEXT) $(PREFIX)/lib
 	cp $(LIBRARY).a $(PREFIX)/lib
 	cp *.c $(PREFIX)/lib/voc/obj/
 	cp *.h $(PREFIX)/lib/voc/obj/

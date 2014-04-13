@@ -1,5 +1,5 @@
 
-SETPATH = MODULES=".:gnuc:gnuc/x86_64"
+SETPATH = MODULES=".:gcc:gcc/x86_64"
 
 VOC0 = $(SETPATH) /opt/voc/bin/voc
 
