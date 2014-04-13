@@ -47,7 +47,10 @@ VAR mname : ARRAY 256 OF CHAR; (* noch *)
         IF OPM.noerr THEN
           (*IF (OPM.mainprog IN OPM.opt) & (OPM.modName # "SYSTEM") THEN*)
           IF (OPM.mainProg OR OPM.mainLinkStat) & (OPM.modName # "SYSTEM") THEN
-            OPM.DeleteNewSym; OPM.LogWStr("  main program")
+            OPM.DeleteNewSym; 
+	    IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.Green) END;
+	    OPM.LogWStr("  main program");
+	    IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
           ELSE
             IF new THEN 
 	       IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.Green) END;
