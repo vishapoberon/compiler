@@ -121,7 +121,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     oldSFile, newSFile, HFile, BFile, HIFile: Files.File;
 
     S: INTEGER;
-    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput: BOOLEAN;
+    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput-: BOOLEAN;
 
 
   (* ------------------------- Log Output ------------------------- *)
@@ -190,7 +190,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.Ln;
       Console.String('  command = "voc" options {file options}.'); Console.Ln;
       Console.String('  options = ["-" {option} ].'); Console.Ln;
-      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" .'); Console.Ln;
+      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" | "f" .'); Console.Ln;
       Console.Ln;
       Console.String(" m      - generate code for main module"); Console.Ln;
       Console.String(" M      - generate code for main module and link object statically"); Console.Ln;

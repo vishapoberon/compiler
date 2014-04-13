@@ -4,7 +4,7 @@ MODULE voc;  (* J. Templ 3.2.95 *)
     SYSTEM, Unix, Kernel := Kernel0,
     OPP, OPB, OPT,
     OPV, OPC, OPM,
-    extTools, Strings;
+    extTools, Strings, vt100;
 
 VAR mname : ARRAY 256 OF CHAR; (* noch *)
 
@@ -49,7 +49,11 @@ VAR mname : ARRAY 256 OF CHAR; (* noch *)
           IF (OPM.mainProg OR OPM.mainLinkStat) & (OPM.modName # "SYSTEM") THEN
             OPM.DeleteNewSym; OPM.LogWStr("  main program")
           ELSE
-            IF new THEN OPM.LogWStr("  new symbol file"); OPM.RegisterNewSym
+            IF new THEN 
+	       IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.Green) END;
+	       OPM.LogWStr("  new symbol file");
+	       IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+	       OPM.RegisterNewSym
             ELSIF ext THEN OPM.LogWStr("  extended symbol file"); OPM.RegisterNewSym
             END
           END;
