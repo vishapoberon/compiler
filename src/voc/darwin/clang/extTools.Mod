@@ -1,5 +1,5 @@
 MODULE extTools;
-   IMPORT Args, Unix, Strings := oocOakStrings, Console, version;
+   IMPORT Args, Unix, Strings, Console, version;
 (*
 INCLUDEPATH = -Isrc/lib/system/linux/gnuc/x86_64
 CCOPT = -fPIC $(INCLUDEPATH) -g

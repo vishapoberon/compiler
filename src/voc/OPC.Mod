@@ -853,8 +853,9 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 				| OPM.lineno: OPM.Write("l")
 				| OPM.useparfile: OPM.Write("P")
 				| OPM.dontasm: OPM.Write("S")
-				| OPM.dontlink: OPM.Write("C")
+				| OPM.dontlink: OPM.Write("c")
 				| OPM.mainlinkstat: OPM.Write("M")
+				| OPM.notcoloroutput: OPM.Write("f")
 				ELSE
 				   (* this else is necessary cause
 				   if someone defined a new option in OPM module
