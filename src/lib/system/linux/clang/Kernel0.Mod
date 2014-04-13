@@ -5,7 +5,7 @@ MODULE Kernel0;
 *)
 (* version for bootstrapping voc *)
 
-  IMPORT SYSTEM, Unix, Args, Strings := oocOakStrings, version;
+  IMPORT SYSTEM, Unix, Args, Strings, version;
 
   TYPE
     RealTime = POINTER TO TimeDesc;

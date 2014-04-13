@@ -4,7 +4,7 @@ MODULE voc;  (* J. Templ 3.2.95 *)
     SYSTEM, Unix, Kernel := Kernel0,
     OPP, OPB, OPT,
     OPV, OPC, OPM,
-    extTools, Strings := oocOakStrings;
+    extTools, Strings;
 
 VAR mname : ARRAY 256 OF CHAR; (* noch *)
 

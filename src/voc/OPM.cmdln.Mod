@@ -4,7 +4,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   31.1.2007 jt synchronized with BlackBox version, in particular PromoteIntConstToLInt added
 *)
 
-  IMPORT SYSTEM, Texts := Texts0, Files := Files0, Args, Console, errors, version;
+  IMPORT SYSTEM, Texts := Texts0, Files := Files0, Args, Console, errors, version, vt100;
 
   CONST
     OptionChar* = "-";
@@ -26,6 +26,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     dontasm* = 13; (* don't call external assembler/C compiler *)
     dontlink* = 14; (* don't link *)
     mainlinkstat* = 15; (* generate code for main module and then link object file statically *)
+    notcoloroutput* = 16; (* turn off color output *)
     defopt* = {inxchk, typchk, ptrinit, ansi, assert};  (* default options *)
 
     nilval* = 0;
@@ -120,7 +121,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     oldSFile, newSFile, HFile, BFile, HIFile: Files.File;
 
     S: INTEGER;
-    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-: BOOLEAN;
+    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput: BOOLEAN;
 
 
   (* ------------------------- Log Output ------------------------- *)
@@ -164,8 +165,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "l": opt := opt / {lineno}
       | "P": opt := opt / {useparfile}
       | "S": opt := opt / {dontasm}
-      | "C": opt := opt / {dontlink}
+      | "c": opt := opt / {dontlink}
       | "M": opt := opt / {mainlinkstat}
+      | "f": opt := opt / {notcoloroutput}
       ELSE LogWStr("  warning: option "); LogW(OptionChar); LogW(s[i]); LogWStr(" ignored"); LogWLn
       END ;
       INC(i)
@@ -188,7 +190,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.Ln;
       Console.String('  command = "voc" options {file options}.'); Console.Ln;
       Console.String('  options = ["-" {option} ].'); Console.Ln;
-      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "C" .'); Console.Ln;
+      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" .'); Console.Ln;
       Console.Ln;
       Console.String(" m      - generate code for main module"); Console.Ln;
       Console.String(" M      - generate code for main module and link object statically"); Console.Ln;
@@ -203,7 +205,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.String(" t      - don't check type guards (use in rare cases such as low-level modules where every cycle counts)"); Console.Ln;
       Console.String(" P      - use .par file"); Console.Ln;
       Console.String(" S      - don't call external assembler/compiler, only generate the asm/C code"); Console.Ln;
-      Console.String(" C      - don't call linker"); Console.Ln;
+      Console.String(" c      - don't call linker"); Console.Ln;
+      Console.String(" f      - don't use color output"); Console.Ln;
       Console.Ln;
     ELSE
       glbopt := defopt; S := 1; s := "";
@@ -220,7 +223,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF dontlink IN glbopt THEN dontLink := TRUE ELSE dontLink := FALSE END;
       IF mainprog IN glbopt THEN mainProg := TRUE ELSE mainProg := FALSE END;
       IF mainlinkstat IN glbopt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
-
+      IF notcoloroutput IN glbopt THEN notColorOutput := TRUE ELSE notColorOutput := FALSE END;
       GetProperties; (* GetProperties moved here in order to call it after ScanOptions because we have an option whether to use par file or not, noch *)
 
     END;
@@ -295,8 +298,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     VAR S: Texts.Scanner; T: Texts.Text; ch: CHAR; i: INTEGER;
       buf: ARRAY 1024 OF CHAR;
   BEGIN
-    IF n >= 0 THEN LogWStr("  err ")
-    ELSE LogWStr("  warning "); n := -n
+    IF n >= 0 THEN 
+       IF ~notColorOutput THEN vt100.SetAttr(vt100.Red) END;
+       LogWStr("  err ");
+       IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+    ELSE 
+       IF ~notColorOutput THEN vt100.SetAttr(vt100.Magenta) END;
+       LogWStr("  warning "); n := -n;
+       IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
     END ;
     LogWNum(n, 1);
     LogWStr("  ");

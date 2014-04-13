@@ -1,5 +1,5 @@
 MODULE version;
-   IMPORT Strings := oocOakStrings, architecture, prf;
+   IMPORT Strings, architecture, prf;
 CONST     
 (* targets *)
     gnux86* = 0; gnux8664* = 1; gnuarmv6j* = 2; gnuarmv6jhardfp* = 3;  gnuarmv7ahardfp* = 4; gnupowerpc* = 5;

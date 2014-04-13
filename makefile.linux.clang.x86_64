@@ -78,12 +78,14 @@ stage3:
 	$(VOCSTATIC0) -sPS Args.Mod Console.Mod Unix.Mod
 	sed -i.tmp "s#/opt#$(PRF)#g" src/voc/prf.Mod
 	$(VOCSTATIC0) -sPS prf.Mod
-	$(VOCSTATIC0) -sPS oocOakStrings.Mod architecture.Mod version.Mod Kernel0.Mod Modules.Mod
+	$(VOCSTATIC0) -sPS Strings.Mod architecture.Mod version.Mod Kernel0.Mod Modules.Mod
 	$(VOCSTATIC0) -sxPS Files0.Mod 
-	$(VOCSTATIC0) -sPS Reals.Mod Texts0.Mod errors.Mod
+	$(VOCSTATIC0) -sPS Reals.Mod Texts0.Mod
+	$(VOCSTATIC0) -sPS vt100.Mod
 
 # build the compiler
 stage4:
+	$(VOCSTATIC0) -sPS errors.Mod
 	$(VOCSTATIC0) -sPS extTools.Mod
 	$(VOCSTATIC0) -sPS OPM.cmdln.Mod 
 	$(VOCSTATIC0) -sxPS OPS.Mod 
@@ -96,21 +98,21 @@ stage4:
 #this is a way to create a bootstrap binary.
 stage5:
 	$(CC) SYSTEM.c Args.c Console.c Modules.c Unix.c \
-	oocOakStrings.c architecture.c prf.c version.c Kernel0.c Files0.c Reals.c Texts0.c \
+	Strings.c architecture.c prf.c version.c Kernel0.c Files0.c Reals.c Texts0.c vt100.c \
 	extTools.c \
 	OPM.c OPS.c OPT.c OPC.c OPV.c OPB.c OPP.c errors.c
 
 	$(CL) -static  voc.c -o voc \
 	SYSTEM.o Args.o Console.o Modules.o Unix.o \
-	oocOakStrings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o \
+	Strings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o vt100.o \
 	extTools.o \
 	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o errors.o
 	$(CL) BrowserCmd.c -o showdef \
-	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o \
+	SYSTEM.o Args.o Console.o Modules.o Unix.o Strings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o vt100.o \
 	OPM.o OPS.o OPT.o OPV.o OPC.o errors.o
 
 	$(CL) OCatCmd.c -o ocat \
-	SYSTEM.o Args.o Console.o Modules.o Unix.o oocOakStrings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o
+	SYSTEM.o Args.o Console.o Modules.o Unix.o Strings.o architecture.o prf.o version.o Kernel0.o Files0.o Reals.o Texts0.o
 	
 # build all library files
 stage6:
@@ -127,6 +129,7 @@ stage6:
 	$(VOCSTATIC) -sP	oocAscii.Mod
 	$(VOCSTATIC) -sP	oocStrings.Mod
 	$(VOCSTATIC) -sP	oocStrings2.Mod
+	$(VOCSTATIC) -sP	oocOakStrings.Mod
 	$(VOCSTATIC) -sP	oocCharClass.Mod
 	$(VOCSTATIC) -sP	oocConvTypes.Mod
 	$(VOCSTATIC) -sP	oocIntConv.Mod
@@ -250,7 +253,7 @@ stage6:
 #	$(VOCSTATIC0) -sPS compatIn.Mod
 #	$(VOCSTATIC0) -smPS vmake.Mod
 #	$(CC) compatIn.c
-#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o Texts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o oocOakStrings.o oocIntStr.o oocConvTypes.o oocIntConv.o
+#	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o Texts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o Strings.o oocIntStr.o oocConvTypes.o oocIntConv.o
 
 
 
