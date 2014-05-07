@@ -92,7 +92,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     FileName = ARRAY 32 OF CHAR;
 
   VAR
-
+    SourceFileName : ARRAY 256 OF CHAR;
     ByteSize*, CharSize*, BoolSize*, SIntSize*, IntSize*,
     LIntSize*, SetSize*, RealSize*, LRealSize*, PointerSize*, ProcSize*, RecSize*,
     CharAlign*, BoolAlign*, SIntAlign*, IntAlign*,
@@ -256,6 +256,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     NEW(T); Texts.Open(T, s);
     LogWStr(s);
     COPY(s, mname);
+    COPY(s, SourceFileName); (* to keep it also in this module -- noch *)
     IF T.len = 0 THEN LogWStr(" not found"); LogWLn
     ELSE
       Texts.OpenReader(inR, T, 0);
@@ -320,16 +321,163 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     LogWStr(errors.errors[n]);
   END LogErrMsg;
 
-  PROCEDURE Mark*(n: INTEGER; pos: LONGINT);
+  PROCEDURE ShowLine(pos: LONGINT);
+     VAR
+     f : Files.File;
+     r : Files.Rider;
+     newpos, localpos, delta : LONGINT;
+     line : ARRAY 1023 OF CHAR;
+     i : INTEGER;
+     ch : CHAR;
   BEGIN
+     localpos := pos;
+     f := Files.Old(SourceFileName);
+
+     (*
+     Console.Ln; Console.String("-- source file is "); Console.String(SourceFileName); Console.Ln;
+     Console.String("-- pos is "); Console.Int(pos, 0); Console.Ln;
+     *)
+     (* make sure previous character is character *) 
+     REPEAT
+	DEC(localpos); IF localpos < 0 THEN localpos := 0 END;
+        Files.Set(r, f, localpos);
+        Files.Read(r, ch);
+     UNTIL (localpos < 1) OR(ORD(ch) >= 32) OR (ORD(ch)=9);
+     newpos := localpos;
+     (*
+     Console.String("-- newpos, last character before error "); Console.Int(newpos, 0); Console.Ln;
+     *)
+     (* finding last line end *)
+     REPEAT
+	DEC(localpos); IF localpos < 0 THEN newpos := 0 END;
+        Files.Set(r, f, localpos);
+        Files.Read(r, ch);
+(*
+        Console.String("-- prev num "); Console.Int(localpos, 0);Console.String("  "); Console.Char(ch); Console.Ln;
+*)
+     UNTIL (localpos < 1) OR ((ORD(ch) < 32) & (ORD(ch) # 9));
+(*     
+     Console.String("-- previous line at pos "); Console.Int(localpos, 0); Console.Ln;
+*)
+     delta := newpos - localpos - 1;
+     IF delta < 1 THEN delta := 1 END;
+  (*   
+     Console.String("-- delta "); Console.Int(delta, 0); Console.Ln;
+*)
+     (* skip enter *)
+     REPEAT
+        INC(localpos);
+	Files.Set(r, f, localpos);
+	Files.Read(r, ch);
+     UNTIL (ORD(ch) >= 32) OR (ORD(ch) = 9);
+     i := 0;
+     REPEAT
+	Files.Set(r, f, localpos);
+        Files.Read(r, ch);
+	IF ORD(ch) = 9 THEN ch := " " END;
+	line[i] := ch;
+(*	
+	Console.String("-- localpos "); Console.Int(localpos, 0); Console.Ln;
+	Console.String(" -- ch "); Console.Char(ch); Console.Ln;
+*)
+	INC(localpos);
+	INC(i);
+     UNTIL r.eof OR (i >= 1022) OR ((ORD(ch) < 32) & (ORD(ch) # 9));
+     line[i] := 0X;
+     (*Console.String(" -- length of line "); Console.Int(i, 0); Console.Ln;*)
+     Console.Ln; Console.Ln; Console.String("  "); Console.String(line);
+
+     i := 0;
+     Console.String("  ");
+     REPEAT
+        Console.Char(" ");
+	INC(i);
+     UNTIL i >= delta;
+    IF ~notColorOutput THEN vt100.SetAttr(vt100.Green) END; 
+     Console.Char("^"); (*Console.Ln;*)
+    IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+  Files.Close(f);
+
+  END ShowLine;
+
+  PROCEDURE ShowLineErr(linenum, posnum : LONGINT);
+     VAR
+        f : Files.File;
+        r : Files.Rider;
+        line : ARRAY 1023 OF CHAR;
+        i,j : LONGINT;
+        ch :      CHAR;
+  BEGIN
+     
+     f := Files.Old(SourceFileName);
+     Files.Set(r, f, 0);
+     
+     (* skip non character symbols in the beginning *)
+     REPEAT
+        Files.Read(r, ch);
+     UNTIL ORD(ch) > 31;
+     
+     i := 0; j := 0;
+     REPEAT
+        IF (ORD(ch) > 31) OR (ORD(ch) = 9) THEN 
+	   IF ORD(ch)=9 THEN ch := " " END;
+	   line[i] := ch; INC(i); line[i+1] := 0X;
+	ELSE 
+	   INC(j); i := 0 
+	END;
+        (* 
+        Console.Ln; Console.String("-- line["); Console.Int(i-1, 0); Console.String("] = "); Console.Char(ch); Console.Ln;
+*)
+	Files.Read(r, ch);
+(*
+        Console.String("-- i "); Console.Int(i, 0); Console.Ln;
+
+        Console.String("--j "); Console.Int(j, 0); Console.Ln;
+
+	Console.Char(ch); Console.Ln;
+*)
+     UNTIL (j >= linenum) OR (i >= 1022);
+
+     Console.Ln; Console.String("  "); Console.String(line); Console.Ln;
+
+     i := 0;
+     WHILE i < posnum-1 DO 
+        Console.Char(" ");
+	INC(i);
+     END;
+
+     Console.String("  "); (* compensate shift from Mark() ; -- noch *)
+     IF ~notColorOutput THEN vt100.SetAttr(vt100.Green) END;
+     Console.Char("^"); Console.Ln;
+     IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+
+     Files.Close(f);
+
+  END ShowLineErr;
+
+  PROCEDURE Mark*(n: INTEGER; pos: LONGINT);
+  VAR
+     linenumber, posnumber : LONGINT;
+  BEGIN
+    IF pos = -1 THEN pos := 0 END;
+    
+    linenumber := pos DIV 256;
+    posnumber := pos MOD 256;
+(*
+        Console.Ln; Console.String("-- linenumber "); Console.Int(linenumber, 0); Console.Ln;
+	Console.String("-- posnumber "); Console.Int(posnumber, 0); Console.Ln;
+*)
     IF useLineNo THEN
       IF n >= 0 THEN
         noerr := FALSE;
+(*
+        Console.String("n = "); Console.Int(n, 0); Console.Ln;
+*)
         IF (pos < lasterrpos) OR (lasterrpos + 9 < pos) THEN lasterrpos := pos; LogWLn; LogWStr("  ");
-          IF n < 249 THEN LogWStr("  line "); LogWNum(pos DIV 256, 1);
-            LogWStr("  pos "); LogWNum(pos MOD 256, 1); LogErrMsg(n)
-          ELSIF n = 255 THEN LogWStr("  line "); LogWNum(pos DIV 256, 1);
-            LogWStr("  pos "); LogWNum(pos MOD 256, 1); LogWStr("  pc "); LogWNum(breakpc, 1)
+          IF n < 249 THEN ShowLineErr(linenumber, posnumber); LogWStr("  line "); LogWNum(linenumber, 1);
+            LogWStr("  pos "); LogWNum(posnumber, 1); LogErrMsg(n)
+          ELSIF n = 255 THEN ShowLineErr(linenumber, posnumber); LogWStr("  line "); LogWNum(linenumber, 1);
+            LogWStr("  pos "); LogWNum(posnumber, 1); LogWStr("  pc "); LogWNum(breakpc, 1)
           ELSIF n = 254 THEN LogWStr("pc not found")
           ELSE LogWStr(objname);
             IF n = 253 THEN LogWStr(" is new, compile with option e")
@@ -341,6 +489,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
           END
         END
       ELSE
+        ShowLineErr(linenumber, posnumber);
         IF pos >= 0 THEN LogWLn;
           LogWStr("  line "); LogWNum(pos DIV 256, 1); LogWStr("  pos "); LogWNum(pos MOD 256, 1)
         END ;
@@ -350,7 +499,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     ELSE
       IF n >= 0 THEN
         noerr := FALSE;
-        IF (pos < lasterrpos) OR (lasterrpos + 9 < pos) THEN lasterrpos := pos; LogWLn; LogWStr("  ");
+        IF (pos < lasterrpos) OR (lasterrpos + 9 < pos) THEN lasterrpos := pos; ShowLine(pos); LogWLn; LogWStr("  ");
           IF n < 249 THEN LogWStr("  pos"); LogWNum(pos, 6); LogErrMsg(n)
           ELSIF n = 255 THEN LogWStr("pos"); LogWNum(pos, 6); LogWStr("  pc "); LogWNum(breakpc, 1)
           ELSIF n = 254 THEN LogWStr("pc not found")
@@ -364,7 +513,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
           END
         END
       ELSE
-        IF pos >= 0 THEN LogWLn; LogWStr("  pos"); LogWNum(pos, 6) END ;
+        IF pos >= 0 THEN ShowLine(pos); LogWLn; LogWStr("  pos"); LogWNum(pos, 6) END ;
         LogErrMsg(n);
         IF pos < 0 THEN LogWLn END
       END
