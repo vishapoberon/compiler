@@ -51,7 +51,7 @@ port1: stage5
 
 # this builds binary which generates voc.par
 stage0: src/tools/vocparam/vocparam.c
-	$(CL) -I src/lib -o vocparam src/tools/vocparam/vocparam.c
+	$(CL) -I src/lib/system/$(TOS)/$(CCOMP)/$(TARCH) -o vocparam src/tools/vocparam/vocparam.c
 
 # this creates voc.par for a host architecture.
 # comment this out if you need to build a compiler for a different architecture.
