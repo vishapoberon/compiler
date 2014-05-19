@@ -297,7 +297,7 @@ install:
 	cp *.sym $(PREFIX)/lib/voc/sym/
 
 	#cp 05vishap.conf /etc/ld.so.conf.d/
-	#ldconfig
+	ldconfig -m $(PREFIX)/lib
 	ln -s $(PREFIX) $(PREFIXLN)
 
 #        cp *.o $(PREFIX)/lib/voc/$(RELEASE)/obj/
