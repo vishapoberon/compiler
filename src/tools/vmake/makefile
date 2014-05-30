@@ -10,6 +10,8 @@ all:
 clean:
 	rm *.o
 	rm *.c
+	rm *.h
+	rm *.sym
 
 install:
 	cp vmake /opt/voc/bin/

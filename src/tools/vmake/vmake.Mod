@@ -11,7 +11,7 @@ Make.Order {filename} ~
 (* taken from trianus system source ; -- noch *)
 
 MODULE vmake;  (*HM 94-06-22 /  *)
-IMPORT Texts := CmdlnTexts, In := compatIn, Out := Console;
+IMPORT Texts, In := compatIn, Out := Console;
 
 TYPE
   ModuleName = ARRAY 64 OF CHAR;

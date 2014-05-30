@@ -6,7 +6,7 @@ export CFLAGS
 VOC = $(SETPATH) /opt/voc/bin/voc
 
 all:
-	$(VOC) -s Linie.Mod Minesweeper.Mod -m
+	$(VOC) -s compatIn.Mod Linie.Mod Minesweeper.Mod -m
 	#$(VOC) -Cm test.Mod
 	#gcc -o test  test.o -fPIC -g -I /opt/voc-1.0/src/lib/system/gcc/x86_64 -I /opt/voc-1.0/lib/voc/obj -lVishapOberon -L. -L/opt/voc-1.0/lib -lX11
 
