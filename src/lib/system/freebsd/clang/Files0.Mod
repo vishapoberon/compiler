@@ -371,6 +371,11 @@ END ;
     r.res := 0; r.eof := FALSE
   END ReadBytes;
 
+  PROCEDURE ReadByte* (VAR r : Rider; VAR x : ARRAY OF SYSTEM.BYTE);
+  BEGIN
+     ReadBytes(r, x, 1);
+  END ReadByte;
+
   PROCEDURE Base* (VAR r: Rider): File;
   BEGIN RETURN r.buf.f
   END Base;
