@@ -327,7 +327,7 @@ MODULE Texts0;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91*
       Files.Set(R.rider, u(Piece).file, u(Piece).org + R.off)
     END
   END OpenReader;
-
+(*
   PROCEDURE Read* (VAR R: Reader; VAR ch: CHAR);
     VAR u: Run;
   BEGIN u := R.run; R.fnt := u.fnt; R.col := u.col; R.voff := u.voff; INC(R.off);
@@ -343,6 +343,27 @@ MODULE Texts0;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91*
       R.run := u; R.off := 0
     END
   END Read;
+*)
+  PROCEDURE Read* (VAR R: Reader; VAR ch: CHAR);
+    VAR u: Run; pos: LONGINT; nextch: CHAR;
+  BEGIN u := R.run; R.fnt := u.fnt; R.col := u.col; R.voff := u.voff; INC(R.off);
+    IF u IS Piece THEN Files.Read(R.rider, ch); R.elem := NIL;
+      IF (ch = 0AX) & u(Piece).ascii THEN ch := CR (* << LF to CR *)
+      ELSIF (ch = CR) & u(Piece).ascii THEN (* << CR LF to CR *)
+         pos := Files.Pos(R.rider); Files.Read(R.rider, nextch);
+         IF nextch = 0AX THEN INC(R.off) ELSE Files.Set(R.rider, u(Piece).file, pos) END  
+      END 
+    ELSIF u IS Elem THEN ch := ElemChar; R.elem := u(Elem)
+    ELSE ch := 0X; R.elem := NIL; R.eot := TRUE
+    END;
+    IF R.off = u.len THEN INC(R.org, u.len); u := u.next;
+      IF u IS Piece THEN
+        WITH u: Piece DO Files.Set(R.rider, u.file, u.org) END
+      END;
+      R.run := u; R.off := 0
+    END
+  END Read;
+
 
   PROCEDURE ReadElem* (VAR R: Reader);
     VAR u, un: Run;

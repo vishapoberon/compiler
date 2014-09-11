@@ -277,6 +277,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       ELSIF curpos MOD 256 # 255 THEN INC(curpos)
         (* at 255 means:  >= 255 *)
       END
+    ELSIF ch = 0DX THEN
+       curpos := Texts.Pos(inR); (* supports CR LF mapping *)
     ELSE
       INC(curpos)
     END ;
@@ -384,8 +386,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 	INC(i);
      UNTIL r.eof OR (i >= 1022) OR ((ORD(ch) < 32) & (ORD(ch) # 9));
      line[i] := 0X;
+     IF (line[i-1] = 0AX) OR (line[i-1] = 0DX) THEN line[i-1] := 0X END;
      (*Console.String(" -- length of line "); Console.Int(i, 0); Console.Ln;*)
      Console.Ln; Console.Ln; Console.String("  "); Console.String(line);
+     Console.Ln;
 
      i := 0;
      Console.String("  ");
@@ -423,7 +427,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 	   IF ORD(ch)=9 THEN ch := " " END;
 	   line[i] := ch; INC(i); line[i+1] := 0X;
 	ELSE 
-	   INC(j); i := 0 
+	   IF ch = 0AX THEN INC(j); i := 0 END
 	END;
         (* 
         Console.Ln; Console.String("-- line["); Console.Int(i-1, 0); Console.String("] = "); Console.Char(ch); Console.Ln;
