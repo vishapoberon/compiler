@@ -15,6 +15,8 @@
 # OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
+#
+#some changes added by Norayr Chilingarian
 
 %define _prefix /opt/%{name}-%{version}
 %define _bindir %{_prefix}/bin
@@ -33,8 +35,12 @@ Packager: %{packer}
 Group: Development/Languages
 Source: http://oberon.vishap.am/voc/voc-1.0.src.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
-BuildArch: i686
-BuildRequires: glibc-static, libX11-devel
+#BuildArch: i686
+#mases this .spec more generic
+BuildArch: %{_arch}
+#BuildRequires: glibc-devel, libX11-devel
+#makes this more portable across different distributions
+BuildRequires: /usr/include/X11/Xlib.h /usr/lib/libc.a
 
 %description
 Vishap's Oberon Compiler (voc) uses a C backend to drive compilation
@@ -47,7 +53,19 @@ echo Building %{name}-%{version}-%{release}
 %setup -q -n %{name}
 
 %build
-%{__make} -f makefile.linux.gcc.x86
+#choose corresponding makefile depending on architecture.
+if [ %{_arch} == "i386" ] || [ %{_arch} == "i686"  ]
+then
+   %{__make} -f makefile.linux.gcc.x86
+elif [ %{_arch} == "armv6hl" ]
+then
+   %{__make} -f makefile.linux.gcc.armv6j_hardfp
+elif [ %{_arch} == "armv7" ]
+then
+   %{__make} -f makefile.linux.gcc.armv7a_hardfp
+else
+   %{__make} -f makefile.linux.gcc.%{_arch}
+fi
 
 %install
 %{__install} -d %{buildroot}/%{_prefix}/bin
