@@ -1,5 +1,5 @@
 MODULE ORB;   (*NW 7.10.2013   in Oberon-07*)
-  IMPORT Files := OakFiles, ORS, S := SYSTEM;
+  IMPORT Files, ORS, S := SYSTEM;
   TYPE BYTE = S.BYTE;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:

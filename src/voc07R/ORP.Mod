@@ -1,5 +1,5 @@
 MODULE ORP; (*N. Wirth 1.7.97 / 5.11.2013  Oberon compiler for RISC in Oberon-07*)
-  IMPORT Args, Out := Console, Texts := CmdlnTexts, (*Oberon,*) ORS, ORB, ORG;
+  IMPORT Args, Out := Console, Texts, (*Oberon,*) ORS, ORB, ORG;
   (*Author: Niklaus Wirth, 2011.
     Parser of Oberon-RISC compiler. Uses Scanner ORS to obtain symbols (tokens),
     ORB for definition of data structures and for handling import and export, and

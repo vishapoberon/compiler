@@ -1,5 +1,5 @@
 MODULE ORG; (* NW  10.10.2013  code generator in Oberon-07 for RISC*)
-  IMPORT SYSTEM, Files := OakFiles, ORS, ORB;
+  IMPORT SYSTEM, Files, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
      Procedure Close writes code-files*)

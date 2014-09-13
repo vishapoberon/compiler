@@ -1,5 +1,5 @@
 MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
-  IMPORT SYSTEM, Texts := CmdlnTexts, Console, S := SYSTEM;
+  IMPORT SYSTEM, Texts, Console, S := SYSTEM;
 
 (* Oberon Scanner does lexical analysis. Input is Oberon-Text, output is
   sequence of symbols, i.e identifiers, numbers, strings, and special symbols.
