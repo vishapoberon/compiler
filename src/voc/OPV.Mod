@@ -1010,6 +1010,18 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             IfStat(n, n^.subcl = 0, outerProc)
       |  Ntrap:
             OPC.Halt(n^.right^.conval^.intval)
+      ELSE
+                                   (* this else is necessary cause
+                                   it can happen that
+                                   n^.class is something which is not handled,
+                                   like Nconst (7)
+                                   which I actually experienced
+                                   when compiling Texts0.Mod on raspberry pi
+                                   it generates __CASECHK and cause Halt,
+                                   noch *)
+                                        
+					OPM.WriteString ("/*n^class = "); OPM.WriteInt(n^.class); OPM.WriteString(" and this is not handled, please investigate */"); 
+
       END ;
       IF ~(n^.class IN {Nenter, Ninittd, Nifelse, Nwith, Ncase, Nwhile, Nloop}) THEN OPC.EndStat END ;
       n := n^.link
