@@ -23,7 +23,7 @@
 %define _datadir %{_prefix}/share
 %define _includedir %{_prefix}/include
 %define _libdir %{_prefix}/lib
-%define packer %(finger -lp `echo "$USER"` | head -n 1 | cut -d: -f 3)
+%define packer %(finger -lp `echo "$USER"` | head -n 1 | cut -d" " -f2)
 
 Name: voc
 Summary: Oberon-2 compiler
@@ -34,13 +34,22 @@ Vendor: D. E. Evans <sinuhe@gnu.org>
 Packager: %{packer}
 Group: Development/Languages
 Source: http://oberon.vishap.am/voc/voc-1.0.src.tar.bz2
+# this is ~/rpmbuild/SOURCES/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
+
 #BuildArch: i686
-#mases this .spec more generic
-BuildArch: %{_arch}
-#BuildRequires: glibc-devel, libX11-devel
+#makes this .spec more generic
+#BuildArch: %{_arch}
+
+#on modern rhel/fedora/pidora systems
+BuildRequires: glibc-static, libX11-devel
+
+#on older systems like rhel4 it'll be
+#BuildRequires: glibc-devel, xorg-x11-devel
+
+#basicly we neet /usr/include/X11/Xlib.h and /usr/lib/libc.a
 #makes this more portable across different distributions
-BuildRequires: /usr/include/X11/Xlib.h /usr/lib/libc.a
+#BuildRequires: /usr/include/X11/Xlib.h /usr/lib/libc.a
 
 %description
 Vishap's Oberon Compiler (voc) uses a C backend to drive compilation
@@ -57,6 +66,10 @@ echo Building %{name}-%{version}-%{release}
 if [ %{_arch} == "i386" ] || [ %{_arch} == "i686"  ]
 then
    %{__make} -f makefile.linux.gcc.x86
+elif [ %{_arch} == "arm" ] #rpmbuild on pidora/raspberry identifies arch as arm
+then
+   %{__make} -f makefile.linux.gcc.armv6j_hardfp
+ 
 elif [ %{_arch} == "armv6hl" ]
 then
    %{__make} -f makefile.linux.gcc.armv6j_hardfp

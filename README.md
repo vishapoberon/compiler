@@ -54,8 +54,14 @@ build rpm
 
 if you'd like to build an rpm installer, then
 
-* compress sources as voc-1.0.src.tar.bz2
-* put them to /usr/src/redhat/SOURCES/ (or other similar location)
-* run "rpmbuild -ba voc.spec
+* compress sources as voc-1.0.src.tar.bz2  
+  assuming you in voc directory
+> cd ..
+> tar -jcvpf voc-1.0.src.tar.bz2 voc
+* put them to ~/rpmbuild/SOURCES (on some systems as root to /usr/src/redhat/SOURCES/) or other similar location.  
+> mkdir -p ~/rpmbuild/SOURCES  
+> cp voc-1.0.src.tar.bz2 ~/rpmbuild/SOURCES  
+* cd to voc directory and run  
+> rpmbuild -ba voc.spec
 
 this should create voc rpm installers.
