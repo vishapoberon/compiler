@@ -167,12 +167,16 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
         rlen := rlen + q.len; q := q.next
       END;
       (*Dict[N] := p.fnt.name;*)
-      COPY(p.fnt.name, Dict[N]); (* voc adaptation by noch *)
+      IF p.fnt # NIL THEN COPY(p.fnt.name, Dict[N]) END; (* voc adaptation by noch *)
       n := 1;
-      WHILE Dict[n] # p.fnt.name DO INC(n) END;
+      IF p.fnt # NIL THEN (* voc adaptation by noch *)
+         WHILE Dict[n] # p.fnt.name DO INC(n) END;
+      END;
       (*Files.WriteByte(W, n);*)
       Files.WriteByte(W, SHORT(SHORT(n))); (* voc adaptation by noch *)
-      IF n = N THEN Files.WriteString(W, p.fnt.name); INC(N) END;
+      IF p.fnt # NIL THEN (* voc adaptation by noch *)
+         IF n = N THEN Files.WriteString(W, p.fnt.name); INC(N) END;
+      END;
       (*Files.WriteByte(W, p.col);*)
       Files.WriteByte(W, SHORT(SHORT(p.col))); (* voc adaptation by noch *)
       (*Files.WriteByte(W, p.voff);*)

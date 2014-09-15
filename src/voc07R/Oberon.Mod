@@ -1,5 +1,12 @@
 MODULE Oberon;
 
+(* this module emulates Oberon.Log and Oberon.Par in order to pass agruments to Oberon programs, as it's in Oberon environment;
+   it creates Oberon.Par from command line arguments;
+   procedure Dump dumps Oberon.Log to standard output.
+   
+   -- noch *)
+
+(* Files are commented out, because it's not necessary for work, but can be very useful for debug. See WriteTextToFile procedure; -- noch *)
 IMPORT Args, Strings, Texts := CompatTexts, (*Files := CompatFiles,*) Out := Console;
 
 VAR Log*: Texts.Text;
@@ -34,6 +41,7 @@ BEGIN
     WHILE i < Args.argc DO
        Args.Get(i, opt);
        Strings.Append(opt, opts);(* Strings.Append (" ", opts);*)
+       (* ORP calls Texts.Scan, which returns filename, and nextCh would be set to " " if we append here " ". However after that ORP will check nextCh, and if it finds that nextCh is not "/" it's not gonna parse options. That's why Strings.Append is commented out; -- noch *)
        INC(i)
     END;
 
