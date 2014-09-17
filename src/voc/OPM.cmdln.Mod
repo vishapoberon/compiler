@@ -695,13 +695,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     (* we can do
     MinLInt := ASH(-2, LIntSize*8-2);
     but some compilers may treat -2 as SHORTINT, not LONGINT; -- noch *)
-    MinSInt := ASH(Base, SIntSize*8-2);
+    MinSInt := ASH(base, SIntSize*8-2);
     MaxSInt := minus(MinSInt + 1);
 
-    MinInt := ASH(Base, IntSize*8-2);
+    MinInt := ASH(base, IntSize*8-2);
     MaxInt := minus(MinInt + 1);
     
-    MinLInt := ASH(Base, LIntSize*8-2);
+    MinLInt := ASH(base, LIntSize*8-2);
     MaxLInt := minus(MinLInt +1);
 
 (*
