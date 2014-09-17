@@ -564,8 +564,15 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END
   END GetProperty;
 
-  PROCEDURE power0(i, j : INTEGER) : LONGINT; (* we would like to calculate exact Min Max values in GetProperties, not hardcode em, noch *)
-  VAR k : INTEGER;
+
+
+  PROCEDURE minus(i: LONGINT): LONGINT;
+  BEGIN
+     RETURN -i;
+  END minus;
+
+  PROCEDURE power0(i, j : LONGINT) : LONGINT; (* we would like to calculate exact Min Max values in GetProperties, not hardcode em, noch *)
+  VAR k : LONGINT;
       p : LONGINT;
   BEGIN
      k := 1;
@@ -674,11 +681,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
     MinSInt := power0(-2, (SIntSize*8-1)); (* -2^(SIntSize*8-1)*)
-    MaxSInt := power0(2, (SIntSize*8-1))-1;
+    (*MaxSInt := -(MinSint + 1);; may be optimized?*)
+    MaxSInt := minus(MinSInt + 1);
     MinInt := power0(-2, (IntSize*8-1));
-    MaxInt := power0(2, (IntSize*8-1))-1;
+    MaxInt := minus(MinInt + 1);
     MinLInt := power0(-2, (LIntSize*8-1));
-    MaxLInt := power0(2, (LIntSize*8-1))-1;
+    MaxLInt := minus(MinLInt +1);
 
 (*
     Console.Int(MinSInt, 0); Console.Ln;
