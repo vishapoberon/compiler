@@ -587,6 +587,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   PROCEDURE GetProperties();
     VAR T: Texts.Text; S: Texts.Scanner;
+    base : LONGINT;
   BEGIN
  
     (* default characteristics *)
@@ -679,13 +680,28 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     ELSE Console.String ("not using voc.par file"); Console.Ln;
     END; (* if useParFile , noch *)
 
-
+(* commenting this by replacing with faster way; -- noch *
     MinSInt := power0(-2, (SIntSize*8-1)); (* -2^(SIntSize*8-1)*)
     (*MaxSInt := -(MinSint + 1);; may be optimized?*)
     MaxSInt := minus(MinSInt + 1);
     MinInt := power0(-2, (IntSize*8-1));
     MaxInt := minus(MinInt + 1);
+     
     MinLInt := power0(-2, (LIntSize*8-1));
+    MaxLInt := minus(MinLInt +1);
+*)
+    (* and I'd like to calculate it, not hardcode constants *)
+    base := -2; 
+    (* we can do
+    MinLInt := ASH(-2, LIntSize*8-2);
+    but some compilers may treat -2 as SHORTINT, not LONGINT; -- noch *)
+    MinSInt := ASH(Base, SIntSize*8-2);
+    MaxSInt := minus(MinSInt + 1);
+
+    MinInt := ASH(Base, IntSize*8-2);
+    MaxInt := minus(MinInt + 1);
+    
+    MinLInt := ASH(Base, LIntSize*8-2);
     MaxLInt := minus(MinLInt +1);
 
 (*
