@@ -1,4 +1,6 @@
-803af7e (HEAD, origin/master, origin/HEAD, master) making 1.0.1 release
+5e57b04 (HEAD, master) spec file to 1.0.1 update
+a3891b3 (origin/master, origin/HEAD) updated changelog, updated FAQ on how to solve Raspberry Pi building errors.
+803af7e making 1.0.1 release
 69defc9 fix
 9892f92 even faster way
 05b8d63 no overflow in OPM anymore
