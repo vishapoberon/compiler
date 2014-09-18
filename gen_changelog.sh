@@ -1,1 +1,1 @@
-git log --oneline --decorate --color > changes
+git log --decorate > CHANGES.md
