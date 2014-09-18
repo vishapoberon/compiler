@@ -1,10 +1,39 @@
-commit 0ae29b9b4c9badfe0fa0c04f618afc1c96eea037 (HEAD, master)
+commit 6d36f4ee8c4487f85fa751f39b2302f0a998a3cb (HEAD, origin/master, origin/HEAD, master)
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Fri Sep 19 00:31:50 2014 +0400
+
+    fixed date
+
+commit 0d85205cfdec38e272f0c4f7af938a936c127376
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Fri Sep 19 00:28:51 2014 +0400
+
+    fixed bug in Reals.Mod which was actual on x86_64
+    without prototype, return type of ecvt was int, which has 4 byte size on
+    x86 but still has the same size on x86_64, that's why pointer which is 8
+    byte long could not fit in the variable holding return value. And it
+    could get negative value causing programs to explode. Fixed with casting
+    the result to LONGINT.
+
+commit 90a0dc3ae28eae79d536343cf95153bb0b099176
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Thu Sep 18 23:56:28 2014 +0400
+
+    updated version.Mod and makefiles to reflect the new version.
+
+commit 807a7bd019a406ec5e8f3a2fbfce340def29fcac
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Thu Sep 18 19:35:24 2014 +0400
+
+    updated changelog
+
+commit 0ae29b9b4c9badfe0fa0c04f618afc1c96eea037
 Author: Norayr Chilingarian <norayr[at]arnet.am>
 Date:   Thu Sep 18 19:34:23 2014 +0400
 
     fixed spec file to reflect latest changes
 
-commit 2108b6bb72663885e5febfda912ec8d67973de88 (origin/master, origin/HEAD)
+commit 2108b6bb72663885e5febfda912ec8d67973de88
 Author: Norayr Chilingarian <norayr[at]arnet.am>
 Date:   Thu Sep 18 19:21:26 2014 +0400
 
