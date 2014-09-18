@@ -100,7 +100,7 @@ cp *.h %{buildroot}/%{_libdir}/%{name}/obj
 cp *.sym %{buildroot}/%{_libdir}/%{name}/sym
 cp -Rp src %{buildroot}%{_prefix}
 ln -s %{_prefix} %{buildroot}/opt/%{name}
-cp FAQ README.md LICENSE hints quick_start %{buildroot}/%{_datadir}/%{name}
+cp FAQ.md CHANGES.md README.md LICENSE hints quick_start %{buildroot}/%{_datadir}/%{name}
 cp 05vishap.conf %{buildroot}/etc/ld.so.conf.d/
 echo 'PATH=${PATH}:%{_bindir}' >%{buildroot}/etc/profile.d/%{name}.sh
 
