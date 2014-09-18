@@ -5,7 +5,7 @@ MODULE Reals;
 
 
   PROCEDURE -ecvt (x: LONGREAL; ndigit, decpt, sign: LONGINT): LONGINT
-      "ecvt (x, ndigit, decpt, sign)";
+      "(LONGINT)ecvt (x, ndigit, decpt, sign)";
 
   PROCEDURE Ten*(e: INTEGER): REAL;
     VAR r, power: LONGREAL;
