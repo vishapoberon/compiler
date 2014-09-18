@@ -1,4 +1,16 @@
-commit 7e9069e08d89c3d4fc002c779f98839abc073eb4 (HEAD, origin/master, origin/HEAD, master)
+commit 0ae29b9b4c9badfe0fa0c04f618afc1c96eea037 (HEAD, master)
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Thu Sep 18 19:34:23 2014 +0400
+
+    fixed spec file to reflect latest changes
+
+commit 2108b6bb72663885e5febfda912ec8d67973de88 (origin/master, origin/HEAD)
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Thu Sep 18 19:21:26 2014 +0400
+
+    updated spec file
+
+commit 7e9069e08d89c3d4fc002c779f98839abc073eb4
 Author: Norayr Chilingarian <norayr[at]arnet.am>
 Date:   Thu Sep 18 19:14:06 2014 +0400
 
