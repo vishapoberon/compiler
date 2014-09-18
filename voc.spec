@@ -27,7 +27,7 @@
 
 Name: voc
 Summary: Oberon-2 compiler
-Version: 1.0
+Version: 1.0.1
 Release: 1
 License: GPLv3
 Vendor: D. E. Evans <sinuhe@gnu.org>
