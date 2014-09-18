@@ -8,7 +8,7 @@ VAR arch-, version-, date-, versionLong-, prefix0-, prefix- : ARRAY 256 OF CHAR;
 defaultTarget* : INTEGER;
 BEGIN
 arch := architecture.arch;
-date := " [2014/09/18]";
+date := " [2014/09/23]";
 version := "1.0.1";
 versionLong := "";
 COPY(version, versionLong);
