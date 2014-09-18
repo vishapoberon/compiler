@@ -33,7 +33,7 @@ License: GPLv3
 Vendor: D. E. Evans <sinuhe@gnu.org>
 Packager: %{packer}
 Group: Development/Languages
-Source: http://oberon.vishap.am/voc/voc-1.0.src.tar.bz2
+Source: http://oberon.vishap.am/voc/voc-1.0.1.src.tar.bz2
 # this is ~/rpmbuild/SOURCES/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
 
@@ -125,5 +125,6 @@ ldconfig
 /etc/profile.d/
 
 %changelog
+* Thu Sep 18 2014 - N. Chilingarian <norayr@vishap.am>
 * Tue Sep 9 2014 - D. E. Evans <sinuhe@gnu.org>
 - Initial 1.0 release.
