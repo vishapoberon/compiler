@@ -125,6 +125,7 @@ ldconfig
 /etc/profile.d/
 
 %changelog
-* Thu Sep 18 2014 - N. Chilingarian <norayr@vishap.am>
+* Thu Sep 18 2014 - N. Chilingarian <norayr [at] vishap.am>
+- 1.0.1 release of voc, see CHANGES.md file for changes history
 * Tue Sep 9 2014 - D. E. Evans <sinuhe@gnu.org>
 - Initial 1.0 release.
