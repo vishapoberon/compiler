@@ -1,4 +1,10 @@
-commit ed4572f096378e6aa71a4d1c6f6f531024f6b2b8 (HEAD, origin/master, origin/HEAD, master)
+commit 7e9069e08d89c3d4fc002c779f98839abc073eb4 (HEAD, origin/master, origin/HEAD, master)
+Author: Norayr Chilingarian <norayr[at]arnet.am>
+Date:   Thu Sep 18 19:14:06 2014 +0400
+
+    improved changelog generation script to fix the email address to possibly prevent spambots to identify an email address.
+
+commit ed4572f096378e6aa71a4d1c6f6f531024f6b2b8
 Author: Norayr Chilingarian <norayr[at]arnet.am>
 Date:   Thu Sep 18 19:08:09 2014 +0400
 
