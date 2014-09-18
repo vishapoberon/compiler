@@ -4,7 +4,7 @@ TOS = linux
 TARCH = powerpc
 #TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp powerpc
 CCOMP = gcc
-RELEASE = 1.0
+RELEASE = 1.0.1
 
 
 INCLUDEPATH = -Isrc/lib/system/$(TOS)/$(CCOMP)/$(TARCH)
