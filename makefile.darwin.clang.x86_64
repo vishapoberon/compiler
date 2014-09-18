@@ -4,7 +4,7 @@ TOS = darwin
 TARCH = x86_64
 #TARCH = x86 x86_64 armv6j armv6j_hardfp armv7a_hardfp powerpc
 CCOMP = clang
-RELEASE = 1.0
+RELEASE = 1.0.1
 
 
 INCLUDEPATH = -Isrc/lib/system/$(TOS)/$(CCOMP)/$(TARCH)
