@@ -1,3 +1,208 @@
+803af7e (HEAD, origin/master, origin/HEAD, master) making 1.0.1 release
+69defc9 fix
+9892f92 even faster way
+05b8d63 no overflow in OPM anymore
+04662f9 updated arm bootstrap binary
+c2b9124 improved risc crosscompiler, added example and readme.
+1acddf0 found problem in OPV.stat, not properly handled yet. needs investigation.
+bf48ee5 spec file fixes on pidora (fc20 on raspberry pi)
+c900218 re re revised oberon compiler for RISC works -- noch
+c8cc104 fixed or sources
+1c7d4dc updated README.md with info how to build rpm from provided spec file.
+bef25cd added crlf handling partly following discussion at
+15ca10d changes to the spec file to compile on x86_64, x86, armv6hj_hardfp, armv7a_hardfp also makes this spec file less distribution specific: * no glibc-static on rhel4/5 * xorg-devel is called xorg-x11-devel on rhel4 thus requierements are changed to search for header files, not package names.
+143bd70 rpmbuild spec file by D. E. Evans (sinuhe@gnu.org).
+06fa950 added IFS ( Iterated Function System ) example from Reiser's book
+0b2f190 added ReadByte wrapper for compatibility with latest NW Oberon system
+5f508b1 fixed games with compatIn module
+da97c54 freebsd fix for ldconfig
+2d6ac45 freebsd port works. I have no freebsd, and port was made by request and with help of tangentstorm from #oberon channel (: still it's not well tested and is considered experimental.
+1186133 fixed stage0 in all makefiles
+f540d26 vocparam removed
+bf6e685 removed unnecessary binaries
+74f47aa 0. fixed OPM.Mark bug, now when pos = -1 it shows error correctly. 1. added cool error message handling with showing "^" under the line which points exactly where the error is.
+561137e main program msg is also green
+fc3af7e x86_64 and powerpc bootstrap binaries update
+72b53f6 raspberry pi bootstrap binary
+ca80f58 darwin bootstrap binary
+175a480 green output, powerpc binaries
+f4d3bb1 darwin bootstrap binary
+338c3f4 first colored messasges in OPM using vt100, 'f' option added to disable it
+4943886 module crt almost completed, crttest for reference
+fd34af4 powerpc clang bootstrap binary updated
+c35e1e4 updated raspberry pi gcc bootstrap binary
+6ba3d53 updated powerpc bootstrap binary
+018b64d darwin bootstrap binary updated
+01664df gnuc -> gcc, more abstraction in makefiles and extTools
+cd69786 extTools.Mod, fix warnings like "argument unused during compilation: '-L.'"
+61ef35f clang powerpc platform
+ad8e18c small fix in extTools module
+16a810e added Makefile to build vt100 and crt modules.
+7c1a5eb raspberry pi bootstrap binary updated (;
+7f11185 vt100 and crt units, some changes in Unix.Mod
+c0b83a8 vt100 improved
+ec730b6 initial vt100 module release
+f066c42 silences clang warnings of type "place parentheses around the '&' expression". small fix in OPV to make it
+b25a810 added includes to not use internal write, read in Console and Unix
+615253e clang is used to compile libs on linux too.
+b72099f same fixes as in previous commit for gcc
+9200db9 changed long to unsigned long in SYSTEM.h and SYSTEM.c0 to silence clang warnings
+d268033 linux clang platform added
+87f7119 static and dynamic linking works on macosx -- noch
+bdb2b32 fixed problem with short prefix path in version module
+e1f76da separated Kernel, Files. Texts modules for bootstrapping and general use
+e0a915b excluded compiler (non library) object files from libraries. synced linux and macosx makefiles more
+f3548d2 prefixed installation now works. fixed bug with -m, it couldn't work because libVishapOberon contained bindings to X11 but was not linked to X11
+2610f27 dylib and a archive generation under macosx
+93d7320 eventually, macosx version. can compile itself.
+97fd387 fixed bug in darwin's system.c0 file
+5da154e Files, Kernel changes to eliminate warnings under darwin
+e9b49fe fixes
+f9e43e9 SYSTEM.c0 fix for Darwin platform
+7ed322b SYSTEM.h fix for darwin
+08f6bec fixed darwin Unix.Mod module
+a7f927b darwin port... making...
+092de30 par file for clang
+279e037 Darwin port ... yet not ready
+02f7cad small fix
+2fbafbc fixed all makefiles
+49b86a4 added target os, added experimental darwin, starting darwin port
+048a6f7 fixed makefile
+d7d6a66 fixed makefile
+0571cd7 rename
+c72709c readme fix
+a7eaf9c not important change
+f77ccb0 added audio example
+5356b94 added two more examples Tron and Vier
+fd8a8ca fixed tetris readme
+ec7a685 tetris example added
+a2fbb3a minesweeper example added
+1e13d96 compatIn improved, vmake makefile added
+74bb4ad Listen.Mod added
+97181a4 gtk example
+9fb89d2 added PacMan demo
+c1f0081 makefile fix
+00fa074 updated X11 test makefile for old systems
+3618fac remaining ooc C type files
+47c5198 XYplane and X wrappers added
+4bacf7f Sets module
+938c378 Sets.Mod added to makefile
+6cd7443 Sets.Mod ported, works for 64 bit too
+b600d11 Sets.Mod from v4 system added (GPL)
+edf0df4 PO 2013 compiler for Wirth's RISC processor now can be compiled with voc
+cf06850 Project Oberon 2013 edition compiler source added
+eace024 OakFiles modified to be closer to PO 2013 Files -- noch
+b0a3043 OakFiles, added WriteByte to be more compatible with PO 2013 -- noch
+1736258 ported TCrypt module
+d5a6f18 ported ulmConclusions, ulmRandomGenerators
+7b7c968 ported ulmAsymmetricCiphers.Mod
+2e05d3b ported ulmBlockCiphers.Mod
+2a16fd9 ported ulmCipherOps.Mod
+2ae37f2 ulmCiphers added
+7fee908 powerpc bootstrap binary
+13a7216 powerpc
+b273a99 powerpc port completed. mostly there are changes in Reals.Mod, for big endian.
+44086e5 porting to powerpc
+931dae4 adding powerpc target
+b18729c Kernel.Mod fixed, so that MODULES variable is always checked first. This means, custom module with the same name, as standard, will be checked first.
+d1ce637 increased command line length
+5ea1331 Filenames module name fixed
+5f88bfe oocFilenames.Mod added
+2d0c36b ulmSysStat for 32 bit platforms now works
+2ed3b84 bootstrap binary for x86 updated
+bbb031f Reals brought back for x86 and other 32bit platforms with gnuc dependency
+015afee ulmEvents fixed, beautified
+534c054 makefiles updated
+d9f6914 extTools fixed for non 64bit architectures, SysStat can now be compiled on 32bit architectures
+d2c954e SysStat, SysConversions ported
+1355629 Unix.Mod modified, synced with output of cpp /usr/include/asm/stat.h
+c9c82e0 fixed x86_64/Unix.Mod, swapped mode and nlink fields
+909a06c ported SysConversions
+c9646a0 ported TimeConditions, Conditions fixed
+4c71268 ported StreamConditions, Conditions fixed
+81e897f ulmConditions ported, ulmRelatedEvents fixed
+418da2a ported ulmTimers
+94ed5a8 added ulmClocks
+6b18777 array size 32 is not enough with some ulm oberon library files. vmake crashed - out of array bounds error. fixed.
+1527f30 added v4 strings
+6b3baeb added help message to vmake if run without arguments
+776ccc8 vmake ported
+2aeddb9 Make module from Trianus system added. S3 system filen renamed with prefix eth.
+671fa80 ported Sets from S3
+bd3b90d ported RandomNumbers
+fcc5f14 added GetName function to OakFiles; ported BTrees, MD5, Zip, Zlib, ZlibBuffers, ZlibDeflate, ZlibInflate, ZlibReaders, ZlibWriters to compile with voc
+8d6b006 changed hints a little
+80a34fe updated hints file with known bug about shifting variables of set type
+740a507 updated makefile
+5531f92 ported MersenneTwister to voc
+555d330 added MersenneTwister.Mod which can be compiled with XDS system. Now will port it to voc
+1325713 Unix.Mod for 32bit platforms modified too.
+13da72a oocSysClock now don't use C calls, but use Unix.Mod instead. Unix.Mod modified, Gettimeofday now returns value. Kernel.Mod modified in order to conform to Unix.Mod new interface
+80d4889 MultiArrays port
+79055e9 multi arrays initial commit (not binary now) to see changes
+1330471 updated makefile
+0f9b060 ported MultyArray module
+e6bd70d MultiArray modules initial commit
+dda2258 Scales fixed, Times added.
+8652805 ported Scales
+c5823b7 Scales initial commit
+e76b8bf ported ulmLoader, ulmNetIO, ulmPersistentDisciplines, ulmPersistentObjects, ulmScales fixed ulmConstStrings
+841d00e ported SysIO,  modified ulmSYSTEM for that as a wrapper to Unix.Mod ulmSYSTEM.UNIXCALLs are wrapped to Unix.Mod functions. Added Pipe to Unix.Mod
+44734e6 ported Write
+a34ee73 added Write
+b0fb571 added Printer module from V4 system/ofront
+3c1f0f0 updated makefiles
+b66639a added pow opal strings module
+278abe4 ulmSysErrors ported.
+9f8fefc ulmErrors ported.
+a9ee805 ulmErrors initial commit
+60f0426 ulmSys, ulmSysConversions
+ea14297 ulmPlotters
+5c5d315 Plotters first commit
+6ef66fa ported ulmStrings, ulmConstStrings. changed hidden fields limit in OPM module. makefiles
+d3d8ac9 ConstStrings initial commit
+0896b33 ulmStrings ported
+0c771ad ulmStrings first commit
+1e73cef ulmTexts.Mod ported
+a006fc2 ulmTexts.Mod added
+af12501 added ulmOperations.Mod
+ce64907 ulmPrint ported, ulmStreams modified. needs test, I am not sure it will work correctly. it is not clean how some type casts would work in voc.
+c648686 ulmPrint added, ulmIEEE, ulmMC68881, ulmReals ported
+577a398 MC68881, Reals, StreamDisciplines
+ab6cd80 StreamDisciplines
+2671150 ulmAssertions, ulmIndirectDisciplines
+e05e466 added BinaryRider, TextRider, JulianDay. riders are not very useful because PosixFileDesc, Files and StdChannels are not ported.
+0358bfa OakFiles fixed
+8f34e77 added OakFiles.Mod which does not search for files in OBERON path, implemented ReadLine procedure. added oocRts wrapper around Unix.Mod and Args.Mod,added Filenames.Mod. Unix.Mod and Args.Mod modified, interface extended.
+569ba1e modified all makefiles to compile ComplexMath and LComplexMath
+1f2fccf added ComplexMath and LComplexMath
+fb38248 added Channel, Msg, RealConv, RealStr
+08c4a44 improved makefiles, now it's easier to build a compiler.
+c6a299a ported four more modules from ooc lib
+24b30cd added oocRealMath oocOakMath modules
+c9ebc51 fixed Reals.Mod, see comments there, git rid of libc dependency, becaus ecvt call caused crash when running ./showdef oocLowLReal.sym file.
+ec65d60 Reals converted from Oberon text to ascii text
+f800349 fixed directory layout
+7303ba3 updated x86 bootstrap binary
+af6746c ulmTypes.Mod and ulmStreams.Mod modules ported.
+4a4b393 ulmProcess added
+bf5bc16 ulmIO.Mod changed and now it works with 64 bit longint numbers.
+2cf9f39 ulmSYSTEM implements SYSTEM.UNIXCALL with two calls (read and write a character), ported ulmIO which uses those calls.
+3071be3 ulmSYSTEM updated, implemented SYSTEM.UNIXCALL for one character read and write. added ulmIO module which uses those calls.
+2327556 ulmSYSTEM.Mod cleanup
+0d9024e ulmEvents.Mod does not use C/asm code anymore. getaddr code procedure is replaced by more correct SYSTEM.VAL calls.
+e81c21e updated linux.gnuc.x86_64 bootstrap binary
+fef1fe5 updated x86_64 bootstrap binary (vocstatic)
+a3214b8 fixed issue with multiple modules compilation. now voc adds dependency modules object files to the main module compiling command line. for example, if MM0 imports MM1 then if we call voc like: voc -l MM1.Mod -s MM0.Mod -M
+cb804b1 -MC now works, does not compile main unit by default, but creates object file and don't link it.
+01be73a commented out c compiler command line output, may be will add debug mode later. -- noch
+760d826 voc compiler first commit
+4a7dc4b Initial commit
+
+
+Before initial commit
+=====================
+
 * fixed bug in OPC.Genheader function. If new option is added in OPM, but not added in OPC, compiler was crashing. Simple ELSE fixed the problem.
 
 * par file is not necessary by default (there is a command line argument for that, and defaultTarget is set in OPM.Mod, version.Mod and architecture.Mod) 
