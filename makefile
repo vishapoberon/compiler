@@ -247,6 +247,7 @@ stage6:
 	$(VOCSTATIC) -sP ethRandomNumbers.Mod
 	$(VOCSTATIC) -sP ethGZReaders.Mod
 	$(VOCSTATIC) -sP ethGZWriters.Mod
+	$(VOCSTATIC) -sP ethUnicode.Mod
 
 
 # build remaining tools
