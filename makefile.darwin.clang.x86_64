@@ -165,10 +165,6 @@ stage6:
 	$(VOCSTATIC) -sP oocFilenames.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP oocC.Mod
-	#no X11 on macosx
-	#$(VOCSTATIC) -sP oocX11.Mod
-	#$(VOCSTATIC) -sP oocXutil.Mod
-	#$(VOCSTATIC) -sP oocXYplane.Mod
 
 	#Ulm's Oberon system libs
 	$(VOCSTATIC) -sP ulmSys.Mod
@@ -225,6 +221,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmConclusions.Mod
 	$(VOCSTATIC) -sP ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sP ulmTCrypt.Mod
+        $(VOCSTATIC) -sP ulmIntOperations.Mod
 
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
