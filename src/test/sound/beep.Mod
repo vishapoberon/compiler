@@ -1,5 +1,5 @@
 MODULE beep;
-IMPORT Files := OakFiles, rm:=oocRealMath, Unix;
+IMPORT Files, rm:=oocRealMath, Unix;
 
 CONST pi2=6.28318;
 (*pi2 = 6.2831802368164062;*)
