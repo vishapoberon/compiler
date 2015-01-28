@@ -1,6 +1,7 @@
+(* compile with voc -M testFiles.Mod *)
 MODULE testFiles;
 
-IMPORT Files, Texts := CmdlnTexts, Console;
+IMPORT Files, Texts, Console;
 
 CONST file="makefile";
 
