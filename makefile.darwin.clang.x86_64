@@ -221,7 +221,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmConclusions.Mod
 	$(VOCSTATIC) -sP ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sP ulmTCrypt.Mod
-        $(VOCSTATIC) -sP ulmIntOperations.Mod
+	$(VOCSTATIC) -sP ulmIntOperations.Mod
 
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
@@ -246,7 +246,7 @@ stage6:
 	$(VOCSTATIC) -sP ethRandomNumbers.Mod
 	$(VOCSTATIC) -sP ethGZReaders.Mod
 	$(VOCSTATIC) -sP ethGZWriters.Mod
-        $(VOCSTATIC) -sP ethUnicode.Mod
+	$(VOCSTATIC) -sP ethUnicode.Mod
 
 # build remaining tools
 #	$(VOCSTATIC0) -sPS compatIn.Mod
