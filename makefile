@@ -124,6 +124,7 @@ stage6:
 	$(VOCSTATIC) -sP	Strings.Mod
 	$(VOCSTATIC) -sP	Sets.Mod
 	$(VOCSTATIC) -sP	Sets0.Mod
+	$(VOCSTATIC) -sP	Oberon.Mod
 
 	#ooc libs
 	$(VOCSTATIC) -sP	oocAscii.Mod
