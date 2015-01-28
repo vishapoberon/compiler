@@ -3,9 +3,11 @@
 CFLAGS=-lX11
 export CFLAGS
 
-VOC = $(SETPATH) /opt/voc/bin/voc
+MOD = MODULES="../../../lib/oocX11"
+VOC = $(MOD) /opt/voc/bin/voc
 
 all:
+	$(VOC) -s oocX11.Mod oocXutil.Mod oocXYplane.Mod
 	$(VOC) -s compatIn.Mod Ausgabe.Mod Vier.Mod -m
 	#$(VOC) -Cm test.Mod
 	#gcc -o test  test.o -fPIC -g -I /opt/voc-1.0/src/lib/system/gcc/x86_64 -I /opt/voc-1.0/lib/voc/obj -lVishapOberon -L. -L/opt/voc-1.0/lib -lX11

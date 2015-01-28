@@ -29,7 +29,7 @@ CCOPT = -fPIC $(INCLUDEPATH) -g
 SHRLIBEXT = so
 CC = $(CCOMP) $(CCOPT) -c
 CL = $(CCOMP) $(CCOPT)
-LD = $(CCOMP) -shared -lX11 -o $(LIBRARY).$(SHRLIBEXT)
+LD = $(CCOMP) -shared -o $(LIBRARY).$(SHRLIBEXT)
 # s is necessary to create index inside a archive
 ARCHIVE = ar rcs $(LIBRARY).a
 
@@ -164,9 +164,6 @@ stage6:
 	$(VOCSTATIC) -sP oocFilenames.Mod
 	$(VOCSTATIC) -sP oocwrapperlibc.Mod
 	$(VOCSTATIC) -sP oocC.Mod
-	$(VOCSTATIC) -sP oocX11.Mod
-	$(VOCSTATIC) -sP oocXutil.Mod
-	$(VOCSTATIC) -sP oocXYplane.Mod
 
 	#Ulm's Oberon system libs
 	$(VOCSTATIC) -sP ulmSys.Mod
@@ -223,6 +220,7 @@ stage6:
 	$(VOCSTATIC) -sP ulmConclusions.Mod
 	$(VOCSTATIC) -sP ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sP ulmTCrypt.Mod
+	$(VOCSTATIC) -sP ulmIntOperations.Mod
 
 	#pow32 libs
 	$(VOCSTATIC) -sP powStrings.Mod
