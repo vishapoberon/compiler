@@ -26,14 +26,14 @@
 %define packer %(finger -lp `echo "$USER"` | head -n 1 | cut -d" " -f2)
 
 Name: voc
-Summary: Oberon-2 compiler
-Version: 1.0.1
+Summary: Vishap Oberon-2 compiler
+Version: 1.1
 Release: 1
 License: GPLv3
 Vendor: D. E. Evans <sinuhe@gnu.org>
 Packager: %{packer}
 Group: Development/Languages
-Source: http://oberon.vishap.am/voc/voc-1.0.1.src.tar.bz2
+Source: http://oberon.vishap.am/voc/voc-1.1.src.tar.bz2
 # this is ~/rpmbuild/SOURCES/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
 
@@ -125,6 +125,8 @@ ldconfig
 /etc/profile.d/
 
 %changelog
+* Thu Jan 29 2015 - N. Chilingarian <norayr [at] vishap.am>
+- 1.1 release, see changelog.
 * Thu Sep 18 2014 - N. Chilingarian <norayr [at] vishap.am>
 - 1.0.1 release of voc, see CHANGES.md file for changes history
 * Tue Sep 9 2014 - D. E. Evans <sinuhe@gnu.org>
