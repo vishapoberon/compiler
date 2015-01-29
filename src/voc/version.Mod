@@ -8,8 +8,8 @@ VAR arch-, version-, date-, versionLong-, prefix0-, prefix- : ARRAY 256 OF CHAR;
 defaultTarget* : INTEGER;
 BEGIN
 arch := architecture.arch;
-date := " [2014/09/23]";
-version := "1.0.1";
+date := " [2015/01/29]";
+version := "1.1";
 versionLong := "";
 COPY(version, versionLong);
 Strings.Append (" ", versionLong);
@@ -19,7 +19,7 @@ Strings.Append(date, versionLong);
   COPY(prf.prefix, prefix0);
   COPY (prefix0, prefix);
   Strings.Append ("/voc-", prefix);
-  Strings.Append(version, prefix); (* /opt/voc-1.0 *)
+  Strings.Append(version, prefix); (* /opt/voc-x.x *)
  (* will be used later in Kernel0.Mod to set OBERON default path *)
 
  IF arch = "x86_64" THEN

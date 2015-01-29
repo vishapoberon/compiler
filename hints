@@ -1,5 +1,5 @@
 ==how to port to a new platform==
-0) generate voc.par file for the target platform(if it's not exist in src/par).
+0) generate voc.par file for the target platform(if it does not exist in src/par).
    you can do it by compiling vocparam, and running it as "./vocparam > voc.par"
 1) generate voc, ocat, showdef source for target platform by running
    make -f makefile.gcc.<arch> port0
