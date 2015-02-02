@@ -856,6 +856,7 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 				| OPM.dontlink: OPM.Write("c")
 				| OPM.mainlinkstat: OPM.Write("M")
 				| OPM.notcoloroutput: OPM.Write("f")
+				| OPM.forcenewsym: OPM.Write("F")
 				ELSE
 				   (* this else is necessary cause
 				   if someone defined a new option in OPM module
