@@ -247,7 +247,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF dontlink IN opt THEN dontLink := TRUE ELSE dontLink := FALSE END;
       IF mainprog IN opt THEN mainProg := TRUE ELSE mainProg := FALSE END;
       IF mainlinkstat IN opt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
-
+      IF forcenewsym IN glbopt THEN forceNewSym := TRUE ELSE forceNewSym := FALSE END;
   END InitOptions;
 
   PROCEDURE Init*(VAR done: BOOLEAN; VAR mname : ARRAY OF CHAR);  (* get the source for one translation *)
