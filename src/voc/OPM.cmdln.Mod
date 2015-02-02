@@ -27,6 +27,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     dontlink* = 14; (* don't link *)
     mainlinkstat* = 15; (* generate code for main module and then link object file statically *)
     notcoloroutput* = 16; (* turn off color output *)
+    forcenewsym* = 17; (* force new symbol file *)
     defopt* = {inxchk, typchk, ptrinit, ansi, assert};  (* default options *)
 
     nilval* = 0;
@@ -121,7 +122,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     oldSFile, newSFile, HFile, BFile, HIFile: Files.File;
 
     S: INTEGER;
-    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput-: BOOLEAN;
+    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput-, forceNewSym-: BOOLEAN;
 
 
   (* ------------------------- Log Output ------------------------- *)
@@ -168,6 +169,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "c": opt := opt / {dontlink}
       | "M": opt := opt / {mainlinkstat}
       | "f": opt := opt / {notcoloroutput}
+      | "F": opt := opt / {forcenewsym}
       ELSE LogWStr("  warning: option "); LogW(OptionChar); LogW(s[i]); LogWStr(" ignored"); LogWLn
       END ;
       INC(i)
@@ -190,7 +192,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.Ln;
       Console.String('  command = "voc" options {file options}.'); Console.Ln;
       Console.String('  options = ["-" {option} ].'); Console.Ln;
-      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" | "f" .'); Console.Ln;
+      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" | "f" | "F" .'); Console.Ln;
       Console.Ln;
       Console.String(" m      - generate code for main module"); Console.Ln;
       Console.String(" M      - generate code for main module and link object statically"); Console.Ln;
@@ -207,6 +209,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.String(" S      - don't call external assembler/compiler, only generate the asm/C code"); Console.Ln;
       Console.String(" c      - don't call linker"); Console.Ln;
       Console.String(" f      - don't use color output"); Console.Ln;
+      Console.String(" F      - force writing new symbol file"); Console.Ln;
       Console.Ln;
     ELSE
       glbopt := defopt; S := 1; s := "";
@@ -224,6 +227,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF mainprog IN glbopt THEN mainProg := TRUE ELSE mainProg := FALSE END;
       IF mainlinkstat IN glbopt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
       IF notcoloroutput IN glbopt THEN notColorOutput := TRUE ELSE notColorOutput := FALSE END;
+      IF forcenewsym IN glbopt THEN forceNewSym := TRUE ELSE forceNewSym := FALSE END;
       GetProperties; (* GetProperties moved here in order to call it after ScanOptions because we have an option whether to use par file or not, noch *)
 
     END;

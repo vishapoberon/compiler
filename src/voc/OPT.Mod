@@ -992,6 +992,7 @@ MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END ;
         OutObj(topScope^.right);
         ext := sfpresent & symExtended; new := ~sfpresent OR symNew;
+	IF OPM.forceNewSym THEN new := TRUE END; (* for bootstrapping -- noch *)
         IF OPM.noerr & sfpresent & (impCtxt.reffp # expCtxt.reffp) THEN
           new := TRUE;
           IF ~extsf THEN err(155) END
