@@ -75,24 +75,24 @@ stage2:
 stage3:
 
 	$(VOCSTATIC0) -siapxPS SYSTEM.Mod 
-	$(VOCSTATIC0) -sPSF Args.Mod Console.Mod Unix.Mod
+	$(VOCSTATIC0) -sPFS Args.Mod Console.Mod Unix.Mod
 	sed -i.tmp "s#/opt#$(PRF)#g" src/voc/prf.Mod
-	$(VOCSTATIC0) -sPSF prf.Mod
-	$(VOCSTATIC0) -sPSF Strings.Mod architecture.Mod version.Mod Kernel0.Mod Modules.Mod
-	$(VOCSTATIC0) -sxPSF Files0.Mod 
-	$(VOCSTATIC0) -sPSF Reals.Mod Texts0.Mod
-	$(VOCSTATIC0) -sPSF vt100.Mod
+	$(VOCSTATIC0) -sPFS prf.Mod
+	$(VOCSTATIC0) -sPFS Strings.Mod architecture.Mod version.Mod Kernel0.Mod Modules.Mod
+	$(VOCSTATIC0) -sxPFS Files0.Mod 
+	$(VOCSTATIC0) -sPFS Reals.Mod Texts0.Mod
+	$(VOCSTATIC0) -sPFS vt100.Mod
 
 # build the compiler
 stage4:
-	$(VOCSTATIC0) -sPSF errors.Mod
-	$(VOCSTATIC0) -sPSF extTools.Mod
-	$(VOCSTATIC0) -sPSF OPM.cmdln.Mod 
-	$(VOCSTATIC0) -sxPSF OPS.Mod 
-	$(VOCSTATIC0) -sPSF OPT.Mod OPC.Mod OPV.Mod OPB.Mod OPP.Mod
-	$(VOCSTATIC0) -smPSF voc.Mod
-	$(VOCSTATIC0) -smPSF BrowserCmd.Mod
-	$(VOCSTATIC0) -smPSF OCatCmd.Mod
+	$(VOCSTATIC0) -sPFS errors.Mod
+	$(VOCSTATIC0) -sPFS extTools.Mod
+	$(VOCSTATIC0) -sPFS OPM.cmdln.Mod 
+	$(VOCSTATIC0) -sxPFS OPS.Mod 
+	$(VOCSTATIC0) -sPFS OPT.Mod OPC.Mod OPV.Mod OPB.Mod OPP.Mod
+	$(VOCSTATIC0) -smPS voc.Mod
+	$(VOCSTATIC0) -smPS BrowserCmd.Mod
+	$(VOCSTATIC0) -smPS OCatCmd.Mod
 
 #this is to build the compiler from C sources.
 #this is a way to create a bootstrap binary.
@@ -124,7 +124,7 @@ stage6:
 	$(VOCSTATIC) -sPF	Strings.Mod
 	$(VOCSTATIC) -sPF	Sets.Mod
 	$(VOCSTATIC) -sPF	Sets0.Mod
-	$(VOCSTATIC) -sPF	Oberon.Mod
+	$(VOCSTATIC) -sPF        Oberon.Mod
 
 	#ooc libs
 	$(VOCSTATIC) -sPF	oocAscii.Mod
@@ -137,7 +137,7 @@ stage6:
 	$(VOCSTATIC) -sPF	oocIntStr.Mod
 	$(VOCSTATIC) -sPF	oocSysClock.Mod
 	$(VOCSTATIC) -sPF	oocTime.Mod
-#	$(VOCSTATIC) -sPF	oocLongStrings.Mod
+#	$(VOCSTATIC) -s	oocLongStrings.Mod
 #	$(CC)		oocLongStrings.c
 #	$(VOCSTATIC) -s	oocMsg.Mod
 #	$(CC)		oocMsg.c
@@ -221,7 +221,7 @@ stage6:
 	$(VOCSTATIC) -sPF ulmConclusions.Mod
 	$(VOCSTATIC) -sPF ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sPF ulmTCrypt.Mod
-	$(VOCSTATIC) -sPF ulmIntOperations.Mod	
+	$(VOCSTATIC) -sPF ulmIntOperations.Mod
 
 	#pow32 libs
 	$(VOCSTATIC) -sPF powStrings.Mod
@@ -249,7 +249,7 @@ stage6:
 	$(VOCSTATIC) -sPF ethUnicode.Mod
 
 # build remaining tools
-#	$(VOCSTATIC0) -sPS compatIn.Mod
+#	$(VOCSTATIC0) -sPFS compatIn.Mod
 #	$(VOCSTATIC0) -smPS vmake.Mod
 #	$(CC) compatIn.c
 #	$(CL) vmake.c -o vmake SYSTEM.o Args.o compatIn.o Texts.o Console.o Files.o Reals.o Modules.o Kernel.o Unix.o Strings.o oocIntStr.o oocConvTypes.o oocIntConv.o
