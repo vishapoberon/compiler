@@ -60,12 +60,16 @@ MODULE ulmTypes;
 	 Thus I leave it as LONGINT for now, before coming up with better solution -- noch *)
       UntracedAddress* = POINTER[1] TO UntracedAddressDesc; (*SYS.UNTRACEDADDRESS;*)
       UntracedAddressDesc* = RECORD[1] END;
+      
+      intarr64 = ARRAY 8 OF SYS.BYTE; (* to emulate int16 on x86_64; -- noch *)
+      intarr16 = ARRAY 2 OF SYS.BYTE;
+      
       Count* = LONGINT;
       Size* = Count;
       Byte* = SYS.BYTE;
       IntAddress* = LONGINT;
       Int8* = SHORTINT;
-      Int16* = INTEGER; (* we don't have 16 bit integer in x86_64 version of voc *) 
+      Int16* = intarr16(*INTEGER*); (* we don't have 16 bit integer in x86_64 version of voc *) 
       Int32* = INTEGER;
       Real32* = REAL;
       Real64* = LONGREAL;
@@ -92,9 +96,13 @@ MODULE ulmTypes;
       RETURN SHORT(SHORT(int))
    END ToInt8;
 
-   PROCEDURE ToInt16*(int: LONGINT) : Int16;
+   PROCEDURE ToInt16*(int: LONGINT; VAR int16: Int16)(* : Int16*);
+   VAR longintarr : intarr64;
    BEGIN
-      RETURN SYS.VAL(Int16, int)
+      (*RETURN SYS.VAL(Int16, int)*)
+      longintarr := SYS.VAL(intarr64, int);
+      int16[0] := longintarr[0];
+      int16[1] := longintarr[1];
    END ToInt16;
 
    PROCEDURE ToInt32*(int: LONGINT) : Int32;
