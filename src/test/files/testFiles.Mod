@@ -3,7 +3,7 @@ MODULE testFiles;
 
 IMPORT Files, Texts, Console;
 
-CONST file="makefile";
+CONST file="testFiles.Mod";
 
 VAR 
    T : Texts.Text;
@@ -22,7 +22,6 @@ IF F # NIL THEN
    WHILE ~R.eot DO
       Texts.Read (R, ch);
       Console.Char(ch);
-
    END;
 
 ELSE
