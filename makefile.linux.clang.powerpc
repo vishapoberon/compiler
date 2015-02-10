@@ -88,7 +88,7 @@ stage4:
 	$(VOCSTATIC0) -sPFS errors.Mod
 	$(VOCSTATIC0) -sPFS extTools.Mod
 	$(VOCSTATIC0) -sPFS OPM.cmdln.Mod 
-	$(VOCSTATIC0) -sxPSF OPS.Mod 
+	$(VOCSTATIC0) -sxPFS OPS.Mod 
 	$(VOCSTATIC0) -sPFS OPT.Mod OPC.Mod OPV.Mod OPB.Mod OPP.Mod
 	$(VOCSTATIC0) -smPS voc.Mod
 	$(VOCSTATIC0) -smPS BrowserCmd.Mod

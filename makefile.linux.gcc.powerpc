@@ -221,7 +221,7 @@ stage6:
 	$(VOCSTATIC) -sPF ulmConclusions.Mod
 	$(VOCSTATIC) -sPF ulmRandomGenerators.Mod
 	$(VOCSTATIC) -sPF ulmTCrypt.Mod
-	$(VOCSTATIC) -sPF ulmIntOperations.Mod	
+	$(VOCSTATIC) -sPF ulmIntOperations.Mod
 
 	#pow32 libs
 	$(VOCSTATIC) -sPF powStrings.Mod
