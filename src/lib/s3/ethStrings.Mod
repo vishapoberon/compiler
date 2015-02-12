@@ -829,6 +829,7 @@ END StrToReal;
   PROCEDURE Init();
     VAR i: LONGINT;  s: Texts.Scanner; txt : Texts.Text; (* noch *)
   BEGIN
+    NEW(txt);
     Texts.Open(txt, "System.DateFormat"); (* got rid of Oberon.OpenScanner -- noch *)
     Texts.OpenScanner(s, txt, 0);
     IF s.class = Texts.String THEN COPY(s.s, dateform) ELSE dateform := "" END;

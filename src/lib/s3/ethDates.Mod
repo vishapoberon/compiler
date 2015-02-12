@@ -188,6 +188,7 @@ BEGIN
   i := 0; j := 0;
   WHILE i < 12 DO WHILE j < A[i+1] DO  T[j] := SHORT(SHORT(i + 1)); INC(j) END; INC(i) END;
   (*Oberon.OpenScanner(S, "System.TimeDiff");*)
+  NEW(Txt);
   Texts.Open(Txt, "System.TimeDiff");
   Texts.OpenScanner(S, Txt, 0);
   TimeDiff := 0;
