@@ -102,7 +102,7 @@ MODULE ulmTypes;
       (*RETURN SYS.VAL(Int16, int)*)
       longintarr := SYS.VAL(intarr64, int);
       int16[0] := longintarr[0];
-      int16[1] := longintarr[1]; (* this will work for little endiad -- noch *)
+      int16[1] := longintarr[1]; (* this will work for little endian -- noch *)
    END ToInt16;
 
    PROCEDURE ToInt32*(int: LONGINT) : Int32;
