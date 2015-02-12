@@ -9,7 +9,7 @@ RELEASE = 1.1
 
 INCLUDEPATH = -Isrc/lib/system/$(TOS)/$(CCOMP)/$(TARCH)
 
-SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/v4/$(TARCH):src/lib/system/$(TOS)/$(CCOMP):src/lib/system/$(TOS)/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(TOS)/$(CCOMP):src/lib/ooc:src/lib/ooc/$(TOS)/$(CCOMP)/$(TARCH):src/lib/pow:src/lib/misc:src/lib/s3:src/voc:src/voc/$(TOS)/$(CCOMP):src/voc/$(TOS)/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
+SETPATH = CFLAGS=$(INCLUDEPATH)  PATH=.:/bin:/usr/bin MODULES=.:src/lib:src/lib/v4:src/lib/v4/$(TARCH):src/lib/system/$(TOS)/$(CCOMP):src/lib/system/$(TOS)/$(CCOMP)/$(TARCH):src/lib/ulm:src/lib/ulm/$(TARCH):src/lib/ooc2:src/lib/ooc2/$(TOS)/$(CCOMP):src/lib/ooc:src/lib/ooc/$(TOS)/$(CCOMP)/$(TARCH):src/lib/pow:src/lib/misc:src/lib/s3:src/lib/s3/$(TARCH):src/voc:src/voc/$(TOS)/$(CCOMP):src/voc/$(TOS)/$(CCOMP)/$(TARCH):src/tools/ocat:src/tools/browser:src/tools/vocparam:src/tools/vmake:src/tools/coco:src/test
 
 VOC = voc
 VERSION = $(TOS).$(CCOMP).$(TARCH)
@@ -247,6 +247,9 @@ stage6:
 	$(VOCSTATIC) -sPF ethGZReaders.Mod
 	$(VOCSTATIC) -sPF ethGZWriters.Mod
 	$(VOCSTATIC) -sPF ethUnicode.Mod
+	$(VOCSTATIC) -sPF ethDates.Mod
+	$(VOCSTATIC) -sPF ethReals.Mod
+	$(VOCSTATIC) -sPF ethStrings.Mod
 
 # build remaining tools
 #	$(VOCSTATIC0) -sPFS compatIn.Mod
