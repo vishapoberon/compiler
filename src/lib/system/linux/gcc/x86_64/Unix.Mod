@@ -331,10 +331,10 @@ from man gettimeofday
    PROCEDURE -includeSelect()
      "#include <sys/select.h>";
 
-  PROCEDURE -err(): LONGINT
+  PROCEDURE -err(): INTEGER
     "errno";
 
-  PROCEDURE errno*(): LONGINT;
+  PROCEDURE errno*(): INTEGER;
   BEGIN
     RETURN err()
   END errno;

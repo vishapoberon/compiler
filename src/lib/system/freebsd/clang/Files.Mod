@@ -33,7 +33,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       workName, registerName: FileName;
       tempFile: BOOLEAN;
       dev, ino, mtime: LONGINT;
-      fd-, len, pos: LONGINT;
+      fd-: INTEGER;
+      len, pos: LONGINT;
       bufs: ARRAY nofbufs OF Buffer;
       swapper, state: INTEGER
     END ;
@@ -125,12 +126,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
         f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
       END ;
       errno := Unix.Unlink(f.workName);  (*unlink first to avoid stale NFS handles and to avoid reuse of inodes*)
-      f.fd := Unix.Open(f.workName, Unix.rdwr + Unix.creat + Unix.trunc, {2, 4,5, 7,8});
+      f.fd := Unix.Open(f.workName, SHORT(SYSTEM.VAL(LONGINT, Unix.rdwr + Unix.creat + Unix.trunc)), SHORT(SYSTEM.VAL(LONGINT, {2, 4,5, 7,8})));
       done := f.fd >= 0; errno := Unix.errno();
       IF (~done & ((errno = Unix.ENFILE) OR (errno = Unix.EMFILE))) OR (done & (f.fd >= fileTabSize)) THEN
         IF done & (f.fd >= fileTabSize) THEN errno := Unix.Close(f.fd) END ;
         Kernel.GC(TRUE);
-        f.fd := Unix.Open(f.workName, Unix.rdwr + Unix.creat + Unix.trunc, {2, 4,5, 7,8});
+        f.fd := Unix.Open(f.workName, SHORT(SYSTEM.VAL(LONGINT, Unix.rdwr + Unix.creat + Unix.trunc)), SHORT(SYSTEM.VAL(LONGINT, {2, 4,5, 7,8})));
         done := f.fd >= 0
       END ;
       IF done THEN
@@ -233,7 +234,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   END CacheEntry;
 
   PROCEDURE Old* (name: ARRAY OF CHAR): File;
-    VAR f: File; fd, res, errno: LONGINT; pos: INTEGER; done: BOOLEAN;
+    VAR f: File; fd: INTEGER; res, errno: LONGINT; pos: INTEGER; done: BOOLEAN;
       dir, path: ARRAY 256 OF CHAR;
       stat: Unix.Status;
   BEGIN
@@ -245,17 +246,17 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 	 (*ScanPath(pos, dir);*) (*MakeFileName(dir, name, path);*) (*ScanPath(pos, dir)*)
       END ;
       LOOP
-        fd := Unix.Open(path, Unix.rdwr, {}); done := fd >= 0; errno := Unix.errno();
+        fd := Unix.Open(path, SHORT(SYSTEM.VAL(LONGINT, Unix.rdwr)), SHORT(SYSTEM.VAL(LONGINT, {}))); done := fd >= 0; errno := Unix.errno();
         IF (~done & ((errno = Unix.ENFILE) OR (errno = Unix.EMFILE))) OR (done & (fd >= fileTabSize)) THEN
           IF done & (fd >= fileTabSize) THEN res := Unix.Close(fd) END ;
           Kernel.GC(TRUE);
-          fd := Unix.Open(path, Unix.rdwr, {});
+          fd := Unix.Open(path, SHORT(SYSTEM.VAL(LONGINT, Unix.rdwr)), SHORT(SYSTEM.VAL(LONGINT, {})));
           done := fd >= 0; errno := Unix.errno();
           IF ~done & ((errno = Unix.ENFILE) OR (errno = Unix.EMFILE)) THEN Err("too many files open", f, errno) END
         END ;
         IF ~done & ((errno = Unix.EACCES) OR (errno = Unix.EROFS) OR (errno = Unix.EAGAIN)) THEN
           (* errno EAGAIN observed on Solaris 2.4 *)
-          fd := Unix.Open(path, Unix.rdonly, {}); done :=  fd >= 0; errno := Unix.errno()
+          fd := Unix.Open(path, SHORT(SYSTEM.VAL(LONGINT, Unix.rdonly)), SHORT(SYSTEM.VAL(LONGINT, {}))); done :=  fd >= 0; errno := Unix.errno()
         END ;
 IF (~done) & (errno # Unix.ENOENT) THEN 
   Console.String("warning Files.Old "); Console.String(name); 
@@ -463,7 +464,7 @@ Especially Length would become fairly complex.
   END Delete;
 
   PROCEDURE Rename* (old, new: ARRAY OF CHAR; VAR res: INTEGER);
-    VAR fdold, fdnew, n, errno, r: LONGINT;
+    VAR fdold, fdnew: INTEGER; n, errno, r: LONGINT;
       ostat, nstat: Unix.Status;
       buf: ARRAY 4096 OF CHAR;
   BEGIN
@@ -476,9 +477,9 @@ Especially Length would become fairly complex.
       r := Unix.Rename(old, new);
       IF r < 0 THEN res := SHORT(Unix.errno());
         IF res = Unix.EXDEV THEN (* cross device link, move the file *)
-          fdold := Unix.Open(old, Unix.rdonly, {});
+          fdold := Unix.Open(old, SHORT(SYSTEM.VAL(LONGINT, Unix.rdonly)), SHORT(SYSTEM.VAL(LONGINT, {})));
           IF fdold < 0 THEN res := 2; RETURN END ;
-          fdnew := Unix.Open(new, Unix.rdwr + Unix.creat + Unix.trunc, {2,  4,5,  7,8});
+          fdnew := Unix.Open(new, SHORT(SYSTEM.VAL(LONGINT, Unix.rdwr + Unix.creat + Unix.trunc)), SHORT(SYSTEM.VAL(LONGINT, {2,  4,5,  7,8})));
           IF fdnew < 0 THEN r := Unix.Close(fdold); res := 3; RETURN END ;
           n := Unix.Read(fdold, SYSTEM.ADR(buf), bufsize);
           WHILE n > 0 DO
