@@ -441,7 +441,7 @@ from man gettimeofday
     "stat((const char*)name, (struct stat*)statbuf)";
 
   PROCEDURE Stat*(name: Name; VAR statbuf: Status): INTEGER;
-    VAR res: LONGINT;
+    VAR res: INTEGER;
   BEGIN
     res := stat(name, statbuf);
     (* make the first 4 bytes as unique as possible (used in module Files for caching!) *) 
@@ -455,7 +455,7 @@ from man gettimeofday
     "fstat(fd, (struct stat*)statbuf)";
 
   PROCEDURE Fstat*(fd: INTEGER; VAR statbuf: Status): INTEGER;
-    VAR res: LONGINT;
+    VAR res: INTEGER;
   BEGIN
     res := fstat(fd, statbuf);
     (* make the first 4 bytes as unique as possible (used in module Files for caching!) *) 
