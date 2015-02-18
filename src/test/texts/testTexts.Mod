@@ -3,6 +3,8 @@ MODULE testTexts;
 
 IMPORT Texts, Console;
 
+CONST pi = -311.1415;
+
 VAR W : Texts.Writer;
  T : Texts.Text;
  R : Texts.Reader;
@@ -16,7 +18,11 @@ Texts.OpenWriter (W);
 
 Texts.WriteString(W, "aaa");
 Texts.WriteLn(W);
+Texts.WriteReal(W, pi, 7);
 Texts.WriteLn(W);
+Texts.WriteRealFix(W, pi, 0, 7);
+Texts.WriteLn(W);
+Texts.WriteLongReal(W, pi, 7);
 Texts.WriteLn(W);
 NEW(T); Texts.Open(T, "test.txt");
 
