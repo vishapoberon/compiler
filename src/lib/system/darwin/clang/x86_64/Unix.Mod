@@ -348,79 +348,79 @@ from man gettimeofday
   PROCEDURE -includeFcntl()
      "#include <fcntl.h>";
 
-  PROCEDURE -err(): LONGINT
+  PROCEDURE -err(): INTEGER
     "errno";
 
-  PROCEDURE errno*(): LONGINT;
+  PROCEDURE errno*(): INTEGER;
   BEGIN
     RETURN err()
   END errno;
 
-  PROCEDURE -Exit*(n: LONGINT)
+  PROCEDURE -Exit*(n: INTEGER)
     "exit(n)";
 
-  PROCEDURE -Fork*(): LONGINT
+  PROCEDURE -Fork*(): INTEGER
     "fork()";
 
-  PROCEDURE -Wait*(VAR status: LONGINT): LONGINT
+  PROCEDURE -Wait*(VAR status: INTEGER): INTEGER
     "wait(status)";
 
-  PROCEDURE -Select*(width: LONGINT; VAR readfds, writefds, exceptfds: FdSet; VAR timeout: Timeval): LONGINT
+  PROCEDURE -Select*(width: INTEGER; VAR readfds, writefds, exceptfds: FdSet; VAR timeout: Timeval): INTEGER
     "select(width, readfds, writefds, exceptfds, timeout)";
 
-  PROCEDURE -Gettimeofday* (VAR tv: Timeval; VAR tz: Timezone) : LONGINT
+  PROCEDURE -Gettimeofday* (VAR tv: Timeval; VAR tz: Timezone) : INTEGER
     "gettimeofday(tv, tz)";
 
-  PROCEDURE -Read* (fd, buf, nbyte: LONGINT): LONGINT
+  PROCEDURE -Read* (fd: INTEGER; buf, nbyte: LONGINT): LONGINT
     "read(fd, buf, nbyte)";
 
-  PROCEDURE -ReadBlk* (fd: LONGINT; VAR buf: ARRAY OF SYSTEM.BYTE): LONGINT
+  PROCEDURE -ReadBlk* (fd: INTEGER; VAR buf: ARRAY OF SYSTEM.BYTE): LONGINT
     "read(fd, buf, buf__len)";
 
-  PROCEDURE -Write* (fd, buf, nbyte: LONGINT): LONGINT
+  PROCEDURE -Write* (fd: INTEGER; buf, nbyte: LONGINT): LONGINT
     "write(fd, buf, nbyte)";
 
-  PROCEDURE -WriteBlk* (fd: LONGINT; VAR buf: ARRAY OF SYSTEM.BYTE): LONGINT
+  PROCEDURE -WriteBlk* (fd: INTEGER; VAR buf: ARRAY OF SYSTEM.BYTE): LONGINT
     "write(fd, buf, buf__len)";
 
-  PROCEDURE -Dup*(fd: LONGINT): LONGINT
+  PROCEDURE -Dup*(fd: INTEGER): INTEGER
     "dup(fd)";
 
-  PROCEDURE -Dup2*(fd1, fd2: LONGINT): LONGINT
+  PROCEDURE -Dup2*(fd1, fd2: INTEGER): INTEGER
     "dup(fd1, fd2)";
 
-  PROCEDURE -Pipe*(fds : LONGINT): LONGINT
+  PROCEDURE -Pipe*(fds : LONGINT): INTEGER
      "pipe(fds)";
 
-  PROCEDURE -Getpid*(): LONGINT
+  PROCEDURE -Getpid*(): INTEGER
     "getpid()";
 
-  PROCEDURE -Getuid*(): LONGINT
+  PROCEDURE -Getuid*(): INTEGER
     "getuid()";
 
-  PROCEDURE -Geteuid*(): LONGINT
+  PROCEDURE -Geteuid*(): INTEGER
     "geteuid()";
 
-  PROCEDURE -Getgid*(): LONGINT
+  PROCEDURE -Getgid*(): INTEGER
     "getgid()";
 
-  PROCEDURE -Getegid*(): LONGINT
+  PROCEDURE -Getegid*(): INTEGER
     "getegid()";
 
-  PROCEDURE -Unlink*(name: Name): LONGINT
+  PROCEDURE -Unlink*(name: Name): INTEGER
     "unlink(name)";
 
-  PROCEDURE -Open*(name: Name; flag, mode: SET): LONGINT
+  PROCEDURE -Open*(name: Name; flag: INTEGER; mode: LONGINT): INTEGER
     "open(name, flag, mode)";
 
-  PROCEDURE -Close*(fd: LONGINT): LONGINT
+  PROCEDURE -Close*(fd: INTEGER): INTEGER
     "close(fd)";
 
-  PROCEDURE -stat(name: Name; VAR statbuf: Status): LONGINT
+  PROCEDURE -stat(name: Name; VAR statbuf: Status): INTEGER
     "stat((const char*)name, (struct stat*)statbuf)";
 
-  PROCEDURE Stat*(name: Name; VAR statbuf: Status): LONGINT;
-    VAR res: LONGINT;
+  PROCEDURE Stat*(name: Name; VAR statbuf: Status): INTEGER;
+    VAR res: INTEGER;
   BEGIN
     res := stat(name, statbuf);
     (* make the first 4 bytes as unique as possible (used in module Files for caching!) *) 
@@ -430,11 +430,11 @@ from man gettimeofday
     RETURN res;
   END Stat;
 
-  PROCEDURE -fstat(fd: LONGINT; VAR statbuf: Status): LONGINT   
+  PROCEDURE -fstat(fd: INTEGER; VAR statbuf: Status): INTEGER   
     "fstat(fd, (struct stat*)statbuf)";
 
-  PROCEDURE Fstat*(fd: LONGINT; VAR statbuf: Status): LONGINT;
-    VAR res: LONGINT;
+  PROCEDURE Fstat*(fd: INTEGER; VAR statbuf: Status): INTEGER;
+    VAR res: INTEGER;
   BEGIN
     res := fstat(fd, statbuf);
     (* make the first 4 bytes as unique as possible (used in module Files for caching!) *) 
@@ -443,43 +443,43 @@ from man gettimeofday
     RETURN res;
   END Fstat;
 
-  PROCEDURE -Fchmod*(fd, mode: LONGINT): LONGINT
+  PROCEDURE -Fchmod*(fd, mode: INTEGER): INTEGER
     "fchmod(fd, mode)";
 
-  PROCEDURE -Chmod*(path: Name; mode: LONGINT): LONGINT
+  PROCEDURE -Chmod*(path: Name; mode: INTEGER): INTEGER 
     "chmod(path, mode)";
 
-  PROCEDURE -Lseek*(fd, offset, origin: LONGINT): LONGINT
+  PROCEDURE -Lseek*(fd: INTEGER; offset: LONGINT; origin: INTEGER): LONGINT
     "lseek(fd, offset, origin)";
 
-  PROCEDURE -Fsync*(fd: LONGINT): LONGINT
+  PROCEDURE -Fsync*(fd: INTEGER): INTEGER
     "fsync(fd)";
 
-  PROCEDURE -Fcntl*(fd, cmd, arg: LONGINT ): LONGINT
+  PROCEDURE -Fcntl*(fd: INTEGER; cmd: INTEGER; arg: LONGINT ): INTEGER
     "fcntl(fd, cmd, arg)";
 
-  PROCEDURE -Flock*(fd, operation: LONGINT): LONGINT
+  PROCEDURE -Flock*(fd, operation: INTEGER): INTEGER
     "flock(fd, operation)";
 
-  PROCEDURE -Ftruncate*(fd, length: LONGINT): LONGINT
+  PROCEDURE -Ftruncate*(fd: INTEGER; length: LONGINT): INTEGER
     "ftruncate(fd, length)";
 
-  PROCEDURE -Readblk*(fd: LONGINT; VAR buf: ARRAY OF SYSTEM.BYTE; len: LONGINT): LONGINT
+  PROCEDURE -Readblk*(fd: INTEGER; VAR buf: ARRAY OF SYSTEM.BYTE; len: LONGINT): LONGINT
     "read(fd, buf, len)";
 
-  PROCEDURE -Rename*(old, new: Name): LONGINT
+  PROCEDURE -Rename*(old, new: Name): INTEGER
     "rename(old, new)";
 
-  PROCEDURE -Chdir*(path: Name): LONGINT
+  PROCEDURE -Chdir*(path: Name): INTEGER
     "chdir(path)";
 
-  PROCEDURE -Ioctl*(fd, request, arg: LONGINT): LONGINT
+  PROCEDURE -Ioctl*(fd: INTEGER; request, arg: LONGINT): LONGINT
     "ioctl(fd, request, arg)";
 
-  PROCEDURE -Kill*(pid, sig: LONGINT): LONGINT
+  PROCEDURE -Kill*(pid, sig: INTEGER): INTEGER
     "kill(pid, sig)";
 
-  PROCEDURE -Sigsetmask*(mask: LONGINT): LONGINT
+  PROCEDURE -Sigsetmask*(mask: INTEGER): INTEGER
     "sigsetmask(mask)";
 
   PROCEDURE -Sleep*(ms : INTEGER): INTEGER
@@ -493,31 +493,31 @@ from man gettimeofday
   PROCEDURE -Gethostbyname*(name: Name): HostEntry
     "(Unix_HostEntry)gethostbyname(name)";
 
-  PROCEDURE -Gethostname*(VAR name: Name): LONGINT
+  PROCEDURE -Gethostname*(VAR name: Name): INTEGER
     "gethostname(name, name__len)";
 
-  PROCEDURE -Socket*(af, type, protocol: LONGINT): LONGINT
+  PROCEDURE -Socket*(af, type, protocol: INTEGER): INTEGER
     "socket(af, type, protocol)";
 
-  PROCEDURE -Connect*(socket: LONGINT; name: Sockaddr; namelen: LONGINT): LONGINT
+  PROCEDURE -Connect*(socket: INTEGER; name: Sockaddr; namelen: INTEGER): INTEGER
     "connect(socket, &(name), namelen)";
 
-  PROCEDURE -Getsockname*(socket: LONGINT; VAR name: Sockaddr; VAR namelen: LONGINT): LONGINT
+  PROCEDURE -Getsockname*(socket: INTEGER; VAR name: Sockaddr; VAR namelen: INTEGER): INTEGER
     "getsockname(socket, name, namelen)";
 
-  PROCEDURE -Bind*(socket: LONGINT; name: Sockaddr; namelen: LONGINT): LONGINT
+  PROCEDURE -Bind*(socket: INTEGER; name: Sockaddr; namelen: INTEGER): INTEGER
     "bind(socket, &(name), namelen)";
 
-  PROCEDURE -Listen*(socket, backlog: LONGINT): LONGINT
+  PROCEDURE -Listen*(socket, backlog: INTEGER): INTEGER
     "listen(socket, backlog)";
 
-  PROCEDURE -Accept*(socket: LONGINT; VAR addr: Sockaddr; VAR addrlen: LONGINT): LONGINT
+  PROCEDURE -Accept*(socket: INTEGER; VAR addr: Sockaddr; VAR addrlen: INTEGER): LONGINT
     "accept(socket, addr, addrlen)";
 
-  PROCEDURE -Recv*(socket, bufadr, buflen, flags: LONGINT): LONGINT
+  PROCEDURE -Recv*(socket: INTEGER; bufadr, buflen: LONGINT; flags: INTEGER): LONGINT
     "recv(socket, bufadr, buflen, flags)";
 
-  PROCEDURE -Send*(socket, bufadr, buflen, flags: LONGINT): LONGINT
+  PROCEDURE -Send*(socket: INTEGER; bufadr, buflen: LONGINT; flags: INTEGER): LONGINT
     "send(socket, bufadr, buflen, flags)";
 
    PROCEDURE -sys(str: ARRAY OF CHAR): INTEGER   (* need this to call external tools like gcc or gas; noch *)
