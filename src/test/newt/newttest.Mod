@@ -1,13 +1,20 @@
 MODULE newttest;
 
-IMPORT newt;
-VAR i : newt.Int32;
+IMPORT newt, oocIntStr;
+VAR i, j, k : newt.Int32;
 str : ARRAY 32 OF CHAR;
 BEGIN
 i := newt.Init();
 newt.Cls();
 str := "hello world!";
 newt.DrawRootText(5, 7, str);
+newt.GetScreenSize(i, j);
+oocIntStr.IntToStr(i, str);
+newt.DrawRootText(5, 9, str);
+str := "x";
+newt.DrawRootText(7, 9, str);
+oocIntStr.IntToStr(j, str);
+newt.DrawRootText(9, 9, str);
 newt.WaitForKey();
 newt.Delay(30);
 i := newt.Finished();
