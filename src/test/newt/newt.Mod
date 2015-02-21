@@ -35,41 +35,99 @@ NEWTvARGvAPPEND*=			-1;
 TYPE Int32* = INTEGER;
      Int64* = LONGINT;
 
-PROCEDURE -Init*(): Int32
+PROCEDURE -newtInit(): Int32
    "newtInit()";
 
-PROCEDURE -Cls*()
+PROCEDURE Init*(): Int32;
+BEGIN
+   RETURN newtInit();
+END Init;
+
+PROCEDURE -newtCls()
    "newtCls()";
 
-PROCEDURE -Finished*() : Int32
+PROCEDURE Cls*();
+BEGIN
+   newtCls
+END Cls;
+
+PROCEDURE -newtFinished() : Int32
    "newtFinished()";
 
-PROCEDURE -ResizeScreen*(redraw: Int32)
+PROCEDURE Finished*(): Int32;
+BEGIN
+   RETURN newtFinished();
+END Finished;
+
+PROCEDURE -newtResizeScreen(redraw: Int32)
    "newtResizeScreen(redraw)";
 
-PROCEDURE -WaitForKey*()
+PROCEDURE ResizeScreen*(redraw : Int32);
+BEGIN
+   newtResizeScreen(redraw);
+END ResizeScreen;
+
+PROCEDURE -newtWaitForKey()
    "newtWaitForKey()";
 
-PROCEDURE -ClearKeyBuffer*()
+PROCEDURE WaitForKey*();
+BEGIN
+   newtWaitForKey
+END WaitForKey;
+
+PROCEDURE -newtClearKeyBuffer()
    "newtClearKeyBuffer()";
 
-PROCEDURE -Delay*(i : Int32)
+PROCEDURE ClearKeyBuffer*();
+BEGIN
+   newtClearKeyBuffer
+END ClearKeyBuffer;
+
+PROCEDURE -newtDelay(i : Int32)
    "newtDelay(i)";
 
-PROCEDURE -DrawRootText*(left, top: Int32; VAR text: ARRAY OF CHAR)
+PROCEDURE Delay*(i : Int32);
+BEGIN
+   newtDelay(i)
+END Delay;
+
+PROCEDURE -newtDrawRootText(left, top: Int32; VAR text: ARRAY OF CHAR)
    "newtDrawRootText(left, top, text)";
 
-PROCEDURE -PushHelpLine*(VAR text: ARRAY OF CHAR)
+PROCEDURE DrawRootText*(left, top: Int32; text: ARRAY OF CHAR);
+BEGIN
+   newtDrawRootText(left, top, text)
+END DrawRootText;
+
+PROCEDURE -newtPushHelpLine(VAR text: ARRAY OF CHAR)
    "newtPushHelpLine(text)";
 
-PROCEDURE -PopHelpLine*()
+PROCEDURE PushHelpLine*(text : ARRAY OF CHAR);
+BEGIN
+   newtPushHelpLine(text)
+END PushHelpLine;
+
+PROCEDURE -newtPopHelpLine()
    "newtPopHelpLine()";
 
-PROCEDURE -Bell*()
+PROCEDURE PopHelpLine*();
+BEGIN
+   newtPopHelpLine();
+END PopHelpLine;
+
+PROCEDURE -newtBell()
    "newtBell()";
 
-PROCEDURE -GetScreenSize*(VAR cols, rows: Int32)
+PROCEDURE Bell*();
+BEGIN newtBell() END Bell;
+
+PROCEDURE -newtGetScreenSize(VAR cols, rows: Int32)
    "newtGetScreenSize(cols, rows)";
+
+PROCEDURE GetScreenSize*(VAR cols, rows: Int32);
+BEGIN 
+newtGetScreenSize(cols, rows)
+END GetScreenSize;
 
 BEGIN
 

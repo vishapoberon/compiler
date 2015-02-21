@@ -12,7 +12,7 @@ newt.GetScreenSize(i, j);
 oocIntStr.IntToStr(i, str);
 newt.DrawRootText(5, 9, str);
 str := "x";
-newt.DrawRootText(7, 9, str);
+newt.DrawRootText(7, 9, "x");
 oocIntStr.IntToStr(j, str);
 newt.DrawRootText(9, 9, str);
 newt.WaitForKey();
