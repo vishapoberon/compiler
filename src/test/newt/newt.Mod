@@ -67,6 +67,14 @@ BEGIN
    newtResizeScreen(redraw);
 END ResizeScreen;
 
+PROCEDURE -newtRefresh()
+   "newtRefresh()";
+
+PROCEDURE Refresh*();
+BEGIN
+   newtRefresh();
+END Refresh;
+
 PROCEDURE -newtWaitForKey()
    "newtWaitForKey()";
 
