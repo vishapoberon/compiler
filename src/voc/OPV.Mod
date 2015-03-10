@@ -249,10 +249,6 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.sinttyp^.strobj^.linkadr := PredefinedType;
     OPT.booltyp^.strobj^.linkadr := PredefinedType;
     OPT.bytetyp^.strobj^.linkadr := PredefinedType;
-    OPT.int8typ^.strobj^.linkadr := PredefinedType;
-    OPT.int16typ^.strobj^.linkadr := PredefinedType;
-    OPT.int32typ^.strobj^.linkadr := PredefinedType;
-    OPT.int64typ^.strobj^.linkadr := PredefinedType;
     OPT.sysptrtyp^.strobj^.linkadr := PredefinedType;
   END AdrAndSize;
 

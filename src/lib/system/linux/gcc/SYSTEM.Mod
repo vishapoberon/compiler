@@ -12,6 +12,7 @@
 MODULE SYSTEM;  (* J. Templ, 31.5.95 *)
 
   IMPORT SYSTEM;  (*must not import other modules*)
+
   CONST
     ModNameLen = 20;
     CmdNameLen = 24;
