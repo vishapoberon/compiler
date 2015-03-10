@@ -3,6 +3,7 @@ MODULE newttest;
 IMPORT newt, oocIntStr, Unix;
 VAR i, j, k : newt.Int32;
 str : ARRAY 32 OF CHAR;
+fo, co : newt.Component;
 BEGIN
 i := newt.Init();
 newt.Cls();
@@ -28,7 +29,9 @@ newt.PopHelpLine();
 newt.Refresh();
 i := Unix.Sleep(1);
 
-
+fo := newt.Form(NIL, "aaa", 0);
+co := newt.Button(15, 15, "OK");
+newt.FormAddComponent(fo, co);
 newt.WaitForKey();
 newt.Delay(30);
 i := newt.Finished();

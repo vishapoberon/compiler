@@ -35,6 +35,21 @@ NEWTvARGvAPPEND*=			-1;
 TYPE Int32* = INTEGER;
      Int64* = LONGINT;
 
+     ComponentStruct* = RECORD
+        height*, width*,
+	top*, left*,
+	takesFocus*,
+	isMapped*: Int32
+     END;
+
+     Component* = POINTER TO ComponentStruct;
+
+     ExitStruct* = RECORD
+        reason*: Int32;
+	watch*, key*: Int32;
+	co* : Component;
+     END;
+
 PROCEDURE -newtInit(): Int32
    "newtInit()";
 
@@ -123,6 +138,22 @@ BEGIN
    newtPopHelpLine();
 END PopHelpLine;
 
+PROCEDURE -newtSuspend()
+   "newtSuspend()";
+
+PROCEDURE Suspend*();
+BEGIN
+   newtSuspend()
+END Suspend;
+
+PROCEDURE -newtResume()
+   "newtResume()";
+
+PROCEDURE Resume*;
+BEGIN
+   newtResume()
+END Resume;
+
 PROCEDURE -newtBell()
    "newtBell()";
 
@@ -136,6 +167,86 @@ PROCEDURE GetScreenSize*(VAR cols, rows: Int32);
 BEGIN 
 newtGetScreenSize(cols, rows)
 END GetScreenSize;
+
+PROCEDURE -newtCenteredWindow(width, height: Int32; title: ARRAY OF CHAR): Int32
+   "newtCenteredWindow(width, height, title)";
+
+PROCEDURE CenteredWindow*(width, height: Int32; title: ARRAY OF CHAR): Int32;
+BEGIN
+   RETURN newtCenteredWindow(width, height, title)
+END CenteredWindow;
+
+PROCEDURE -newtOpenWindow(left, top, width, height: Int32; title: ARRAY OF CHAR): Int32
+   "newtOpenWindow(left, top, width, height, title)";
+
+PROCEDURE OpenWindow*(left, top, width, height: Int32; title: ARRAY OF CHAR): Int32;
+BEGIN
+   RETURN newtOpenWindow(left, top, width, height, title)
+END OpenWindow;
+
+PROCEDURE -newtPopWindow()
+   "newtPopWindow()";
+
+PROCEDURE PopWindow*();
+BEGIN
+   newtPopWindow
+END PopWindow;
+
+PROCEDURE -newtForm(vertBar: Component; help: ARRAY OF CHAR; flags: Int32): Component
+   "newtForm(vertBar, help, flags)";
+
+PROCEDURE Form*(vertBar: Component; help: ARRAY OF CHAR; flags: Int32): Component;
+BEGIN
+   RETURN newtForm(vertBar, help, flags);
+END Form;
+
+PROCEDURE -newtFormAddComponent(form, co: Component)
+   "newtFormAddComponent(form, co)";
+
+PROCEDURE FormAddComponent*(form, co: Component);
+BEGIN
+   newtFormAddComponent(form, co);
+END FormAddComponent;
+
+PROCEDURE -newtRunForm(form: Component): Component
+   "newtRunForm(form)";
+
+PROCEDURE RunForm*(form: Component): Component; (* obsolete *)
+BEGIN
+   RETURN newtRunForm(form)
+END RunForm;
+
+PROCEDURE -newtFormRun(co: Component; VAR es: ExitStruct)
+   "newtFormRun(co, es)";
+
+PROCEDURE FormRun*(co: Component; VAR es: ExitStruct);
+BEGIN
+   newtFormRun(co, es)
+END FormRun;
+
+PROCEDURE -newtFormDestroy(form: Component)
+   "newtFormDestroy(form)";
+
+PROCEDURE FormDestroy*(form: Component);
+BEGIN
+   newtFormDestroy(form)
+END FormDestroy;
+
+PROCEDURE -newtButton(left, top: Int32; text: ARRAY OF CHAR): Component
+   "newtButton(left, top, text)";
+
+PROCEDURE Button*(left, top: Int32; text: ARRAY OF CHAR): Component;
+BEGIN
+   RETURN newtButton(left, top, text)
+END Button;
+
+PROCEDURE -newtCompactButton(left, top: Int32; text: ARRAY OF CHAR): Component
+   "newtCompactButton(left, top, text)";
+
+PROCEDURE CompactButton*(left, top: Int32; text: ARRAY OF CHAR): Component;
+BEGIN
+   RETURN newtCompactButton(left, top, text);
+END CompactButton;
 
 BEGIN
 
