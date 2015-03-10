@@ -68,8 +68,7 @@ MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
     typSize*: PROCEDURE(typ: Struct);
     topScope*: Object;
     undftyp*, bytetyp*, booltyp*, chartyp*, sinttyp*, inttyp*, linttyp*,
-    realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, sysptrtyp*,
-    int8typ*, int16typ*, int32typ*, int64typ*: Struct;
+    realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, sysptrtyp*: Struct;
     nofGmod*: SHORTINT;  (*nof imports*)
     GlbMod*: ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
     SelfName*: OPS.Name;  (* name of module being compiled *)
@@ -1043,10 +1042,6 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 
   (*initialization of module SYSTEM*)
   EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp);
-  EnterTyp("INT8", Byte, 1, int8typ);
-  EnterTyp("INT16", SInt, 2, int16typ);
-  EnterTyp("INT32", Int, 4, int32typ);
-  EnterTyp("INT64", LInt, 8, int64typ);
   EnterTyp("PTR", Pointer, OPM.PointerSize, sysptrtyp);
   EnterProc("ADR", adrfn);
   EnterProc("CC", ccfn);

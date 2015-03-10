@@ -12,7 +12,7 @@ uses double # as concatenation operator
 */
 
 #include <alloca.h>
-#include <stdint.h>
+
 extern void *memcpy(void *dest, const void *src, unsigned long n);
 extern void *malloc(unsigned long size);
 extern void exit(int status);
@@ -51,10 +51,7 @@ typedef void *SYSTEM_PTR;
 //#define *SYSTEM_PTR void
 //typedef unsigned char SYSTEM_BYTE;
 #define SYSTEM_BYTE unsigned char
-#define SYSTEM_INT8 int8_t
-#define SYSTEM_INT16 int16_t
-#define SYSTEM_INT32 int32_t
-#define SYSTEM_INT64 int64_t
+
 /* runtime system routines */
 extern long SYSTEM_DIV();
 extern long SYSTEM_MOD();
