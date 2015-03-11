@@ -83,6 +83,10 @@ SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
 (* structure forms *)
 Undef = 0; Byte = 1; Bool = 2; Char = 3;
 SInt = 4; Int = 5; LInt = 6;
+(*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
+Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
+Pointer = 17; ProcTyp = 18;
+Comp = 19;*)
 Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
 Pointer = 13; ProcTyp = 14; 
 Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19;
