@@ -137,6 +137,7 @@ stage6:
 	$(VOCSTATIC) -sPF	oocIntStr.Mod
 	$(VOCSTATIC) -sPF	oocSysClock.Mod
 	$(VOCSTATIC) -sPF	oocTime.Mod
+	$(VOCSTATIC) -sPF	oocRandomNumbers.Mod
 #	$(VOCSTATIC) -s	oocLongStrings.Mod
 #	$(CC)		oocLongStrings.c
 #	$(VOCSTATIC) -s	oocMsg.Mod

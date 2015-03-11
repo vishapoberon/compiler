@@ -98,6 +98,16 @@ BEGIN
    newtWaitForKey
 END WaitForKey;
 
+PROCEDURE -newtGetKey(): Int32
+   "newtGetKey()";
+
+PROCEDURE GetKey*(): CHAR;
+VAR i : Int32;
+BEGIN
+   i:= newtGetKey();
+   RETURN CHR(SHORT(i));
+END GetKey;
+
 PROCEDURE -newtClearKeyBuffer()
    "newtClearKeyBuffer()";
 
