@@ -235,7 +235,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF mainlinkstat IN glbopt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
       IF notcoloroutput IN glbopt THEN notColorOutput := TRUE ELSE notColorOutput := FALSE END;
       IF forcenewsym IN glbopt THEN forceNewSym := TRUE ELSE forceNewSym := FALSE END;
-      IF verbose IN glbopt THEN Verbose := TRUE ELSE forceNewSym := FALSE END;
+      IF verbose IN glbopt THEN Verbose := TRUE ELSE Verbose := FALSE END;
       GetProperties; (* GetProperties moved here in order to call it after ScanOptions because we have an option whether to use par file or not, noch *)
 
     END;
@@ -256,7 +256,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF mainprog IN opt THEN mainProg := TRUE ELSE mainProg := FALSE END;
       IF mainlinkstat IN opt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
       IF forcenewsym IN glbopt THEN forceNewSym := TRUE ELSE forceNewSym := FALSE END;
-      IF verbose IN glbopt THEN Verbose := TRUE ELSE forceNewSym := FALSE END;
+      IF verbose IN glbopt THEN Verbose := TRUE ELSE Verbose := FALSE END;
   END InitOptions;
 
   PROCEDURE Init*(VAR done: BOOLEAN; VAR mname : ARRAY OF CHAR);  (* get the source for one translation *)
