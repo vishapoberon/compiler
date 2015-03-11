@@ -1000,13 +1000,19 @@ WHILE ref < impCtxt.nofr DO
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END ;
         OutObj(topScope^.right);
         ext := sfpresent & symExtended; new := ~sfpresent OR symNew;
-	IF OPM.forceNewSym THEN new := TRUE END; (* for bootstrapping -- noch *)
+	IF OPM.forceNewSym THEN 
+	   new := TRUE;
+	   OPM.LogWStr("forceNewSym = TRUE"); OPM.LogWLn;
+	   END; (* for bootstrapping -- noch *)
         IF OPM.noerr & sfpresent & (impCtxt.reffp # expCtxt.reffp) THEN
           new := TRUE;
           IF ~extsf THEN err(155) END
         END ;
         newsf := FALSE; symNew := FALSE;  (* because of call to FPrintErr from OPL *)
-        IF ~OPM.noerr OR findpc THEN OPM.DeleteNewSym END
+        IF ~OPM.noerr OR findpc THEN 
+	   OPM.DeleteNewSym; 
+	   OPM.LogWStr("DeleteNewSym called"); OPM.LogWLn;   
+	END
         (* OPM.RegisterNewSym is called in OP2 after writing the object file *)
       END
     END
