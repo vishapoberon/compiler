@@ -525,13 +525,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           IF g = String THEN CharToString(x)
           ELSE err(100); y^.typ := x^.typ; yval^ := xval^
           END ;
-      | SInt(*, Int8*):
+      | SInt, Int8:
           IF g IN intSet THEN x^.typ := y^.typ
           ELSIF g = Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
           ELSIF g = LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
           ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
           END
-      | Int(*, Int16, Int32, Int64*):
+      | Int, Int16, Int32, Int64:
           IF g = SInt THEN y^.typ := OPT.inttyp
           ELSIF g IN intSet THEN x^.typ := y^.typ
           ELSIF g = Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
@@ -762,7 +762,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         CASE z^.typ^.form OF
            Char:
             IF z^.class = Nconst THEN CharToString(z) ELSE err(100) END
-        | SInt(*, Int8*):
+        | SInt, Int8:
             IF g IN intSet + realSet THEN Convert(z, y^.typ)
             ELSE  err(100)
             END
@@ -771,7 +771,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
             ELSIF g IN intSet + realSet THEN Convert(z, y^.typ)
             ELSE  err(100)
             END
-        | LInt(*, Int16, Int32, Int64*):
+        | LInt, Int16, Int32, Int64:
             IF g IN intSet THEN Convert(y, z^.typ)
             ELSIF g IN realSet THEN Convert(z, y^.typ)
             ELSE  err(100)
@@ -895,7 +895,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       | lss, leq, gtr, geq:
           IF (f IN {Undef, Char..LReal, Int8..Int64}) OR strings(z, y) THEN typ := OPT.booltyp
           ELSE
-	     OPM.LogWStr("ELSE in Op()"); OPM.LogWLn;
+	     OPM.LogWLn; OPM.LogWStr("ELSE in Op()"); OPM.LogWLn;
 	     err(108); typ := OPT.undftyp
           END ;
           NewOp(op, typ, z, y)
@@ -991,7 +991,11 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     | Int:
         IF ~(g IN {SInt, Int}) THEN err(113) END
     | LInt:
-        IF ~(g IN intSet) THEN err(113) END
+        IF OPM.LIntSize = 4 THEN
+	   IF ~(g IN {SInt, Int, LInt, Int8, Int16, Int32}) THEN err(113) END
+	ELSE (* assume OPM.LIntSize = 8 *)
+           IF ~(g IN {SInt, Int, LInt, Int8, Int16, Int32, Int64}) THEN err(113) END
+	END;
     | Real:
         IF ~(g IN {SInt..Real}) THEN err(113) END
     | LReal:
@@ -1138,7 +1142,7 @@ avoid unnecessary intermediate variables in voc
         END
     | chrfn: (*CHR*) 
         IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
-        ELSIF f IN {Undef, SInt..LInt} THEN Convert(x, OPT.chartyp)
+        ELSIF f IN {Undef, SInt..LInt, Int8..Int64} THEN Convert(x, OPT.chartyp)
         ELSE err(111); x^.typ := OPT.chartyp
         END
     | shortfn: (*SHORT*)
