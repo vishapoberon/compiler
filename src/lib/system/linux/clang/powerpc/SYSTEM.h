@@ -12,6 +12,7 @@ uses double # as concatenation operator
 */
 
 #include <alloca.h>
+#include <stdint.h> /* for type sizes -- noch */
 
 //extern void *memcpy(void *dest, const void *src, long n);
 extern void *memcpy(void *dest, const void *src, size_t n);
@@ -37,6 +38,10 @@ typedef double LONGREAL;
 typedef unsigned long SET;
 typedef void *SYSTEM_PTR;
 typedef unsigned char SYSTEM_BYTE;
+typedef int8_t SYSTEM_INT8;
+typedef int16_t SYSTEM_INT16;
+typedef int32_t SYSTEM_INT32;
+typedef int64_t SYSTEM_INT64;
 
 /* runtime system routines */
 extern long SYSTEM_DIV();
