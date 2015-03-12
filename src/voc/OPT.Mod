@@ -200,7 +200,7 @@ VAR i: INTEGER;
 BEGIN  (* garbage collection *)
 CloseScope;
 i := 0; WHILE i < maxImps DO GlbMod[i] := NIL; INC(i) END ;
-i := FirstRef; WHILE i < maxStruct DO impCtxt.ref[i] := NIL; impCtxt.old[i] := NIL; INC(i) END
+i := (*FirstRef*)Comp + 1; WHILE i < maxStruct DO impCtxt.ref[i] := NIL; impCtxt.old[i] := NIL; INC(i) END
 END Close;
 
 PROCEDURE FindImport*(mod: Object; VAR res: Object);
