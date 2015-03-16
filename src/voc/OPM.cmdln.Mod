@@ -28,6 +28,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     mainlinkstat* = 15; (* generate code for main module and then link object file statically *)
     notcoloroutput* = 16; (* turn off color output *)
     forcenewsym* = 17; (* force new symbol file *)
+    verbose* = 18; (* verbose *)
     defopt* = {inxchk, typchk, ptrinit, ansi, assert};  (* default options *)
 
     nilval* = 0;
@@ -96,10 +97,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     SourceFileName : ARRAY 256 OF CHAR;
     ByteSize*, CharSize*, BoolSize*, SIntSize*, IntSize*,
     LIntSize*, SetSize*, RealSize*, LRealSize*, PointerSize*, ProcSize*, RecSize*,
+    Int8Size*, Int16Size*, Int32Size*, Int64Size*, (* these are constants actually, we need it to pass to GetProperty function; -- noch *)
     CharAlign*, BoolAlign*, SIntAlign*, IntAlign*,
+    Int8Align*, Int16Align*, Int32Align*, Int64Align*, (* need this for SYSTEM types; -- noch *)
     LIntAlign*, SetAlign*, RealAlign*, LRealAlign*, PointerAlign*, ProcAlign*, RecAlign*,
     ByteOrder*, BitOrder*, MaxSet*: INTEGER;
     MinSInt*, MinInt*, MinLInt*, MaxSInt*, MaxInt*, MaxLInt*, MaxIndex*: LONGINT;
+    MinInt8*, MaxInt8*, MinInt16*, MaxInt16*, MinInt32*, MaxInt32* : LONGINT;
+    MinInt64*, MaxInt64* : SYSTEM.INT64;
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;
 
     noerr*: BOOLEAN;
@@ -122,7 +127,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     oldSFile, newSFile, HFile, BFile, HIFile: Files.File;
 
     S: INTEGER;
-    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput-, forceNewSym-: BOOLEAN;
+    stop, useLineNo, useParFile, dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput-, forceNewSym-, Verbose-: BOOLEAN;
 
 
   (* ------------------------- Log Output ------------------------- *)
@@ -170,6 +175,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "M": opt := opt / {mainlinkstat}
       | "f": opt := opt / {notcoloroutput}
       | "F": opt := opt / {forcenewsym}
+      | "V": opt := opt / {verbose}
       ELSE LogWStr("  warning: option "); LogW(OptionChar); LogW(s[i]); LogWStr(" ignored"); LogWLn
       END ;
       INC(i)
@@ -192,7 +198,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.Ln;
       Console.String('  command = "voc" options {file options}.'); Console.Ln;
       Console.String('  options = ["-" {option} ].'); Console.Ln;
-      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" | "f" | "F" .'); Console.Ln;
+      Console.String('  option  = "m" | "M" | "s" | "e" | "i" | "l" | "k" | "r" | "x" | "a" | "p" | "t" | "P" | "S" | "c" | "f" | "F" | "V" .'); Console.Ln;
       Console.Ln;
       Console.String(" m      - generate code for main module"); Console.Ln;
       Console.String(" M      - generate code for main module and link object statically"); Console.Ln;
@@ -210,6 +216,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Console.String(" c      - don't call linker"); Console.Ln;
       Console.String(" f      - don't use color output"); Console.Ln;
       Console.String(" F      - force writing new symbol file"); Console.Ln;
+      Console.String(" V      - verbose output"); Console.Ln;
       Console.Ln;
     ELSE
       glbopt := defopt; S := 1; s := "";
@@ -228,6 +235,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF mainlinkstat IN glbopt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
       IF notcoloroutput IN glbopt THEN notColorOutput := TRUE ELSE notColorOutput := FALSE END;
       IF forcenewsym IN glbopt THEN forceNewSym := TRUE ELSE forceNewSym := FALSE END;
+      IF verbose IN glbopt THEN Verbose := TRUE ELSE Verbose := FALSE END;
       GetProperties; (* GetProperties moved here in order to call it after ScanOptions because we have an option whether to use par file or not, noch *)
 
     END;
@@ -248,6 +256,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       IF mainprog IN opt THEN mainProg := TRUE ELSE mainProg := FALSE END;
       IF mainlinkstat IN opt THEN INCL(glbopt, mainprog); mainLinkStat := TRUE ELSE mainLinkStat := FALSE END;
       IF forcenewsym IN glbopt THEN forceNewSym := TRUE ELSE forceNewSym := FALSE END;
+      IF verbose IN glbopt THEN Verbose := TRUE ELSE Verbose := FALSE END;
   END InitOptions;
 
   PROCEDURE Init*(VAR done: BOOLEAN; VAR mname : ARRAY OF CHAR);  (* get the source for one translation *)
@@ -588,6 +597,41 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
      RETURN p;
   END power0;
 
+  PROCEDURE VerboseListSizes;
+  BEGIN
+	    Console.String("Type        Size  Alignement"); Console.Ln; 
+	    Console.String("CHAR         "); Console.Int(CharSize, 0); Console.Int(CharAlign, 5); Console.Ln; 
+	    Console.String("BOOLEAN      "); Console.Int(BoolSize, 0); Console.Int(BoolAlign, 5); Console.Ln;
+	    Console.String("SHORTINT     "); Console.Int(SIntSize, 0); Console.Int(SIntAlign, 5); Console.Ln; 
+	    Console.String("INTEGER      "); Console.Int(IntSize, 0); Console.Int(IntAlign, 5); Console.Ln; 
+	    Console.String("LONGINT      "); Console.Int(LIntSize, 0); Console.Int(LIntAlign, 5); Console.Ln; 
+	    Console.String("SET          "); Console.Int(SetSize, 0); Console.Int(SetAlign, 5); Console.Ln; 
+	    Console.String("REAL         "); Console.Int(RealSize, 0); Console.Int(RealAlign, 5); Console.Ln; 
+	    Console.String("LONGREAL     "); Console.Int(LRealSize, 0); Console.Int(LRealAlign, 5); Console.Ln; 
+	    Console.String("PTR          "); Console.Int(PointerSize, 0); Console.Int(PointerAlign, 5); Console.Ln; 
+	    Console.String("PROC         "); Console.Int(ProcSize, 0); Console.Int(ProcAlign, 5); Console.Ln; 
+	    Console.String("RECORD       "); Console.Int(RecSize, 0); Console.Int(RecAlign, 5); Console.Ln; 
+	    Console.String("ENDIAN       "); Console.Int(ByteOrder, 0); Console.Int(BitOrder, 5); Console.Ln; 
+	    Console.String("SYSTEM.INT8  "); Console.Int(Int8Size, 0); Console.Int(Int8Align, 5); Console.Ln; 
+	    Console.String("SYSTEM.INT16 "); Console.Int(Int16Size, 0); Console.Int(Int16Align, 5); Console.Ln; 
+	    Console.String("SYSTEM.INT32 "); Console.Int(Int32Size, 0); Console.Int(Int32Align, 5); Console.Ln; 
+	    Console.String("SYSTEM.INT64 "); Console.Int(Int64Size, 0); Console.Int(Int64Align, 5); Console.Ln;
+	    Console.Ln;
+       Console.String("Min shortint "); Console.Int(MinSInt, 0); Console.Ln;
+       Console.String("Max shortint "); Console.Int(MaxSInt, 0); Console.Ln;
+       Console.String("Min integer "); Console.Int(MinInt, 0); Console.Ln;
+       Console.String("Max integer "); Console.Int(MaxInt, 0); Console.Ln;
+       Console.String("Min longint "); Console.Int(MinLInt, 0); Console.Ln;
+       Console.String("Max longint "); Console.Int(MaxLInt, 0); Console.Ln;
+       Console.String("Min int8 "); Console.Int(MinInt8, 0); Console.Ln;
+       Console.String("Max int8 "); Console.Int(MaxInt8, 0); Console.Ln;
+       Console.String("Min int16 "); Console.Int(MinInt16, 0); Console.Ln;
+       Console.String("Max int16 "); Console.Int(MaxInt16, 0); Console.Ln;
+       Console.String("Min int32 "); Console.Int(MinInt32, 0); Console.Ln;
+       Console.String("Max int32 "); Console.Int(MaxInt32, 0); Console.Ln;
+ 
+
+  END VerboseListSizes;
 
   PROCEDURE GetProperties();
     VAR T: Texts.Text; S: Texts.Scanner;
@@ -601,6 +645,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
         ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 4; LIntSize := 8;
        SetSize := 8; RealSize := 4; LRealSize := 8; ProcSize := 8; PointerSize := 8; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 4; LIntAlign := 8;
+       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 8;
        SetAlign := 8; RealAlign := 4; LRealAlign := 8; ProcAlign := 8; PointerAlign := 8; RecAlign := 1;
     (*  not necessary, we will calculate values later  
        MinSInt := -80H; MaxSInt := 7FH;
@@ -617,6 +662,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
+       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
        SetAlign := 4; RealAlign := 4; LRealAlign := 8; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 
      (* not necessary, we will calculate values later
@@ -630,6 +676,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
+
+       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
        SetAlign := 4; RealAlign := 4; LRealAlign := 8; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 
 
@@ -638,6 +686,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
+
+       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
        SetAlign := 4; RealAlign := 4; LRealAlign := 4; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 
     ELSE (* this should suite any gnu x86 system *)
@@ -645,6 +695,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
+
+       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
        SetAlign := 4; RealAlign := 4; LRealAlign := 4; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 (* LRealAlign should be checked and confirmed *)
     (* not necessary, will be calculated later 
@@ -658,7 +710,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     (* read voc.par *)
     
     IF useParFile THEN (* noch *)
-       Console.String ("loading type sizes from voc.par"); Console.Ln; 
+       IF Verbose THEN Console.String ("loading type sizes from voc.par"); Console.Ln; END;
        NEW(T); Texts.Open(T, "voc.par");
        IF T.len # 0 THEN
          Texts.OpenScanner(S, T, 0); Texts.Scan(S);
@@ -677,12 +729,23 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
            Size = 1; size and alignment follows from field types but at least RecAlign; e.g, SPARC, MIPS, PowerPC
          *)
          GetProperty(S, "ENDIAN", ByteOrder, BitOrder);  (*currently not used*)
+	 
+         GetProperty(S, "SYSTEM.INT8", Int8Size, Int8Align);
+         GetProperty(S, "SYSTEM.INT16", Int16Size, Int16Align);
+         GetProperty(S, "SYSTEM.INT32", Int32Size, Int32Align);
+         GetProperty(S, "SYSTEM.INT64", Int64Size, Int64Align);
 	 (* add here Max and Min sizes, noch *)
 	 ByteSize := CharSize;
+
        ELSE Mark(-156, -1)
        END ;
-    ELSE Console.String ("not using voc.par file"); Console.Ln;
-    END; (* if useParFile , noch *)
+    ELSE 
+       IF Verbose THEN 
+          Console.String ("not using voc.par file"); Console.Ln 
+       END
+     END; (* if useParFile , noch *)
+
+    Int8Size := 1; Int16Size := 2; Int32Size := 4; Int64Size := 8;
 
 (* commenting this by replacing with faster way; -- noch *
     MinSInt := power0(-2, (SIntSize*8-1)); (* -2^(SIntSize*8-1)*)
@@ -708,15 +771,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     MinLInt := ASH(base, LIntSize*8-2);
     MaxLInt := minus(MinLInt +1);
 
-(*
-    Console.Int(MinSInt, 0); Console.Ln;
-    Console.Int(MaxSInt, 0); Console.Ln;
-    Console.Int(MinInt, 0); Console.Ln;
-    Console.Int(MaxInt, 0); Console.Ln;
-    Console.Int(MinLInt, 0); Console.Ln;
-    Console.Int(MaxLInt, 0); Console.Ln;
-*)
-
+    MinInt8 := -80H; MinInt16 := -8000H; MinInt32 :=  80000000H;  (*-2147483648*)
+    MaxInt8 := 7FH; MaxInt16 := 7FFFH; MaxInt32 := 7FFFFFFFH;  (*2147483647*)
+    
+    MinInt64 := ASH(base, Int64Size*8-2);
+    MaxInt64 := minus(ASH(base, Int64Size*8-2) + 1);
 
     IF RealSize = 4 THEN MaxReal := 3.40282346D38
     ELSIF RealSize = 8 THEN MaxReal := 1.7976931348623157D307 * 9.999999
@@ -733,6 +792,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     (*IF IntSize = 4 THEN MinLInt := MinInt; MaxLInt := MaxInt END ;*)
     MaxSet := SetSize * 8 - 1;
     MaxIndex := MaxLInt; (* shouldn't it be like max(int)? so that for loop will be safe, noch *)
+    IF Verbose THEN
+       VerboseListSizes
+   END;
+
 
   END GetProperties;
 

@@ -22,8 +22,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     adr = 24; cc = 25; bit = 26; lsh = 27; rot = 28; val = 29;
 
     (* structure forms *)
-    Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
-    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; Pointer = 13; ProcTyp = 14; Comp = 15;
+    Byte = 1; Bool = 2; Char = 3;
+    SInt = 4; Int = 5; LInt = 6;
+    (*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
+    Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
+    Pointer = 17; ProcTyp = 18;
+    Comp = 19;*)
+    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; Pointer = 13; ProcTyp = 14; 
+    Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19; 
+    Comp = (*15*)20;
 
     (* composite structure forms *)
     Array = 2; DynArr = 3; Record = 4;
@@ -249,6 +256,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.sinttyp^.strobj^.linkadr := PredefinedType;
     OPT.booltyp^.strobj^.linkadr := PredefinedType;
     OPT.bytetyp^.strobj^.linkadr := PredefinedType;
+    OPT.int8typ^.strobj^.linkadr := PredefinedType;
+    OPT.int16typ^.strobj^.linkadr := PredefinedType;
+    OPT.int32typ^.strobj^.linkadr := PredefinedType;
+    OPT.int64typ^.strobj^.linkadr := PredefinedType;
     OPT.sysptrtyp^.strobj^.linkadr := PredefinedType;
   END AdrAndSize;
 
@@ -336,6 +347,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSIF form = LInt THEN
       IF from < LInt THEN OPM.WriteString("(LONGINT)") END ;
       Entier(n, 9)
+    ELSIF form = Int64 THEN
+       IF (from >= SInt) & (from <= LInt) OR (from >= Int8) & (from < Int64) THEN OPM.WriteString("(SYSTEM_INT64)") END; 
+       Entier(n, 9);
     ELSIF form = Int THEN
       IF from < Int THEN OPM.WriteString("(int)"); expr(n, 9)
       ELSE
@@ -509,10 +523,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             OPM.WriteString("(void*)")  (* type extension *)
           END
         ELSE
-          IF (form IN {Real, LReal}) & (n^.typ^.form IN {SInt, Int, LInt}) THEN (* real promotion *)
+          IF (form IN {Real, LReal}) & (n^.typ^.form IN {SInt, Int, LInt, Int8, Int16, Int32, Int64}) THEN (* real promotion *)
             OPM.WriteString("(double)"); prec := 9
           ELSIF (form = LInt) & (n^.typ^.form < LInt) THEN (* integral promotion *)
             OPM.WriteString("(LONGINT)"); prec := 9
+	  ELSIF (form = Int64) & (n^.typ^.form < Int64) THEN
+	    OPM.WriteString("(SYSTEM_INT64)"); prec := 9;
           END
         END
       ELSIF ansi THEN
@@ -708,7 +724,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             |  slash:
                   IF form = Set THEN OPM.WriteString(" ^ ")
                   ELSE OPM.WriteString(" / ");
-                    IF (r^.obj = NIL) OR (r^.obj^.typ^.form IN {SInt, Int, LInt}) THEN
+                    IF (r^.obj = NIL) OR (r^.obj^.typ^.form IN {SInt, Int, LInt, Int8, Int16, Int32, Int64}) THEN
                       OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen)
                     END
                   END
