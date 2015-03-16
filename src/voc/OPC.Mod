@@ -11,9 +11,16 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
 	CONST
 		(* structure forms *)
-		Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
+		Byte = 1; Bool = 2; Char = 3; 
+		SInt = 4; Int = 5; LInt = 6;
+		(*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
+		Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
+		Pointer = 17; ProcTyp = 18;
+		Comp = 19;*)
 		Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-		Pointer = 13; ProcTyp = 14; Comp = 15;
+		Pointer = 13; ProcTyp = 14; 
+	        Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19;
+		Comp = (*15*)20;
 
 		(* composite structure forms *)
 		Array = 2; DynArr = 3; Record = 4;
@@ -170,8 +177,9 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 				ELSE OPM.WriteStringVar(OPM.modName)
 				END ;
 				OPM.Write(Underscore)
-			ELSIF (obj = OPT.sysptrtyp^.strobj) OR (obj = OPT.bytetyp^.strobj) THEN
+			ELSIF (obj = OPT.sysptrtyp^.strobj) OR (obj = OPT.bytetyp^.strobj) OR (obj = OPT.int8typ^.strobj) OR (obj = OPT.int16typ^.strobj) OR (obj = OPT.int32typ^.strobj) OR (obj = OPT.int64typ^.strobj) THEN
 				OPM.WriteString("SYSTEM_")
+				
 			END ;
 			OPM.WriteStringVar(obj^.name)
 		END
@@ -614,6 +622,10 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 		| SInt: RETURN OPM.SIntAlign
 		| Int: RETURN OPM.IntAlign
 		| LInt: RETURN OPM.LIntAlign
+		| Int8: RETURN OPM.Int8Align
+		| Int16: RETURN OPM.Int16Align
+		| Int32: RETURN OPM.Int32Align
+		| Int64: RETURN OPM.Int64Align
 		| Real: RETURN OPM.RealAlign
 		| LReal: RETURN OPM.LRealAlign
 		| Set: RETURN OPM.SetAlign
@@ -857,6 +869,7 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 				| OPM.mainlinkstat: OPM.Write("M")
 				| OPM.notcoloroutput: OPM.Write("f")
 				| OPM.forcenewsym: OPM.Write("F")
+				| OPM.verbose: OPM.Write("v")
 				ELSE
 				   (* this else is necessary cause
 				   if someone defined a new option in OPM module
@@ -1283,6 +1296,9 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 					END
 		|	SInt, Int, LInt:
 					OPM.WriteInt(con^.intval)
+		|	Int8, Int16, Int32, Int64:
+					OPM.WriteInt(con^.intval)
+
 		|	Real:
 					OPM.WriteReal(con^.realval, "f")
 		|	LReal:

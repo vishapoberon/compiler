@@ -27,10 +27,18 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
 
     (* Structure forms *)
-    Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
+    Undef = 0; Byte = 1; Bool = 2; Char = 3; 
+    SInt = 4; Int = 5; LInt = 6;
+    (*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
+    Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
+    Pointer = 17; ProcTyp = 18;
+    Comp = 19;*)
     Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-    Pointer = 13; ProcTyp = 14; Comp = 15;
-    intSet = {SInt..LInt};
+    Pointer = 13; ProcTyp = 14;
+    Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19;
+    Comp = (*15*)20;
+
+    intSet = {SInt..LInt, Int8..Int64};
     
     (* composite structure forms *)
     Basic = 1; Array = 2; DynArr = 3; Record = 4;
@@ -281,7 +289,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       OPS.Get(sym); resTyp := OPT.undftyp;
       IF sym = ident THEN qualident(res);
         IF res^.mode = Typ THEN
-          IF res^.typ^.form < Comp THEN resTyp := res^.typ
+          IF (res^.typ^.form < Comp) OR (res^.typ^.form >= Int8) & (res^.typ^.form <= Int64) THEN resTyp := res^.typ;
           ELSE err(54)
           END
         ELSE err(52)

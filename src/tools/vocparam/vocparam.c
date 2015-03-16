@@ -14,6 +14,10 @@ struct {CHAR ch; BOOLEAN x;} b;
 struct {CHAR ch; SHORTINT x;} si;
 struct {CHAR ch; INTEGER x;} i;
 struct {CHAR ch; LONGINT x;} li;
+struct {CHAR ch; SYSTEM_INT8 x;} i8;
+struct {CHAR ch; SYSTEM_INT16 x;} i16;
+struct {CHAR ch; SYSTEM_INT32 x;} i32;
+struct {CHAR ch; SYSTEM_INT64 x;} i64;
 struct {CHAR ch; SET x;} s;
 struct {CHAR ch; REAL x;} r;
 struct {CHAR ch; LONGREAL x;} lr;
@@ -40,6 +44,11 @@ int main()
 	printf("RECORD %d %lu\n", (sizeof rec2 == 65) == (sizeof rec0 == 1), sizeof rec2 - 64);
 	x = 1;
 	printf("ENDIAN %hhd %d\n", *(char*)&x, 0);
+	printf("SYSTEM.INT8 %lu %lu\n", sizeof(SYSTEM_INT8), (char*)&i8.x - (char*)&i8);
+	printf("SYSTEM.INT16 %lu %lu\n", sizeof(SYSTEM_INT16), (char*)&i16.x - (char*)&i16);
+	printf("SYSTEM.INT32 %lu %lu\n", sizeof(SYSTEM_INT32), (char*)&i32.x - (char*)&i32);
+	printf("SYSTEM.INT64 %lu %lu\n", sizeof(SYSTEM_INT64), (char*)&i64.x - (char*)&i64);
+
 
 	if (sizeof(CHAR)!=1) printf("error: CHAR should have size 1\n");
 	if (sizeof(BOOLEAN)!=1) printf("error: BOOLEAN should have size 1\n");
