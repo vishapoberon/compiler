@@ -4,7 +4,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   
   CONST
     MaxStrLen* = 256;
-    MaxIdLen = 32;
+    MaxIdLen = 256;
   
   TYPE
     Name* = ARRAY MaxIdLen OF CHAR;
