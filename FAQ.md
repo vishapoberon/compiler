@@ -17,3 +17,13 @@ compilation crashes on ARM or Raspberry Pi with recent (like 3.12) kernels.
 
 should fix that.
 
+make errors on freebsd
+======================
+
+># make -f makefile.freebsd.clang.x86_64 
+make: "/root/voc/makefile.freebsd.clang.x86_64" line 22: Need an operator
+make: "/root/voc/makefile.freebsd.clang.x86_64" line 24: Need an operator
+make: Fatal errors encountered -- cannot continue
+make: stopped in /root/voc
+
+use gmake.
