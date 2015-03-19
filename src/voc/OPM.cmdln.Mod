@@ -97,14 +97,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     SourceFileName : ARRAY 256 OF CHAR;
     ByteSize*, CharSize*, BoolSize*, SIntSize*, IntSize*,
     LIntSize*, SetSize*, RealSize*, LRealSize*, PointerSize*, ProcSize*, RecSize*,
-    Int8Size*, Int16Size*, Int32Size*, Int64Size*, (* these are constants actually, we need it to pass to GetProperty function; -- noch *)
+    (*Int8Size*, Int16Size*, Int32Size*, Int64Size*,*) (* these are constants actually, we need it to pass to GetProperty function; -- noch *)
     CharAlign*, BoolAlign*, SIntAlign*, IntAlign*,
-    Int8Align*, Int16Align*, Int32Align*, Int64Align*, (* need this for SYSTEM types; -- noch *)
+    (*Int8Align*, Int16Align*, Int32Align*, Int64Align*,*) (* need this for SYSTEM types; -- noch *)
     LIntAlign*, SetAlign*, RealAlign*, LRealAlign*, PointerAlign*, ProcAlign*, RecAlign*,
     ByteOrder*, BitOrder*, MaxSet*: INTEGER;
     MinSInt*, MinInt*, MinLInt*, MaxSInt*, MaxInt*, MaxLInt*, MaxIndex*: LONGINT;
-    MinInt8*, MaxInt8*, MinInt16*, MaxInt16*, MinInt32*, MaxInt32* : LONGINT;
-    MinInt64*, MaxInt64* : SYSTEM.INT64;
+    (*MinInt8*, MaxInt8*, MinInt16*, MaxInt16*, MinInt32*, MaxInt32* : LONGINT;
+    MinInt64*, MaxInt64* : SYSTEM.INT64;*)
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;
 
     noerr*: BOOLEAN;
@@ -611,17 +611,20 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 	    Console.String("PTR          "); Console.Int(PointerSize, 0); Console.Int(PointerAlign, 5); Console.Ln; 
 	    Console.String("PROC         "); Console.Int(ProcSize, 0); Console.Int(ProcAlign, 5); Console.Ln; 
 	    Console.String("RECORD       "); Console.Int(RecSize, 0); Console.Int(RecAlign, 5); Console.Ln; 
-	    Console.String("ENDIAN       "); Console.Int(ByteOrder, 0); Console.Int(BitOrder, 5); Console.Ln; 
+	    Console.String("ENDIAN       "); Console.Int(ByteOrder, 0); Console.Int(BitOrder, 5); Console.Ln;
+	    (*
 	    Console.String("SYSTEM.INT8  "); Console.Int(Int8Size, 0); Console.Int(Int8Align, 5); Console.Ln; 
 	    Console.String("SYSTEM.INT16 "); Console.Int(Int16Size, 0); Console.Int(Int16Align, 5); Console.Ln; 
 	    Console.String("SYSTEM.INT32 "); Console.Int(Int32Size, 0); Console.Int(Int32Align, 5); Console.Ln; 
 	    Console.String("SYSTEM.INT64 "); Console.Int(Int64Size, 0); Console.Int(Int64Align, 5); Console.Ln;
+	    *)
 	    Console.Ln;
        Console.String("Min shortint "); Console.Int(MinSInt, 0); Console.Ln;
        Console.String("Max shortint "); Console.Int(MaxSInt, 0); Console.Ln;
        Console.String("Min integer "); Console.Int(MinInt, 0); Console.Ln;
        Console.String("Max integer "); Console.Int(MaxInt, 0); Console.Ln;
        Console.String("Min longint "); Console.Int(MinLInt, 0); Console.Ln;
+       (*
        Console.String("Max longint "); Console.Int(MaxLInt, 0); Console.Ln;
        Console.String("Min int8 "); Console.Int(MinInt8, 0); Console.Ln;
        Console.String("Max int8 "); Console.Int(MaxInt8, 0); Console.Ln;
@@ -629,7 +632,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        Console.String("Max int16 "); Console.Int(MaxInt16, 0); Console.Ln;
        Console.String("Min int32 "); Console.Int(MinInt32, 0); Console.Ln;
        Console.String("Max int32 "); Console.Int(MaxInt32, 0); Console.Ln;
- 
+ *)
 
   END VerboseListSizes;
 
@@ -645,7 +648,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
         ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 4; LIntSize := 8;
        SetSize := 8; RealSize := 4; LRealSize := 8; ProcSize := 8; PointerSize := 8; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 4; LIntAlign := 8;
-       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 8;
+       (*Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 8;*)
        SetAlign := 8; RealAlign := 4; LRealAlign := 8; ProcAlign := 8; PointerAlign := 8; RecAlign := 1;
     (*  not necessary, we will calculate values later  
        MinSInt := -80H; MaxSInt := 7FH;
@@ -662,7 +665,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        ByteSize := 1; CharSize := 1; BoolSize := 1; SIntSize := 1; IntSize := 2; LIntSize := 4;
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
-       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
+       (*Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;*)
        SetAlign := 4; RealAlign := 4; LRealAlign := 8; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 
      (* not necessary, we will calculate values later
@@ -677,7 +680,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
 
-       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
+       (*Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;*)
        SetAlign := 4; RealAlign := 4; LRealAlign := 8; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 
 
@@ -687,7 +690,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
 
-       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
+       (*Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;*)
        SetAlign := 4; RealAlign := 4; LRealAlign := 4; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 
     ELSE (* this should suite any gnu x86 system *)
@@ -696,7 +699,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        SetSize := 4; RealSize := 4; LRealSize := 8; ProcSize := 4; PointerSize := 4; RecSize := 1;
        CharAlign := 1; BoolAlign := 1; SIntAlign := 1; IntAlign := 2; LIntAlign := 4;
 
-       Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;
+       (*Int8Align := 1; Int16Align := 2; Int32Align := 4; Int64Align := 4;*)
        SetAlign := 4; RealAlign := 4; LRealAlign := 4; ProcAlign := 4; PointerAlign := 4; RecAlign := 1;
 (* LRealAlign should be checked and confirmed *)
     (* not necessary, will be calculated later 
@@ -730,10 +733,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
          *)
          GetProperty(S, "ENDIAN", ByteOrder, BitOrder);  (*currently not used*)
 	 
-         GetProperty(S, "SYSTEM.INT8", Int8Size, Int8Align);
+         (*
+	 GetProperty(S, "SYSTEM.INT8", Int8Size, Int8Align);
          GetProperty(S, "SYSTEM.INT16", Int16Size, Int16Align);
          GetProperty(S, "SYSTEM.INT32", Int32Size, Int32Align);
-         GetProperty(S, "SYSTEM.INT64", Int64Size, Int64Align);
+         GetProperty(S, "SYSTEM.INT64", Int64Size, Int64Align);*)
 	 (* add here Max and Min sizes, noch *)
 	 ByteSize := CharSize;
 
@@ -745,7 +749,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
        END
      END; (* if useParFile , noch *)
 
-    Int8Size := 1; Int16Size := 2; Int32Size := 4; Int64Size := 8;
+    (*Int8Size := 1; Int16Size := 2; Int32Size := 4; Int64Size := 8;*)
 
 (* commenting this by replacing with faster way; -- noch *
     MinSInt := power0(-2, (SIntSize*8-1)); (* -2^(SIntSize*8-1)*)
@@ -770,13 +774,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     
     MinLInt := ASH(base, LIntSize*8-2);
     MaxLInt := minus(MinLInt +1);
-
+    (*
     MinInt8 := -80H; MinInt16 := -8000H; MinInt32 :=  80000000H;  (*-2147483648*)
     MaxInt8 := 7FH; MaxInt16 := 7FFFH; MaxInt32 := 7FFFFFFFH;  (*2147483647*)
     
     MinInt64 := ASH(base, Int64Size*8-2);
     MaxInt64 := minus(ASH(base, Int64Size*8-2) + 1);
-
+*)
     IF RealSize = 4 THEN MaxReal := 3.40282346D38
     ELSIF RealSize = 8 THEN MaxReal := 1.7976931348623157D307 * 9.999999
       (*should be 1.7976931348623157D308 *)

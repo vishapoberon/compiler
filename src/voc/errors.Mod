@@ -6,7 +6,7 @@ VAR errors- : ARRAY 350 OF string;
 
 
 BEGIN
-(* Incorroct use of the language Oberon *)
+(* Incorrect use of the language Oberon *)
 errors[0] := "undeclared identifier";
 errors[1] := "multiply defined identifier";
 errors[2] := "illegal character in number";
@@ -187,6 +187,7 @@ errors[245] := "guarded pointer variable may be manipulated by non-local operati
 
 errors[301] := "implicit type cast";
 errors[306] := "inappropriate symbol file ignored";
+errors[307] := "no ELSE symbol after CASE statement sequence may lead to trap"; (* new warning,  -- noch *)
 
 END errors.
 (*

@@ -24,13 +24,16 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     (* structure forms *)
     Byte = 1; Bool = 2; Char = 3;
     SInt = 4; Int = 5; LInt = 6;
+    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+    Pointer = 13; ProcTyp = 14;
+    Comp = 15;
     (*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
     Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
     Pointer = 17; ProcTyp = 18;
     Comp = 19;*)
-    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; Pointer = 13; ProcTyp = 14; 
-    Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19; 
-    Comp = (*15*)20;
+    (*Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; Pointer = 13; ProcTyp = 14; 
+    Int8 = 15; Int16 = 16; Int32 = 17; Int64 = 18; 
+    Comp = (*15*)19;*)
 
     (* composite structure forms *)
     Array = 2; DynArr = 3; Record = 4;
@@ -124,7 +127,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       f := typ^.form; c := typ^.comp;
       IF c = Record THEN btyp := typ^.BaseTyp;
         IF btyp = NIL THEN offset := 0; base := OPM.RecAlign;
-        ELSE TypSize(btyp); offset := btyp^.size - btyp^.sysflag DIV 100H; base := btyp^.align
+        ELSE TypSize(btyp); offset := btyp^.size - btyp^.sysflag DIV 100H; base := btyp^.align;
         END;
         fld := typ^.link;
         WHILE (fld # NIL) & (fld^.mode = Fld) DO
@@ -256,10 +259,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.sinttyp^.strobj^.linkadr := PredefinedType;
     OPT.booltyp^.strobj^.linkadr := PredefinedType;
     OPT.bytetyp^.strobj^.linkadr := PredefinedType;
-    OPT.int8typ^.strobj^.linkadr := PredefinedType;
+    (*OPT.int8typ^.strobj^.linkadr := PredefinedType;
     OPT.int16typ^.strobj^.linkadr := PredefinedType;
     OPT.int32typ^.strobj^.linkadr := PredefinedType;
-    OPT.int64typ^.strobj^.linkadr := PredefinedType;
+    OPT.int64typ^.strobj^.linkadr := PredefinedType;*)
     OPT.sysptrtyp^.strobj^.linkadr := PredefinedType;
   END AdrAndSize;
 
@@ -304,11 +307,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                 RETURN 0
           |  len, in, ash, msk, bit, lsh, rot:
                 RETURN 10
+	  ELSE
+	     OPM.LogWStr("unhandled case in OPV.Precedence, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
           END;
     |  Nupto:
           RETURN 10
     |  Ntype, Neguard: (* ignored anyway *)
           RETURN MaxPrec
+    ELSE
+       OPM.LogWStr("unhandled case in OPV.Precedence, class = "); OPM.LogWNum(class, 0); OPM.LogWLn;
     END;
   END Precedence;
 
@@ -347,9 +354,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSIF form = LInt THEN
       IF from < LInt THEN OPM.WriteString("(LONGINT)") END ;
       Entier(n, 9)
-    ELSIF form = Int64 THEN
+    (*ELSIF form = Int64 THEN
        IF (from >= SInt) & (from <= LInt) OR (from >= Int8) & (from < Int64) THEN OPM.WriteString("(SYSTEM_INT64)") END; 
-       Entier(n, 9);
+       Entier(n, 9);*)
     ELSIF form = Int THEN
       IF from < Int THEN OPM.WriteString("(int)"); expr(n, 9)
       ELSE
@@ -499,6 +506,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
           END
     |  Nmop:
           IF n^.subcl = val THEN design(n^.left, prec) END
+    ELSE
+       OPM.LogWStr("unhandled case in OPV.design, class = "); OPM.LogWNum(class, 0); OPM.LogWLn;
     END ;
     IF prec > designPrec THEN OPM.Write(CloseParen) END
   END design;
@@ -523,12 +532,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             OPM.WriteString("(void*)")  (* type extension *)
           END
         ELSE
-          IF (form IN {Real, LReal}) & (n^.typ^.form IN {SInt, Int, LInt, Int8, Int16, Int32, Int64}) THEN (* real promotion *)
+          IF (form IN {Real, LReal}) & (n^.typ^.form IN {SInt, Int, LInt(*, Int8, Int16, Int32, Int64*)}) THEN (* real promotion *)
             OPM.WriteString("(double)"); prec := 9
           ELSIF (form = LInt) & (n^.typ^.form < LInt) THEN (* integral promotion *)
             OPM.WriteString("(LONGINT)"); prec := 9
-	  ELSIF (form = Int64) & (n^.typ^.form < Int64) THEN
-	    OPM.WriteString("(SYSTEM_INT64)"); prec := 9;
+	  (*ELSIF (form = Int64) & (n^.typ^.form < Int64) THEN
+	    OPM.WriteString("(SYSTEM_INT64)"); prec := 9;*)
           END
         END
       ELSIF ansi THEN
@@ -690,7 +699,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                     IF form < LInt THEN OPM.WriteString("(int)") END ;
                     IF SideEffects(n) THEN OPM.WriteString("__MODF(")
                     ELSE OPM.WriteString("__MOD(")
-                    END
+                    END;
+	      ELSE
+	      OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
               END ;
               expr(l, MinPrec);
               OPM.WriteString(Comma);
@@ -724,7 +735,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             |  slash:
                   IF form = Set THEN OPM.WriteString(" ^ ")
                   ELSE OPM.WriteString(" / ");
-                    IF (r^.obj = NIL) OR (r^.obj^.typ^.form IN {SInt, Int, LInt, Int8, Int16, Int32, Int64}) THEN
+                    IF (r^.obj = NIL) OR (r^.obj^.typ^.form IN {SInt, Int, LInt(*, Int8, Int16, Int32, Int64*)}) THEN
                       OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen)
                     END
                   END
@@ -739,7 +750,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                   ELSE OPM.WriteString(" - ")
                   END;
             |  or:
-                  OPM.WriteString(" || ")
+                  OPM.WriteString(" || ");
+	    ELSE
+	    OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
             END;
             expr(r, exprPrec);
 	    IF (subclass = and) OR ((form = Set) & ((subclass = times) OR (subclass = minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
@@ -968,6 +981,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                 design(n^.left, MinPrec); OPM.WriteString(", ");
                 expr(n^.right, MinPrec);
                 OPM.Write(")")
+	  ELSE
+	     OPM.LogWStr("unhandled case in OPV.expr, n^.subcl = "); OPM.LogWNum(n^.subcl, 0); OPM.LogWLn;
           END
       |  Ncall:
             IF (n^.left^.obj # NIL) & (n^.left^.obj^.mode = TProc) THEN
@@ -1035,9 +1050,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                    when compiling Texts0.Mod on raspberry pi
                                    it generates __CASECHK and cause Halt,
                                    noch *)
-                                        
-					OPM.WriteString ("/*n^class = "); OPM.WriteInt(n^.class); OPM.WriteString(" and this is not handled, please investigate */"); 
-
+	OPM.LogWStr("unhandled case in OPV.expr, n^.class = "); OPM.LogWNum(n^.class, 0); OPM.LogWLn;			   
       END ;
       IF ~(n^.class IN {Nenter, Ninittd, Nifelse, Nwith, Ncase, Nwhile, Nloop}) THEN OPC.EndStat END ;
       n := n^.link

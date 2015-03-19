@@ -20,16 +20,20 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     (* Structure forms *)
     Undef = 0; Byte = 1; Bool = 2; Char = 3; 
     SInt = 4; Int = 5; LInt = 6;
-    (*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
+    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+    Pointer = 13; ProcTyp = 14;
+    Comp = 15;
+(*    Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
     Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
     Pointer = 17; ProcTyp = 18;
-    Comp = 19;*)
-    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+    Comp = 19;
+ *)
+    (*Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
     Pointer = 13; ProcTyp = 14; 
-    Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19;   
-    Comp = (*15*)20;
+    Int8 = 15; Int16 = 16; Int32 = 17; Int64 = 18;   
+    Comp = (*15*)19;*)
 
-    intSet = {SInt..LInt, Int8..Int64}; realSet = {Real, LReal};
+    intSet = {SInt..LInt(*, Int8..Int64*)}; realSet = {Real, LReal};
 
     (* composite structure forms *)
     Basic = 1; Array = 2; DynArr = 3; Record = 4;
@@ -416,7 +420,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           END ;
           z^.typ := OPT.booltyp
       ELSE
-         OPM.WriteString("/* this should not happen. handle this. OPB.MOp(); -- noch */"); OPM.WriteLn;
+         OPM.LogWStr("unhandled case in OPB.MOp, op = "); OPM.LogWNum(op, 0); OPM.LogWLn;
       END
     END ;
     x := z
@@ -488,7 +492,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       CASE f OF
         Undef:
           res := eql
-      | Byte, Char..LInt,Int8..Int64:
+      | Byte, Char..LInt(*,Int8..Int64*):
           IF xval^.intval < yval^.intval THEN res := lss
           ELSIF xval^.intval > yval^.intval THEN res := gtr
           ELSE res := eql
@@ -516,7 +520,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           ELSE res := eql
           END
       ELSE
-         OPM.LogWStr("/* this should not happen. handle this. OPB.ConstCmp(); -- noch */"); OPM.LogWLn;
+         OPM.LogWStr("unhandled case in OPB.ConstCmp, f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
       END ;
       x^.typ := OPT.booltyp; RETURN res
     END ConstCmp;
@@ -529,13 +533,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           IF g = String THEN CharToString(x)
           ELSE err(100); y^.typ := x^.typ; yval^ := xval^
           END ;
-      | SInt, Int8:
+      | SInt(*, Int8*):
           IF g IN intSet THEN x^.typ := y^.typ
           ELSIF g = Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
           ELSIF g = LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
           ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
           END
-      | Int, Int16, Int32, Int64:
+      | Int(*, Int16, Int32, Int64*):
           IF g = SInt THEN y^.typ := OPT.inttyp
           ELSIF g IN intSet THEN x^.typ := y^.typ
           ELSIF g = Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
@@ -691,7 +695,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         ELSE xval^.intval := BoolToInt(ConstCmp() # lss)
         END
     ELSE
-       OPM.LogWStr("this should not happen. handle this. OPB.ConstOp(); -- noch "); OPM.LogWLn;
+       OPM.LogWStr("unhandled case in OPB.ConstOp, op = "); OPM.LogWNum(op, 0); OPM.LogWLn;
     END
   END ConstOp;
 
@@ -766,7 +770,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         CASE z^.typ^.form OF
            Char:
             IF z^.class = Nconst THEN CharToString(z) ELSE err(100) END
-        | SInt, Int8:
+        | SInt(*, Int8*):
             IF g IN intSet + realSet THEN Convert(z, y^.typ)
             ELSE  err(100)
             END
@@ -775,7 +779,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
             ELSIF g IN intSet + realSet THEN Convert(z, y^.typ)
             ELSE  err(100)
             END
-        | LInt, Int16, Int32, Int64:
+        | LInt(*, Int16, Int32, Int64*):
             IF g IN intSet THEN Convert(y, z^.typ)
             ELSIF g IN realSet THEN Convert(z, y^.typ)
             ELSE  err(100)
@@ -870,7 +874,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           ELSIF f # Undef THEN err(94); z^.typ := OPT.undftyp
           END
       | plus:
-          IF ~(f IN {Undef, SInt..Set, Int8..Int64}) THEN err(105); typ := OPT.undftyp END ;
+          IF ~(f IN {Undef, SInt..Set(*, Int8..Int64*)}) THEN err(105); typ := OPT.undftyp END ;
           do := TRUE;
           IF f IN intSet THEN
             IF (z^.class = Nconst) & (z^.conval^.intval = 0) THEN do := FALSE; z := y END ;
@@ -878,7 +882,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           END ;
           IF do THEN NewOp(op, typ, z, y) END
       | minus:
-          IF ~(f IN {Undef, SInt..Set, Int8..Int64}) THEN err(106); typ := OPT.undftyp END ;
+          IF ~(f IN {Undef, SInt..Set(*, Int8..Int64*)}) THEN err(106); typ := OPT.undftyp END ;
           IF ~(f IN intSet) OR (y^.class # Nconst) OR (y^.conval^.intval # 0) THEN NewOp(op, typ, z, y) END
       | or:
           IF f = Bool THEN
@@ -892,19 +896,19 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           ELSIF f # Undef THEN err(95); z^.typ := OPT.undftyp
           END
       | eql, neq:
-          IF (f IN {Undef..Set, NilTyp, Pointer, ProcTyp, Int8..Int64}) OR strings(z, y) THEN typ := OPT.booltyp
+          IF (f IN {Undef..Set, NilTyp, Pointer, ProcTyp(*, Int8..Int64*)}) OR strings(z, y) THEN typ := OPT.booltyp
           ELSE err(107); typ := OPT.undftyp
           END ;
           NewOp(op, typ, z, y)
       | lss, leq, gtr, geq:
-          IF (f IN {Undef, Char..LReal, Int8..Int64}) OR strings(z, y) THEN typ := OPT.booltyp
+          IF (f IN {Undef, Char..LReal(*, Int8..Int64*)}) OR strings(z, y) THEN typ := OPT.booltyp
           ELSE
 	     OPM.LogWLn; OPM.LogWStr("ELSE in Op()"); OPM.LogWLn;
 	     err(108); typ := OPT.undftyp
           END ;
           NewOp(op, typ, z, y)
       ELSE
-         OPM.LogWStr(" OPB.Op(), not handled case possibility; -- noch"); OPM.LogWLn;
+         OPM.LogWStr("unhandled case in OPB.Op, op = "); OPM.LogWNum(op, 0); OPM.LogWLn;
       END
     END ;
     x := z
@@ -968,7 +972,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     IF (ynode^.class = Ntype) OR (ynode^.class = Nproc) & (f # ProcTyp) THEN err(126) END ;
     CASE f OF
       Undef, String:
-    | Int8:
+   (* | Int8:
         IF (ynode.typ.size > OPM.Int8Size) THEN 
 	   IF OPM.Verbose THEN OPM.LogWStr("f of int8"); OPM.LogWLn END;
 	   err(113) 
@@ -987,7 +991,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         IF ynode.typ.size > OPM.Int64Size THEN 
 	   IF OPM.Verbose THEN OPM.LogWStr("f of int64"); OPM.LogWLn END;
 	   err(113) 
-	END
+	END*)
     | Byte:
         IF ~(g IN {Byte, Char, SInt}) THEN err(113) END
     | Bool, Char, SInt, Set:
@@ -996,9 +1000,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         IF ~(g IN {SInt, Int}) THEN err(113) END
     | LInt:
         IF OPM.LIntSize = 4 THEN
-	   IF ~(g IN {SInt, Int, LInt, Int8, Int16, Int32}) THEN err(113) END
+	   IF ~(g IN {SInt, Int, LInt(*, Int8, Int16, Int32*)}) THEN err(113) END
 	ELSE (* assume OPM.LIntSize = 8 *)
-           IF ~(g IN {SInt, Int, LInt, Int8, Int16, Int32, Int64}) THEN err(113) END
+           IF ~(g IN {SInt, Int, LInt(*, Int8, Int16, Int32, Int64*)}) THEN err(113) END
 	END;
     | Real:
         IF ~(g IN {SInt..Real}) THEN err(113) END
@@ -1042,7 +1046,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         ELSE (*DynArr*) err(113)
         END
     ELSE (* In case of not estimated f it would crash -- noch *)
-       OPM.WriteString("/* this should not happen. handle this. OPB.CheckAssign function -- noch */"); OPM.WriteLn;
+       OPM.LogWStr("unhandled case in OPB.CheckAssign, f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
     END ;
     IF (ynode^.class = Nconst) & (g < f) & (g IN {SInt..Real}) & (f IN {Int..LReal}) THEN
       Convert(ynode, x)
@@ -1114,10 +1118,10 @@ avoid unnecessary intermediate variables in voc
           | SInt:  x := NewIntConst(OPM.MinSInt)
           | Int:   x := NewIntConst(OPM.MinInt)
           | LInt:  x := NewIntConst(OPM.MinLInt)
-	  | Int8:  x := NewIntConst(OPM.MinInt8)
+	 (* | Int8:  x := NewIntConst(OPM.MinInt8)
 	  | Int16: x := NewIntConst(OPM.MinInt16)
 	  | Int32: x := NewIntConst(OPM.MinInt32)
-	  | Int64: err(111)(*x := NewIntConst(OPM.MinInt64)*) (* int64 constants not implemented yet *)
+	  | Int64: err(111)(*x := NewIntConst(OPM.MinInt64)*) (* int64 constants not implemented yet *)*)
           | Set:   x := NewIntConst(0); x^.typ := OPT.inttyp
           | Real:  x := NewRealConst(OPM.MinReal, OPT.realtyp)
           | LReal: x := NewRealConst(OPM.MinLReal, OPT.lrltyp)
@@ -1133,10 +1137,10 @@ avoid unnecessary intermediate variables in voc
           | SInt:  x := NewIntConst(OPM.MaxSInt)
           | Int:   x := NewIntConst(OPM.MaxInt)
           | LInt:  x := NewIntConst(OPM.MaxLInt)
-	  | Int8:  x := NewIntConst(OPM.MaxInt8)
+	 (* | Int8:  x := NewIntConst(OPM.MaxInt8)
 	  | Int16: x := NewIntConst(OPM.MaxInt16)
 	  | Int32: x := NewIntConst(OPM.MaxInt32)
-	  | Int64: err(111); (*x := NewIntConst(OPM.MaxInt64)*) (* int64 contstants not implemented yet *)
+	  | Int64: err(111); (*x := NewIntConst(OPM.MaxInt64)*) (* int64 contstants not implemented yet *)*)
           | Set:   x := NewIntConst(OPM.MaxSet); x^.typ := OPT.inttyp
           | Real:  x := NewRealConst(OPM.MaxReal, OPT.realtyp)
           | LReal: x := NewRealConst(OPM.MaxLReal, OPT.lrltyp)
@@ -1146,16 +1150,16 @@ avoid unnecessary intermediate variables in voc
         END
     | chrfn: (*CHR*) 
         IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
-        ELSIF f IN {Undef, SInt..LInt, Int8..Int64} THEN Convert(x, OPT.chartyp)
+        ELSIF f IN {Undef, SInt..LInt(*, Int8..Int64*)} THEN Convert(x, OPT.chartyp)
         ELSE err(111); x^.typ := OPT.chartyp
         END
     | shortfn: (*SHORT*)
         IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
         ELSIF f = Int THEN Convert(x, OPT.sinttyp)
         ELSIF f = LInt THEN Convert(x, OPT.inttyp)
-        ELSIF f = Int64 THEN Convert(x, OPT.int32typ)
+        (*ELSIF f = Int64 THEN Convert(x, OPT.int32typ)
         ELSIF f = Int32 THEN Convert(x, OPT.int16typ)
-        ELSIF f = Int16 THEN Convert(x, OPT.int8typ)
+        ELSIF f = Int16 THEN Convert(x, OPT.int8typ)*)
         ELSIF f = LReal THEN Convert(x, OPT.realtyp)
         ELSE err(111)
         END
@@ -1163,9 +1167,9 @@ avoid unnecessary intermediate variables in voc
         IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
         ELSIF f = SInt THEN Convert(x, OPT.inttyp)
         ELSIF f = Int THEN Convert(x, OPT.linttyp)
-        ELSIF f = Int8 THEN Convert(x, OPT.int16typ)
+        (*ELSIF f = Int8 THEN Convert(x, OPT.int16typ)
         ELSIF f = Int16 THEN Convert(x, OPT.int32typ)
-        ELSIF f = Int32 THEN Convert(x, OPT.int64typ)
+        ELSIF f = Int32 THEN Convert(x, OPT.int64typ)*)
         ELSIF f = Real THEN Convert(x, OPT.lrltyp)
         ELSIF f = Char THEN Convert(x, OPT.linttyp)
         ELSE err(111)
@@ -1198,7 +1202,7 @@ avoid unnecessary intermediate variables in voc
         CheckLeaf(x, FALSE); MOp(adr, x)
     | sizefn: (*SIZE*)
         IF x^.class # Ntype THEN err(110); x := NewIntConst(1)
-        ELSIF (f IN {Byte..Set, Int8..Int64, Pointer, ProcTyp}) OR (x^.typ^.comp IN {Array, Record}) THEN
+        ELSIF (f IN {Byte..Set(*, Int8..Int64*), Pointer, ProcTyp}) OR (x^.typ^.comp IN {Array, Record}) THEN
           typSize(x^.typ); x^.typ^.pvused := TRUE; x := NewIntConst(x^.typ^.size)
         ELSE err(111); x := NewIntConst(1)
         END
@@ -1206,7 +1210,7 @@ avoid unnecessary intermediate variables in voc
         MOp(cc, x)
     | lshfn, rotfn: (*SYSTEM.LSH, SYSTEM.ROT*)
         IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
-        ELSIF ~(f IN intSet + {Byte, Char, Set, Int8, Int16, Int32, Int64}) THEN err(111)
+        ELSIF ~(f IN intSet + {Byte, Char, Set(*, Int8, Int16, Int32, Int64*)}) THEN err(111)
         END
     | getfn, putfn, bitfn, movefn: (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
         IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
@@ -1234,7 +1238,7 @@ avoid unnecessary intermediate variables in voc
         ELSE MOp(not, x)
         END
     ELSE
-       OPM.WriteString("/* this should not happen, needs to be handled. procedure StPar0; -- noch */"); OPM.WriteLn;
+       OPM.LogWStr("unhandled case in OPB.StPar0, fctno = "); OPM.LogWNum(fctno, 0); OPM.LogWLn;
     END ;
     par0 := x
   END StPar0;
@@ -1464,7 +1468,7 @@ avoid unnecessary intermediate variables in voc
   BEGIN (* ftyp^.comp = DynArr *)
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
     IF fvarpar & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
-      IF ~(f IN {Array, DynArr}) OR ~(atyp^.form IN {Byte..SInt, Int8..Int64}) THEN err(-301) END (* ... warning 301 *)
+      IF ~(f IN {Array, DynArr}) OR ~(atyp^.form IN {Byte..SInt(*, Int8..Int64*)}) THEN err(-301) END (* ... warning 301 *)
     ELSIF f IN {Array, DynArr} THEN
       IF ftyp^.comp = DynArr THEN DynArrParCheck(ftyp, atyp, fvarpar)
       ELSIF ftyp # atyp THEN

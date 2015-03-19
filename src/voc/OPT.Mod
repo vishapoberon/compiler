@@ -62,14 +62,14 @@ END ;
 CONST
 maxImps = 64;  (* must be <= MAX(SHORTINT) *)
 maxStruct = OPM.MaxStruct;  (* must be < MAX(INTEGER) DIV 2 *)
-FirstRef = 16;
+FirstRef = (*20*)16; (* comp + 1 *)
 
 VAR
 typSize*: PROCEDURE(typ: Struct);
 topScope*: Object;
 undftyp*, bytetyp*, booltyp*, chartyp*, sinttyp*, inttyp*, linttyp*,
-realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, sysptrtyp*,
-int8typ*, int16typ*, int32typ*, int64typ*: Struct;
+realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, sysptrtyp*(*,
+int8typ*, int16typ*, int32typ*, int64typ* *): Struct;
 nofGmod*: SHORTINT;  (*nof imports*)
 GlbMod*: ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
 SelfName*: OPS.Name;  (* name of module being compiled *)
@@ -83,14 +83,18 @@ SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
 (* structure forms *)
 Undef = 0; Byte = 1; Bool = 2; Char = 3;
 SInt = 4; Int = 5; LInt = 6;
+Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+Pointer = 13; ProcTyp = 14;
+Comp = 15;
+
 (*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
 Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
 Pointer = 17; ProcTyp = 18;
 Comp = 19;*)
-Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+(*Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
 Pointer = 13; ProcTyp = 14; 
-Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19;
-Comp = 20;
+Int8 = 15; Int16 = 16; Int32 = 17; Int64 = 18;
+Comp = 19;*)
 
 (* composite structure forms *)
 Basic = 1; Array = 2; DynArr = 3; Record = 4;
@@ -200,7 +204,7 @@ VAR i: INTEGER;
 BEGIN  (* garbage collection *)
 CloseScope;
 i := 0; WHILE i < maxImps DO GlbMod[i] := NIL; INC(i) END ;
-i := (*FirstRef*)Comp + 1; WHILE i < maxStruct DO impCtxt.ref[i] := NIL; impCtxt.old[i] := NIL; INC(i) END
+i := FirstRef; WHILE i < maxStruct DO impCtxt.ref[i] := NIL; impCtxt.old[i] := NIL; INC(i) END
 END Close;
 
 PROCEDURE FindImport*(mod: Object; VAR res: Object);
@@ -282,34 +286,52 @@ END FPrintName;
 
 PROCEDURE ^IdFPrint*(typ: Struct);
 
+PROCEDURE DebugStruct(btyp: Struct);
+BEGIN
+
+                        OPM.LogWLn;
+			IF btyp = NIL THEN OPM.LogWStr("btyp is nil"); OPM.LogWLn END;
+                        OPM.LogWStr("btyp^.strobji^.name = "); OPM.LogWStr(btyp^.strobj^.name); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.form = "); OPM.LogWNum(btyp^.form, 0); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.comp = "); OPM.LogWNum(btyp^.comp, 0); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.mno = "); OPM.LogWNum(btyp^.mno, 0); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.extlev = "); OPM.LogWNum(btyp^.extlev, 0); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.size = "); OPM.LogWNum(btyp^.size, 0); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.align = "); OPM.LogWNum(btyp^.align, 0); OPM.LogWLn;
+                        OPM.LogWStr("btyp^.txtpos = "); OPM.LogWNum(btyp^.txtpos, 0); OPM.LogWLn;
+END DebugStruct;
+
 PROCEDURE FPrintSign(VAR fp: LONGINT; result: Struct; par: Object);
 (* depends on assignment compatibility of params only *)
 BEGIN
-IdFPrint(result); OPM.FPrint(fp, result^.idfp);
-WHILE par # NIL DO
-OPM.FPrint(fp, par^.mode); IdFPrint(par^.typ); OPM.FPrint(fp, par^.typ^.idfp);
-(* par^.name and par^.adr not considered *)
-par := par^.link
-END
+   IdFPrint(result); OPM.FPrint(fp, result^.idfp);
+   WHILE (par # NIL) (*& (par^.typ # NIL)*) DO (* !!! *)
+      OPM.FPrint(fp, par^.mode); 
+      IdFPrint(par^.typ); 
+      OPM.FPrint(fp, par^.typ^.idfp);
+      (* par^.name and par^.adr not considered *)
+      par := par^.link
+   END
 END FPrintSign;
 
 PROCEDURE IdFPrint*(typ: Struct);  (* idfp codifies assignment compatibility *)
 VAR btyp: Struct; strobj: Object; idfp: LONGINT; f, c: INTEGER;
 BEGIN
-IF ~typ^.idfpdone THEN
-typ^.idfpdone := TRUE;  (* may be recursive, temporary idfp is 0 in that case *)
-idfp := 0; f := typ^.form; c := typ^.comp; OPM.FPrint(idfp, f); OPM.FPrint(idfp, c);
-btyp := typ^.BaseTyp; strobj := typ^.strobj;
-IF (strobj # NIL) & (strobj^.name # "") THEN
-FPrintName(idfp, GlbMod[typ^.mno]^.name); FPrintName(idfp, strobj^.name)
-END ;
-IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
-IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
-ELSIF c = Array THEN IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
-ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
-END ;
-typ^.idfp := idfp
-END
+   IF ~typ^.idfpdone THEN
+      typ^.idfpdone := TRUE;  (* may be recursive, temporary idfp is 0 in that case *)
+      idfp := 0; f := typ^.form; c := typ^.comp; OPM.FPrint(idfp, f); OPM.FPrint(idfp, c);
+      btyp := typ^.BaseTyp; strobj := typ^.strobj;
+      IF (strobj # NIL) & (strobj^.name # "") THEN
+         FPrintName(idfp, GlbMod[typ^.mno]^.name); FPrintName(idfp, strobj^.name)
+      END ;
+      IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
+         IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
+      ELSIF c = Array THEN 
+         IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
+      ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
+      END ;
+      typ^.idfp := idfp
+   END
 END IdFPrint;
 
 PROCEDURE FPrintStr*(typ: Struct);
@@ -328,7 +350,7 @@ IF (btyp^.form = Pointer) OR (btyp^.comp = Record) THEN
   IF j # nofhdfld THEN i := 1;
     WHILE (i < n) & (nofhdfld <= OPM.MaxHdFld) DO
       INC(adr, btyp^.size); FPrintHdFld(btyp, fld, adr); INC(i)
-    END
+    END;
   END
 END
 ELSIF OPM.ExpHdPtrFld & ((typ^.form = Pointer) OR (fld^.name = OPM.HdPtrName)) THEN
@@ -341,93 +363,94 @@ END FPrintHdFld;
 PROCEDURE FPrintFlds(fld: Object; adr: LONGINT; visible: BOOLEAN);  (* modifies pbfp and pvfp *)
 BEGIN
 WHILE (fld # NIL) & (fld^.mode = Fld) DO
-IF (fld^.vis # internal) & visible THEN
-  OPM.FPrint(pbfp, fld^.vis); FPrintName(pbfp, fld^.name); OPM.FPrint(pbfp, fld^.adr);
-  FPrintStr(fld^.typ); OPM.FPrint(pbfp, fld^.typ^.pbfp); OPM.FPrint(pvfp, fld^.typ^.pvfp)
-ELSE FPrintHdFld(fld^.typ, fld, fld^.adr + adr)
-END ;
-fld := fld^.link
-END
+   IF (fld^.vis # internal) & visible THEN
+      OPM.FPrint(pbfp, fld^.vis); FPrintName(pbfp, fld^.name); OPM.FPrint(pbfp, fld^.adr);
+      FPrintStr(fld^.typ); OPM.FPrint(pbfp, fld^.typ^.pbfp); OPM.FPrint(pvfp, fld^.typ^.pvfp)
+   ELSE 
+      FPrintHdFld(fld^.typ, fld, fld^.adr + adr)
+   END ;
+   fld := fld^.link
+END;
 END FPrintFlds;
 
 PROCEDURE FPrintTProcs(obj: Object);  (* modifies pbfp and pvfp *)
 BEGIN
-IF obj # NIL THEN
-FPrintTProcs(obj^.left);
-IF obj^.mode = TProc THEN
-  IF obj^.vis # internal THEN
-    OPM.FPrint(pbfp, TProc); OPM.FPrint(pbfp, obj^.adr DIV 10000H);
-    FPrintSign(pbfp, obj^.typ, obj^.link); FPrintName(pbfp, obj^.name)
-  ELSIF OPM.ExpHdTProc THEN
-    OPM.FPrint(pvfp, TProc); OPM.FPrint(pvfp, obj^.adr DIV 10000H)
-  END
-END ;
-FPrintTProcs(obj^.right)
-END
+   IF obj # NIL THEN
+      FPrintTProcs(obj^.left);
+      IF obj^.mode = TProc THEN
+         IF obj^.vis # internal THEN
+            OPM.FPrint(pbfp, TProc); OPM.FPrint(pbfp, obj^.adr DIV 10000H);
+            FPrintSign(pbfp, obj^.typ, obj^.link); FPrintName(pbfp, obj^.name)
+         ELSIF OPM.ExpHdTProc THEN
+            OPM.FPrint(pvfp, TProc); OPM.FPrint(pvfp, obj^.adr DIV 10000H)
+         END
+      END ;
+      FPrintTProcs(obj^.right)
+   END;
 END FPrintTProcs;
 
 BEGIN
-IF ~typ^.fpdone THEN
-IdFPrint(typ); pbfp := typ^.idfp;
-IF typ^.sysflag # 0 THEN OPM.FPrint(pbfp, typ^.sysflag) END ;
-pvfp := pbfp; typ^.pbfp := pbfp; typ^.pvfp := pvfp;  (* initial fprints may be used recursively *)
-typ^.fpdone := TRUE;
-f := typ^.form; c := typ^.comp; btyp := typ^.BaseTyp;
-IF f = Pointer THEN
-strobj := typ^.strobj; bstrobj := btyp^.strobj;
-IF (strobj = NIL) OR (strobj^.name = "") OR (bstrobj = NIL) OR (bstrobj^.name = "") THEN
-  FPrintStr(btyp); OPM.FPrint(pbfp, btyp^.pbfp); pvfp := pbfp
-(* else use idfp as pbfp and as pvfp, do not call FPrintStr(btyp) here, else cycle not broken *)
-END
-ELSIF f = ProcTyp THEN (* use idfp as pbfp and as pvfp *)
-ELSIF c IN {Array, DynArr} THEN FPrintStr(btyp); OPM.FPrint(pbfp, btyp^.pvfp); pvfp := pbfp
-ELSE (* c = Record *)
-IF btyp # NIL THEN FPrintStr(btyp); OPM.FPrint(pbfp, btyp^.pbfp); OPM.FPrint(pvfp, btyp^.pvfp) END ;
-OPM.FPrint(pvfp, typ^.size); OPM.FPrint(pvfp, typ^.align); OPM.FPrint(pvfp, typ^.n);
-nofhdfld := 0; FPrintFlds(typ^.link, 0, TRUE);
-IF nofhdfld > OPM.MaxHdFld THEN OPM.Mark(225, typ^.txtpos) END ;
-FPrintTProcs(typ^.link); OPM.FPrint(pvfp, pbfp); strobj := typ^.strobj;
-IF (strobj = NIL) OR (strobj^.name = "") THEN pbfp := pvfp END
-END ;
-typ^.pbfp := pbfp; typ^.pvfp := pvfp
-END
+   IF ~typ^.fpdone THEN
+      IdFPrint(typ); pbfp := typ^.idfp;
+      IF typ^.sysflag # 0 THEN OPM.FPrint(pbfp, typ^.sysflag) END ;
+      pvfp := pbfp; typ^.pbfp := pbfp; typ^.pvfp := pvfp;  (* initial fprints may be used recursively *)
+      typ^.fpdone := TRUE;
+      f := typ^.form; c := typ^.comp; btyp := typ^.BaseTyp;
+      IF f = Pointer THEN
+         strobj := typ^.strobj; bstrobj := btyp^.strobj;
+         IF (strobj = NIL) OR (strobj^.name = "") OR (bstrobj = NIL) OR (bstrobj^.name = "") THEN
+            FPrintStr(btyp); OPM.FPrint(pbfp, btyp^.pbfp); pvfp := pbfp
+            (* else use idfp as pbfp and as pvfp, do not call FPrintStr(btyp) here, else cycle not broken *)
+         END
+      ELSIF f = ProcTyp THEN (* use idfp as pbfp and as pvfp *)
+      ELSIF c IN {Array, DynArr} THEN FPrintStr(btyp); OPM.FPrint(pbfp, btyp^.pvfp); pvfp := pbfp
+      ELSE (* c = Record *)
+         IF btyp # NIL THEN FPrintStr(btyp); OPM.FPrint(pbfp, btyp^.pbfp); OPM.FPrint(pvfp, btyp^.pvfp) END ;
+         OPM.FPrint(pvfp, typ^.size); OPM.FPrint(pvfp, typ^.align); OPM.FPrint(pvfp, typ^.n);
+         nofhdfld := 0; FPrintFlds(typ^.link, 0, TRUE);
+         IF nofhdfld > OPM.MaxHdFld THEN OPM.Mark(225, typ^.txtpos) END ;
+         FPrintTProcs(typ^.link); OPM.FPrint(pvfp, pbfp); strobj := typ^.strobj;
+         IF (strobj = NIL) OR (strobj^.name = "") THEN pbfp := pvfp END
+      END ;
+      typ^.pbfp := pbfp; typ^.pvfp := pvfp
+   END;
 END FPrintStr;
 
 PROCEDURE FPrintObj*(obj: Object);
 VAR fprint: LONGINT; f, m: INTEGER; rval: REAL; ext: ConstExt;
 BEGIN
-IF ~obj^.fpdone THEN
-fprint := 0; obj^.fpdone := TRUE;
-OPM.FPrint(fprint, obj^.mode);
-IF obj^.mode = Con THEN
-f := obj^.typ^.form; OPM.FPrint(fprint, f);
-CASE f OF
-| Bool, Char, SInt, Int, LInt, Int8, Int16, Int32, Int64:
-  OPM.FPrint(fprint, obj^.conval^.intval)
-| Set:
-  OPM.FPrintSet(fprint, obj^.conval^.setval)
-| Real:
-  rval := SHORT(obj^.conval^.realval); OPM.FPrintReal(fprint, rval)
-| LReal:
-  OPM.FPrintLReal(fprint, obj^.conval^.realval)
-| String:
-  FPrintName(fprint, obj^.conval^.ext^)
-| NilTyp:
-ELSE err(127)
-END
-ELSIF obj^.mode = Var THEN
-OPM.FPrint(fprint, obj^.vis); FPrintStr(obj^.typ); OPM.FPrint(fprint, obj^.typ^.pbfp)
-ELSIF obj^.mode IN {XProc, IProc}  THEN
-FPrintSign(fprint, obj^.typ, obj^.link)
-ELSIF obj^.mode = CProc THEN
-FPrintSign(fprint, obj^.typ, obj^.link); ext := obj^.conval^.ext;
-m := ORD(ext^[0]); f := 1; OPM.FPrint(fprint, m);
-WHILE f <= m DO OPM.FPrint(fprint, ORD(ext^[f])); INC(f) END
-ELSIF obj^.mode = Typ THEN
-FPrintStr(obj^.typ); OPM.FPrint(fprint, obj^.typ^.pbfp)
-END ;
-obj^.fprint := fprint
-END
+   IF ~obj^.fpdone THEN
+      fprint := 0; obj^.fpdone := TRUE;
+      OPM.FPrint(fprint, obj^.mode);
+      IF obj^.mode = Con THEN
+         f := obj^.typ^.form; OPM.FPrint(fprint, f);
+         CASE f OF
+            | Bool, Char, SInt, Int, LInt(*, Int8, Int16, Int32, Int64*):
+               OPM.FPrint(fprint, obj^.conval^.intval)
+            | Set:
+               OPM.FPrintSet(fprint, obj^.conval^.setval)
+            | Real:
+               rval := SHORT(obj^.conval^.realval); OPM.FPrintReal(fprint, rval)
+            | LReal:
+               OPM.FPrintLReal(fprint, obj^.conval^.realval)
+            | String:
+               FPrintName(fprint, obj^.conval^.ext^)
+            | NilTyp:
+         ELSE err(127)
+         END
+      ELSIF obj^.mode = Var THEN
+         OPM.FPrint(fprint, obj^.vis); FPrintStr(obj^.typ); OPM.FPrint(fprint, obj^.typ^.pbfp)
+      ELSIF obj^.mode IN {XProc, IProc}  THEN
+         FPrintSign(fprint, obj^.typ, obj^.link)
+      ELSIF obj^.mode = CProc THEN
+         FPrintSign(fprint, obj^.typ, obj^.link); ext := obj^.conval^.ext;
+         m := ORD(ext^[0]); f := 1; OPM.FPrint(fprint, m);
+         WHILE f <= m DO OPM.FPrint(fprint, ORD(ext^[f])); INC(f) END;
+      ELSIF obj^.mode = Typ THEN
+         FPrintStr(obj^.typ); OPM.FPrint(fprint, obj^.typ^.pbfp)
+      END ;
+      obj^.fprint := fprint
+   END
 END FPrintObj;
 
 PROCEDURE FPrintErr*(obj: Object; errno: INTEGER);
@@ -517,10 +540,10 @@ PROCEDURE InConstant(f: LONGINT; conval: Const);
 VAR ch: CHAR; i: INTEGER; ext: ConstExt; rval: REAL;
 BEGIN
 CASE f OF
-| Byte, Char, Bool:
+| (*Int8,*) Byte, Char, Bool:
 OPM.SymRCh(ch); conval^.intval := ORD(ch)
-| Int8, Int16, Int32, Int64:
-conval^.intval := OPM.SymRInt()
+(*| Int8, Int16, Int32, Int64:
+conval^.intval := OPM.SymRInt()*)
 | SInt, Int, LInt:
 conval^.intval := OPM.SymRInt()
 | Set:
@@ -541,7 +564,7 @@ conval^.intval := OPM.ConstNotAlloc
 | NilTyp:
 conval^.intval := OPM.nilval
 ELSE
-OPM.WriteString(" /* function OPT.InConstant(); unhandled case; -- noch */ "); OPM.WriteLn;
+OPM.LogWStr("unhandled case in OPT.InConstant(), f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
 END
 END InConstant;
 
@@ -601,104 +624,132 @@ PROCEDURE InStruct(VAR typ: Struct);
 VAR mno: SHORTINT; ref: INTEGER; tag: LONGINT; name: OPS.Name;
 t: Struct; obj, last, fld, old, dummy: Object;
 BEGIN
-tag := OPM.SymRInt();
-IF tag # Sstruct THEN typ := impCtxt.ref[-tag]
-ELSE
-ref := impCtxt.nofr; INC(impCtxt.nofr);
-IF ref < impCtxt.minr THEN impCtxt.minr := ref END ;
-InMod(mno); InName(name); obj := NewObj();
-IF name = "" THEN
-IF impCtxt.self THEN old := NIL  (* do not insert type desc anchor here, but in OPL *)
-ELSE obj^.name := "@"; InsertImport(obj, GlbMod[mno].right, old(*=NIL*)); obj^.name := ""
+   tag := OPM.SymRInt();
+   IF tag # Sstruct THEN 
+      typ := impCtxt.ref[-tag]
+   ELSE
+      ref := impCtxt.nofr; INC(impCtxt.nofr);
+      IF ref < impCtxt.minr THEN impCtxt.minr := ref END ;
+      InMod(mno); InName(name); obj := NewObj();
+      IF name = "" THEN
+         IF impCtxt.self THEN 
+	    old := NIL  (* do not insert type desc anchor here, but in OPL *)
+        ELSE 
+	    obj^.name := "@"; InsertImport(obj, GlbMod[mno].right, old(*=NIL*)); obj^.name := ""
+         END ;
+         typ := NewStr(Undef, Basic)
+      ELSE 
+         obj^.name := name; InsertImport(obj, GlbMod[mno].right, old);
+         IF old # NIL THEN  (* recalculate fprints to compare with old fprints *)
+            FPrintObj(old); impCtxt.pvfp[ref] := old^.typ^.pvfp;
+            IF impCtxt.self THEN  (* do not overwrite old typ *)
+               typ := NewStr(Undef, Basic)
+            ELSE  (* overwrite old typ for compatibility reason *)
+               typ := old^.typ; typ^.link := NIL; typ^.sysflag := 0;
+               typ^.fpdone := FALSE; typ^.idfpdone := FALSE
+            END
+         ELSE 
+	    typ := NewStr(Undef, Basic)
+         END
+      END ;
+      impCtxt.ref[ref] := typ; impCtxt.old[ref] := old; 
+      typ^.ref := ref + maxStruct;
+      (* ref >= maxStruct: not exported yet, ref used for err 155 *)
+      typ^.mno := mno; typ^.allocated := TRUE;
+      typ^.strobj := obj; obj^.mode := Typ; obj^.typ := typ;
+      obj^.mnolev := -mno; obj^.vis := internal; (* name not visible here *)
+      tag := OPM.SymRInt();
+      IF tag = Ssys THEN typ^.sysflag := SHORT(OPM.SymRInt()); tag := OPM.SymRInt() END ;
+      CASE tag OF
+         | Sptr:
+               typ^.form := Pointer; typ^.size := OPM.PointerSize; 
+	       typ^.n := 0; InStruct(typ^.BaseTyp)
+         | Sarr:
+               typ^.form := Comp; typ^.comp := Array; 
+	       InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
+               typSize(typ) (* no bounds address !! *)
+         | Sdarr:
+               typ^.form := Comp; typ^.comp := DynArr; InStruct(typ^.BaseTyp);
+               IF typ^.BaseTyp^.comp = DynArr THEN 
+	          typ^.n := typ^.BaseTyp^.n + 1
+               ELSE 
+	          typ^.n := 0
+               END ;
+               typSize(typ)
+         | Srec:
+                typ^.form := Comp; typ^.comp := Record; 
+		InStruct(typ^.BaseTyp);
+                IF typ^.BaseTyp = notyp THEN typ^.BaseTyp := NIL END;
+                typ.extlev := 0; t := typ.BaseTyp;
+                (* do not take extlev from base type due to possible cycles! *)
+		WHILE (t # NIL) (*& (t^.BaseTyp # t)*)(*(t^.(*BaseTyp^.*)form # 0)*) DO INC(typ^.extlev); t := t.BaseTyp END; (* !!! *)
+                typ^.size := OPM.SymRInt(); typ^.align := OPM.SymRInt();
+                typ^.n := OPM.SymRInt();
+                impCtxt.nextTag := OPM.SymRInt(); last := NIL;
+                WHILE (impCtxt.nextTag >= Sfld) & (impCtxt.nextTag <= Shdpro) DO
+                   fld := InFld(); fld^.mnolev := -mno;
+                   IF last # NIL THEN last^.link := fld END ;
+                   last := fld; InsertImport(fld, typ^.link, dummy);
+                   impCtxt.nextTag := OPM.SymRInt()
+                END ;
+		WHILE impCtxt.nextTag # Send DO
+		   fld := InTProc(mno);
+                   InsertImport(fld, typ^.link, dummy);
+                   impCtxt.nextTag := OPM.SymRInt()
+                END
+         | Spro:
+                typ^.form := ProcTyp; typ^.size := OPM.ProcSize; 
+		InSign(mno, typ^.BaseTyp, typ^.link)
+         ELSE 
+	    OPM.LogWStr("unhandled case at OPT.InStruct, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
 END ;
-typ := NewStr(Undef, Basic)
-ELSE obj^.name := name; InsertImport(obj, GlbMod[mno].right, old);
-IF old # NIL THEN  (* recalculate fprints to compare with old fprints *)
-  FPrintObj(old); impCtxt.pvfp[ref] := old^.typ^.pvfp;
-  IF impCtxt.self THEN  (* do not overwrite old typ *)
-    typ := NewStr(Undef, Basic)
-  ELSE  (* overwrite old typ for compatibility reason *)
-    typ := old^.typ; typ^.link := NIL; typ^.sysflag := 0;
-    typ^.fpdone := FALSE; typ^.idfpdone := FALSE
-  END
-ELSE typ := NewStr(Undef, Basic)
-END
-END ;
-impCtxt.ref[ref] := typ; impCtxt.old[ref] := old; typ^.ref := ref + maxStruct;
-(* ref >= maxStruct: not exported yet, ref used for err 155 *)
-typ^.mno := mno; typ^.allocated := TRUE;
-typ^.strobj := obj; obj^.mode := Typ; obj^.typ := typ;
-obj^.mnolev := -mno; obj^.vis := internal; (* name not visible here *)
-tag := OPM.SymRInt();
-IF tag = Ssys THEN typ^.sysflag := SHORT(OPM.SymRInt()); tag := OPM.SymRInt() END ;
-CASE tag OF
-| Sptr:
-typ^.form := Pointer; typ^.size := OPM.PointerSize; typ^.n := 0; InStruct(typ^.BaseTyp)
-| Sarr:
-typ^.form := Comp; typ^.comp := Array; InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
-typSize(typ) (* no bounds address !! *)
-| Sdarr:
-typ^.form := Comp; typ^.comp := DynArr; InStruct(typ^.BaseTyp);
-IF typ^.BaseTyp^.comp = DynArr THEN typ^.n := typ^.BaseTyp^.n + 1
-ELSE typ^.n := 0
-END ;
-typSize(typ)
-| Srec:
-typ^.form := Comp; typ^.comp := Record; InStruct(typ^.BaseTyp);
-IF typ^.BaseTyp = notyp THEN typ^.BaseTyp := NIL END;
-typ.extlev := 0; t := typ.BaseTyp;
-(* do not take extlev from base type due to possible cycles! *)
-WHILE t # NIL DO INC(typ^.extlev); t := t.BaseTyp END;
-typ^.size := OPM.SymRInt(); typ^.align := OPM.SymRInt();
-typ^.n := OPM.SymRInt();
-impCtxt.nextTag := OPM.SymRInt(); last := NIL;
-WHILE (impCtxt.nextTag >= Sfld) & (impCtxt.nextTag <= Shdpro) DO
-  fld := InFld(); fld^.mnolev := -mno;
-  IF last # NIL THEN last^.link := fld END ;
-  last := fld; InsertImport(fld, typ^.link, dummy);
-  impCtxt.nextTag := OPM.SymRInt()
-END ;
-WHILE impCtxt.nextTag # Send DO fld := InTProc(mno);
-  InsertImport(fld, typ^.link, dummy);
-  impCtxt.nextTag := OPM.SymRInt()
-END
-| Spro:
-typ^.form := ProcTyp; typ^.size := OPM.ProcSize; InSign(mno, typ^.BaseTyp, typ^.link)
-END ;
-IF ref = impCtxt.minr THEN
-WHILE ref < impCtxt.nofr DO
-  t := impCtxt.ref[ref]; FPrintStr(t);
-  obj := t^.strobj;  (* obj^.typ^.strobj = obj, else obj^.fprint differs (alias) *)
-  IF obj^.name # "" THEN FPrintObj(obj) END ;
-  old := impCtxt.old[ref];
-  IF old # NIL THEN t^.strobj := old;  (* restore strobj *)
-    IF impCtxt.self THEN
-      IF old^.mnolev < 0 THEN
-	IF old^.history # inconsistent THEN
-	  IF old^.fprint # obj^.fprint THEN old^.history := pbmodified
-	  ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN old^.history := pvmodified
-	  END
+      IF ref = impCtxt.minr THEN
+         WHILE (ref < impCtxt.nofr) (*OR ((ref >= Int8) & (ref <= Int64))*) DO
+            t := impCtxt.ref[ref]; FPrintStr(t);
+            obj := t^.strobj;  (* obj^.typ^.strobj = obj, else obj^.fprint differs (alias) *)
+            IF obj^.name # "" THEN FPrintObj(obj) END ;
+            old := impCtxt.old[ref];
+            IF old # NIL THEN 
+	       t^.strobj := old;  (* restore strobj *)
+               IF impCtxt.self THEN
+                  IF old^.mnolev < 0 THEN
+	             IF old^.history # inconsistent THEN
+	                IF old^.fprint # obj^.fprint THEN 
+			   old^.history := pbmodified
+	                ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN 
+			   old^.history := pvmodified
+	                END
 	(* ELSE remain inconsistent *)
-	END
-      ELSIF old^.fprint # obj^.fprint THEN old^.history := pbmodified
-      ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN old^.history := pvmodified
-      ELSIF old^.vis = internal THEN old^.history := same  (* may be changed to "removed" in InObj *)
-      ELSE old^.history := inserted  (* may be changed to "same" in InObj *)
+	             END
+                  ELSIF old^.fprint # obj^.fprint THEN 
+		     old^.history := pbmodified
+                  ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN 
+		     old^.history := pvmodified
+                  ELSIF old^.vis = internal THEN 
+		     old^.history := same  (* may be changed to "removed" in InObj *)
+                  ELSE 
+		     old^.history := inserted  (* may be changed to "same" in InObj *)
+                  END
+               ELSE
+                  (* check private part, delay error message until really used *)
+                  IF impCtxt.pvfp[ref] # t^.pvfp THEN 
+		     old^.history := inconsistent 
+		  END ;
+                  IF old^.fprint # obj^.fprint THEN 
+		     FPrintErr(old, 249) 
+		  END
+               END
+            ELSIF impCtxt.self THEN 
+	       obj^.history := removed
+            ELSE 
+	       obj^.history := same
+            END ;
+            INC(ref)
+         END ;
+         impCtxt.minr := maxStruct
       END
-    ELSE
-      (* check private part, delay error message until really used *)
-      IF impCtxt.pvfp[ref] # t^.pvfp THEN old^.history := inconsistent END ;
-      IF old^.fprint # obj^.fprint THEN FPrintErr(old, 249) END
-    END
-          ELSIF impCtxt.self THEN obj^.history := removed
-          ELSE obj^.history := same
-          END ;
-          INC(ref)
-        END ;
-        impCtxt.minr := maxStruct
-      END
-    END
-  END InStruct;
+   END
+END InStruct;
 
   PROCEDURE InObj(mno: SHORTINT): Object;  (* first number in impCtxt.nextTag *)
     VAR i, s: INTEGER; ch: CHAR; obj, old: Object; typ: Struct;
@@ -723,6 +774,8 @@ WHILE ref < impCtxt.nofr DO
           ext := NewExt(); obj^.conval^.ext := ext;
           s := SHORT(OPM.SymRInt()); ext^[0] := CHR(s); i := 1;
           WHILE i <= s DO OPM.SymRCh(ext^[i]); INC(i) END
+	ELSE
+	   OPM.LogWStr("unhandled case at OPT.InObj, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
         END
       ELSIF tag = Salias THEN
         obj^.mode := Typ; InStruct(obj^.typ)
@@ -771,7 +824,7 @@ WHILE ref < impCtxt.nofr DO
     IF name = "SYSTEM" THEN SYSimported := TRUE;
       Insert(aliasName, obj); obj^.mode := Mod; obj^.mnolev := 0; obj^.scope := syslink; obj^.typ := notyp
     ELSE
-      impCtxt.nofr := FirstRef; impCtxt.minr := maxStruct; impCtxt.nofm := 0;
+      impCtxt.nofr := FirstRef(*Comp+1*); impCtxt.minr := maxStruct; impCtxt.nofm := 0;
       impCtxt.self := aliasName = "@self"; impCtxt.reffp := 0;
       OPM.OldSym(name, done);
       IF done THEN
@@ -884,18 +937,20 @@ WHILE ref < impCtxt.nofr DO
   PROCEDURE OutStr(typ: Struct);  (* OPV.TypeAlloc already applied *)
     VAR strobj: Object;
   BEGIN
-    IF (typ^.ref < expCtxt.ref) OR (typ^.ref >= Int8) & (typ^.ref <= Int64) THEN OPM.SymWInt(-typ^.ref)
+    IF (typ^.ref < expCtxt.ref) (*OR (typ^.ref >= Int8) & (typ^.ref <= Int64)*) THEN OPM.SymWInt(-typ^.ref)
     ELSE
       OPM.SymWInt(Sstruct);
       typ^.ref := expCtxt.ref; INC(expCtxt.ref);
       IF expCtxt.ref >= maxStruct THEN err(228) END ;
       OutMod(typ^.mno); strobj := typ^.strobj;
+
       IF (strobj # NIL) & (strobj^.name # "") THEN OutName(strobj^.name);
         CASE strobj^.history OF
         | pbmodified: FPrintErr(strobj, 252)
         | pvmodified: FPrintErr(strobj, 251)
         | inconsistent: FPrintErr(strobj, 249)
         ELSE (* checked in OutObj or correct indirect export *)
+	  (* OPM.LogWStr("unhandled case at OPT.OutStr, strobj^.history = "); OPM.LogWNum(strobj^.history, 0); OPM.LogWLn;*)
         END
       ELSE OPM.SymWCh(0X)  (* anonymous => never inconsistent, pvfp influences the client fp *)
       END ;
@@ -919,7 +974,10 @@ WHILE ref < impCtxt.nofr DO
           nofhdfld := 0; OutFlds(typ^.link, 0, TRUE);
           IF nofhdfld > OPM.MaxHdFld THEN OPM.Mark(223, typ^.txtpos) END ;
           OutTProcs(typ, typ^.link); OPM.SymWInt(Send)
+	ELSE
+	   OPM.LogWStr("unhandled case at OPT.OutStr, typ^.comp = "); OPM.LogWNum(typ^.comp, 0); OPM.LogWLn;
         END
+      ELSE OPM.LogWStr("unhandled case at OPT.OutStr, typ^.form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;	
       END
     END
   END OutStr;
@@ -931,7 +989,7 @@ WHILE ref < impCtxt.nofr DO
     CASE f OF
     | Bool, Char:
       OPM.SymWCh(CHR(obj^.conval^.intval))
-    | SInt, Int, LInt, Int8, Int16, Int32, Int64:
+    | SInt, Int, LInt(*, Int8, Int16, Int32, Int64*):
       OPM.SymWInt(obj^.conval^.intval)
     | Set:
       OPM.SymWSet(obj^.conval^.setval)
@@ -959,6 +1017,8 @@ WHILE ref < impCtxt.nofr DO
           | same:  (* ok *)
           | pbmodified: FPrintErr(obj, 252)
           | pvmodified: FPrintErr(obj, 251)
+	  ELSE
+	     OPM.LogWStr("unhandled case at OPT.OutObj, obj^.history = "); OPM.LogWNum(obj^.history, 0); OPM.LogWLn;
           END ;
           CASE obj^.mode OF
           | Con:
@@ -983,6 +1043,8 @@ WHILE ref < impCtxt.nofr DO
             j := ORD(ext^[0]); i := 1; OPM.SymWInt(j);
             WHILE i <= j DO OPM.SymWCh(ext^[i]); INC(i) END ;
             OutName(obj^.name)
+	  ELSE
+	     OPM.LogWStr("unhandled case at OPT.OutObj, obj.mode = "); OPM.LogWNum(obj.mode, 0); OPM.LogWLn;
           END
         END
       END ;
@@ -999,7 +1061,7 @@ WHILE ref < impCtxt.nofr DO
       OPM.NewSym(SelfName);
       IF OPM.noerr THEN
         OPM.SymWInt(Smname); OutName(SelfName);
-        expCtxt.reffp := 0; expCtxt.ref := FirstRef;
+        expCtxt.reffp := 0; expCtxt.ref := FirstRef(*Comp+1*);
         expCtxt.nofm := 1; expCtxt.locmno[0] := 0;
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END ;
         OutObj(topScope^.right);
@@ -1058,12 +1120,12 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 
   (*initialization of module SYSTEM*)
   EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp);
-
+(*
   EnterTyp("INT8", Int8, OPM.Int8Size, int8typ);
   EnterTyp("INT16", Int16, OPM.Int16Size, int16typ);
   EnterTyp("INT32", Int32, OPM.Int32Size, int32typ);
   EnterTyp("INT64", Int64, OPM.Int64Size, int64typ);
-
+*)
   EnterTyp("PTR", Pointer, OPM.PointerSize, sysptrtyp);
   EnterProc("ADR", adrfn);
   EnterProc("CC", ccfn);
@@ -1112,8 +1174,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("ASH", ashfn);
   EnterProc("ASSERT", assertfn);
   impCtxt.ref[Undef] := undftyp; impCtxt.ref[Byte] := bytetyp;
-  impCtxt.ref[Int8] := int8typ; impCtxt.ref[Int16] := int16typ;
-  impCtxt.ref[Int32] := int32typ; impCtxt.ref[Int64] := int64typ;
+(*  impCtxt.ref[Int8] := int8typ; impCtxt.ref[Int16] := int16typ;
+  impCtxt.ref[Int32] := int32typ; impCtxt.ref[Int64] := int64typ;*)
   impCtxt.ref[Bool] := booltyp;  impCtxt.ref[Char] := chartyp;
   impCtxt.ref[SInt] := sinttyp;  impCtxt.ref[Int] := inttyp;
   impCtxt.ref[LInt] := linttyp;  impCtxt.ref[Real] := realtyp;
