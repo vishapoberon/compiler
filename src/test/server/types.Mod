@@ -11,7 +11,7 @@ TYPE
      Int64* = LONGINT;
      String* = ARRAY 256 OF CHAR;
      
-     PROCEDURE LongintToInt16*(int: LONGINT; VAR int16: Int16)(* : Int16*);
+     PROCEDURE LongintToInt16*(int: LONGINT; VAR int16: Int16);
       VAR longintarr : intarr64;
    BEGIN
       (*RETURN SYS.VAL(Int16, int)*)
@@ -20,13 +20,13 @@ TYPE
       int16[1] := longintarr[1]; (* this will work for little endian -- noch *)
    END LongintToInt16;
 
-   PROCEDURE IntegerToInt16*(int: INTEGER; VAR int16: Int16)(* : Int16*);
+   PROCEDURE IntegerToInt16*(int: INTEGER; VAR int16: Int16);
       VAR intarr : intarr32;
    BEGIN
-      (*RETURN SYS.VAL(Int16, int)*)
-      intarr := SYS.VAL(intarr32, int);
+      int16 := SYS.VAL(Int16, int)
+      (*intarr := SYS.VAL(intarr32, int);
       int16[0] := intarr[0];
-      int16[1] := intarr[1]; (* this will work for little endian -- noch *)
+      int16[1] := intarr[1];*) (* this will work for little endian -- noch *)
    END IntegerToInt16;
 
 END types.
