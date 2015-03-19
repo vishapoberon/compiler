@@ -80,10 +80,10 @@ VAR mname : ARRAY 256 OF CHAR; (* noch *)
     modulesobj := "";
     OPM.OpenPar; (* gclock();   slightly faste rtranslation but may lead to opening "too many files" *)
     OPT.bytetyp.size := OPM.ByteSize;
-    OPT.int8typ.size := 1;
+    (*OPT.int8typ.size := 1;
     OPT.int16typ.size := 2;
     OPT.int32typ.size := 4;
-    OPT.int64typ.size := 8;
+    OPT.int64typ.size := 8;*)
     OPT.sysptrtyp.size := OPM.PointerSize;
     OPT.chartyp.size := OPM.CharSize;
     OPT.settyp.size := OPM.SetSize;
