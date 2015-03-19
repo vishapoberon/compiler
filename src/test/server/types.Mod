@@ -29,4 +29,10 @@ TYPE
       int16[1] := intarr[1];*) (* this will work for little endian -- noch *)
    END IntegerToInt16;
 
+   PROCEDURE htons*(in: Int16; VAR out : Int16);
+   BEGIN
+      out[0] := in[1];
+      out[1] := in[0];
+   END htons;
+
 END types.

@@ -26,13 +26,6 @@ BEGIN
       
 END DoSmth;
 
-PROCEDURE htons(in: Int16; VAR out : Int16);
-BEGIN
-   out[0] := in[1];
-   out[1] := in[0];
-END htons;
-
-
 PROCEDURE ZeroByteArr(VAR a : ARRAY OF S.BYTE);
 VAR i : LONGINT;
 BEGIN
@@ -61,7 +54,7 @@ BEGIN
    
    types.IntegerToInt16(sockets.AfInet, afinet);
    types.IntegerToInt16(Port, port);
-   htons(port, port0); (* only necessary on little endian computers *)
+   types.htons(port, port0); (* only necessary on little endian computers *)
    ServAddr.SinFamily := afinet;
    ServAddr.SinPort := port0;
    ZeroByteArr(ServAddr.SinZero);
