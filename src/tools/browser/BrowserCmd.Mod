@@ -12,13 +12,9 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
 
     (* structure forms *)
     Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
-    (*Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-    Pointer = 13; ProcTyp = 14; Comp = 15;
-    *)
     Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-    Pointer = 13; ProcTyp = 14;
-    Int8 = 16; Int16 = 17; Int32 = 18; Int64 = 19;
-    Comp = 20;
+    Pointer = 13; ProcTyp = 14; Comp = 15;
+    
     (* composite structure forms *)
     Basic = 1; Array = 2; DynArr = 3; Record = 4;
 
