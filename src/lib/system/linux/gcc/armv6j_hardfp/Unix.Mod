@@ -172,6 +172,7 @@ TYPE
     jmpbuf: ARRAY 64 OF LONGINT; (* 256 / 4 = 64 *)
     maskWasSaved*: LONGINT;
     savedMask*: ARRAY 32 OF LONGINT; (* 32 * 4 = 128 *)
+    unknown*: LONGINT; (* jmp_buf seems to have unknown 4 bytes field at the end (see http://hastebin.com/conujujeyu.pl) which is not defined in header file *)
   END ;
 
   Status* = RECORD (* struct stat *)
