@@ -154,7 +154,8 @@ CONST
 TYPE
   JmpBuf* = RECORD
     bx*, si*, di*, bp*, sp*, pc*: LONGINT;
-    maskWasSaved*, savedMask*: LONGINT;
+    maskWasSaved*: LONGINT;
+	savedMask*: ARRAY 32 OF LONGINT;
   END ;
 
   Status* = RECORD (* struct stat *)

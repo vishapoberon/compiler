@@ -154,53 +154,26 @@ CONST sigsetarrlength = 1024 / 8 * SIZE(LONGINT);
 
 
 TYPE
-(* bits/sigset.h
- _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
-
-  1024 / 8*8 = 16
-  1024 / 8*4 = 32
-*)
-  sigsett* = RECORD
-      val : ARRAY 16 OF LONGINT (* 32 for 32 bit *)
-      (*val : ARRAY sigsetarrlength OF LONGINT *)
-  END;
-
-  JmpBuf* = RECORD
-    (*bx*, si*, di*, bp*, sp*, pc*: LONGINT;*)
-    (* bits/setjmp.h sets up longer array in GNU libc *)
-    (*
-         # if __WORDSIZE == 64
-         typedef long int __jmp_buf[8];
-         # else
-         typedef int __jmp_buf[6];
-         # endif
-    *)
-    bx*, si*, di*, bp*, sp*, pc*, ki*, ku*: LONGINT;
-    (*  setjmp.h
-/* Calling environment, plus possibly a saved signal mask.  */
-struct __jmp_buf_tag
+ (* cpp /usr/include/setjmp.h
+    struct __jmp_buf_tag
   {
-    /* NOTE: The machine-dependent definitions of `__sigsetjmp'
-       assume that a `jmp_buf' begins with a `__jmp_buf' and that
-       `__mask_was_saved' follows it.  Do not move these members
-       or add others before it.  */
-    __jmp_buf __jmpbuf;         /* Calling environment.  */
-    int __mask_was_saved;       /* Saved the signal mask?  */
-    __sigset_t __saved_mask;    /* Saved signal mask.  */
+    __jmp_buf __jmpbuf;
+    int __mask_was_saved;
+    __sigset_t __saved_mask;
   };
 
-    *)
-    (*maskWasSaved*, savedMask*: LONGINT;*)
-    maskWasSaved*: INTEGER; 
-    (* 
-   # define _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
-typedef struct
-  {
-    unsigned long int __val[_SIGSET_NWORDS];
-  } __sigset_t; 
-    
-    *)
-    savedMask*: sigsett;
+   typedef struct __jmp_buf_tag jmp_buf[1];
+
+   __sigset_t is 128 byte long in glibc on arm, x86, x86_64
+   __jmp_buf is 24 bytes long  in glibc on x86
+                256 bytes long in glibc on armv6
+                64 bytes long in glibc on x86_64
+
+ *)
+  JmpBuf* = RECORD
+    jmpbuf: ARRAY 8 OF LONGINT; (* 8 * 8 = 64 *)
+    maskWasSaved*: INTEGER;
+    savedMask*: ARRAY 16 OF LONGINT; ( 16 * 8 = 128 *)
   END ;
 
   Status* = RECORD (* struct stat *)
