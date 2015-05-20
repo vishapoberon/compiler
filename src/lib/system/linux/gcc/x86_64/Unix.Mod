@@ -173,7 +173,7 @@ TYPE
   JmpBuf* = RECORD
     jmpbuf: ARRAY 8 OF LONGINT; (* 8 * 8 = 64 *)
     maskWasSaved*: INTEGER;
-    savedMask*: ARRAY 16 OF LONGINT; ( 16 * 8 = 128 *)
+    savedMask*: ARRAY 16 OF LONGINT; (* 16 * 8 = 128 *)
   END ;
 
   Status* = RECORD (* struct stat *)
