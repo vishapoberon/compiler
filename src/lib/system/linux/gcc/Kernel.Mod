@@ -156,6 +156,26 @@ MODULE Kernel;
     SYSTEM.GET(i, littleEndian);  (* indirection via i avoids warning on SUN cc -O *)
   END EndianTest;
 
+  PROCEDURE -SizeofUnixJmpBuf(): INTEGER
+    "sizeof(Unix_JmpBuf)";
+
+  PROCEDURE -SizeofSigJmpBuf(): INTEGER
+    "sizeof(sigjmp_buf)";
+
+  PROCEDURE -Error(msg: ARRAY OF CHAR; len: INTEGER)
+    "write(1/*stdout*/, msg, len); char ch = 0xa; write(1, &ch, 1)";
+
+  PROCEDURE JmpBufCheck; (* check for inconsistent usage of sigjmp_buf *)
+    VAR x, y: LONGINT;
+  BEGIN
+    x := SizeofUnixJmpBuf();
+    y := SizeofSigJmpBuf();
+    IF x < y THEN
+      Error("Kernel.JmpBufCheck: inconsistent usage of sigjmp_buf", 52);
+      Exit(1);
+    END
+  END JmpBufCheck;
+
 BEGIN
   EndianTest();
   SetHalt(Halt);
@@ -163,5 +183,6 @@ BEGIN
   getcwd(CWD);
   Args.GetEnv("OBERON", OBERON);
   Args.GetEnv("OBERON_LIB", LIB);
-  TimeUnit := 1000; timeStart := 0; timeStart := Time()
+  TimeUnit := 1000; timeStart := 0; timeStart := Time();
+  JmpBufCheck()
 END Kernel.
