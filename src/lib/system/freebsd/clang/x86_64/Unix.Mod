@@ -154,81 +154,55 @@ CONST sigsetarrlength = 1024 / 8 * SIZE(LONGINT);
 
 
 TYPE
-(* bits/sigset.h
- _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
-
-  1024 / 8*8 = 16
-  1024 / 8*4 = 32
-*)
-  sigsett* = RECORD
-      val : ARRAY 16 OF LONGINT (* 32 for 32 bit *)
-      (*val : ARRAY sigsetarrlength OF LONGINT *)
-  END;
 
   JmpBuf* = RECORD
-    (* macosx darwin 64bit, cpp /usr/include/setjmp.h
-       typedef int jmp_buf[((9 * 2) + 3 + 16)];
-    *)
-
-    (*bx*, si*, di*, bp*, sp*, pc*: LONGINT;*)
-    (* bits/setjmp.h sets up longer array in GNU libc *)
-    (*
-         # if __WORDSIZE == 64
-         typedef long int __jmp_buf[8];
-         # else
-         typedef int __jmp_buf[6];
-         # endif
-    *)
-    (*bx*, si*, di*, bp*, sp*, pc*, ki*, ku*: LONGINT;*)
-    f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15,
-    f16, f17, f18, f19, f20, f21, f22, f23, f24, f25, f26, f27, f28, f29, 
-    f30, f31, f32, f33, f34, f35, f36: INTEGER;
-    (*  setjmp.h
-/* Calling environment, plus possibly a saved signal mask.  */
-struct __jmp_buf_tag
-  {
-    /* NOTE: The machine-dependent definitions of `__sigsetjmp'
-       assume that a `jmp_buf' begins with a `__jmp_buf' and that
-       `__mask_was_saved' follows it.  Do not move these members
-       or add others before it.  */
-    __jmp_buf __jmpbuf;         /* Calling environment.  */
-    int __mask_was_saved;       /* Saved the signal mask?  */
-    __sigset_t __saved_mask;    /* Saved signal mask.  */
-  };
-
-    *)
-    (*maskWasSaved*, savedMask*: LONGINT;*)
-    (*maskWasSaved*: INTEGER; *)
-    (* 
-   # define _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
-typedef struct
-  {
-    unsigned long int __val[_SIGSET_NWORDS];
-  } __sigset_t; 
-    
-    *)
-    (*savedMask*: sigsett;*)
+     jmpbuf: ARRAY 12 OF LONGINT;
   END ;
 (*
-  Status* = RECORD (* struct stat *)
-    dev* : INTEGER; (* dev_t 4 *)
-    mode*: SHORTINT; mode1*: SHORTINT; (* mode_t 2 *)
-    nlink* : SHORTINT; nlink1*: SHORTINT; (* nlink_t 2 *)
-    ino* : LONGINT; (* __darwin_ino64_t 8 *)
-    uid*, gid*: INTEGER; (* uid_t, gid_t 4 *)
-    rdev*: INTEGER; (* dev_t 4 *)
-    atime* : LONGINT; atimences* : LONGINT; (* struct timespec 16 *)
-    mtime* : LONGINT; mtimences* : LONGINT; (* struct timespec 16 *)
-    ctime* : LONGINT; ctimences* : LONGINT; (* struct timespec 16 *)
-    birthtime* : LONGINT; birthtimences* : LONGINT; (* struct timespec 16 *)
-    size*: LONGINT; (* off_t 8 *) 
-    blocks* : LONGINT;
-    blksize* : INTEGER;
-    flags* : INTEGER;
-    gen* : INTEGER;
-    lspare* : INTEGER;
-    qspare*, qspare1*: LONGINT;
-  END ;
+from output of cpp /usr/include/sys/stat.h
+
+struct stat {
+ __dev_t st_dev; 
+ ino_t st_ino;
+ mode_t st_mode;
+ nlink_t st_nlink;
+ uid_t st_uid;
+ gid_t st_gid;
+ __dev_t st_rdev;
+ struct timespec st_atim;
+ struct timespec st_mtim;
+ struct timespec st_ctim;
+ off_t st_size;
+ blkcnt_t st_blocks;
+ blksize_t st_blksize;
+ fflags_t st_flags;
+ __uint32_t st_gen;
+ __int32_t st_lspare;
+ struct timespec st_birthtim;
+# 148 "/usr/include/sys/stat.h"
+ unsigned int :(8 / 2) * (16 - (int)sizeof(struct timespec));
+ unsigned int :(8 / 2) * (16 - (int)sizeof(struct timespec));
+};
+
+sizes on freebsd 64 bit
+short int 2
+int 4
+long 8
+long int 8
+size_t 8
+dev_t 4
+ino_t 4
+mode_t 2
+nlink_t 2
+uid_t 4
+gid_t 4
+off_t 8
+blksize_t 4
+blkcnt_t 8
+time_t 8
+fflags_t  4
+__uint32_t  4
+__int32_t  4
 *)
   Status* = RECORD (* struct stat *)
     dev* : INTEGER; (* dev_t 4 *)
@@ -247,7 +221,6 @@ typedef struct
     gen* : INTEGER;
     lspare* : INTEGER;
     birthtime* : LONGINT; birthtimences* : LONGINT; (* struct timespec 16 *)
-    qspare*, qspare1*: INTEGER;
   END ;
  
 
