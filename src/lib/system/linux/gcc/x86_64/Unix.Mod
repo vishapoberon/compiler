@@ -492,6 +492,28 @@ from man gettimeofday
       RETURN r
    END System;
 
+  PROCEDURE -SizeofUnixStat(): INTEGER
+    "sizeof(Unix_Status)";
 
+  PROCEDURE -SizeofStat(): INTEGER
+    "sizeof(struct stat)";
+
+  PROCEDURE -Error(msg: ARRAY OF CHAR; len: INTEGER)
+    "write(1/*stdout*/, msg, len); char ch = 0xa; write(1, &ch, 1)";
+
+  PROCEDURE StatCheck;
+    VAR x, y: LONGINT;
+  BEGIN
+    x := SizeofUnixStat();
+    y := SizeofStat();
+    IF x # y THEN
+      Error("Unix.StatCheck: inconsistent usage of struct stat", 49);
+      Exit(1);
+    END
+  END StatCheck;
+
+BEGIN
+
+   StatCheck();
 
 END Unix.
