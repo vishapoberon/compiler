@@ -152,9 +152,26 @@ CONST
 
 
 TYPE
+ (* cpp /usr/include/setjmp.h
+    struct __jmp_buf_tag
+  {
+    __jmp_buf __jmpbuf;
+    int __mask_was_saved;
+    __sigset_t __saved_mask;
+  };
+
+   typedef struct __jmp_buf_tag jmp_buf[1];
+
+   __sigset_t is 128 byte long in glibc on arm, x86, x86_64
+   __jmp_buf is 24 bytes long  in glibc on x86
+                256 bytes long in glibc on armv6
+                64 bytes long in glibc on x86_64
+
+ *)
   JmpBuf* = RECORD
-    bx*, si*, di*, bp*, sp*, pc*: LONGINT;
-    maskWasSaved*, savedMask*: LONGINT;
+    jmpbuf: ARRAY 64 OF LONGINT; (* 256 / 4 = 64 *)
+    maskWasSaved*: LONGINT;
+    savedMask*: ARRAY 32 OF LONGINT; (* 32 * 4 = 128 *)
   END ;
 
   Status* = RECORD (* struct stat *)
