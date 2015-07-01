@@ -3,7 +3,6 @@ MODULE Oberon;
 (* this version should not have dependency on graphics -- noch *)
 
   IMPORT Kernel, Texts, Args;
-
   TYPE
 
     ParList* = POINTER TO ParRec;
@@ -20,6 +19,7 @@ MODULE Oberon;
     Log*: Texts.Text;
     Par*: ParList; (*actual parameters*)
     W : Texts.Writer;
+	OptionChar*: CHAR;
   (*clocks*)
 
   PROCEDURE GetClock* (VAR t, d: LONGINT);
@@ -57,6 +57,7 @@ BEGIN
    NEW(Par);
    NEW(Par.text);
    Par.pos := 0;
+   OptionChar := '-';
    Texts.Open(Par.text, "");
    PopulateParams;
 END Oberon.
