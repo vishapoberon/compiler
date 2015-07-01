@@ -56,6 +56,7 @@ MODULE Oberon;
 BEGIN
    NEW(Par);
    NEW(Par.text);
+   Par.pos := 0;
    Texts.Open(Par.text, "");
    PopulateParams;
 END Oberon.
