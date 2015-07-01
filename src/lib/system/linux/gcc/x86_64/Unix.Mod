@@ -1,5 +1,5 @@
 MODULE Unix;  (* Josef Templ, 5.3.90  Linux system calls *)
-(* ported to gnu x86_64 and added system function, noch *)
+(* ported to gnu x86_64 and added system(), sleep() functions, noch *)
 (* Module Unix provides a system call interface to Linux.
   Naming conventions:
     Procedure and Type-names always start with a capital letter.
