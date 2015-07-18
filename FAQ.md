@@ -17,6 +17,11 @@ compilation crashes on ARM or Raspberry Pi with recent (like 3.12) kernels.
 
 should fix that.
 
+compilation crashes with "cannot find -lc" on recent fedoras
+============================================================
+
+remove <code>-static</code> from makefile on the line where voc binary created (first -static you'll find)
+
 make errors on freebsd
 ======================
 
