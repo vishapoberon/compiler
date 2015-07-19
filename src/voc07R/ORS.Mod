@@ -1,5 +1,5 @@
 MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
-  IMPORT SYSTEM, Texts := CompatTexts, Oberon;
+  IMPORT SYSTEM, Texts := CompatTexts, Oberon; (* CompatTexts is voc adaptation by noch *)
 
   TYPE INTEGER = LONGINT; (* voc adaptation by noch *)
 
@@ -63,7 +63,7 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
     IF (p > errpos) & (errcnt < 25) THEN
       Texts.WriteLn(W); Texts.WriteString(W, "  pos "); Texts.WriteInt(W, p, 1); Texts.Write(W, " ");
       Texts.WriteString(W, msg); Texts.Append(Oberon.Log, W.buf);
-      Oberon.DumpLog;
+      Oberon.DumpLog; (* voc adaptation by noch *)
     END ;
     INC(errcnt); errpos := p + 4
   END Mark;
