@@ -2,7 +2,7 @@ MODULE Oberon;
 
 (* this version should not have dependency on graphics -- noch *)
 
-  IMPORT Kernel, Texts, Args;
+  IMPORT Kernel, Texts, Args, Out := Console;
   TYPE
 
     ParList* = POINTER TO ParRec;
@@ -52,6 +52,18 @@ MODULE Oberon;
     Texts.Append (Par^.text, W.buf);
 
   END PopulateParams;
+
+  PROCEDURE DumpLog*;
+  VAR R : Texts.Reader;
+      ch : CHAR;
+  BEGIN
+     Texts.OpenReader(R, Log, 0);
+
+     REPEAT
+	    Texts.Read(R, ch);
+	    Out.Char(ch); 
+	 UNTIL R.eot;
+  END DumpLog;
 
 BEGIN
    NEW(Par);
