@@ -202,9 +202,13 @@ MODULE OPC;	(* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 				OPM.Write(OpenParen); OPM.Write(Star)
 			ELSE
 				pointers := 0;
-				WHILE (typ^.strobj = NIL) & (typ^.form = Pointer) DO INC (pointers); typ := typ^.BaseTyp END ;
-				IF (typ^.comp # DynArr) & (pointers # 0) THEN Stars (typ, openClause) END ;
+				(*WHILE (typ^.strobj = NIL) & (typ^.form = Pointer) DO INC (pointers); typ := typ^.BaseTyp END ;
+				IF (typ^.comp # DynArr) & (pointers # 0) THEN Stars (typ, openClause) END ;*)
+				WHILE ((typ^.strobj = NIL) OR (typ^.strobj^.name = "")) & (typ^.form = Pointer) DO
+				   INC (pointers); typ := typ^.BaseTyp
+				END ;
 				IF pointers > 0 THEN
+				    IF typ^.comp # DynArr THEN Stars (typ, openClause) END ;
 					IF openClause THEN OPM.Write(OpenParen); openClause := FALSE END ;
 					WHILE pointers > 0 DO OPM.Write(Star); DEC (pointers) END
 				END
