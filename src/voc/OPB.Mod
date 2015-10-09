@@ -409,6 +409,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           END ;
           z^.typ := OPT.booltyp
       | adr: (*SYSTEM.ADR*)
+		  IF (z^.class = Nconst) & (f = Char) & (z^.conval^.intval >= 20H) THEN
+		    CharToString(z); f := String
+		  END ;
           IF (z^.class < Nconst) OR (f = String) THEN z := NewOp(op, typ, z)
           ELSE err(127)
           END ;
