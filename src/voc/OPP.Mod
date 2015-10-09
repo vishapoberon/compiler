@@ -133,7 +133,9 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE CheckSysFlag(VAR sysflag: INTEGER; default: INTEGER);
     VAR x: OPT.Node; sf: LONGINT;
   BEGIN
-    IF sym = lbrak THEN OPS.Get(sym); ConstExpression(x);
+    IF sym = lbrak THEN OPS.Get(sym);
+	  IF ~OPT.SYSimported THEN err(135) END;
+	  ConstExpression(x);
       IF x^.typ^.form IN intSet THEN sf := x^.conval^.intval;
         IF (sf < 0) OR (sf > OPM.MaxSysFlag) THEN err(220); sf := 0 END
       ELSE err(51); sf := 0
