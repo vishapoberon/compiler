@@ -744,7 +744,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
       IF plen > 0 THEN NEW(p); p.file := f; p.org := pos; p.ascii := FALSE; un := p; un.len := plen
       ELSE LoadElem(msg.r, pos - org, -plen, e); un := e; un.len := 1
       END;
-      un.fnt := fnts[fno]; un.col := col; un.voff := voff;
+      (*un.fnt := fnts[fno];*) un.col := col; un.voff := voff;
       INC(pos, un.len); u.next := un; un.prev := u; u := un; Files.Read(msg.r, fno)
     END;
     u.next := T.head; T.head.prev := u; T.cache := T.head; T.corg := 0;
