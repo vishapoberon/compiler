@@ -437,15 +437,15 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
      i := 0; j := 0;
      REPEAT
         IF (ORD(ch) > 31) OR (ORD(ch) = 9) THEN 
-	   IF ORD(ch)=9 THEN ch := " " END;
-	   line[i] := ch; INC(i); line[i+1] := 0X;
-	ELSE 
-	   IF ch = 0AX THEN INC(j); i := 0 END
-	END;
+	      IF ORD(ch)=9 THEN ch := " " END;
+	      line[i] := ch; INC(i); line[i+1] := 0X;
+	    ELSE 
+	      IF ch = 0AX THEN INC(j); i := 0 END
+	    END;
         (* 
         Console.Ln; Console.String("-- line["); Console.Int(i-1, 0); Console.String("] = "); Console.Char(ch); Console.Ln;
 *)
-	Files.Read(r, ch);
+        Files.Read(r, ch);
 (*
         Console.String("-- i "); Console.Int(i, 0); Console.Ln;
 
@@ -453,7 +453,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 	Console.Char(ch); Console.Ln;
 *)
-     UNTIL (j >= linenum) OR (i >= 1022);
+     UNTIL (j >= linenum) OR (i >= 1022) OR r.eof;
 
      Console.Ln; Console.String("  "); Console.String(line); Console.Ln;
 
