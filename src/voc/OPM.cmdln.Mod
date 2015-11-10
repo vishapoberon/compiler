@@ -439,14 +439,21 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
         IF (ORD(ch) > 31) OR (ORD(ch) = 9) THEN 
 	      IF ORD(ch)=9 THEN ch := " " END;
 	      line[i] := ch; INC(i); line[i+1] := 0X;
+		  Files.Read(r, ch);
 	    ELSE 
-	      IF ch = 0AX THEN INC(j); i := 0 END
+	      IF (ch = 0AX) OR (ch = 0DX) THEN 
+		     Files.Read(r, ch);
+			 IF (ch = 0AX) OR (ch = 0DX) THEN
+			    Files.Read(r, ch);
+			 ELSE
+			    INC(j); i := 0
+			 END
+		  END
 	    END;
         (* 
         Console.Ln; Console.String("-- line["); Console.Int(i-1, 0); Console.String("] = "); Console.Char(ch); Console.Ln;
 *)
-        Files.Read(r, ch);
-(*
+        (*
         Console.String("-- i "); Console.Int(i, 0); Console.Ln;
 
         Console.String("--j "); Console.Int(j, 0); Console.Ln;
