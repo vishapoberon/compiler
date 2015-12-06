@@ -11,8 +11,9 @@ uses double # as concatenation operator
 
 */
 
-#include <alloca.h>
+//#include <alloca.h>
 #include <stdint.h> /* for type sizes -- noch */
+#include <stdlib.h> /* for malloc -- antranigv */
 
 extern void *memcpy(void *dest, const void *src, unsigned long n);
 extern void *malloc(unsigned long size);
