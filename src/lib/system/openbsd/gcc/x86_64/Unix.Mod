@@ -171,9 +171,7 @@ TYPE
 
  *)
   JmpBuf* = RECORD
-    jmpbuf: ARRAY 8 OF LONGINT; (* 8 * 8 = 64 *)
-    maskWasSaved*: INTEGER;
-    savedMask*: ARRAY 16 OF LONGINT; (* 16 * 8 = 128 *)
+    jmpbuf: ARRAY 11 OF LONGINT; (* 8 * 8 = 64 *)
   END ;
 
   Status* = RECORD (* struct stat *)
@@ -206,7 +204,7 @@ struct timeval
 
 
 *)
-
+(* from sys/time.h on OpenBSD *)
   Timeval* = RECORD
     sec*, usec*: LONGINT
   END ;
@@ -239,12 +237,16 @@ from man gettimeofday
 
   SignalHandler* = PROCEDURE (sig, code: LONGINT; scp: SigCtxPtr);
 
+(* From sys/dirent.h on OpenBSD 5.6 *)
   Dirent* = RECORD
     ino, off: LONGINT;
-    reclen: INTEGER;
-    name: ARRAY 256 OF CHAR;
+    reclen: ARRAY 2 OF CHAR;
+    type, namlen : CHAR;
+	padding : ARRAY 4 OF CHAR;
+    name : ARRAY 256 OF CHAR;
   END ;
 
+(* from sys/resource.h on OpenBSD *)
   Rusage* = RECORD
     utime*, stime*: Timeval;
     maxrss*, ixrss*, idrss*, isrss*,
@@ -253,26 +255,34 @@ from man gettimeofday
     nvcsw*, nivcsw*: LONGINT
   END ;
 
+(* from sys/uio.h on OpenBSD 5.6 -- antranigv*)
   Iovec* = RECORD
     base*, len*: LONGINT
   END ;
 
+(* TOBEDONE *)
   SocketPair* = ARRAY 2 OF LONGINT;
 
+(* from sys/poll.h on OpenBSD 5.6 -- antranigv *)
   Pollfd* = RECORD
-    fd*: LONGINT;
-    events*, revents*: INTEGER
+    fd*: INTEGER;
+    events*, revents*: ARRAY 2 OF CHAR;
   END ;
 
+(* different from linux, written new for OpenBSD from sys/socket.h -- antranigv *)
   Sockaddr* = RECORD
-    family0*, family1*: SHORTINT;
+    (*family0*, family1*: SHORTINT;
     pad0, pad1: SHORTINT;
     pad2 : INTEGER;
     (*port*: INTEGER;
     internetAddr*: LONGINT;*)
-    pad*: ARRAY 14 OF CHAR;
+    pad*: ARRAY 14 OF CHAR;*)
+	len* : CHAR;
+	family* : CHAR;
+	data* : ARRAY 14 OF CHAR;
   END ;
   
+  (* identical to linux. OpenBSD 5.6 -- antranigv *)
   HostEntry* = POINTER [1] TO Hostent;
   Hostent* = RECORD
     name*, aliases*: LONGINT;
