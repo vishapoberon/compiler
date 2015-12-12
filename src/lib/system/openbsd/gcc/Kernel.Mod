@@ -99,7 +99,7 @@ MODULE Kernel;
 
   PROCEDURE GetClock* (VAR t, d: LONGINT);
     VAR tv: Unix.Timeval; tz: Unix.Timezone; time: RealTime;
-    l : LONGINT;
+    l : INTEGER;
   BEGIN
     l := Unix.Gettimeofday(tv, tz);
     time := localtime(tv.sec);
