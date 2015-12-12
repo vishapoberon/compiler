@@ -56,10 +56,27 @@ MODULE Files0;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files
       org, offset: LONGINT
     END ;
 
+(* from time.h on OpenBSD; added yday; changed gmtoff, zone order;
+    sec to isdst changed to INTEGER; -- antranigv
+  struct tm {
+        int     tm_sec;
+        int     tm_min;
+        int     tm_hour;
+        int     tm_mday;
+        int     tm_mon;
+        int     tm_year;
+        int     tm_wday;
+        int     tm_yday;
+        int     tm_isdst;
+        long    tm_gmtoff;
+        char    *tm_zone;
+}; *)
+
     Time = POINTER TO TimeDesc;
     TimeDesc = RECORD
-      sec*, min*, hour*, mday*, mon*, year*, wday*, isdst*, zone*, gmtoff*: LONGINT;
-(*      sec*, min*, hour*, mday*, mon*, year*, wday*, isdst*, zone*, gmtoff*: INTEGER;*)
+      sec, min, hour, mday, mon, year, wday, yday, isdst : INTEGER;
+      gmtoff, zone : LONGINT
+(*      sec, min, hour, mday, mon, year, wday, isdst, zone, gmtoff: INTEGER*)
     END ;
 
   VAR
