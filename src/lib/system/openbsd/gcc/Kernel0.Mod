@@ -8,9 +8,26 @@ MODULE Kernel0;
   IMPORT SYSTEM, Unix, Args, Strings, version;
 
   TYPE
+(* from time.h on OpenBSD; added yday; changed gmtoff, zone order;
+	sec to isdst changed to INTEGER; -- antranigv
+  struct tm {
+        int     tm_sec;         
+        int     tm_min;         
+        int     tm_hour;        
+        int     tm_mday;        
+        int     tm_mon;         
+        int     tm_year;        
+        int     tm_wday;        
+        int     tm_yday;        
+        int     tm_isdst;       
+        long    tm_gmtoff;      
+        char    *tm_zone;       
+}; *)
+
     RealTime = POINTER TO TimeDesc;
     TimeDesc = RECORD
-      sec, min, hour, mday, mon, year, wday, isdst, zone, gmtoff: LONGINT
+      sec, min, hour, mday, mon, year, wday, yday, isdst : INTEGER;
+      gmtoff, zone : LONGINT
 (*      sec, min, hour, mday, mon, year, wday, isdst, zone, gmtoff: INTEGER*)
     END ;
 
