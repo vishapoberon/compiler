@@ -78,11 +78,11 @@ Let's write hello world file:
 >$ cat hey.Mod
 
 <code>
-MODULE hey;
-IMPORT Console;
-BEGIN
-Console.String("hey there"); Console.Ln
-END hey.
+MODULE hey;  
+IMPORT Console;  
+BEGIN  
+Console.String("hey there"); Console.Ln  
+END hey.  
 </code>
 
 >voc -M hey.Mod
