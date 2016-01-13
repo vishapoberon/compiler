@@ -2,7 +2,7 @@
 Vishap oberon compiler
 ======================
 
-(ⱱishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
+[ⱱishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
 
 Platforms:
 =========
