@@ -1,14 +1,14 @@
 
-vishap oberon compiler
+Vishap oberon compiler
 ======================
 
-#ⱱishap Oberon Compiler (voc) is a free (GPLv3) professional oberon-2 compiler.
+ⱱishap Oberon Compiler (voc) is a free (GPLv3) professional oberon-2 compiler.
 
 Platforms:
 =========
 voc produces x86_64, x86, ppc, armv{4-7} binaries and works on those platforms.
 On x86_64 it supports 64bit LONGINT and 64bit SET types.
-By using currently stable C backend voc is easily ported to any platform for which C compiler exists.
+By using currently stable C backend voc is relatively easy to port to any platform for which C compiler exists.
 
 Operating Systems:
 ==================
