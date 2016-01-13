@@ -12,7 +12,7 @@ By using currently stable C backend voc is relatively easy to port to any platfo
 
 Operating Systems:
 ==================
-Currently only GNU/Linux, Mac OS X and FreeBSD sources (with bootstrap binaries) are published.
+Currently GNU/Linux, Mac OS X, FreeBSD and OpenBSD sources (with bootstrap binaries) are published.
 
 Ports to Solaris, AIX will be made and published in case there is an interest from community.
 voc should work on MS Windows/ReactOS via Cygwin/gcc, however we did not test it on Windows compatible machine.
