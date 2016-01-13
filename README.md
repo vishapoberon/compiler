@@ -79,9 +79,13 @@ Let's write hello world file:
 
 <code>
 MODULE hey;  
-IMPORT Console;  
+
+  IMPORT Console;  
+
 BEGIN  
-Console.String("hey there"); Console.Ln  
+
+  Console.String("hey there"); Console.Ln  
+
 END hey.  
 </code>
 
