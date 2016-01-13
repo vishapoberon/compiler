@@ -6,7 +6,7 @@ MODULE Unix;  (* Josef Templ, 5.3.90  Linux system calls *)
     error numbers as defined in Unix
     other constants start with lower case letters *)
 
-IMPORT SYSTEM;
+IMPORT SYSTEM(*, Console*);
 
 CONST
 
@@ -170,28 +170,33 @@ TYPE
                 64 bytes long in glibc on x86_64
 
  *)
+  (* on openbsd
+     typedef long sigjmp_buf[11 + 1];
+     typedef long jmp_buf[11];
+     it seems we need sigjmp_buf
+  *)
   JmpBuf* = RECORD
-    jmpbuf: ARRAY 11 OF LONGINT; (* 8 * 8 = 64 *)
+    jmpbuf: ARRAY 12 OF LONGINT; (* 8 * 8 = 64 *)
   END ;
 
   Status* = RECORD (* struct stat *)
-    mode* : INTEGER;
+    mode* : INTEGER; (* mode_t *)
     dev* : INTEGER; (* dev_t 4 *)
-    ino* : LONGINT; (* ino 8 *)
-    nlink* : INTEGER;
-    uid*, gid*: INTEGER;
-    rdev* : INTEGER;
+    ino* : LONGINT; (* ino_t 8 *)
+    nlink* : INTEGER; (* nlink_t *)
+    uid*, gid*: INTEGER; (* uid_t, gid_t *)
+    rdev* : INTEGER; (* dev_t *)
     atime* : LONGINT;
     atimences* : LONGINT;
     mtime* : LONGINT;
     mtimensec* : LONGINT;
     ctime* : LONGINT;
     ctimensec* : LONGINT; 
-    size* : LONGINT;
-	blocks* : LONGINT;
-    blksize* : INTEGER;
-    unused0*, unused1*: INTEGER;
-	unused2*, unused3*: LONGINT;
+    size* : LONGINT; (* off_t *)
+    blocks* : LONGINT; (* int64_t *)
+    blksize* : INTEGER; (* u_int32_t *)
+    flags, gen*: INTEGER; (* u_int32_t *)
+    birthtim: ARRAY 2 OF LONGINT;
   END ;
  
 (* from /usr/include/bits/time.h
@@ -294,11 +299,26 @@ from man gettimeofday
 
   PROCEDURE -includeStat()
     "#include <sys/stat.h>";
+  (* for jmp_buf *)
+  PROCEDURE -includeSetjmp()
+    "#include <setjmp.h>";
+
+ (* for dirent *)
+  PROCEDURE -includeDirent()
+    "#include <sys/dirent.h>";
+
+ (* for rusage *)
+  PROCEDURE -includeResource()
+    "#include <sys/resource.h>";
+
+ (* for iovec *)
+  PROCEDURE -includeIovec()
+  "#include <sys/uio.h>";
 
   PROCEDURE -includeErrno()
     "#include <errno.h>";
 
-  (* for read(), write() and sleep() *)
+  (* for read(), write() and sleep(), and fd_set *)
   PROCEDURE -includeUnistd()
     "#include <unistd.h>";
 
@@ -508,6 +528,30 @@ from man gettimeofday
   PROCEDURE -SizeofStat(): INTEGER
     "sizeof(struct stat)";
 
+  PROCEDURE -SizeofJmpBuf(): INTEGER
+    "sizeof(jmp_buf)";
+
+  PROCEDURE -SizeofSigJmpBuf(): INTEGER
+    "sizeof(sigjmp_buf)";
+
+  PROCEDURE -SizeofTimeval(): INTEGER
+    "sizeof(struct timeval)";
+
+  PROCEDURE -SizeofTimezone(): INTEGER
+    "sizeof(struct timezone)";
+
+  PROCEDURE -SizeofRusage(): INTEGER
+    "sizeof(struct rusage)";
+
+  PROCEDURE -SizeofFdSet(): INTEGER
+    "sizeof(fd_set)";
+
+  PROCEDURE -SizeofDirent(): INTEGER
+    "sizeof(struct dirent)";
+
+  PROCEDURE -SizeofIovec(): INTEGER
+    "sizeof(struct iovec)";
+
   PROCEDURE -Error(msg: ARRAY OF CHAR; len: INTEGER)
     "write(1/*stdout*/, msg, len); char ch = 0xa; write(1, &ch, 1)";
 
@@ -516,14 +560,35 @@ from man gettimeofday
   BEGIN
     x := SizeofUnixStat();
     y := SizeofStat();
-    IF x # y THEN
+    IF x # y THEN 
       Error("Unix.StatCheck: inconsistent usage of struct stat", 49);
-      Exit(1);
+     Exit(1);
     END
   END StatCheck;
-
+(*
+  PROCEDURE Check;
+  BEGIN
+      Console.String("struct stat size: "); Console.Int(SizeofStat(), 0); Console.Ln;
+      Console.String("Unix.Stat size: "); Console.Int(SIZE(Status), 0); Console.Ln;
+      Console.String("Unix.JmpBuf size: "); Console.Int(SIZE(JmpBuf), 0); Console.Ln;
+      Console.String("sigjmp_buf size: "); Console.Int(SizeofSigJmpBuf(), 0); Console.Ln;
+      Console.String("Unix.Timeval size: "); Console.Int(SIZE(Timeval), 0); Console.Ln;
+      Console.String("struct timeval size: "); Console.Int(SizeofTimeval(), 0); Console.Ln;
+       Console.String("Unix.Timezone size: "); Console.Int(SIZE(Timezone), 0); Console.Ln;
+      Console.String("struct timezone size: "); Console.Int(SizeofTimezone(), 0); Console.Ln;
+       Console.String("Unix.Rusage size: "); Console.Int(SIZE(Rusage), 0); Console.Ln;
+      Console.String("struct rusage size: "); Console.Int(SizeofRusage(), 0); Console.Ln;
+       Console.String("Unix.FdSet size: "); Console.Int(SIZE(FdSet), 0); Console.Ln;
+      Console.String("fdset size: "); Console.Int(SizeofFdSet(), 0); Console.Ln;
+      Console.String("Unix.Dirent size: "); Console.Int(SIZE(Dirent), 0); Console.Ln;
+      Console.String("struct dirent size: "); Console.Int(SizeofDirent(), 0); Console.Ln;
+       Console.String("Unix.Iovec size: "); Console.Int(SIZE(Iovec), 0); Console.Ln;
+      Console.String("struct iovec size: "); Console.Int(SizeofIovec(), 0); Console.Ln;
+  END Check;
+*) 
 BEGIN
-
+   
+   (*Check;*)
    StatCheck();
 
 END Unix.

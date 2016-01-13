@@ -63,7 +63,7 @@ END LinkMain;
 
 BEGIN
 
-incPath0 := "src/lib/system/linux/";
+incPath0 := "src/lib/system/openbsd/";
 Strings.Append (compiler, incPath0);
 incPath1 := "lib/voc/obj ";
 ccOpt := " -fPIC -g ";

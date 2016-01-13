@@ -20,7 +20,8 @@ LIBNAME = VishapOberon
 LIBRARY = lib$(LIBNAME)
 
 ifndef PRF
-PRF = "/opt"
+#PRF = "/opt"
+PRF = "/home/noch/local"
 endif
 PREFIX = $(PRF)/voc-$(RELEASE)
 PREFIXLN = $(PRF)/voc
@@ -76,7 +77,8 @@ stage3:
 
 	$(VOCSTATIC0) -siapxPS SYSTEM.Mod 
 	$(VOCSTATIC0) -sPFS Args.Mod Console.Mod Unix.Mod
-	sed -i.tmp "s#/opt#$(PRF)#g" src/voc/prf.Mod
+	sed "s#/opt#$(PRF)#g" src/voc/prf.Mod > tmp.Mod
+	mv tmp.Mod src/voc/prf.Mod
 	$(VOCSTATIC0) -sPFS prf.Mod
 	$(VOCSTATIC0) -sPFS Strings.Mod architecture.Mod version.Mod Kernel0.Mod Modules.Mod
 	$(VOCSTATIC0) -sxPFS Files0.Mod 
