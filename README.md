@@ -59,7 +59,9 @@ Also, Vishaps are known in tales, fiction. This page refers to some technologies
 How to use
 ==========
 
-As we said previously, voc is installed in /opt/voc/bin if you did not change the prefix.
+First you need to [build](https://github.com/norayr/voc/blob/master/COMPILE) it.
+
+As it is stated in [COMPILE](https://github.com/norayr/voc/blob/master/COMPILE) page, voc is installed in /opt/voc/bin if you did not change the prefix.
 So, in order to run voc you need to type 
 
 >/opt/voc/bin/voc
