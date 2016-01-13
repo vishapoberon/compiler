@@ -57,7 +57,7 @@ MODULE Kernel;
   PROCEDURE -sigsetjmp*(VAR env: Unix.JmpBuf; savemask: LONGINT): LONGINT
       "__sigsetjmp(env, savemask)";
 
-  PROCEDURE -siglongjmp*(VAR env:Unix. JmpBuf; val: LONGINT)
+  PROCEDURE -siglongjmp*(VAR env:Unix.JmpBuf; val: LONGINT)
       "siglongjmp(env, val)";
 
   PROCEDURE -heapsize*(): LONGINT

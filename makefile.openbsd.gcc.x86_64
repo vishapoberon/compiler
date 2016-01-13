@@ -20,8 +20,7 @@ LIBNAME = VishapOberon
 LIBRARY = lib$(LIBNAME)
 
 ifndef PRF
-#PRF = "/opt"
-PRF = "/home/noch/local"
+PRF = "/opt"
 endif
 PREFIX = $(PRF)/voc-$(RELEASE)
 PREFIXLN = $(PRF)/voc
