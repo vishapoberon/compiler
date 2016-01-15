@@ -100,7 +100,7 @@ will link the module dynamically.
 Example with two modules
 ====================
 
-If you have more than one module, and you want them to be compiled into elf filethen:
+If you have more than one module, and you want them to be compiled in to elf file then:
 Let's assume we have module M0 which imports M1;
 
 >voc -l M1.Mod -s M0.Mod -M
