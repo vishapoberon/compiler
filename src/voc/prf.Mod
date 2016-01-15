@@ -1,5 +1,5 @@
 MODULE prf;
 
-CONST prefix* = "/home/noch/local";
+CONST prefix* = "/opt";
 
 END prf.
