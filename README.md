@@ -53,7 +53,7 @@ Naming:
 Vishaps are dragons inhabited in Armenian Highlands.
 We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
 
-Also, Vishaps are known in tales, fiction. This page refers to some technologies as “computer science fiction”. Among them to Oberon. This brings another meaning, Oberon is like aliens, ghosts. And Vishaps.
+Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015/04/27/six-works-of-computer-science-fiction/) refers to some technologies as “computer science fiction”. Among them to Oberon. This brings another meaning, Oberon is like aliens, ghosts. And Vishaps.
 
 
 How to use
