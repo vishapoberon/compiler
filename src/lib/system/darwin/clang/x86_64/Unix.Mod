@@ -196,7 +196,8 @@ struct timeval
 *)
 
   Timeval* = RECORD
-    sec*, usec*: LONGINT
+    sec*: LONGINT;
+    usec*: INTEGER
   END ;
 
 

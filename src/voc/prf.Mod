@@ -1,5 +1,5 @@
 MODULE prf;
 
-CONST prefix* = "/opt";
+CONST prefix* = "/Users/antranigv/local";
 
 END prf.

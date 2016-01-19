@@ -122,7 +122,7 @@ MODULE Kernel0;
     rs := readSet;
     FOR n := 0 TO 7 DO ws[n] := {}; xs[n] := {}; readySet[n] := {} END;
     IF delay < 0 THEN delay := 0 END ;
-    tv.sec := delay DIV 1000; tv.usec := delay MOD 1000 * 1000;
+    tv.sec := delay DIV 1000; tv.usec := SHORT(delay MOD 1000 * 1000);
     n := Unix.Select(256, rs, ws, xs, tv);
     IF n >= 0 THEN readySet := rs END
   END Select;
