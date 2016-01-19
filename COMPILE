@@ -39,14 +39,14 @@ otherwise use corresponding makefile.
 Note for FreeBSD, OpenBSD and OSX users:
 use gmake instead of make, i. e.
 
->gmake -f makefile.clang.darwin.x86_64
+>gmake -f makefile.darwin.clang.x86_64
 
 then type
 
 >sudo make install
 
 or
->sudo gmake -f makefile.clang.darwin.x86_64 install
+>sudo gmake -f makefile.darwin.clang.x86_64 install
 
 on MacOSX/Darwin.
 
