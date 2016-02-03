@@ -10,7 +10,7 @@ In case you still want to use line numbers then pass -l option to voc
 
 voc -ls m.Mod
 
-compilation crashes on ARM or Raspberry Pi with recent (like 3.12) kernels.
+compilation crashes on Ubuntu 15.10 x86_64 or latest Raspbians on Raspberry Pi with recent (like 3.12) kernels.
 ===========================================================================
 
 > echo 1 > /proc/sys/vm/legacy_va_layout
