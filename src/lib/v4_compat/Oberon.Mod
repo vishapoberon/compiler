@@ -52,7 +52,7 @@ MODULE Oberon;
     Texts.Append (Par^.text, W.buf);
 
   END PopulateParams;
-
+(*
   PROCEDURE DumpLog*;
   VAR R : Texts.Reader;
       ch : CHAR;
@@ -64,6 +64,35 @@ MODULE Oberon;
 	    Out.Char(ch); 
 	 UNTIL R.eot;
   END DumpLog;
+*)
+
+PROCEDURE TextToString(VAR T : Texts.Text; VAR string : ARRAY OF CHAR);
+   VAR R : Texts.Reader;
+   ch : CHAR;
+   i : LONGINT;
+BEGIN
+   COPY("", string);
+   Texts.OpenReader(R, T, 0);
+   i := 0;
+   WHILE Texts.Pos(R) < T.len DO
+      Texts.Read(R, ch);
+      string[i] := ch;
+      INC(i);
+   END;
+   (*string[i] := 0X;*)
+END TextToString;
+
+PROCEDURE DumpLog*;
+VAR s : POINTER TO ARRAY OF CHAR;
+BEGIN
+   NEW(s, Log.len + 1);
+   COPY("", s^);
+   TextToString(Log, s^);
+   Out.String(s^); Out.Ln;
+
+   NEW(Log);
+   Texts.Open(Log, "");
+END DumpLog;
 
 BEGIN
    NEW(Par);
@@ -72,4 +101,6 @@ BEGIN
    OptionChar := '-';
    Texts.Open(Par.text, "");
    PopulateParams;
+   NEW(Log);
+   Texts.Open(Log, "");
 END Oberon.
