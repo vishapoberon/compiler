@@ -25,7 +25,7 @@ endif
 PREFIX = $(PRF)/voc-$(RELEASE)
 PREFIXLN = $(PRF)/voc
 
-CCOPT = -fPIC $(INCLUDEPATH) -g
+CCOPT = -fPIC $(INCLUDEPATH) -g -fno-stack-protector
 SHRLIBEXT = so
 CC = $(CCOMP) $(CCOPT) -c
 CL = $(CCOMP) $(CCOPT)
