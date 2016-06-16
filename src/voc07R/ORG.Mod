@@ -48,7 +48,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
     fixorgP, fixorgD, fixorgT: LONGINT;   (*origins of lists of locations to be fixed up by loader*)
     check: BOOLEAN;  (*emit run-time checks*)
     version: INTEGER;  (* 0 = RISC-0, 1 = RISC-5 *)
-    
+
     relmap: ARRAY 6 OF INTEGER;  (*condition codes for relations*)
     code: ARRAY maxCode OF LONGINT;
     data: ARRAY maxTD OF LONGINT;  (*type descriptors*)
@@ -58,7 +58,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
    PROCEDURE LSL (x, n : INTEGER): INTEGER;
 
    BEGIN
-   
+
      RETURN ASH(x, n);
    END LSL;
 
@@ -147,7 +147,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
 
   PROCEDURE merged(L0, L1: LONGINT): LONGINT;
     VAR L2, L3: LONGINT;
-  BEGIN 
+  BEGIN
     IF L0 # 0 THEN L3 := L0;
       REPEAT L2 := L3; L3 := code[L2] MOD 40000H UNTIL L3 = 0;
       code[L2] := code[L2] + L1; L1 := L0
@@ -432,7 +432,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
       ELSE load(x); Put1(Mov, RH, 0, 0); Put0(Fsb, x.r, RH, x.r)
       END
     ELSE (*form = Set*)
-      IF x.mode = ORB.Const THEN x.a := -x.a-1 
+      IF x.mode = ORB.Const THEN x.a := -x.a-1
       ELSE load(x); Put1(Xor, x.r, x.r, -1)
       END
     END
@@ -460,7 +460,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
     WHILE ~ODD(m) DO m := m DIV 2; INC(e) END ;
     RETURN m
   END log2;
-  
+
   PROCEDURE MulOp*(VAR x, y: Item);   (* x := x * y *)
     VAR e: LONGINT;
   BEGIN
@@ -516,7 +516,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
 
   PROCEDURE Singleton*(VAR x: Item);  (* x := {x} *)
   BEGIN
-    IF x.mode = ORB.Const THEN 
+    IF x.mode = ORB.Const THEN
        x.a := LSL(1, x.a)
     ELSE load(x); Put1(Mov, RH, 0, 1); Put0(Lsl, x.r, RH,  x.r)
     END
@@ -574,7 +574,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
       ELSIF op = ORS.rdiv THEN Put0(Xor, RH-2, x.r, y.r)
       END ;
       DEC(RH); x.r := RH-1
-    END 
+    END
   END SetOp;
 
   (* Code generation for relations *)
@@ -597,7 +597,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
       ELSE load(y); Put0(Cmp, x.r, x.r, y.r); DEC(RH, 2)
       END ;
       SetCC(x, relmap[op - ORS.eql])
-    ELSE ORS.Mark("illegal relation") 
+    ELSE ORS.Mark("illegal relation")
     END
   END SetRelation;
 
@@ -646,7 +646,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
     VAR s, pc0: LONGINT;
   BEGIN loadAdr(x); loadAdr(y);
     IF (x.type.form = ORB.Array) & (x.type.len > 0) THEN
-      IF y.type.len >= 0 THEN 
+      IF y.type.len >= 0 THEN
         IF x.type.len >= y.type.len THEN Put1a(Mov, RH, 0, (y.type.size+3) DIV 4)
         ELSE ORS.Mark("source array too long")
         END
@@ -684,7 +684,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
   END CopyString;
 
   (* Code generation for parameters *)
-  
+
   PROCEDURE VarParam*(VAR x: Item; ftype: ORB.Type);
     VAR xmd: INTEGER;
   BEGIN xmd := x.mode; loadAdr(x);
@@ -717,7 +717,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
   END For0;
 
   PROCEDURE For1*(VAR x, y, z, w: Item; VAR L: LONGINT);
-  BEGIN 
+  BEGIN
     IF z.mode = ORB.Const THEN Put1a(Cmp, RH, y.r, z.a)
     ELSE load(z); Put0(Cmp, RH-1, y.r, z.r); DEC(RH)
     END ;
@@ -869,7 +869,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
     ELSE Put3(BC, x.r, x.b); FixLink(x.a); x.b := pc-1; cond := 7
     END ;
     Trap(cond, 7); FixLink(x.b)
-  END Assert; 
+  END Assert;
 
   PROCEDURE New*(VAR x: Item);
   BEGIN loadAdr(x); loadTypTagAdr(x.type.base); Put3(BLR, 7, MT); RH := 0; invalSB
@@ -957,7 +957,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
   BEGIN
     IF x.type.len >= 0 THEN x.mode := ORB.Const; x.a := x.type.len
     ELSE (*open array*) Put2(Ldr, RH, SP, x.a + 4 + frame); x.mode := Reg; x.r := RH; incR
-    END 
+    END
   END Len;
 
   PROCEDURE Shift*(fct: LONGINT; VAR x, y: Item);
@@ -1000,7 +1000,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
   END H;
 
   PROCEDURE Adr*(VAR x: Item);
-  BEGIN 
+  BEGIN
     IF x.mode IN {ORB.Var, ORB.Par, RegI} THEN loadAdr(x)
     ELSIF (x.mode = ORB.Const) & (x.type.form = ORB.Proc) THEN load(x)
     ELSIF (x.mode = ORB.Const) & (x.type.form = ORB.String) THEN loadStringAdr(x)
@@ -1077,7 +1077,7 @@ MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
     size := varsize + strx + comsize + (pc + nofimps + nofent + nofptrs + 1)*4;  (*varsize includes type descriptors*)
 
     ORB.MakeFileName(name, modid, ".rsc"); (*write code file*)
-    F := Files.New(name); Files.Set(R, F, 0); Files.WriteString(R, modid); Files.WriteInt(R, key); 
+    F := Files.New(name); Files.Set(R, F, 0); Files.WriteString(R, modid); Files.WriteInt(R, key);
     (*Files.WriteByte(R, version);*) (* who writes like that? -- noch  *)
     Files.WriteByte(R, SHORT(SHORT(version))); (* voc adaptation by noch *)
     Files.WriteInt(R, size);

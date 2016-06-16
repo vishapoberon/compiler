@@ -71,7 +71,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
       fnt*: Fonts.Font;
       col*, voff*: INTEGER;
       rider: Files.Rider
-    END;     
+    END;
 
   VAR TrailerFile: Files.File;
 
@@ -85,12 +85,12 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
    BEGIN
      RETURN ASH(x, n);
    END LSL;
- 
+
    PROCEDURE ASR (x, n : INTEGER): INTEGER;
    BEGIN
      RETURN ASH(x, n);
    END ASR;
- 
+
 
   (* -------------------- Filing ------------------------*)
 
@@ -108,7 +108,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
       FName: ARRAY 32 OF CHAR;
       Dict: ARRAY 32 OF Fonts.Font;
   BEGIN f := Files.Base(R); N := 1; Q := Trailer(); p := Q;
-    Files.ReadInt(R, off); Files.ReadByte(R, bt); 
+    Files.ReadInt(R, off); Files.ReadByte(R, bt);
     (*fno := bt;*)
     fno := ORD(bt); (* voc adaptation by noch *)
     WHILE fno # 0 DO
@@ -117,14 +117,14 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
         Dict[N] := Fonts.This(FName); INC(N)
       END;
       NEW(q); q.fnt := Dict[fno];
-      Files.ReadByte(R, bt); 
+      Files.ReadByte(R, bt);
       (*q.col := bt;*)
       q.col := ORD(bt); (* voc adaptation by noch *)
-      Files.ReadByte(R, bt); 
+      Files.ReadByte(R, bt);
       (*q.voff := ASR(LSL(bt, -24), 24);*)
       q.voff := ASR(LSL(ORD(bt), -24), 24); (* voc adaptation by noch *)
       Files.ReadInt(R, q.len);
-      Files.ReadByte(R, bt); 
+      Files.ReadByte(R, bt);
       (*fno := bt;*)
       fno := ORD(bt); (* voc adaptation by noch *)
       q.f := f; q.off := off; off := off + q.len;
@@ -139,7 +139,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
       tag: CHAR; len: LONGINT;
   BEGIN f := Files.Old(name);
     IF f # NIL THEN
-      Files.Set(R, f, 0); Files.Read(R, tag); 
+      Files.Set(R, f, 0); Files.Read(R, tag);
       IF tag = TextTag THEN Load(R, T)
       ELSE (*Ascii file*)
         len := Files.Length(f); Q := Trailer();
@@ -245,7 +245,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
     qb.len := qb.len - (beg - org);
     qb.off := qb.off + (beg - org);
     qe := qb;
-    WHILE end > org + p.len DO 
+    WHILE end > org + p.len DO
       org := org + p.len; p := p.next;
       NEW(q); q^ := p^; qe.next := q; q.prev := qe; qe := q
     END;
@@ -278,7 +278,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
     END;
     T.len := T.len + B.len; end := pos + B.len;
     B.last := B.header; B.last.next := NIL; B.len := 0;
-    T.changed := TRUE; 
+    T.changed := TRUE;
     (*T.notify(T, insert, pos, end)*)
     IF T.notify # NIL THEN
        T.notify(T, insert, pos, end)
@@ -322,7 +322,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
       IF 2 IN sel THEN p.voff := voff END;
       p := p.next
     UNTIL p = pe;
-    T.changed := TRUE; 
+    T.changed := TRUE;
     IF T.notify # NIL THEN (* noch *)
        T.notify(T, replace, beg, end)
     END
@@ -356,7 +356,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
 
   PROCEDURE Pos* (VAR R: Reader): LONGINT;
   BEGIN RETURN R.org + R.off
-  END Pos;  
+  END Pos;
 
   (* ------------------ Access: Scanners (NW) ------------------------- *)
 
@@ -453,7 +453,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
     OpenBuf(W.buf); W.fnt := Fonts.Default; W.col := 15; W.voff := 0;
     Files.Set(W.rider, Files.New(""), 0)
   END OpenWriter;
-  
+
   PROCEDURE SetFont* (VAR W: Writer; fnt: Fonts.Font);
   BEGIN W.fnt := fnt
   END SetFont;
@@ -502,7 +502,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
       WHILE n > i DO Write(W, " "); DEC(n) END;
       IF x < 0 THEN Write(W, "-") END;
       REPEAT DEC(i); Write(W, a[i]) UNTIL i = 0
-    (*END*) 
+    (*END*)
   END WriteInt;
 
   PROCEDURE WriteHex* (VAR W: Writer; x: LONGINT);
@@ -515,7 +515,7 @@ MODULE CompatTexts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014
     UNTIL i = 8;
     REPEAT DEC(i); Write(W, a[i]) UNTIL i = 0
   END WriteHex;
-(* commented out because it's not necessary to compile OR compiler; -- noch 
+(* commented out because it's not necessary to compile OR compiler; -- noch
   PROCEDURE WriteReal* (VAR W: Writer; x: REAL; n: INTEGER);
     VAR e, i, m: INTEGER; x0: REAL; neg: BOOLEAN;
       d: ARRAY 16 OF CHAR;

@@ -45,7 +45,7 @@ PROCEDURE This*(name: ARRAY OF CHAR): Font;
 
   TYPE RunRec = RECORD beg, end: BYTE END ;
     BoxRec = RECORD dx, x, y, w, h: BYTE END ;
-    
+
   VAR F: Font; LF: LargeFont;
     f: Files.File; R: Files.Rider;
     NofRuns, NofBoxes: BYTE;
@@ -73,7 +73,7 @@ BEGIN F := root;
         Files.ReadByte(R, b); (*abstraction*)
         Files.ReadByte(R, b); (*family*)
         Files.ReadByte(R, b); (*variant*)
-        NEW(F); 
+        NEW(F);
 	(*F.name := name;*)
 	COPY(name, F.name); (* voc adaptation by noch *)
         RdInt16(R, height); RdInt16(R, minX); RdInt16(R, maxX); RdInt16(R, minY); RdInt16(R, maxY); RdInt16(R, NofRuns);
@@ -84,7 +84,7 @@ BEGIN F := root;
         WHILE k # ORD(NofRuns) DO (* voc adaptation by noch *)
           RdInt16(R, beg);
           run[k].beg := beg; RdInt16(R, end);
-          run[k].end := end; 
+          run[k].end := end;
 	  (*NofBoxes := NofBoxes + end - beg;*)
 	  NofBoxes := CHR(ORD(NofBoxes) + ORD(end) - ORD(beg)); (* voc adaptation by noch *)
 	  INC(k)

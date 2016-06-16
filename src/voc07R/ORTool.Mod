@@ -25,7 +25,7 @@ MODULE ORTool;  (*NW 18.2.2013*)
         Texts.WriteString(W, "  size = "); Texts.WriteInt(W, size, 1)
       ELSIF form = ORB.Record THEN
         ReadType(R);  (*base type*)
-        Files.ReadNum(R, off); Texts.WriteString(W, "  exno = "); Texts.WriteInt(W, off, 1); 
+        Files.ReadNum(R, off); Texts.WriteString(W, "  exno = "); Texts.WriteInt(W, off, 1);
         Files.ReadNum(R, off); Texts.WriteString(W, "  extlev = "); Texts.WriteInt(W, off, 1);
         Files.ReadNum(R, size); Texts.WriteString(W, "  size = "); Texts.WriteInt(W, size, 1);
         Texts.Write(W, " "); Texts.Write(W, "{"); Read(R, class);
@@ -94,7 +94,7 @@ MODULE ORTool;  (*NW 18.2.2013*)
       Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf)
     END
   END DecSym;
-  
+
 (* ---------------------------------------------------*)
 
   PROCEDURE WriteReg(r: LONGINT);
@@ -146,7 +146,7 @@ MODULE ORTool;  (*NW 18.2.2013*)
     VAR ch: CHAR;
   BEGIN Files.Read(R, ch); Texts.WriteString(W, "Sync "); Texts.Write(W, ch); Texts.WriteLn(W)
   END Sync;
-  
+
   PROCEDURE Write(VAR R: Files.Rider; x: INTEGER);
   BEGIN Files.WriteByte(R, x)  (* -128 <= x < 128 *)
   END Write;

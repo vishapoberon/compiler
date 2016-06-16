@@ -11,11 +11,11 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
   Mark(msg) records error and delivers error message with Writer W.
   If Get delivers ident, then the identifier (a string) is in variable id, if int or char
   in ival, if real in rval, and if string in str (and slen) *)
-  
+
   CONST IdLen* = 32;
     NKW = 34;  (*nof keywords*)
     maxExp = 38; stringBufSize = 256;
-  
+
     (*lexical symbols*)
     null = 0; times* = 1; rdiv* = 2; div* = 3; mod* = 4;
     and* = 5; plus* = 6; minus* = 7; or* = 8; eql* = 9;
@@ -48,7 +48,7 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
     KWX: ARRAY 10 OF INTEGER;
     keyTab: ARRAY NKW OF
         RECORD sym: INTEGER; id: ARRAY 12 OF CHAR END;
-  
+
   PROCEDURE CopyId*(VAR ident: Ident);
   BEGIN ident := id
   END CopyId;
@@ -75,7 +75,7 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
       IF i < IdLen-1 THEN id[i] := ch; INC(i) END ;
       Texts.Read(R, ch)
     UNTIL (ch < "0") OR (ch > "9") & (ch < "A") OR (ch > "Z") & (ch < "a") OR (ch > "z");
-    id[i] := 0X; 
+    id[i] := 0X;
     IF i < 10 THEN k := KWX[i-1];  (*search for keyword*)
       WHILE (id # keyTab[k].id) & (k < KWX[i]) DO INC(k) END ;
       IF k < KWX[i] THEN sym := keyTab[k].sym ELSE sym := ident END
@@ -158,10 +158,10 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
         UNTIL i = n;
         sym := int; ival := k
       ELSE (*real number*) x := 0.0; e := 0;
-        REPEAT  (*integer part*) 
+        REPEAT  (*integer part*)
 	   (*x := x * 10.0 + FLT(d[i]); *)
    x := x * 10.0 + (d[i]); (* voc adaptation by noch *)
-	   INC(i) 
+	   INC(i)
 	UNTIL i = n;
         WHILE (ch >= "0") & (ch <= "9") DO  (*fraction*)
           (*x := x * 10.0 + FLT(ORD(ch) - 30H);*)
@@ -170,7 +170,7 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
 	  Texts.Read(R, ch)
         END ;
         IF (ch = "E") OR (ch = "D") THEN  (*scale factor*)
-          Texts.Read(R, ch); s := 0; 
+          Texts.Read(R, ch); s := 0;
           IF ch = "-" THEN negE := TRUE; Texts.Read(R, ch)
           ELSE negE := FALSE;
             IF ch = "+" THEN Texts.Read(R, ch) END
@@ -225,7 +225,7 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
           ELSIF ch = "#" THEN Texts.Read(R, ch); sym := neq
           ELSIF ch = "$" THEN HexString; sym := string
           ELSIF ch = "&" THEN Texts.Read(R, ch); sym := and
-          ELSIF ch = "(" THEN Texts.Read(R, ch); 
+          ELSIF ch = "(" THEN Texts.Read(R, ch);
             IF ch = "*" THEN sym := null; comment ELSE sym := lparen END
           ELSIF ch = ")" THEN Texts.Read(R, ch); sym := rparen
           ELSIF ch = "*" THEN Texts.Read(R, ch); sym := times
@@ -239,7 +239,7 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
           END
         ELSIF ch < ":" THEN Number(sym)
         ELSIF ch = ":" THEN Texts.Read(R, ch);
-          IF ch = "=" THEN Texts.Read(R, ch); sym := becomes ELSE sym := colon END 
+          IF ch = "=" THEN Texts.Read(R, ch); sym := becomes ELSE sym := colon END
         ELSIF ch = ";" THEN Texts.Read(R, ch); sym := semicolon
         ELSIF ch = "<" THEN  Texts.Read(R, ch);
           IF ch = "=" THEN Texts.Read(R, ch); sym := leq ELSE sym := lss END
@@ -274,10 +274,10 @@ MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
   END Init;
 
   PROCEDURE EnterKW(sym: INTEGER; name: ARRAY OF CHAR);
-  BEGIN 
+  BEGIN
      (*keyTab[k].id := name; *)
      COPY(name, keyTab[k].id); (* voc adaptation by noch *)
-     keyTab[k].sym := sym; 
+     keyTab[k].sym := sym;
      INC(k)
   END EnterKW;
 

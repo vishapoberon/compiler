@@ -20,7 +20,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
       Byte* = 1; Bool* = 2; Char* = 3; Int* = 4; Real* = 5; Set* = 6;
       Pointer* = 7; NilTyp* = 8; NoTyp* = 9; Proc* = 10;
       String* = 11; Array* = 12; Record* = 13;
-      
+
   TYPE Object* = POINTER TO ObjDesc;
     Module* = POINTER TO ModDesc;
     Type* = POINTER TO TypeDesc;
@@ -79,7 +79,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
       NEW(new); new.name := id; new.class := class; new.next := NIL; new.rdo := FALSE; new.dsc := NIL;
       x.next := new; obj := new
     ELSE obj := x.next; ORS.Mark("mult def")
-    END 
+    END
   END NewObj;
 
   PROCEDURE thisObj*(): Object;
@@ -131,7 +131,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
     REPEAT FName[i]:= ext[j]; INC(i); INC(j) UNTIL ext[j] = 0X;
     FName[i] := 0X
   END MakeFileName;
-  
+
   PROCEDURE ThisModule(name, orgname: ORS.Ident; non: BOOLEAN; key: LONGINT): Object;
     VAR mod: Module; obj, obj1: Object;
   BEGIN obj1 := topScope; obj := obj1.next;  (*search for module*)
@@ -146,14 +146,14 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
     END ;
     RETURN obj
   END ThisModule;
-  
+
   PROCEDURE Read(VAR R: Files.Rider; VAR x: INTEGER);
     VAR b: BYTE;
   BEGIN Files.ReadByte(R, b);
     (*IF b < 80H THEN x := b ELSE x := b - 100H END*)
     IF b < 80X THEN x := ORD(b) ELSE x := ORD(b) - 100H END (* voc adaptation by noch *)
   END Read;
-  
+
   PROCEDURE InType(VAR R: Files.Rider; thismod: Object; VAR T: Type);
     VAR key: LONGINT;
       ref, class, mno, form, np, readonly: INTEGER;
@@ -184,7 +184,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
         InType(R, thismod, t.base);
         obj := NIL; np := 0; Read(R, class);
         WHILE class # 0 DO  (*parameters*)
-          NEW(par); par.class := class; Read(R, readonly); par.rdo := readonly = 1; 
+          NEW(par); par.class := class; Read(R, readonly); par.rdo := readonly = 1;
           InType(R, thismod, par.type); par.next := obj; obj := par; INC(np); Read(R, class)
         END ;
         t.dsc := obj; t.nofpar := np; t.size := 4
@@ -204,7 +204,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
       END
     END
   END InType;
-  
+
   PROCEDURE Import*(VAR modid, modid1: ORS.Ident);
     VAR key: LONGINT; class, k: INTEGER;
       obj: Object;  t: Type;
@@ -240,11 +240,11 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
       END
     END
   END Import;
-  
+
   (*-------------------------------- Export ---------------------------------*)
 
   PROCEDURE Write(VAR R: Files.Rider; x: INTEGER);
-  BEGIN 
+  BEGIN
      (*Files.WriteByte(R, x)*)
      Files.WriteByte(R, SHORT(SHORT(x))) (* voc adaptation by noch *)
   END Write;
@@ -363,7 +363,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
   PROCEDURE Init*;
   BEGIN topScope := universe; nofmod := 1
   END Init;
-  
+
   PROCEDURE type(ref, form: INTEGER; size: LONGINT): Type;
     VAR tp: Type;
   BEGIN NEW(tp); tp.form := form; tp.size := size; tp.ref := ref; tp.base := NIL;
@@ -372,18 +372,18 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
 
   PROCEDURE enter(name: ARRAY OF CHAR; cl: INTEGER; type: Type; n: LONGINT);
     VAR obj: Object;
-  BEGIN 
-     NEW(obj); 
+  BEGIN
+     NEW(obj);
      (*obj.name := name; *)
      COPY(name, obj.name); (* voc adaptation by noch *)
-     obj.class := cl; 
-     obj.type := type; 
-     obj.val := n; 
+     obj.class := cl;
+     obj.type := type;
+     obj.val := n;
      obj.dsc := NIL;
     IF cl = Typ THEN type.typobj := obj END ;
     obj.next := system; system := obj
   END enter;
-  
+
 BEGIN
   byteType := type(Byte, Int, 1);
   boolType := type(Bool, Bool, 1);
@@ -394,7 +394,7 @@ BEGIN
   nilType := type(NilTyp, NilTyp, 4);
   noType := type(NoTyp, NoTyp, 4);
   strType := type(String, String, 8);
-    
+
   (*initialize universe with data types and in-line procedures;
     LONGINT is synonym to INTEGER, LONGREAL to REAL.
     LED, ADC, SBC; LDPSR, LDREG, REG, COND are not in language definition*)
@@ -430,7 +430,7 @@ BEGIN
   enter("LONGINT", Typ, intType, 0);
   enter("INTEGER", Typ, intType, 0);
   topScope := NIL; OpenScope; topScope.next := system; universe := topScope;
-  
+
   system := NIL;  (* initialize "unsafe" pseudo-module SYSTEM*)
   enter("H", SFunc, intType, 201);     (*functions*)
   enter("COND", SFunc, boolType, 191);

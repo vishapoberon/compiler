@@ -1,11 +1,11 @@
 MODULE LSS; (* NW 16.10.93 / 1.9.2015*)
   IMPORT Texts, Oberon;
-  
+
   CONST IdLen* = 32; NofKeys = 11;
     (*symbols*) null = 0;
     arrow* = 1; times* = 2; div* = 3; and* = 4; plus* = 5; minus* = 6; or* = 7; xor* = 8;  not* = 9;
     eql* = 10; neq* = 11; lss* = 12; leq* = 13; gtr* = 14; geq* = 15;
-    at* = 16; apo* = 17; period* = 18; comma* = 19; colon* = 20; rparen* = 21; rbrak* = 22; rbrace* = 23; 
+    at* = 16; apo* = 17; period* = 18; comma* = 19; colon* = 20; rparen* = 21; rbrak* = 22; rbrace* = 23;
     then* = 24; lparen* = 26; lbrak* = 27; lbrace* = 28; repl* = 29; becomes* = 30;
     ident* = 31; integer* = 32; ts* = 33; semicolon* = 40; end* = 41;
     const* = 51; type* = 52; reg* = 53; var* = 54; out* = 55; inout* = 56; in* = 57;
@@ -34,7 +34,7 @@ MODULE LSS; (* NW 16.10.93 / 1.9.2015*)
     END ;
     errpos := p; error := TRUE
   END Mark;
-  
+
   PROCEDURE identifier(VAR sym: INTEGER);
     VAR i: INTEGER;
   BEGIN i := 0;
@@ -97,14 +97,14 @@ MODULE LSS; (* NW 16.10.93 / 1.9.2015*)
     REPEAT
       WHILE ~R.eot & (ch <= " ") DO Texts.Read(R, ch) END;
       IF R.eot THEN sym := eof
-      ELSIF ch < "A" THEN 
+      ELSIF ch < "A" THEN
         IF ch < "0" THEN
           IF ch = "!" THEN Texts.Read(R, ch); sym := repl
           ELSIF ch = "#" THEN Texts.Read(R, ch); sym := neq
           ELSIF ch = "$" THEN Texts.Read(R, ch); sym := null
           ELSIF ch = "&" THEN Texts.Read(R, ch); sym := and
           ELSIF ch = "'" THEN Texts.Read(R, ch); sym := apo
-          ELSIF ch = "(" THEN Texts.Read(R, ch); 
+          ELSIF ch = "(" THEN Texts.Read(R, ch);
             IF ch = "*" THEN sym := null; comment ELSE sym := lparen END
           ELSIF ch = ")" THEN Texts.Read(R, ch); sym := rparen
           ELSIF ch = "*" THEN Texts.Read(R, ch); sym := times
@@ -149,7 +149,7 @@ MODULE LSS; (* NW 16.10.93 / 1.9.2015*)
   PROCEDURE Init*(T: Texts.Text; pos: LONGINT);
   BEGIN error := FALSE; errpos := pos; Texts.OpenReader(R, T, pos); Texts.Read(R, ch)
   END Init;
-  
+
 BEGIN Texts.OpenWriter(W);
   key[ 0] := "BEGIN"; symno[0] := begin;
   key[ 1] := "CONST"; symno[1] := const;
