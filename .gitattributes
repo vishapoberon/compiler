@@ -1,0 +1,34 @@
+# Cygwin git and github for windows differ in their eol convention: Github for
+# windows uses crlf, but cygwin git uses LF.
+# Since we want the same enlistment to work both ways, we need to specify and stick
+# with end of line convention for all files.
+# Therefore we choose LF for all files except windows command scripts.
+
+* text=auto
+
+*.md text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.Mod text eol=lf
+*.mod text eol=lf
+*.make text eol=lf
+*makefile text eol=lf
+*.sh text eol=lf
+.git* text eol=lf
+
+*.cmd text eol=crlf
+
+
+# Symbol files are binaries
+*.sym binary
+
+# Other binaries (these are not normally checked in.)
+*.o binary
+*.obj binary
+*stackdump binary
+*exe binary
+
+# Provide type information to improve block annotation in git diff output.
+*.Mod diff=pascal
+*.c   diff=cpp
+*.h   diff=cpp
