@@ -1,11 +1,11 @@
 MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
 
   IMPORT OPM;
-  
+
   CONST
     MaxStrLen* = 256;
     MaxIdLen = 256;
-  
+
   TYPE
     Name* = ARRAY MaxIdLen OF CHAR;
     String* = ARRAY MaxStrLen OF CHAR;
@@ -13,12 +13,12 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   (* name, str, numtyp, intval, realval, lrlval are implicit results of Get *)
 
   VAR
-    name*: Name;
-    str*: String;
-    numtyp*: INTEGER; (* 1 = char, 2 = integer, 3 = real, 4 = longreal *)
-    intval*: LONGINT;  (* integer value or string length *)
+    name*:    Name;
+    str*:     String;
+    numtyp*:  INTEGER;  (* 1 = char, 2 = integer, 3 = real, 4 = longreal *)
+    intval*:  LONGINT;  (* integer value or string length *)
     realval*: REAL;
-    lrlval*: LONGREAL;
+    lrlval*:  LONGREAL;
 
   (*symbols:
       |  0          1          2          3          4
@@ -62,7 +62,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   PROCEDURE err(n: INTEGER);
   BEGIN OPM.err(n)
   END err;
-  
+
   PROCEDURE Str(VAR sym: SHORTINT);
     VAR i: INTEGER; och: CHAR;
   BEGIN i := 0; och := ch;
@@ -110,7 +110,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
       ELSE err(2); RETURN 0
       END
     END Ord;
-    
+
   BEGIN (* ("0" <= ch) & (ch <= "9") *)
     i := 0; m := 0; n := 0; d := 0;
     LOOP (* read mantissa *)

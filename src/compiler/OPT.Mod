@@ -4,148 +4,154 @@ MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
 2002-08-20 jt: NewStr: txtpos remains 0 for structs read from symbol file
 *)
 
-IMPORT
-OPS, OPM;
+IMPORT OPS, OPM;
 
 CONST
-MaxConstLen* = OPS.MaxStrLen;
+  MaxConstLen* = OPS.MaxStrLen;
 
 TYPE
-Const* = POINTER TO ConstDesc;
-Object* = POINTER TO ObjDesc;
-Struct* = POINTER TO StrDesc;
-Node* = POINTER TO NodeDesc;
-ConstExt* = POINTER TO OPS.String;
+  Const*    = POINTER TO ConstDesc;
+  Object*   = POINTER TO ObjDesc;
+  Struct*   = POINTER TO StrDesc;
+  Node*     = POINTER TO NodeDesc;
+  ConstExt* = POINTER TO OPS.String;
 
-ConstDesc* = RECORD
-ext*: ConstExt;  (* string or code for code proc *)
-intval*: LONGINT;  (* constant value or adr, proc par size, text position or least case label *)
-intval2*: LONGINT;  (* string length, proc var size or larger case label *)
-setval*: SET;  (* constant value, procedure body present or "ELSE" present in case *)
-realval*: LONGREAL  (* real or longreal constant value *)
-END ;
+  ConstDesc* = RECORD
+    ext*:      ConstExt; (* string or code for code proc *)
+    intval*:   LONGINT;  (* constant value or adr, proc par size, text position or least case label *)
+    intval2*:  LONGINT;  (* string length, proc var size or larger case label *)
+    setval*:   SET;      (* constant value, procedure body present or "ELSE" present in case *)
+    realval*:  LONGREAL  (* real or longreal constant value *)
+  END ;
 
-ObjDesc* = RECORD
-left*, right*, link*, scope*: Object;
-name*: OPS.Name;
-leaf*: BOOLEAN;
-mode*, mnolev*: SHORTINT;  (* mnolev < 0 -> mno = -mnolev *)
-vis*: SHORTINT;  (* internal, external, externalR *)
-history*: SHORTINT;  (* relevant if name # "" *)
-used*, fpdone*: BOOLEAN;
-fprint*: LONGINT;
-typ*: Struct;
-conval*: Const;
-adr*, linkadr*: LONGINT;
-x*: INTEGER  (* linkadr and x can be freely used by the backend *)
-END ;
+  ObjDesc* = RECORD
+    left*, right*:  Object;
+    link*, scope*:  Object;
+    name*:          OPS.Name;
+    leaf*:          BOOLEAN;
+    mode*, mnolev*: SHORTINT;  (* mnolev < 0 -> mno = -mnolev *)
+    vis*:           SHORTINT;  (* internal, external, externalR *)
+    history*:       SHORTINT;  (* relevant if name # "" *)
+    used*, fpdone*: BOOLEAN;
+    fprint*:        LONGINT;
+    typ*:           Struct;
+    conval*:        Const;
+    adr*, linkadr*: LONGINT;
+    x*:             INTEGER    (* linkadr and x can be freely used by the backend *)
+  END ;
 
-StrDesc* = RECORD
-form*, comp*, mno*, extlev*: SHORTINT;
-ref*, sysflag*: INTEGER;
-n*, size*, align*, txtpos*: LONGINT;  (* align is alignment for records and len offset for dynarrs *)
-allocated*, pbused*, pvused*, fpdone, idfpdone: BOOLEAN;
-idfp, pbfp*, pvfp*:LONGINT;
-BaseTyp*: Struct;
-link*, strobj*: Object
-END ;
+  StrDesc* = RECORD
+    form*, comp*:       SHORTINT;
+    mno*, extlev*:      SHORTINT;
+    ref*, sysflag*:     INTEGER;
+    n*, size*:          LONGINT;
+    align*, txtpos*:    LONGINT;  (* align is alignment for records and len offset for dynarrs *)
+    allocated*:         BOOLEAN;
+    pbused*, pvused*:   BOOLEAN;
+    fpdone, idfpdone:   BOOLEAN;
+    idfp, pbfp*, pvfp*: LONGINT;
+    BaseTyp*:           Struct;
+    link*, strobj*:     Object
+  END ;
 
-NodeDesc* = RECORD
-left*, right*, link*: Node;
-class*, subcl*: SHORTINT;
-readonly*: BOOLEAN;
-typ*: Struct;
-obj*: Object;
-conval*: Const
-END ;
+  NodeDesc* = RECORD
+    left*, right*, link*: Node;
+    class*, subcl*:       SHORTINT;
+    readonly*:            BOOLEAN;
+    typ*:                 Struct;
+    obj*:                 Object;
+    conval*:              Const
+  END ;
 
 CONST
-maxImps = 64;  (* must be <= MAX(SHORTINT) *)
-maxStruct = OPM.MaxStruct;  (* must be < MAX(INTEGER) DIV 2 *)
-FirstRef = (*20*)16; (* comp + 1 *)
+  maxImps = 64;  (* must be <= MAX(SHORTINT) *)
+  maxStruct = OPM.MaxStruct;  (* must be < MAX(INTEGER) DIV 2 *)
+  FirstRef = (*20*)16; (* comp + 1 *)
 
 VAR
-typSize*: PROCEDURE(typ: Struct);
-topScope*: Object;
-undftyp*, bytetyp*, booltyp*, chartyp*, sinttyp*, inttyp*, linttyp*,
-realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, sysptrtyp*(*,
-int8typ*, int16typ*, int32typ*, int64typ* *): Struct;
-nofGmod*: SHORTINT;  (*nof imports*)
-GlbMod*: ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
-SelfName*: OPS.Name;  (* name of module being compiled *)
-SYSimported*: BOOLEAN;
+  typSize*: PROCEDURE(typ: Struct);
+  topScope*: Object;
+  undftyp*, bytetyp*, booltyp*, chartyp*, sinttyp*, inttyp*, linttyp*,
+  realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, sysptrtyp*(*,
+  int8typ*, int16typ*, int32typ*, int64typ* *): Struct;
+  nofGmod*: SHORTINT;  (*nof imports*)
+  GlbMod*: ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
+  SelfName*: OPS.Name;  (* name of module being compiled *)
+  SYSimported*: BOOLEAN;
 
 CONST
-(* object modes *)
-Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
-SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
+  (* object modes *)
+  Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
+  SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
 
-(* structure forms *)
-Undef = 0; Byte = 1; Bool = 2; Char = 3;
-SInt = 4; Int = 5; LInt = 6;
-Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-Pointer = 13; ProcTyp = 14;
-Comp = 15;
+  (* structure forms *)
+  Undef = 0; Byte = 1; Bool = 2; Char = 3;
+  SInt = 4; Int = 5; LInt = 6;
+  Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+  Pointer = 13; ProcTyp = 14;
+  Comp = 15;
 
-(*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
-Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
-Pointer = 17; ProcTyp = 18;
-Comp = 19;*)
-(*Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-Pointer = 13; ProcTyp = 14; 
-Int8 = 15; Int16 = 16; Int32 = 17; Int64 = 18;
-Comp = 19;*)
+  (*Int8 = 7; Int16 = 8; Int32 = 9; Int64 = 10;
+  Real = 11; LReal = 12; Set = 13; String = 14; NilTyp = 15; NoTyp = 16;
+  Pointer = 17; ProcTyp = 18;
+  Comp = 19;*)
+  (*Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+  Pointer = 13; ProcTyp = 14;
+  Int8 = 15; Int16 = 16; Int32 = 17; Int64 = 18;
+  Comp = 19;*)
 
-(* composite structure forms *)
-Basic = 1; Array = 2; DynArr = 3; Record = 4;
+  (* composite structure forms *)
+  Basic = 1; Array = 2; DynArr = 3; Record = 4;
 
-(*function number*)
-assign = 0;
-haltfn = 0; newfn = 1; absfn = 2; capfn = 3; ordfn = 4;
-entierfn = 5; oddfn = 6; minfn = 7; maxfn = 8; chrfn = 9;
-shortfn = 10; longfn = 11; sizefn = 12; incfn = 13; decfn = 14;
-inclfn = 15; exclfn = 16; lenfn = 17; copyfn = 18; ashfn = 19; assertfn = 32;
+  (*function number*)
+  assign = 0;
+  haltfn = 0; newfn = 1; absfn = 2; capfn = 3; ordfn = 4;
+  entierfn = 5; oddfn = 6; minfn = 7; maxfn = 8; chrfn = 9;
+  shortfn = 10; longfn = 11; sizefn = 12; incfn = 13; decfn = 14;
+  inclfn = 15; exclfn = 16; lenfn = 17; copyfn = 18; ashfn = 19; assertfn = 32;
 
-(*SYSTEM function number*)
-adrfn = 20; ccfn = 21; lshfn = 22; rotfn = 23;
-getfn = 24; putfn = 25; getrfn = 26; putrfn = 27;
-bitfn = 28; valfn = 29; sysnewfn = 30; movefn = 31;
+  (*SYSTEM function number*)
+  adrfn = 20; ccfn = 21; lshfn = 22; rotfn = 23;
+  getfn = 24; putfn = 25; getrfn = 26; putrfn = 27;
+  bitfn = 28; valfn = 29; sysnewfn = 30; movefn = 31;
 
-(* module visibility of objects *)
-internal = 0; external = 1; externalR = 2;
+  (* module visibility of objects *)
+  internal = 0; external = 1; externalR = 2;
 
-(* history of imported objects *)
-inserted = 0; same = 1; pbmodified = 2; pvmodified = 3; removed = 4; inconsistent = 5;
+  (* history of imported objects *)
+  inserted = 0; same = 1; pbmodified = 2; pvmodified = 3; removed = 4; inconsistent = 5;
 
-(* symbol file items *)
-Smname = 16; Send = 18; Stype = 19; Salias = 20; Svar = 21; Srvar = 22;
-Svalpar = 23; Svarpar = 24; Sfld = 25; Srfld = 26; Shdptr = 27; Shdpro = 28; Stpro = 29; Shdtpro = 30;
-Sxpro = 31; Sipro = 32; Scpro = 33; Sstruct = 34; Ssys = 35; Sptr = 36; Sarr = 37; Sdarr = 38; Srec = 39; Spro = 40;
+  (* symbol file items *)
+  Smname = 16; Send = 18; Stype = 19; Salias = 20; Svar = 21; Srvar = 22;
+  Svalpar = 23; Svarpar = 24; Sfld = 25; Srfld = 26; Shdptr = 27; Shdpro = 28; Stpro = 29; Shdtpro = 30;
+  Sxpro = 31; Sipro = 32; Scpro = 33; Sstruct = 34; Ssys = 35; Sptr = 36; Sarr = 37; Sdarr = 38; Srec = 39; Spro = 40;
 
 TYPE
-ImpCtxt = RECORD
-nextTag, reffp: LONGINT;
-nofr, minr, nofm: INTEGER;
-self: BOOLEAN;
-ref: ARRAY maxStruct OF Struct;
-old: ARRAY maxStruct OF Object;
-pvfp: ARRAY maxStruct OF LONGINT;  (* set only if old # NIL *)
-glbmno: ARRAY maxImps OF SHORTINT  (* index is local mno *)
-END ;
+  ImpCtxt = RECORD
+    nextTag, reffp:   LONGINT;
+    nofr, minr, nofm: INTEGER;
+    self:             BOOLEAN;
+    ref:              ARRAY maxStruct OF Struct;
+    old:              ARRAY maxStruct OF Object;
+    pvfp:             ARRAY maxStruct OF LONGINT;  (* set only if old # NIL *)
+    glbmno:           ARRAY maxImps OF SHORTINT  (* index is local mno *)
+  END ;
 
-ExpCtxt = RECORD
-reffp: LONGINT;
-ref: INTEGER;
-nofm: SHORTINT;
-locmno: ARRAY maxImps OF SHORTINT  (* index is global mno *)
-END ;
+  ExpCtxt = RECORD
+    reffp:  LONGINT;
+    ref:    INTEGER;
+    nofm:   SHORTINT;
+    locmno: ARRAY maxImps OF SHORTINT  (* index is global mno *)
+  END ;
 
 VAR
-universe, syslink: Object;
-impCtxt: ImpCtxt;
-expCtxt: ExpCtxt;
-nofhdfld: LONGINT;
-newsf, findpc, extsf, sfpresent, symExtended, symNew: BOOLEAN;
+  universe, syslink:   Object;
+  impCtxt:             ImpCtxt;
+  expCtxt:             ExpCtxt;
+  nofhdfld:            LONGINT;
+  newsf, findpc:       BOOLEAN;
+  extsf, sfpresent:    BOOLEAN;
+  symExtended, symNew: BOOLEAN;
 
 PROCEDURE err(n: INTEGER);
 BEGIN OPM.err(n)
@@ -244,7 +250,7 @@ END Find;
 
 PROCEDURE FindField*(VAR name: OPS.Name; typ: Struct; VAR res: Object);
 VAR obj: Object;
-BEGIN 
+BEGIN
 WHILE typ # NIL DO obj := typ^.link;
 WHILE obj # NIL DO
 IF name < obj^.name THEN obj := obj^.left
@@ -288,17 +294,16 @@ PROCEDURE ^IdFPrint*(typ: Struct);
 
 PROCEDURE DebugStruct(btyp: Struct);
 BEGIN
-
-                        OPM.LogWLn;
-			IF btyp = NIL THEN OPM.LogWStr("btyp is nil"); OPM.LogWLn END;
-                        OPM.LogWStr("btyp^.strobji^.name = "); OPM.LogWStr(btyp^.strobj^.name); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.form = "); OPM.LogWNum(btyp^.form, 0); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.comp = "); OPM.LogWNum(btyp^.comp, 0); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.mno = "); OPM.LogWNum(btyp^.mno, 0); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.extlev = "); OPM.LogWNum(btyp^.extlev, 0); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.size = "); OPM.LogWNum(btyp^.size, 0); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.align = "); OPM.LogWNum(btyp^.align, 0); OPM.LogWLn;
-                        OPM.LogWStr("btyp^.txtpos = "); OPM.LogWNum(btyp^.txtpos, 0); OPM.LogWLn;
+  OPM.LogWLn;
+  IF btyp = NIL THEN OPM.LogWStr("btyp is nil"); OPM.LogWLn END;
+  OPM.LogWStr("btyp^.strobji^.name = "); OPM.LogWStr(btyp^.strobj^.name); OPM.LogWLn;
+  OPM.LogWStr("btyp^.form = ");   OPM.LogWNum(btyp^.form, 0);   OPM.LogWLn;
+  OPM.LogWStr("btyp^.comp = ");   OPM.LogWNum(btyp^.comp, 0);   OPM.LogWLn;
+  OPM.LogWStr("btyp^.mno = ");    OPM.LogWNum(btyp^.mno, 0);    OPM.LogWLn;
+  OPM.LogWStr("btyp^.extlev = "); OPM.LogWNum(btyp^.extlev, 0); OPM.LogWLn;
+  OPM.LogWStr("btyp^.size = ");   OPM.LogWNum(btyp^.size, 0);   OPM.LogWLn;
+  OPM.LogWStr("btyp^.align = ");  OPM.LogWNum(btyp^.align, 0);  OPM.LogWLn;
+  OPM.LogWStr("btyp^.txtpos = "); OPM.LogWNum(btyp^.txtpos, 0); OPM.LogWLn;
 END DebugStruct;
 
 PROCEDURE FPrintSign(VAR fp: LONGINT; result: Struct; par: Object);
@@ -306,8 +311,8 @@ PROCEDURE FPrintSign(VAR fp: LONGINT; result: Struct; par: Object);
 BEGIN
    IdFPrint(result); OPM.FPrint(fp, result^.idfp);
    WHILE (par # NIL) (*& (par^.typ # NIL)*) DO (* !!! *)
-      OPM.FPrint(fp, par^.mode); 
-      IdFPrint(par^.typ); 
+      OPM.FPrint(fp, par^.mode);
+      IdFPrint(par^.typ);
       OPM.FPrint(fp, par^.typ^.idfp);
       (* par^.name and par^.adr not considered *)
       par := par^.link
@@ -326,7 +331,7 @@ BEGIN
       END ;
       IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
          IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
-      ELSIF c = Array THEN 
+      ELSIF c = Array THEN
          IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
       ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
       END ;
@@ -366,7 +371,7 @@ WHILE (fld # NIL) & (fld^.mode = Fld) DO
    IF (fld^.vis # internal) & visible THEN
       OPM.FPrint(pbfp, fld^.vis); FPrintName(pbfp, fld^.name); OPM.FPrint(pbfp, fld^.adr);
       FPrintStr(fld^.typ); OPM.FPrint(pbfp, fld^.typ^.pbfp); OPM.FPrint(pvfp, fld^.typ^.pvfp)
-   ELSE 
+   ELSE
       FPrintHdFld(fld^.typ, fld, fld^.adr + adr)
    END ;
    fld := fld^.link
@@ -453,26 +458,26 @@ BEGIN
    END
 END FPrintObj;
 
-PROCEDURE FPrintErr*(obj: Object; errno: INTEGER);
+PROCEDURE FPrintErr*(obj: Object; errcode: INTEGER);
 VAR i, j: INTEGER; ch: CHAR;
 BEGIN
-IF obj^.mnolev # 0 THEN
-COPY(GlbMod[-obj^.mnolev]^.name, OPM.objname); i := 0;
-WHILE OPM.objname[i] # 0X DO INC(i) END ;
-OPM.objname[i] := "."; j := 0; INC(i);
-REPEAT ch := obj^.name[j]; OPM.objname[i] := ch; INC(j); INC(i) UNTIL ch = 0X;
-ELSE
-COPY(obj^.name, OPM.objname)
-END ;
-IF errno = 249 THEN
-IF OPM.noerr THEN err(errno) END
-ELSIF errno = 253 THEN  (* extension *)
-IF ~symNew & ~symExtended & ~extsf THEN err(errno) END ;
-symExtended := TRUE
-ELSE
-IF ~symNew & ~newsf THEN err(errno) END ;
-symNew := TRUE
-END
+  IF obj^.mnolev # 0 THEN
+    COPY(GlbMod[-obj^.mnolev]^.name, OPM.objname); i := 0;
+    WHILE OPM.objname[i] # 0X DO INC(i) END ;
+    OPM.objname[i] := "."; j := 0; INC(i);
+    REPEAT ch := obj^.name[j]; OPM.objname[i] := ch; INC(j); INC(i) UNTIL ch = 0X;
+  ELSE
+    COPY(obj^.name, OPM.objname)
+  END ;
+  IF errcode = 249 THEN
+    IF OPM.noerr THEN err(errcode) END
+  ELSIF errcode = 253 THEN  (* extension *)
+    IF ~symNew & ~symExtended & ~extsf THEN err(errcode) END ;
+    symExtended := TRUE
+  ELSE
+    IF ~symNew & ~newsf THEN err(errcode) END ;
+    symNew := TRUE
+  END
 END FPrintErr;
 
 (*-------------------------- Import --------------------------*)
@@ -625,20 +630,20 @@ VAR mno: SHORTINT; ref: INTEGER; tag: LONGINT; name: OPS.Name;
 t: Struct; obj, last, fld, old, dummy: Object;
 BEGIN
    tag := OPM.SymRInt();
-   IF tag # Sstruct THEN 
+   IF tag # Sstruct THEN
       typ := impCtxt.ref[-tag]
    ELSE
       ref := impCtxt.nofr; INC(impCtxt.nofr);
       IF ref < impCtxt.minr THEN impCtxt.minr := ref END ;
       InMod(mno); InName(name); obj := NewObj();
       IF name = "" THEN
-         IF impCtxt.self THEN 
-	    old := NIL  (* do not insert type desc anchor here, but in OPL *)
-        ELSE 
-	    obj^.name := "@"; InsertImport(obj, GlbMod[mno].right, old(*=NIL*)); obj^.name := ""
+         IF impCtxt.self THEN
+      old := NIL  (* do not insert type desc anchor here, but in OPL *)
+        ELSE
+      obj^.name := "@"; InsertImport(obj, GlbMod[mno].right, old(*=NIL*)); obj^.name := ""
          END ;
          typ := NewStr(Undef, Basic)
-      ELSE 
+      ELSE
          obj^.name := name; InsertImport(obj, GlbMod[mno].right, old);
          IF old # NIL THEN  (* recalculate fprints to compare with old fprints *)
             FPrintObj(old); impCtxt.pvfp[ref] := old^.typ^.pvfp;
@@ -648,11 +653,11 @@ BEGIN
                typ := old^.typ; typ^.link := NIL; typ^.sysflag := 0;
                typ^.fpdone := FALSE; typ^.idfpdone := FALSE
             END
-         ELSE 
-	    typ := NewStr(Undef, Basic)
+         ELSE
+      typ := NewStr(Undef, Basic)
          END
       END ;
-      impCtxt.ref[ref] := typ; impCtxt.old[ref] := old; 
+      impCtxt.ref[ref] := typ; impCtxt.old[ref] := old;
       typ^.ref := ref + maxStruct;
       (* ref >= maxStruct: not exported yet, ref used for err 155 *)
       typ^.mno := mno; typ^.allocated := TRUE;
@@ -662,27 +667,27 @@ BEGIN
       IF tag = Ssys THEN typ^.sysflag := SHORT(OPM.SymRInt()); tag := OPM.SymRInt() END ;
       CASE tag OF
          | Sptr:
-               typ^.form := Pointer; typ^.size := OPM.PointerSize; 
-	       typ^.n := 0; InStruct(typ^.BaseTyp)
+               typ^.form := Pointer; typ^.size := OPM.PointerSize;
+         typ^.n := 0; InStruct(typ^.BaseTyp)
          | Sarr:
-               typ^.form := Comp; typ^.comp := Array; 
-	       InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
+               typ^.form := Comp; typ^.comp := Array;
+         InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
                typSize(typ) (* no bounds address !! *)
          | Sdarr:
                typ^.form := Comp; typ^.comp := DynArr; InStruct(typ^.BaseTyp);
-               IF typ^.BaseTyp^.comp = DynArr THEN 
-	          typ^.n := typ^.BaseTyp^.n + 1
-               ELSE 
-	          typ^.n := 0
+               IF typ^.BaseTyp^.comp = DynArr THEN
+            typ^.n := typ^.BaseTyp^.n + 1
+               ELSE
+            typ^.n := 0
                END ;
                typSize(typ)
          | Srec:
-                typ^.form := Comp; typ^.comp := Record; 
-		InStruct(typ^.BaseTyp);
+                typ^.form := Comp; typ^.comp := Record;
+    InStruct(typ^.BaseTyp);
                 IF typ^.BaseTyp = notyp THEN typ^.BaseTyp := NIL END;
                 typ.extlev := 0; t := typ.BaseTyp;
                 (* do not take extlev from base type due to possible cycles! *)
-		WHILE (t # NIL) (*& (t^.BaseTyp # t)*)(*(t^.(*BaseTyp^.*)form # 0)*) DO INC(typ^.extlev); t := t.BaseTyp END; (* !!! *)
+    WHILE (t # NIL) (*& (t^.BaseTyp # t)*)(*(t^.(*BaseTyp^.*)form # 0)*) DO INC(typ^.extlev); t := t.BaseTyp END; (* !!! *)
                 typ^.size := OPM.SymRInt(); typ^.align := OPM.SymRInt();
                 typ^.n := OPM.SymRInt();
                 impCtxt.nextTag := OPM.SymRInt(); last := NIL;
@@ -692,16 +697,16 @@ BEGIN
                    last := fld; InsertImport(fld, typ^.link, dummy);
                    impCtxt.nextTag := OPM.SymRInt()
                 END ;
-		WHILE impCtxt.nextTag # Send DO
-		   fld := InTProc(mno);
+    WHILE impCtxt.nextTag # Send DO
+       fld := InTProc(mno);
                    InsertImport(fld, typ^.link, dummy);
                    impCtxt.nextTag := OPM.SymRInt()
                 END
          | Spro:
-                typ^.form := ProcTyp; typ^.size := OPM.ProcSize; 
-		InSign(mno, typ^.BaseTyp, typ^.link)
-         ELSE 
-	    OPM.LogWStr("unhandled case at OPT.InStruct, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
+                typ^.form := ProcTyp; typ^.size := OPM.ProcSize;
+    InSign(mno, typ^.BaseTyp, typ^.link)
+         ELSE
+      OPM.LogWStr("unhandled case at OPT.InStruct, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
 END ;
       IF ref = impCtxt.minr THEN
          WHILE (ref < impCtxt.nofr) (*OR ((ref >= Int8) & (ref <= Int64))*) DO
@@ -709,40 +714,40 @@ END ;
             obj := t^.strobj;  (* obj^.typ^.strobj = obj, else obj^.fprint differs (alias) *)
             IF obj^.name # "" THEN FPrintObj(obj) END ;
             old := impCtxt.old[ref];
-            IF old # NIL THEN 
-	       t^.strobj := old;  (* restore strobj *)
+            IF old # NIL THEN
+         t^.strobj := old;  (* restore strobj *)
                IF impCtxt.self THEN
                   IF old^.mnolev < 0 THEN
-	             IF old^.history # inconsistent THEN
-	                IF old^.fprint # obj^.fprint THEN 
-			   old^.history := pbmodified
-	                ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN 
-			   old^.history := pvmodified
-	                END
-	(* ELSE remain inconsistent *)
-	             END
-                  ELSIF old^.fprint # obj^.fprint THEN 
-		     old^.history := pbmodified
-                  ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN 
-		     old^.history := pvmodified
-                  ELSIF old^.vis = internal THEN 
-		     old^.history := same  (* may be changed to "removed" in InObj *)
-                  ELSE 
-		     old^.history := inserted  (* may be changed to "same" in InObj *)
+               IF old^.history # inconsistent THEN
+                  IF old^.fprint # obj^.fprint THEN
+         old^.history := pbmodified
+                  ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN
+         old^.history := pvmodified
+                  END
+  (* ELSE remain inconsistent *)
+               END
+                  ELSIF old^.fprint # obj^.fprint THEN
+         old^.history := pbmodified
+                  ELSIF impCtxt.pvfp[ref] # t^.pvfp THEN
+         old^.history := pvmodified
+                  ELSIF old^.vis = internal THEN
+         old^.history := same  (* may be changed to "removed" in InObj *)
+                  ELSE
+         old^.history := inserted  (* may be changed to "same" in InObj *)
                   END
                ELSE
                   (* check private part, delay error message until really used *)
-                  IF impCtxt.pvfp[ref] # t^.pvfp THEN 
-		     old^.history := inconsistent 
-		  END ;
-                  IF old^.fprint # obj^.fprint THEN 
-		     FPrintErr(old, 249) 
-		  END
+                  IF impCtxt.pvfp[ref] # t^.pvfp THEN
+         old^.history := inconsistent
+      END ;
+                  IF old^.fprint # obj^.fprint THEN
+         FPrintErr(old, 249)
+      END
                END
-            ELSIF impCtxt.self THEN 
-	       obj^.history := removed
-            ELSE 
-	       obj^.history := same
+            ELSIF impCtxt.self THEN
+         obj^.history := removed
+            ELSE
+         obj^.history := same
             END ;
             INC(ref)
          END ;
@@ -774,12 +779,12 @@ END InStruct;
           ext := NewExt(); obj^.conval^.ext := ext;
           s := SHORT(OPM.SymRInt()); ext^[0] := CHR(s); i := 1;
           WHILE i <= s DO OPM.SymRCh(ext^[i]); INC(i) END
-	ELSE
-	   OPM.LogWStr("unhandled case at OPT.InObj, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
+  ELSE
+     OPM.LogWStr("unhandled case at OPT.InObj, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
         END
       ELSIF tag = Salias THEN
         obj^.mode := Typ; InStruct(obj^.typ)
-      ELSE    
+      ELSE
         obj^.mode := Var;
         IF tag = Srvar THEN obj^.vis := externalR END ;
         InStruct(obj^.typ)
@@ -852,7 +857,7 @@ END InStruct;
   BEGIN i := 0;
     REPEAT ch := name[i]; OPM.SymWCh(ch); INC(i) UNTIL ch = 0X
   END OutName;
-  
+
   PROCEDURE OutMod(mno: INTEGER);
   BEGIN
     IF expCtxt.locmno[mno] < 0 THEN (* new mod *)
@@ -950,7 +955,7 @@ END InStruct;
         | pvmodified: FPrintErr(strobj, 251)
         | inconsistent: FPrintErr(strobj, 249)
         ELSE (* checked in OutObj or correct indirect export *)
-	  (* OPM.LogWStr("unhandled case at OPT.OutStr, strobj^.history = "); OPM.LogWNum(strobj^.history, 0); OPM.LogWLn;*)
+    (* OPM.LogWStr("unhandled case at OPT.OutStr, strobj^.history = "); OPM.LogWNum(strobj^.history, 0); OPM.LogWLn;*)
         END
       ELSE OPM.SymWCh(0X)  (* anonymous => never inconsistent, pvfp influences the client fp *)
       END ;
@@ -974,10 +979,10 @@ END InStruct;
           nofhdfld := 0; OutFlds(typ^.link, 0, TRUE);
           IF nofhdfld > OPM.MaxHdFld THEN OPM.Mark(223, typ^.txtpos) END ;
           OutTProcs(typ, typ^.link); OPM.SymWInt(Send)
-	ELSE
-	   OPM.LogWStr("unhandled case at OPT.OutStr, typ^.comp = "); OPM.LogWNum(typ^.comp, 0); OPM.LogWLn;
+  ELSE
+     OPM.LogWStr("unhandled case at OPT.OutStr, typ^.comp = "); OPM.LogWNum(typ^.comp, 0); OPM.LogWLn;
         END
-      ELSE OPM.LogWStr("unhandled case at OPT.OutStr, typ^.form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;	
+      ELSE OPM.LogWStr("unhandled case at OPT.OutStr, typ^.form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;
       END
     END
   END OutStr;
@@ -1017,8 +1022,8 @@ END InStruct;
           | same:  (* ok *)
           | pbmodified: FPrintErr(obj, 252)
           | pvmodified: FPrintErr(obj, 251)
-	  ELSE
-	     OPM.LogWStr("unhandled case at OPT.OutObj, obj^.history = "); OPM.LogWNum(obj^.history, 0); OPM.LogWLn;
+    ELSE
+       OPM.LogWStr("unhandled case at OPT.OutObj, obj^.history = "); OPM.LogWNum(obj^.history, 0); OPM.LogWLn;
           END ;
           CASE obj^.mode OF
           | Con:
@@ -1043,8 +1048,8 @@ END InStruct;
             j := ORD(ext^[0]); i := 1; OPM.SymWInt(j);
             WHILE i <= j DO OPM.SymWCh(ext^[i]); INC(i) END ;
             OutName(obj^.name)
-	  ELSE
-	     OPM.LogWStr("unhandled case at OPT.OutObj, obj.mode = "); OPM.LogWNum(obj.mode, 0); OPM.LogWLn;
+    ELSE
+       OPM.LogWStr("unhandled case at OPT.OutObj, obj.mode = "); OPM.LogWNum(obj.mode, 0); OPM.LogWLn;
           END
         END
       END ;
@@ -1066,17 +1071,17 @@ END InStruct;
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END ;
         OutObj(topScope^.right);
         ext := sfpresent & symExtended; new := ~sfpresent OR symNew;
-	IF OPM.forceNewSym THEN 
-	   new := TRUE
-	END; (* for bootstrapping -- noch *)
+  IF OPM.forceNewSym THEN
+     new := TRUE
+  END; (* for bootstrapping -- noch *)
         IF OPM.noerr & sfpresent & (impCtxt.reffp # expCtxt.reffp) THEN
           new := TRUE;
           IF ~extsf THEN err(155) END
         END ;
         newsf := FALSE; symNew := FALSE;  (* because of call to FPrintErr from OPL *)
-        IF ~OPM.noerr OR findpc THEN 
-	   OPM.DeleteNewSym 
-	END
+        IF ~OPM.noerr OR findpc THEN
+     OPM.DeleteNewSym
+  END
         (* OPM.RegisterNewSym is called in OP2 after writing the object file *)
       END
     END
@@ -1202,7 +1207,7 @@ Objects:
     Mod   |                         scope           Module
     Head  | txtpos         owner    firstvar        Scope anchor
     TProc | index  sizes   firstpar scope    leaf   Bound procedure, index = 10000H*mthno+entry, entry adr set in back-end
-                                                    
+
     Structures:
 
     form    comp  | n      BaseTyp   link     mno  txtpos   sysflag
@@ -1238,7 +1243,7 @@ stat     = NIL|Ninittd|Nenter|Nassign|Ncall|Nifelse|Ncase|Nwhile|Nrepeat|
            Nloop|Nexit|Nreturn|Nwith|Ntrap.
 
 
-              class     subcl     obj      left      right     link      
+              class     subcl     obj      left      right     link
               ---------------------------------------------------------
 
 design        Nvar                var                          nextexpr
@@ -1255,7 +1260,7 @@ design        Nvar                var                          nextexpr
 
 expr          design
               Nconst              const                                 (val = node^.conval)
-              Nupto                        expr      expr      nextexpr 
+              Nupto                        expr      expr      nextexpr
               Nmop      not                expr                nextexpr
                         minus              expr                nextexpr
                         is        tsttype  expr                nextexpr
@@ -1322,8 +1327,8 @@ stat          NIL
               Ncase                        expr      casestat  stat
               Nwhile                       expr      stat      stat
               Nrepeat                      stat      expr      stat
-              Nloop                        stat                stat 
-              Nexit                                            stat 
+              Nloop                        stat                stat
+              Nexit                                            stat
               Nreturn             proc     nextexpr            stat     (proc = NIL for mod)
               Nwith                        ifstat    stat      stat
               Ntrap                                  expr      stat
