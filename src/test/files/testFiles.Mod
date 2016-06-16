@@ -20,8 +20,9 @@ IF F # NIL THEN
    Texts.Read (R, ch);
 
    WHILE ~R.eot DO
-      Texts.Read (R, ch);
       Console.Char(ch);
+      IF ch = 0DX THEN Console.Char(0AX) END;
+      Texts.Read (R, ch);
    END;
 
 ELSE

@@ -1,6 +1,6 @@
 MODULE crt;
 
-IMPORT vt100, Unix, Console,
+IMPORT vt100, Platform, Console,
    Strings; (* strings to remove later ? *)
 
 CONST
@@ -28,8 +28,6 @@ CONST
 (* Add-in for blinking *)
    Blink*         = 128;
 
-TYPE
-   PFdSet = POINTER TO Unix.FdSet;
 
 VAR tmpstr : ARRAY 23 OF CHAR;
 
@@ -58,16 +56,8 @@ VAR tmpstr : ARRAY 23 OF CHAR;
       vt100.DECTCEMh;
    END cursoron;
 
-   PROCEDURE Delay*( ms : INTEGER);
-   VAR i : LONGINT;
-       tv : Unix.Timeval;
-       pfd : PFdSet;
-   BEGIN
-      tv.sec := 0;
-      tv.usec := ms * 1000;
-      pfd := NIL;
-      i := Unix.Select(0, pfd^, pfd^, pfd^, tv);
-   END Delay;
+   PROCEDURE Delay*(ms: INTEGER);
+   BEGIN Platform.Delay(ms) END Delay;
 
    PROCEDURE GotoXY* (x, y: INTEGER);
    BEGIN
