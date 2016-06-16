@@ -231,6 +231,7 @@ BEGIN
           IF decExp THEN DEC(nexp) END;
         END
     | Conv.invalid, Conv.terminator: EXIT
+    ELSE (* Ignore unrecognised class *)
     END;
     prev:=class; INC(index)
   END;
@@ -285,6 +286,7 @@ BEGIN
           IF decExp THEN DEC(nexp) END;
         END
     | Conv.invalid, Conv.terminator: EXIT
+    ELSE (* Ignore unrecognised class *)
     END;
     prev:=class; INC(index)
   END;

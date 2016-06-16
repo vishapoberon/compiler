@@ -1,5 +1,8 @@
 (* 	$Id: C.Mod,v 1.9 1999/10/03 11:46:01 ooc-devel Exp $	 *)
 MODULE oocC;
+
+(* ILP32 model *)
+
 (*  Basic data types for interfacing to C code.
     Copyright (C) 1997-1998  Michael van Acken
 
@@ -18,8 +21,7 @@ MODULE oocC;
     59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
  
-IMPORT
-  SYSTEM;
+IMPORT SYSTEM;
   
 (*
 These types are intended to be equivalent to their C counterparts.
@@ -28,39 +30,33 @@ Unix they should be fairly safe.
 *)  
 
 TYPE
-  char* = CHAR;
-  signedchar* = SHORTINT;                (* signed char *)
-  shortint* = INTEGER;                   (* short int *)
-  int* = LONGINT;
-  set* = SET;                            (* unsigned int, used as set *)
-  longint* = LONGINT;                    (* long int *)
-  (*longset* = SYSTEM.SET64;  *)                      (* unsigned long, used as set *)
-  longset* = SET;
-  address* = LONGINT;
-  float* = REAL;
-  double* = LONGREAL;
+  char*       = CHAR;                        (*  8 bits *)
+  signedchar* = SHORTINT;                    (*  8 bits *)
+  shortint*   = RECORD a,b: SYSTEM.BYTE END; (* 16 bits *)
+  int*        = LONGINT;                     (* 32 bits *)   
+  set*        = LONGINT;                     (* 32 bits *)
+  longint*    = LONGINT;                     (* 32 bits on ILP32 (64 bits is 'long long') *)
+(*longset*    = SET;  n/a *)                 (* 64 bit SET *)
+  address*    = LONGINT;                     (* 32 bits *)
+  float*      = REAL;                        (* 32 bits *)
+  double*     = LONGREAL;                    (* 64 bits *)
 
   enum1* = int;
-  enum2* = int;
-  enum4* = int;
-  
-  (* if your C compiler uses short enumerations, you'll have to replace the
-     declarations above with
-  enum1* = SHORTINT;
-  enum2* = INTEGER;
-  enum4* = LONGINT;
+  (*
+    enum2* = int;
+    enum4* = int;
   *)
   
-  FILE* = address;  (* this is acually a replacement for `FILE*', i.e., for a pointer type *)
-  sizet* = longint;
-  uidt* = int;
-  gidt* = int;
+  FILE*  = address;  (* this is acually a replacement for `FILE*', i.e., for a pointer type *)
+  sizet* = longint;  (* 32 bits in i686 *)
+  uidt*  = int;
+  gidt*  = int;
 
 
 TYPE  (* some commonly used C array types *)
   charPtr1d* = POINTER TO ARRAY OF char;
   charPtr2d* = POINTER TO ARRAY OF charPtr1d;
-  intPtr1d* = POINTER TO ARRAY OF int;
+  intPtr1d*  = POINTER TO ARRAY OF int;
 
 TYPE  (* C string type, assignment compatible with character arrays and
          string constants *)

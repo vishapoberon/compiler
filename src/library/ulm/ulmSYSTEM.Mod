@@ -1,9 +1,9 @@
 MODULE ulmSYSTEM;
-IMPORT SYSTEM, Unix, Sys := ulmSys;
+IMPORT SYSTEM, Platform, Sys := ulmSys;
 
 TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      pstring = POINTER TO ARRAY 1024 OF CHAR;
-     pstatus = POINTER TO Unix.Status;
+     (* pstatus = POINTER TO Platform.Status; *)
 
       TYPE bytearray* = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
           pbytearray* = POINTER TO bytearray;
@@ -52,16 +52,16 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
   PROCEDURE UNIXCALL*(syscall: LONGINT; VAR d0, d1: LONGINT; (* in ulm version both LONGINT and INTEGER are 4 byte size *)
                      arg1, arg2, arg3: LONGINT) : BOOLEAN;  
   VAR
-      n : LONGINT;
-      ch : CHAR;
-      pch : pchar;
-      pstr : pstring; 
-      pst : pstatus;
+      n:    LONGINT;
+      ch:   CHAR;
+      pch:  pchar;
+      pstr: pstring; 
+      h:    Platform.FileHandle;
+      (* pst : pstatus; *)
   BEGIN
   
   IF syscall = Sys.read THEN
-    d0 := Unix.Read(SHORT(arg1), arg2, arg3);
-    IF d0 >= 0 THEN RETURN TRUE ELSE RETURN FALSE END
+    RETURN Platform.Read(arg1, arg2, arg3, n) = 0;
     (*NEW(pch);
     pch := SYSTEM.VAL(pchar, arg2);
     ch := pch^[0];
@@ -75,44 +75,48 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
     END;
     *)
   ELSIF syscall = Sys.write THEN
-    d0 := Unix.Write(SHORT(arg1), arg2, arg3);
-    IF d0 >= 0 THEN RETURN TRUE ELSE RETURN FALSE END
+    RETURN Platform.Write(arg1, arg2, arg3) = 0;
     (*NEW(pch);
     pch := SYSTEM.VAL(pchar, arg2);
     n := Write(SYSTEM.VAL(LONGINT, pch), 1);
     IF n # 1 THEN RETURN FALSE ELSE RETURN TRUE END
     *)
   ELSIF syscall = Sys.open THEN  
-     pstr := SYSTEM.VAL(pstring, arg1);
-     d0 := Unix.Open(pstr^, SHORT(arg3), arg2);
-     IF d0 >= 0 THEN RETURN TRUE ELSE RETURN FALSE END
+    pstr := SYSTEM.VAL(pstring, arg1);
+    IF SYSTEM.VAL(SET, arg3) * {0,1} # {} THEN
+      RETURN Platform.OldRW(pstr^, d0) = 0
+    ELSE
+      RETURN Platform.OldRO(pstr^, d0) = 0
+    END
   ELSIF syscall = Sys.close THEN
-     d0 := Unix.Close(SHORT(arg1));
-     IF d0 = 0 THEN RETURN TRUE ELSE RETURN FALSE END
+    RETURN Platform.Close(arg1) = 0
   ELSIF syscall = Sys.lseek THEN
-     d0 := Unix.Lseek(SHORT(arg1), arg2, SHORT(arg3));
-     IF d0 >= 0 THEN RETURN TRUE ELSE RETURN FALSE END
+    RETURN Platform.Seek(arg1, arg2, SYSTEM.VAL(INTEGER, arg3)) = 0
+  (*
   ELSIF syscall = Sys.ioctl THEN
-     d0 := Unix.Ioctl(SHORT(arg1), SHORT(arg2), arg3);
+     d0 := Platform.Ioctl(arg1, arg2, arg3);
      RETURN d0 >= 0;
   ELSIF syscall = Sys.fcntl THEN
-     d0 := Unix.Fcntl (SHORT(arg1), SHORT(arg2), arg3);
+     d0 := Platform.Fcntl (arg1, arg2, arg3);
      RETURN d0 >= 0;
   ELSIF syscall = Sys.dup THEN
-     d0 := Unix.Dup(SHORT(arg1));
+     d0 := Platform.Dup(arg1);
      RETURN d0 > 0;
   ELSIF syscall = Sys.pipe THEN
-     d0 := Unix.Pipe(arg1);
+     d0 := Platform.Pipe(arg1);
      RETURN d0 >= 0;
   ELSIF syscall = Sys.newstat THEN
      pst := SYSTEM.VAL(pstatus, arg2);
      pstr := SYSTEM.VAL(pstring, arg1);
-     d0 := Unix.Stat(pstr^, pst^);
+     d0 := Platform.Stat(pstr^, pst^);
      RETURN d0 >= 0
   ELSIF syscall = Sys.newfstat THEN
      pst := SYSTEM.VAL(pstatus, arg2);
-     d0 := Unix.Fstat(SHORT(arg1), pst^);
+     d0 := Platform.Fstat(arg1, pst^);
      RETURN d0 >= 0;
+  *)
+  ELSE
+    HALT(99);
   END
 
   END UNIXCALL;

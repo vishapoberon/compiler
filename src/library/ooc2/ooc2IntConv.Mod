@@ -124,7 +124,7 @@ VAR
   positive: BOOLEAN;
   prev, class: Conv.ScanClass;
 
-PROCEDURE LessOrEqual (VAR high: ARRAY OF CHAR; start, end: INTEGER): BOOLEAN;
+  PROCEDURE LessOrEqual (VAR high: ARRAY OF CHAR; start, end: INTEGER): BOOLEAN;
   VAR
     i: INTEGER;
   BEGIN  (* pre: index-start = maxDigits *)
@@ -176,6 +176,7 @@ BEGIN
       ELSE
         RETURN strWrongFormat;
       END;
+    ELSE (* Ignore unrecognised class *)
     END;
     prev:=class; INC(index)
   END;

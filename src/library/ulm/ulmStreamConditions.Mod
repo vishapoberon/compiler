@@ -115,6 +115,7 @@ MODULE ulmStreamConditions;
 	 | write: IF Streams.OutputWillBeBuffered(condition.stream) THEN
 		     RETURN TRUE
 		  END;
+    ELSE
 	 END;
 	 msg.operation := condition.operation;
 	 msg.errors := errors;

@@ -336,17 +336,17 @@ MODULE ulmSysConversions;
 
 	 (* C type *)
 	 CASE type2 OF
-	 | "a":   size2 := 8; INCL(flags, unsigned); (* char*              *)
-	 | "c":   size2 := 1;                        (* /* signed */ char  *)
-	 | "C":   size2 := 1; INCL(flags, unsigned); (* unsigned char      *)
-	 | "s":   size2 := 2;                        (* short int          *)
-	 | "S":   size2 := 2; INCL(flags, unsigned); (* unsigned short int *)
-	 | "i":   size2 := 4;                        (* int                *)
-	 | "I":   size2 := 4; INCL(flags, unsigned); (* unsigned int       *)
-	 | "u":   size2 := 4; INCL(flags, unsigned); (* unsigned int       *)
-	 | "l":   size2 := 8;                        (* long int           *)
-	 | "L":   size2 := 8; INCL(flags, unsigned); (* long int           *)
-	 | "-":   size2 := 0;
+	 | "a":   size2 := SIZE(Address); INCL(flags, unsigned); (* char*              *)
+	 | "c":   size2 := 1;                                    (* /* signed */ char  *)
+	 | "C":   size2 := 1;             INCL(flags, unsigned); (* unsigned char      *)
+	 | "s":   size2 := 2;                                    (* short int          *)
+	 | "S":   size2 := 2;             INCL(flags, unsigned); (* unsigned short int *)
+	 | "i":   size2 := 4;                                    (* int                *)
+	 | "I":   size2 := 4;             INCL(flags, unsigned); (* unsigned int       *)
+	 | "u":   size2 := 4;             INCL(flags, unsigned); (* unsigned int       *)
+	 | "l":   size2 := 8;                                    (* long int           *)
+	 | "L":   size2 := 8;             INCL(flags, unsigned); (* long int           *)
+	 | "-":   size2 := 0;               
 	 ELSE     Error(cv, "bad C type specifier"); RETURN FALSE
 	 END;
 	 IF size2 > 1 THEN

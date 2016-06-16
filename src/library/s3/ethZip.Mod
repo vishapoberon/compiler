@@ -486,6 +486,7 @@ BEGIN
       ELSE
         res := DataError
       END
+    ELSE
     END;
     IF res = Ok THEN
       Files.Close(Files.Base(dst));

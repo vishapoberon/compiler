@@ -1,6 +1,6 @@
 MODULE Printer;  (*UNIX version: JT 11.5.90, RC 2.7.93,  JS 29.4.94, JT 14.4.95 *)
 
-  IMPORT SYSTEM, Files, Unix, Kernel;
+  IMPORT SYSTEM, Files, Platform;
 
   CONST
     N = 20;
@@ -608,9 +608,6 @@ END;
     REPEAT ch := s2[j]; s1[i] := ch; INC(i); INC(j) UNTIL ch = 0X
   END Append;
 
-  PROCEDURE -system(cmd: ARRAY OF CHAR)
-    "system(cmd)";
-
   PROCEDURE Close*;
     CONST bufSize = 4*1024;
     VAR
@@ -645,7 +642,7 @@ END;
       cmd := "lp -c -s "; 
       IF PrinterName # "Pluto" THEN Append(cmd, "-d "); Append(cmd, PrinterName) END ;
       Append(cmd, " "); Append(cmd, printFileName);
-      system(cmd);
+      i := Platform.System(cmd);
       Files.Delete(printFileName, res);
     END;
     Files.Set(bodyR, NIL, 0);

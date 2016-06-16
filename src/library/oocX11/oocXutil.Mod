@@ -359,7 +359,7 @@ PROCEDURE -XLookupString* (
     VAR keysymReturn: X.KeySym;
     (*VAR statusInOut(*[NILCOMPAT]*): XComposeStatus): C.int*)
     VAR statusInOut(*[NILCOMPAT]*): C.longint): C.int
-    "(int)XLookupString(eventStruct, bufferReturn, bytesBuffer, keysymReturn, statusInOut)";
+    "(int)XLookupString((XKeyEvent*)eventStruct, bufferReturn, bytesBuffer, (KeySym*)keysymReturn, (XComposeStatus*)statusInOut)";
 (*
 PROCEDURE XMatchVisualInfo* (
     display: X.DisplayPtr;

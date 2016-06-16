@@ -229,6 +229,7 @@ MODULE ulmTexts;
 	 | Streams.fromStart: pos := count;
 	 | Streams.fromPos:   pos := count + s.pos;
 	 | Streams.fromEnd:   pos := count + s.len;
+    ELSE
 	 END;
 	 IF (pos >= 0) & (pos <= s.len) THEN
 	    s.pos := pos;

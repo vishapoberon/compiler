@@ -200,6 +200,7 @@ MODULE ulmTimes;
 	 | epochUnit:  value := measure.timeval.epoch;
 	 | secondUnit:  value := measure.timeval.second;
 	 | usecUnit:    value := measure.timeval.usec;
+    ELSE
 	 END;
       END; END;
    END InternalGetValue;
@@ -212,6 +213,7 @@ MODULE ulmTimes;
 	 | epochUnit:   measure.timeval.epoch := value;
 	 | secondUnit:  measure.timeval.second := value;
 	 | usecUnit:    measure.timeval.usec := value;
+    ELSE
 	 END;
 	 Normalize(measure.timeval);
       END; END;
@@ -274,6 +276,7 @@ MODULE ulmTimes;
 	    CASE op OF
 	    | Scales.add:  Add(op1.timeval, op2.timeval, result.timeval);
 	    | Scales.sub:  Sub(op1.timeval, op2.timeval, result.timeval);
+       ELSE
 	    END;
 	 END;
       END; END;
@@ -283,25 +286,28 @@ MODULE ulmTimes;
 
       PROCEDURE ReturnVal(val1, val2: Scales.Value) : INTEGER;
       BEGIN
-	 IF val1 < val2 THEN
-	    RETURN -1
-	 ELSIF val1 > val2 THEN
-	    RETURN 1
-	 ELSE
-	    RETURN 0
-	 END;
+	      IF val1 < val2 THEN
+	         RETURN -1
+	      ELSIF val1 > val2 THEN
+	         RETURN 1
+	      ELSE
+	         RETURN 0
+	      END;
       END ReturnVal;
 
    BEGIN
-      WITH op1: ReferenceTime DO WITH op2: ReferenceTime DO
-	 IF op1.timeval.epoch # op2.timeval.epoch THEN
-	    RETURN ReturnVal(op1.timeval.epoch, op2.timeval.epoch)
-	 ELSIF op1.timeval.second # op2.timeval.second THEN
-	    RETURN ReturnVal(op1.timeval.second, op2.timeval.second)
-	 ELSE
-	    RETURN ReturnVal(op1.timeval.usec, op2.timeval.usec)
-	 END;
-      END; END;
+      WITH op1: ReferenceTime DO 
+         WITH op2: ReferenceTime DO
+	         IF op1.timeval.epoch # op2.timeval.epoch THEN
+	            RETURN ReturnVal(op1.timeval.epoch, op2.timeval.epoch)
+	         ELSIF op1.timeval.second # op2.timeval.second THEN
+	            RETURN ReturnVal(op1.timeval.second, op2.timeval.second)
+	         ELSE
+	            RETURN ReturnVal(op1.timeval.usec, op2.timeval.usec)
+	         END;
+         END; 
+      END;
+      RETURN 0;
    END Compare;
 
    (* ========= initialization procedures ========================== *)

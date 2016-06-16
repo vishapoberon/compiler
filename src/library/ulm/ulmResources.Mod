@@ -64,43 +64,43 @@ MODULE ulmResources;
    TYPE
       StateChange* = SHORTINT; (* terminated..communicationResumed *)
       State = SHORTINT; (* alive, unreferenced, or alive *)
-	 (* whether objects are stopped or not is maintained separately *)
+         (* whether objects are stopped or not is maintained separately *)
       Event* = POINTER TO EventRec; (* notification of state changes *)
       EventRec* =
-	 RECORD
-	    (Events.EventRec)
-	    change*: StateChange; (* new state *)
-	    resource*: Resource;
-	 END;
+         RECORD
+            (Events.EventRec)
+            change*: StateChange; (* new state *)
+            resource*: Resource;
+         END;
 
    TYPE
       Key* = POINTER TO KeyRec;
       KeyRec* =
-	 RECORD
-	    (Objects.ObjectRec)
-	    valid: BOOLEAN;
-	    resource: Resource;
-	 END;
+         RECORD
+            (Objects.ObjectRec)
+            valid: BOOLEAN;
+            resource: Resource;
+         END;
 
    TYPE
       List = POINTER TO ListRec;
       ListRec =
-	 RECORD
-	    resource: Resource;
-	    next: List;
-	 END;
+         RECORD
+            resource: Resource;
+            next: List;
+         END;
       Discipline = POINTER TO DisciplineRec;
       DisciplineRec =
-	 RECORD
-	    (Disciplines.DisciplineRec)
-	    state: State;           (* alive, unreferenced, or terminated *)
-	    stopped: BOOLEAN;       (* may be TRUE, if alive or unreferenced *)
-	    refcnt: LONGINT;        (* # of Attach - # of Detach *)
-	    eventType: Events.EventType; (* may be NIL *)
-	    dependants: List;       (* list of resources which depends on us *)
-	    dependsOn: Resource;    (* we depend on this resource *)
-	    key: Key;               (* attach key for dependsOn *)
-	 END;
+         RECORD
+            (Disciplines.DisciplineRec)
+            state: State;           (* alive, unreferenced, or terminated *)
+            stopped: BOOLEAN;       (* may be TRUE, if alive or unreferenced *)
+            refcnt: LONGINT;        (* # of Attach - # of Detach *)
+            eventType: Events.EventType; (* may be NIL *)
+            dependants: List;       (* list of resources which depends on us *)
+            dependsOn: Resource;    (* we depend on this resource *)
+            key: Key;               (* attach key for dependsOn *)
+         END;
    VAR
       discID: Disciplines.Identifier;
 
@@ -120,27 +120,27 @@ MODULE ulmResources;
       noch 
       *)
       IF ~Disciplines.Seek(resource, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN (* noch *)
-	 NEW(disc); disc.id := discID;
-	 disc.state := alive; disc.refcnt := 0;
-	 disc.eventType := NIL;
-	 disc.dependants := NIL; disc.dependsOn := NIL;
-	 Disciplines.Add(resource, disc);
+         NEW(disc); disc.id := discID;
+         disc.state := alive; disc.refcnt := 0;
+         disc.eventType := NIL;
+         disc.dependants := NIL; disc.dependsOn := NIL;
+         Disciplines.Add(resource, disc);
       END;
    END GetDisc;
 
    PROCEDURE GenEvent(resource: Resource; change: StateChange);
       VAR
-	 disc: Discipline;
-	 event: Event;
+         disc: Discipline;
+         event: Event;
    BEGIN
       GetDisc(resource, disc);
       IF disc.eventType # NIL THEN
-	 NEW(event);
-	 event.type := disc.eventType;
-	 event.message := "Resources: state change notification";
-	 event.change := change;
-	 event.resource := resource;
-	 Events.Raise(event);
+         NEW(event);
+         event.type := disc.eventType;
+         event.message := "Resources: state change notification";
+         event.change := change;
+         event.resource := resource;
+         Events.Raise(event);
       END;
    END GenEvent;
 
@@ -149,24 +149,24 @@ MODULE ulmResources;
    PROCEDURE Unlink(dependant, resource: Resource);
       (* undo DependsOn operation *)
       VAR
-	 dependantDisc, resourceDisc: Discipline;
-	 prev, member: List;
+         dependantDisc, resourceDisc: Discipline;
+         prev, member: List;
    BEGIN
       GetDisc(resource, resourceDisc);
       IF resourceDisc.state = terminated THEN
-	 (* no necessity for clean up *)
-	 RETURN
+         (* no necessity for clean up *)
+         RETURN
       END;
       GetDisc(dependant, dependantDisc);
 
       prev := NIL; member := resourceDisc.dependants;
       WHILE member.resource # dependant DO
-	 prev := member; member := member.next;
+         prev := member; member := member.next;
       END;
       IF prev = NIL THEN
-	 resourceDisc.dependants := member.next;
+         resourceDisc.dependants := member.next;
       ELSE
-	 prev.next := member.next;
+         prev.next := member.next;
       END;
 
       (* Detach reference from dependant to resource *)
@@ -176,28 +176,29 @@ MODULE ulmResources;
 
    PROCEDURE InternalNotify(resource: Resource; change: StateChange);
       VAR
-	 disc: Discipline;
-	 event: Event;
-	 dependant: List;
+         disc: Discipline;
+         event: Event;
+         dependant: List;
    BEGIN
       GetDisc(resource, disc);
       CASE change OF
       | communicationResumed: disc.stopped := FALSE;
       | communicationStopped: disc.stopped := TRUE;
       | terminated:           disc.stopped := FALSE; disc.state := terminated;
+      ELSE (* Explicitly ignore unhandled values of change *)
       END;
       GenEvent(resource, change);
 
       (* notify all dependants *)
       dependant := disc.dependants;
       WHILE dependant # NIL DO
-	 InternalNotify(dependant.resource, change);
-	 dependant := dependant.next;
+         InternalNotify(dependant.resource, change);
+         dependant := dependant.next;
       END;
 
       (* remove dependency relation in case of termination, if present *)
       IF (change = terminated) & (disc.dependsOn # NIL) THEN
-	 Unlink(resource, disc.dependsOn);
+         Unlink(resource, disc.dependsOn);
       END;
    END InternalNotify;
 
@@ -205,16 +206,16 @@ MODULE ulmResources;
 
    PROCEDURE TakeInterest*(resource: Resource; VAR eventType: Events.EventType);
       (* return resource specific event type for state notifications;
-	 eventType is guaranteed to be # NIL even if
-	 the given resource is already terminated
+         eventType is guaranteed to be # NIL even if
+         the given resource is already terminated
       *)
       VAR
-	 disc: Discipline;
+         disc: Discipline;
    BEGIN
       GetDisc(resource, disc);
       IF disc.eventType = NIL THEN
-	 Events.Define(disc.eventType);
-	 Events.Ignore(disc.eventType);
+         Events.Define(disc.eventType);
+         Events.Ignore(disc.eventType);
       END;
       eventType := disc.eventType;
    END TakeInterest;
@@ -222,93 +223,93 @@ MODULE ulmResources;
    PROCEDURE Attach*(resource: Resource; VAR key: Key);
       (* mark the resource as being used until Detach gets called *)
       VAR
-	 disc: Discipline;
+         disc: Discipline;
    BEGIN
       GetDisc(resource, disc);
       IF disc.state IN {terminated, unreferenced} THEN
-	 key := NIL;
+         key := NIL;
       ELSE
-	 INC(disc.refcnt); NEW(key); key.valid := TRUE;
-	 key.resource := resource;
+         INC(disc.refcnt); NEW(key); key.valid := TRUE;
+         key.resource := resource;
       END;
    END Attach;
 
    PROCEDURE Detach*(resource: Resource; key: Key);
       (* mark the resource as unused; the returned key of Attach must
-	 be given -- this allows to check for proper balances
-	 of Attach/Detach calls;
-	 the last Detach operation causes a state change to unreferenced
+         be given -- this allows to check for proper balances
+         of Attach/Detach calls;
+         the last Detach operation causes a state change to unreferenced
       *)
       VAR
-	 disc: Discipline;
+         disc: Discipline;
    BEGIN
       IF (key # NIL) & key.valid & (key.resource = resource) THEN
-	 GetDisc(resource, disc);
-	 IF disc.state # terminated THEN
-	    key.valid := FALSE; DEC(disc.refcnt);
-	    IF disc.refcnt = 0 THEN
-	       GenEvent(resource, unreferenced);
-	       disc.state := unreferenced;
-	       IF disc.dependsOn # NIL THEN
-		  Unlink(resource, disc.dependsOn);
-	       END;
-	    END;
-	 END;
+         GetDisc(resource, disc);
+         IF disc.state # terminated THEN
+            key.valid := FALSE; DEC(disc.refcnt);
+            IF disc.refcnt = 0 THEN
+               GenEvent(resource, unreferenced);
+               disc.state := unreferenced;
+               IF disc.dependsOn # NIL THEN
+                  Unlink(resource, disc.dependsOn);
+               END;
+            END;
+         END;
       END;
    END Detach;
 
    PROCEDURE Notify*(resource: Resource; change: StateChange);
       (* notify all interested parties about the new state;
-	 only valid state changes are accepted:
-	 - Notify doesn't accept any changes after termination
-	 - unreferenced is generated conditionally by Detach only
-	 - communicationResumed is valid after communicationStopped only
-	 valid notifications are propagated to all dependants (see below);
+         only valid state changes are accepted:
+         - Notify doesn't accept any changes after termination
+         - unreferenced is generated conditionally by Detach only
+         - communicationResumed is valid after communicationStopped only
+         valid notifications are propagated to all dependants (see below);
       *)
       VAR
-	 disc: Discipline;
-	 event: Event;
-	 dependant: List;
+         disc: Discipline;
+         event: Event;
+         dependant: List;
    BEGIN
       IF change # unreferenced THEN
-	 GetDisc(resource, disc);
-	 IF (disc.state # terminated) & (disc.state # change) &
-	       ((change # communicationResumed) OR disc.stopped) THEN
-	    InternalNotify(resource, change);
-	 END;
+         GetDisc(resource, disc);
+         IF (disc.state # terminated) & (disc.state # change) &
+               ((change # communicationResumed) OR disc.stopped) THEN
+            InternalNotify(resource, change);
+         END;
       END;
    END Notify;
 
    PROCEDURE DependsOn*(dependant, resource: Resource);
       (* states that `dependant' depends entirely on `resource' --
-	 this is usually the case if operations on `dependant'
-	 are delegated to `resource';
-	 only one call of DependsOn may be given per `dependant' while
-	 several DependsOn for one resource are valid;
-	 DependsOn calls implicitly Attach for resource and
-	 detaches if the dependant becomes unreferenced;
-	 all other state changes propagate from `resource' to
-	 `dependant'
+         this is usually the case if operations on `dependant'
+         are delegated to `resource';
+         only one call of DependsOn may be given per `dependant' while
+         several DependsOn for one resource are valid;
+         DependsOn calls implicitly Attach for resource and
+         detaches if the dependant becomes unreferenced;
+         all other state changes propagate from `resource' to
+         `dependant'
       *)
       VAR
-	 dependantDisc, resourceDisc: Discipline;
-	 member: List;
+         dependantDisc, resourceDisc: Discipline;
+         member: List;
    BEGIN
       GetDisc(resource, resourceDisc);
       IF resourceDisc.state <= unreferenced THEN
-	 (* do not create a relationship to dead or unreferenced objects
-	    but propagate a termination immediately to dependant
-	 *)
-	 IF resourceDisc.state = terminated THEN
-	    Notify(dependant, resourceDisc.state);
-	 END;
-	 RETURN
+         (* do not create a relationship to dead or unreferenced objects
+            but propagate a termination immediately to dependant
+         *)
+         IF resourceDisc.state = terminated THEN
+            Notify(dependant, resourceDisc.state);
+         END;
+         RETURN
       END;
 
       GetDisc(dependant, dependantDisc);
       IF dependantDisc.dependsOn # NIL THEN
-	 (* don't accept changes *)
-	 RETURN
+         (* don't accept changes *)
+         RETURN
       END;
       dependantDisc.dependsOn := resource;
 
@@ -320,10 +321,10 @@ MODULE ulmResources;
 
    PROCEDURE Alive*(resource: Resource) : BOOLEAN;
       (* returns TRUE if the resource is not yet terminated
-	 and ready for communication (i.e. not communicationStopped)
+         and ready for communication (i.e. not communicationStopped)
       *)
       VAR
-	 disc: Discipline;
+         disc: Discipline;
    BEGIN
       GetDisc(resource, disc);
       RETURN ~disc.stopped & (disc.state IN {alive, unreferenced})
@@ -331,10 +332,10 @@ MODULE ulmResources;
 
    PROCEDURE Stopped*(resource: Resource) : BOOLEAN;
       (* returns TRUE if the object is currently not responsive
-	 and not yet terminated
+         and not yet terminated
       *)
       VAR
-	 disc: Discipline;
+         disc: Discipline;
    BEGIN
       GetDisc(resource, disc);
       RETURN disc.stopped
@@ -343,7 +344,7 @@ MODULE ulmResources;
    PROCEDURE Terminated*(resource: Resource) : BOOLEAN;
       (* returns TRUE if the resource is terminated *)
       VAR
-	 disc: Discipline;
+         disc: Discipline;
    BEGIN
       GetDisc(resource, disc);
       RETURN disc.state = terminated

@@ -1105,6 +1105,7 @@ MODULE ethBTrees;  (** portable *) (* ejz,  *)
         CASE T.class OF
           LInt: WriteLIntPage(T, p(LIntPage))
           |Str: WriteStrPage(T, p(StrPage))
+          ELSE
         END
       END;
       p := p.next

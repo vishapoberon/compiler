@@ -375,6 +375,7 @@ MODULE ulmEvents;
 		     ptr := ptr.next;
 		  END;
 		  psys.currentPriority := oldPriority;
+      ELSE (* Explicitly ignore unhandled even type reactions *)
       END;
    END CallHandlers;
 

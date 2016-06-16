@@ -1,6 +1,6 @@
-MODULE Sets0;
+MODULE Sets;
 
-IMPORT Out := Console;
+IMPORT Texts;
 
 CONST (*size* = 32;*)
       size* = MAX(SET) + 1;
@@ -114,7 +114,7 @@ BEGIN
   i := 0; WHILE i < LEN(s1) DO s := s1[i] * s2[i]; s3[i] := s; INC(i) END
 END Intersect;
 
-(*
+
 PROCEDURE Print*(VAR f: Texts.Writer; s: ARRAY OF SET; w, indent: INTEGER);
   VAR col, i, max: INTEGER;
 BEGIN
@@ -133,27 +133,5 @@ BEGIN
   END ;
   Texts.Write(f, "}")
 END Print;
-*)
 
-PROCEDURE Write*(s: ARRAY OF SET; w, indent: INTEGER);
-  VAR col, i, max: INTEGER;
-BEGIN
-  i := 0; col := indent; max := SHORT(LEN(s)) * size;
-  Out.Char("{");
-  WHILE i < max DO
-    IF In(s, i) THEN
-      IF col + 4 > w THEN
-        Out.Ln;
-        col := 0; WHILE col < indent DO Out.Char(" "); INC(col) END
-      END ;
-      Out.Int(i, 3); Out.Char(",");
-      INC(col, 4)
-    END ;
-    INC(i)
-  END ;
-  Out.Char("}")
-END Write;
-
-
-
-END Sets0.
+END Sets.

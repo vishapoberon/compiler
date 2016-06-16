@@ -32,7 +32,13 @@ VAR
   initialized: BOOLEAN;  (* first call to Open sets this to TRUE *)
   image: X11.XImagePtr;
   map: POINTER TO ARRAY OF ARRAY OF SET;
+
   
+
+PROCEDURE -aincludexlib      "#include <X11/Xlib.h>";
+PROCEDURE -aincludexutil     "#include <X11/Xutil.h>";
+PROCEDURE -aincludexresource "#include <X11/Xresource.h>";
+
 
 PROCEDURE Error (msg: ARRAY OF CHAR);
   BEGIN
@@ -70,6 +76,7 @@ PROCEDURE Dot* (x, y, mode: INTEGER);
         X11.XDrawPoint (display, window, fg, x, H-1-y)
       | erase:
         X11.XDrawPoint (display, window, bg, x, H-1-y)
+      ELSE
       END;
       X11.XFlush (display); 
     END
@@ -135,44 +142,43 @@ PROCEDURE Key* (): CHAR;
 PROCEDURE Open*;
 (* Initializes the drawing plane.  *)
   VAR
-    screen: C.int;
-    parent: X11.Window;  
-    bgColor, fgColor: C.longint;
+    screen:  C.int;
+    parent:  X11.Window;  
+    bgColor: C.longint;
+    fgColor: C.longint;
     gcValue: X11.XGCValues;
-    event: X11.XEvent;
-    x, y: INTEGER;
-    tmpstr : string;
-    (*tmpint : INTEGER;*)
-    scrn : C.int;
-    vis : X11.VisualPtr;
+    event:   X11.XEvent;
+    x, y:    INTEGER;
+    tmpstr:  string;
+    scrn :   C.int;
+    vis :    X11.VisualPtr;
   BEGIN
-    
     IF ~initialized THEN
       initialized := TRUE;
 
       tmpstr[0] := 0X;
       (*display := X11.XOpenDisplay (NIL);*)
-      display := X11.XOpenDisplay (tmpstr);
+      display := X11.XOpenDisplay(tmpstr);
       (*display := X11.OpenDisplay (NIL);*)
       IF (display = NIL) THEN
-        Error ("Couldn't open display")
+        Error("Couldn't open display")
       ELSE
-        screen := X11.XDefaultScreen (display);
+        screen := X11.XDefaultScreen(display);
         X := 0; Y := 0;
         W := SHORT (X11.XDisplayWidth (display, screen));
-        H := SHORT (X11.XDisplayHeight (display, screen));
+        H := SHORT (X11.XDisplayHeight(display, screen));
         (* adjust ratio W:H to 3:4 [for no paritcular reason] *)
         IF (W > 3*H DIV 4) THEN
           W := 3*H DIV 4
         END;
-        parent := X11.XRootWindow (display, screen);
-        fgColor := X11.XBlackPixel (display, screen);
-        bgColor := X11.XWhitePixel (display, screen);
-        window := X11.XCreateSimpleWindow (display, parent, 0, 0, 
+        parent  := X11.XRootWindow(display, screen);
+        fgColor := X11.XBlackPixel(display, screen);
+        bgColor := X11.XWhitePixel(display, screen);
+        window  := X11.XCreateSimpleWindow(display, parent, 0, 0, 
                                            W, H, 0, 0, bgColor);  
-        X11.XStoreName (display, window, "XYplane");
-        X11.XSelectInput (display, window, X11.KeyPressMask+X11.ExposureMask);
-        X11.XMapWindow (display, window);
+        X11.XStoreName(display, window, "XYplane");
+        X11.XSelectInput(display, window, X11.KeyPressMask+X11.ExposureMask);
+        X11.XMapWindow(display, window);
         X11.XFlush (display);
         (*tmpint := W + ((*sizeSet*)32-1);
 	tmpint := tmpint DIV 32(*sizeSet*);*)
@@ -184,16 +190,16 @@ PROCEDURE Open*;
           END
         END;
         
-	scrn := X11.XDefaultScreen (display);
-        vis := X11.XDefaultVisual (display, scrn);
-	image := X11.XCreateImage (display, 
+	      scrn  := X11.XDefaultScreen(display);
+        vis   := X11.XDefaultVisual(display, scrn);
+	      image := X11.XCreateImage (display, 
                   (*X11.XDefaultVisual (display, X11.XDefaultScreen (display)),*)
                   vis,
                   (*1, X11.XYBitmap, 0, SYSTEM.ADR (map^), W, H, sizeSet, 0);*)
-                  1, X11.ZPixmap, 0, SYSTEM.ADR (map^), W, H, (*sizeSet*)32, 0);
+                  1, X11.ZPixmap, 0, SYSTEM.VAL(C.address,SYSTEM.ADR(map^)), W, H, (*sizeSet*)32, 0);
 
         (* wait until the window manager gives its ok to draw things *)
-        X11.XMaskEvent (display, X11.ExposureMask, event);
+        X11.XMaskEvent(display, X11.ExposureMask, event);
 
         (* create graphic context to draw resp. erase a point *)
         gcValue. foreground := fgColor;
@@ -208,7 +214,7 @@ PROCEDURE Open*;
     END
   END Open;
 
-   PROCEDURE Close*;
+PROCEDURE Close*;
 
    BEGIN
   (*    X11.XDestroyImage(image);

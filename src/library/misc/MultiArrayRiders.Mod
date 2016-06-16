@@ -20,7 +20,7 @@ email Patrick.Hunziker@unibas.ch
 MODULE MultiArrayRiders;  (** Patrick Hunziker, Basel,  **)
 (** Implements an array rider access mechanism for multidimensional arrays of arbitrary
     dimensions defined in MultiArrays*)
-IMPORT MultiArrays, Out:= Console, Input := Kernel;
+IMPORT MultiArrays, Out := Console, Input := Platform;
 CONST (** behaviour of array rider at end of array line;
         not yet completely implemented.
         The seemingly more exotic variants are especially useful in image processing *)

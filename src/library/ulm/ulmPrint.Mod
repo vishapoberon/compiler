@@ -57,13 +57,13 @@ MODULE ulmPrint;
       ErrorCode* = SHORTINT;
       ErrorEvent* = POINTER TO ErrorEventRec;
       ErrorEventRec* =
-	 RECORD
-	    (Events.EventRec)
-	    errorcode*: ErrorCode;
-	    format*: FormatString;
-	    errpos*: LONGINT;
-	    nargs*: INTEGER;
-	 END;
+         RECORD
+            (Events.EventRec)
+            errorcode*: ErrorCode;
+            format*: FormatString;
+            errpos*: LONGINT;
+            nargs*: INTEGER;
+         END;
    VAR
       error*: Events.EventType;
       errormsg*: ARRAY errors OF Events.Message;
@@ -77,679 +77,683 @@ MODULE ulmPrint;
       errormsg[tooFewArgs] := "too few arguments given";
       errormsg[badFormat] := "syntax error in format string";
       errormsg[badArgumentSize] :=
-	 "size of argument doesn't conform to the corresponding format element";
+         "size of argument doesn't conform to the corresponding format element";
    END InitErrorHandling;
 
    PROCEDURE Out(out: Streams.Stream; VAR fmt: ARRAY OF CHAR; nargs: INTEGER;
-		 VAR p1,p2,p3,p4,p5,p6,p7,p8,p9: ARRAY OF SYS.BYTE;
-		 errors: RelatedEvents.Object);
+                 VAR p1,p2,p3,p4,p5,p6,p7,p8,p9: ARRAY OF SYS.BYTE;
+                 errors: RelatedEvents.Object);
       CONST
-	 maxargs = 9;	(* maximal number of arguments *)
-	 maxargsize = SIZE(LONGREAL); (* maximal arg size (except strings) *)
-	 fmtcmd = "%";
-	 escape = "\";
+         maxargs = 9;   (* maximal number of arguments *)
+         maxargsize = SIZE(LONGREAL); (* maximal arg size (except strings) *)
+         fmtcmd = "%";
+         escape = "\";
       VAR
-	 arglen: ARRAY maxargs OF LONGINT;
-	 nextarg: INTEGER;
-	 fmtindex: LONGINT;
-	 fmtchar: CHAR;
-	 hexcharval: LONGINT;
+         arglen: ARRAY maxargs OF LONGINT;
+         nextarg: INTEGER;
+         fmtindex: LONGINT;
+         fmtchar: CHAR;
+         hexcharval: LONGINT;
 
       PROCEDURE Error(errorcode: ErrorCode);
-	 VAR
-	    event: ErrorEvent;
+         VAR
+            event: ErrorEvent;
       BEGIN
-	 NEW(event);
-	 event.type := error;
-	 event.message := errormsg[errorcode];
-	 event.errorcode := errorcode;
-	 COPY(fmt, event.format);
-	 event.errpos := fmtindex;
-	 event.nargs := nargs;
-	 RelatedEvents.Raise(errors, event);
+         NEW(event);
+         event.type := error;
+         event.message := errormsg[errorcode];
+         event.errorcode := errorcode;
+         COPY(fmt, event.format);
+         event.errpos := fmtindex;
+         event.nargs := nargs;
+         RelatedEvents.Raise(errors, event);
       END Error;
 
       PROCEDURE Next() : BOOLEAN;
       BEGIN
-	 IF fmtindex < LEN(fmt) THEN
-	    fmtchar := fmt[fmtindex]; INC(fmtindex);
-	    IF fmtchar = 0X THEN
-	       fmtindex := LEN(fmt);
-	       RETURN FALSE
-	    ELSE
-	       RETURN TRUE
-	    END;
-	 ELSE
-	    RETURN FALSE
-	 END;
+         IF fmtindex < LEN(fmt) THEN
+            fmtchar := fmt[fmtindex]; INC(fmtindex);
+            IF fmtchar = 0X THEN
+               fmtindex := LEN(fmt);
+               RETURN FALSE
+            ELSE
+               RETURN TRUE
+            END;
+         ELSE
+            RETURN FALSE
+         END;
       END Next;
 
       PROCEDURE Unget;
       BEGIN
-	 IF (fmtindex > 0) & (fmtindex < LEN(fmt)) THEN
-	    DEC(fmtindex); fmtchar := fmt[fmtindex];
-	 ELSE
-	    fmtchar := 0X;
-	 END;
+         IF (fmtindex > 0) & (fmtindex < LEN(fmt)) THEN
+            DEC(fmtindex); fmtchar := fmt[fmtindex];
+         ELSE
+            fmtchar := 0X;
+         END;
       END Unget;
 
       PROCEDURE Write(byte: SYS.BYTE);
       BEGIN
-	 IF Streams.WriteByte(out, byte) THEN
-	    INC(out.count);
-	 END;
+         IF Streams.WriteByte(out, byte) THEN
+            INC(out.count);
+         END;
       END Write;
 
       PROCEDURE WriteLn;
-	 VAR
-	    lineterm: StreamDisciplines.LineTerminator;
-	    i: INTEGER;
+         VAR
+            lineterm: StreamDisciplines.LineTerminator;
+            i: INTEGER;
       BEGIN
-	 StreamDisciplines.GetLineTerm(out, lineterm);
-	 Write(lineterm[0]);
-	 i := 1;
-	 WHILE (i < LEN(lineterm)) & (lineterm[i] # 0X) DO
-	    Write(lineterm[i]); INC(i);
-	 END;
+         StreamDisciplines.GetLineTerm(out, lineterm);
+         Write(lineterm[0]);
+         i := 1;
+         WHILE (i < LEN(lineterm)) & (lineterm[i] # 0X) DO
+            Write(lineterm[i]); INC(i);
+         END;
       END WriteLn;
 
       PROCEDURE Int(VAR int: LONGINT; base: INTEGER) : BOOLEAN;
 
-	 PROCEDURE ValidDigit(ch: CHAR) : BOOLEAN;
-	 BEGIN
-	    RETURN (ch >= "0") & (ch <= "9") OR
-		   (base = 16) & (CAP(ch) >= "A") & (CAP(ch) <= "F")
-	 END ValidDigit;
+         PROCEDURE ValidDigit(ch: CHAR) : BOOLEAN;
+         BEGIN
+            RETURN (ch >= "0") & (ch <= "9") OR
+                   (base = 16) & (CAP(ch) >= "A") & (CAP(ch) <= "F")
+         END ValidDigit;
 
       BEGIN
-	 int := 0;
-	 REPEAT
-	    int := int * base;
-	    IF (fmtchar >= "0") & (fmtchar <= "9") THEN
-	       INC(int, LONG(ORD(fmtchar) - ORD("0")));
-	    ELSIF (base = 16) &
-		  (CAP(fmtchar) >= "A") & (CAP(fmtchar) <= "F") THEN
-	       INC(int, LONG(10 + ORD(CAP(fmtchar)) - ORD("A")));
-	    ELSE
-	       RETURN FALSE
-	    END;
-	 UNTIL ~Next() OR ~ValidDigit(fmtchar);
-	 RETURN TRUE
+         int := 0;
+         REPEAT
+            int := int * base;
+            IF (fmtchar >= "0") & (fmtchar <= "9") THEN
+               INC(int, LONG(ORD(fmtchar) - ORD("0")));
+            ELSIF (base = 16) &
+                  (CAP(fmtchar) >= "A") & (CAP(fmtchar) <= "F") THEN
+               INC(int, LONG(10 + ORD(CAP(fmtchar)) - ORD("A")));
+            ELSE
+               RETURN FALSE
+            END;
+         UNTIL ~Next() OR ~ValidDigit(fmtchar);
+         RETURN TRUE
       END Int;
 
       PROCEDURE SetSize;
-	 VAR
-	    index: INTEGER;
+         VAR
+            index: INTEGER;
       BEGIN
-	 index := 0;
-	 WHILE index < nargs DO
-	    CASE index OF
-	    | 0: arglen[index] := LEN(p1);
-	    | 1: arglen[index] := LEN(p2);
-	    | 2: arglen[index] := LEN(p3);
-	    | 3: arglen[index] := LEN(p4);
-	    | 4: arglen[index] := LEN(p5);
-	    | 5: arglen[index] := LEN(p6);
-	    | 6: arglen[index] := LEN(p7);
-	    | 7: arglen[index] := LEN(p8);
-	    | 8: arglen[index] := LEN(p9);
-	    END;
-	    INC(index);
-	 END;
+         index := 0;
+         WHILE index < nargs DO
+            CASE index OF
+            | 0: arglen[index] := LEN(p1);
+            | 1: arglen[index] := LEN(p2);
+            | 2: arglen[index] := LEN(p3);
+            | 3: arglen[index] := LEN(p4);
+            | 4: arglen[index] := LEN(p5);
+            | 5: arglen[index] := LEN(p6);
+            | 6: arglen[index] := LEN(p7);
+            | 7: arglen[index] := LEN(p8);
+            | 8: arglen[index] := LEN(p9);
+            ELSE
+            END;
+            INC(index);
+         END;
       END SetSize;
 
       PROCEDURE Access(par: INTEGER; at: LONGINT) : SYS.BYTE;
       BEGIN
-	 CASE par OF
-	 | 0: RETURN p1[at]
-	 | 1: RETURN p2[at]
-	 | 2: RETURN p3[at]
-	 | 3: RETURN p4[at]
-	 | 4: RETURN p5[at]
-	 | 5: RETURN p6[at]
-	 | 6: RETURN p7[at]
-	 | 7: RETURN p8[at]
-	 | 8: RETURN p9[at]
-	 END;
+         CASE par OF
+         | 0: RETURN p1[at]
+         | 1: RETURN p2[at]
+         | 2: RETURN p3[at]
+         | 3: RETURN p4[at]
+         | 4: RETURN p5[at]
+         | 5: RETURN p6[at]
+         | 6: RETURN p7[at]
+         | 7: RETURN p8[at]
+         | 8: RETURN p9[at]
+         ELSE
+         END;
       END Access;
 
       PROCEDURE Convert(from: INTEGER; VAR to: ARRAY OF SYS.BYTE);
-	 VAR i: INTEGER;
+         VAR i: INTEGER;
       BEGIN
-	 i := 0;
-	 WHILE i < arglen[from] DO
-	    to[i] := Access(from, i); INC(i);
-	 END;
+         i := 0;
+         WHILE i < arglen[from] DO
+            to[i] := Access(from, i); INC(i);
+         END;
       END Convert;
 
       PROCEDURE GetInt(index: INTEGER; VAR long: LONGINT) : BOOLEAN;
-	 (* access index-th parameter (counted from 0);
-	    fails if arglen[index] > SIZE(LONGINT)
-	 *)
-	 VAR
-	    short: SHORTINT;
-	    (*int16: SYS.INT16;*)
-	    int: INTEGER;
-	 
+         (* access index-th parameter (counted from 0);
+            fails if arglen[index] > SIZE(LONGINT)
+         *)
+         VAR
+            short: SHORTINT;
+            (*int16: SYS.INT16;*)
+            int: INTEGER;
+         
       BEGIN
-	 IF arglen[index] = SIZE(SHORTINT) THEN
-	    Convert(index, short); long := short;
-	 (*ELSIF arglen[index] = SIZE(SYS.INT16) THEN
-	    Convert(index, int16); long := int16;*)
-	 ELSIF arglen[index] = SIZE(INTEGER) THEN
-	    Convert(index, int); long := int;
-	 ELSIF arglen[index] = SIZE(LONGINT) THEN
-	    Convert(index, long);
-	 ELSE
-	    Error(badArgumentSize);
-	    RETURN FALSE
-	 END;
-	 RETURN TRUE
+         IF arglen[index] = SIZE(SHORTINT) THEN
+            Convert(index, short); long := short;
+         (*ELSIF arglen[index] = SIZE(SYS.INT16) THEN
+            Convert(index, int16); long := int16;*)
+         ELSIF arglen[index] = SIZE(INTEGER) THEN
+            Convert(index, int); long := int;
+         ELSIF arglen[index] = SIZE(LONGINT) THEN
+            Convert(index, long);
+         ELSE
+            Error(badArgumentSize);
+            RETURN FALSE
+         END;
+         RETURN TRUE
       END GetInt;
 
       PROCEDURE Format() : BOOLEAN;
 
-	 VAR
-	    fillch: CHAR;		(* filling character *)
-	    insert: BOOLEAN;		(* insert between sign and 1st digit *)
-	    sign: BOOLEAN;		(* sign even positive values *)
-	    leftaligned: BOOLEAN;	(* output left aligned *)
-	    width, scale: LONGINT;
+         VAR
+            fillch: CHAR;               (* filling character *)
+            insert: BOOLEAN;            (* insert between sign and 1st digit *)
+            sign: BOOLEAN;              (* sign even positive values *)
+            leftaligned: BOOLEAN;       (* output left aligned *)
+            width, scale: LONGINT;
 
-	 PROCEDURE NextArg(VAR index: INTEGER) : BOOLEAN;
-	 BEGIN
-	    IF nextarg < nargs THEN
-	       index := nextarg; INC(nextarg); RETURN TRUE
-	    ELSE
-	       RETURN FALSE
-	    END;
-	 END NextArg;
+         PROCEDURE NextArg(VAR index: INTEGER) : BOOLEAN;
+         BEGIN
+            IF nextarg < nargs THEN
+               index := nextarg; INC(nextarg); RETURN TRUE
+            ELSE
+               RETURN FALSE
+            END;
+         END NextArg;
 
-	 PROCEDURE Flags() : BOOLEAN;
-	 BEGIN
-	    fillch := " "; insert := FALSE; sign := FALSE;
-	    leftaligned := FALSE;
-	    REPEAT
-	       CASE fmtchar OF
-	       | "+":   sign := TRUE;
-	       | "0":   fillch := "0"; insert := TRUE;
-	       | "-":   leftaligned := TRUE;
-	       | "^":   insert := TRUE;
-	       | "\":   IF ~Next() THEN RETURN FALSE END; fillch := fmtchar;
-	       ELSE
-		  RETURN TRUE
-	       END;
-	    UNTIL ~Next();
-	    Error(badFormat);
-	    RETURN FALSE (* unexpected end *)
-	 END Flags;
+         PROCEDURE Flags() : BOOLEAN;
+         BEGIN
+            fillch := " "; insert := FALSE; sign := FALSE;
+            leftaligned := FALSE;
+            REPEAT
+               CASE fmtchar OF
+               | "+":   sign := TRUE;
+               | "0":   fillch := "0"; insert := TRUE;
+               | "-":   leftaligned := TRUE;
+               | "^":   insert := TRUE;
+               | "\":   IF ~Next() THEN RETURN FALSE END; fillch := fmtchar;
+               ELSE
+                  RETURN TRUE
+               END;
+            UNTIL ~Next();
+            Error(badFormat);
+            RETURN FALSE (* unexpected end *)
+         END Flags;
 
-	 PROCEDURE FetchInt(VAR int: LONGINT) : BOOLEAN;
-	    VAR
-	       index: INTEGER;
-	 BEGIN
-	    RETURN (fmtchar = "*") & Next() &
-		   NextArg(index) & GetInt(index, int) OR
-		   Int(int, 10) & (int >= 0)
-	 END FetchInt;
+         PROCEDURE FetchInt(VAR int: LONGINT) : BOOLEAN;
+            VAR
+               index: INTEGER;
+         BEGIN
+            RETURN (fmtchar = "*") & Next() &
+                   NextArg(index) & GetInt(index, int) OR
+                   Int(int, 10) & (int >= 0)
+         END FetchInt;
 
-	 PROCEDURE Width() : BOOLEAN;
-	 BEGIN
-	    IF (fmtchar >= "0") & (fmtchar <= "9") OR (fmtchar = "*") THEN
-	       IF FetchInt(width) THEN
-		  RETURN TRUE
-	       END;
-	       Error(badFormat); RETURN FALSE
-	    ELSE
-	       width := 0;
-	       RETURN TRUE
-	    END;
-	 END Width;
+         PROCEDURE Width() : BOOLEAN;
+         BEGIN
+            IF (fmtchar >= "0") & (fmtchar <= "9") OR (fmtchar = "*") THEN
+               IF FetchInt(width) THEN
+                  RETURN TRUE
+               END;
+               Error(badFormat); RETURN FALSE
+            ELSE
+               width := 0;
+               RETURN TRUE
+            END;
+         END Width;
 
-	 PROCEDURE Scale() : BOOLEAN;
-	 BEGIN
-	    IF fmtchar = "." THEN
-	       IF Next() & FetchInt(scale) THEN
-		  RETURN TRUE
-	       ELSE
-		  Error(badFormat); RETURN FALSE
-	       END;
-	    ELSE
-	       scale := -1; RETURN TRUE
-	    END;
-	 END Scale;
+         PROCEDURE Scale() : BOOLEAN;
+         BEGIN
+            IF fmtchar = "." THEN
+               IF Next() & FetchInt(scale) THEN
+                  RETURN TRUE
+               ELSE
+                  Error(badFormat); RETURN FALSE
+               END;
+            ELSE
+               scale := -1; RETURN TRUE
+            END;
+         END Scale;
 
-	 PROCEDURE Conversion() : BOOLEAN;
+         PROCEDURE Conversion() : BOOLEAN;
 
-	    PROCEDURE Fill(cnt: LONGINT);
-	       (* cnt: space used by normal output *)
-	       VAR i: LONGINT;
-	    BEGIN
-	       IF cnt < width THEN
-		  i := width - cnt;
-		  WHILE i > 0 DO
-		     Write(fillch);
-		     DEC(i);
-		  END;
-	       END;
-	    END Fill;
+            PROCEDURE Fill(cnt: LONGINT);
+               (* cnt: space used by normal output *)
+               VAR i: LONGINT;
+            BEGIN
+               IF cnt < width THEN
+                  i := width - cnt;
+                  WHILE i > 0 DO
+                     Write(fillch);
+                     DEC(i);
+                  END;
+               END;
+            END Fill;
 
-	    PROCEDURE FillLeft(cnt: LONGINT);
-	    BEGIN
-	       IF ~leftaligned THEN
-		  Fill(cnt);
-	       END;
-	    END FillLeft;
+            PROCEDURE FillLeft(cnt: LONGINT);
+            BEGIN
+               IF ~leftaligned THEN
+                  Fill(cnt);
+               END;
+            END FillLeft;
 
-	    PROCEDURE FillRight(cnt: LONGINT);
-	    BEGIN
-	       IF leftaligned THEN
-		  Fill(cnt);
-	       END;
-	    END FillRight;
+            PROCEDURE FillRight(cnt: LONGINT);
+            BEGIN
+               IF leftaligned THEN
+                  Fill(cnt);
+               END;
+            END FillRight;
 
-	    PROCEDURE WriteBool(true, false: ARRAY OF CHAR) : BOOLEAN;
-	       VAR index: INTEGER; val: LONGINT;
+            PROCEDURE WriteBool(true, false: ARRAY OF CHAR) : BOOLEAN;
+               VAR index: INTEGER; val: LONGINT;
 
-	       PROCEDURE WriteString(VAR s: ARRAY OF CHAR);
-		  VAR i, len: INTEGER;
-	       BEGIN
-		  len := 0;
-		  WHILE (len < LEN(s)) & (s[len] # 0X) DO
-		     INC(len);
-		  END;
-		  FillLeft(len);
-		  i := 0;
-		  WHILE i < len DO
-		     Write(s[i]); INC(i);
-		  END;
-		  FillRight(len);
-	       END WriteString;
+               PROCEDURE WriteString(VAR s: ARRAY OF CHAR);
+                  VAR i, len: INTEGER;
+               BEGIN
+                  len := 0;
+                  WHILE (len < LEN(s)) & (s[len] # 0X) DO
+                     INC(len);
+                  END;
+                  FillLeft(len);
+                  i := 0;
+                  WHILE i < len DO
+                     Write(s[i]); INC(i);
+                  END;
+                  FillRight(len);
+               END WriteString;
 
-	    BEGIN
-	       IF NextArg(index) & GetInt(index, val) THEN
-		  IF val = 0 THEN
-		     WriteString(false); RETURN TRUE
-		  ELSIF val = 1 THEN
-		     WriteString(true); RETURN TRUE
-		  END;
-	       END;
-	       RETURN FALSE
-	    END WriteBool;
+            BEGIN
+               IF NextArg(index) & GetInt(index, val) THEN
+                  IF val = 0 THEN
+                     WriteString(false); RETURN TRUE
+                  ELSIF val = 1 THEN
+                     WriteString(true); RETURN TRUE
+                  END;
+               END;
+               RETURN FALSE
+            END WriteBool;
 
-	    PROCEDURE WriteChar() : BOOLEAN;
-	       VAR
-		  val: LONGINT;
-		  index: INTEGER;
-	    BEGIN
-	       IF NextArg(index) & GetInt(index, val) &
-		  (val >= 0) & (val <= ORD(MAX(CHAR))) THEN
-		  FillLeft(1);
-		  Write(CHR(val));
-		  FillRight(1);
-		  RETURN TRUE
-	       END;
-	       RETURN FALSE
-	    END WriteChar;
+            PROCEDURE WriteChar() : BOOLEAN;
+               VAR
+                  val: LONGINT;
+                  index: INTEGER;
+            BEGIN
+               IF NextArg(index) & GetInt(index, val) &
+                  (val >= 0) & (val <= ORD(MAX(CHAR))) THEN
+                  FillLeft(1);
+                  Write(CHR(val));
+                  FillRight(1);
+                  RETURN TRUE
+               END;
+               RETURN FALSE
+            END WriteChar;
 
-	    PROCEDURE WriteInt(base: INTEGER) : BOOLEAN;
-	       VAR
-		  index: INTEGER;
-		  val: LONGINT;
-		  neg: BOOLEAN; (* set by Convert *)
-		  buf: ARRAY 12 OF CHAR; (* filled by Convert *)
-		  i: INTEGER;
-		  len: INTEGER; (* space needed for val *)
-		  signcnt: INTEGER; (* =1 if sign printed; else 0 *)
-		  signch: CHAR;
+            PROCEDURE WriteInt(base: INTEGER) : BOOLEAN;
+               VAR
+                  index: INTEGER;
+                  val: LONGINT;
+                  neg: BOOLEAN; (* set by Convert *)
+                  buf: ARRAY 12 OF CHAR; (* filled by Convert *)
+                  i: INTEGER;
+                  len: INTEGER; (* space needed for val *)
+                  signcnt: INTEGER; (* =1 if sign printed; else 0 *)
+                  signch: CHAR;
 
-	       PROCEDURE Convert;
-		  VAR
-		     index: INTEGER;
-		     digit: LONGINT;
-	       BEGIN
-		  neg := val < 0;
-		  index := 0;
-		  REPEAT
-		     digit := val MOD base;
-		     val := val DIV base;
-		     IF neg & (digit > 0) THEN
-			digit := base - digit;
-			INC(val);
-		     END;
-		     IF digit < 10 THEN
-			buf[index] := CHR(ORD("0") + digit);
-		     ELSE
-			buf[index] := CHR(ORD("A") + digit - 10);
-		     END;
-		     INC(index);
-		  UNTIL val = 0;
-		  len := index;
-	       END Convert;
+               PROCEDURE Convert;
+                  VAR
+                     index: INTEGER;
+                     digit: LONGINT;
+               BEGIN
+                  neg := val < 0;
+                  index := 0;
+                  REPEAT
+                     digit := val MOD base;
+                     val := val DIV base;
+                     IF neg & (digit > 0) THEN
+                        digit := base - digit;
+                        INC(val);
+                     END;
+                     IF digit < 10 THEN
+                        buf[index] := CHR(ORD("0") + digit);
+                     ELSE
+                        buf[index] := CHR(ORD("A") + digit - 10);
+                     END;
+                     INC(index);
+                  UNTIL val = 0;
+                  len := index;
+               END Convert;
 
-	    BEGIN (* WriteInt *)
-	       IF NextArg(index) & GetInt(index, val) THEN
-		  Convert;
-		  IF sign OR neg THEN
-		     signcnt := 1;
-		     IF neg THEN
-			signch := "-";
-		     ELSE
-			signch := "+";
-		     END;
-		  ELSE
-		     signcnt := 0;
-		  END;
-		  IF insert & (signcnt = 1) THEN
-		     Write(signch);
-		  END;
-		  FillLeft(len+signcnt);
-		  IF ~insert & (signcnt = 1) THEN
-		     Write(signch);
-		  END;
-		  i := len;
-		  WHILE i > 0 DO
-		     DEC(i); Write(buf[i]);
-		  END;
-		  FillRight(len+signcnt);
-		  RETURN TRUE
-	       END;
-	       RETURN FALSE
-	    END WriteInt;
+            BEGIN (* WriteInt *)
+               IF NextArg(index) & GetInt(index, val) THEN
+                  Convert;
+                  IF sign OR neg THEN
+                     signcnt := 1;
+                     IF neg THEN
+                        signch := "-";
+                     ELSE
+                        signch := "+";
+                     END;
+                  ELSE
+                     signcnt := 0;
+                  END;
+                  IF insert & (signcnt = 1) THEN
+                     Write(signch);
+                  END;
+                  FillLeft(len+signcnt);
+                  IF ~insert & (signcnt = 1) THEN
+                     Write(signch);
+                  END;
+                  i := len;
+                  WHILE i > 0 DO
+                     DEC(i); Write(buf[i]);
+                  END;
+                  FillRight(len+signcnt);
+                  RETURN TRUE
+               END;
+               RETURN FALSE
+            END WriteInt;
 
-	    PROCEDURE WriteReal(format: CHAR) : BOOLEAN;
-	       (* format either "f", "e", or "g" *)
-	       CONST
-		  defaultscale = 6;
-	       VAR
-		  index: INTEGER;
-		  lr: LONGREAL;
-		  r: REAL;
-		  shortint: SHORTINT; int: INTEGER; longint: LONGINT;
-		  (*int16: SYS.INT16;*)
-		  long: BOOLEAN;
-		  exponent: INTEGER;
-		  mantissa: LONGREAL;
-		  digits: ARRAY Reals.maxlongdignum OF CHAR;
-		  neg: BOOLEAN;
-		  ndigits: INTEGER;
-		  decpt: INTEGER;
+            PROCEDURE WriteReal(format: CHAR) : BOOLEAN;
+               (* format either "f", "e", or "g" *)
+               CONST
+                  defaultscale = 6;
+               VAR
+                  index: INTEGER;
+                  lr: LONGREAL;
+                  r: REAL;
+                  shortint: SHORTINT; int: INTEGER; longint: LONGINT;
+                  (*int16: SYS.INT16;*)
+                  long: BOOLEAN;
+                  exponent: INTEGER;
+                  mantissa: LONGREAL;
+                  digits: ARRAY Reals.maxlongdignum OF CHAR;
+                  neg: BOOLEAN;
+                  ndigits: INTEGER;
+                  decpt: INTEGER;
 
-	       PROCEDURE Print(decpt: INTEGER; withexp: BOOLEAN; exp: INTEGER);
-		  (* decpt: position of decimal point
-			    = 0: just before the digits
-			    > 0: after decpt digits
-			    < 0: ABS(decpt) zeroes before digits needed
-		  *)
-		  VAR
-		     needed: INTEGER; (* space needed *)
-		     index: INTEGER;
-		     count: LONGINT;
+               PROCEDURE Print(decpt: INTEGER; withexp: BOOLEAN; exp: INTEGER);
+                  (* decpt: position of decimal point
+                            = 0: just before the digits
+                            > 0: after decpt digits
+                            < 0: ABS(decpt) zeroes before digits needed
+                  *)
+                  VAR
+                     needed: INTEGER; (* space needed *)
+                     index: INTEGER;
+                     count: LONGINT;
 
-		  PROCEDURE WriteExp(exp: INTEGER);
-		     CONST
-			base = 10;
-		     VAR
-			power: INTEGER;
-			digit: INTEGER;
-		  BEGIN
-		     IF long THEN
-			Write("D");
-		     ELSE
-			Write("E");
-		     END;
-		     IF exp < 0 THEN
-			Write("-"); exp := - exp;
-		     ELSE
-			Write("+");
-		     END;
-		     IF long THEN
-			power := 1000;
-		     ELSE
-			power := 100;
-		     END;
-		     WHILE power > 0 DO
-			digit := (exp DIV power) MOD base;
-			Write(CHR(digit+ORD("0")));
-			power := power DIV base;
-		     END;
-		  END WriteExp;
+                  PROCEDURE WriteExp(exp: INTEGER);
+                     CONST
+                        base = 10;
+                     VAR
+                        power: INTEGER;
+                        digit: INTEGER;
+                  BEGIN
+                     IF long THEN
+                        Write("D");
+                     ELSE
+                        Write("E");
+                     END;
+                     IF exp < 0 THEN
+                        Write("-"); exp := - exp;
+                     ELSE
+                        Write("+");
+                     END;
+                     IF long THEN
+                        power := 1000;
+                     ELSE
+                        power := 100;
+                     END;
+                     WHILE power > 0 DO
+                        digit := (exp DIV power) MOD base;
+                        Write(CHR(digit+ORD("0")));
+                        power := power DIV base;
+                     END;
+                  END WriteExp;
 
-	       BEGIN (* Print *)
-		  (* leading digits *)
-		  IF decpt > 0 THEN
-		     needed := decpt;
-		  ELSE
-		     needed := 1;
-		  END;
-		  IF neg OR sign THEN
-		     INC(needed);
-		  END;
-		  IF withexp OR (scale # 0) THEN
-		     INC(needed); (* decimal point *)
-		  END;
-		  IF withexp THEN
-		     INC(needed, 2); (* E[+-] *)
-		     IF long THEN
-			INC(needed, 4);
-		     ELSE
-			INC(needed, 3);
-		     END;
-		  END;
-		  INC(needed, SHORT(scale));
+               BEGIN (* Print *)
+                  (* leading digits *)
+                  IF decpt > 0 THEN
+                     needed := decpt;
+                  ELSE
+                     needed := 1;
+                  END;
+                  IF neg OR sign THEN
+                     INC(needed);
+                  END;
+                  IF withexp OR (scale # 0) THEN
+                     INC(needed); (* decimal point *)
+                  END;
+                  IF withexp THEN
+                     INC(needed, 2); (* E[+-] *)
+                     IF long THEN
+                        INC(needed, 4);
+                     ELSE
+                        INC(needed, 3);
+                     END;
+                  END;
+                  INC(needed, SHORT(scale));
 
-		  FillLeft(needed);
-		  IF neg THEN
-		     Write("-");
-		  ELSIF sign THEN
-		     Write("+");
-		  END;
-		  IF decpt <= 0 THEN
-		     Write("0");
-		  ELSE
-		     index := 0;
-		     WHILE index < decpt DO
-			IF index < ndigits THEN
-			   Write(digits[index]);
-			ELSE
-			   Write("0");
-			END;
-			INC(index);
-		     END;
-		  END;
-		  IF withexp OR (scale > 0) THEN
-		     Write(".");
-		  END;
-		  IF scale > 0 THEN
-		     count := scale;
-		     index := decpt;
-		     WHILE (index < 0) & (count > 0) DO
-			Write("0"); INC(index); DEC(count);
-		     END;
-		     WHILE (index < ndigits) & (count > 0) DO
-			Write(digits[index]); INC(index); DEC(count);
-		     END;
-		     WHILE count > 0 DO
-			Write("0"); DEC(count);
-		     END;
-		  END;
-		  IF withexp THEN
-		     WriteExp(exp);
-		  END;
-		  FillRight(needed);
-	       END Print;
+                  FillLeft(needed);
+                  IF neg THEN
+                     Write("-");
+                  ELSIF sign THEN
+                     Write("+");
+                  END;
+                  IF decpt <= 0 THEN
+                     Write("0");
+                  ELSE
+                     index := 0;
+                     WHILE index < decpt DO
+                        IF index < ndigits THEN
+                           Write(digits[index]);
+                        ELSE
+                           Write("0");
+                        END;
+                        INC(index);
+                     END;
+                  END;
+                  IF withexp OR (scale > 0) THEN
+                     Write(".");
+                  END;
+                  IF scale > 0 THEN
+                     count := scale;
+                     index := decpt;
+                     WHILE (index < 0) & (count > 0) DO
+                        Write("0"); INC(index); DEC(count);
+                     END;
+                     WHILE (index < ndigits) & (count > 0) DO
+                        Write(digits[index]); INC(index); DEC(count);
+                     END;
+                     WHILE count > 0 DO
+                        Write("0"); DEC(count);
+                     END;
+                  END;
+                  IF withexp THEN
+                     WriteExp(exp);
+                  END;
+                  FillRight(needed);
+               END Print;
 
-	    BEGIN (* WriteReal *)
-	       IF NextArg(index) THEN
-		  IF arglen[index] = SIZE(LONGREAL) THEN
-		     long := TRUE;
-		     Convert(index, lr);
-		  ELSIF arglen[index] = SIZE(REAL) THEN
-		     long := FALSE;
-		     Convert(index, r);
-		     lr := r;
-		  ELSIF arglen[index] = SIZE(LONGINT) THEN
-		     long := FALSE;
-		     Convert(index, longint);
-		     lr := longint;
-		  ELSIF arglen[index] = SIZE(INTEGER) THEN
-		     long := FALSE;
-		     Convert(index, int);
-		     lr := int;
-		  (*ELSIF arglen[index] = SIZE(SYS.INT16) THEN
-		     long := FALSE;
-		     Convert(index, int16);
-		     lr := int16;*)
-		  ELSIF arglen[index] = SIZE(SHORTINT) THEN
-		     long := FALSE;
-		     Convert(index, shortint);
-		     lr := shortint;
-		  ELSE
-		     Error(badArgumentSize); RETURN FALSE
-		  END;
-		  IF scale = -1 THEN
-		     scale := defaultscale;
-		  END;
-		  (* check for NaNs and other invalid numbers *)
-		  IF ~IEEE.Valid(lr) THEN
-		     IF IEEE.NotANumber(lr) THEN
-			Write("N"); Write("a"); Write("N");
-			RETURN TRUE
-		     ELSE
-			IF lr < 0 THEN
-			   Write("-");
-			ELSE
-			   Write("+");
-			END;
-			Write("i"); Write("n"); Write("f");
-		     END;
-		     RETURN TRUE
-		  END;
-		  (* real value in `lr' *)
-		  Reals.ExpAndMan(lr, long, 10, exponent, mantissa);
-		  CASE format OF
-		  | "e":   ndigits := SHORT(scale)+1;
-		  | "f":   ndigits := SHORT(scale)+exponent+1;
-			   IF ndigits <= 0 THEN
-			      ndigits := 1;
-			   END;
-		  | "g":   ndigits := SHORT(scale);
-		  END;
-		  Reals.Digits(mantissa, 10, digits, neg,
-			       (* force = *) format # "g", ndigits);
-		  decpt := 1;
-		  CASE format OF
-		  | "e":   Print(decpt, (* withexp = *) TRUE, exponent);
-		  | "f":   INC(decpt, exponent);
-		           Print(decpt, (* withexp = *) FALSE, 0);
-		  | "g":   IF (exponent < -4) OR (exponent > scale) THEN
-			      scale := ndigits-1;
-			      Print(decpt, (* withexp = *) TRUE, exponent);
-			   ELSE
-			      INC(decpt, exponent);
-			      scale := ndigits-1;
-			      DEC(scale, LONG(exponent));
-			      IF scale < 0 THEN
-				 scale := 0;
-			      END;
-			      Print(decpt, (* withexp = *) FALSE, 0);
-			   END;
-		  END;
-		  RETURN TRUE
-	       ELSE
-		  RETURN FALSE
-	       END;
-	    END WriteReal;
+            BEGIN (* WriteReal *)
+               IF NextArg(index) THEN
+                  IF arglen[index] = SIZE(LONGREAL) THEN
+                     long := TRUE;
+                     Convert(index, lr);
+                  ELSIF arglen[index] = SIZE(REAL) THEN
+                     long := FALSE;
+                     Convert(index, r);
+                     lr := r;
+                  ELSIF arglen[index] = SIZE(LONGINT) THEN
+                     long := FALSE;
+                     Convert(index, longint);
+                     lr := longint;
+                  ELSIF arglen[index] = SIZE(INTEGER) THEN
+                     long := FALSE;
+                     Convert(index, int);
+                     lr := int;
+                  (*ELSIF arglen[index] = SIZE(SYS.INT16) THEN
+                     long := FALSE;
+                     Convert(index, int16);
+                     lr := int16;*)
+                  ELSIF arglen[index] = SIZE(SHORTINT) THEN
+                     long := FALSE;
+                     Convert(index, shortint);
+                     lr := shortint;
+                  ELSE
+                     Error(badArgumentSize); RETURN FALSE
+                  END;
+                  IF scale = -1 THEN
+                     scale := defaultscale;
+                  END;
+                  (* check for NaNs and other invalid numbers *)
+                  IF ~IEEE.Valid(lr) THEN
+                     IF IEEE.NotANumber(lr) THEN
+                        Write("N"); Write("a"); Write("N");
+                        RETURN TRUE
+                     ELSE
+                        IF lr < 0 THEN
+                           Write("-");
+                        ELSE
+                           Write("+");
+                        END;
+                        Write("i"); Write("n"); Write("f");
+                     END;
+                     RETURN TRUE
+                  END;
+                  (* real value in `lr' *)
+                  Reals.ExpAndMan(lr, long, 10, exponent, mantissa);
+                  CASE format OF
+                  | "e":   ndigits := SHORT(scale)+1;
+                  | "f":   ndigits := SHORT(scale)+exponent+1;
+                           IF ndigits <= 0 THEN
+                              ndigits := 1;
+                           END;
+                  | "g":   ndigits := SHORT(scale);
+                  ELSE
+                  END;
+                  Reals.Digits(mantissa, 10, digits, neg,
+                               (* force = *) format # "g", ndigits);
+                  decpt := 1;
+                  CASE format OF
+                  | "e":   Print(decpt, (* withexp = *) TRUE, exponent);
+                  | "f":   INC(decpt, exponent);
+                           Print(decpt, (* withexp = *) FALSE, 0);
+                  | "g":   IF (exponent < -4) OR (exponent > scale) THEN
+                              scale := ndigits-1;
+                              Print(decpt, (* withexp = *) TRUE, exponent);
+                           ELSE
+                              INC(decpt, exponent);
+                              scale := ndigits-1;
+                              DEC(scale, LONG(exponent));
+                              IF scale < 0 THEN
+                                 scale := 0;
+                              END;
+                              Print(decpt, (* withexp = *) FALSE, 0);
+                           END;
+                  ELSE
+                  END;
+                  RETURN TRUE
+               ELSE
+                  RETURN FALSE
+               END;
+            END WriteReal;
 
-	    PROCEDURE WriteString() : BOOLEAN;
-	       VAR
-		  index: INTEGER;
-		  i: LONGINT;
-		  byte: SYS.BYTE;
-		  len: LONGINT;
-	    BEGIN
-	       IF NextArg(index) THEN
-		  len := 0;
-		  WHILE (len < arglen[index]) &
-			((scale = -1) OR (len < scale)) &
-		        ((*CHR*)SYS.VAL(CHAR, (Access(index, len))) # 0X) DO
-		     INC(len);
-		  END;
-		  FillLeft(len);
-		  i := 0;
-		  WHILE i < len DO
-		     byte := Access(index, i);
-		     Write(byte);
-		     INC(i);
-		  END;
-		  FillRight(len);
-		  RETURN TRUE
-	       END;
-	       RETURN FALSE
-	    END WriteString;
+            PROCEDURE WriteString() : BOOLEAN;
+               VAR
+                  index: INTEGER;
+                  i: LONGINT;
+                  byte: SYS.BYTE;
+                  len: LONGINT;
+            BEGIN
+               IF NextArg(index) THEN
+                  len := 0;
+                  WHILE (len < arglen[index]) &
+                        ((scale = -1) OR (len < scale)) &
+                        ((*CHR*)SYS.VAL(CHAR, (Access(index, len))) # 0X) DO
+                     INC(len);
+                  END;
+                  FillLeft(len);
+                  i := 0;
+                  WHILE i < len DO
+                     byte := Access(index, i);
+                     Write(byte);
+                     INC(i);
+                  END;
+                  FillRight(len);
+                  RETURN TRUE
+               END;
+               RETURN FALSE
+            END WriteString;
 
-	 BEGIN (* Conversion *)
-	    CASE fmtchar OF
-	    | "b": RETURN WriteBool("TRUE", "FALSE")
-	    | "c": RETURN WriteChar()
-	    | "d": RETURN WriteInt(10)
-	    | "e",
-	      "f",
-	      "g": RETURN WriteReal(fmtchar)
-	    | "j": RETURN WriteBool("ja", "nein")
-	    | "o": RETURN WriteInt(8)
-	    | "s": RETURN WriteString()
-	    | "x": RETURN WriteInt(16)
-	    | "y": RETURN WriteBool("yes", "no")
-	    ELSE
-	       Error(badFormat); RETURN FALSE
-	    END;
-	 END Conversion;
+         BEGIN (* Conversion *)
+            CASE fmtchar OF
+            | "b": RETURN WriteBool("TRUE", "FALSE")
+            | "c": RETURN WriteChar()
+            | "d": RETURN WriteInt(10)
+            | "e",
+              "f",
+              "g": RETURN WriteReal(fmtchar)
+            | "j": RETURN WriteBool("ja", "nein")
+            | "o": RETURN WriteInt(8)
+            | "s": RETURN WriteString()
+            | "x": RETURN WriteInt(16)
+            | "y": RETURN WriteBool("yes", "no")
+            ELSE
+               Error(badFormat); RETURN FALSE
+            END;
+         END Conversion;
 
       BEGIN
-	 IF ~Next() THEN RETURN FALSE END;
-	 IF fmtchar = fmtcmd THEN Write(fmtcmd); RETURN TRUE END;
-	 RETURN Flags() & Width() & Scale() & Conversion()
+         IF ~Next() THEN RETURN FALSE END;
+         IF fmtchar = fmtcmd THEN Write(fmtcmd); RETURN TRUE END;
+         RETURN Flags() & Width() & Scale() & Conversion()
       END Format;
-	 
+         
    BEGIN
       out.count := 0; out.error := FALSE;
       SetSize;
       nextarg := 0;
       fmtindex := 0;
       WHILE Next() DO
-	 IF fmtchar = fmtcmd THEN
-	    IF ~Format() THEN
-	       RETURN
-	    END;
-	 ELSIF (fmtchar = "\") & Next() THEN
-	    CASE fmtchar OF
-	    | "0".."9", "A".."F":
-		   IF ~Int(hexcharval, 16) THEN
-		      (* Error(s, BadFormat); *) RETURN
-		   END;
-		   Unget;
-		   Write(CHR(hexcharval));
-	    | "b": Write(08X);  (* back space *)
-	    | "e": Write(1BX);  (* escape *)
-	    | "f": Write(0CX);  (* form feed *)
-	    | "n": WriteLn;
-	    | "q": Write("'");
-	    | "Q": Write(22X);  (* double quote: " *)
-	    | "r": Write(0DX);  (* carriage return *)
-	    | "t": Write(09X);  (* horizontal tab *)
-	    | "&": Write(07X);  (* bell *)
-	    ELSE
-	       Write(fmtchar);
-	    END;
-	 ELSE
-	    Write(fmtchar);
-	 END;
+         IF fmtchar = fmtcmd THEN
+            IF ~Format() THEN
+               RETURN
+            END;
+         ELSIF (fmtchar = "\") & Next() THEN
+            CASE fmtchar OF
+            | "0".."9", "A".."F":
+                   IF ~Int(hexcharval, 16) THEN
+                      (* Error(s, BadFormat); *) RETURN
+                   END;
+                   Unget;
+                   Write(CHR(hexcharval));
+            | "b": Write(08X);  (* back space *)
+            | "e": Write(1BX);  (* escape *)
+            | "f": Write(0CX);  (* form feed *)
+            | "n": WriteLn;
+            | "q": Write("'");
+            | "Q": Write(22X);  (* double quote: " *)
+            | "r": Write(0DX);  (* carriage return *)
+            | "t": Write(09X);  (* horizontal tab *)
+            | "&": Write(07X);  (* bell *)
+            ELSE
+               Write(fmtchar);
+            END;
+         ELSE
+            Write(fmtchar);
+         END;
       END;
       IF nextarg < nargs THEN
-	 Error(tooManyArgs);
+         Error(tooManyArgs);
       ELSIF nextarg > nargs THEN
-	 Error(tooFewArgs);
+         Error(tooFewArgs);
       END;
    END Out;
 
@@ -804,14 +808,14 @@ MODULE ulmPrint;
    END F7;
 
    PROCEDURE F8*(fmt: ARRAY OF CHAR;
-		p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE);
+                p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE);
       VAR x: INTEGER;
    BEGIN
       Out(Streams.stdout, fmt, 8, p1,p2,p3,p4,p5,p6,p7,p8, x, NIL);
    END F8;
 
    PROCEDURE F9*(fmt: ARRAY OF CHAR;
-		p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE);
+                p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE);
    BEGIN
       Out(Streams.stdout, fmt, 9, p1,p2,p3,p4,p5,p6,p7,p8,p9, NIL);
    END F9;
@@ -842,49 +846,49 @@ MODULE ulmPrint;
    END S3;
 
    PROCEDURE S4*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4: ARRAY OF SYS.BYTE);
+                 p1, p2, p3, p4: ARRAY OF SYS.BYTE);
       VAR x: INTEGER;
    BEGIN
       Out(out, fmt, 4, p1,p2,p3,p4, x,x,x,x,x, NIL);
    END S4;
 
    PROCEDURE S5*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE);
+                 p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE);
       VAR x: INTEGER;
    BEGIN
       Out(out, fmt, 5, p1,p2,p3,p4,p5, x,x,x,x, NIL);
    END S5;
 
    PROCEDURE S6*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE);
+                 p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE);
       VAR x: INTEGER;
    BEGIN
       Out(out, fmt, 6, p1,p2,p3,p4,p5,p6, x,x,x, NIL);
    END S6;
 
    PROCEDURE S7*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE);
+                 p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE);
       VAR x: INTEGER;
    BEGIN
       Out(out, fmt, 7, p1,p2,p3,p4,p5,p6,p7, x,x, NIL);
    END S7;
 
    PROCEDURE S8*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE);
+                 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE);
       VAR x: INTEGER;
    BEGIN
       Out(out, fmt, 8, p1,p2,p3,p4,p5,p6,p7,p8, x, NIL);
    END S8;
 
    PROCEDURE S9*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE);
+                 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE);
    BEGIN
       Out(out, fmt, 9, p1,p2,p3,p4,p5,p6,p7,p8,p9, NIL);
    END S9;
 
 
    PROCEDURE SE*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-	        errors: RelatedEvents.Object);
+                errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
       Out(out, fmt, 0, x,x,x,x,x,x,x,x,x, NIL);
@@ -905,7 +909,7 @@ MODULE ulmPrint;
    END SE2;
 
    PROCEDURE SE3*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3: ARRAY OF SYS.BYTE;
+                 p1, p2, p3: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
@@ -913,7 +917,7 @@ MODULE ulmPrint;
    END SE3;
 
    PROCEDURE SE4*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4: ARRAY OF SYS.BYTE;
+                 p1, p2, p3, p4: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
@@ -921,7 +925,7 @@ MODULE ulmPrint;
    END SE4;
 
    PROCEDURE SE5*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE;
+                 p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
@@ -929,7 +933,7 @@ MODULE ulmPrint;
    END SE5;
 
    PROCEDURE SE6*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE;
+                 p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
@@ -937,7 +941,7 @@ MODULE ulmPrint;
    END SE6;
 
    PROCEDURE SE7*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE;
+                 p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
@@ -945,7 +949,7 @@ MODULE ulmPrint;
    END SE7;
 
    PROCEDURE SE8*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE;
+                 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
       VAR x: INTEGER;
    BEGIN
@@ -953,7 +957,7 @@ MODULE ulmPrint;
    END SE8;
 
    PROCEDURE SE9*(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE;
+                 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
    BEGIN
       Out(out, fmt, 9, p1,p2,p3,p4,p5,p6,p7,p8,p9, errors);

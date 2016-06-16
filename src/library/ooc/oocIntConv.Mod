@@ -162,6 +162,7 @@ BEGIN
       ELSE
         RETURN strWrongFormat;
       END;
+    ELSE (* Ignore unrecognised class *)
     END;
     prev:=class; INC(index)
   END;

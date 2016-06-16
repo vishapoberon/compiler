@@ -632,6 +632,7 @@ MODULE ulmStreams;
       | linebuf:  nbuf := 1;
       | onebuf:   nbuf := 1;
       | bufpool:  nbuf := s.bufpool.maxbuf;
+      ELSE (* Explicitly ignore unhandled values of s.bufmode  *)
       END;
    END GetBufferPoolSize;
 

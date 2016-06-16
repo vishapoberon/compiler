@@ -50,34 +50,32 @@ MODULE ulmTypes;
    IMPORT SYS := SYSTEM;
 
    TYPE
-      Address* = (*SYS.PTR*) LONGINT (*SYS.ADDRESS*);
+      Address* = LONGINT (*SYS.ADDRESS*);
       (* ulm compiler can accept 
          VAR p : SYSTEM.ADDRESS; // SYSTEM.PTR in ETH and V4 versions
-	 ...
-	 p := SYSTEM.ADR(something);
-	 and this is how it is used in ulm oberon system library,
-	 while SYSTEM.ADR returns LONGINT in ETH and V4 versions.
-	 Thus I leave it as LONGINT for now, before coming up with better solution -- noch *)
-      UntracedAddress* = POINTER[1] TO UntracedAddressDesc; (*SYS.UNTRACEDADDRESS;*)
+         ...
+         p := SYSTEM.ADR(something);
+         and this is how it is used in ulm oberon system library,
+         while SYSTEM.ADR returns LONGINT in ETH and V4 versions.
+         Thus I leave it as LONGINT for now, before coming up with better solution -- noch *)      
+     
+      UntracedAddress*      = POINTER[1] TO UntracedAddressDesc; (*SYS.UNTRACEDADDRESS;*)
       UntracedAddressDesc* = RECORD[1] END;
-      
-      intarr64 = ARRAY 8 OF SYS.BYTE; (* to emulate int16 on x86_64; -- noch *)
-      intarr16 = ARRAY 2 OF SYS.BYTE;
-      
-      Count* = LONGINT;
-      Size* = Count;
-      Byte* = SYS.BYTE;
+
+      Count*      = LONGINT;
+      Size*       = Count;
+      Byte*       = SYS.BYTE;
       IntAddress* = LONGINT;
-      Int8* = SHORTINT;
-      Int16* = intarr16(*INTEGER*); (* we don't have 16 bit integer in x86_64 version of voc *) 
-      Int32* = INTEGER;
-      Real32* = REAL;
-      Real64* = LONGREAL;
+      Int8*       = SHORTINT;
+      Int16*      = INTEGER; (* No real 16 bit integer type *)
+      Int32*      = INTEGER;
+      Real32*     = REAL;
+      Real64*     = LONGREAL;
 
    CONST
-      bigEndian* = 0;    (* SPARC, M68K etc *)
+      bigEndian*    = 0;    (* SPARC, M68K etc *)
       littleEndian* = 1; (* Intel 80x86, VAX etc *)
-      byteorder* = littleEndian; (* machine-dependent constant *)
+      byteorder*    = littleEndian; (* machine-dependent constant *)
    TYPE
       ByteOrder* = SHORTINT; (* bigEndian or littleEndian *)
 
@@ -93,21 +91,17 @@ MODULE ulmTypes;
 
    PROCEDURE ToInt8*(int: LONGINT) : Int8;
    BEGIN
-      RETURN SHORT(SHORT(int))
+      RETURN SYS.VAL(SHORTINT, int)
    END ToInt8;
 
-   PROCEDURE ToInt16*(int: LONGINT; VAR int16: Int16)(* : Int16*);
-   VAR longintarr : intarr64;
+   PROCEDURE ToInt16*(int: LONGINT) : Int16;
    BEGIN
-      (*RETURN SYS.VAL(Int16, int)*)
-      longintarr := SYS.VAL(intarr64, int);
-      int16[0] := longintarr[0];
-      int16[1] := longintarr[1]; (* this will work for little endian -- noch *)
+      RETURN SYS.VAL(Int16, int)
    END ToInt16;
 
    PROCEDURE ToInt32*(int: LONGINT) : Int32;
    BEGIN
-      RETURN SHORT(int)
+      RETURN SYS.VAL(INTEGER, int)
    END ToInt32;
 
    PROCEDURE ToReal32*(real: LONGREAL) : Real32;

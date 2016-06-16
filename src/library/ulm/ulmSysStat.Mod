@@ -45,42 +45,42 @@ MODULE ulmSysStat;
    CONST
       (* file mode:
          bit 0 = 1<<0   bit 31 = 1<<31
-	 
+    
                                 user  group other
          3       1  1111   11
          1  ...  6  5432   109   876   543   210 
-	 +--------+------+-----+-----+-----+-----+
-	 | unused | type | sst | rwx | rwx | rwx |
-	 +--------+------+-----+-----+-----+-----+
+    +--------+------+-----+-----+-----+-----+
+    | unused | type | sst | rwx | rwx | rwx |
+    +--------+------+-----+-----+-----+-----+
       *)
 
       type* = {12..15};
       prot* = {0..8};
 
       (* file types; example: (stat.mode * type = dir) *)
-      reg* = {15};		(* regular *)
-      dir* = {14};		(* directory *)
-      chr* = {13};		(* character special *)
-      fifo* = {12};		(* fifo *)
-      blk* = {13..14};		(* block special *)
-      symlink* = {13, 15};	(* symbolic link *)
-      socket* = {14, 15};	(* socket *)
+      reg* = {15};      (* regular *)
+      dir* = {14};      (* directory *)
+      chr* = {13};      (* character special *)
+      fifo* = {12};     (* fifo *)
+      blk* = {13..14};     (* block special *)
+      symlink* = {13, 15}; (* symbolic link *)
+      socket* = {14, 15};  (* socket *)
 
       (* special *)
-      setuid* = 11;		(* set user id on execution *)
-      setgid* = 10;		(* set group id on execution *)
-      savetext* = 9;		(* save swapped text even after use *)
+      setuid* = 11;     (* set user id on execution *)
+      setgid* = 10;     (* set group id on execution *)
+      savetext* = 9;    (* save swapped text even after use *)
 
       (* protection *)
-      uread* = 8;		(* read permission owner *)
-      uwrite* = 7;		(* write permission owner *)
-      uexec* = 6;		(* execute/search permission owner *)
-      gread* = 5;		(* read permission group *)
-      gwrite* = 4;		(* write permission group *)
-      gexec* = 3;		(* execute/search permission group *)
-      oread* = 2;		(* read permission other *)
-      owrite* = 1;		(* write permission other *)
-      oexec* = 0;		(* execute/search permission other *)
+      uread* = 8;    (* read permission owner *)
+      uwrite* = 7;      (* write permission owner *)
+      uexec* = 6;    (* execute/search permission owner *)
+      gread* = 5;    (* read permission group *)
+      gwrite* = 4;      (* write permission group *)
+      gexec* = 3;    (* execute/search permission group *)
+      oread* = 2;    (* read permission other *)
+      owrite* = 1;      (* write permission other *)
+      oexec* = 0;    (* execute/search permission other *)
 
       (* example for "r-xr-x---": (read + exec) * (owner + group) *)
       owner* = {uread, uwrite, uexec};
@@ -92,136 +92,98 @@ MODULE ulmSysStat;
       rwx* = prot;
 
    TYPE
-      StatRec* =                                (* result of stat(2) and fstat(2) *)
-         RECORD
-            device*: SysTypes.Device;   (* ID of device containing
-                                           a directory entry for this file *)
-            inode*: SysTypes.Inode;     (* inode number *)
-            nlinks*: LONGINT(*INTEGER*);           (* number of links *)
-            mode*: SET;                 (* file mode; see mknod(2) *)
-            uid*: INTEGER;              (* user id of the file's owner *)
-            gid*: INTEGER;              (* group id of the file's group *)
-            rdev*: SysTypes.Device;     (* ID of device
-                                           this entry is defined only for
-                                           character special or block
-                                           special files
-                                        *)
-            size*: SysTypes.Offset;     (* file size in bytes *)
-            blksize*: LONGINT;          (* preferred blocksize *)
-            blocks*: LONGINT;           (* # of blocks allocated *)
-            atime*: SysTypes.Time;      (* time of last access *)
-            mtime*: SysTypes.Time;      (* time of last data modification *)
-            ctime*: SysTypes.Time;      (* time of last file status change *)
-         END;
+      StatRec* = RECORD            (* result of stat(2) and fstat(2) *)
+        device*:  SysTypes.Device; (* ID of device containing a directory entry 
+                                      for this file *)
+        inode*:   SysTypes.Inode;  (* inode number *)
+        mode*:    SET;             (* file mode; see mknod(2) *)
+        nlinks*:  LONGINT;         (* number of links *)
+        uid*:     LONGINT;         (* user id of the file's owner *)
+        gid*:     LONGINT;         (* group id of the file's group *)
+        rdev*:    SysTypes.Device; (* ID of device. this entry is defined only for
+                                      character special or block special files *)
+        size*:    SysTypes.Offset; (* file size in bytes *)
+        
+        (* Blocks and blksize are not available on all platforms.
+        blksize*: LONGINT;         (* preferred blocksize *)
+        blocks*:  LONGINT;         (* # of blocks allocated *)
+        *)
+        
+        atime*:   SysTypes.Time;   (* time of last access *)
+        mtime*:   SysTypes.Time;   (* time of last data modification *)
+        ctime*:   SysTypes.Time;   (* time of last file status change *)
+     END;
 
-(*      StatRec* =				(* result of stat(2) and fstat(2) *)
-	 RECORD
-	    device*: SysTypes.Device;	(* ID of device containing
-					   a directory entry for this file *)
-	    inode*: SysTypes.Inode;	(* inode number *)
-	    nlinks*: LONGINT;		(* number of links *)
-	    mode*: INTEGER(*SET*);			(* file mode; see mknod(2) *)
-	    uid*: INTEGER;		(* user id of the file's owner *)
-	    gid*: INTEGER;		(* group id of the file's group *)
-	    pad0: INTEGER;
-	    rdev*: SysTypes.Device;	(* ID of device
-					   this entry is defined only for
-					   character special or block
-					   special files
-					*)
-	    size*: SysTypes.Offset;	(* file size in bytes *)
-	    blksize*: LONGINT;		(* preferred blocksize *)
-	    blocks*: LONGINT;		(* # of blocks allocated *)
-	    atime*: SysTypes.Time;	(* time of last access *)
-	    atimences* : LONGINT;
-	    mtime*: SysTypes.Time;	(* time of last data modification *)
-	    mtimensec* : LONGINT;
-	    ctime*: SysTypes.Time;	(* time of last file status change *)
-	    ctimensec* : LONGINT;
-	    unused0*, unused1*, unused2*: LONGINT;
-	 END;
-*)
-(* Linux kernel struct stat (2.2.17)
-      struct stat {
-	      unsigned short st_dev;
-	      unsigned short __pad1;
-	      unsigned long st_ino;
-	      unsigned short st_mode;
-	      unsigned short st_nlink;
-	      unsigned short st_uid;
-	      unsigned short st_gid;
-	      unsigned short st_rdev;
-	      unsigned short __pad2;
-	      unsigned long  st_size;
-	      unsigned long  st_blksize;
-	      unsigned long  st_blocks;
-	      unsigned long  st_atime;
-	      unsigned long  __unused1;
-	      unsigned long  st_mtime;
-	      unsigned long  __unused2;
-	      unsigned long  st_ctime;
-	      unsigned long  __unused3;
-	      unsigned long  __unused4;
-	      unsigned long  __unused5;
-      };
-*)
 
-   CONST
-      statbufsize = 144(*64*); (* see <sys/stat.h> *) (* sizeof struct stat gives us 144 on x86_64 and 88 or x86; -- noch *)
-   TYPE
-      UnixStatRec = ARRAY statbufsize OF SYS.BYTE;
-   CONST
-      statbufconv =
-      (*"is=dev/-s=pad1/ll=ino/Ss=mode/4*is=nlink+uid+gid+rdev/-s=pad2/ll=size/2*ll=blksize,blocks/il=atime/-l/il=mtime/-l/il=ctime/3*-l";*)
-      "lL=dev/lL=ino/lL=nlink/Su=mode/2*iu=uid+gid/-i=pad0/lL=rdev/ll=size/2*ll=blksize,blocks/lL=atime/-l/lL=mtime/-l/lL=ctime/3*-l"; (* noch *)
-   VAR
-      statbuffmt: SysConversions.Format;
+   PROCEDURE -Aincludesysstat  '#include <sys/stat.h>';
+   PROCEDURE -Aerrno           '#include <errno.h>';
 
-   PROCEDURE Stat*(path: ARRAY OF CHAR; VAR buf: StatRec;
-		  errors: RelatedEvents.Object) : BOOLEAN;
-      VAR
-	 d0, d1, d2: LONGINT;
-	 origbuf: UnixStatRec;
+   PROCEDURE -structstats            "struct stat s";
+   PROCEDURE -statdev():     LONGINT "(LONGINT)s.st_dev";
+   PROCEDURE -statino():     LONGINT "(LONGINT)s.st_ino";
+   PROCEDURE -statmode():    LONGINT "(LONGINT)s.st_mode";
+   PROCEDURE -statnlink():   LONGINT "(LONGINT)s.st_nlink";
+   PROCEDURE -statuid():     LONGINT "(LONGINT)s.st_uid";
+   PROCEDURE -statgid():     LONGINT "(LONGINT)s.st_gid";
+   PROCEDURE -statrdev():    LONGINT "(LONGINT)s.st_rdev";
+   PROCEDURE -statsize():    LONGINT "(LONGINT)s.st_size";
+   PROCEDURE -statatime():   LONGINT "(LONGINT)s.st_atime";
+   PROCEDURE -statmtime():   LONGINT "(LONGINT)s.st_mtime";
+   PROCEDURE -statctime():   LONGINT "(LONGINT)s.st_ctime";
+   
+   (* Blocks and blksize are not available on all platforms.
+   PROCEDURE -statblksize(): LONGINT "(LONGINT)s.st_blksize";
+   PROCEDURE -statblocks():  LONGINT "(LONGINT)s.st_blocks";
+   *)
+
+   PROCEDURE -fstat(fd: LONGINT):      INTEGER "fstat(fd, &s)";
+   PROCEDURE -stat (n: ARRAY OF CHAR): INTEGER "stat((char*)n, &s)";
+
+   PROCEDURE -err(): INTEGER "errno";
+
+   PROCEDURE Stat*(path: ARRAY OF CHAR; VAR buf: StatRec; errors: RelatedEvents.Object): BOOLEAN;
    BEGIN
-      IF uSYS.UNIXCALL(Sys.newstat, d0, d1, SYS.ADR(path), SYS.ADR(origbuf), d2) THEN
-	 SysConversions.ByFmtFromC(origbuf, buf, statbuffmt);
-	 RETURN TRUE
-      ELSE
-	 SysErrors.Raise(errors, d0, Sys.newstat, path);
-	 RETURN FALSE
-      END;
+      structstats;
+      IF stat(path) < 0 THEN SysErrors.Raise(errors, err(), Sys.newstat, path); RETURN FALSE END;
+      buf.device  := SYS.VAL(SysTypes.Device, statdev());
+      buf.inode   := SYS.VAL(SysTypes.Inode,  statino());
+      buf.mode    := SYS.VAL(SET,             statmode());
+      buf.nlinks  := statnlink();
+      buf.uid     := statuid();
+      buf.gid     := statgid();
+      buf.rdev    := SYS.VAL(SysTypes.Device, statrdev());
+      buf.size    := SYS.VAL(SysTypes.Offset, statsize());
+      (* Blocks and blksize are not available on all platforms.
+      buf.blksize := statblksize();
+      buf.blocks  := statblocks();
+      *)
+      buf.atime   := SYS.VAL(SysTypes.Time, statatime());
+      buf.mtime   := SYS.VAL(SysTypes.Time, statmtime());
+      buf.ctime   := SYS.VAL(SysTypes.Time, statctime());
+      RETURN TRUE;
    END Stat;
-(* commented temporarily, it is used only in FTPUnixDirLister module *) (*
-   PROCEDURE Lstat*(path: ARRAY OF CHAR; VAR buf: StatRec;
-		   errors: RelatedEvents.Object) : BOOLEAN;
-      VAR
-	 d0, d1: INTEGER;
-	 origbuf: UnixStatRec;
+
+   PROCEDURE Fstat*(fd: SysTypes.File; VAR buf: StatRec; errors: RelatedEvents.Object): BOOLEAN;
    BEGIN
-      IF SYS.UNIXCALL(Sys.newlstat, d0, d1, SYS.ADR(path), SYS.ADR(origbuf)) THEN
-	 SysConversions.ByFmtFromC(origbuf, buf, statbuffmt);
-	 RETURN TRUE
-      ELSE
-	 SysErrors.Raise(errors, d0, Sys.newlstat, path);
-	 RETURN FALSE
-      END;
-   END Lstat;
-*)
-   PROCEDURE Fstat*(fd: SysTypes.File; VAR buf: StatRec;
-		   errors: RelatedEvents.Object) : BOOLEAN;
-      VAR
-	 d0, d1, d2: LONGINT;
-	 origbuf: UnixStatRec;
-   BEGIN
-      IF uSYS.UNIXCALL(Sys.newfstat, d0, d1, fd, SYS.ADR(origbuf), d2) THEN
-	 SysConversions.ByFmtFromC(origbuf, buf, statbuffmt);
-	 RETURN TRUE
-      ELSE
-	 SysErrors.Raise(errors, d0, Sys.newfstat, "");
-	 RETURN FALSE
-      END;
+      structstats;
+      IF fstat(SYS.VAL(LONGINT, fd)) < 0 THEN SysErrors.Raise(errors, err(), Sys.newfstat, ""); RETURN FALSE END;
+      buf.device  := SYS.VAL(SysTypes.Device, statdev());
+      buf.inode   := SYS.VAL(SysTypes.Inode,  statino());
+      buf.mode    := SYS.VAL(SET,             statmode());
+      buf.nlinks  := statnlink();
+      buf.uid     := statuid();
+      buf.gid     := statgid();
+      buf.rdev    := SYS.VAL(SysTypes.Device, statrdev());
+      buf.size    := SYS.VAL(SysTypes.Offset, statsize());
+      (* Blocks and blksize are not available on all platforms.
+      buf.blksize := statblksize();
+      buf.blocks  := statblocks();
+      *)
+      buf.atime   := SYS.VAL(SysTypes.Time, statatime());
+      buf.mtime   := SYS.VAL(SysTypes.Time, statmtime());
+      buf.ctime   := SYS.VAL(SysTypes.Time, statctime());
+      RETURN TRUE;
    END Fstat;
 
-BEGIN
-   SysConversions.Compile(statbuffmt, statbufconv);
+
 END ulmSysStat.

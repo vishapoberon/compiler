@@ -647,6 +647,7 @@ MODULE ulmPersistentObjects;
 			ELSE
 			   form := incrF;
 			END;
+      ELSE
       END;
       IF mode DIV 4 MOD 2 > 0 THEN
 	 INC(form, sizeF);

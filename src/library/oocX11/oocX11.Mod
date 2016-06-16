@@ -1,5 +1,5 @@
 MODULE oocX11;(* [INTERFACE "C";
-            LINK LIB "X11" ADDOPTION LibX11Prefix, LibX11Suffix END];*)
+                 LINK LIB "X11" ADDOPTION LibX11Prefix, LibX11Suffix END];*)
 
 IMPORT
   C := oocC, SYSTEM;
@@ -7,6 +7,7 @@ IMPORT
 CONST
   XPROTOCOL* = 11;             (* current protocol version *)
   XPROTOCOLREVISION* = 0;     (* current minor version *)
+
 
 TYPE
   ulongmask* = C.longset;
@@ -46,11 +47,11 @@ TYPE
 CONST
   None* = 0;                    (* universal null resource or null atom *)
   ParentRelative* = 1;          (* background pixmap in CreateWindow
-				    and ChangeWindowAttributes *)
+                                   and ChangeWindowAttributes *)
   CopyFromParent* = 0;          (* border pixmap in CreateWindow
-				       and ChangeWindowAttributes
-				   special VisualID and special window
-				       class passed to CreateWindow *)
+                                   and ChangeWindowAttributes
+                                   special VisualID and special window
+                                   class passed to CreateWindow *)
   PointerWindow* = 0;           (* destination window in SendEvent *)
   InputFocus* = 1;              (* destination window in SendEvent *)
   PointerRoot* = 1;             (* focus window in SetInputFocus *)
@@ -67,96 +68,96 @@ CONST
 (* Input Event Masks. Used as event-mask window attribute and as arguments
    to Grab requests.  Not to be confused with event names.  *)
 CONST
-  NoEventMask* =  {};
-  KeyPressMask* = {0};
-  KeyReleaseMask* = {1};
-  ButtonPressMask* = {2};
-  ButtonReleaseMask* = {3};
-  EnterWindowMask* = {4};
-  LeaveWindowMask* = {5};
-  PointerMotionMask* = {6};
-  PointerMotionHintMask* = {7};
-  Button1MotionMask* = {8};
-  Button2MotionMask* = {9};
-  Button3MotionMask* = {10};
-  Button4MotionMask* = {11};
-  Button5MotionMask* = {12};
-  ButtonMotionMask* = {13};
-  KeymapStateMask* = {14};
-  ExposureMask* = {15};
-  VisibilityChangeMask* = {16};
-  StructureNotifyMask* = {17};
-  ResizeRedirectMask* = {18};
-  SubstructureNotifyMask* = {19};
+  NoEventMask*              = {};
+  KeyPressMask*             = {0};
+  KeyReleaseMask*           = {1};
+  ButtonPressMask*          = {2};
+  ButtonReleaseMask*        = {3};
+  EnterWindowMask*          = {4};
+  LeaveWindowMask*          = {5};
+  PointerMotionMask*        = {6};
+  PointerMotionHintMask*    = {7};
+  Button1MotionMask*        = {8};
+  Button2MotionMask*        = {9};
+  Button3MotionMask*        = {10};
+  Button4MotionMask*        = {11};
+  Button5MotionMask*        = {12};
+  ButtonMotionMask*         = {13};
+  KeymapStateMask*          = {14};
+  ExposureMask*             = {15};
+  VisibilityChangeMask*     = {16};
+  StructureNotifyMask*      = {17};
+  ResizeRedirectMask*       = {18};
+  SubstructureNotifyMask*   = {19};
   SubstructureRedirectMask* = {20};
-  FocusChangeMask* = {21};
-  PropertyChangeMask* = {22};
-  ColormapChangeMask* = {23};
-  OwnerGrabButtonMask* = {24};
+  FocusChangeMask*          = {21};
+  PropertyChangeMask*       = {22};
+  ColormapChangeMask*       = {23};
+  OwnerGrabButtonMask*      = {24};
 
 (* Event names.  Used in "type" field in XEvent structures.  Not to be
 confused with event masks above.  They start from 2 because 0 and 1
 are reserved in the protocol for errors and replies. *)
 CONST
-  KeyPress* = 2;
-  KeyRelease* = 3;
-  ButtonPress* = 4;
-  ButtonRelease* = 5;
-  MotionNotify* = 6;
-  EnterNotify* = 7;
-  LeaveNotify* = 8;
-  FocusIn* = 9;
-  FocusOut* = 10;
-  KeymapNotify* = 11;
-  Expose* = 12;
-  GraphicsExpose* = 13;
-  NoExpose* = 14;
+  KeyPress*         = 2;
+  KeyRelease*       = 3;
+  ButtonPress*      = 4;
+  ButtonRelease*    = 5;
+  MotionNotify*     = 6;
+  EnterNotify*      = 7;
+  LeaveNotify*      = 8;
+  FocusIn*          = 9;
+  FocusOut*         = 10;
+  KeymapNotify*     = 11;
+  Expose*           = 12;
+  GraphicsExpose*   = 13;
+  NoExpose*         = 14;
   VisibilityNotify* = 15;
-  CreateNotify* = 16;
-  DestroyNotify* = 17;
-  UnmapNotify* = 18;
-  MapNotify* = 19;
-  MapRequest* = 20;
-  ReparentNotify* = 21;
-  ConfigureNotify* = 22;
+  CreateNotify*     = 16;
+  DestroyNotify*    = 17;
+  UnmapNotify*      = 18;
+  MapNotify*        = 19;
+  MapRequest*       = 20;
+  ReparentNotify*   = 21;
+  ConfigureNotify*  = 22;
   ConfigureRequest* = 23;
-  GravityNotify* = 24;
-  ResizeRequest* = 25;
-  CirculateNotify* = 26;
+  GravityNotify*    = 24;
+  ResizeRequest*    = 25;
+  CirculateNotify*  = 26;
   CirculateRequest* = 27;
-  PropertyNotify* = 28;
-  SelectionClear* = 29;
+  PropertyNotify*   = 28;
+  SelectionClear*   = 29;
   SelectionRequest* = 30;
-  SelectionNotify* = 31;
-  ColormapNotify* = 32;
-  ClientMessage* = 33;
-  MappingNotify* = 34;
-  LASTEvent* = 35;              (* must be bigger than any event # *)
+  SelectionNotify*  = 31;
+  ColormapNotify*   = 32;
+  ClientMessage*    = 33;
+  MappingNotify*    = 34;
+  LASTEvent*        = 35;              (* must be bigger than any event # *)
 
 (* Key masks. Used as modifiers to GrabButton and GrabKey, results of
    QueryPointer, state in various key-, mouse-, and button-related events. *)
 CONST
-  ShiftMask* = {0};
-  LockMask* = {1};
+  ShiftMask*   = {0};
+  LockMask*    = {1};
   ControlMask* = {2};
-  Mod1Mask* = {3};
-  Mod2Mask* = {4};
-  Mod3Mask* = {5};
-  Mod4Mask* = {6};
-  Mod5Mask* = {7};
+  Mod1Mask*    = {3};
+  Mod2Mask*    = {4};
+  Mod3Mask*    = {5};
+  Mod4Mask*    = {6};
+  Mod5Mask*    = {7};
 
 (* modifier names.  Used to build a SetModifierMapping request or
    to read a GetModifierMapping request.  These correspond to the
    masks defined above. *)
 CONST
-  ShiftMapIndex* = 0;
-  LockMapIndex* = 1;
+  ShiftMapIndex*   = 0;
+  LockMapIndex*    = 1;
   ControlMapIndex* = 2;
-  Mod1MapIndex* = 3;
-  Mod2MapIndex* = 4;
-  Mod3MapIndex* = 5;
-  Mod4MapIndex* = 6;
-  Mod5MapIndex* = 7;
+  Mod1MapIndex*    = 3;
+  Mod2MapIndex*    = 4;
+  Mod3MapIndex*    = 5;
+  Mod4MapIndex*    = 6;
+  Mod5MapIndex*    = 7;
 
 (* button masks.  Used in same manner as Key masks above. Not to be confused
    with button names below. *)
@@ -270,14 +271,14 @@ CONST
   BadMatch* = 8;                (* parameter mismatch *)
   BadDrawable* = 9;             (* parameter not a Pixmap or Window *)
   BadAccess* = 10;              (* depending on context:
-				 - key/button already grabbed
-				 - attempt to free an illegal
-				   cmap entry
-				- attempt to store into a read-only
-				   color map entry.
- 				- attempt to modify the access control
-				   list from other than the local host.
-				*)
+                                 - key/button already grabbed
+                                 - attempt to free an illegal
+                                   cmap entry
+                                - attempt to store into a read-only
+                                   color map entry.
+                                - attempt to modify the access control
+                                   list from other than the local host.
+                                *)
   BadAlloc* = 11;               (* insufficient resources *)
   BadColor* = 12;               (* no such colormap *)
   BadGC* = 13;                  (* parameter not a GC *)
@@ -630,9 +631,9 @@ CONST
        $XFree86: xc/lib/X11/Xlib.h,v 3.2 1994/09/17 13:44:15 dawes Exp $ *)
 
 (*
- *	Xlib.h - Header definition and support file for the C subroutine
- *	interface library (Xlib) to the X Window System Protocol (V11).
- *	Structures and symbols starting with "" are private to the library.
+ *      Xlib.h - Header definition and support file for the C subroutine
+ *      interface library (Xlib) to the X Window System Protocol (V11).
+ *      Structures and symbols starting with "" are private to the library.
  *)
 
 CONST
@@ -706,10 +707,10 @@ TYPE
     linewidth*: C.int;         (* line width *)
     linestyle*: C.int;         (* LineSolid, LineOnOffDash, LineDoubleDash *)
     capstyle*: C.int;          (* CapNotLast, CapButt,
-				   CapRound, CapProjecting *)
+                                   CapRound, CapProjecting *)
     joinstyle*: C.int;         (* JoinMiter, JoinRound, JoinBevel *)
     fillstyle*: C.int;         (* FillSolid, FillTiled,
-				   FillStippled, FillOpaeueStippled *)
+                                   FillStippled, FillOpaeueStippled *)
     fillrule*: C.int;          (* EvenOddRule, WindingRule *)
     arcmode*: C.int;           (* ArcChord, ArcPieSlice *)
     tile*: Pixmap;              (* tile pixmap for tiling operations *)
@@ -1118,9 +1119,9 @@ TYPE
     xroot*, yroot*: C.int;    (* coordinates relative to root *)
     mode*: C.int;               (* NotifyNormal, NotifyGrab, NotifyUngrab *)
     detail*: C.int;             (*
-	 * NotifyAncestor, NotifyVirtual, NotifyInferior,
-	 * NotifyNonlinear,NotifyNonlinearVirtual
-	 *)
+         * NotifyAncestor, NotifyVirtual, NotifyInferior,
+         * NotifyNonlinear,NotifyNonlinearVirtual
+         *)
     samescreen*: Bool;         (* same screen flag *)
     focus*: Bool;               (* boolean focus *)
     state*: uintmask;           (* key or button mask *)
@@ -1137,10 +1138,10 @@ TYPE
     window*: Window;            (* window of event *)
     mode*: C.int;               (* NotifyNormal, NotifyGrab, NotifyUngrab *)
     detail*: C.int;             (*
-	 * NotifyAncestor, NotifyVirtual, NotifyInferior,
-	 * NotifyNonlinear,NotifyNonlinearVirtual, NotifyPointer,
-	 * NotifyPointerRoot, NotifyDetailNone
-	 *)
+         * NotifyAncestor, NotifyVirtual, NotifyInferior,
+         * NotifyNonlinear,NotifyNonlinearVirtual, NotifyPointer,
+         * NotifyPointerRoot, NotifyDetailNone
+         *)
   END;
   XFocusInEvent* = XFocusChangeEvent;
   XFocusOutEvent* = XFocusChangeEvent;
@@ -1431,7 +1432,7 @@ TYPE
     display*: DisplayPtr;       (* Display the event was read from *)
     window*: Window;            (* unused *)
     request*: C.int;            (* one of MappingModifier, MappingKeyboard,
-				   MappingPointer *)
+                                   MappingPointer *)
     firstkeycode*: C.int;      (* first keycode *)
     count*: C.int;              (* defines range of change w. firstkeycode*)
   END;
@@ -1950,6 +1951,13 @@ TYPE
   XErrorHandler* = PROCEDURE (display: DisplayPtr; errorevent: XErrorEventPtr): C.int;
   XIOErrorHandler* = PROCEDURE (display: DisplayPtr);
   XConnectionWatchProc* = PROCEDURE (dpy: DisplayPtr; clientdate: XPointer; fd: C.int; opening: Bool; watchdata: XPointerPtr1d);
+
+
+PROCEDURE -aincludexlib      "#include <X11/Xlib.h>";
+PROCEDURE -aincludexutil     "#include <X11/Xutil.h>";
+PROCEDURE -aincludexresource "#include <X11/Xresource.h>";
+
+
 (*
 PROCEDURE XLoadQueryFont* (
     display: DisplayPtr;
@@ -1987,7 +1995,7 @@ PROCEDURE -XCreateImage* (
     height: C.int;
     bitmapPad: C.int;
     bytesPerLine: C.int): XImagePtr
-    "(long)XCreateImage(display, visual, depth, format, offset, data, width, height, bitmapPad, bytesPerLine)";
+    "(oocX11_XImagePtr)XCreateImage((struct _XDisplay*)display, (Visual*)visual, depth, format, offset, (char*)data, width, height, bitmapPad, bytesPerLine)";
 (*
 PROCEDURE XInitImage* (
     image: XImagePtr): Status;
@@ -2017,8 +2025,7 @@ PROCEDURE XGetSubImage* (
  * X function declarations.
  *)
  *)
-PROCEDURE -XOpenDisplay* (name: ARRAY OF C.char): DisplayPtr
- "(long)XOpenDisplay(name)";
+PROCEDURE -XOpenDisplay* (name: ARRAY OF C.char): DisplayPtr "(oocX11_DisplayPtr)XOpenDisplay((char*)name)";
 
 PROCEDURE OpenDisplay* (name: ARRAY OF C.char): DisplayPtr;
 BEGIN
@@ -2101,7 +2108,7 @@ PROCEDURE -XCreateGC* (
     d: Drawable;
     valueMask: ulongmask;
     VAR values: XGCValues): GC
-    "(long)XCreateGC(display, d, valueMask, values)";
+    "(oocX11_GC)XCreateGC((struct _XDisplay*)display, d, valueMask, (XGCValues *)values)";
 (*
 PROCEDURE XGContextFromGC* (
     gc: GC): GContext;
@@ -2140,7 +2147,7 @@ PROCEDURE -XCreateSimpleWindow* (
     borderWidth: C.int;
     border: C.longint;
     background: C.longint): Window
-    "(long)XCreateSimpleWindow(display, parent, x, y, width, height, borderWidth, border, background)";
+    "(long)XCreateSimpleWindow((struct _XDisplay*)display, parent, x, y, width, height, borderWidth, border, background)";
 (*
 PROCEDURE XGetSelectionOwner* (
     display: DisplayPtr;
@@ -2240,7 +2247,7 @@ PROCEDURE XEHeadOfExtensionList* (
 PROCEDURE -XRootWindow* (
     display: DisplayPtr;
     screen: C.int): Window
-    "(long)XRootWindow(display, screen)";
+    "(long)XRootWindow((struct _XDisplay*)display, screen)";
 (*
 PROCEDURE XDefaultRootWindow* (
     display: DisplayPtr): Window;
@@ -2250,7 +2257,7 @@ PROCEDURE XRootWindowOfScreen* (
 PROCEDURE -XDefaultVisual* (
     display: DisplayPtr;
     screen: C.int): VisualPtr
-    "(long)XDefaultVisual(display, screen)";
+    "(oocX11_VisualPtr)XDefaultVisual((struct _XDisplay*)display, screen)";
 (*
 PROCEDURE XDefaultVisualOfScreen* (
     screen: ScreenPtr): VisualPtr;
@@ -2263,12 +2270,12 @@ PROCEDURE XDefaultGCOfScreen* (
 PROCEDURE -XBlackPixel* (
     display: DisplayPtr;
     screen: C.int): C.longint
-    "(long)XBlackPixel(display, screen)";
+    "(long)XBlackPixel((struct _XDisplay*)display, screen)";
 
 PROCEDURE -XWhitePixel* (
     display: DisplayPtr;
     screen: C.int): C.longint
-    "(long)XWhitePixel(display, screen)";
+    "(long)XWhitePixel((struct _XDisplay*)display, screen)";
 (*
 PROCEDURE XAllPlanes* (): C.longint;
 PROCEDURE XBlackPixelOfScreen* (
@@ -2296,7 +2303,7 @@ PROCEDURE XScreenOfDisplay* (
 *)
 PROCEDURE -XDefaultScreenOfDisplay* (
     display: DisplayPtr): ScreenPtr
-     "(long)XDefaultScreen(display)";
+     "(long)XDefaultScreen((struct _XDisplay*)display)";
 (*
 PROCEDURE XEventMaskOfScreen* (
     screen: ScreenPtr): C.longint;
@@ -2523,7 +2530,7 @@ PROCEDURE XClearWindow* (
 
 PROCEDURE -XCloseDisplay* (
     display: DisplayPtr)
-    "XCloseDisplay(display)";
+    "XCloseDisplay((struct _XDisplay*)display)";
 
 
 (*
@@ -2577,7 +2584,7 @@ PROCEDURE XDefaultDepthOfScreen* (
 *)
 PROCEDURE -XDefaultScreen* (
     display: DisplayPtr): C.int
-    "(int)XDefaultScreen(display)";
+    "(int)XDefaultScreen((struct _XDisplay*)display)";
 (*
 PROCEDURE XDefineCursor* (
     display: DisplayPtr;
@@ -2591,11 +2598,11 @@ PROCEDURE XDeleteProperty* (
 PROCEDURE -XDestroyWindow* (
     display: DisplayPtr;
     w: Window)
-    "XDestroyWindow(display, w)";
+    "XDestroyWindow((struct _XDisplay*)display, w)";
 
 
 PROCEDURE -XDestroyImage* (image : XImagePtr)
-   "XDestroyImage(image)";
+   "XDestroyImage((struct _XDisplay*)image)";
 
 (*
 PROCEDURE XDestroySubwindows* (
@@ -2614,7 +2621,7 @@ PROCEDURE XDisplayCells* (
 PROCEDURE -XDisplayHeight* (
     display: DisplayPtr;
     screen: C.int): C.int
-    "(int)XDisplayHeight(display, screen)";
+    "(int)XDisplayHeight((struct _XDisplay*)display, screen)";
 (*
 PROCEDURE XDisplayHeightMM* (
     display: DisplayPtr;
@@ -2630,7 +2637,7 @@ PROCEDURE XDisplayPlanes* (
 PROCEDURE -XDisplayWidth* (
     display: DisplayPtr;
     screennumber: C.int): C.int
-    "(int)XDisplayWidth(display, screen)";
+    "(int)XDisplayWidth((struct _XDisplay*)display, screen)";
 (*
 PROCEDURE XDisplayWidthMM* (
     display: DisplayPtr;
@@ -2690,7 +2697,7 @@ PROCEDURE -XDrawPoint* (
     gc: GC;
     x: C.int;
     y: C.int)
-    "XDrawPoint(display, d, gc, x, y)";
+    "XDrawPoint((struct _XDisplay*)display, d, (struct _XGC*)gc, x, y)";
 (*
 PROCEDURE XDrawPoints* (
     display: DisplayPtr;
@@ -2758,7 +2765,7 @@ PROCEDURE XEnableAccessControl* (
 PROCEDURE -XEventsQueued* (
     display: DisplayPtr;
     mode: C.int): C.int
-    "(int)XEventsQueued(display, mode)";
+    "(int)XEventsQueued((struct _XDisplay*)display, mode)";
 (*
 PROCEDURE XFetchName* (
     display: DisplayPtr;
@@ -2797,7 +2804,7 @@ PROCEDURE -XFillRectangle* (
     y: C.int;
     width: C.int;
     height: C.int)
-    "XFillRectangle(display, d, gc, x, y, width, height)";
+    "XFillRectangle((struct _XDisplay*)display, d, (struct _XGC*)gc, x, y, width, height)";
 (*
 PROCEDURE XFillRectangles* (
     display: DisplayPtr;
@@ -2808,7 +2815,7 @@ PROCEDURE XFillRectangles* (
 *)
 PROCEDURE -XFlush* (
     display: DisplayPtr)
-    "XFlush(display)";
+    "XFlush((struct _XDisplay*)display)";
 (*
 PROCEDURE XForceScreenSaver* (
     display: DisplayPtr;
@@ -3016,13 +3023,13 @@ PROCEDURE XMapSubwindows* (
 PROCEDURE -XMapWindow* (
     display: DisplayPtr;
     w: Window)
-    "XMapWindow(display, w)";
+    "XMapWindow((struct _XDisplay*)display, w)";
 
 PROCEDURE -XMaskEvent* (
     display: DisplayPtr;
     mask: ulongmask;
     VAR event: XEvent)
-    "XMaskEvent(display, mask, event)";
+    "XMaskEvent((struct _XDisplay*)display, mask, (union _XEvent*)event)";
 
 (*
 PROCEDURE XMaxCmapsOfScreen* (
@@ -3045,7 +3052,7 @@ PROCEDURE XMoveWindow* (
 PROCEDURE -XNextEvent* (
     display: DisplayPtr;
     VAR event: XEvent)
-    "XNextEvent(display, event)";
+    "XNextEvent((struct _XDisplay*)display, (union _XEvent*)event)";
 (*
 PROCEDURE XNoOp* (
     display: DisplayPtr);
@@ -3091,7 +3098,7 @@ PROCEDURE -XPutImage* (
     dstY: C.int;
     width: C.int;
     height: C.int)
-    "XPutImage(display, d, gc, image, srcX, srcY, dstX, dstY, width, height)";
+    "XPutImage((struct _XDisplay*)display, d, (struct _XGC*)gc, (struct _XImage*)image, srcX, srcY, dstX, dstY, width, height)";
 (*
 PROCEDURE XQLength* (
     display: DisplayPtr): C.int;
@@ -3254,7 +3261,7 @@ PROCEDURE -XSelectInput* (
     display: DisplayPtr;
     window: Window;
     eventMask: ulongmask)
-   "XSelectInput(display, window, eventMask)";    
+   "XSelectInput((struct _XDisplay*)display, window, (long)eventMask)";    
 (*
 PROCEDURE XSendEvent* (
     display: DisplayPtr;
@@ -3441,7 +3448,7 @@ PROCEDURE -XStoreName* (
     display: DisplayPtr;
     window: Window;
     name: ARRAY OF C.char)
-    "XStoreName(display, window, name)";
+    "XStoreName((struct _XDisplay*)display, window, (char*)name)";
 (*
 PROCEDURE XStoreNamedColor* (
     display: DisplayPtr;

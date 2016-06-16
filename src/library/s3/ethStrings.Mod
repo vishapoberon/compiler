@@ -6,7 +6,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
 (** Strings is a utility module that provides procedures to manipulate strings.
     Note: All strings MUST be 0X terminated. *)
 
-  IMPORT Oberon, Texts, Dates := ethDates, Reals := ethReals;
+  IMPORT Texts, Dates := ethDates, Reals := ethReals;
   
   CONST
     CR* = 0DX; (** the Oberon end of line character *)

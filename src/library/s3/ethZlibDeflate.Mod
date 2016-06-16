@@ -257,6 +257,7 @@ PROCEDURE SetDataType(VAR stream: Stream);
 VAR
   n, ascii, bin: LONGINT;
 BEGIN
+  n := 0; ascii := 0; bin := 0;
   WHILE n < 7 DO INC(bin, LONG(stream.lnode[n].freqOrCode)); INC(n) END;
   WHILE n < 128 DO INC(ascii, LONG(stream.lnode[n].freqOrCode)); INC(n) END;
   WHILE n < Literals DO INC(bin, LONG(stream.lnode[n].freqOrCode)); INC(n) END;

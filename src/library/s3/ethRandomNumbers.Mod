@@ -3,7 +3,7 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 
 MODULE ethRandomNumbers;  (** portable *)
 (* Random Number Generator, page 12 *)
-IMPORT Math := oocOakMath, Oberon := Kernel, SYSTEM;
+IMPORT Math := oocOakMath, Oberon := Platform, SYSTEM;
 
 VAR Z, t, d: LONGINT;
 

@@ -777,6 +777,7 @@ MODULE ethZlibInflate;  (** eos  **)
           s.block.state := BlkBad; s.res.code := DataError;
           Flush(s);
           EXIT
+        ELSE
         END
       
       | BlkLens:  (* read length of uncompressed block *)
@@ -890,6 +891,7 @@ MODULE ethZlibInflate;  (** eos  **)
             | 18:  (* repeat code length 0 for 11-138 times, using another 7 bits *)
               IF ~Need(s, node.bits+7) THEN EXIT END;
               Dump(s, node.bits); cnt := 11 + s.buf MOD 128; Dump(s, 7); len := 0
+            ELSE
             END;
             IF s.block.index + cnt > s.block.nlit + s.block.ndist THEN
               SetMsg(s.res, "invalid bit length repeat");
@@ -1125,6 +1127,7 @@ MODULE ethZlibInflate;  (** eos  **)
         | InfBad:  (* error in stream *)
           stream.res.code := DataError;
           EXIT
+        ELSE
         END
       END
     END

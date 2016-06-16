@@ -403,6 +403,7 @@ MODULE ulmScales;
 				 (* abs - abs  or  rel - rel *)
 				 restype := relative;
 			      END;
+       ELSE
 	    END;
 	    ASSERT(ok); (* invalid operation *)
 	 END; END;

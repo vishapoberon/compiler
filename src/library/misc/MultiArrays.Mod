@@ -40,7 +40,7 @@ Patrick Hunziker,Basel.
 email Patrick.Hunziker@unibas.ch
 *)
 (** Version 0.9, 19.1.2001 *)
-IMPORT Out:= Console, Input:= Kernel; (* Import only needed for Demo purposes *)
+IMPORT Out := Console, Input := Platform; (* Import only needed for Demo purposes *)
 
 TYPE
     SIntPtr* = POINTER TO ARRAY OF SHORTINT;

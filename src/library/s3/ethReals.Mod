@@ -10,7 +10,7 @@ Implemented by Bernd Moesli, Seminar for Applied Mathematics,
 Swiss Federal Institute of Technology Z…rich.
 *)
 
-IMPORT SYSTEM;
+IMPORT SYSTEM, Platform, Configuration;
 
 (* Bernd Moesli
   Seminar for Applied Mathematics
@@ -33,6 +33,7 @@ IMPORT SYSTEM;
   7.11.1995  jt: dynamic endianess test
   22.01.97  pjm: NaN stuff (using quiet NaNs only to avoid traps)
   05.01.98  prk: NaN with INF support
+  17.02.16  dcb: Adapt for 32 bit INTEGER and 64 bit LONGINT.
 *)
 
 VAR
@@ -45,55 +46,109 @@ VAR
 (** Returns the shifted binary exponent (0 <= e < 256). *)
 PROCEDURE Expo* (x: REAL): LONGINT;
 BEGIN
-  RETURN ASH(SYSTEM.VAL(LONGINT, x), -23) MOD 256
+  IF SIZE(INTEGER) = 4 THEN
+    RETURN SHORT(ASH(SYSTEM.VAL(INTEGER, x), -23)) MOD 256
+  ELSIF SIZE(LONGINT) = 4 THEN
+    RETURN SHORT(ASH(SYSTEM.VAL(LONGINT, x), -23)) MOD 256
+  ELSE Platform.Halt(-15);
+  END
 END Expo;
 
 (** Returns the shifted binary exponent (0 <= e < 2048). *)
 PROCEDURE ExpoL* (x: LONGREAL): LONGINT;
   VAR i: LONGINT;
 BEGIN
-  SYSTEM.GET(SYSTEM.ADR(x) + H, i); RETURN ASH(i, -20) MOD 2048
+  IF SIZE(LONGINT) = 8 THEN
+    RETURN ASH(SYSTEM.VAL(LONGINT, x), -50) MOD 256
+  ELSE
+    SYSTEM.GET(SYSTEM.ADR(x) + H, i); RETURN ASH(i, -20) MOD 2048
+  END
 END ExpoL;
 
 (** Sets the shifted binary exponent. *)
-PROCEDURE SetExpo* (e: LONGINT; VAR x: REAL);
-  VAR i: LONGINT;
+PROCEDURE SetExpo* (e: INTEGER; VAR x: REAL);
+  VAR i: INTEGER; l: LONGINT;
 BEGIN
-  SYSTEM.GET(SYSTEM.ADR(x), i);
-  i:= ASH(ASH(ASH(i, -31), 8) + e MOD 256, 23) + i MOD ASH(1, 23);
-  SYSTEM.PUT(SYSTEM.ADR(x), i)
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.GET(SYSTEM.ADR(x), l);
+    l := ASH(ASH(ASH(l, -31), 8) + e MOD 256, 23) + l MOD ASH(1, 23);
+    SYSTEM.PUT(SYSTEM.ADR(x), l)
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.GET(SYSTEM.ADR(x), i);
+    i := SHORT(ASH(ASH(ASH(i, -31), 8) + e MOD 256, 23) + i MOD ASH(1, 23));
+    SYSTEM.PUT(SYSTEM.ADR(x), i)
+  ELSE Platform.Halt(-15)
+  END
 END SetExpo;
 
 (** Sets the shifted binary exponent. *)
 PROCEDURE SetExpoL* (e: LONGINT; VAR x: LONGREAL);
-  VAR i: LONGINT;
+  VAR i: INTEGER; l: LONGINT;
 BEGIN
-  SYSTEM.GET(SYSTEM.ADR(x) + H, i);
-  i:= ASH(ASH(ASH(i, -31), 11) + e MOD 2048, 20) + i MOD ASH(1, 20);
-  SYSTEM.PUT(SYSTEM.ADR(x) + H, i)
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.GET(SYSTEM.ADR(x) + H, l);
+    l := ASH(ASH(ASH(l, -31), 11) + e MOD 2048, 20) + l MOD ASH(1, 20);
+    SYSTEM.PUT(SYSTEM.ADR(x) + H, l)
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.GET(SYSTEM.ADR(x) + H, i);
+    i := SHORT(ASH(ASH(ASH(i, -31), 11) + e MOD 2048, 20) + i MOD ASH(1, 20));
+    SYSTEM.PUT(SYSTEM.ADR(x) + H, i)
+  ELSE Platform.Halt(-15)
+  END
 END SetExpoL;
 
 (** Convert hexadecimal to REAL. *)
 PROCEDURE Real* (h: LONGINT): REAL;
   VAR x: REAL;
-BEGIN SYSTEM.PUT(SYSTEM.ADR(x), h); RETURN x
+BEGIN 
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.PUT(SYSTEM.ADR(x), h)
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.PUT(SYSTEM.ADR(x), SYSTEM.VAL(INTEGER, h))
+  ELSE Platform.Halt(-15)
+  END;
+  RETURN x
 END Real;
 
 (** Convert hexadecimal to LONGREAL. h and l are the high and low parts.*)
 PROCEDURE RealL* (h, l: LONGINT): LONGREAL;
   VAR x: LONGREAL;
-BEGIN SYSTEM.PUT(SYSTEM.ADR(x) + H, h); SYSTEM.PUT(SYSTEM.ADR(x) + L, l); RETURN x
+BEGIN 
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.PUT(SYSTEM.ADR(x) + H, h); 
+    SYSTEM.PUT(SYSTEM.ADR(x) + L, l)
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.PUT(SYSTEM.ADR(x) + H, SYSTEM.VAL(INTEGER, h)); 
+    SYSTEM.PUT(SYSTEM.ADR(x) + L, SYSTEM.VAL(INTEGER, l))
+  ELSE Platform.Halt(-15)
+  END;
+  RETURN x
 END RealL;
 
 (** Convert REAL to hexadecimal. *)
 PROCEDURE Int* (x: REAL): LONGINT;
-  VAR i: LONGINT;
-BEGIN SYSTEM.PUT(SYSTEM.ADR(i), x); RETURN i
+  VAR i: INTEGER; l: LONGINT;
+BEGIN 
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.PUT(SYSTEM.ADR(l), x); RETURN l
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.PUT(SYSTEM.ADR(i), x); RETURN i
+  ELSE Platform.Halt(-15)
+  END
 END Int;
 
 (** Convert LONGREAL to hexadecimal. h and l are the high and low parts. *)
 PROCEDURE IntL* (x: LONGREAL; VAR h, l: LONGINT);
-BEGIN SYSTEM.GET(SYSTEM.ADR(x) + H, h); SYSTEM.GET(SYSTEM.ADR(x) + L, l)
+  VAR i: INTEGER;
+BEGIN 
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.GET(SYSTEM.ADR(x) + H, h); 
+    SYSTEM.GET(SYSTEM.ADR(x) + L, l)
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.GET(SYSTEM.ADR(x) + H, i); h := i; 
+    SYSTEM.GET(SYSTEM.ADR(x) + L, i); l := i
+  ELSE Platform.Halt(-15)
+  END
 END IntL;
 
 (** Returns 10^e (e <= 308, 308 < e delivers IEEE-code +INF). *)
@@ -112,8 +167,9 @@ END Ten;
 
 (** Returns the NaN code (0 <= c < 8399608) or -1 if not NaN/Infinite. *)
 PROCEDURE NaNCode* (x: REAL): LONGINT;
+  VAR e: LONGINT;
 BEGIN
-  IF ASH(SYSTEM.VAL(LONGINT, x), -23) MOD 256 = 255 THEN  (* Infinite or NaN *)
+  IF Expo(x) = 255 THEN  (* Infinite or NaN *)
     RETURN SYSTEM.VAL(LONGINT, x) MOD 800000H  (* lowest 23 bits *)
   ELSE
     RETURN -1
@@ -123,7 +179,7 @@ END NaNCode;
 (** Returns the NaN code (0 <= h < 1048576, MIN(LONGINT) <= l <= MAX(LONGINT)) or (-1,-1) if not NaN/Infinite. *)
 PROCEDURE NaNCodeL* (x: LONGREAL;  VAR h, l: LONGINT);
 BEGIN
-  SYSTEM.GET(SYSTEM.ADR(x) + H, h); SYSTEM.GET(SYSTEM.ADR(x) + L, l);
+  IntL(x, h, l);
   IF ASH(h, -20) MOD 2048 = 2047 THEN  (* Infinite or NaN *)
     h := h MOD 100000H  (* lowest 20 bits *)
   ELSE
@@ -131,37 +187,6 @@ BEGIN
   END
 END NaNCodeL;
 
-(** Returns TRUE iff x is NaN/Infinite. *)
-PROCEDURE IsNaN* (x: REAL): BOOLEAN;
-BEGIN
-  RETURN ASH(SYSTEM.VAL(LONGINT, x), -23) MOD 256 = 255
-END IsNaN;
-
-(** Returns TRUE iff x is NaN/Infinite. *)
-PROCEDURE IsNaNL* (x: LONGREAL): BOOLEAN;
-VAR h: LONGINT;
-BEGIN
-  SYSTEM.GET(SYSTEM.ADR(x) + H, h);
-  RETURN ASH(h, -20) MOD 2048 = 2047
-END IsNaNL;
-
-(** Returns NaN with specified code (0 <= l < 8399608). *)
-PROCEDURE NaN* (l: LONGINT): REAL;
-VAR x: REAL;
-BEGIN
-  SYSTEM.PUT(SYSTEM.ADR(x), (l MOD 800000H) + 7F800000H);
-  RETURN x
-END NaN;
-
-(** Returns NaN with specified code (0 <= h < 1048576, MIN(LONGINT) <= l <= MAX(LONGINT)). *)
-PROCEDURE NaNL* (h, l: LONGINT): LONGREAL;
-VAR x: LONGREAL;
-BEGIN
-  h := (h MOD 100000H) + 7FF00000H;
-  SYSTEM.PUT(SYSTEM.ADR(x) + H, h);
-  SYSTEM.PUT(SYSTEM.ADR(x) + L, l);
-  RETURN x
-END NaNL;
 (*
 PROCEDURE fcr(): SET;
 CODE {SYSTEM.i386, SYSTEM.FPU}
@@ -192,33 +217,29 @@ BEGIN
   IF Kernel.copro THEN setfcr(s) END
 END SetFCR;
 *)
+
 PROCEDURE RealX (h, l: LONGINT; adr: LONGINT);
-BEGIN SYSTEM.PUT(adr + H, h); SYSTEM.PUT(adr + L, l); 
+BEGIN 
+  IF SIZE(LONGINT) = 4 THEN
+    SYSTEM.PUT(adr + H, h); SYSTEM.PUT(adr + L, l); 
+  ELSIF SIZE(INTEGER) = 4 THEN
+    SYSTEM.PUT(adr + H, SYSTEM.VAL(INTEGER, h)); 
+    SYSTEM.PUT(adr + L, SYSTEM.VAL(INTEGER, l)); 
+  ELSE Platform.Halt(-15)
+  END
 END RealX;
 
-PROCEDURE InitHL;
-  VAR (*i: LONGINT; dmy: INTEGER;*) littleEndian: BOOLEAN;
 BEGIN
-  (*DefaultFCR := (FCR() - {0,2,3,10,11}) + {0..5,8,9};
-  SetFCR(DefaultFCR);
-  
-  dmy := 1; i := SYSTEM.ADR(dmy);
-  SYSTEM.GET(i, littleEndian);  (* indirection via i avoids warning on SUN cc -O *)*)
-  littleEndian := TRUE; (* endianness will be set for each architecture -- noch *)
-  IF littleEndian THEN H := 4; L := 0 ELSE H := 0; L := 4 END
-END InitHL;
-
-BEGIN InitHL;
-  RealX(03FF00000H, 0, SYSTEM.ADR(tene[0]));
-  RealX(040240000H, 0, SYSTEM.ADR(tene[1])); (* 1 *)
-  RealX(040590000H, 0, SYSTEM.ADR(tene[2])); (* 2 *)
-  RealX(0408F4000H, 0, SYSTEM.ADR(tene[3])); (* 3 *)
-  RealX(040C38800H, 0, SYSTEM.ADR(tene[4])); (* 4 *)
-  RealX(040F86A00H, 0, SYSTEM.ADR(tene[5])); (* 5 *)
-  RealX(0412E8480H, 0, SYSTEM.ADR(tene[6])); (* 6 *)
-  RealX(0416312D0H, 0, SYSTEM.ADR(tene[7])); (* 7 *)
-  RealX(04197D784H, 0, SYSTEM.ADR(tene[8])); (* 8 *)
-  RealX(041CDCD65H, 0, SYSTEM.ADR(tene[9])); (* 9 *)
+  RealX(03FF00000H, 000000000H, SYSTEM.ADR(tene[0]));
+  RealX(040240000H, 000000000H, SYSTEM.ADR(tene[1]));  (*  1 *)
+  RealX(040590000H, 000000000H, SYSTEM.ADR(tene[2]));  (*  2 *)
+  RealX(0408F4000H, 000000000H, SYSTEM.ADR(tene[3]));  (*  3 *)
+  RealX(040C38800H, 000000000H, SYSTEM.ADR(tene[4]));  (*  4 *)
+  RealX(040F86A00H, 000000000H, SYSTEM.ADR(tene[5]));  (*  5 *)
+  RealX(0412E8480H, 000000000H, SYSTEM.ADR(tene[6]));  (*  6 *)
+  RealX(0416312D0H, 000000000H, SYSTEM.ADR(tene[7]));  (*  7 *)
+  RealX(04197D784H, 000000000H, SYSTEM.ADR(tene[8]));  (*  8 *)
+  RealX(041CDCD65H, 000000000H, SYSTEM.ADR(tene[9]));  (*  9 *)
   RealX(04202A05FH, 020000000H, SYSTEM.ADR(tene[10])); (* 10 *)
   RealX(042374876H, 0E8000000H, SYSTEM.ADR(tene[11])); (* 11 *)
   RealX(0426D1A94H, 0A2000000H, SYSTEM.ADR(tene[12])); (* 12 *)
@@ -231,35 +252,35 @@ BEGIN InitHL;
   RealX(043E158E4H, 060913D00H, SYSTEM.ADR(tene[19])); (* 19 *)
   RealX(04415AF1DH, 078B58C40H, SYSTEM.ADR(tene[20])); (* 20 *)
   RealX(0444B1AE4H, 0D6E2EF50H, SYSTEM.ADR(tene[21])); (* 21 *)
-  RealX(04480F0CFH, 064DD592H, SYSTEM.ADR(tene[22])); (* 22 *)
+  RealX(04480F0CFH, 0064DD592H, SYSTEM.ADR(tene[22])); (* 22 *)
   
-  RealX(031FA18H, 02C40C60DH, SYSTEM.ADR(ten[0])); (* -307 *)
-  RealX(04F7CAD2H, 03DE82D7BH, SYSTEM.ADR(ten[1])); (* -284 *)
-  RealX(09BF7D22H, 08322BAF5H, SYSTEM.ADR(ten[2])); (* -261 *)
-  RealX(0E84D669H, 05B193BF8H, SYSTEM.ADR(ten[3])); (* -238 *)
-  RealX(0134B9408H, 0EEFEA839H, SYSTEM.ADR(ten[4])); (* -215 *)
-  RealX(018123FF0H, 06EEA847AH, SYSTEM.ADR(ten[5])); (* -192 *)
-  RealX(01CD82742H, 091C6065BH, SYSTEM.ADR(ten[6])); (* -169 *)
-  RealX(0219FF779H, 0FD329CB9H, SYSTEM.ADR(ten[7])); (* -146 *)
-  RealX(02665275EH, 0D8D8F36CH, SYSTEM.ADR(ten[8])); (* -123 *)
-  RealX(02B2BFF2EH, 0E48E0530H, SYSTEM.ADR(ten[9])); (* -100 *)
-  RealX(02FF286D8H, 0EC190DCH, SYSTEM.ADR(ten[10])); (* -77 *)
-  RealX(034B8851AH, 0B548EA4H, SYSTEM.ADR(ten[11])); (* -54 *)
-  RealX(0398039D6H, 065896880H, SYSTEM.ADR(ten[12])); (* -31 *)
-  RealX(03E45798EH, 0E2308C3AH, SYSTEM.ADR(ten[13])); (* -8 *)
-  RealX(0430C6BF5H, 026340000H, SYSTEM.ADR(ten[14])); (* 15 *)
-  RealX(047D2CED3H, 02A16A1B1H, SYSTEM.ADR(ten[15])); (* 38 *)
-  RealX(04C98E45EH, 01DF3B015H, SYSTEM.ADR(ten[16])); (* 61 *)
-  RealX(0516078E1H, 011C3556DH, SYSTEM.ADR(ten[17])); (* 84 *)
-  RealX(05625CCFEH, 03D35D80EH, SYSTEM.ADR(ten[18])); (* 107 *)
-  RealX(05AECDA62H, 055B2D9EH, SYSTEM.ADR(ten[19])); (* 130 *)
-  RealX(05FB317E5H, 0EF3AB327H, SYSTEM.ADR(ten[20])); (* 153 *)
-  RealX(064794514H, 05230B378H, SYSTEM.ADR(ten[21])); (* 176 *)
-  RealX(06940B8E0H, 0ACAC4EAFH, SYSTEM.ADR(ten[22])); (* 199 *)
-  RealX(06E0621B1H, 0C28AC20CH, SYSTEM.ADR(ten[23])); (* 222 *)
-  RealX(072CD4A7BH, 0EBFA31ABH, SYSTEM.ADR(ten[24])); (* 245 *)
-  RealX(077936214H, 09CBD3226H, SYSTEM.ADR(ten[25])); (* 268 *)
-  RealX(07C59A742H, 0461887F6H, SYSTEM.ADR(ten[26])); (* 291 *)
+  RealX(00031FA18H, 02C40C60DH, SYSTEM.ADR(ten[0]));  (* -307 *)
+  RealX(004F7CAD2H, 03DE82D7BH, SYSTEM.ADR(ten[1]));  (* -284 *)
+  RealX(009BF7D22H, 08322BAF5H, SYSTEM.ADR(ten[2]));  (* -261 *)
+  RealX(00E84D669H, 05B193BF8H, SYSTEM.ADR(ten[3]));  (* -238 *)
+  RealX(0134B9408H, 0EEFEA839H, SYSTEM.ADR(ten[4]));  (* -215 *)
+  RealX(018123FF0H, 06EEA847AH, SYSTEM.ADR(ten[5]));  (* -192 *)
+  RealX(01CD82742H, 091C6065BH, SYSTEM.ADR(ten[6]));  (* -169 *)
+  RealX(0219FF779H, 0FD329CB9H, SYSTEM.ADR(ten[7]));  (* -146 *)
+  RealX(02665275EH, 0D8D8F36CH, SYSTEM.ADR(ten[8]));  (* -123 *)
+  RealX(02B2BFF2EH, 0E48E0530H, SYSTEM.ADR(ten[9]));  (* -100 *)
+  RealX(02FF286D8H, 00EC190DCH, SYSTEM.ADR(ten[10])); (*  -77 *)
+  RealX(034B8851AH, 00B548EA4H, SYSTEM.ADR(ten[11])); (*  -54 *)
+  RealX(0398039D6H, 065896880H, SYSTEM.ADR(ten[12])); (*  -31 *)
+  RealX(03E45798EH, 0E2308C3AH, SYSTEM.ADR(ten[13])); (*   -8 *)
+  RealX(0430C6BF5H, 026340000H, SYSTEM.ADR(ten[14])); (*   15 *)
+  RealX(047D2CED3H, 02A16A1B1H, SYSTEM.ADR(ten[15])); (*   38 *)
+  RealX(04C98E45EH, 01DF3B015H, SYSTEM.ADR(ten[16])); (*   61 *)
+  RealX(0516078E1H, 011C3556DH, SYSTEM.ADR(ten[17])); (*   84 *)
+  RealX(05625CCFEH, 03D35D80EH, SYSTEM.ADR(ten[18])); (*  107 *)
+  RealX(05AECDA62H, 0055B2D9EH, SYSTEM.ADR(ten[19])); (*  130 *)
+  RealX(05FB317E5H, 0EF3AB327H, SYSTEM.ADR(ten[20])); (*  153 *)
+  RealX(064794514H, 05230B378H, SYSTEM.ADR(ten[21])); (*  176 *)
+  RealX(06940B8E0H, 0ACAC4EAFH, SYSTEM.ADR(ten[22])); (*  199 *)
+  RealX(06E0621B1H, 0C28AC20CH, SYSTEM.ADR(ten[23])); (*  222 *)
+  RealX(072CD4A7BH, 0EBFA31ABH, SYSTEM.ADR(ten[24])); (*  245 *)
+  RealX(077936214H, 09CBD3226H, SYSTEM.ADR(ten[25])); (*  268 *)
+  RealX(07C59A742H, 0461887F6H, SYSTEM.ADR(ten[26])); (*  291 *)
 
   eq[0]:= {0, 3, 4, 5, 9, 16, 23, 25, 26, 28, 31};
   eq[1]:= {2, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 27, 28, 29, 30, 31};
