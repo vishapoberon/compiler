@@ -1,8 +1,8 @@
 MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line version jt 4.4.95 *)
 
-  IMPORT
-    OPM, OPS, OPT, OPV,
-    Texts := Texts0, Console, Args;
+ IMPORT
+    OPM, OPS, OPT, OPV, Texts, Console, Platform;
+
 
   CONST
     OptionChar = "-";
@@ -100,6 +100,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
                 Ws(obj^.conval^.ext^)
             | NilTyp:
                 Ws("NIL")
+            ELSE (* Ignore other forms *)
             END ;
             Wch(";"); Wln
         | Typ:
@@ -128,6 +129,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
               Wch('"');
             END ;
             Wch(";"); Wln
+        ELSE (* Ignore other modes *)
         END
       END ;
       Objects(obj^.right, mode)
@@ -201,7 +203,9 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
               Ws("(* size: "); Wi(typ^.size); Ws(" align: "); Wi(typ^.align);
               Ws(" nofm: "); Wi(typ^.n); Ws(" *)")
             END
+        ELSE (* Ignore other comps *)
         END
+    ELSE (* Ignore other froms *)
     END
   END Wstruct;
 
@@ -277,13 +281,13 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
     VAR T, dummyT: Texts.Text; S, vname, name: OPS.Name; R: Texts.Reader; ch: CHAR;
       s: ARRAY 1024 OF CHAR; i: INTEGER;
   BEGIN
-    option := 0X; Args.Get(1, S);
-    IF Args.argc > 2 THEN
-      IF S[0] = OptionChar THEN option := S[1]; Args.Get(2, S)
-      ELSE Args.Get(2, vname); option := vname[1]
+    option := 0X; Platform.GetArg(1, S);
+    IF Platform.ArgCount > 2 THEN
+      IF S[0] = OptionChar THEN option := S[1]; Platform.GetArg(2, S)
+      ELSE Platform.GetArg(2, vname); option := vname[1]
       END
     END ;
-    IF Args.argc >= 2 THEN
+    IF Platform.ArgCount >= 2 THEN
       Ident(S, name);
       NEW(T); Texts.Open(T, "");
       OPT.Init(name, {}); OPT.SelfName := "AvoidErr154"; WModule(name, T); OPT.Close;
