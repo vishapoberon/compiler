@@ -11,6 +11,8 @@
 *.h text eol=lf
 *.Mod text eol=lf
 *.mod text eol=lf
+*.Lola text eol=lf
+*.lola text eol=lf
 *.make text eol=lf
 *makefile text eol=lf
 *.sh text eol=lf
