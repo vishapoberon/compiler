@@ -2,9 +2,9 @@ MODULE Oberon;
 
 (* this version should not have dependency on graphics -- noch *)
 
-  IMPORT Kernel, Texts, Args, Out := Console;
-  TYPE
+  IMPORT Platform, Texts, Args, Console;
 
+  TYPE
     ParList* = POINTER TO ParRec;
 
     ParRec* = RECORD
@@ -18,23 +18,26 @@ MODULE Oberon;
 
     Log*: Texts.Text;
     Par*: ParList; (*actual parameters*)
-    W : Texts.Writer;
-	OptionChar*: CHAR;
+    R:    Texts.Reader;
+    W:    Texts.Writer;
+    OptionChar*: CHAR;
+
   (*clocks*)
 
   PROCEDURE GetClock* (VAR t, d: LONGINT);
-  BEGIN Kernel.GetClock(t, d)
+  BEGIN Platform.GetClock(t, d)
   END GetClock;
 
   PROCEDURE Time* (): LONGINT;
-  BEGIN 
-     RETURN Kernel.Time()
+  BEGIN
+     RETURN Platform.Time()
   END Time;
 
   PROCEDURE PopulateParams;
-  VAR W : Texts.Writer;
-  i : INTEGER;
-  str : ARRAY 32 OF CHAR;
+  VAR
+    W:   Texts.Writer;
+    i:   INTEGER;
+    str: ARRAY 32 OF CHAR;
   BEGIN
 
     i := 1; (* skip program name *)
@@ -52,47 +55,23 @@ MODULE Oberon;
     Texts.Append (Par^.text, W.buf);
 
   END PopulateParams;
-(*
-  PROCEDURE DumpLog*;
-  VAR R : Texts.Reader;
-      ch : CHAR;
-  BEGIN
-     Texts.OpenReader(R, Log, 0);
 
-     REPEAT
-	    Texts.Read(R, ch);
-	    Out.Char(ch); 
-	 UNTIL R.eot;
-  END DumpLog;
-*)
+  PROCEDURE GetSelection*(VAR text: Texts.Text; VAR beg, end, time: LONGINT);
+  BEGIN text := NIL; beg := 0; end := 0; time := 0;
+  END GetSelection;
 
-PROCEDURE TextToString(VAR T : Texts.Text; VAR string : ARRAY OF CHAR);
-   VAR R : Texts.Reader;
-   ch : CHAR;
-   i : LONGINT;
+(* --- Notifier for echoing all text appended to the log onto the console. --- *)
+
+PROCEDURE LogNotifier(Log: Texts.Text; op: INTEGER; beg, end: LONGINT);
+  VAR ch: CHAR;
 BEGIN
-   COPY("", string);
-   Texts.OpenReader(R, T, 0);
-   i := 0;
-   WHILE Texts.Pos(R) < T.len DO
-      Texts.Read(R, ch);
-      string[i] := ch;
-      INC(i);
-   END;
-   (*string[i] := 0X;*)
-END TextToString;
-
-PROCEDURE DumpLog*;
-VAR s : POINTER TO ARRAY OF CHAR;
-BEGIN
-   NEW(s, Log.len + 1);
-   COPY("", s^);
-   TextToString(Log, s^);
-   Out.String(s^); Out.Ln;
-
-   NEW(Log);
-   Texts.Open(Log, "");
-END DumpLog;
+  Texts.OpenReader(R, Log, beg);
+  WHILE ~R.eot & (beg < end) DO
+    Texts.Read(R, ch);
+    IF ch = 0DX THEN Console.Ln ELSE Console.Char(ch) END;
+    INC(beg)
+  END
+END LogNotifier;
 
 BEGIN
    NEW(Par);
@@ -103,4 +82,5 @@ BEGIN
    PopulateParams;
    NEW(Log);
    Texts.Open(Log, "");
+   Log.notify := LogNotifier;
 END Oberon.
