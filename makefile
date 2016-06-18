@@ -131,6 +131,7 @@ clean: configuration
 
 # full: Full build of compiler and libarary.
 full: configuration
+	@make -f src/tools/make/vishap.make -s installable
 	@make -f src/tools/make/vishap.make -s clean
 	@make -f src/tools/make/vishap.make -s translate
 	@make -f src/tools/make/vishap.make -s assemble
@@ -166,9 +167,11 @@ library: configuration
 
 # install: Copy built files to install directory
 install: configuration
+	@make -f src/tools/make/vishap.make -s installable
 	@make -f src/tools/make/vishap.make -s install
 
 uninstall: configuration
+	@make -f src/tools/make/vishap.make -s installable
 	@make -f src/tools/make/vishap.make -s uninstall
 
 
@@ -237,11 +240,3 @@ autobuild: configuration
 # autostop: Tell test clients to exit their wait loop.
 autostop: configuration
 	./testclient -c "exit"
-
-
-
-
-
-
-
-

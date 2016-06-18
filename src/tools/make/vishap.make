@@ -150,6 +150,16 @@ testtools:
 
 
 
+# installable: Check for access to the installation directory
+
+installable:
+	@rm -rf "S(INSTALLDIR)/test-access-qqq"
+	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then echo Cannot write to install directory, please use sudo or run as root/administrator; exit 1;fi
+	@rm -rf "S(INSTALLDIR)/test-access-qqq"
+
+
+
+
 # install: Use only after a successful full build. Installs the compiler
 #          and libraries in /opt/$(ONAME).
 #          May require root access.
@@ -365,8 +375,3 @@ auto:
 	@make -f src/tools/make/vishap.make -s assemble
 	@make -f src/tools/make/vishap.make -s testtools
 	while cmd=$$(./testclient -w "$(FLAVOUR)"); do $$cmd 2>&1 | ./testclient -s "$(FLAVOUR)"; done
-
-
-
-
-
