@@ -154,7 +154,7 @@ testtools:
 
 installable:
 	@rm -rf "S(INSTALLDIR)/test-access-qqq"
-	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then echo Cannot write to install directory, please use sudo or run as root/administrator; exit 1;fi
+	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then echo "\\n\\n   Cannot write to install directory.\\n   Please use sudo or run as root/administrator.\\n\\n"; exit 1;fi
 	@rm -rf "S(INSTALLDIR)/test-access-qqq"
 
 
