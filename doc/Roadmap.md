@@ -82,3 +82,4 @@ address. It would be quite a lot of work!
    VAR parameters - i.e. no copying.
  - CASE statements only support INTEGER (with low positive values) and CHAR.
  - Reject LOOP statements.
+ - All imported variables are read-only.

@@ -72,9 +72,9 @@ Some other freely redistributable libraries are available as a part of voc distr
 
 See [Features](/doc/Features.md).
 
-#### Installing
+#### Installation
 
-See [Installing](/doc/Installing.md).
+See [Installation](/doc/Installation.md).
 
 #### Compiling Oberon modules
 
