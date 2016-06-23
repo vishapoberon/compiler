@@ -27,16 +27,12 @@
 Vishap Oberon's frontend and C backend engine is a fork of Josef Templ’s Ofront, which has been released
 under the FreeBSD License. Unlike Ofront, Vishap Oberon does not include the Oberon v4 environment.
 
-The Ulm Oberon Library is distributed under GPL.
-
-The Ooc library is distributed under GPL.
+The Ulm Oberon Library  and the Ooc libraries are distributed under GPL. Proprietry code
+using these libraries may not be statically linked.
 
 Voc tools are distributed under GPLv3.
 
 Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime exception.
-
-Proprietry code using the Ulm or Ooc libraries may not be statically linked as they are
-distributed under the GPL.
 
 
 #### Platform support

@@ -409,9 +409,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           END ;
           z^.typ := OPT.booltyp
       | adr: (*SYSTEM.ADR*)
-		      IF (z^.class = Nconst) & (f = Char) & (z^.conval^.intval >= 20H) THEN
-		        CharToString(z); f := String
-		      END;
+          IF (z^.class = Nconst) & (f = Char) & (z^.conval^.intval >= 20H) THEN
+            CharToString(z); f := String
+          END;
           IF (z^.class < Nconst) OR (f = String) THEN z := NewOp(op, typ, z)
           ELSE err(127)
           END ;
@@ -906,8 +906,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       | lss, leq, gtr, geq:
           IF (f IN {Undef, Char..LReal(*, Int8..Int64*)}) OR strings(z, y) THEN typ := OPT.booltyp
           ELSE
-	     OPM.LogWLn; OPM.LogWStr("ELSE in Op()"); OPM.LogWLn;
-	     err(108); typ := OPT.undftyp
+       OPM.LogWLn; OPM.LogWStr("ELSE in Op()"); OPM.LogWLn;
+       err(108); typ := OPT.undftyp
           END ;
           NewOp(op, typ, z, y)
       ELSE
@@ -977,24 +977,24 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       Undef, String:
    (* | Int8:
         IF (ynode.typ.size > OPM.Int8Size) THEN
-	   IF OPM.Verbose THEN OPM.LogWStr("f of int8"); OPM.LogWLn END;
-	   err(113)
-	END
+     IF OPM.Verbose THEN OPM.LogWStr("f of int8"); OPM.LogWLn END;
+     err(113)
+  END
     | Int16:
         IF (ynode.typ.size > OPM.Int16Size) THEN
-	   IF OPM.Verbose THEN OPM.LogWStr("f of int16"); OPM.LogWLn END;
-	   err(113)
-	END
+     IF OPM.Verbose THEN OPM.LogWStr("f of int16"); OPM.LogWLn END;
+     err(113)
+  END
     | Int32:
         IF (ynode.typ.size > OPM.Int32Size) THEN
-	   IF OPM.Verbose THEN OPM.LogWStr("f of int32"); OPM.LogWLn END;
-	   err(113)
-	END
+     IF OPM.Verbose THEN OPM.LogWStr("f of int32"); OPM.LogWLn END;
+     err(113)
+  END
     | Int64:
         IF ynode.typ.size > OPM.Int64Size THEN
-	   IF OPM.Verbose THEN OPM.LogWStr("f of int64"); OPM.LogWLn END;
-	   err(113)
-	END*)
+     IF OPM.Verbose THEN OPM.LogWStr("f of int64"); OPM.LogWLn END;
+     err(113)
+  END*)
     | Byte:
         IF ~(g IN {Byte, Char, SInt}) THEN err(113) END
     | Bool, Char, SInt, Set:
@@ -1003,10 +1003,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         IF ~(g IN {SInt, Int}) THEN err(113) END
     | LInt:
         IF OPM.LIntSize = 4 THEN
-	   IF ~(g IN {SInt, Int, LInt(*, Int8, Int16, Int32*)}) THEN err(113) END
-	ELSE (* assume OPM.LIntSize = 8 *)
+     IF ~(g IN {SInt, Int, LInt(*, Int8, Int16, Int32*)}) THEN err(113) END
+  ELSE (* assume OPM.LIntSize = 8 *)
            IF ~(g IN {SInt, Int, LInt(*, Int8, Int16, Int32, Int64*)}) THEN err(113) END
-	END;
+  END;
     | Real:
         IF ~(g IN {SInt..Real}) THEN err(113) END
     | LReal:
@@ -1131,10 +1131,10 @@ avoid unnecessary intermediate variables in voc
           | SInt:  x := NewIntConst(OPM.MinSInt)
           | Int:   x := NewIntConst(OPM.MinInt)
           | LInt:  x := NewIntConst(OPM.MinLInt)
-	 (* | Int8:  x := NewIntConst(OPM.MinInt8)
-	  | Int16: x := NewIntConst(OPM.MinInt16)
-	  | Int32: x := NewIntConst(OPM.MinInt32)
-	  | Int64: err(111)(*x := NewIntConst(OPM.MinInt64)*) (* int64 constants not implemented yet *)*)
+   (* | Int8:  x := NewIntConst(OPM.MinInt8)
+    | Int16: x := NewIntConst(OPM.MinInt16)
+    | Int32: x := NewIntConst(OPM.MinInt32)
+    | Int64: err(111)(*x := NewIntConst(OPM.MinInt64)*) (* int64 constants not implemented yet *)*)
           | Set:   x := NewIntConst(0); x^.typ := OPT.inttyp
           | Real:  x := NewRealConst(OPM.MinReal, OPT.realtyp)
           | LReal: x := NewRealConst(OPM.MinLReal, OPT.lrltyp)
@@ -1150,10 +1150,10 @@ avoid unnecessary intermediate variables in voc
           | SInt:  x := NewIntConst(OPM.MaxSInt)
           | Int:   x := NewIntConst(OPM.MaxInt)
           | LInt:  x := NewIntConst(OPM.MaxLInt)
-	 (* | Int8:  x := NewIntConst(OPM.MaxInt8)
-	  | Int16: x := NewIntConst(OPM.MaxInt16)
-	  | Int32: x := NewIntConst(OPM.MaxInt32)
-	  | Int64: err(111); (*x := NewIntConst(OPM.MaxInt64)*) (* int64 contstants not implemented yet *)*)
+   (* | Int8:  x := NewIntConst(OPM.MaxInt8)
+    | Int16: x := NewIntConst(OPM.MaxInt16)
+    | Int32: x := NewIntConst(OPM.MaxInt32)
+    | Int64: err(111); (*x := NewIntConst(OPM.MaxInt64)*) (* int64 contstants not implemented yet *)*)
           | Set:   x := NewIntConst(OPM.MaxSet); x^.typ := OPT.inttyp
           | Real:  x := NewRealConst(OPM.MaxReal, OPT.realtyp)
           | LReal: x := NewRealConst(OPM.MaxLReal, OPT.lrltyp)
