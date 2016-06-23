@@ -3,22 +3,19 @@
 [ⱱishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
 
 
+-- or --
 
-### Ѵishap Oberon
-
-[Ѵishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
-
-
+### Ѵishap Oberon 
 
 ### Ꮙishap Oberon
 
-[Ꮙishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
-
-
-
 ### 𝓥ishap Oberon
 
-[𝓥ishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
+[ Ѵishap Oberon Compiler](http://oberon.vishap.am)
+
+[Ꮙishap Oberon Compiler](http://oberon.vishap.am)
+
+[𝓥ishap Oberon Compiler](http://oberon.vishap.am)
 
 
 
