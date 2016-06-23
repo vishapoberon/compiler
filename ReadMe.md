@@ -5,18 +5,9 @@
 
 -- or --
 
-### Ѵishap Oberon 
+### Ѵishap -- Ꮙishap -- 𝓥ishap
 
-### Ꮙishap Oberon
-
-### 𝓥ishap Oberon
-
-[ Ѵishap Oberon Compiler](http://oberon.vishap.am)
-
-[Ꮙishap Oberon Compiler](http://oberon.vishap.am)
-
-[𝓥ishap Oberon Compiler](http://oberon.vishap.am)
-
+Ѵishap -- Ꮙishap -- 𝓥ishap
 
 
 #### Licensing
