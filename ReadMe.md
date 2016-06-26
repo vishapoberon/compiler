@@ -1,14 +1,23 @@
-### Vishap Oberon
+### 𝓥ishap Ѵishap Ꮙishap Oberon
 
-[ⱱishap Oberon Compiler](http://oberon.vishap.am) (voc) is a free (GPLv3) professional oberon-2 compiler.
+Oberon is both a computer language, an operating system and a graphical
+user interface. Originally designed and implemented by by Niklaus Wirth and
+Jürg Gutknecht at ETH Zürich in the late 1980s, it demonstrates that the
+fundamentals of a modern OS and GUI can be implemented in clean and simple code
+orders of magnitude smaller than found in contemporary systems.
 
+[𝓥ishap ⱱishap Ꮙishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
+implementation of the Oberon-2 language compiler and libraries for use on
+current operating systems such as Linux, BSD, Android, Mac and Windows.
 
--- or --
+The Oberon language is the logical evolution of the Pascal and Modula languages,
+following the principals of Einstein and Antoine de Saint-Exupéry:
 
-### Ѵishap -- Ꮙishap -- 𝓥ishap
+>  Make it as simple as possible, but not simpler. (A. Einstein)
 
-Ѵishap -- Ꮙishap -- 𝓥ishap
-
+>  Perfection is finally attained not when there is no longer anything to add, but
+>  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
+>  Terre des Hommes, 1939, translated by Lewis Galantière.)
 
 #### Licensing
 

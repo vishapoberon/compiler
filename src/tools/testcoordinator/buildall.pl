@@ -51,21 +51,3 @@ for my $machine (sort keys %machines) {
 while ((my $pid = wait) > 0) {print "Child pid $pid completed.\n";}
 print "Buildall complete.\n";
 exit;
-
-
-
-#branch=v2docs
-#ssh pi@pie "cd projects/oberon/vishap/voc && sudo git checkout $branch && sudo make clean" &
-#ssh dave@dcb "cd projects/oberon/vishap/voc && sudo git checkout $branch && sudo make clean" &
-#ssh dave@nas-ub64 "cd vishap/voc && sudo git checkout $branch && sudo make clean" &
-#ssh dave@lub32 "cd vishap/voc && sudo git checkout $branch && sudo make clean" &
-#ssh root@nas-ob32 "cd vishap/voc && git checkout $branch && make clean" &
-#ssh root@oberon "cd vishap/voc && git checkout $branch && make clean" &
-
-#for MACHINE in "${!VOCLOGIN[@]}"
-#do
-#SETBRANCH="${VOCSUDO[$MACHINE]} git checkout $branch"
-#PULL="${VOCSUDO[$MACHINE]} git pull"
-#MAKE="${VOCSUDO[$MACHINE]} make full"
-#ssh ${VOCLOGIN[$MACHINE]} "cd ${VOCDIR[$MACHINE]} && $SETBRANCH && $PULL && $MAKE" | perl -pe "use POSIX strftime; print strftime \"%H:%M:%S $MACHINE: \", localtime" | tee log/$MACHINE.log &
-#done
