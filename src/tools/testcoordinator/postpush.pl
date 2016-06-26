@@ -27,5 +27,5 @@ print header(),
 
 open(LOG, ">>/tmp/postpush.log") or die "Could not create postpush.log";
 flock(LOG, 2)                    or die "Could not lock postpush.log";
-printf LOG "Repository $repo, branch $branch, name $name.";
+printf LOG "Repository $repo, branch $branch, name $name.\n";
 close(LOG);
