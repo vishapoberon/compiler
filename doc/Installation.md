@@ -5,9 +5,9 @@
 
 #### Building and installation summary
 
-1. git clone https://github.com/dcwbrown/olang
-2. cd olang
-3. make full
+1. git clone https://github.com/vishaps/voc
+2. cd voc
+3. [sudo] make full
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
@@ -23,14 +23,6 @@ Since 'make full' will install the compiler and libraries, it needs root (unix) 
 
 The size of compiler built is determined by the C compiler that runs, which is in turn determined by
 the shell or command prompt configuration you are running under.
-
-The following Oberon types are independent of compiler size:
-
-| Types          | Size   |
-| -----          | -------|
-| CHAR, SHORTINT | 8 bit  |
-| REAL           | 32 bit |
-| LONGREAL       | 64 bit |
 
 The following type sizes follow the built compiler size:
 
@@ -101,37 +93,6 @@ or
 And select
 
     More / Administrative Command Prompt
-
-#### A 'Hello' application
-
-Anything appended to Oberon.Log is automatically displayed on the console, so the
-following conventional Oberon program will display 'Hello.':
-
-    MODULE hello;
-      IMPORT Oberon, Texts;
-      VAR W: Texts.Writer;
-    BEGIN
-      Texts.OpenWriter(W);
-      Texts.WriteString(W, "Hello."); Texts.WriteLn(W);
-      Texts.Append(Oberon.Log, W.buf)
-    END hello.
-
-Alternatively the Console may be accessed directly as follows:
-
-    MODULE hello;
-      IMPORT Console;
-    BEGIN
-      Console.String("Hello."); Console.Ln;
-    END hello.
-
-Compile as follows:
-
-    voc hello.mod -m
-
-The -m parameter tells voc that this is a main module, and to generate an
-executable binary.
-
-Execute as usual on Linux ('./hello') or Windows ('hello').
 
 #### How make adapts to each platform
 
