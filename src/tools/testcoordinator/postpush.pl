@@ -20,24 +20,24 @@ sub writelog {
 
 writelog "Postpush.";
 
-# my $postdata = from_json(param('POSTDATA'));
-#
-# my $url  = $postdata->{'repository'}->{'url'};
-# my $ref  = $postdata->{'ref'};
-# my $name = $postdata->{'head_commit'}->{'author'}->{'name'};
-#
-# my $branch = $ref;  $branch =~ s'^.*\/'';
-# my $repo   = $url;  $repo   =~ s'^.*\/'';
-#
-# #my $repo="repo"; my $branch="branch"; my $name="name";
-#
-# writelog "Repository $repo, branch $branch, name $name.";
-#
-# print header(),
-#   start_html("Vishap Oberon github post push web hook."),
-#   p("Repository $repo, branch $branch, name $name."),
-#   end_html();
-#
-# system 'ssh root@oberon perl vishap/voc/src/tools/testcoordinator/buildall.pl >/tmp/buildall.log &';
-#
-# writelog "Buildall triggered."
+my $postdata = from_json(param('POSTDATA'));
+
+my $url  = $postdata->{'repository'}->{'url'};
+my $ref  = $postdata->{'ref'};
+my $name = $postdata->{'head_commit'}->{'author'}->{'name'};
+
+my $branch = $ref;  $branch =~ s'^.*\/'';
+my $repo   = $url;  $repo   =~ s'^.*\/'';
+
+#my $repo="repo"; my $branch="branch"; my $name="name";
+
+writelog "Repository $repo, branch $branch, name $name.";
+
+print header(),
+  start_html("Vishap Oberon github post push web hook."),
+  p("Repository $repo, branch $branch, name $name."),
+  end_html();
+
+system 'ssh root@oberon perl vishap/voc/src/tools/testcoordinator/buildall.pl >/tmp/buildall.log &';
+
+writelog "Buildall triggered."
