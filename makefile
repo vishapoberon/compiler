@@ -139,6 +139,7 @@ full: configuration
 	@make -f src/tools/make/vishap.make -s library
 	@make -f src/tools/make/vishap.make -s install
 	@make -f src/tools/make/vishap.make -s confidence
+	@make -f src/tools/make/vishap.make -s showpath
 
 
 
@@ -169,6 +170,7 @@ library: configuration
 install: configuration
 	@make -f src/tools/make/vishap.make -s installable
 	@make -f src/tools/make/vishap.make -s install
+	@make -f src/tools/make/vishap.make -s showpath
 
 uninstall: configuration
 	@make -f src/tools/make/vishap.make -s installable

@@ -173,6 +173,10 @@ install:
 	@-cp $(BUILDDIR)/showdef$(BINEXT)  "$(INSTALLDIR)/bin"
 	@cp $(BUILDDIR)/lib$(ONAME).*      "$(INSTALLDIR)/lib/"
 	@if which ldconfig >/dev/null 2>&1; then $(LDCONFIG); fi
+
+
+# showpath: Describe how to set the PATH variable
+showpath:
 	@printf "\nNow add $(INSTALLDIR)/bin to your path, for example with the command:\n"
 	@printf "export PATH=\"$(INSTALLDIR)/bin:\$$PATH\"\n"
 	@printf "\n"
