@@ -9,6 +9,7 @@ use POSIX "strftime";
 use CGI qw(:standard escapeHTML);
 use JSON;
 
+
 sub writelog {
   my ($msg) = @_;
 
