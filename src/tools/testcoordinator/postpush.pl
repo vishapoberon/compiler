@@ -3,6 +3,7 @@
 
 use strict;
 use warnings;
+use POSIX "strftime";
 
 
 use CGI qw(:standard escapeHTML);
@@ -27,5 +28,7 @@ print header(),
 
 open(LOG, ">>/tmp/postpush.log") or die "Could not create postpush.log";
 flock(LOG, 2)                    or die "Could not lock postpush.log";
-printf LOG "Repository $repo, branch $branch, name $name.\n";
+printf LOG strftime("%Y/%m/%d %H.%M.%S", localtime), " Repository $repo, branch $branch, name $name.\n";
 close(LOG);
+
+system "ssh root@oberon perl vishap/voc/src/tools/testcoordinator/buildall.pl >/tmp/buildall.log &";

@@ -1,6 +1,6 @@
 ### 𝓥ishap Ѵishap Ꮙishap Oberon
 
-Oberon is both a computer language, an operating system and a graphical
+Oberon is a programming language, an operating system and a graphical
 user interface. Originally designed and implemented by by Niklaus Wirth and
 Jürg Gutknecht at ETH Zürich in the late 1980s, it demonstrates that the
 fundamentals of a modern OS and GUI can be implemented in clean and simple code
@@ -10,8 +10,8 @@ orders of magnitude smaller than found in contemporary systems.
 implementation of the Oberon-2 language compiler and libraries for use on
 current operating systems such as Linux, BSD, Android, Mac and Windows.
 
-The Oberon language is the logical evolution of the Pascal and Modula languages,
-following the principals of Einstein and Antoine de Saint-Exupéry:
+The language is an evolution of the Pascal and Modula languages, following the
+principals of Einstein and Antoine de Saint-Exupéry:
 
 >  Make it as simple as possible, but not simpler. (A. Einstein)
 
@@ -44,7 +44,7 @@ Installation supports GNU/Linux, MAC OSX, BSD and Windows (native and cygwin).
 
 Vishap Oberon supports the Oberon 2 programming language, including type-bound procedures.
 
-It can also compile programs written to the Oberon07 report.
+It also supports some features of Oberon-07.
 
 
 #### Libraries
