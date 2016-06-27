@@ -31,4 +31,4 @@ flock(LOG, 2)                    or die "Could not lock postpush.log";
 printf LOG strftime("%Y/%m/%d %H.%M.%S", localtime), " Repository $repo, branch $branch, name $name.\n";
 close(LOG);
 
-system "ssh root@oberon perl vishap/voc/src/tools/testcoordinator/buildall.pl >/tmp/buildall.log &";
+system 'ssh root@oberon perl vishap/voc/src/tools/testcoordinator/buildall.pl >/tmp/buildall.log &';
