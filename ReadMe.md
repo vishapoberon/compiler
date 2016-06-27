@@ -10,7 +10,12 @@ orders of magnitude smaller than found in contemporary systems.
 implementation of the Oberon-2 language compiler and libraries for use on
 current operating systems such as Linux, BSD, Android, Mac and Windows.
 
-The language is an evolution of the Pascal and Modula languages, following the
+Vishap's Oberon Compiler (voc) uses a C backend to compile
+Oberon programs under Unix or Windows. Vishap Oberon includes
+libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
+default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
+
+The Oberon language is an evolution of the Pascal and Modula languages, following the
 principals of Einstein and Antoine de Saint-Exupéry:
 
 >  Make it as simple as possible, but not simpler. (A. Einstein)
@@ -18,6 +23,60 @@ principals of Einstein and Antoine de Saint-Exupéry:
 >  Perfection is finally attained not when there is no longer anything to add, but
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  Terre des Hommes, 1939, translated by Lewis Galantière.)
+
+#### Installation
+
+1. `git clone https://github.com/vishaps/voc`
+2. `cd voc`
+3. `[sudo] make full`
+
+Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
+
+Then set your path to the installed compiler binary location as reported
+by make full, e.g.
+
+| System    | Set path                               |
+| --------- | -------------------------------------- |
+|  Linux    | `export PATH="/opt/voc/bin:$PATH"`             |
+|  BSD      | `export PATH="/usr/local/share/voc/bin:$PATH"` |
+|  Windows  | See [Installation](/doc/Installation.md) |
+|  Termux   | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
+
+Also see [Installation](/doc/Installation.md).
+
+#### A 'Hello' application
+
+Anything appended to Oberon.Log is automatically displayed on the console, so the
+following conventional Oberon program will display 'Hello.':
+
+    MODULE hello;
+      IMPORT Oberon, Texts;
+      VAR W: Texts.Writer;
+    BEGIN
+      Texts.OpenWriter(W);
+      Texts.WriteString(W, "Hello."); Texts.WriteLn(W);
+      Texts.Append(Oberon.Log, W.buf)
+    END hello.
+
+Alternatively the Console may be accessed directly as follows:
+
+    MODULE hello;
+      IMPORT Console;
+    BEGIN
+      Console.String("Hello."); Console.Ln;
+    END hello.
+
+Compile as follows:
+
+    voc hello.mod -m
+
+The -m parameter tells voc that this is a main module, and to generate an
+executable binary.
+
+Execute as usual on Linux ('./hello') or Windows ('hello').
+
+
+Also see [Compiling](/doc/Compiling.md).
 
 #### Licensing
 
@@ -64,14 +123,6 @@ Some other freely redistributable libraries are available as a part of voc distr
 #### Features
 
 See [Features](/doc/Features.md).
-
-#### Installation
-
-See [Installation](/doc/Installation.md).
-
-#### Compiling Oberon modules
-
-See [Compiling](/doc/Compiling.md).
 
 #### Porting to new platforms
 

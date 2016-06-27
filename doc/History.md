@@ -1,3 +1,6 @@
+### History
+
+
 #### Changes from 1.2 to 2.0
 
 The biggest changes relative to Vishap Oberon 1.2 are in the build system and in the implementation of platform specific support. Where possible platform specific code has removed or replaced by platform agnostic code.
@@ -104,5 +107,3 @@ Linux is currently compiled using PlatfromUnix.Mod, but the integration of Windo
 
 ##### Issue 14 - 'separate rtl from SYSTEM?'.
 OS specific code is now all in Platformxxx.Mod. Memory management (including the loaded module list) is now in Heap.Mod. SYSTEM.h is platform independent, with minimal ifdefs to allow compiling on all platforms. For example, when SYSTEM.h/SYSTEM.c need to allocate memory, or to halt, they call into Platform.Mod.
-
-
