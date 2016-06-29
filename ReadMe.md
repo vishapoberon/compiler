@@ -1,11 +1,5 @@
 ### 𝓥ishap Ѵishap Ꮙishap Oberon
 
-Oberon is a programming language, an operating system and a graphical
-user interface. Originally designed and implemented by by Niklaus Wirth and
-Jürg Gutknecht at ETH Zürich in the late 1980s, it demonstrates that the
-fundamentals of a modern OS and GUI can be implemented in clean and simple code
-orders of magnitude smaller than found in contemporary systems.
-
 [𝓥ishap ⱱishap Ꮙishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
 implementation of the Oberon-2 language compiler and libraries for use on
 current operating systems such as Linux, BSD, Android, Mac and Windows.
@@ -15,16 +9,32 @@ Oberon programs under Unix or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-The Oberon language is an evolution of the Pascal and Modula languages, following the
-principals of Einstein and Antoine de Saint-Exupéry:
+##### Oberon - System and Programming Language
 
->  Make it as simple as possible, but not simpler. (A. Einstein)
+Oberon is a programming language, an operating system and a graphical
+user interface. Originally designed and implemented by by Niklaus Wirth and
+Jürg Gutknecht at ETH Zürich in the late 1980s, it demonstrates that the
+fundamentals of a modern OS and GUI can be implemented in clean and simple code
+orders of magnitude smaller than found in contemporary systems.
+
+The Oberon programming language is an evolution of the Pascal and Modula
+languages, following the principals of Einstein and Antoine de Saint-Exupéry:
+
+>  Make it as simple as possible, but not simpler. (Albert Einstein)
 
 >  Perfection is finally attained not when there is no longer anything to add, but
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
->  Terre des Hommes, 1939, translated by Lewis Galantière.)
+>  translated by Lewis Galantière.)
+
+##### Build status
+
+![Build status](https://www.brownsmeet.com/githubhook/passes.svg)
 
 #### Installation
+
+##### Prerequisites
+
+##### Build and install
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
@@ -32,7 +42,9 @@ principals of Einstein and Antoine de Saint-Exupéry:
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
-Then set your path to the installed compiler binary location as reported
+##### PATH environment variable
+
+Set your path to the installed compiler binary location as reported
 by make full, e.g.
 
 | System    | Set path                               |
