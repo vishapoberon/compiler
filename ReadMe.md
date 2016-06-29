@@ -28,7 +28,7 @@ languages, following the principals of Einstein and Antoine de Saint-Exupéry:
 
 ##### Build status
 
-![Build status](http://brownsmeet.com/passes.png?raw=true)
+![Build status](http://brownsmeet.com/passes.png)
 
 #### Installation
 
