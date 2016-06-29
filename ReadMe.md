@@ -2,7 +2,7 @@
 
 [Ѵishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
 implementation of the Oberon-2 language compiler and libraries for use on
-current operating systems such as Linux, BSD, Android, Mac and Windows.
+conventional operating systems such as Linux, BSD, Android, Mac and Windows.
 
 Vishap's Oberon Compiler (voc) uses a C backend to compile
 Oberon programs under Unix or Windows. Vishap Oberon includes
