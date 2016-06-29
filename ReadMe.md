@@ -1,6 +1,6 @@
-### 𝓥ishap Ѵishap Ꮙishap Oberon
+### Ѵishap Oberon
 
-[𝓥ishap ⱱishap Ꮙishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
+[Ѵishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
 implementation of the Oberon-2 language compiler and libraries for use on
 current operating systems such as Linux, BSD, Android, Mac and Windows.
 
@@ -28,7 +28,7 @@ languages, following the principals of Einstein and Antoine de Saint-Exupéry:
 
 ##### Build status
 
-![Build status](https://www.brownsmeet.com/githubhook/passes.svg)
+![Build status](https://www.brownsmeet.com/githubhook/passes.png?raw=true)
 
 #### Installation
 
@@ -160,6 +160,8 @@ Build process simplified for more platform support and bugs fixed by David
 C W Brown.
 
 #### Origin of the name Vishap
+
+𝓥ishap Ꮙishap ⱱishap
 
 #### To be left out?
 
