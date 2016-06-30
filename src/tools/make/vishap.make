@@ -362,6 +362,12 @@ library: v4 ooc2 ooc ulm pow32 misc s3 librarybinary
 
 
 
+checksum:
+	@cd $(BUILDDIR) && sh $(ROOTDIR)/src/tools/make/checksumtest.sh $(ROOTDIR)/$(BUILDDIR).md5
+
+
+
+
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
 	cd src/test/confidence/hello;           ./test.sh "$(INSTALLDIR)"

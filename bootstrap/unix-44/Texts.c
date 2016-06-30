@@ -1,4 +1,4 @@
-/* voc  1.2 [2016/06/15] for gcc LP64 on cygwin xtspkaSfF */
+/* voc  1.95 [2016/06/30] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Files.h"
 #include "Modules.h"

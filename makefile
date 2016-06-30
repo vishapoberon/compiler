@@ -133,10 +133,19 @@ clean: configuration
 full: configuration
 	@make -f src/tools/make/vishap.make -s installable
 	@make -f src/tools/make/vishap.make -s clean
+# Make bootstrap compiler from source suitable for current data model
+	@make -f src/tools/make/vishap.make -s compilerfromsavedsource
+# Use bootstrap compiler to make compiler binary from latest compiler sources
 	@make -f src/tools/make/vishap.make -s translate
 	@make -f src/tools/make/vishap.make -s assemble
+# Use latest compiler to make compiler binary from latest compiler sources
+	@make -f src/tools/make/vishap.make -s translate
+	@make -f src/tools/make/vishap.make -s assemble
+	@printf "\n\n--- Compiler build successfull ---\n\n"
 	@make -f src/tools/make/vishap.make -s browsercmd
 	@make -f src/tools/make/vishap.make -s library
+	@printf "\n\n--- Library build successfull ---\n\n"
+	@make -f src/tools/make/vishap.make -s checksum
 	@make -f src/tools/make/vishap.make -s install
 	@make -f src/tools/make/vishap.make -s confidence
 	@make -f src/tools/make/vishap.make -s showpath
@@ -183,7 +192,12 @@ uninstall: configuration
 
 
 # bootstrap: Rebuild the bootstrap directories
+# If the bootstrap directories are broken or only partially
+# built then run 'make revertbootstrap' first.
 bootstrap: configuration
+	@make -f src/tools/make/vishap.make -s clean
+	@make -f src/tools/make/vishap.make -s translate
+	@make -f src/tools/make/vishap.make -s assemble
 	rm -rf bootstrap/*
 	make -f src/tools/make/vishap.make -s translate INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
 	make -f src/tools/make/vishap.make -s translate INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym

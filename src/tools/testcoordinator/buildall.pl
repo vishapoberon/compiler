@@ -6,12 +6,13 @@ use POSIX "strftime";
 my $branch = "v2docs";
 
 my %machines = (
-  "pi"     => ['pi@pie',        "projects/oberon/vishap/voc", "sudo"],
-  "darwin" => ['dave@dcb',      "projects/oberon/vishap/voc", "sudo"],
-  "lub32"  => ['dave@lub32',    "vishap/voc",                 "sudo"],
-  "ob32"   => ['root@nas-ob32', "vishap/voc",                 ""    ],
-  "fb64"   => ['root@oberon',   "vishap/voc",                 ""    ],
-  "ub64"   => ['dave@nas-ub64', "vishap/voc",                 "sudo"]
+  "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
+  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
+  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
+  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
+  "fb64"   => ['root@oberon',    "",     "vishap/voc"],
+  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
+  "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"]
 );
 
 
@@ -43,7 +44,7 @@ sub logged {
 
 
 for my $machine (sort keys %machines) {
-  my ($login, $dir, $sudo) = @{$machines{$machine}};
+  my ($login, $sudo, $dir) = @{$machines{$machine}};
   my $cmd = "ssh $login \"cd $dir && $sudo git checkout $branch && $sudo git pull && $sudo make full\" ";
   logged($cmd, $machine);
 }
