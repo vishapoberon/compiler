@@ -26,9 +26,13 @@ languages, following the principals of Einstein and Antoine de Saint-Exupéry:
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  translated by Lewis Galantière.)
 
-##### Build status
+##### Build status (png)
 
-![Build status](http://brownsmeet.com/passes.png)
+![Build status (png)](http://brownsmeet.com/build-staus.png)
+
+##### Build status (svg)
+
+![Build status (svg)](http://brownsmeet.com/build-staus.svg)
 
 #### Installation
 
