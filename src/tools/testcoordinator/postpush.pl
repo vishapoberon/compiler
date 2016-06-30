@@ -11,7 +11,7 @@ use JSON;
 
 sub writelog {
   my ($msg) = @_;
-
+  
   open(LOG, ">>/tmp/postpush.log") or die "Could not create postpush.log";
   flock(LOG, 2)                    or die "Could not lock postpush.log";
   print LOG sprintf("%s %s\n", strftime("%Y/%m/%d %H.%M.%S", localtime), $msg);
@@ -36,12 +36,13 @@ my $child = fork;
 if (not defined $child) {die "Fork failed.";}
 if ($child) {
   # parent process
-  writelog "Started ssh, pid = $child.";
+  writelog "Started buildall, pid = $child.";
 } else {
   # child process
-  exec 'ssh root@oberon "perl vishap/voc/src/tools/testcoordinator/buildall.pl >/tmp/buildall.log &"';
+  close(STDIN); close(STDOUT); close(STDERR);
+  exec 'perl /var/lib/nethserver/ibay/githubhook/buildall.pl >/tmp/buildall.log';
   exit;
-}
+}                                                                     
 
 print header(),
   start_html("Vishap Oberon github post push web hook."),
