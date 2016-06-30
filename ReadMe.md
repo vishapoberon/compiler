@@ -28,11 +28,11 @@ languages, following the principals of Einstein and Antoine de Saint-Exupéry:
 
 ##### Build status (png)
 
-![Build status (png)](http://brownsmeet.com/build-staus.png)
+![Build status (png)](http://brownsmeet.com/build-status.png)
 
 ##### Build status (svg)
 
-![Build status (svg)](http://brownsmeet.com/build-staus.svg)
+![Build status (svg)](http://brownsmeet.com/build-status.svg)
 
 #### Installation
 
