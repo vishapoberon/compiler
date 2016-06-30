@@ -5,15 +5,49 @@ use POSIX "strftime";
 
 
 
+
 my %status = ();
-open(my $logs, "/tmp/buildall.log") // die "Couldn't open combined build log.";
-while (<$logs>) {
-  if (/^([^ ]+) ([^ ]+) --- Branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) confidence tests passed ---/) {
-    my $key = "$4-$6-$5";
-    $status{$key} = [$1, $2, $3, $4, $5, $6];
+
+
+sub parselog {
+  my ($fn) = @_;
+  my $date       = "";
+  my $time       = "";
+  my $branch     = "";
+  my $os         = "";
+  my $compiler   = "";
+  my $datamodel  = "";
+  my $compilerok = "";
+  my $libraryok  = "";
+  my $checksum   = "";
+  my $tests      = "";
+  open(my $log, $fn) // die "Couldn't open build log $fn.";
+  while (<$log>) {
+    if (/^([0-9/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1;}
+    if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
+      ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
+    }
+    if (/^--- Compiler build successfull ---$/)    {$compilerok = "Built";}
+    if (/^--- Library build successfull ---$/)     {$libraryok  = "Built";}
+    if (/^--- Confidence tests passed ---$/)       {$tests      = "Passed";}
+    if (/^--- Object file checksums match ---$/)   {$checksum   = "Match";}
+    if (/^--- Object file checksum mismatch ---$/) {$checksum   = "Changed";}
+    if (/^--- Object files checksummed ---$/)      {$checksum   = "New";}
+  }
+  close($log);
+  my $key = "$os-$compiler-$datamodel";
+  if ($key ne "") {
+    status{$key} = [$date, $time, $os, %compiler, $datamodel, $branch, $compilerok, $libraryok, $checksum, $tests];
   }
 }
-close($logs);
+
+opendir DIR, "log" // die "Could not openlog directory.";
+my @logs = readdir DIR;
+closedir DIR;
+
+for my $logname (sort @logs) {
+  if (-f $logname) {parselog($logname);}
+}
 
 my $emsperline = 1.2;
 
@@ -49,19 +83,20 @@ svgtext($svg, $col2, 0, "#e0e0e0", "Compiler");
 svgtext($svg, $col3, 0, "#e0e0e0", "Data model");
 svgtext($svg, $col4, 0, "#e0e0e0", "Compiler");
 svgtext($svg, $col5, 0, "#e0e0e0", "Library");
-svgtext($svg, $col6, 0, "#e0e0e0", "Cksum");
+svgtext($svg, $col6, 0, "#e0e0e0", "Checksum");
 svgtext($svg, $col7, 0, "#e0e0e0", "Tests");
 
 my $i=1;
 for my $key (sort keys %status) {
-  my ($host, $time, $branch, $os, $compiler, $datamodel) = @{$status{$key}};
+  my ($date, $time, $os, %compiler, $datamodel,
+      $branch, $compilerok, $libraryok, $checksum, $tests) = @{$status{$key}};
   svgtext($svg, $col1, $i, "#c0c0c0", $os);
   svgtext($svg, $col2, $i, "#c0c0c0", $compiler);
   svgtext($svg, $col3, $i, "#c0c0c0", $datamodel);
-  svgtext($svg, $col4, $i, "#60ff60", "Pass");
-  svgtext($svg, $col5, $i, "#60ff60", "Pass");
-# svgtext($svg, $col6, $i, "#60ff60", "Pass");
-  svgtext($svg, $col7, $i, "#60ff60", "Pass");
+  svgtext($svg, $col4, $i, "#60ff60", $compilerok);
+  svgtext($svg, $col5, $i, "#60ff60", $libraryok);
+  svgtext($svg, $col6, $i, "#60ff60", $checksum);
+  svgtext($svg, $col7, $i, "#60ff60", $tests);
   $i++;
 }
 

@@ -28,6 +28,7 @@ usage:
 
 
 clean:
+	@printf "\n\n--- Cleaning branch $$(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n"
 	rm -rf $(BUILDDIR)
 	rm -f $(VISHAP)
 
@@ -374,7 +375,7 @@ confidence:
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; ./test.sh "$(INSTALLDIR)"; fi
 	cd src/test/confidence/lola;            ./test.sh "$(INSTALLDIR)"
 	cd src/test/confidence/arrayassignment; ./test.sh "$(INSTALLDIR)"
-	@printf "\n\n--- Branch $$(git rev-parse --abbrev-ref HEAD) $(OS) $(COMPILER) $(DATAMODEL) confidence tests passed ---\n\n"
+	@printf "\n\n--- Confidence tests passed ---\n\n"
 
 
 
