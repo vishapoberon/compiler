@@ -98,13 +98,14 @@ usage:
 
 
 
-# Generate config files Configuration.Make and Configuartion.Mod
+# Generate config files Configuration.Make and Configuration.Mod
 FORCE:
 
 configuration: FORCE
 	@$(CC) -I src/system -o a.o src/tools/make/configure.c
 	@./a.o
 	@rm a.o
+	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
 
 
 
