@@ -28,7 +28,7 @@ usage:
 
 
 clean:
-	@printf "\n\n--- Cleaning branch $$(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n"
+	@printf "\n\n--- Cleaning branch $(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n"
 	rm -rf $(BUILDDIR)
 	rm -f $(VISHAP)
 
