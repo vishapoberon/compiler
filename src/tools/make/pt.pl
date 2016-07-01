@@ -11,6 +11,7 @@ my %status = ();
 
 sub parselog {
   my ($fn) = @_;
+  #print "Parsing log $fn\n";
   my $date       = "";
   my $time       = "";
   my $branch     = "";
@@ -23,29 +24,31 @@ sub parselog {
   my $tests      = "";
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
-    if (/^([0-9/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1;}
+    if (/^([0-9\/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1;}
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
     }
-    if (/^--- Compiler build successfull ---$/)    {$compilerok = "Built";}
-    if (/^--- Library build successfull ---$/)     {$libraryok  = "Built";}
-    if (/^--- Confidence tests passed ---$/)       {$tests      = "Passed";}
-    if (/^--- Object file checksums match ---$/)   {$checksum   = "Match";}
-    if (/^--- Object file checksum mismatch ---$/) {$checksum   = "Changed";}
-    if (/^--- Object files checksummed ---$/)      {$checksum   = "New";}
+    if (/^([0-9.]+) --- Compiler build successfull ---$/)    {$compilerok = "Built";}
+    if (/^([0-9.]+) --- Library build successfull ---$/)     {$libraryok  = "Built";}
+    if (/^([0-9.]+) --- Confidence tests passed ---$/)       {$tests      = "Passed";}
+    if (/^([0-9.]+) --- Object file checksums match ---$/)   {$checksum   = "Match";}
+    if (/^([0-9.]+) --- Object file checksum mismatch ---$/) {$checksum   = "Changed";}
+    if (/^([0-9.]+) --- Object files checksummed ---$/)      {$checksum   = "New";}
   }
   close($log);
   my $key = "$os-$compiler-$datamodel";
   if ($key ne "") {
-    status{$key} = [$date, $time, $os, %compiler, $datamodel, $branch, $compilerok, $libraryok, $checksum, $tests];
+    $status{$key} = [$date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $checksum, $tests];
   }
 }
 
-opendir DIR, "log" // die "Could not openlog directory.";
+opendir DIR, "log" // die "Could not open log directory.";
 my @logs = readdir DIR;
 closedir DIR;
 
 for my $logname (sort @logs) {
+  $logname = "log/" . $logname;
+  #print "Consider $logname\n";
   if (-f $logname) {parselog($logname);}
 }
 
@@ -88,7 +91,7 @@ svgtext($svg, $col7, 0, "#e0e0e0", "Tests");
 
 my $i=1;
 for my $key (sort keys %status) {
-  my ($date, $time, $os, %compiler, $datamodel,
+  my ($date, $time, $os, $compiler, $datamodel,
       $branch, $compilerok, $libraryok, $checksum, $tests) = @{$status{$key}};
   svgtext($svg, $col1, $i, "#c0c0c0", $os);
   svgtext($svg, $col2, $i, "#c0c0c0", $compiler);

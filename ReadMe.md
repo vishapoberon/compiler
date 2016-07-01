@@ -1,3 +1,5 @@
+![Build status](http://brownsmeet.com/build-status.svg)
+
 ### Ѵishap Oberon
 
 [Ѵishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
@@ -25,10 +27,6 @@ languages, following the principals of Einstein and Antoine de Saint-Exupéry:
 >  Perfection is finally attained not when there is no longer anything to add, but
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  translated by Lewis Galantière.)
-
-##### Build status
-
-![Build status](http://brownsmeet.com/build-status.svg)
 
 #### Installation
 
