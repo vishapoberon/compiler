@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use POSIX "strftime";
+use Cwd;
 
 my $branch = "v2docs";
 
@@ -41,6 +42,7 @@ sub logged {
   }
 }
 
+print "Buildall starting in ", getcwd, "\n";
 
 unlink glob "log/*";
 
