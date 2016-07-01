@@ -125,7 +125,7 @@ open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
 print $svg '<svg width="680" height="', $height, '"';
 print $svg ' xmlns="http://www.w3.org/2000/svg" version="1.1"';
 print $svg ' xmlns:xlink="http://www.w3.org/1999/xlink"', ">\n";
-print $svg '<rect x="3" y="3" width="', $width-6, '" height="' $height-6, '"';
+print $svg '<rect x="3" y="3" width="', $width-6, '" height="', $height-6, '"';
 print $svg ' rx="20" ry="20" fill="#404040"';
 print $svg ' stroke="#20c020" stroke-width="4"/>', "\n";
 
