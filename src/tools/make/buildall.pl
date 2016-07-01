@@ -11,9 +11,9 @@ my %machines = (
 #  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
 #  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
 #  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
-  "fb64"   => ['root@oberon',    "",     "vishap/voc"],
+#  "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"],
 #  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
-  "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"]
+   "fb64"   => ['root@oberon',    "",     "vishap/voc"]
 );
 
 
@@ -102,13 +102,14 @@ for my $logname (sort @logs) {
   if (-f $logname) {parselog($logname);}
 }
 
-my $emsperline = 1.2;
+my $fontheight = 10;
+my $lineheight = 13;
 
 sub svgtext {
   my ($f, $x, $y, $colour, $msg) = @_;
   print $f '<text x="', $x;
-  print $f '" y="', ($y+1)*$emsperline + 0.3;
-  print $f 'em" font-family="Verdana" font-size="1em" fill="';
+  print $f '" y="', ($y+1)*$lineheight + $fontheight/3;
+  print $f '" font-family="Verdana" font-size="', $fontheight, 'px" fill="';
   print $f $colour;
   print $f '">';
   print $f $msg;
@@ -118,14 +119,15 @@ sub svgtext {
 my $rows = keys %status;
 
 my $width  = 680;
-my $height = ($rows+2) * $emsperline;
+my $height = ($rows+2) * $lineheight;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
-print $svg '<svg width="680" height="', $height, 'em"';
+print $svg '<svg width="680" height="', $height, '"';
 print $svg ' xmlns="http://www.w3.org/2000/svg" version="1.1"';
 print $svg ' xmlns:xlink="http://www.w3.org/1999/xlink"', ">\n";
-print $svg '<rect x="5" y="5" width="', $width-4, '" height="96%" rx="20" ry="20"';
-print $svg ' fill="#404040" stroke="#20c020" stroke-width="4"/>', "\n";
+print $svg '<rect x="3" y="3" width="', $width-6, '" height="' $height-6, '"';
+print $svg ' rx="20" ry="20" fill="#404040"';
+print $svg ' stroke="#20c020" stroke-width="4"/>', "\n";
 
 my $col1 = 20;
 my $col2 = 110;
