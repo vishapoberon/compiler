@@ -102,8 +102,8 @@ for my $logname (sort @logs) {
   if (-f $logname) {parselog($logname);}
 }
 
-my $fontheight = 11;
-my $lineheight = 13;
+my $fontheight = 12;
+my $lineheight = 15;
 
 sub svgtext {
   my ($f, $x, $y, $colour, $msg) = @_;
