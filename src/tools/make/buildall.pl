@@ -108,7 +108,7 @@ my $lineheight = 13;
 sub svgtext {
   my ($f, $x, $y, $colour, $msg) = @_;
   print $f '<text x="', $x;
-  print $f '" y="', ($y+1)*$lineheight + $fontheight/3;
+  print $f '" y="', ($y+1)*$lineheight + $fontheight/2;
   print $f '" font-family="Verdana" font-size="', $fontheight, 'px" fill="';
   print $f $colour;
   print $f '">';
