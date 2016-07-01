@@ -83,7 +83,7 @@ sub parselog {
     if (/^([0-9.]+) --- Compiler build successfull ---$/)    {$compilerok = "Built";}
     if (/^([0-9.]+) --- Library build successfull ---$/)     {$libraryok  = "Built";}
     if (/^([0-9.]+) --- Confidence tests passed ---$/)       {$tests      = "Passed";}
-    if (/^([0-9.]+) --- Object file checksums match ---$/)   {$checksum   = "Match";}
+    if (/^([0-9.]+) --- Object file checksums match ---$/)   {$checksum   = "Unchanged";}
     if (/^([0-9.]+) --- Object file checksum mismatch ---$/) {$checksum   = "Changed";}
     if (/^([0-9.]+) --- Object files checksummed ---$/)      {$checksum   = "New";}
   }
@@ -130,7 +130,7 @@ my $col2 = 110;
 my $col3 = 200;
 my $col4 = 310;
 my $col5 = 400;
-my $col6 = 490;
+my $col6 = 480;
 my $col7 = 580;
 
 svgtext($svg, $col1, 0, "#e0e0e0", "OS");
