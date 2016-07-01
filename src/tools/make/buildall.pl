@@ -102,13 +102,13 @@ for my $logname (sort @logs) {
   if (-f $logname) {parselog($logname);}
 }
 
-my $fontheight = 10;
+my $fontheight = 11;
 my $lineheight = 13;
 
 sub svgtext {
   my ($f, $x, $y, $colour, $msg) = @_;
   print $f '<text x="', $x;
-  print $f '" y="', ($y+1)*$lineheight + $fontheight/2;
+  print $f '" y="', ($y+1)*$lineheight + $fontheight*0.4;
   print $f '" font-family="Verdana" font-size="', $fontheight, 'px" fill="';
   print $f $colour;
   print $f '">';
