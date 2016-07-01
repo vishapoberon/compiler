@@ -1,4 +1,11 @@
 # Checksum tests
+#
+# Checksums object binaries (*.o) and compares with previous
+# checksum for this branch.
+#
+# Note: OPC.o and OPM.o are omitted as they both have text string constants
+# that include the build date.
+
 
 md5=md5
 if which md5sum >/dev/null 2>&1; then md5=md5sum; fi

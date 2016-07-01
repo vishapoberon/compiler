@@ -9,6 +9,7 @@ use POSIX "strftime";
 use CGI qw(:standard escapeHTML);
 use JSON;
 
+
 sub writelog {
   my ($msg) = @_;
 
@@ -27,20 +28,15 @@ my $name = $postdata->{'head_commit'}->{'author'}->{'name'};
 my $branch = $ref;  $branch =~ s'^.*\/'';
 my $repo   = $url;  $repo   =~ s'^.*\/'';
 
-#my $repo="repo"; my $branch="branch"; my $name="name";
-
 writelog "Post push github web hook for repository $repo, branch $branch, name $name.";
 
 
 my $child = fork;
 if (not defined $child) {die "Fork failed.";}
 if ($child) {
-  # parent process
-  writelog "Started buildall, pid = $child.";
+  writelog "Started buildall, pid = $child.";  # parent process
 } else {
-  # child process
-  close(STDIN); close(STDOUT); close(STDERR);
-  chdir "/var/lib/nethserver/ibay/githubhook";
+  close(STDIN); close(STDOUT); close(STDERR);  # child process
   unlink "buildall.pl";
   system 'wget https://raw.githubusercontent.com/vishaps/voc/v2docs/src/tools/make/buildall.pl';
   exec 'perl buildall.pl >/tmp/buildall.log';
