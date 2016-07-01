@@ -119,18 +119,20 @@ sub svgtext {
 
 my $rows = keys %status;
 
+my $width  = 680;
+my $height = ($rows+2) * $emsperline;
+
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
-print $svg '<svg width="680" height="';
-print $svg ($rows+2) * $emsperline;
-print $svg 'em" xmlns="http://www.w3.org/2000/svg" version="1.1">', "\n";
-print $svg '<rect width="100%" height="100%" rx="20" ry="20" fill="#404040" stroke="#208020" stroke-width="2"/>', "\n";
+print $svg '<svg width="680" height="', $height, 'em" xmlns="http://www.w3.org/2000/svg" version="1.1">', "\n";
+print $svg '<rect x="3" y="3" width="', $width-4, '" height="99%" rx="20" ry="20"';
+print $svg ' fill="#404040" stroke="#20c020" stroke-width="2"/>', "\n";
 
 my $col1 = 20;
 my $col2 = 110;
 my $col3 = 200;
 my $col4 = 310;
 my $col5 = 400;
-my $col6 = 480;
+my $col6 = 475;
 my $col7 = 580;
 
 svgtext($svg, $col1, 0, "#e0e0e0", "OS");
