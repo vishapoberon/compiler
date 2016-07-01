@@ -38,6 +38,7 @@ if ($child) {
 } else {
   close(STDIN); close(STDOUT); close(STDERR);  # child process
   unlink "buildall.pl";
+  sleep 5;  # Leave time for the push to complete. (Yuk!)
   system 'wget https://raw.githubusercontent.com/vishaps/voc/v2docs/src/tools/make/buildall.pl';
   exec 'perl buildall.pl >/tmp/buildall.log';
   exit;

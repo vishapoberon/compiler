@@ -7,13 +7,13 @@ use Cwd;
 my $branch = "v2docs";
 
 my %machines = (
-#  "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
-#  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
-#  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
-#  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
-#  "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"],
-#  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
-   "fb64"   => ['root@oberon',    "",     "vishap/voc"]
+  "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
+  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
+  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
+  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
+  "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"],
+  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
+  "fb64"   => ['root@oberon',    "",     "vishap/voc"]
 );
 
 
