@@ -7,12 +7,12 @@ use Cwd;
 my $branch = "v2docs";
 
 my %machines = (
-  "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
-  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
-  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
-  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
+#  "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
+#  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
+#  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
+#  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
   "fb64"   => ['root@oberon',    "",     "vishap/voc"],
-  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
+#  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
   "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"]
 );
 
@@ -41,8 +41,6 @@ sub logged {
     exit;
   }
 }
-
-print "Buildall starting in ", getcwd, "\n";
 
 unlink glob "log/*";
 
@@ -90,7 +88,7 @@ sub parselog {
   close($log);
   my $key = "$os-$compiler-$datamodel";
   if ($key ne "") {
-    $status{$key} = [$date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $checksum, $tests];
+    $status{$key} = [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $checksum, $tests];
   }
 }
 
@@ -123,9 +121,11 @@ my $width  = 680;
 my $height = ($rows+2) * $emsperline;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
-print $svg '<svg width="680" height="', $height, 'em" xmlns="http://www.w3.org/2000/svg" version="1.1">', "\n";
-print $svg '<rect x="3" y="3" width="', $width-4, '" height="99%" rx="20" ry="20"';
-print $svg ' fill="#404040" stroke="#20c020" stroke-width="2"/>', "\n";
+print $svg '<svg width="680" height="', $height, 'em"';
+print $svg ' xmlns="http://www.w3.org/2000/svg" version="1.1"';
+print $svg ' xmlns:xlink="http://www.w3.org/1999/xlink"', ">\n";
+print $svg '<rect x="5" y="5" width="', $width-4, '" height="96%" rx="20" ry="20"';
+print $svg ' fill="#404040" stroke="#20c020" stroke-width="4"/>', "\n";
 
 my $col1 = 20;
 my $col2 = 110;
@@ -145,8 +145,9 @@ svgtext($svg, $col7, 0, "#e0e0e0", "Tests");
 
 my $i=1;
 for my $key (sort keys %status) {
-  my ($date, $time, $os, $compiler, $datamodel,
-      $branch, $compilerok, $libraryok, $checksum, $tests) = @{$status{$key}};
+  my ($fn, $date, $time, $os, $compiler, $datamodel, $branch,
+      $compilerok, $libraryok, $checksum, $tests) = @{$status{$key}};
+  print $svg '<a xlink:href="', $fn, '">';
   svgtext($svg, $col1, $i, "#c0c0c0", $os);
   svgtext($svg, $col2, $i, "#c0c0c0", $compiler);
   svgtext($svg, $col3, $i, "#c0c0c0", $datamodel);
@@ -154,9 +155,11 @@ for my $key (sort keys %status) {
   svgtext($svg, $col5, $i, "#60ff60", $libraryok);
   svgtext($svg, $col6, $i, "#60ff60", $checksum);
   svgtext($svg, $col7, $i, "#60ff60", $tests);
+  print $svg '</a>';
   $i++;
 }
 
 print $svg "</svg>\n";
 
 system 'scp build-status.svg dave@hub:/var/www';
+system 'scp log/* dave@hub:/var/www/log';
