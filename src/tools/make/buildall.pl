@@ -42,6 +42,7 @@ sub logged {
 }
 
 
+unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir) = @{$machines{$machine}};
@@ -53,7 +54,7 @@ while ((my $pid = wait) > 0) {print "Child pid $pid completed.\n";}
 
 
 # # All builds have completed. Now scan the logs for pass/fail and build the passing report.
-# 
+#
 # my %status = ();
 # open(my $logs, "/tmp/buildall.log") // die "Couldn't open combined build log.";
 # while (<$logs>) {
@@ -62,23 +63,23 @@ while ((my $pid = wait) > 0) {print "Child pid $pid completed.\n";}
 #   }
 # }
 # close(my $logs);
-# 
-# 
+#
+#
 # sub svgtext {
 #   my ($f, $x, $y, $msg) = @_;
 #   print($f "<text x=\"$x\" y=\"$y\" font-family=\"Verdana\" font-size=\"18\" font-fill=\"black\">";
 #   print($f $msg);
 #   print($f "</text>\n");
 # }
-# 
-# 
+#
+#
 # open(my $svg, ">passing.svg") // dir "Could not create passing.svg.");
 # print $svg '<svg width="10cm" height="3cm" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" version="1.1">\n';
-# 
+#
 # my $i=1;
 # for my $host (sort keys %status) {
 #   svgtext($svg, 10, $i*20, $host);
 #   $i++;
 # }
-# 
+#
 # print $svg '</svg>\n';

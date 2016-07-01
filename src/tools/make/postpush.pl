@@ -11,7 +11,7 @@ use JSON;
 
 sub writelog {
   my ($msg) = @_;
-  
+
   open(LOG, ">>/tmp/postpush.log") or die "Could not create postpush.log";
   flock(LOG, 2)                    or die "Could not lock postpush.log";
   print LOG sprintf("%s %s\n", strftime("%Y/%m/%d %H.%M.%S", localtime), $msg);
@@ -40,9 +40,10 @@ if ($child) {
 } else {
   # child process
   close(STDIN); close(STDOUT); close(STDERR);
-  exec 'perl /var/lib/nethserver/ibay/githubhook/buildall.pl >/tmp/buildall.log';
+  system 'wget https://raw.githubusercontent.com/vishaps/voc/v2docs/src/tools/make/buildall.pl';
+  exec 'perl buildall.pl >/tmp/buildall.log';
   exit;
-}                                                                     
+}
 
 print header(),
   start_html("Vishap Oberon github post push web hook."),
