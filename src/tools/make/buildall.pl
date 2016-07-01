@@ -123,7 +123,7 @@ open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
 print $svg '<svg width="680" height="';
 print $svg ($rows+2) * $emsperline;
 print $svg 'em" xmlns="http://www.w3.org/2000/svg" version="1.1">', "\n";
-print $svg '<rect width="100%" height="100%" rx="20" ry="20" fill="#404040"/>', "\n";
+print $svg '<rect width="100%" height="100%" rx="20" ry="20" fill="#404040" stroke="#208020" stroke-width="2"/>', "\n";
 
 my $col1 = 20;
 my $col2 = 110;
@@ -157,4 +157,4 @@ for my $key (sort keys %status) {
 
 print $svg "</svg>\n";
 
-system 'scp -p build-status.svg dave@hub:/var/www';
+system 'scp build-status.svg dave@hub:/var/www';
