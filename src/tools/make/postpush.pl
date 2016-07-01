@@ -40,6 +40,7 @@ if ($child) {
 } else {
   # child process
   close(STDIN); close(STDOUT); close(STDERR);
+  unlink "buildall.pl";
   system 'wget https://raw.githubusercontent.com/vishaps/voc/v2docs/src/tools/make/buildall.pl';
   exec 'perl buildall.pl >/tmp/buildall.log';
   exit;
