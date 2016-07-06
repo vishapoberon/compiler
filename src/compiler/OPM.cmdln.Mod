@@ -181,7 +181,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* Undocumented options used by the build system:
 
-     The following two parameter overrides the integer size, pointer size and alignment
+     The following parameter overrides the integer size, pointer size and alignment
      settings compiled into the binary. They are used when bootstrapping to generate
      the C source for a compiler with different sizes to the current compiler.
 

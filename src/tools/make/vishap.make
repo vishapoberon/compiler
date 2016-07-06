@@ -28,6 +28,7 @@ usage:
 
 
 clean:
+	@printf "\n\n--- Cleaning branch $(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n"
 	rm -rf $(BUILDDIR)
 	rm -f $(VISHAP)
 
@@ -150,6 +151,16 @@ testtools:
 
 
 
+# installable: Check for access to the installation directory
+
+installable:
+	@rm -rf "S(INSTALLDIR)/test-access-qqq"
+	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then echo "\\n\\n   Cannot write to install directory.\\n   Please use sudo or run as root/administrator.\\n\\n"; exit 1;fi
+	@rm -rf "S(INSTALLDIR)/test-access-qqq"
+
+
+
+
 # install: Use only after a successful full build. Installs the compiler
 #          and libraries in /opt/$(ONAME).
 #          May require root access.
@@ -163,6 +174,10 @@ install:
 	@-cp $(BUILDDIR)/showdef$(BINEXT)  "$(INSTALLDIR)/bin"
 	@cp $(BUILDDIR)/lib$(ONAME).*      "$(INSTALLDIR)/lib/"
 	@if which ldconfig >/dev/null 2>&1; then $(LDCONFIG); fi
+
+
+# showpath: Describe how to set the PATH variable
+showpath:
 	@printf "\nNow add $(INSTALLDIR)/bin to your path, for example with the command:\n"
 	@printf "export PATH=\"$(INSTALLDIR)/bin:\$$PATH\"\n"
 	@printf "\n"
@@ -348,6 +363,12 @@ library: v4 ooc2 ooc ulm pow32 misc s3 librarybinary
 
 
 
+checksum:
+	@cd $(BUILDDIR) && sh $(ROOTDIR)/src/tools/make/checksumtest.sh $(ROOTDIR)/$(BUILDDIR).$(BRANCH).md5
+
+
+
+
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
 	cd src/test/confidence/hello;           ./test.sh "$(INSTALLDIR)"
@@ -365,8 +386,3 @@ auto:
 	@make -f src/tools/make/vishap.make -s assemble
 	@make -f src/tools/make/vishap.make -s testtools
 	while cmd=$$(./testclient -w "$(FLAVOUR)"); do $$cmd 2>&1 | ./testclient -s "$(FLAVOUR)"; done
-
-
-
-
-
