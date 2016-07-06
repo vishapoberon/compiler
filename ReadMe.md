@@ -1,36 +1,29 @@
 ![Build status](http://brownsmeet.com/build-status.svg)
 
-### Ѵishap Oberon
+## Ѵishap Oberon
 
 [Ѵishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
-implementation of the Oberon-2 language compiler and libraries for use on
+implementation of the Oberon-2 language and libraries for use on
 conventional operating systems such as Linux, BSD, Android, Mac and Windows.
 
-Vishap's Oberon Compiler (voc) uses a C backend to compile
-Oberon programs under Unix or Windows. Vishap Oberon includes
+Vishap's Oberon Compiler (voc) uses a C backend (gcc, clang or msc) to compile
+Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-##### Oberon - System and Programming Language
-
-Oberon is a programming language, an operating system and a graphical
-user interface. Originally designed and implemented by by Niklaus Wirth and
-Jürg Gutknecht at ETH Zürich in the late 1980s, it demonstrates that the
-fundamentals of a modern OS and GUI can be implemented in clean and simple code
-orders of magnitude smaller than found in contemporary systems.
-
-The Oberon programming language is an evolution of the Pascal and Modula
-languages, following the principals of Einstein and Antoine de Saint-Exupéry:
-
->  Make it as simple as possible, but not simpler. (Albert Einstein)
-
->  Perfection is finally attained not when there is no longer anything to add, but
->  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
->  translated by Lewis Galantière.)
-
-#### Installation
+### Installation
 
 ##### Prerequisites
+
+| Platform               | Packages                                                           |
+| ---------              | ------------                                                       |
+| Debian/Ubuntu/Mint ... | apt-get install git                                                |
+| Fedora/RHEL/CentOS ... | yum install git gcc glibc-static                                   |
+| FreeBSD/OpenBSD/NetBSD | pkg install git                                                    |
+| Cygwin                 | use setup-x86[_x64] to add packages git, make and gcc-core         |
+| Darwin                 | run 'git' at the command line and accept the prompt to install it. |
+
+More details, including for MingW and MS C, in [Installation](/doc/Installation.md).
 
 ##### Build and install
 
@@ -54,7 +47,7 @@ by make full, e.g.
 
 Also see [Installation](/doc/Installation.md).
 
-#### A 'Hello' application
+### A 'Hello' application
 
 Anything appended to Oberon.Log is automatically displayed on the console, so the
 following conventional Oberon program will display 'Hello.':
@@ -88,7 +81,7 @@ Execute as usual on Linux ('./hello') or Windows ('hello').
 
 Also see [Compiling](/doc/Compiling.md).
 
-#### Licensing
+### Licensing
 
 Vishap Oberon's frontend and C backend engine is a fork of Josef Templ’s Ofront, which has been released
 under the FreeBSD License. Unlike Ofront, Vishap Oberon does not include the Oberon v4 environment.
@@ -101,7 +94,7 @@ Voc tools are distributed under GPLv3.
 Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime exception.
 
 
-#### Platform support
+### Platform support and porting
 
 Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x64, arm and ppc.
 
@@ -109,14 +102,27 @@ It compiles under gcc, clang and Microsoft Visual C.
 
 Installation supports GNU/Linux, MAC OSX, BSD and Windows (native and cygwin).
 
-#### Language support
+A C program (src/tools/make/configure.c) detects the details of the C compiler
+and operating system on which it is running. In most cases it will automatically
+determine all that is needed for the port to a new platform. and 'make full'
+will just work.
+
+In some cases manual work will be required:
+
+ - If configure.c cannot recognise the operating system on which it is running
+   a few lines will need to be added to detect and set the make variables
+   correctly.
+ - If porting to a system that does not provide a Unix style API, it will be
+   necessary to implement a new variant of Platform.Mod providing the same
+   interface as Platformunix.Mod and Platform Windows.Mod.
+
+For details, see [Porting](/doc/Porting.md).
+
+### Language support and libraries
 
 Vishap Oberon supports the Oberon 2 programming language, including type-bound procedures.
 
 It also supports some features of Oberon-07.
-
-
-#### Libraries
 
 Vishap Oberon comes with libraries easing the porting of code from the major
 Oberon systems:
@@ -129,24 +135,17 @@ Oberon systems:
 
 Some other freely redistributable libraries are available as a part of voc distribution.
 
+See also [Features](/doc/Features.md).
 
-#### Features
-
-See [Features](/doc/Features.md).
-
-#### Porting to new platforms
-
-See [Porting](/doc/Porting.md).
-
-#### History
+### History
 
 See [History](/doc/History.md).
 
-#### Roadmap
+### Roadmap
 
 See [Roadmap](/doc/Roadmap.md).
 
-#### Contributors
+### Contributors
 
 Originally developed as a cross platform implementation of the
 Oberon system by Joseph Templ.
@@ -157,11 +156,54 @@ to new platforms by Norayr Chilingarian.
 Build process simplified for more platform support and bugs fixed by David
 C W Brown.
 
-#### Origin of the name Vishap
+### Origin of the name "Ѵishap Oberon"
 
-𝓥ishap Ꮙishap ⱱishap
+##### Ѵishap
 
-#### To be left out?
+Vishaps are dragons inhabiting the Armenian Highlands.
+We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
 
-Work on other compatibility layers is in progress.
-voc team also works on bindings to existing C/Pascal libraries.
+Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015/04/27/six-works-of-computer-science-fiction/) refers to some technologies as “computer science fiction”. Among them to Oberon. This brings another meaning, Oberon is like aliens, ghosts. And Vishaps.
+
+##### Oberon - System and Programming Language
+
+Oberon is a programming language, an operating system and a graphical
+user interface. Originally designed and implemented by by Niklaus Wirth and
+Jürg Gutknecht at ETH Zürich in the late 1980s, it demonstrates that the
+fundamentals of a modern OS and GUI can be implemented in clean and simple code
+orders of magnitude smaller than found in contemporary systems.
+
+The Oberon programming language is an evolution of the Pascal and Modula
+languages. While it adds garbage collection, extensible types and (in
+Oberon-2) type-bound procedures, it is also simplified following the principals
+of Einstein and Antoine de Saint-Exupéry:
+
+>  Make it as simple as possible, but not simpler. (Albert Einstein)
+
+>  Perfection is finally attained not when there is no longer anything to add, but
+>  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
+>  translated by Lewis Galantière.)
+
+### References
+
+###### Oberon
+ - [The History of Modula-2 and Oberon](http://people.inf.ethz.ch/wirth/Articles/Modula-Oberon-June.pdf)
+ - [The Programming Language Oberon](https://www.inf.ethz.ch/personal/wirth/Oberon/Oberon.Report.pdf)
+ - [Project Oberon: The Design of an Operating System and Compiler ](http://www.ethoberon.ethz.ch/WirthPubl/ProjectOberon.pdf)
+ - [Oberon - the Overlooked Jewel](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.7173&rep=rep1&type=pdf)
+
+###### Oberon 2
+ - [Differences between Oberon and Oberon-2](http://members.home.nl/jmr272/Oberon/Oberon2.Differences.pdf)
+ - [The Programming Language Oberon-2](http://www.ssw.uni-linz.ac.at/Research/Papers/Oberon2.pdf)
+ - [Programming in Oberon. Steps beyond Pascal and Modula](www.ethoberon.ethz.ch/WirthPubl/ProgInOberonWR.pdf)
+ - [The Oakwood Guidelines for Oberon-2 Compiler Developers](http://www.math.bas.bg/bantchev/place/oberon/oakwood-guidelines.pdf)
+
+###### Oberon 07
+ - [Difference between Oberon-07 and Oberon](https://www.inf.ethz.ch/personal/wirth/Oberon/Oberon07.pdf)
+ - [The Programming Language Oberon-07](https://www.inf.ethz.ch/personal/wirth/Oberon/Oberon07.Report.pdf)
+ - [Programming in Oberon - a Tutorial](https://www.inf.ethz.ch/personal/wirth/Oberon/PIO.pdf)
+
+###### Links
+ - [Niklaus Wirth's personal page at ETH Zurich](https://www.inf.ethz.ch/personal/wirth/)
+ - [ETH Zurich's Wirth publications page](http://www.ethoberon.ethz.ch/WirthPubl/)
+ - [Oberon: Steps beyond Pascal and Modula](http://fruttenboel.verhoeven272.nl/Oberon/)

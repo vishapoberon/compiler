@@ -1,4 +1,6 @@
 
+#### (Work in progress)
+
 #### Machine size issues
 
 I don't see any really good solutions to different machine sizes. Existing code,
@@ -83,3 +85,8 @@ address. It would be quite a lot of work!
  - CASE statements only support INTEGER (with low positive values) and CHAR.
  - Reject LOOP statements.
  - All imported variables are read-only.
+
+#### To be left out?
+
+Work on other compatibility layers is in progress.
+voc team also works on bindings to existing C/Pascal libraries.
