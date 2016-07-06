@@ -4,7 +4,7 @@ use warnings;
 use POSIX "strftime";
 use Cwd;
 
-my $branch = "v2docs";
+my $branch = "master";
 
 my %machines = (
   "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
