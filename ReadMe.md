@@ -1,6 +1,6 @@
 ![Build status](http://brownsmeet.com/build-status.svg)
 
-## Ѵishap Oberon
+# Ѵishap Oberon
 
 [Ѵishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
 implementation of the Oberon-2 language and libraries for use on
@@ -11,9 +11,23 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-### Installation
+###### Contents
 
-##### Prerequisites
+> [Installation](#installation)  
+> [A 'Hello' application](#a-hello-application)  
+> [Licensing](#licensing)  
+> [Platform support and porting](#platform-support-and-porting)  
+> [Language support and libraries](#language-support-and-libraries)  
+> [History](#history)  
+> [Roadmap](#roadmap)  
+> [Contributors](#contributors)  
+> [Origin of the name "Ѵishap Oberon"](#origin-of-the-name-Ѵishap-oberon)  
+> [References](#references)
+
+
+## Installation
+
+###### Prerequisites
 
 | Platform               | Packages                                                           |
 | ---------              | ------------                                                       |
@@ -25,7 +39,7 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 More details, including for MingW and MS C, in [Installation](/doc/Installation.md).
 
-##### Build and install
+###### Build and install
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
@@ -33,7 +47,7 @@ More details, including for MingW and MS C, in [Installation](/doc/Installation.
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
-##### PATH environment variable
+###### PATH environment variable
 
 Set your path to the installed compiler binary location as reported
 by make full, e.g.
@@ -47,27 +61,31 @@ by make full, e.g.
 
 Also see [Installation](/doc/Installation.md).
 
-### A 'Hello' application
+## A 'Hello' application
 
 Anything appended to Oberon.Log is automatically displayed on the console, so the
 following conventional Oberon program will display 'Hello.':
 
-    MODULE hello;
-      IMPORT Oberon, Texts;
-      VAR W: Texts.Writer;
-    BEGIN
-      Texts.OpenWriter(W);
-      Texts.WriteString(W, "Hello."); Texts.WriteLn(W);
-      Texts.Append(Oberon.Log, W.buf)
-    END hello.
+```Modula-2
+MODULE hello;
+  IMPORT Oberon, Texts;
+  VAR W: Texts.Writer;
+BEGIN
+  Texts.OpenWriter(W);
+  Texts.WriteString(W, "Hello."); Texts.WriteLn(W);
+  Texts.Append(Oberon.Log, W.buf)
+END hello.
+```
 
 Alternatively the Console may be accessed directly as follows:
 
-    MODULE hello;
-      IMPORT Console;
-    BEGIN
-      Console.String("Hello."); Console.Ln;
-    END hello.
+```Modula-2
+MODULE hello;
+  IMPORT Console;
+BEGIN
+  Console.String("Hello."); Console.Ln;
+END hello.
+```
 
 Compile as follows:
 
@@ -81,7 +99,7 @@ Execute as usual on Linux ('./hello') or Windows ('hello').
 
 Also see [Compiling](/doc/Compiling.md).
 
-### Licensing
+## Licensing
 
 Vishap Oberon's frontend and C backend engine is a fork of Josef Templ’s Ofront, which has been released
 under the FreeBSD License. Unlike Ofront, Vishap Oberon does not include the Oberon v4 environment.
@@ -94,7 +112,7 @@ Voc tools are distributed under GPLv3.
 Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime exception.
 
 
-### Platform support and porting
+## Platform support and porting
 
 Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x64, arm and ppc.
 
@@ -118,7 +136,7 @@ In some cases manual work will be required:
 
 For details, see [Porting](/doc/Porting.md).
 
-### Language support and libraries
+## Language support and libraries
 
 Vishap Oberon supports the Oberon 2 programming language, including type-bound procedures.
 
@@ -137,15 +155,15 @@ Some other freely redistributable libraries are available as a part of voc distr
 
 See also [Features](/doc/Features.md).
 
-### History
+## History
 
 See [History](/doc/History.md).
 
-### Roadmap
+## Roadmap
 
 See [Roadmap](/doc/Roadmap.md).
 
-### Contributors
+## Contributors
 
 Originally developed as a cross platform implementation of the
 Oberon system by Joseph Templ.
@@ -156,16 +174,16 @@ to new platforms by Norayr Chilingarian.
 Build process simplified for more platform support and bugs fixed by David
 C W Brown.
 
-### Origin of the name "Ѵishap Oberon"
+## Origin of the name "Ѵishap Oberon"
 
-##### Ѵishap
+###### Ѵishap
 
 Vishaps are dragons inhabiting the Armenian Highlands.
 We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
 
 Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015/04/27/six-works-of-computer-science-fiction/) refers to some technologies as “computer science fiction”. Among them to Oberon. This brings another meaning, Oberon is like aliens, ghosts. And Vishaps.
 
-##### Oberon - System and Programming Language
+###### Oberon - System and Programming Language
 
 Oberon is a programming language, an operating system and a graphical
 user interface. Originally designed and implemented by by Niklaus Wirth and
@@ -184,7 +202,7 @@ of Einstein and Antoine de Saint-Exupéry:
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  translated by Lewis Galantière.)
 
-### References
+## References
 
 ###### Oberon
  - [The History of Modula-2 and Oberon](http://people.inf.ethz.ch/wirth/Articles/Modula-Oberon-June.pdf)
