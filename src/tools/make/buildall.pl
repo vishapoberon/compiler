@@ -7,13 +7,14 @@ use Cwd;
 my $branch = "master";
 
 my %machines = (
-  "pi"     => ['pi@pie',         "sudo", "projects/oberon/vishap/voc"],
-  "darwin" => ['dave@dcb',       "sudo", "projects/oberon/vishap/voc"],
-  "lub32"  => ['dave@lub32',     "sudo", "vishap/voc"],
-  "ob32"   => ['root@nas-ob32',  "",     "vishap/voc"],
-  "ce64"   => ['-p5922 obe@www', "sudo", "vishap/voc"],
-  "ub64"   => ['dave@nas-ub64',  "sudo", "vishap/voc"],
-  "fb64"   => ['root@oberon',    "",     "vishap/voc"]
+  "pi"     => ['pi@pie',          "sudo", "make full", "projects/oberon/vishap/voc"],
+  "darwin" => ['dave@dcb',        "sudo", "make full", "projects/oberon/vishap/voc"],
+  "wind"   => ['-p5932 dave@wax', "",     "make full", "vishaps/voc"],
+  "lub32"  => ['dave@lub32',      "sudo", "make full", "vishap/voc"],
+  "ob32"   => ['root@nas-ob32',   "",     "make full", "vishap/voc"],
+  "ce64"   => ['-p5922 obe@www',  "sudo", "make full", "vishap/voc"],
+  "ub64"   => ['dave@nas-ub64',   "sudo", "make full", "vishap/voc"],
+  "fb64"   => ['root@oberon',     "",     "make full", "vishap/voc"]
 );
 
 
@@ -45,8 +46,8 @@ sub logged {
 unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
-  my ($login, $sudo, $dir) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && $sudo git checkout $branch && $sudo git pull && $sudo make full\" ";
+  my ($login, $sudo, $mkcmd, $dir) = @{$machines{$machine}};
+  my $cmd = "ssh $login \"cd $dir && $sudo git checkout $branch && $sudo git pull && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 
