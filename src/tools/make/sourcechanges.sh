@@ -25,7 +25,7 @@ for f in $1/*; do
   rm -f $fn.old $fn.new $fn.diff
 done
 echo ""
-if [ $changes == "0" ]; then
+if [ "$changes" = "0" ]; then
   echo "--- Generated c source files match bootstrap ---"
 else
   echo "--- Generated c source files differ from bootstrap ---"
