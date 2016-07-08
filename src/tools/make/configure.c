@@ -394,7 +394,6 @@ void writeConfigurationMod() {
   fprintf(fd, "MODULE Configuration;\n");
   fprintf(fd, "CONST\n");
   fprintf(fd, "  name*        = '%s';\n", oname);
-  fprintf(fd, "  versionLong* = '%s';\n", versionstring);
   fprintf(fd, "  intsize*     = %d;\n",   intsize);
   fprintf(fd, "  addressSize* = %d;\n",   addressSize);
   fprintf(fd, "  alignment*   = %d;\n",   alignment);
@@ -406,6 +405,10 @@ void writeConfigurationMod() {
   fprintf(fd, "  dataModel*   = '%s';\n", dataModel);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
+  fprintf(fd, "VAR\n");
+  fprintf(fd, "  versionLong-: ARRAY %d OF CHAR;\n", strnlen(versionstring, 100)+1);
+  fprintf(fd, "BEGIN\n");
+  fprintf(fd, "  versionLong := '%s';\n", versionstring);
   fprintf(fd, "END Configuration.\n");
 
   fclose(fd);

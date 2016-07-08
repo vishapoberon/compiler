@@ -16,7 +16,7 @@ for f in $1/*; do
   fn=$(basename $f)
   egrep -v "^/\* voc  " $f  >$fn.old
   egrep -v "^/\* voc  " $fn >$fn.new
-  if ! diff --tabsize=2 -U 2 -b $fn.old $fn.new >$fn.diff; then
+  if ! diff -U 2 -b $fn.old $fn.new >$fn.diff; then
     echo ""
     echo ""
     cat $fn.diff
