@@ -31,7 +31,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     MaxRExp*        = 38;
     MaxLExp*        = 308;
-    MaxHDig*        = 8;
 
     MinHaltNr*      = 0;
     MaxHaltNr*      = 255;

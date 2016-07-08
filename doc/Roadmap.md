@@ -66,6 +66,29 @@ means client code does not need changing.
 
 This fixes the current 16 bit hole in the range of INTEGER types on 64 bit systems.
 
+#### Oakwood Guidelines on type sizes
+
+The Oakwood guidelines are interesting.
+
+  - 5.2 requires that e.g. LONGINT is 32 bits *or more*,
+
+but
+  - Appendix A 1.2.5.4 requires that MODULE Files *always* reads and writes
+    LONGINT as 4 bytes.
+
+The restriction for the Files module makes sense as it is intended to produce
+and consume files in a compatible way between platforms. Thus if a system uses
+64 bit LONGINT, it is an error (detected or not) to write
+to MODULE Files any LONGINT values outside the 32 bit range.
+
+To put it shockingly, it is an error to write the vast majority of possible
+LONGINT values - specifically over 99.998% of LONGINT values are invalid for
+MODULE Files.
+
+I see this as another argument in favour of locking LONGINT down as 32 bits.
+
+
+
 
 #### A feature I'd really like to see
 

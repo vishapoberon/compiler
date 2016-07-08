@@ -32,7 +32,7 @@ The following type sizes follow the built compiler size:
 | Types          | 32 bit builds | 64 bit builds |
 | -----          | ------------- | ------------- |
 | INTEGER        | 16 bit        | 32 bit        |
-| LONGINT, SET   | 32 bit        | 16 bit        |
+| LONGINT, SET   | 32 bit        | 64 bit        |
 
 Note that many library modules have been written with the assumption that INTEGER
 is 16 bit and LONGINT 32 bit, therefore they will only work in 32 bit builds.

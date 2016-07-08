@@ -195,7 +195,7 @@ of Einstein and Antoine de Saint-Exupéry:
 ###### Oberon 2
  - [Differences between Oberon and Oberon-2](http://members.home.nl/jmr272/Oberon/Oberon2.Differences.pdf)
  - [The Programming Language Oberon-2](http://www.ssw.uni-linz.ac.at/Research/Papers/Oberon2.pdf)
- - [Programming in Oberon. Steps beyond Pascal and Modula](www.ethoberon.ethz.ch/WirthPubl/ProgInOberonWR.pdf)
+ - [Programming in Oberon. Steps beyond Pascal and Modula](http://www.ethoberon.ethz.ch/WirthPubl/ProgInOberonWR.pdf)
  - [The Oakwood Guidelines for Oberon-2 Compiler Developers](http://www.math.bas.bg/bantchev/place/oberon/oakwood-guidelines.pdf)
 
 ###### Oberon 07

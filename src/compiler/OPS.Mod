@@ -90,7 +90,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   END Identifier;
 
   PROCEDURE Number;
-    VAR i, m, n, d, e: INTEGER; dig: ARRAY 24 OF CHAR; f: LONGREAL; expCh: CHAR; neg: BOOLEAN;
+    VAR i, m, n, d, e, maxHdig: INTEGER; dig: ARRAY 24 OF CHAR; f: LONGREAL; expCh: CHAR; neg: BOOLEAN;
 
     PROCEDURE Ten(e: INTEGER): LONGREAL;
       VAR x, p: LONGREAL;
@@ -136,8 +136,9 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
           ELSE err(203)
           END
         ELSIF ch = "H" THEN (* hexadecimal *) OPM.Get(ch); numtyp := integer;
-          IF n <= OPM.MaxHDig THEN
-            IF (n = OPM.MaxHDig) & (dig[0] > "7") THEN (* prevent overflow *) intval := -1 END;
+          IF MAX(LONGINT) > 2147483647 THEN maxHdig := 16 ELSE maxHdig := 8 END;
+          IF n <= maxHdig THEN
+            IF (n = maxHdig) & (dig[0] > "7") THEN (* prevent overflow *) intval := -1 END;
             WHILE i < n DO intval := intval*10H + Ord(dig[i], TRUE); INC(i) END
           ELSE err(203)
           END
