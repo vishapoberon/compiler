@@ -135,6 +135,7 @@ full: configuration
 	@make -f src/tools/make/vishap.make -s installable
 	@make -f src/tools/make/vishap.make -s clean
 # Make bootstrap compiler from source suitable for current data model
+	@printf "\n\n--- Compiler build started ---\n\n"
 	@make -f src/tools/make/vishap.make -s compilerfromsavedsource
 # Use bootstrap compiler to make compiler binary from latest compiler sources
 	@make -f src/tools/make/vishap.make -s translate
@@ -144,10 +145,12 @@ full: configuration
 	@make -f src/tools/make/vishap.make -s assemble
 	@printf "\n\n--- Compiler build successfull ---\n\n"
 	@make -f src/tools/make/vishap.make -s browsercmd
+	@printf "\n\n--- Library build started ---\n\n"
 	@make -f src/tools/make/vishap.make -s library
 	@printf "\n\n--- Library build successfull ---\n\n"
-	@make -f src/tools/make/vishap.make -s checksum
+	@make -f src/tools/make/vishap.make -s sourcechanges
 	@make -f src/tools/make/vishap.make -s install
+	@printf "\n\n--- Confidence tests started ---\n\n"
 	@make -f src/tools/make/vishap.make -s confidence
 	@make -f src/tools/make/vishap.make -s showpath
 

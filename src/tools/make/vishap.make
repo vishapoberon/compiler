@@ -363,8 +363,8 @@ library: v4 ooc2 ooc ulm pow32 misc s3 librarybinary
 
 
 
-checksum:
-	@cd $(BUILDDIR) && sh $(ROOTDIR)/src/tools/make/checksumtest.sh $(ROOTDIR)/$(BUILDDIR).$(BRANCH).md5
+sourcechanges:
+	@cd $(BUILDDIR) && sh $(ROOTDIR)/src/tools/make/sourcechanges.sh $(ROOTDIR)/bootstrap/$(PLATFORM)-$(ADRSIZE)$(ALIGNMENT)
 
 
 

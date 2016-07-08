@@ -12,33 +12,35 @@ my %status = ();
 sub parselog {
   my ($fn) = @_;
   #print "Parsing log $fn\n";
-  my $date       = "";
-  my $time       = "";
-  my $branch     = "";
-  my $os         = "";
-  my $compiler   = "";
-  my $datamodel  = "";
-  my $compilerok = "";
-  my $libraryok  = "";
-  my $checksum   = "";
-  my $tests      = "";
+  my $date         = "";
+  my $time         = "";
+  my $branch       = "";
+  my $os           = "";
+  my $compiler     = "";
+  my $datamodel    = "";
+  my $compilerok   = "";
+  my $libraryok    = "";
+  my $sourcechange = "";
+  my $tests        = "";
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
     if (/^([0-9\/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1;}
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
     }
-    if (/^([0-9.]+) --- Compiler build successfull ---$/)    {$compilerok = "Built";}
-    if (/^([0-9.]+) --- Library build successfull ---$/)     {$libraryok  = "Built";}
-    if (/^([0-9.]+) --- Confidence tests passed ---$/)       {$tests      = "Passed";}
-    if (/^([0-9.]+) --- Object file checksums match ---$/)   {$checksum   = "Match";}
-    if (/^([0-9.]+) --- Object file checksum mismatch ---$/) {$checksum   = "Changed";}
-    if (/^([0-9.]+) --- Object files checksummed ---$/)      {$checksum   = "New";}
+    if (/^([0-9.]+) --- Compiler build started ---$/)                         {$compilerok   = "Started";}
+    if (/^([0-9.]+) --- Compiler build successfull ---$/)                     {$compilerok   = "Built";}
+    if (/^([0-9.]+) --- Library build started ---$/)                          {$libraryok    = "Started";}
+    if (/^([0-9.]+) --- Library build successfull ---$/)                      {$libraryok    = "Built";}
+    if (/^([0-9.]+) --- Generated c source files match bootstrap ---$/)       {$sourcechange = "Unchanged";}
+    if (/^([0-9.]+) --- Generated c source files differ from bootstrap ---$/) {$sourcechange = "Changed";}
+    if (/^([0-9.]+) --- Confidence tests started ---$/)                       {$tests        = "Started";}
+    if (/^([0-9.]+) --- Confidence tests passed ---$/)                        {$tests        = "Passed";}
   }
   close($log);
   my $key = "$os-$compiler-$datamodel";
   if ($key ne "") {
-    $status{$key} = [$date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $checksum, $tests];
+    $status{$key} = [$date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
   }
 }
 
@@ -86,19 +88,19 @@ svgtext($svg, $col2, 0, "#e0e0e0", "Compiler");
 svgtext($svg, $col3, 0, "#e0e0e0", "Data model");
 svgtext($svg, $col4, 0, "#e0e0e0", "Compiler");
 svgtext($svg, $col5, 0, "#e0e0e0", "Library");
-svgtext($svg, $col6, 0, "#e0e0e0", "Checksum");
+svgtext($svg, $col6, 0, "#e0e0e0", "C Source");
 svgtext($svg, $col7, 0, "#e0e0e0", "Tests");
 
 my $i=1;
 for my $key (sort keys %status) {
   my ($date, $time, $os, $compiler, $datamodel,
-      $branch, $compilerok, $libraryok, $checksum, $tests) = @{$status{$key}};
+      $branch, $compilerok, $libraryok, $sourcechange, $tests) = @{$status{$key}};
   svgtext($svg, $col1, $i, "#c0c0c0", $os);
   svgtext($svg, $col2, $i, "#c0c0c0", $compiler);
   svgtext($svg, $col3, $i, "#c0c0c0", $datamodel);
   svgtext($svg, $col4, $i, "#60ff60", $compilerok);
   svgtext($svg, $col5, $i, "#60ff60", $libraryok);
-  svgtext($svg, $col6, $i, "#60ff60", $checksum);
+  svgtext($svg, $col6, $i, "#60ff60", $sourcechange);
   svgtext($svg, $col7, $i, "#60ff60", $tests);
   $i++;
 }
