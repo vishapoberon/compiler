@@ -21,28 +21,38 @@ sub writelog {
 
 my $postdata = from_json(param('POSTDATA'));
 
-my $url  = $postdata->{'repository'}->{'url'};
-my $ref  = $postdata->{'ref'};
-my $name = $postdata->{'head_commit'}->{'author'}->{'name'};
+my $url      = $postdata->{'repository'}->{'url'};
+my $ref      = $postdata->{'ref'};
+my $name     = $postdata->{'head_commit'}->{'author'}->{'name'};
+my $branch   = $ref;  $branch =~ s'^.*\/'';
+my $repo     = $url;  $repo   =~ s'^.*\/'';
+my $modified = $postdata->{'head_commit'}->{'modified'};
 
-my $branch = $ref;  $branch =~ s'^.*\/'';
-my $repo   = $url;  $repo   =~ s'^.*\/'';
-
-writelog "Post push github web hook for repository $repo, branch $branch, name $name.";
-
-
-my $child = fork;
-if (not defined $child) {die "Fork failed.";}
-if ($child) {
-  writelog "Started buildall, pid = $child.";  # parent process
-} else {
-  close(STDIN); close(STDOUT); close(STDERR);  # child process
-  unlink "buildall.pl";
-  sleep 5;  # Leave time for the push to complete. (Yuk!)
-  system 'wget https://raw.githubusercontent.com/vishaps/voc/v2docs/src/tools/make/buildall.pl';
-  exec 'perl buildall.pl >/tmp/buildall.log';
-  exit;
+my $buildneeded = 0;
+for my $file (@{$modified}) {
+  if ($file !~ m/\.(md|svg)$/i) {$buildneeded = 1;}
 }
+
+if ($buildneeded) {
+  writelog "Post push github web hook for repository $repo, branch $branch, name $name. Build required.";
+
+
+  my $child = fork;
+  if (not defined $child) {die "Fork failed.";}
+  if ($child) {
+    writelog "Started buildall, pid = $child.";  # parent process
+  } else {
+    close(STDIN); close(STDOUT); close(STDERR);  # child process
+    unlink "buildall.pl";
+    sleep 5;  # Leave time for the push to complete. (Yuk!)
+    system 'wget https://raw.githubusercontent.com/vishaps/voc/master/src/tools/make/buildall.pl';
+    exec 'perl buildall.pl >/tmp/buildall.log';
+    exit;
+  }
+} else {
+  writelog "Post push github web hook for repository $repo, branch $branch, name $name. No build required.";
+}
+
 
 print header(),
   start_html("Vishap Oberon github post push web hook."),
