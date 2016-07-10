@@ -1,4 +1,4 @@
-![Build status](http://brownsmeet.com/build-status.svg)
+[![Build status](http://brownsmeet.com/build-status.svg)](http://brownsmeet.com/build-status/)
 
 # Ѵishap Oberon
 
