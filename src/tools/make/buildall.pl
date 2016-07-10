@@ -172,5 +172,6 @@ for my $key (sort keys %status) {
 
 print $svg "</svg>\n";
 
+system 'chmod +r log/*';
 system 'scp build-status.svg dave@hub:/var/www';
 system 'scp log/* dave@hub:/var/www/log';
