@@ -75,7 +75,7 @@ sub parselog {
   my $tests        = "";
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
-    if (/^([0-9\/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1; $time = $2}
+    if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {$date = $1; $time = $2}
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
     }
@@ -121,7 +121,7 @@ sub svgtext {
 
 my $rows = keys %status;
 
-my $width  = 1080;
+my $width  = 620;
 my $height = ($rows+2.2) * $lineheight;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
@@ -133,22 +133,19 @@ print $svg ' rx="20" ry="20" fill="#404040"';
 print $svg ' stroke="#20c020" stroke-width="4"/>', "\n";
 
 my $col1  = 20;
-my $col2  = 120;
-my $col3  = 220;
-my $col4  = 320;
-my $col5  = 420;
-my $col6  = 520;
-my $col7  = 620;
-my $col8  = 720;
-my $col9  = 820;
-my $col10 = 920;
+my $col2  = 97;
+my $col3  = 160;
+my $col4  = 220;
+my $col5  = 280;
+my $col6  = 320;
+my $col7  = 370;
+my $col8  = 430;
+my $col9  = 480;
+my $col10 = 560;
 
 svgtext($svg, $col1,  0, "#e0e0e0", "Date");
-svgtext($svg, $col2,  0, "#e0e0e0", "Time");
 svgtext($svg, $col3,  0, "#e0e0e0", "Branch");
-svgtext($svg, $col4,  0, "#e0e0e0", "OS");
-svgtext($svg, $col5,  0, "#e0e0e0", "Compiler");
-svgtext($svg, $col6,  0, "#e0e0e0", "Data model");
+svgtext($svg, $col4,  0, "#e0e0e0", "Platform");
 svgtext($svg, $col7,  0, "#e0e0e0", "Compiler");
 svgtext($svg, $col8,  0, "#e0e0e0", "Library");
 svgtext($svg, $col9,  0, "#e0e0e0", "C Source");
