@@ -75,7 +75,7 @@ sub parselog {
   my $tests        = "";
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
-    if (/^([0-9\/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1;}
+    if (/^([0-9\/]+) [0-9.]+ [^ ]+\.log$/) {$date = $1; $time = $2}
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
     }
@@ -121,8 +121,8 @@ sub svgtext {
 
 my $rows = keys %status;
 
-my $width  = 680;
-my $height = ($rows+2) * $lineheight;
+my $width  = 1080;
+my $height = ($rows+2.2) * $lineheight;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
 print $svg '<svg width="680" height="', $height, '"';
@@ -132,34 +132,43 @@ print $svg '<rect x="3" y="3" width="', $width-6, '" height="', $height-6, '"';
 print $svg ' rx="20" ry="20" fill="#404040"';
 print $svg ' stroke="#20c020" stroke-width="4"/>', "\n";
 
-my $col1 = 20;
-my $col2 = 110;
-my $col3 = 200;
-my $col4 = 310;
-my $col5 = 400;
-my $col6 = 475;
-my $col7 = 580;
+my $col1  = 20;
+my $col2  = 120;
+my $col3  = 220;
+my $col4  = 320;
+my $col5  = 420;
+my $col6  = 520;
+my $col7  = 620;
+my $col8  = 720;
+my $col9  = 820;
+my $col10 = 920;
 
-svgtext($svg, $col1, 0, "#e0e0e0", "OS");
-svgtext($svg, $col2, 0, "#e0e0e0", "Compiler");
-svgtext($svg, $col3, 0, "#e0e0e0", "Data model");
-svgtext($svg, $col4, 0, "#e0e0e0", "Compiler");
-svgtext($svg, $col5, 0, "#e0e0e0", "Library");
-svgtext($svg, $col6, 0, "#e0e0e0", "C Source");
-svgtext($svg, $col7, 0, "#e0e0e0", "Tests");
+svgtext($svg, $col1,  0, "#e0e0e0", "Date");
+svgtext($svg, $col2,  0, "#e0e0e0", "Time");
+svgtext($svg, $col3,  0, "#e0e0e0", "Branch");
+svgtext($svg, $col4,  0, "#e0e0e0", "OS");
+svgtext($svg, $col5,  0, "#e0e0e0", "Compiler");
+svgtext($svg, $col6,  0, "#e0e0e0", "Data model");
+svgtext($svg, $col7,  0, "#e0e0e0", "Compiler");
+svgtext($svg, $col8,  0, "#e0e0e0", "Library");
+svgtext($svg, $col9,  0, "#e0e0e0", "C Source");
+svgtext($svg, $col10, 0, "#e0e0e0", "Tests");
 
 my $i=1;
 for my $key (sort keys %status) {
   my ($fn, $date, $time, $os, $compiler, $datamodel, $branch,
       $compilerok, $libraryok, $sourcechange, $tests) = @{$status{$key}};
   print $svg '<a xlink:href="', $fn, '">';
-  svgtext($svg, $col1, $i, "#c0c0c0", $os);
-  svgtext($svg, $col2, $i, "#c0c0c0", $compiler);
-  svgtext($svg, $col3, $i, "#c0c0c0", $datamodel);
-  svgtext($svg, $col4, $i, "#60ff60", $compilerok);
-  svgtext($svg, $col5, $i, "#60ff60", $libraryok);
-  svgtext($svg, $col6, $i, "#60ff60", $sourcechange);
-  svgtext($svg, $col7, $i, "#60ff60", $tests);
+  svgtext($svg, $col1,  $i, "#c0c0c0", $date);
+  svgtext($svg, $col2,  $i, "#c0c0c0", $time);
+  svgtext($svg, $col3,  $i, "#c0c0c0", $branch);
+  svgtext($svg, $col4,  $i, "#c0c0c0", $os);
+  svgtext($svg, $col5,  $i, "#c0c0c0", $compiler);
+  svgtext($svg, $col6,  $i, "#c0c0c0", $datamodel);
+  svgtext($svg, $col7,  $i, "#60ff60", $compilerok);
+  svgtext($svg, $col8,  $i, "#60ff60", $libraryok);
+  svgtext($svg, $col9,  $i, "#60ff60", $sourcechange);
+  svgtext($svg, $col10, $i, "#60ff60", $tests);
   print $svg '</a>';
   $i++;
 }
