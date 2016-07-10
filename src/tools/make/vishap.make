@@ -6,9 +6,14 @@
 
 
 
+# Be independent of any CFLAGS settings in the calling environment
+CFLAGS =
+
 # Gnu make has the make initial directory in CURDIR, BSD make has it in .CURDIR.
 ROOTDIR = $(CURDIR)$(.CURDIR)
 
+# Configuration.Make is created by src/tools/make/configure.c, which is run on
+# *every* build by the makefile in the enlistment root.
 include ./Configuration.Make
 
 FLAVOUR  = $(OS).$(DATAMODEL).$(COMPILER)
