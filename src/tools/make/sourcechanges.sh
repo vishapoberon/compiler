@@ -14,8 +14,8 @@
 changes="0"
 for f in $1/*; do
   fn=$(basename $f)
-  egrep -v "^/\* voc  " $f  >$fn.old
-  egrep -v "^/\* voc  " $fn >$fn.new
+  egrep -v "(^/\* voc  )|Configuration_|__MOVE.* cmd, " $f  >$fn.old
+  egrep -v "(^/\* voc  )|Configuration_|__MOVE.* cmd, " $fn >$fn.new
   if ! diff -U 2 -b $fn.old $fn.new >$fn.diff; then
     echo ""
     echo ""
