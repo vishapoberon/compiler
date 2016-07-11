@@ -29,13 +29,13 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 ###### Prerequisites
 
-| Platform               | Packages                                                           |
-| ---------              | ------------                                                       |
-| Debian/Ubuntu/Mint ... | apt-get install git                                                |
-| Fedora/RHEL/CentOS ... | yum install git gcc glibc-static                                   |
-| FreeBSD/OpenBSD/NetBSD | pkg install git                                                    |
-| Cygwin                 | use setup-x86[_x64] to add packages git, make and gcc-core         |
-| Darwin                 | run 'git' at the command line and accept the prompt to install it. |
+| Platform               | Packages                                                            |
+| ---------              | ------------                                                        |
+| Debian/Ubuntu/Mint ... | `apt-get install git`                                               |
+| Fedora/RHEL/CentOS ... | `yum install git gcc glibc-static`                                  |
+| FreeBSD/OpenBSD/NetBSD | `pkg install git`                                                   |
+| Cygwin                 | use setup-x86[_x64] to add packages git, make and gcc-core          |
+| Darwin                 | type 'git' at the command line and accept the prompt to install it. |
 
 More details, including for MingW and MS C, in [Installation](/doc/Installation.md).
 
@@ -52,11 +52,11 @@ Since 'make full' will install the compiler and libraries, it needs root (unix) 
 Set your path to the installed compiler binary location as reported
 by make full, e.g.
 
-| System    | Set path                               |
-| --------- | -------------------------------------- |
-|  Linux    | `export PATH="/opt/voc/bin:$PATH"`             |
-|  BSD      | `export PATH="/usr/local/share/voc/bin:$PATH"` |
-|  Windows  | See [Installation](/doc/Installation.md) |
+| System    | Set path                                                      |
+| --------- | --------------------------------------                        |
+|  Linux    | `export PATH="/opt/voc/bin:$PATH"`                            |
+|  BSD      | `export PATH="/usr/local/share/voc/bin:$PATH"`                |
+|  Windows  | See [Installation](/doc/Installation.md)                      |
 |  Termux   | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
 Also see [Installation](/doc/Installation.md).

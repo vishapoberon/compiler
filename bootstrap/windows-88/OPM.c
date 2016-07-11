@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/06/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc  1.95 [2016/07/11] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -199,7 +199,7 @@ BOOLEAN OPM_OpenPar (void)
 	if (Platform_ArgCount == 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Vishap Oberon-2 compiler v", (LONGINT)27);
-		OPM_LogWStr((CHAR*)"1.95 [2016/06/30] for gcc LP64 on cygwin", (LONGINT)41);
+		OPM_LogWStr(Configuration_versionLong, ((LONGINT)(41)));
 		OPM_LogW('.');
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG, continued by Norayr Chilingarian and others.", (LONGINT)84);

@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/06/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc  1.95 [2016/07/11] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -1242,7 +1242,7 @@ static void OPC_GenHeaderMsg (void)
 	OPM_WriteString((CHAR*)"/*", (LONGINT)3);
 	OPM_WriteString((CHAR*)" voc ", (LONGINT)6);
 	OPM_Write(' ');
-	OPM_WriteString((CHAR*)"1.95 [2016/06/30] for gcc LP64 on cygwin", (LONGINT)41);
+	OPM_WriteString(Configuration_versionLong, ((LONGINT)(41)));
 	OPM_Write(' ');
 	i = 0;
 	while (i <= 63) {

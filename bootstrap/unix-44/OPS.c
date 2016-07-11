@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/06/30] for gcc LP64 on cygwin tspkaSfF */
+/* voc  1.95 [2016/07/11] for gcc LP64 on cygwin tspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 
@@ -127,7 +127,7 @@ static INTEGER Ord__7 (CHAR ch, BOOLEAN hex)
 
 static void OPS_Number (void)
 {
-	INTEGER i, m, n, d, e;
+	INTEGER i, m, n, d, e, maxHdig;
 	CHAR dig[24];
 	LONGREAL f;
 	CHAR expCh;
@@ -182,8 +182,9 @@ static void OPS_Number (void)
 			} else if (OPS_ch == 'H') {
 				OPM_Get(&OPS_ch);
 				OPS_numtyp = 2;
-				if (n <= 8) {
-					if ((n == 8 && dig[0] > '7')) {
+				maxHdig = 8;
+				if (n <= maxHdig) {
+					if ((n == maxHdig && dig[0] > '7')) {
 						OPS_intval = -1;
 					}
 					while (i < n) {

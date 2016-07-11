@@ -49,7 +49,7 @@
 #define LONGREAL     double
 #define SYSTEM_PTR   void*
 
-// For 32 bit builds, the size of LONGINT depends on a make option: 
+// For 32 bit builds, the size of LONGINT depends on a make option:
 
 #if (__SIZEOF_POINTER__ == 8) || defined(LARGE) || defined(_WIN64)
   #define INTEGER int        // INTEGER is 32 bit.
@@ -126,21 +126,21 @@ static int __str_cmp(CHAR *x, CHAR *y){
 
 #define __GET(a, x, t)  x= *(t*)(uintptr_t)(a)
 #define __PUT(a, x, t)  *(t*)(uintptr_t)(a)=x
+
 #define __LSHL(x, n, t) ((t)((unsigned t)(x)<<(n)))
 #define __LSHR(x, n, t) ((t)((unsigned t)(x)>>(n)))
 #define __LSH(x, n, t)  ((n)>=0? __LSHL(x, n, t): __LSHR(x, -(n), t))
-#define __ROTL(x, n, t) ((t)((unsigned t)(x)<<(n)|(unsigned t)(x)>>(8*sizeof(t)-(n))))
-#define __ROTR(x, n, t) ((t)((unsigned t)(x)>>(n)|(unsigned t)(x)<<(8*sizeof(t)-(n))))
-#define __LSHR(x, n, t) ((t)((unsigned t)(x)>>(n)))
-#define __LSH(x, n, t)  ((n)>=0? __LSHL(x, n, t): __LSHR(x, -(n), t))
-#define __ROTL(x, n, t) ((t)((unsigned t)(x)<<(n)|(unsigned t)(x)>>(8*sizeof(t)-(n))))
-#define __ROTR(x, n, t) ((t)((unsigned t)(x)>>(n)|(unsigned t)(x)<<(8*sizeof(t)-(n))))
-#define __ROT(x, n, t)  ((n)>=0? __ROTL(x, n, t): __ROTR(x, -(n), t))
-#define __BIT(x, n)     (*(unsigned LONGINT*)(x)>>(n)&1)
-#define __MOVE(s, d, n) memcpy((char*)(uintptr_t)(d),(char*)(uintptr_t)(s),n)
+
 #define __ASHL(x, n)    ((LONGINT)(x)<<(n))
 #define __ASHR(x, n)    ((LONGINT)(x)>>(n))
 #define __ASH(x, n)     ((n)>=0?__ASHL(x,n):__ASHR(x,-(n)))
+
+#define __ROTL(x, n, t) ((t)((unsigned t)(x)<<(n)|(unsigned t)(x)>>(8*sizeof(t)-(n))))
+#define __ROTR(x, n, t) ((t)((unsigned t)(x)>>(n)|(unsigned t)(x)<<(8*sizeof(t)-(n))))
+#define __ROT(x, n, t)  ((n)>=0? __ROTL(x, n, t): __ROTR(x, -(n), t))
+
+#define __BIT(x, n)     (*(unsigned LONGINT*)(x)>>(n)&1)
+#define __MOVE(s, d, n) memcpy((char*)(uintptr_t)(d),(char*)(uintptr_t)(s),n)
 #define __ASHF(x, n)    SYSTEM_ASH((LONGINT)(x), (LONGINT)(n))
 #define __SHORT(x, y)   ((int)((unsigned LONGINT)(x)+(y)<(y)+(y)?(x):(__HALT(-8),0)))
 #define __SHORTF(x, y)  ((int)(__RF((x)+(y),(y)+(y))-(y)))
