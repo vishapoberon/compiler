@@ -1,93 +1,98 @@
-0   undeclared identifier
-1   multiply defined identifier
-2   illegal character in number
-3   illegal character in string
-4   identifier does not match procedure name
-5   comment not closed
+The first line of this file is ignored.
+Any line not starting /^ *[0-9]/ is ignored.
+There should be only one space between the number and the message text.
 
-9   '=' expected
+Compiler error messages
+  0 undeclared identifier
+  1 multiply defined identifier
+  2 illegal character in number
+  3 illegal character in string
+  4 identifier does not match procedure name
+  5 comment not closed
 
-12  type definition starts with incorrect symbol
-13  factor starts with incorrect symbol
-14  statement starts with incorrect symbol
-15  declaration followed by incorrect symbol
-16  MODULE expected
+  9 '=' expected
 
-18  '.' missing
-19  ',' missing
-20  ':' missing
+ 12 type definition starts with incorrect symbol
+ 13 factor starts with incorrect symbol
+ 14 statement starts with incorrect symbol
+ 15 declaration followed by incorrect symbol
+ 16 MODULE expected
 
-22  ')' missing
-23  ']' missing
-24  '}' missing
-25  OF missing
-26  THEN missing
-27  DO missing
-28  TO missing
+ 18 '.' missing
+ 19 ',' missing
+ 20 ':' missing
 
-30  '(' missing
+ 22 ')' missing
+ 23 ']' missing
+ 24 '}' missing
+ 25 OF missing
+ 26 THEN missing
+ 27 DO missing
+ 28 TO missing
 
-34  ':=' missing
-35  ',' or OF expected
+ 30 '(' missing
 
-38  identifier expected
-39  ';' missing
+ 34 ':=' missing
+ 35 ',' or OF expected
 
-41  END missing
+ 38 identifier expected
+ 39 ';' missing
 
-44  UNTIL missing
+ 41 END missing
 
-46  EXIT not within loop statement
-47  illegally marked identifier
+ 44 UNTIL missing
 
-50  expression should be constant
-51  constant not an integer
-52  identifier does not denote a type
-53  identifier does not denote a record type
-54  result type of procedure is not a basic type
-55  procedure call of a function
-56  assignment to non-variable
-57  pointer not bound to record or array type
-58  recursive type definition
-59  illegal open array parameter
-60  wrong type of case label
-61  inadmissible type of case label
-62  case label defined more than once
-63  illegal value of constant
-64  more actual than formal parameters
-65  fewer actual than formal parameters
-66  element types of actual array and formal open array differ
-67  actual parameter corresponding to open array is not an array
-68  control variable must be integer
-69  parameter must be an integer constant
-70  pointer or VAR record required as formal receiver
-71  pointer expected as actual receiver
-72  procedure must be bound to a record of the same scope
-73  procedure must have level 0
-74  procedure unknown in base type
-75  invalid call of base procedure
-76  this variable (field) is read only
-77  object is not a record
-78  dereferenced object is not a variable
-79  indexed object is not a variable
-80  index expression is not an integer
-81  index out of specified bounds
-82  indexed variable is not an array
-83  undefined record field
-84  dereferenced variable is not a pointer
-85  guard or test type is not an extension of variable type
-86  guard or testtype is not a pointer
-87  guarded or tested variable is neither a pointer nor a VAR-parameter record
-88  open array not allowed as variable, record field or array element
+ 46 EXIT not within loop statement
+ 47 illegally marked identifier
 
-92  operand of IN not an integer, or not a set
-93  set element type is not an integer
-94  operand of & is not of type BOOLEAN
-95  operand of OR is not of type BOOLEAN
-96  operand not applicable to (unary) +
-97  operand not applicable to (unary) -
-98  operand of ~ is not of type BOOLEAN
-99  ASSERT fault
+ 50 expression should be constant
+ 51 constant not an integer
+ 52 identifier does not denote a type
+ 53 identifier does not denote a record type
+ 54 result type of procedure is not a basic type
+ 55 procedure call of a function
+ 56 assignment to non-variable
+ 57 pointer not bound to record or array type
+ 58 recursive type definition
+ 59 illegal open array parameter
+ 60 wrong type of case label
+ 61 inadmissible type of case label
+ 62 case label defined more than once
+ 63 illegal value of constant
+ 64 more actual than formal parameters
+ 65 fewer actual than formal parameters
+ 66 element types of actual array and formal open array differ
+ 67 actual parameter corresponding to open array is not an array
+ 68 control variable must be integer
+ 69 parameter must be an integer constant
+ 70 pointer or VAR record required as formal receiver
+ 71 pointer expected as actual receiver
+ 72 procedure must be bound to a record of the same scope
+ 73 procedure must have level 0
+ 74 procedure unknown in base type
+ 75 invalid call of base procedure
+ 76 this variable (field) is read only
+ 77 object is not a record
+ 78 dereferenced object is not a variable
+ 79 indexed object is not a variable
+ 80 index expression is not an integer
+ 81 index out of specified bounds
+ 82 indexed variable is not an array
+ 83 undefined record field
+ 84 dereferenced variable is not a pointer
+ 85 guard or test type is not an extension of variable type
+ 86 guard or testtype is not a pointer
+ 87 guarded or tested variable is neither a pointer nor a VAR-parameter record
+ 88 open array not allowed as variable, record field or array element
+
+ 92 operand of IN not an integer, or not a set
+ 93 set element type is not an integer
+ 94 operand of & is not of type BOOLEAN
+ 95 operand of OR is not of type BOOLEAN
+ 96 operand not applicable to (unary) +
+ 97 operand not applicable to (unary) -
+ 98 operand of ~ is not of type BOOLEAN
+ 99 ASSERT fault
 100 incompatible operands of dyadic operator
 101 operand type inapplicable to *
 102 operand type inapplicable to /
@@ -172,15 +177,15 @@ Compiler Warnings
 307 no ELSE symbol after CASE statement sequence may lead to trap
 
 Run-time Error Messages
--1  assertion failed, cf. SYSTEM_assert
--2  invalid array index
--3  function procedure without RETURN statement
--4  invalid case in CASE statement
--5  type guard failed
--6  implicit type guard in record assignment failed
--7  invalid case in WITH statement
--8  value out of range
--9  (delayed) interrupt
+ -1 assertion failed, cf. SYSTEM_assert
+ -2 invalid array index
+ -3 function procedure without RETURN statement
+ -4 invalid case in CASE statement
+ -5 type guard failed
+ -6 implicit type guard in record assignment failed
+ -7 invalid case in WITH statement
+ -8 value out of range
+ -9 (delayed) interrupt
 -10 NIL access
 -11 alignment error
 -12 zero divide
