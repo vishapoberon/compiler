@@ -1,194 +1,192 @@
 MODULE errors;
 
-TYPE string* = ARRAY 128 OF CHAR;
+(* errors.o 14172 bytes *)
+(* original 17724 bytes *)
 
-VAR errors- : ARRAY 350 OF string;
+IMPORT Console, SYSTEM;
 
+TYPE MsgPtr = POINTER[1] TO ARRAY 1024 OF CHAR;
+
+VAR msg: ARRAY 350 OF MsgPtr;  i: INTEGER;
+
+PROCEDURE Write*(n: INTEGER);
+BEGIN IF msg[n] # NIL THEN Console.String(msg[n]^) END
+END Write;
 
 BEGIN
-(* Incorrect use of the language Oberon *)
-errors[0] := "undeclared identifier";
-errors[1] := "multiply defined identifier";
-errors[2] := "illegal character in number";
-errors[3] := "illegal character in string";
-errors[4] := "identifier does not match procedure name";
-errors[5] := "comment not closed";
-errors[6] := "";
-errors[7] := "";
-errors[8] := "";
-errors[9] := "'=' expected";
-errors[10] :="";
-errors[11] :="";
-errors[12] := "type definition starts with incorrect symbol";
-errors[13] := "factor starts with incorrect symbol";
-errors[14] := "statement starts with incorrect symbol";
-errors[15] := "declaration followed by incorrect symbol";
-errors[16] := "MODULE expected";
-errors[17] := "";
-errors[18] := "'.' missing";
-errors[19] := "',' missing";
-errors[20] := "':' missing";
-errors[21] := "";
-errors[22] := "')' missing";
-errors[23] := "']' missing";
-errors[24] := "'}' missing";
-errors[25] := "OF missing";
-errors[26] := "THEN missing";
-errors[27] := "DO missing";
-errors[28] := "TO missing";
-errors[29] := "";
-errors[30] := "'(' missing";
-errors[31] := "";
-errors[32] := "";
-errors[33] := "";
-errors[34] := "':=' missing";
-errors[35] := "',' or OF expected";
-errors[36] := "";
-errors[37] := "";
-errors[38] := "identifier expected";
-errors[39] := "';' missing";
-errors[40] := "";
-errors[41] := "END missing";
-errors[42] := "";
-errors[43] := "";
-errors[44] := "UNTIL missing";
-errors[45] := "";
-errors[46] := "EXIT not within loop statement";
-errors[47] := "illegally marked identifier";
-errors[48] := "";
-errors[49] := "";
-errors[50] := "expression should be constant";
-errors[51] := "constant not an integer";
-errors[52] := "identifier does not denote a type";
-errors[53] := "identifier does not denote a record type";
-errors[54] := "result type of procedure is not a basic type";
-errors[55] := "procedure call of a function";
-errors[56] := "assignment to non-variable";
-errors[57] := "pointer not bound to record or array type";
-errors[58] := "recursive type definition";
-errors[59] := "illegal open array parameter";
-errors[60] := "wrong type of case label";
-errors[61] := "inadmissible type of case label";
-errors[62] := "case label defined more than once";
-errors[63] := "illegal value of constant";
-errors[64] := "more actual than formal parameters";
-errors[65] := "fewer actual than formal parameters";
-errors[66] := "element types of actual array and formal open array differ";
-errors[67] := "actual parameter corresponding to open array is not an array";
-errors[68] := "control variable must be integer";
-errors[69] := "parameter must be an integer constant";
-errors[70] := "pointer or VAR record required as formal receiver";
-errors[71] := "pointer expected as actual receiver";
-errors[72] := "procedure must be bound to a record of the same scope";
-errors[73] := "procedure must have level 0";
-errors[74] := "procedure unknown in base type";
-errors[75] := "invalid call of base procedure";
-errors[76] := "this variable (field) is read only";
-errors[77] := "object is not a record";
-errors[78] := "dereferenced object is not a variable";
-errors[79] := "indexed object is not a variable";
-errors[80] := "index expression is not an integer";
-errors[81] := "index out of specified bounds";
-errors[82] := "indexed variable is not an array";
-errors[83] := "undefined record field";
-errors[84] := "dereferenced variable is not a pointer";
-errors[85] := "guard or test type is not an extension of variable type";
-errors[86] := "guard or testtype is not a pointer";
-errors[87] := "guarded or tested variable is neither a pointer nor a VAR-parameter record";
-errors[88] := "open array not allowed as variable, record field or array element";
-errors[89] := "";
-errors[90] := "";
-errors[91] := "";
-errors[92] := "operand of IN not an integer, or not a set";
-errors[93] := "set element type is not an integer";
-errors[94] := "operand of & is not of type BOOLEAN";
-errors[95] := "operand of OR is not of type BOOLEAN";
-errors[96] := "operand not applicable to (unary) +";
-errors[97] := "operand not applicable to (unary) -";
-errors[98] := "operand of ~ is not of type BOOLEAN";
-errors[99] := "ASSERT fault";
-errors[100] := "incompatible operands of dyadic operator";
-errors[101] := "operand type inapplicable to *";
-errors[102] := "operand type inapplicable to /";
-errors[103] := "operand type inapplicable to DIV";
-errors[104] := "operand type inapplicable to MOD";
-errors[105] := "operand type inapplicable to +";
-errors[106] := "operand type inapplicable to -";
-errors[107] := "operand type inapplicable to = or #";
-errors[108] := "operand type inapplicable to relation";
-errors[109] := "overriding method must be exported";
-errors[110] := "operand is not a type";
-errors[111] := "operand inapplicable to (this) function";
-errors[112] := "operand is not a variable";
-errors[113] := "incompatible assignment";
-errors[114] := "string too long to be assigned";
-errors[115] := "parameter doesn't match";
-errors[116] := "number of parameters doesn't match";
-errors[117] := "result type doesn't match";
-errors[118] := "export mark doesn't match with forward declaration";
-errors[119] := "redefinition textually precedes procedure bound to base type";
-errors[120] := "type of expression following IF, WHILE, UNTIL or ASSERT is not BOOLEAN";
-errors[121] := "called object is not a procedure (or is an interrupt procedure)";
-errors[122] := "actual VAR-parameter is not a variable";
-errors[123] := "type of actual parameter is not identical with that of formal VAR-parameter";
-errors[124] := "type of result expression differs from that of procedure";
-errors[125] := "type of case expression is neither INTEGER nor CHAR";
-errors[126] := "this expression cannot be a type or a procedure";
-errors[127] := "illegal use of object";
-errors[128] := "unsatisfied forward reference";
-errors[129] := "unsatisfied forward procedure";
-errors[130] := "WITH clause does not specify a variable";
-errors[131] := "LEN not applied to array";
-errors[132] := "dimension in LEN too large or negative";
-errors[135] := "SYSTEM not imported";
-errors[150] := "key inconsistency of imported module";
-errors[151] := "incorrect symbol file";
-errors[152] := "symbol file of imported module not found";
-errors[153] := "object or symbol file not opened (disk full?)";
-errors[154] := "recursive import not allowed";
-errors[155] := "generation of new symbol file not allowed";
-errors[156] := "parameter file not found";
-errors[157] := "syntax error in parameter file";
-(* Limitations of implementation*)
-errors[200] := "not yet implemented";
-errors[201] := "lower bound of set range greater than higher bound";
-errors[202] := "set element greater than MAX(SET) or less than 0";
-errors[203] := "number too large";
-errors[204] := "product too large";
-errors[205] := "division by zero";
-errors[206] := "sum too large";
-errors[207] := "difference too large";
-errors[208] := "overflow in arithmetic shift";
-errors[209] := "case range too large";
-errors[213] := "too many cases in case statement";
-errors[218] := "illegal value of parameter (0 <= p < 256)";
-errors[219] := "machine registers cannot be accessed";
-errors[220] := "illegal value of parameter";
-errors[221] := "too many pointers in a record";
-errors[222] := "too many global pointers";
-errors[223] := "too many record types";
-errors[224] := "too many pointer types";
-errors[225] := "address of pointer variable too large (move forward in text)";
-errors[226] := "too many exported procedures";
-errors[227] := "too many imported modules";
-errors[228] := "too many exported structures";
-errors[229] := "too many nested records for import";
-errors[230] := "too many constants (strings) in module";
-errors[231] := "too many link table entries (external procedures)";
-errors[232] := "too many commands in module";
-errors[233] := "record extension hierarchy too high";
-errors[234] := "export of recursive type not allowed";
-errors[240] := "identifier too long";
-errors[241] := "string too long";
-errors[242] := "address overflow";
-errors[244] := "cyclic type definition not allowed";
-errors[245] := "guarded pointer variable may be manipulated by non-local operations; use auxiliary pointer variable";
-(* Compiler Warnings *)
+  FOR i := 0 TO LEN(msg)-1 DO msg[i] := NIL END;
 
-errors[301] := "implicit type cast";
-errors[306] := "inappropriate symbol file ignored";
-errors[307] := "no ELSE symbol after CASE statement sequence may lead to trap"; (* new warning,  -- noch *)
+  (* Incorrect use of the language Oberon *)
+  msg[0]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("undeclared identifier"));
+  msg[1]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("multiply defined identifier"));
+  msg[2]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal character in number"));
+  msg[3]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal character in string"));
+  msg[4]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("identifier does not match procedure name"));
+  msg[5]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("comment not closed"));
 
+  msg[9]   := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("'=' expected"));
+
+  msg[12]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("type definition starts with incorrect symbol"));
+  msg[13]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("factor starts with incorrect symbol"));
+  msg[14]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("statement starts with incorrect symbol"));
+  msg[15]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("declaration followed by incorrect symbol"));
+  msg[16]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("MODULE expected"));
+
+  msg[18]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("'.' missing"));
+  msg[19]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("',' missing"));
+  msg[20]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("':' missing"));
+
+  msg[22]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("')' missing"));
+  msg[23]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("']' missing"));
+  msg[24]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("'}' missing"));
+  msg[25]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("OF missing"));
+  msg[26]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("THEN missing"));
+  msg[27]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("DO missing"));
+  msg[28]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("TO missing"));
+
+  msg[30]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("'(' missing"));
+
+  msg[34]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("':=' missing"));
+  msg[35]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("',' or OF expected"));
+
+  msg[38]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("identifier expected"));
+  msg[39]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("';' missing"));
+
+  msg[41]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("END missing"));
+
+  msg[44]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("UNTIL missing"));
+
+  msg[46]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("EXIT not within loop statement"));
+  msg[47]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegally marked identifier"));
+
+  msg[50]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("expression should be constant"));
+  msg[51]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("constant not an integer"));
+  msg[52]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("identifier does not denote a type"));
+  msg[53]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("identifier does not denote a record type"));
+  msg[54]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("result type of procedure is not a basic type"));
+  msg[55]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("procedure call of a function"));
+  msg[56]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("assignment to non-variable"));
+  msg[57]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("pointer not bound to record or array type"));
+  msg[58]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("recursive type definition"));
+  msg[59]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal open array parameter"));
+  msg[60]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("wrong type of case label"));
+  msg[61]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("inadmissible type of case label"));
+  msg[62]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("case label defined more than once"));
+  msg[63]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal value of constant"));
+  msg[64]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("more actual than formal parameters"));
+  msg[65]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("fewer actual than formal parameters"));
+  msg[66]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("element types of actual array and formal open array differ"));
+  msg[67]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("actual parameter corresponding to open array is not an array"));
+  msg[68]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("control variable must be integer"));
+  msg[69]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("parameter must be an integer constant"));
+  msg[70]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("pointer or VAR record required as formal receiver"));
+  msg[71]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("pointer expected as actual receiver"));
+  msg[72]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("procedure must be bound to a record of the same scope"));
+  msg[73]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("procedure must have level 0"));
+  msg[74]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("procedure unknown in base type"));
+  msg[75]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("invalid call of base procedure"));
+  msg[76]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("this variable (field) is read only"));
+  msg[77]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("object is not a record"));
+  msg[78]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("dereferenced object is not a variable"));
+  msg[79]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("indexed object is not a variable"));
+  msg[80]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("index expression is not an integer"));
+  msg[81]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("index out of specified bounds"));
+  msg[82]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("indexed variable is not an array"));
+  msg[83]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("undefined record field"));
+  msg[84]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("dereferenced variable is not a pointer"));
+  msg[85]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("guard or test type is not an extension of variable type"));
+  msg[86]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("guard or testtype is not a pointer"));
+  msg[87]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("guarded or tested variable is neither a pointer nor a VAR-parameter record"));
+  msg[88]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("open array not allowed as variable, record field or array element"));
+
+  msg[92]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand of IN not an integer, or not a set"));
+  msg[93]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("set element type is not an integer"));
+  msg[94]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand of & is not of type BOOLEAN"));
+  msg[95]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand of OR is not of type BOOLEAN"));
+  msg[96]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand not applicable to (unary) +"));
+  msg[97]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand not applicable to (unary) -"));
+  msg[98]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand of ~ is not of type BOOLEAN"));
+  msg[99]  := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("ASSERT fault"));
+  msg[100] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("incompatible operands of dyadic operator"));
+  msg[101] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to *"));
+  msg[102] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to /"));
+  msg[103] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to DIV"));
+  msg[104] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to MOD"));
+  msg[105] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to +"));
+  msg[106] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to -"));
+  msg[107] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to = or #"));
+  msg[108] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand type inapplicable to relation"));
+  msg[109] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("overriding method must be exported"));
+  msg[110] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand is not a type"));
+  msg[111] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand inapplicable to (this) function"));
+  msg[112] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("operand is not a variable"));
+  msg[113] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("incompatible assignment"));
+  msg[114] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("string too long to be assigned"));
+  msg[115] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("parameter doesn't match"));
+  msg[116] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("number of parameters doesn't match"));
+  msg[117] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("result type doesn't match"));
+  msg[118] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("export mark doesn't match with forward declaration"));
+  msg[119] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("redefinition textually precedes procedure bound to base type"));
+  msg[120] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("type of expression following IF, WHILE, UNTIL or ASSERT is not BOOLEAN"));
+  msg[121] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("called object is not a procedure (or is an interrupt procedure)"));
+  msg[122] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("actual VAR-parameter is not a variable"));
+  msg[123] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("type of actual parameter is not identical with that of formal VAR-parameter"));
+  msg[124] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("type of result expression differs from that of procedure"));
+  msg[125] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("type of case expression is neither INTEGER nor CHAR"));
+  msg[126] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("this expression cannot be a type or a procedure"));
+  msg[127] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal use of object"));
+  msg[128] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("unsatisfied forward reference"));
+  msg[129] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("unsatisfied forward procedure"));
+  msg[130] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("WITH clause does not specify a variable"));
+  msg[131] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("LEN not applied to array"));
+  msg[132] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("dimension in LEN too large or negative"));
+  msg[135] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("SYSTEM not imported"));
+  msg[150] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("key inconsistency of imported module"));
+  msg[151] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("incorrect symbol file"));
+  msg[152] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("symbol file of imported module not found"));
+  msg[153] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("object or symbol file not opened (disk full?)"));
+  msg[154] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("recursive import not allowed"));
+  msg[155] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("generation of new symbol file not allowed"));
+  msg[156] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("parameter file not found"));
+  msg[157] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("syntax error in parameter file"));
+  (* Limitations of implementation*)
+  msg[200] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("not yet implemented"));
+  msg[201] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("lower bound of set range greater than higher bound"));
+  msg[202] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("set element greater than MAX(SET) or less than 0"));
+  msg[203] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("number too large"));
+  msg[204] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("product too large"));
+  msg[205] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("division by zero"));
+  msg[206] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("sum too large"));
+  msg[207] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("difference too large"));
+  msg[208] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("overflow in arithmetic shift"));
+  msg[209] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("case range too large"));
+  msg[213] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many cases in case statement"));
+  msg[218] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal value of parameter (0 <= p < 256)"));
+  msg[219] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("machine registers cannot be accessed"));
+  msg[220] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("illegal value of parameter"));
+  msg[221] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many pointers in a record"));
+  msg[222] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many global pointers"));
+  msg[223] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many record types"));
+  msg[224] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many pointer types"));
+  msg[225] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("address of pointer variable too large (move forward in text)"));
+  msg[226] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many exported procedures"));
+  msg[227] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many imported modules"));
+  msg[228] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many exported structures"));
+  msg[229] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many nested records for import"));
+  msg[230] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many constants (strings) in module"));
+  msg[231] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many link table entries (external procedures)"));
+  msg[232] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("too many commands in module"));
+  msg[233] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("record extension hierarchy too high"));
+  msg[234] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("export of recursive type not allowed"));
+  msg[240] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("identifier too long"));
+  msg[241] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("string too long"));
+  msg[242] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("address overflow"));
+  msg[244] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("cyclic type definition not allowed"));
+  msg[245] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("guarded pointer variable may be manipulated by non-local operations; use auxiliary pointer variable"));
+  (* Compiler Warnings *)
+  msg[301] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("implicit type cast"));
+  msg[306] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("inappropriate symbol file ignored"));
+  msg[307] := SYSTEM.VAL(MsgPtr, SYSTEM.ADR("no ELSE symbol after CASE statement sequence may lead to trap")); (* new warning,  -- noch *)
 END errors.
 (*
 Run-time Error Messages
@@ -196,8 +194,8 @@ Run-time Error Messages
 	0 silent HALT(0)
 	1..255  HALT(n), cf. SYSTEM_halt
 	-1 assertion failed, cf. SYSTEM_assert
-	-2 invalid array index  
-	-3 function procedure without RETURN statement  
+	-2 invalid array index
+	-3 function procedure without RETURN statement
 	-4 invalid case in CASE statement
 	-5 type guard failed
 	-6 implicit type guard in record assignment failed
@@ -211,4 +209,3 @@ Run-time Error Messages
 	-14 invalid function argument
 	-15 internal error
 *)
-

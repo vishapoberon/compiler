@@ -62,6 +62,9 @@ assemble:
 	cd $(BUILDDIR) && $(COMPILE) -c SYSTEM.c  Configuration.c Platform.c Heap.c
 	cd $(BUILDDIR) && $(COMPILE) -c Console.c Strings.c       Modules.c  Files.c
 	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         vt100.c    errors.c
+
+	cd $(BUILDDIR) && $(COMPILE) -c -gstabs -g1 -Wa,-acdhln=errors.s errors.c
+
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
