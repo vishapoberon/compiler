@@ -52,15 +52,15 @@ There are three strategies that clients may wish to use:
    we fix Oberon type sizes across platforms, and introduce a new LONG64 type
    as follows:
 
-   | Oberon type | Size             |
-   | ----------- | ---------------- |
-   | BOOLEAN     | 8  bits          |
-   | BYTE        | 8  bits unsigned |
-   | SHORTINT    | 8  bits signed   |
-   | INTEGER     | 16 bits signed   |
-   | LONGINT     | 32 bits signed   |
-   | SET         | 32 flag bits     |  
-   | LONG64      | 64 bits signed   |
+| Oberon type | Size             |
+| ----------- | ---------------- |
+| BOOLEAN     | 8  bits          |
+| BYTE        | 8  bits unsigned |
+| SHORTINT    | 8  bits signed   |
+| INTEGER     | 16 bits signed   |
+| LONGINT     | 32 bits signed   |
+| SET         | 32 flag bits     |  
+| LONG64      | 64 bits signed   |
 
    This gives a set of sizes that are available on all platforms (even SDCC
    supports 64 bit ints), and which have fixed characteristics (e.g. the size of
@@ -72,11 +72,11 @@ There are three strategies that clients may wish to use:
    efficient size available. On x86 we stick with the sizes as above, but for
    x64 we make changes to INTEGER, LONGINT and SET as follows:
 
-   | Oberon type | Size on x64      |
-   | ----------- | ---------------- |
-   | INTEGER     | 32 bits signed   |
-   | LONGINT     | 64 bits signed   |
-   | SET         | 64 flag bits     |  
+| Oberon type | Size on x64      |
+| ----------- | ---------------- |
+| INTEGER     | 32 bits signed   |
+| LONGINT     | 64 bits signed   |
+| SET         | 64 flag bits     |  
 
 3) Supporting system code, especially memory management.
 
