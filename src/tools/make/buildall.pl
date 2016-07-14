@@ -60,6 +60,14 @@ while ((my $pid = wait) > 0) {print "Child pid $pid completed.\n";}
 
 my %status = ();
 
+sub logstatus {
+  my ($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests) = @_;
+  if ($compiler ne "") {
+    $status{$os-$compiler-$datamodel} =
+      [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
+  }
+}
+
 
 sub parselog {
   my ($fn) = @_;
@@ -75,34 +83,29 @@ sub parselog {
   my $sourcechange = "";
   my $tests        = "";
   my $key          = "";
+  my $ver          = "";
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
-    if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {
-      if ($date ne "") { # Write previous make status
-        $key = "$os-$compiler-$datamodel";
-        if ($key ne "") {
-          $status{$key} = [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
-        }
-      }
-      $date = $1; $time = $2
+    if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {$date = $1}
+    if (/^([0-9.]+) /) {$time = $1}
+    if (/^[^ ]+ Configuration: ([0-9a-zA-Z.]+) \[[0-9\/]+\] for (.+) *$/) {
+      logstatus($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests);
+      $ver = $1;
     }
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
     }
-    if (/^([0-9.]+) --- Compiler build started ---$/)                         {$compilerok   = "Started";}
+    if (/^([0-9.]+) --- Compiler build started ---$/)                         {$compilerok   = "Failed";}
     if (/^([0-9.]+) --- Compiler build successfull ---$/)                     {$compilerok   = "Built";}
-    if (/^([0-9.]+) --- Library build started ---$/)                          {$libraryok    = "Started";}
+    if (/^([0-9.]+) --- Library build started ---$/)                          {$libraryok    = "Failed";}
     if (/^([0-9.]+) --- Library build successfull ---$/)                      {$libraryok    = "Built";}
     if (/^([0-9.]+) --- Generated c source files match bootstrap ---$/)       {$sourcechange = "Unchanged";}
     if (/^([0-9.]+) --- Generated c source files differ from bootstrap ---$/) {$sourcechange = "Changed";}
-    if (/^([0-9.]+) --- Confidence tests started ---$/)                       {$tests        = "Started";}
+    if (/^([0-9.]+) --- Confidence tests started ---$/)                       {$tests        = "Failed";}
     if (/^([0-9.]+) --- Confidence tests passed ---$/)                        {$tests        = "Passed";}
   }
   close($log);
-  $key = "$os-$compiler-$datamodel";
-  if ($key ne "") {
-    $status{$key} = [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
-  }
+  logstatus($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests);
 }
 
 opendir DIR, "log" // die "Could not open log directory.";
