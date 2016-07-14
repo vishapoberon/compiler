@@ -9,7 +9,7 @@ my $branch = "master";
 my %machines = (
   "pi"     => ['pi@pie',          "sudo", "make full", "projects/oberon/vishap/voc"],
   "darwin" => ['dave@dcb',        "sudo", "make full", "projects/oberon/vishap/voc"],
-  "wind"   => ['-p5932 dave@wax', "",     "make full", "vishaps/voc"],
+  "wind"   => ['-p5932 dave@wax', "",     "sh makeall.sh", "~"],
   "lub32"  => ['dave@lub32',      "sudo", "make full", "vishap/voc"],
   "ob32"   => ['root@nas-ob32',   "",     "make full", "vishap/voc"],
   "ce64"   => ['-p5922 obe@www',  "sudo", "make full", "vishap/voc"],
@@ -75,7 +75,15 @@ sub parselog {
   my $tests        = "";
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
-    if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {$date = $1; $time = $2}
+    if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {
+      if ($date ne "") { # Write previous make status
+        my $key = "$os-$compiler-$datamodel";
+        if ($key ne "") {
+          $status{$key} = [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
+        }
+      }
+      $date = $1; $time = $2
+    }
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
     }
