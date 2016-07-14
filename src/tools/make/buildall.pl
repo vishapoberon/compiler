@@ -60,37 +60,47 @@ while ((my $pid = wait) > 0) {print "Child pid $pid completed.\n";}
 
 my %status = ();
 
-sub logstatus {
-  my ($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests) = @_;
-  if ($compiler ne "") {
-    $status{$os-$compiler-$datamodel} =
-      [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
-  }
+my $fn;
+my $date;
+my $time;
+my $branch;
+my $os;
+my $compiler;
+my $datamodel;
+my $compilerok;
+my $libraryok;
+my $sourcechange;
+my $tests;
+my $key;
+my $ver;
+
+sub clearvars {
+  $time         = "";  $branch       = "";  $os           = "";  $compiler     = "";
+  $datamodel    = "";  $compilerok   = "";  $libraryok    = "";  $sourcechange = "";
+  $tests        = "";  $key          = "";  $ver          = "";
 }
 
+sub logstatus {
+  my ($fn) = @_;
+  if ($compiler ne "") {
+    $status{"$os-$compiler-$datamodel"} =
+      [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
+  }
+  clearvars();
+}
 
 sub parselog {
-  my ($fn) = @_;
-  #print "Parsing log $fn\n";
-  my $date         = "";
-  my $time         = "";
-  my $branch       = "";
-  my $os           = "";
-  my $compiler     = "";
-  my $datamodel    = "";
-  my $compilerok   = "";
-  my $libraryok    = "";
-  my $sourcechange = "";
-  my $tests        = "";
-  my $key          = "";
-  my $ver          = "";
+  ($fn) = @_;
+  clearvars();
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   while (<$log>) {
     if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {$date = $1}
-    if (/^([0-9.]+) /) {$time = $1}
+    if (/^([0-9.]+) /)                    {$time = $1}
+    # 19.39.58 Configuration: 1.95 [2016/07/14] for gcc LP64 on centos
     if (/^[^ ]+ Configuration: ([0-9a-zA-Z.]+) \[[0-9\/]+\] for (.+) *$/) {
-      logstatus($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests);
+      logstatus($fn);
       $ver = $1;
+      printf "--- Config for $fn: $1 for $2.\n";
     }
     if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
       ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
@@ -105,7 +115,7 @@ sub parselog {
     if (/^([0-9.]+) --- Confidence tests passed ---$/)                        {$tests        = "Passed";}
   }
   close($log);
-  logstatus($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests);
+  logstatus($fn);
 }
 
 opendir DIR, "log" // die "Could not open log directory.";
@@ -134,7 +144,7 @@ sub svgtext {
 
 my $rows = keys %status;
 
-my $width  = 620;
+my $width  = 630;
 my $height = ($rows+2.2) * $lineheight;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
@@ -150,11 +160,11 @@ my $col2  = 97;
 my $col3  = 160;
 my $col4  = 220;
 my $col5  = 280;
-my $col6  = 320;
-my $col7  = 370;
-my $col8  = 430;
-my $col9  = 480;
-my $col10 = 560;
+my $col6  = 330;
+my $col7  = 380;
+my $col8  = 440;
+my $col9  = 490;
+my $col10 = 570;
 
 svgtext($svg, $col1,  0, "#e0e0e0", "Date");
 svgtext($svg, $col3,  0, "#e0e0e0", "Branch");
