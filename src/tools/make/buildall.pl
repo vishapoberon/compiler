@@ -13,7 +13,7 @@ my %machines = (
                                                                        . "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
                                                                        . "sh start64.sh \\\"cd vishaps/voc && git checkout $branch && git pull;"
-                                                                                         . "make full;"
+                                                                                         . "export CC=gcc && make full;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
   "lub32"   => ['dave@lub32',      "sudo", "vishap/voc",                 "make full"],
