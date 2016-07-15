@@ -43,10 +43,8 @@ if ($buildneeded) {
     writelog "Started buildall, pid = $child.";  # parent process
   } else {
     close(STDIN); close(STDOUT); close(STDERR);  # child process
-    #sleep 5;  # Leave time for github to have the new version ready. (Yuk!)
-    system 'cd voc && git pull';
-    system 'cd ~ && cp voc/src/tools/make/buildall.pl .';
-    exec 'perl buildall.pl >/tmp/buildall.log';
+    system '(cd voc && git pull) >postpush.log';
+    exec 'perl voc/src/tools/make/buildall.pl >/tmp/buildall.log';
     exit;
   }
 } else {
