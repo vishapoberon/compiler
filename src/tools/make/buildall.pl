@@ -6,15 +6,33 @@ use Cwd;
 
 my $branch = "master";
 
+----
+
+my $mkcmd =
+#   "export CC=gcc && make full;"
+# . "export CC=i686-w64-mingw32-gcc && make full;"
+# .
+  "cd ~;"
+. "sh start64.sh \\\"cd vishaps/voc && git checkout $branch && git pull;"
+                  . "make full;"
+                  . "export CC=x86_64-w64-mingw32-gcc && make full\\\"";
+
+my $cmd = "ssh -p5932 dave\@wax \"cd vishaps/voc && git checkout $branch && git pull && $mkcmd\" ";
+print $cmd, "\n";
+
+system($cmd);
+
+----
+
 my %machines = (
   "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
   "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
   "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
                                                                        . "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \"cd vishaps/voc && git checkout $branch && git pull\";"
-                                                                       . "sh start64.sh \"cd vishaps/voc && make full\";"
-                                                                       . "sh start64.sh \"cd vishaps/voc && export CC=x86_64-w64-mingw32-gcc && make full\""],
+                                                                       . "sh start64.sh \\\"cd vishaps/voc && git checkout $branch && git pull;"
+                                                                                         . "make full;"
+                                                                                         . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
   "lub32"   => ['dave@lub32',      "sudo", "vishap/voc",                 "make full"],
   "ob32"    => ['root@nas-ob32',   "",     "vishap/voc",                 "make full"],
