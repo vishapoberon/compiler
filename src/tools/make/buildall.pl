@@ -6,24 +6,6 @@ use Cwd;
 
 my $branch = "master";
 
-----
-
-my $mkcmd =
-#   "export CC=gcc && make full;"
-# . "export CC=i686-w64-mingw32-gcc && make full;"
-# .
-  "cd ~;"
-. "sh start64.sh \\\"cd vishaps/voc && git checkout $branch && git pull;"
-                  . "make full;"
-                  . "export CC=x86_64-w64-mingw32-gcc && make full\\\"";
-
-my $cmd = "ssh -p5932 dave\@wax \"cd vishaps/voc && git checkout $branch && git pull && $mkcmd\" ";
-print $cmd, "\n";
-
-system($cmd);
-
-----
-
 my %machines = (
   "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
   "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
