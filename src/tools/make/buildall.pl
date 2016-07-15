@@ -48,7 +48,7 @@ sub logged {
 unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
-  my ($login, $sudo, $mkcmd, $dir) = @{$machines{$machine}};
+  my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
   my $cmd = "ssh $login \"cd $dir && $sudo git checkout $branch && $sudo git pull && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
