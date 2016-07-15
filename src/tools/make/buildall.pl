@@ -7,15 +7,15 @@ use Cwd;
 my $branch = "master";
 
 my %machines = (
-  "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"]
-  "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"]
+  "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
+  "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
   "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
-                                                                       . "export CC=i686-w64-mingw32-gcc && make full"]
-  "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"]
-  "lub32"   => ['dave@lub32',      "sudo", "vishap/voc",                 "make full"]
-  "ob32"    => ['root@nas-ob32',   "",     "vishap/voc",                 "make full"]
-  "ce64"    => ['-p5922 obe@www',  "sudo", "vishap/voc",                 "make full"]
-  "ub64"    => ['dave@nas-ub64',   "sudo", "vishap/voc",                 "make full"]
+                                                                       . "export CC=i686-w64-mingw32-gcc && make full"],
+  "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
+  "lub32"   => ['dave@lub32',      "sudo", "vishap/voc",                 "make full"],
+  "ob32"    => ['root@nas-ob32',   "",     "vishap/voc",                 "make full"],
+  "ce64"    => ['-p5922 obe@www',  "sudo", "vishap/voc",                 "make full"],
+  "ub64"    => ['dave@nas-ub64',   "sudo", "vishap/voc",                 "make full"],
   "fb64"    => ['root@oberon',     "",     "vishap/voc",                 "make full"]
 );
 
