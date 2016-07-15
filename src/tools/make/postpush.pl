@@ -43,9 +43,9 @@ if ($buildneeded) {
     writelog "Started buildall, pid = $child.";  # parent process
   } else {
     close(STDIN); close(STDOUT); close(STDERR);  # child process
-    unlink "buildall.pl";
-    sleep 5;  # Leave time for the push to complete. (Yuk!)
-    system 'wget https://raw.githubusercontent.com/vishaps/voc/master/src/tools/make/buildall.pl';
+    # unlink "buildall.pl";
+    sleep 10;  # Leave time for github to have the new version ready. (Yuk!)
+    system 'curl https://raw.githubusercontent.com/vishaps/voc/master/src/tools/make/buildall.pl >buildall.pl';
     exec 'perl buildall.pl >/tmp/buildall.log';
     exit;
   }
