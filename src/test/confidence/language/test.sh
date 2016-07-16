@@ -1,3 +1,4 @@
+#!
 . ../testenv.sh
 # Generate mixed source and assembly code listing
 voc TestLanguage.mod -m
