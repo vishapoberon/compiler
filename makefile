@@ -192,6 +192,13 @@ uninstall: configuration
 
 
 
+# confidence: Run a set of confidence tests
+confidence: configuration
+	@make -f src/tools/make/vishap.make -s confidence
+
+
+
+
 # --- Bootstrap C source generation and reversion ---
 
 
