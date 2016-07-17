@@ -1,4 +1,4 @@
-#!
+#!/bin/sh
 . ../testenv.sh
 voc signal.mod -m
 ./SignalTest x &

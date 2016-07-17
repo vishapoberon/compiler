@@ -1,4 +1,4 @@
-#!
+#!/bin/sh
 ## '.' this file from individual test.sh files.
 #set -e
 if which cygpath >/dev/null

@@ -1,4 +1,4 @@
-#!
+#!/bin/sh
 # '.' this from indiviual test.sh files
 if diff -b expected result
 then printf "PASSED: $PWD\n\n"

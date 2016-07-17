@@ -1,4 +1,4 @@
-#!
+#!/bin/sh
 . ../testenv.sh
 voc aa.mod -m
 ./aa >result
