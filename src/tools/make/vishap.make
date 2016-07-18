@@ -376,11 +376,11 @@ sourcechanges:
 
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
-	cd src/test/confidence/hello;           ./test.sh "$(INSTALLDIR)"
-	cd src/test/confidence/language;        ./test.sh "$(INSTALLDIR)"
-	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; ./test.sh "$(INSTALLDIR)"; fi
-	cd src/test/confidence/lola;            ./test.sh "$(INSTALLDIR)"
-	cd src/test/confidence/arrayassignment; ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/hello;           sh ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/language;        sh ./test.sh "$(INSTALLDIR)"
+	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; sh ./test.sh "$(INSTALLDIR)"; fi
+	cd src/test/confidence/lola;            sh ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/arrayassignment; sh ./test.sh "$(INSTALLDIR)"
 	@printf "\n\n--- Confidence tests passed ---\n\n"
 
 
