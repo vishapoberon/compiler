@@ -41,25 +41,35 @@
 
 // Oberon types
 
-#define BOOLEAN      char
-#define SYSTEM_BYTE  unsigned char
-#define CHAR         unsigned char
-#define SHORTINT     signed char
-#define REAL         float
-#define LONGREAL     double
-#define SYSTEM_PTR   void*
+typedef char          BOOLEAN;
+typedef unsigned char SYSTEM_BYTE;
+typedef unsigned char CHAR;
+typedef signed char   SHORTINT;
+typedef float         REAL;
+typedef double        LONGREAL;
+typedef void*         SYSTEM_PTR;
+
+// Unsigned variants are for use by shift and rotate macros.
+
+typedef unsigned char U_SYSTEM_BYTE;
+typedef unsigned char U_CHAR;
+typedef unsigned char U_SHORTINT;
 
 // For 32 bit builds, the size of LONGINT depends on a make option:
 
 #if (__SIZEOF_POINTER__ == 8) || defined(LARGE) || defined(_WIN64)
-  #define INTEGER int        // INTEGER is 32 bit.
-  #define LONGINT long long  // LONGINT is 64 bit. (long long is always 64 bits, while long can be 32 bits e.g. under MSC/MingW)
+  typedef int                INTEGER;   // INTEGER is 32 bit.
+  typedef long long          LONGINT;   // LONGINT is 64 bit. (long long is always 64 bits, while long can be 32 bits e.g. under MSC/MingW)
+  typedef unsigned int       U_INTEGER;
+  typedef unsigned long long U_LONGINT;
 #else
-  #define INTEGER short int  // INTEGER is 16 bit.
-  #define LONGINT long       // LONGINT is 32 bit.
+  typedef short int          INTEGER;   // INTEGER is 16 bit.
+  typedef long               LONGINT;   // LONGINT is 32 bit.
+  typedef unsigned short int U_INTEGER;
+  typedef unsigned long      U_LONGINT;
 #endif
 
-#define SET unsigned LONGINT
+typedef U_LONGINT SET;
 
 
 // OS Memory allocation interfaces are in PlatformXXX.Mod
@@ -78,8 +88,8 @@ extern double  SYSTEM_ABSD   (double i);
 extern void    SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
 extern void    SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
 extern void    SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
-extern LONGINT SYSTEM_DIV    (unsigned LONGINT x, unsigned LONGINT y);
-extern LONGINT SYSTEM_MOD    (unsigned LONGINT x, unsigned LONGINT y);
+extern LONGINT SYSTEM_DIV    (U_LONGINT x, U_LONGINT y);
+extern LONGINT SYSTEM_MOD    (U_LONGINT x, U_LONGINT y);
 extern LONGINT SYSTEM_ENTIER (double x);
 
 
@@ -127,22 +137,22 @@ static int __str_cmp(CHAR *x, CHAR *y){
 #define __GET(a, x, t)  x= *(t*)(uintptr_t)(a)
 #define __PUT(a, x, t)  *(t*)(uintptr_t)(a)=x
 
-#define __LSHL(x, n, t) ((t)((unsigned t)(x)<<(n)))
-#define __LSHR(x, n, t) ((t)((unsigned t)(x)>>(n)))
+#define __LSHL(x, n, t) ((t)((U_##t)(x)<<(n)))
+#define __LSHR(x, n, t) ((t)((U_##t)(x)>>(n)))
 #define __LSH(x, n, t)  ((n)>=0? __LSHL(x, n, t): __LSHR(x, -(n), t))
 
 #define __ASHL(x, n)    ((LONGINT)(x)<<(n))
 #define __ASHR(x, n)    ((LONGINT)(x)>>(n))
 #define __ASH(x, n)     ((n)>=0?__ASHL(x,n):__ASHR(x,-(n)))
 
-#define __ROTL(x, n, t) ((t)((unsigned t)(x)<<(n)|(unsigned t)(x)>>(8*sizeof(t)-(n))))
-#define __ROTR(x, n, t) ((t)((unsigned t)(x)>>(n)|(unsigned t)(x)<<(8*sizeof(t)-(n))))
+#define __ROTL(x, n, t) ((t)((U_##t)(x)<<(n)|(U_##t)(x)>>(8*sizeof(t)-(n))))
+#define __ROTR(x, n, t) ((t)((U_##t)(x)>>(n)|(U_##t)(x)<<(8*sizeof(t)-(n))))
 #define __ROT(x, n, t)  ((n)>=0? __ROTL(x, n, t): __ROTR(x, -(n), t))
 
-#define __BIT(x, n)     (*(unsigned LONGINT*)(x)>>(n)&1)
+#define __BIT(x, n)     (*(U_LONGINT*)(x)>>(n)&1)
 #define __MOVE(s, d, n) memcpy((char*)(uintptr_t)(d),(char*)(uintptr_t)(s),n)
 #define __ASHF(x, n)    SYSTEM_ASH((LONGINT)(x), (LONGINT)(n))
-#define __SHORT(x, y)   ((int)((unsigned LONGINT)(x)+(y)<(y)+(y)?(x):(__HALT(-8),0)))
+#define __SHORT(x, y)   ((int)((U_LONGINT)(x)+(y)<(y)+(y)?(x):(__HALT(-8),0)))
 #define __SHORTF(x, y)  ((int)(__RF((x)+(y),(y)+(y))-(y)))
 #define __CHR(x)        ((CHAR)__R(x, 256))
 #define __CHRF(x)       ((CHAR)__RF(x, 256))
@@ -165,9 +175,9 @@ static int __str_cmp(CHAR *x, CHAR *y){
 
 // Runtime checks
 
-#define __X(i, ub)   (((unsigned LONGINT)(i)<(unsigned LONGINT)(ub))?i:(__HALT(-2),0))
+#define __X(i, ub)   (((U_LONGINT)(i)<(U_LONGINT)(ub))?i:(__HALT(-2),0))
 #define __XF(i, ub)  SYSTEM_XCHK((LONGINT)(i), (LONGINT)(ub))
-#define __R(i, ub)   (((unsigned LONGINT)(i)<(unsigned LONGINT)(ub))?i:(__HALT(-8),0))
+#define __R(i, ub)   (((U_LONGINT)(i)<(U_LONGINT)(ub))?i:(__HALT(-8),0))
 #define __RF(i, ub)  SYSTEM_RCHK((LONGINT)(i),(LONGINT)(ub))
 #define __RETCHK     __retchk: __HALT(-3); return 0;
 #define __CASECHK    __HALT(-4)

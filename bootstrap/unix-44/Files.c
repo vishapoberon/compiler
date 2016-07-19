@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/11] for gcc LP64 on cygwin tspkaSfF */
+/* voc  1.95 [2016/07/19] for gcc LP64 on cygwin tspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Console.h"

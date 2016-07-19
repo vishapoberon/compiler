@@ -36,7 +36,7 @@ void SYSTEM_ENUMP(void *adr, LONGINT n, void (*P)())
 {
     while (n > 0) {
         P((LONGINT)(uintptr_t)(*((void**)(adr))));
-        adr = ((void**)adr) + 1; 
+        adr = ((void**)adr) + 1;
         n--;
     }
 }
@@ -49,18 +49,18 @@ void SYSTEM_ENUMR(void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)())
         t = typ;
         off = *t;
         while (off >= 0) {P(*(LONGINT*)((char*)adr+off)); t++; off = *t;}
-        adr = ((char*)adr) + size; 
+        adr = ((char*)adr) + size;
         n--;
     }
 }
 
-LONGINT SYSTEM_DIV(unsigned LONGINT x, unsigned LONGINT y)
+LONGINT SYSTEM_DIV(U_LONGINT x, U_LONGINT y)
 {   if ((LONGINT) x >= 0) return (x / y);
     else return -((y - 1 - x) / y);
 }
 
-LONGINT SYSTEM_MOD(unsigned LONGINT x, unsigned LONGINT y)
-{   unsigned LONGINT m;
+LONGINT SYSTEM_MOD(U_LONGINT x, U_LONGINT y)
+{   U_LONGINT m;
     if ((LONGINT) x >= 0) return (x % y);
     else { m = (-x) % y;
         if (m != 0) return (y - m); else return 0;
@@ -171,29 +171,29 @@ typedef void (*SystemSignalHandler)(INTEGER); // = Platform_SignalHandler
     SystemSignalHandler SystemInterruptHandler = 0;
     SystemSignalHandler SystemQuitHandler      = 0;
     BOOL ConsoleCtrlHandlerSet = FALSE;
-  
+
     BOOL WINAPI SystemConsoleCtrlHandler(DWORD ctrlType) {
         if ((ctrlType == CTRL_C_EVENT) || (ctrlType == CTRL_BREAK_EVENT)) {
             if (SystemInterruptHandler) {
                 SystemInterruptHandler(2); // SIGINT
                 return TRUE;
-            } 
+            }
         } else { // Close, logoff or shutdown
-            if (SystemQuitHandler) {    
+            if (SystemQuitHandler) {
                 SystemQuitHandler(3); // SIGQUIT
                 return TRUE;
             }
         }
         return FALSE;
     }
-  
+
     void EnsureConsoleCtrlHandler() {
         if (!ConsoleCtrlHandlerSet) {
         SetConsoleCtrlHandler(SystemConsoleCtrlHandler, TRUE);
             ConsoleCtrlHandlerSet = TRUE;
         }
     }
-  
+
     void SystemSetInterruptHandler(uintptr_t h) {
         EnsureConsoleCtrlHandler();
         SystemInterruptHandler = (SystemSignalHandler)h;
