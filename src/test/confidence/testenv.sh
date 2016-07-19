@@ -4,7 +4,7 @@
 
 echo --- Confidence test $(basename $PWD) ---
 
-if which cygpath >/dev/null
+if which cygpath >/dev/null 2>/dev/null
 then export PATH="$(cygpath "$1")/bin":$PATH
 else export PATH="$1/bin":$PATH
 fi
@@ -19,6 +19,8 @@ rm -f *.o *.obj *.exe *.sym *.c *.h result
 # corresponding assembly file will overwrite the previous. I
 # cannot see any way to overcome this short of using -S
 # on the voc command and calling 'as' explicitly.
-if [ $COMPILER=gcc ]
+# NOTE 2: The cygwin 64 bit build has relocation errors with
+# these assembly generation options.
+if [ $COMPILER=gcc -a $FLAVOUR!=cygwin.LP64.gcc ]
 then export CFLAGS="-gstabs -g1 -Wa,-acdhln=new.asm"
 fi

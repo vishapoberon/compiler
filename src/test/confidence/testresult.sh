@@ -6,10 +6,16 @@ else printf "FAILED: $PWD\n\n"; exit 1
 fi
 
 # Compare generated code
-if [ -f old.s -a -f new.asm ]
-then
-  egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -c 11- >new.s
-  if ! diff -b old.s new.s
-  then echo "--- Generated code changed ---"
+if [ -f new.asm ]
+then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -c 11- >new.$FLAVOUR.s
+
+  if [ -f old.$FLAVOUR.s ]
+  then
+    if ! diff -b old.$FLAVOUR.s new.$FLAVOUR.s
+    then echo "--- Generated code changed ---"
+    fi
+  else
+    cp new.$FLAVOUR.s old.$FLAVOUR.s
   fi
+
 fi
