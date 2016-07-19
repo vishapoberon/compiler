@@ -376,11 +376,11 @@ sourcechanges:
 
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
-	cd src/test/confidence/hello;           FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
-	cd src/test/confidence/language;        FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
-	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"; fi
-	cd src/test/confidence/lola;            FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
-	cd src/test/confidence/arrayassignment; FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/hello;           COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/language;        COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"; fi
+	cd src/test/confidence/lola;            COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/arrayassignment; COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
 	@printf "\n\n--- Confidence tests passed ---\n\n"
 
 

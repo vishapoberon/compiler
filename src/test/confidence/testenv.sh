@@ -21,6 +21,6 @@ rm -f *.o *.obj *.exe *.sym *.c *.h result
 # on the voc command and calling 'as' explicitly.
 # NOTE 2: The cygwin 64 bit build has relocation errors with
 # these assembly generation options.
-if [ $COMPILER=gcc -a $FLAVOUR!=cygwin.LP64.gcc ]
+if [ "$COMPILER" = "gcc" -a "$FLAVOUR" != "cygwin.LP64.gcc" ]
 then export CFLAGS="-gstabs -g1 -Wa,-acdhln=new.asm"
 fi
