@@ -157,7 +157,7 @@ sub colourfor {
   my ($str) = @_;
   if ($str eq "Failed")  {return "#e03030";}
   if ($str eq "Changed") {return "#d0a030";}
-  return #60ff60;
+  return "#60ff60";
 }
 
 my $rows = keys %status;
@@ -166,7 +166,7 @@ my $width  = 710;
 my $height = ($rows+2.2) * $lineheight;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
-print $svg '<svg width="680" height="', $height, '"';
+print $svg '<svg width="', $width, '" height="', $height, '"';
 print $svg ' xmlns="http://www.w3.org/2000/svg" version="1.1"';
 print $svg ' xmlns:xlink="http://www.w3.org/1999/xlink"', ">\n";
 print $svg '<rect x="3" y="3" width="', $width-6, '" height="', $height-6, '"';
