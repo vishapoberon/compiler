@@ -11,7 +11,7 @@ fi
 # Set ibrary paths for darwin and termux(android)
 export DYLD_LIBRARY_PATH=$1/lib:$DYLD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$1/lib:$LD_LIBRARY_PATH
-rm -f *.o *.obj *.exe *.sym *.c *.h result
+rm -f *.o *.obj *.exe *.sym *.c *.h result new.asm
 
 # Under gcc generate assembly source for source change test.
 # NOTE: The following CFLAGS causes the assembler to write source

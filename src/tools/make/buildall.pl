@@ -156,8 +156,8 @@ sub svgtext {
 sub colourfor {
   my ($str) = @_;
   if ($str eq "Failed")  {return "#e03030";}
-  if ($str eq "Changed") {return "#d0a030";}
-  return "#60ff60";
+  if ($str eq "Changed") {return "#ff9d4d";}
+  return "#5adb5a";
 }
 
 my $rows = keys %status;
