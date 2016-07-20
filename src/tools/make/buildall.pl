@@ -68,13 +68,13 @@ my %status = ();
 my $fn;
 my $date;
 my $time;
-my $branch;
 my $os;
 my $compiler;
 my $datamodel;
 my $compilerok;
 my $libraryok;
 my $sourcechange;
+my $asmchange;
 my $tests;
 my $key;
 my $ver;
@@ -82,14 +82,14 @@ my $ver;
 sub clearvars {
   $time         = "";  $branch       = "";  $os           = "";  $compiler     = "";
   $datamodel    = "";  $compilerok   = "";  $libraryok    = "";  $sourcechange = "";
-  $tests        = "";  $key          = "";  $ver          = "";
+  $asmchange    = "";  $tests        = "";  $key          = "";  $ver          = "";
 }
 
 sub logstatus {
   my ($fn) = @_;
   if ($compiler ne "") {
     $status{"$os-$compiler-$datamodel"} =
-      [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $tests];
+      [$fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok, $sourcechange, $asmchange, $tests];
   }
   clearvars();
 }
@@ -112,10 +112,16 @@ sub parselog {
     }
     if (/^([0-9.]+) --- Compiler build started ---$/)                         {$compilerok   = "Failed";}
     if (/^([0-9.]+) --- Compiler build successfull ---$/)                     {$compilerok   = "Built";}
+
     if (/^([0-9.]+) --- Library build started ---$/)                          {$libraryok    = "Failed";}
     if (/^([0-9.]+) --- Library build successfull ---$/)                      {$libraryok    = "Built";}
+
     if (/^([0-9.]+) --- Generated c source files match bootstrap ---$/)       {$sourcechange = "Unchanged";}
     if (/^([0-9.]+) --- Generated c source files differ from bootstrap ---$/) {$sourcechange = "Changed";}
+
+    if (/^([0-9.]+) --- Generated code unchanged ---$/)                       {if ($asmchange eq "") {$asmchange = "Unchanged"}}
+    if (/^([0-9.]+) --- Generated code changed ---$/)                         {$asmchange    = "Changed"}
+
     if (/^([0-9.]+) --- Confidence tests started ---$/)                       {$tests        = "Failed";}
     if (/^([0-9.]+) --- Confidence tests passed ---$/)                        {$tests        = "Passed";}
   }
@@ -147,9 +153,16 @@ sub svgtext {
   print $f "</text>\n";
 }
 
+sub colourfor {
+  my ($str) = @_;
+  if ($str eq "Failed")  {return "#e03030";}
+  if ($str eq "Changed") {return "#d0a030";}
+  return #60ff60;
+}
+
 my $rows = keys %status;
 
-my $width  = 630;
+my $width  = 710;
 my $height = ($rows+2.2) * $lineheight;
 
 open(my $svg, ">build-status.svg") // die "Could not create build-status.svg.";
@@ -158,7 +171,7 @@ print $svg ' xmlns="http://www.w3.org/2000/svg" version="1.1"';
 print $svg ' xmlns:xlink="http://www.w3.org/1999/xlink"', ">\n";
 print $svg '<rect x="3" y="3" width="', $width-6, '" height="', $height-6, '"';
 print $svg ' rx="20" ry="20" fill="#404040"';
-print $svg ' stroke="#20c020" stroke-width="4"/>', "\n";
+print $svg ' stroke="#d5850d" stroke-width="4"/>', "\n";
 
 my $col1  = 20;
 my $col2  = 97;
@@ -170,6 +183,7 @@ my $col7  = 380;
 my $col8  = 440;
 my $col9  = 490;
 my $col10 = 570;
+my $col11 = 650;
 
 svgtext($svg, $col1,  0, "#e0e0e0", "Date");
 svgtext($svg, $col3,  0, "#e0e0e0", "Branch");
@@ -177,12 +191,13 @@ svgtext($svg, $col4,  0, "#e0e0e0", "Platform");
 svgtext($svg, $col7,  0, "#e0e0e0", "Compiler");
 svgtext($svg, $col8,  0, "#e0e0e0", "Library");
 svgtext($svg, $col9,  0, "#e0e0e0", "C Source");
-svgtext($svg, $col10, 0, "#e0e0e0", "Tests");
+svgtext($svg, $col10, 0, "#e0e0e0", "Assembler");
+svgtext($svg, $col11, 0, "#e0e0e0", "Tests");
 
 my $i=1;
 for my $key (sort keys %status) {
-  my ($fn, $date, $time, $os, $compiler, $datamodel, $branch,
-      $compilerok, $libraryok, $sourcechange, $tests) = @{$status{$key}};
+  my ($fn, $date, $time, $os, $compiler, $datamodel, $branch, $compilerok, $libraryok,
+      $sourcechange, $asmchange, $tests) = @{$status{$key}};
   print $svg '<a xlink:href="', $fn, '">';
   svgtext($svg, $col1,  $i, "#c0c0c0", $date);
   svgtext($svg, $col2,  $i, "#c0c0c0", $time);
@@ -190,10 +205,11 @@ for my $key (sort keys %status) {
   svgtext($svg, $col4,  $i, "#c0c0c0", $os);
   svgtext($svg, $col5,  $i, "#c0c0c0", $compiler);
   svgtext($svg, $col6,  $i, "#c0c0c0", $datamodel);
-  svgtext($svg, $col7,  $i, "#60ff60", $compilerok);
-  svgtext($svg, $col8,  $i, "#60ff60", $libraryok);
-  svgtext($svg, $col9,  $i, "#60ff60", $sourcechange);
-  svgtext($svg, $col10, $i, "#60ff60", $tests);
+  svgtext($svg, $col7,  $i, colourfor($compilerok),   $compilerok);
+  svgtext($svg, $col8,  $i, colourfor($libraryok),    $libraryok);
+  svgtext($svg, $col9,  $i, colourfor($sourcechange), $sourcechange);
+  svgtext($svg, $col10, $i, colourfor($asmchange),    $asmchange);
+  svgtext($svg, $col11, $i, colourfor($tests),        $tests);
   print $svg '</a>';
   $i++;
 }

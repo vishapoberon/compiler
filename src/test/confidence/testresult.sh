@@ -11,8 +11,9 @@ then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -
 
   if [ -f old.$FLAVOUR.s ]
   then
-    if ! diff -b old.$FLAVOUR.s new.$FLAVOUR.s
-    then echo "--- Generated code changed ---"
+    if diff -b old.$FLAVOUR.s new.$FLAVOUR.s
+    then echo "--- Generated code unchanged ---"
+    else echo "--- Generated code changed ---"
     fi
   else
     cp new.$FLAVOUR.s old.$FLAVOUR.s
