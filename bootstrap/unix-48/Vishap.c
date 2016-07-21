@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/19] for gcc LP64 on cygwin xtspkamSf */
+/* voc  1.95 [2016/07/21] for gcc LP64 on cygwin xtspkamSf */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Heap.h"
