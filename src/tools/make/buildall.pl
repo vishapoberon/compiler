@@ -6,6 +6,8 @@ use Cwd;
 
 my $branch = "master";
 
+if (defined($ARGV[0]) && ($ARGV[0] ne "")) {$branch = $ARGV[0]}
+
 my %machines = (
   "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
   "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
