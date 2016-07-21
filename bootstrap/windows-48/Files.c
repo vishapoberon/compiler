@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/19] for gcc LP64 on cygwin tspkaSfF */
+/* voc  1.95 [2016/07/21] for gcc LP64 on cygwin tspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Console.h"
@@ -7,7 +7,7 @@
 #include "Strings.h"
 
 typedef
-	struct Files_Handle *Files_File;
+	struct Files_FileDesc *Files_File;
 
 typedef
 	struct Files_BufDesc {
@@ -24,14 +24,15 @@ typedef
 	CHAR Files_FileName[101];
 
 typedef
-	struct Files_Handle {
+	struct Files_FileDesc {
 		Files_FileName workName, registerName;
 		BOOLEAN tempFile;
 		Platform_FileIdentity identity;
 		LONGINT fd, len, pos;
 		Files_Buffer bufs[4];
 		INTEGER swapper, state;
-	} Files_Handle;
+		Files_File next;
+	} Files_FileDesc;
 
 typedef
 	struct Files_Rider {
@@ -42,7 +43,7 @@ typedef
 	} Files_Rider;
 
 
-static LONGINT Files_fileTab[256];
+static Files_File Files_files;
 static INTEGER Files_tempno;
 static CHAR Files_HOME[1024];
 static struct {
@@ -50,7 +51,7 @@ static struct {
 	CHAR data[1];
 } *Files_SearchPath;
 
-export LONGINT *Files_Handle__typ;
+export LONGINT *Files_FileDesc__typ;
 export LONGINT *Files_BufDesc__typ;
 export LONGINT *Files_Rider__typ;
 
@@ -58,6 +59,7 @@ export Files_File Files_Base (Files_Rider *r, LONGINT *r__typ);
 static Files_File Files_CacheEntry (Platform_FileIdentity identity);
 export void Files_ChangeDirectory (CHAR *path, LONGINT path__len, INTEGER *res);
 export void Files_Close (Files_File f);
+static void Files_CloseOSFile (Files_File f);
 static void Files_Create (Files_File f);
 export void Files_Delete (CHAR *name, LONGINT name__len, INTEGER *res);
 static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, INTEGER errcode);
@@ -68,7 +70,6 @@ export void Files_GetDate (Files_File f, LONGINT *t, LONGINT *d);
 export void Files_GetName (Files_File f, CHAR *name, LONGINT name__len);
 static void Files_GetTempName (CHAR *finalName, LONGINT finalName__len, CHAR *name, LONGINT name__len);
 static BOOLEAN Files_HasDir (CHAR *name, LONGINT name__len);
-static void Files_Init (void);
 export LONGINT Files_Length (Files_File f);
 static void Files_MakeFileName (CHAR *dir, LONGINT dir__len, CHAR *name, LONGINT name__len, CHAR *dest, LONGINT dest__len);
 export Files_File Files_New (CHAR *name, LONGINT name__len);
@@ -225,26 +226,14 @@ static void Files_Create (Files_File f)
 		error = Platform_Unlink((void*)f->workName, ((LONGINT)(101)));
 		error = Platform_New((void*)f->workName, ((LONGINT)(101)), &f->fd);
 		done = error == 0;
-		if ((!done && Platform_TooManyFiles(error)) || (done && f->fd >= 256)) {
-			if ((done && f->fd >= 256)) {
-				error = Platform_Close(f->fd);
-			}
-			Heap_GC(1);
-			error = Platform_New((void*)f->workName, ((LONGINT)(101)), &f->fd);
-			done = f->fd == 0;
-		}
 		if (done) {
-			if (f->fd >= 256) {
-				error = Platform_Close(f->fd);
-				Files_Err((CHAR*)"too many files open", (LONGINT)20, f, 0);
-			} else {
-				Files_fileTab[f->fd] = (LONGINT)(uintptr_t)f;
-				Heap_FileCount += 1;
-				Heap_RegisterFinalizer((void*)f, Files_Finalize);
-				f->state = 0;
-				f->pos = 0;
-				error = Platform_Identify(f->fd, &f->identity, Platform_FileIdentity__typ);
-			}
+			f->next = Files_files;
+			Files_files = f;
+			Heap_FileCount += 1;
+			Heap_RegisterFinalizer((void*)f, Files_Finalize);
+			f->state = 0;
+			f->pos = 0;
+			error = Platform_Identify(f->fd, &f->identity, Platform_FileIdentity__typ);
 		} else {
 			if (Platform_NoSuchDirectory(error)) {
 				__MOVE("no such directory", err, 18);
@@ -281,6 +270,27 @@ static void Files_Flush (Files_Buffer buf)
 	}
 }
 
+static void Files_CloseOSFile (Files_File f)
+{
+	Files_File prev = NIL;
+	INTEGER error;
+	if (Files_files == f) {
+		Files_files = f->next;
+	} else {
+		prev = Files_files;
+		while ((prev != NIL && prev->next != f)) {
+			prev = prev->next;
+		}
+		if (prev->next != NIL) {
+			prev->next = f->next;
+		}
+	}
+	error = Platform_Close(f->fd);
+	f->fd = -1;
+	f->state = 1;
+	Heap_FileCount -= 1;
+}
+
 void Files_Close (Files_File f)
 {
 	LONGINT i;
@@ -296,11 +306,7 @@ void Files_Close (Files_File f)
 		if (error != 0) {
 			Files_Err((CHAR*)"error writing file", (LONGINT)19, f, error);
 		}
-		Files_fileTab[f->fd] = 0;
-		error = Platform_Close(f->fd);
-		f->fd = -1;
-		f->state = 1;
-		Heap_FileCount -= 1;
+		Files_CloseOSFile(f);
 	}
 }
 
@@ -316,7 +322,7 @@ Files_File Files_New (CHAR *name, LONGINT name__len)
 	Files_File _o_result;
 	Files_File f = NIL;
 	__DUP(name, name__len, CHAR);
-	__NEW(f, Files_Handle);
+	__NEW(f, Files_FileDesc);
 	f->workName[0] = 0x00;
 	__COPY(name, f->registerName, ((LONGINT)(101)));
 	f->fd = -1;
@@ -392,10 +398,9 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 	Files_File _o_result;
 	Files_File f = NIL;
 	INTEGER i, error;
-	i = 0;
-	while (i < 256) {
-		f = (Files_File)(uintptr_t)Files_fileTab[i];
-		if ((f != NIL && Platform_SameFile(identity, f->identity))) {
+	f = Files_files;
+	while (f != NIL) {
+		if (Platform_SameFile(identity, f->identity)) {
 			if (!Platform_SameFileTime(identity, f->identity)) {
 				i = 0;
 				while (i < 4) {
@@ -412,7 +417,7 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 			_o_result = f;
 			return _o_result;
 		}
-		i += 1;
+		f = f->next;
 	}
 	_o_result = NIL;
 	return _o_result;
@@ -442,16 +447,8 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 		for (;;) {
 			error = Platform_OldRW((void*)path, ((LONGINT)(256)), &fd);
 			done = error == 0;
-			if ((!done && Platform_TooManyFiles(error)) || (done && fd >= 256)) {
-				if ((done && fd >= 256)) {
-					error = Platform_Close(fd);
-				}
-				Heap_GC(1);
-				error = Platform_OldRW((void*)path, ((LONGINT)(256)), &fd);
-				done = error == 0;
-				if ((!done && Platform_TooManyFiles(error))) {
-					Files_Err((CHAR*)"too many files open", (LONGINT)20, f, error);
-				}
+			if ((!done && Platform_TooManyFiles(error))) {
+				Files_Err((CHAR*)"too many files open", (LONGINT)20, f, error);
 			}
 			if ((!done && Platform_Inaccessible(error))) {
 				error = Platform_OldRO((void*)path, ((LONGINT)(256)), &fd);
@@ -468,17 +465,11 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 				error = Platform_Identify(fd, &identity, Platform_FileIdentity__typ);
 				f = Files_CacheEntry(identity);
 				if (f != NIL) {
-					error = Platform_Close(fd);
 					_o_result = f;
 					__DEL(name);
 					return _o_result;
-				} else if (fd >= 256) {
-					error = Platform_Close(fd);
-					Files_Err((CHAR*)"too many files open", (LONGINT)20, f, 0);
 				} else {
-					__NEW(f, Files_Handle);
-					Files_fileTab[fd] = (LONGINT)(uintptr_t)f;
-					Heap_FileCount += 1;
+					__NEW(f, Files_FileDesc);
 					Heap_RegisterFinalizer((void*)f, Files_Finalize);
 					f->fd = fd;
 					f->state = 0;
@@ -489,6 +480,9 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 					f->registerName[0] = 0x00;
 					f->tempFile = 0;
 					f->identity = identity;
+					f->next = Files_files;
+					Files_files = f;
+					Heap_FileCount += 1;
 					_o_result = f;
 					__DEL(name);
 					return _o_result;
@@ -1014,10 +1008,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 	LONGINT res;
 	f = (Files_File)(uintptr_t)o;
 	if (f->fd >= 0) {
-		Files_fileTab[f->fd] = 0;
-		res = Platform_Close(f->fd);
-		f->fd = -1;
-		Heap_FileCount -= 1;
+		Files_CloseOSFile(f);
 		if (f->tempFile) {
 			res = Platform_Unlink((void*)f->workName, ((LONGINT)(101)));
 		}
@@ -1036,27 +1027,13 @@ void Files_SetSearchPath (CHAR *path, LONGINT path__len)
 	__DEL(path);
 }
 
-static void Files_Init (void)
-{
-	LONGINT i;
-	i = 0;
-	while (i < 256) {
-		Files_fileTab[i] = 0;
-		i += 1;
-	}
-	Files_tempno = -1;
-	Heap_FileCount = 0;
-	Files_SearchPath = NIL;
-	Files_HOME[0] = 0x00;
-	Platform_GetEnv((CHAR*)"HOME", (LONGINT)5, (void*)Files_HOME, ((LONGINT)(1024)));
-}
-
 static void EnumPtrs(void (*P)(void*))
 {
+	P(Files_files);
 	P(Files_SearchPath);
 }
 
-__TDESC(Files_Handle, 1, 4) = {__TDFLDS("Handle", 256), {236, 240, 244, 248, -20}};
+__TDESC(Files_FileDesc, 1, 5) = {__TDFLDS("FileDesc", 260), {236, 240, 244, 248, 256, -24}};
 __TDESC(Files_BufDesc, 1, 1) = {__TDFLDS("BufDesc", 4112), {0, -8}};
 __TDESC(Files_Rider, 1, 1) = {__TDFLDS("Rider", 20), {8, -8}};
 
@@ -1069,10 +1046,13 @@ export void *Files__init(void)
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
 	__REGMOD("Files", EnumPtrs);
-	__INITYP(Files_Handle, Files_Handle, 0);
+	__INITYP(Files_FileDesc, Files_FileDesc, 0);
 	__INITYP(Files_BufDesc, Files_BufDesc, 0);
 	__INITYP(Files_Rider, Files_Rider, 0);
 /* BEGIN */
-	Files_Init();
+	Files_tempno = -1;
+	Heap_FileCount = 0;
+	Files_HOME[0] = 0x00;
+	Platform_GetEnv((CHAR*)"HOME", (LONGINT)5, (void*)Files_HOME, ((LONGINT)(1024)));
 	__ENDMOD;
 }

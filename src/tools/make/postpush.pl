@@ -36,7 +36,6 @@ for my $file (@{$modified}) {
 if ($buildneeded) {
   writelog "Post push github web hook for repository $repo, branch $branch, name $name. Build required.";
 
-
   my $child = fork;
   if (not defined $child) {die "Fork failed.";}
   if ($child) {
@@ -44,8 +43,8 @@ if ($buildneeded) {
   } else {
     close(STDIN); close(STDOUT); close(STDERR);  # child process
     system 'echo Syncing voc>postpush.log';
-    system '(cd voc && git pull) >>postpush.log';
-    exec 'perl voc/src/tools/make/buildall.pl >/tmp/buildall.log';
+    system '(cd voc; git pull; git checkout ' . $branch . ') >>postpush.log';
+    exec 'perl voc/src/tools/make/buildall.pl ' . $branch . ' >/tmp/buildall.log';
     exit;
   }
 } else {

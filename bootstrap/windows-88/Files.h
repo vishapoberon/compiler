@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/19] for gcc LP64 on cygwin tspkaSfF */
+/* voc  1.95 [2016/07/21] for gcc LP64 on cygwin tspkaSfF */
 
 #ifndef Files__h
 #define Files__h
@@ -7,14 +7,14 @@
 #include "SYSTEM.h"
 
 typedef
-	struct Files_Handle *Files_File;
+	struct Files_FileDesc *Files_File;
 
 typedef
-	struct Files_Handle {
+	struct Files_FileDesc {
 		char _prvt0[248];
 		LONGINT fd;
-		char _prvt1[56];
-	} Files_Handle;
+		char _prvt1[64];
+	} Files_FileDesc;
 
 typedef
 	struct Files_Rider {
@@ -25,7 +25,7 @@ typedef
 
 
 
-import LONGINT *Files_Handle__typ;
+import LONGINT *Files_FileDesc__typ;
 import LONGINT *Files_Rider__typ;
 
 import Files_File Files_Base (Files_Rider *r, LONGINT *r__typ);

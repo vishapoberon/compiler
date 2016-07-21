@@ -16,7 +16,6 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   CONST
     nofbufs = 4;
     bufsize = 4096;
-    fileTabSize = 256;  (* 256 needed for Windows *)
     noDesc = -1;
     notDone = -1;
 
@@ -31,17 +30,18 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   TYPE
     FileName = ARRAY 101 OF CHAR;
-    File*    = POINTER TO Handle;
+    File*    = POINTER TO FileDesc;
     Buffer   = POINTER TO BufDesc;
 
-    Handle = RECORD
+    FileDesc = RECORD
       workName, registerName: FileName;
       tempFile: BOOLEAN;
       identity: Platform.FileIdentity;
       fd-:      Platform.FileHandle;
       len, pos: LONGINT;
       bufs: ARRAY nofbufs OF Buffer;
-      swapper, state: INTEGER
+      swapper, state: INTEGER;
+      next:     File;
     END;
 
     BufDesc = RECORD
@@ -61,7 +61,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   VAR
-    fileTab:    ARRAY fileTabSize OF LONGINT (*=File*);
+    files:      File;   (* List of files that have an OS file handle/descriptor assigned  *)
     tempno:     INTEGER;
     HOME:       ARRAY 1024 OF CHAR;
     SearchPath: POINTER TO ARRAY OF CHAR;
@@ -137,30 +137,16 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
       error := Platform.New(f.workName, f.fd);
       done := error = 0;
-      (* In case of too many files, try just once more. *)
-      IF (~done & Platform.TooManyFiles(error)) OR (done & (f.fd >= fileTabSize)) THEN
-        IF done & (f.fd >= fileTabSize) THEN error := Platform.Close(f.fd) END;
-        Heap.GC(TRUE);
-        error := Platform.New(f.workName, f.fd);
-        done  := f.fd = 0
-      END;
       IF done THEN
-        IF f.fd >= fileTabSize THEN
-          (* Console.String("f.fd = "); Console.Int(f.fd,1); Console.Ln; *)
-          error := Platform.Close(f.fd); Err("too many files open", f, 0)
-        ELSE
-          fileTab[f.fd] := SYSTEM.VAL(LONGINT, f);
-          INC(Heap.FileCount);
-          Heap.RegisterFinalizer(f, Finalize);
-          f.state    := open;
-          f.pos      := 0;
-          error      := Platform.Identify(f.fd, f.identity);
-        END
+        f.next := files;  files := f;
+        INC(Heap.FileCount);
+        Heap.RegisterFinalizer(f, Finalize);
+        f.state := open;
+        f.pos   := 0;
+        error   := Platform.Identify(f.fd, f.identity);
       ELSE
         IF    Platform.NoSuchDirectory(error) THEN err := "no such directory"
-        ELSIF Platform.TooManyFiles(error)    THEN
-          (* Console.String("f.fd = "); Console.Int(f.fd,1); Console.Ln; *)
-          err := "too many files open"
+        ELSIF Platform.TooManyFiles(error)    THEN err := "too many files open"
         ELSE  err := "file not created"
         END;
         Err(err, f, error)
@@ -201,30 +187,33 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     END
   END Flush;
 
+
+  PROCEDURE CloseOSFile(f: File);
+  (* Close the OS file handle and remove f from 'files' *)
+    VAR prev: File; error: Platform.ErrorCode;
+  BEGIN
+    IF files = f THEN files := f.next
+    ELSE
+      prev := files;
+      WHILE (prev # NIL) & (prev.next # f) DO prev := prev.next END;
+      IF prev.next # NIL THEN prev.next := f.next END
+    END;
+    error := Platform.Close(f.fd);
+    f.fd := noDesc; f.state := create; DEC(Heap.FileCount);
+  END CloseOSFile;
+
+
   PROCEDURE Close* (f: File);
     VAR
       i:     LONGINT;
       error: Platform.ErrorCode;
   BEGIN
-    (*
-    Console.String("Files.Close f.fd = "); Console.Int(f.fd,1);
-    Console.String(" f.registername = "); Console.String(f.registerName);
-    Console.String(", f.workName = "); Console.String(f.workName); Console.Ln;
-    *)
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
       WHILE (i < nofbufs) & (f.bufs[i] # NIL) DO Flush(f.bufs[i]); INC(i) END;
       error := Platform.Sync(f.fd);
-      (*
-      Console.String("Syncing closed file. fd = "); Console.Int(f.fd, 1);
-      Console.String(" error = "); Console.Int(error,1); Console.Ln;
-      *)
       IF error # 0 THEN Err("error writing file", f, error) END;
-      (* Windows needs us to actually cose the file so that subsequent rename
-         will not encounter a sharing error. *)
-      fileTab[f.fd] := 0;
-      error := Platform.Close(f.fd);
-      f.fd := noDesc; f.state := create; DEC(Heap.FileCount);
+      CloseOSFile(f);
     END
   END Close;
 
@@ -275,10 +264,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   PROCEDURE CacheEntry(identity: Platform.FileIdentity): File;
     VAR f: File;  i: INTEGER;  error: Platform.ErrorCode;
-  BEGIN i := 0;
-    WHILE i < fileTabSize DO
-      f := SYSTEM.VAL(File, fileTab[i]);
-      IF (f # NIL) & Platform.SameFile(identity, f.identity) THEN
+  BEGIN f := files;
+    WHILE f # NIL DO
+      IF Platform.SameFile(identity, f.identity) THEN
         IF ~Platform.SameFileTime(identity, f.identity) THEN i := 0;
           WHILE i < nofbufs DO
             IF f.bufs[i] # NIL THEN f.bufs[i].org := -1; f.bufs[i] := NIL END;
@@ -289,7 +277,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
         END;
         RETURN f
       END;
-      INC(i)
+      f := f.next
     END;
     RETURN NIL
   END CacheEntry;
@@ -311,19 +299,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       END;
       LOOP
         error := Platform.OldRW(path, fd); done := error = 0;
-        IF (~done & Platform.TooManyFiles(error)) OR (done & (fd >= fileTabSize)) THEN
-          IF done & (fd >= fileTabSize) THEN error := Platform.Close(fd) END;
-          Heap.GC(TRUE);
-          error := Platform.OldRW(path, fd); done := error = 0;
-          IF ~done & Platform.TooManyFiles(error) THEN
-            (* Console.String("fd = "); Console.Int(fd,1); Console.Ln; *)
-            Err("too many files open", f, error)
-          END
-        END;
+        IF ~done & Platform.TooManyFiles(error) THEN Err("too many files open", f, error) END;
         IF ~done & Platform.Inaccessible(error) THEN
           error := Platform.OldRO(path, fd); done := error = 0;
         END;
-        IF (~done) & (~Platform.Absent(error)) THEN
+        IF ~done & ~Platform.Absent(error) THEN
           Console.String("Warning: Files.Old "); Console.String(name);
           Console.String(" error = "); Console.Int(error, 0); Console.Ln;
         END;
@@ -331,16 +311,15 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
           (* Console.String("  fd = "); Console.Int(fd,1); Console.Ln; *)
           error := Platform.Identify(fd, identity);
           f := CacheEntry(identity);
-          IF f # NIL THEN error := Platform.Close(fd); RETURN f
-          ELSIF fd >= fileTabSize THEN
-            (* Console.String("fd = "); Console.Int(fd,1); Console.Ln; *)
-            error := Platform.Close(fd);
-            Err("too many files open", f, 0)
-          ELSE NEW(f); fileTab[fd] := SYSTEM.VAL(LONGINT, f); INC(Heap.FileCount); Heap.RegisterFinalizer(f, Finalize);
+          IF f # NIL THEN
+            (* error := Platform.Close(fd); DCWB: Either this should be removed or should call CloseOSFile. *)
+            RETURN f
+          ELSE NEW(f); Heap.RegisterFinalizer(f, Finalize);
             f.fd := fd; f.state := open; f.pos := 0; f.swapper := -1; (*all f.buf[i] = NIL*)
             error := Platform.Size(fd, f.len);
             COPY(name, f.workName); f.registerName := ""; f.tempFile := FALSE;
             f.identity := identity;
+            f.next := files;  files := f; INC(Heap.FileCount);
             RETURN f
           END
         ELSIF dir = "" THEN RETURN NIL
@@ -743,7 +722,7 @@ Especially Length would become fairly complex.
     Console.String(", f.workName = "); Console.String(f.workName); Console.Ln;
     *)
     IF f.fd >= 0 THEN
-      fileTab[f.fd] := 0; res := Platform.Close(f.fd); f.fd := -1; DEC(Heap.FileCount);
+      CloseOSFile(f);
       IF f.tempFile THEN res := Platform.Unlink(f.workName) END
     END
   END Finalize;
@@ -758,15 +737,9 @@ Especially Length would become fairly complex.
     END
   END SetSearchPath;
 
-  PROCEDURE Init;
-    VAR i: LONGINT;
-  BEGIN
-    i := 0; WHILE i < fileTabSize DO fileTab[i] := 0; INC(i) END;
-    tempno := -1;
-    Heap.FileCount := 0;
-    SearchPath := NIL;
-    HOME := "";  Platform.GetEnv("HOME", HOME);
-  END Init;
 
-BEGIN Init
+BEGIN
+  tempno := -1;
+  Heap.FileCount := 0;
+  HOME := "";  Platform.GetEnv("HOME", HOME);
 END Files.
