@@ -9,7 +9,7 @@ fi
 if [ -f new.asm ]
 then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -c 11- >new.$FLAVOUR.s
 
-  if [ -f old.$FLAVOUR.s ]
+  if [ -f old.$FLAVOUR.s -a old.$FLAVOUR -nt ../../../../bootstrap/unix-44/Configuration.c ]
   then
     if diff -b old.$FLAVOUR.s new.$FLAVOUR.s
     then echo "--- Generated code unchanged ---"
@@ -17,6 +17,7 @@ then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -
     fi
   else
     cp new.$FLAVOUR.s old.$FLAVOUR.s
+    echo "--- Generated code snapped ---"
   fi
 
 fi

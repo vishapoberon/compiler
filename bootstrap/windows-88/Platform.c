@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -132,6 +132,7 @@ extern void Heap_InitHeap();
 #define Platform_fileTimeToSysTime()	SYSTEMTIME st; FileTimeToSystemTime(&ft, &st)
 #define Platform_flushFileBuffers(h)	(INTEGER)FlushFileBuffers((HANDLE)(uintptr_t)h)
 #define Platform_free(address)	HeapFree(GetProcessHeap(), 0, (void*)(uintptr_t)address)
+#define Platform_ftToUli()	ULARGE_INTEGER ul; ul.LowPart=ft.dwLowDateTime; ul.HighPart=ft.dwHighDateTime
 #define Platform_getCurrentDirectory(n, n__len)	GetCurrentDirectory(n__len, (char*)n)
 #define Platform_getExitCodeProcess(exitcode)	GetExitCodeProcess(pi.hProcess, (DWORD*)exitcode);
 #define Platform_getFileInformationByHandle(h)	(INTEGER)GetFileInformationByHandle((HANDLE)(uintptr_t)h, &bhfi)
@@ -160,6 +161,7 @@ extern void Heap_InitHeap();
 #define Platform_setEndOfFile(h)	(INTEGER)SetEndOfFile((HANDLE)(uintptr_t)h)
 #define Platform_setFilePointerEx(h, o, r, rc)	li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)(uintptr_t)h, li, 0, (DWORD)r)
 #define Platform_sleep(ms)	Sleep((DWORD)ms)
+#define Platform_stToFt()	FILETIME ft; SystemTimeToFileTime(&st, &ft)
 #define Platform_startupInfo()	STARTUPINFO si = {0}; si.cb = sizeof(si);
 #define Platform_sthour()	(INTEGER)st.wHour
 #define Platform_stmday()	(INTEGER)st.wDay
@@ -168,6 +170,9 @@ extern void Heap_InitHeap();
 #define Platform_stmsec()	(INTEGER)st.wMilliseconds
 #define Platform_stsec()	(INTEGER)st.wSecond
 #define Platform_styear()	(INTEGER)st.wYear
+#define Platform_tous1970()	ul.QuadPart = (ul.QuadPart - 116444736000000000ULL)/10LL
+#define Platform_ulSec()	(LONGINT)(ul.QuadPart / 1000000LL)
+#define Platform_uluSec()	(LONGINT)(ul.QuadPart % 1000000LL)
 #define Platform_waitForProcess()	(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)
 #define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((HANDLE)(uintptr_t)fd, (void*)(uintptr_t)(p), (DWORD)l, 0,0)
 
@@ -340,13 +345,6 @@ void Platform_GetClock (LONGINT *t, LONGINT *d)
 	Platform_YMDHMStoClock(Platform_styear(), Platform_stmon(), Platform_stmday(), Platform_sthour(), Platform_stmin(), Platform_stsec(), &*t, &*d);
 }
 
-void Platform_GetTimeOfDay (LONGINT *sec, LONGINT *usec)
-{
-	Platform_getLocalTime();
-	*sec = Platform_stsec();
-	*usec = (LONGINT)Platform_stmsec() * 1000;
-}
-
 LONGINT Platform_Time (void)
 {
 	LONGINT _o_result;
@@ -365,6 +363,16 @@ void Platform_Delay (LONGINT ms)
 	if (ms > 0) {
 		Platform_sleep(ms);
 	}
+}
+
+void Platform_GetTimeOfDay (LONGINT *sec, LONGINT *usec)
+{
+	Platform_getLocalTime();
+	Platform_stToFt();
+	Platform_ftToUli();
+	Platform_tous1970();
+	*sec = Platform_ulSec();
+	*usec = Platform_uluSec();
 }
 
 INTEGER Platform_System (CHAR *cmd, LONGINT cmd__len)
@@ -802,6 +810,7 @@ export void *Platform__init(void)
 	Platform_TestLittleEndian();
 	Platform_HaltCode = -128;
 	Platform_HaltHandler = NIL;
+	Platform_TimeStart = 0;
 	Platform_TimeStart = Platform_Time();
 	Platform_CWD[0] = 0x00;
 	Platform_getCurrentDirectory((void*)Platform_CWD, ((LONGINT)(4096)));

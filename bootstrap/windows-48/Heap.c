@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/21] for gcc LP64 on cygwin tskSfF */
+/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin tskSfF */
 #include "SYSTEM.h"
 
 struct Heap__1 {
@@ -579,7 +579,7 @@ void Heap_FINALL (void)
 static void Heap_MarkStack (LONGINT n, LONGINT *cand, LONGINT cand__len)
 {
 	SYSTEM_PTR frame;
-	LONGINT inc, nofcand, sp, p, stack0, ptr;
+	LONGINT inc, nofcand, sp, p, stack0;
 	struct Heap__1 align;
 	if (n > 0) {
 		Heap_MarkStack(n - 1, cand, cand__len);

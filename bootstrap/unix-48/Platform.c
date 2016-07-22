@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 
 typedef
@@ -779,6 +779,7 @@ export void *Platform__init(void)
 	Platform_TestLittleEndian();
 	Platform_HaltCode = -128;
 	Platform_HaltHandler = NIL;
+	Platform_TimeStart = 0;
 	Platform_TimeStart = Platform_Time();
 	Platform_CWD[0] = 0x00;
 	Platform_getcwd((void*)Platform_CWD, ((LONGINT)(256)));

@@ -209,7 +209,6 @@ extern void       Heap_INCREF();
 // Main module initialisation, registration and finalisation
 
 extern void Platform_Init(INTEGER argc, LONGINT argv);
-extern void *Platform_MainModule;
 extern void Heap_FINALL();
 
 #define __INIT(argc, argv)    static void *m; Platform_Init((INTEGER)argc, (LONGINT)(uintptr_t)&argv);
