@@ -3,7 +3,7 @@ MODULE Heap;
   IMPORT SYSTEM;  (* Cannot import anything else as heap initialization must complete
                      before any other modules are initialized. *)
 
-  CONST 
+  CONST
     ModNameLen = 20;
     CmdNameLen = 24;
     SZL        = SIZE(LONGINT);
@@ -124,8 +124,8 @@ MODULE Heap;
     VAR m: Module;
   BEGIN
     (* REGMOD is called at the start of module initialisation code before that modules
-       type descriptors have been set up. 'NEW' depends on the Heap modules type 
-       descriptors being ready for use, therefore, just for the Heap module itself, we 
+       type descriptors have been set up. 'NEW' depends on the Heap modules type
+       descriptors being ready for use, therefore, just for the Heap module itself, we
        must use SYSTEM.NEW. *)
     IF name = "Heap" THEN
       SYSTEM.NEW(m, SIZE(ModuleDesc))
@@ -142,7 +142,7 @@ MODULE Heap;
     VAR c: Cmd;
   BEGIN
     (* REGCMD is called during module initialisation code before that modules
-       type descriptors have been set up. 'NEW' depends on the Heap modules type 
+       type descriptors have been set up. 'NEW' depends on the Heap modules type
        descriptors being ready for use, therefore, just for the commands registered
        by the Heap module itself, we must use SYSTEM.NEW. *)
     IF m.name = "Heap" THEN
@@ -184,7 +184,7 @@ MODULE Heap;
 
   (* FetchAddress fetches a pointer from memory and returns it as a LONGINT. It works
      correctly regardless of the size of an address. Specifically on 32 bit address
-     architectures with 64 bit LONGINT, it loads 32 bits and extends it to LONGINT 
+     architectures with 64 bit LONGINT, it loads 32 bits and extends it to LONGINT
      rather than loading 64 bits. *)
   PROCEDURE -FetchAddress(pointer: LONGINT): LONGINT "(LONGINT)(uintptr_t)(*((void**)((uintptr_t)pointer)))";
 
@@ -455,7 +455,7 @@ MODULE Heap;
 
   PROCEDURE CheckFin;
     VAR n: FinNode; tag: LONGINT;
-  BEGIN 
+  BEGIN
     n := fin;
     WHILE n # NIL DO
       tag := FetchAddress(n.obj - SZL);
@@ -475,7 +475,7 @@ MODULE Heap;
         n.finalize(SYSTEM.VAL(SYSTEM.PTR, n.obj));
         (* new nodes may have been pushed in n.finalize, therefore: *)
         IF prev = NIL THEN n := fin ELSE n := n.next END
-      ELSE 
+      ELSE
         prev := n; n := n.next
       END
     END
@@ -497,7 +497,7 @@ MODULE Heap;
     VAR
       frame: SYSTEM.PTR;
       inc, nofcand: LONGINT;
-      sp, p, stack0, ptr: LONGINT;
+      sp, p, stack0: LONGINT;
       align: RECORD ch: CHAR; p: SYSTEM.PTR END ;
   BEGIN
     IF n > 0 THEN MarkStack(n-1, cand);  (* flush register windows by means of recursive calls *)
@@ -560,7 +560,7 @@ MODULE Heap;
   PROCEDURE RegisterFinalizer*(obj: SYSTEM.PTR; finalize: Finalizer);
     VAR f: FinNode;
   BEGIN NEW(f);
-    f.obj := SYSTEM.VAL(LONGINT, obj); f.finalize := finalize; f.marked := TRUE; 
+    f.obj := SYSTEM.VAL(LONGINT, obj); f.finalize := finalize; f.marked := TRUE;
     f.next := fin; fin := f;
   END RegisterFinalizer;
 
