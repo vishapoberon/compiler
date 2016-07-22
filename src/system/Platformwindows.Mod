@@ -232,11 +232,6 @@ BEGIN
   YMDHMStoClock(styear(), stmon(), stmday(), sthour(), stmin(), stsec(), t, d);
 END GetClock;
 
-PROCEDURE GetTimeOfDay*(VAR sec, usec: LONGINT);
-BEGIN
-  getLocalTime; sec := stsec(); usec := LONG(stmsec()) * 1000;
-END GetTimeOfDay;
-
 PROCEDURE -GetTickCount(): LONGINT "(LONGINT)(uint32_t)GetTickCount()";
 
 PROCEDURE Time*(): LONGINT;
@@ -255,6 +250,18 @@ BEGIN
   IF ms > 0 THEN sleep(ms) END;
 END Delay;
 
+
+PROCEDURE -stToFt  "FILETIME ft; SystemTimeToFileTime(&st, &ft)";
+PROCEDURE -ftToUli "ULARGE_INTEGER ul; ul.LowPart=ft.dwLowDateTime; ul.HighPart=ft.dwHighDateTime";
+PROCEDURE -tous1970  "ul.QuadPart = (ul.QuadPart - 116444736000000000ULL)/10LL";
+PROCEDURE -ulSec():  LONGINT  "(LONGINT)(ul.QuadPart / 1000000LL)";
+PROCEDURE -uluSec(): LONGINT  "(LONGINT)(ul.QuadPart % 1000000LL)";
+
+PROCEDURE GetTimeOfDay*(VAR sec, usec: LONGINT);
+BEGIN
+  getLocalTime;  stToFt;  ftToUli;  tous1970;
+  sec := ulSec();  usec := uluSec();
+END GetTimeOfDay;
 
 
 
@@ -592,7 +599,7 @@ BEGIN
 
   HaltCode    := -128;
   HaltHandler := NIL;
-  TimeStart   := Time();
+  TimeStart   := 0;   TimeStart := Time();
   CWD         := "";  getCurrentDirectory(CWD);
   PID         := getpid();
 
@@ -608,4 +615,3 @@ BEGIN
   nl[1] := 0AX;  (* LF *)
   nl[2] := 0X;
 END Platform.
-

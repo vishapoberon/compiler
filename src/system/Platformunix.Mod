@@ -537,7 +537,7 @@ BEGIN
 
   HaltCode    := -128;
   HaltHandler := NIL;
-  TimeStart   := Time();
+  TimeStart   := 0;   TimeStart := Time();
   CWD         := "";  getcwd(CWD);
   PID         := getpid();
 
@@ -548,4 +548,3 @@ BEGIN
   nl[0] := 0AX; (* LF *)
   nl[1] := 0X;
 END Platform.
-
