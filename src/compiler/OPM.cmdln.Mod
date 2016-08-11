@@ -79,6 +79,127 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     HFext = ".h";   (* header file extension *)
     SFtag = 0F7X;   (* symbol file tag *)
 
+
+
+
+    (***** Symbols *****)
+
+
+    (* Symbols values (also used as op values):
+       |  0          1          2          3          4
+    ---|--------------------------------------------------------
+     0 |  null       *          /          DIV        MOD
+     5 |  &          +          -          OR         =
+    10 |  #          <          <=         >          >=
+    15 |  IN         IS         ^          .          ,
+    20 |  :          ..         )          ]          }
+    25 |  OF         THEN       DO         TO         BY
+    30 |  (          [          {          ~          :=
+    35 |  number     NIL        string     OPM.ident      ;
+    40 |  |          END        ELSE       ELSIF      UNTIL
+    45 |  IF         CASE       WHILE      REPEAT     FOR
+    50 |  LOOP       WITH       EXIT       RETURN     ARRAY
+    55 |  RECORD     POINTER    BEGIN      CONST      TYPE
+    60 |  VAR        PROCEDURE  IMPORT     MODULE     eof
+    *)
+
+    null*   = 0;  times*     = 1;  slash*   = 2;  div*    = 3;  mod*       = 4;
+    and*    = 5;  plus*      = 6;  minus*   = 7;  or*     = 8;  eql*       = 9;
+    neq*    = 10; lss*       = 11; leq*     = 12; gtr*    = 13; geq*       = 14;
+    in*     = 15; is*        = 16; arrow*   = 17; period* = 18; comma*     = 19;
+    colon*  = 20; upto*      = 21; rparen*  = 22; rbrak*  = 23; rbrace*    = 24;
+    of*     = 25; then*      = 26; do*      = 27; to*     = 28; by*        = 29;
+    lparen* = 30; lbrak*     = 31; lbrace*  = 32; not*    = 33; becomes*   = 34;
+    number* = 35; nil*       = 36; string*  = 37; ident*  = 38; semicolon* = 39;
+    bar*    = 40; end*       = 41; else*    = 42; elsif*  = 43; until*     = 44;
+    if*     = 45; case*      = 46; while*   = 47; repeat* = 48; for*       = 49;
+    loop*   = 50; with*      = 51; exit*    = 52; return* = 53; array*     = 54;
+    record* = 55; pointer*   = 56; begin*   = 57; const*  = 58; type*      = 59;
+    var*    = 60; procedure* = 61; import*  = 62; module* = 63; eof*       = 64;
+
+    (* Symbol numtyp values *)
+    char* = 1; integer* = 2; real* = 3; longreal* = 4;
+
+
+
+
+    (***** Objects *****)
+
+
+    (* Object.mode values *)
+    Var*   = 1; VarPar* = 2; Con*   = 3;  Fld* = 4;  Typ* = 5;   LProc* = 6;  XProc* = 7;
+    SProc* = 8; CProc*  = 9; IProc* = 10; Mod* = 11; Head* = 12; TProc* = 13;
+
+    (* Object.vis - module visibility of objects *)
+    internal* = 0; external* = 1; externalR* = 2;
+
+    (* Object.history - History of imported objects *)
+    inserted* = 0; same* = 1; pbmodified* = 2; pvmodified* = 3; removed* = 4; inconsistent* = 5;
+
+    (* Object.adr Function numbers *)
+    haltfn*   = 0;  newfn*  = 1;  absfn*    = 2;  capfn*  = 3;  ordfn* = 4;
+    entierfn* = 5;  oddfn*  = 6;  minfn*    = 7;  maxfn*  = 8;  chrfn* = 9;
+    shortfn*  = 10; longfn* = 11; sizefn*   = 12; incfn*  = 13; decfn* = 14;
+    inclfn*   = 15; exclfn* = 16; lenfn*    = 17; copyfn* = 18; ashfn* = 19;
+    adrfn*    = 20; ccfn*   = 21; lshfn*    = 22; rotfn*  = 23; getfn* = 24; (* SYSTEM *)
+    putfn*    = 25; getrfn* = 26; putrfn*   = 27; bitfn*  = 28; valfn* = 29; (* SYSTEM *)
+    sysnewfn* = 30; movefn* = 31;                                            (* SYSTEM *)
+    assertfn* = 32;
+
+
+
+
+    (***** Structures *****)
+
+
+    (* Struct.form values *)
+    Undef*   = 0;  Byte*    = 1;  Bool*    = 2;  Char*    = 3;
+    SInt*    = 4;  Int*     = 5;  LInt*    = 6;
+    Real*    = 7;  LReal*   = 8;  Set*     = 9;  String*  = 10;
+    NilTyp*  = 11; NoTyp*   = 12; Pointer* = 13; ProcTyp* = 14;
+    Comp*    = 15;
+
+    intSet* = {SInt..LInt(*, Int8..Int64*)}; realSet* = {Real, LReal};
+
+    (* Struct.comp - Composite structure forms *)
+    Basic* = 1; Array* = 2; DynArr* = 3; Record* = 4;
+
+
+
+
+    (***** Nodes *****)
+
+
+    (* Node.class values *)
+    Nvar*    = 0;  Nvarpar* = 1;  Nfield*   = 2;  Nderef*  = 3;  Nindex* = 4;  Nguard*  = 5;  Neguard* = 6;
+    Nconst*  = 7;  Ntype*   = 8;  Nproc*    = 9;  Nupto*   = 10; Nmop*   = 11; Ndop*    = 12; Ncall*   = 13;
+    Ninittd* = 14; Nif*     = 15; Ncaselse* = 16; Ncasedo* = 17; Nenter* = 18; Nassign* = 19;
+    Nifelse* = 20; Ncase*   = 21; Nwhile*   = 22; Nrepeat* = 23; Nloop*  = 24; Nexit*   = 25;
+    Nreturn* = 26; Nwith*   = 27; Ntrap*    = 28;
+
+
+    (* Node.subcl values - general *)
+    assign* = 0;  (* Pseudo function number for assignment *)
+    super*  = 1;
+
+    (* Node.subcl values - functions *)
+    ash*   = 17; msk* = 18; len* = 19;
+    conv*  = 20; abs* = 21; cap* = 22; odd* = 23;
+
+    (* Node.subcl values - SYSTEM functions *)
+    adr* = 24; cc* = 25; bit* = 26; lsh* = 27; rot* = 28; val* = 29;
+
+    (* Note: some object.adr function numbers and some symbol types are
+    also are used as Node.subcl function ids *)
+
+
+
+    (* conval^.setval procedure flags *)
+    hasBody* = 1; isRedef* = 2; slNeeded* = 3;
+
+
+
+
   TYPE
     FileName = ARRAY 32 OF CHAR;
 
@@ -142,27 +263,30 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   i := 1; (* skip - *)
     WHILE s[i] # 0X DO
       CASE s[i] OF
-      | "e": opt := opt / {extsf}
-      | "s": opt := opt / {newsf}
-      | "m": opt := opt / {mainprog}
-      | "x": opt := opt / {inxchk}
-      | "r": opt := opt / {ranchk}
-      | "t": opt := opt / {typchk}
+
       | "a": opt := opt / {assert}
-      | "k": opt := opt / {ansi}      (* undocumented *)
-      | "p": opt := opt / {ptrinit}
-      | "S": opt := opt / {dontasm}
       | "c": opt := opt / {dontlink}
-      | "M": opt := opt / {mainlinkstat}
+      | "e": opt := opt / {extsf}
       | "f": opt := opt / {notcoloroutput}
-      | "F": opt := opt / {forcenewsym}
-      | "V": opt := opt / {verbose}
+      | "k": opt := opt / {ansi}             (* undocumented *)
+      | "m": opt := opt / {mainprog}
+      | "p": opt := opt / {ptrinit}
+      | "r": opt := opt / {ranchk}
+      | "s": opt := opt / {newsf}
+      | "t": opt := opt / {typchk}
+      | "x": opt := opt / {inxchk}
+
       | "B": IF s[i+1] # 0X THEN INC(i); IntSize     := ORD(s[i]) - ORD('0') END;
              IF s[i+1] # 0X THEN INC(i); PointerSize := ORD(s[i]) - ORD('0') END;
              IF s[i+1] # 0X THEN INC(i); Alignment   := ORD(s[i]) - ORD('0') END;
              ASSERT((IntSize     = 2) OR (IntSize     = 4));
              ASSERT((PointerSize = 4) OR (PointerSize = 8));
-             ASSERT((Alignment   = 4) OR (Alignment   = 8))
+             ASSERT((Alignment   = 4) OR (Alignment   = 8));
+             Files.SetSearchPath("")
+      | "F": opt := opt / {forcenewsym}
+      | "M": opt := opt / {mainlinkstat}
+      | "S": opt := opt / {dontasm}
+      | "V": opt := opt / {verbose}
       ELSE
         LogWStr("  warning: option ");
         LogW(OptionChar);
@@ -484,10 +608,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END GetProperty;
 
 
-  PROCEDURE minus(i: LONGINT): LONGINT;
+  PROCEDURE minusop(i: LONGINT): LONGINT;
   BEGIN
     RETURN -i;
-  END minus;
+  END minusop;
 
 
   PROCEDURE power0(i, j : LONGINT) : LONGINT; (* we would like to calculate exact Min Max values in GetProperties, not hardcode em, noch *)
@@ -529,9 +653,20 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END VerboseListSizes;
 
 
-  PROCEDURE Min(a,b: INTEGER): INTEGER;
-  BEGIN IF a<b THEN RETURN a ELSE RETURN b END
-  END Min;
+  PROCEDURE AlignSize*(size: LONGINT): INTEGER;
+    VAR align: INTEGER;
+  BEGIN
+    IF size < Alignment THEN
+      IF    size > 8 THEN align := 16
+      ELSIF size > 4 THEN align := 8
+      ELSIF size > 2 THEN align := 4
+      ELSE                align := SHORT(size)
+      END
+    ELSE
+      align := Alignment
+    END;
+    RETURN align
+  END AlignSize;
 
   PROCEDURE GetProperties();
     VAR
@@ -547,28 +682,28 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     SetSize  := LIntSize;
 
     (* Calculate all type alignments *)
-    CharAlign    := Min(Alignment, CharSize);
-    BoolAlign    := Min(Alignment, BoolSize);
-    SIntAlign    := Min(Alignment, SIntSize);
-    RecAlign     := Min(Alignment, RecSize);
-    RealAlign    := Min(Alignment, RealSize);
-    LRealAlign   := Min(Alignment, LRealSize);
-    PointerAlign := Min(Alignment, PointerSize);
-    ProcAlign    := Min(Alignment, ProcSize);
-    IntAlign     := Min(Alignment, IntSize);
-    LIntAlign    := Min(Alignment, LIntSize);
-    SetAlign     := Min(Alignment, SetSize);
+    CharAlign    := AlignSize(CharSize);
+    BoolAlign    := AlignSize(BoolSize);
+    SIntAlign    := AlignSize(SIntSize);
+    RecAlign     := AlignSize(RecSize);
+    RealAlign    := AlignSize(RealSize);
+    LRealAlign   := AlignSize(LRealSize);
+    PointerAlign := AlignSize(PointerSize);
+    ProcAlign    := AlignSize(ProcSize);
+    IntAlign     := AlignSize(IntSize);
+    LIntAlign    := AlignSize(LIntSize);
+    SetAlign     := AlignSize(SetSize);
 
     (* and I'd like to calculate it, not hardcode constants *)
     base := -2;
     MinSInt := ASH(base, SIntSize*8-2);
-    MaxSInt := minus(MinSInt + 1);
+    MaxSInt := minusop(MinSInt + 1);
 
     MinInt := ASH(base, IntSize*8-2);
-    MaxInt := minus(MinInt + 1);
+    MaxInt := minusop(MinInt + 1);
 
     MinLInt := ASH(base, LIntSize*8-2);
-    MaxLInt := minus(MinLInt +1);
+    MaxLInt := minusop(MinLInt +1);
 
     IF RealSize = 4 THEN MaxReal := 3.40282346D38
     ELSIF RealSize = 8 THEN MaxReal := 1.7976931348623157D307 * 9.999999
