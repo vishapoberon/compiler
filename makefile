@@ -106,6 +106,7 @@ configuration: FORCE
 	@./a.o
 	@rm a.o
 	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
+	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
 
 
 
