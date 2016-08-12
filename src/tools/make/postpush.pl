@@ -43,7 +43,7 @@ if ($buildneeded) {
   } else {
     close(STDIN); close(STDOUT); close(STDERR);  # child process
     system 'echo Syncing voc>postpush.log';
-    system '(cd voc; git pull; git checkout -f ' . $branch . '; git pull) >>postpush.log';
+    system '(cd voc; git pull; git checkout -f ' . $branch . '; git pull; git checkout -f) >>postpush.log';
     exec 'perl voc/src/tools/make/buildall.pl ' . $branch . ' >/tmp/buildall.log';
     exit;
   }
