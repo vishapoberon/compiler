@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"

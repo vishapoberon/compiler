@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPC.h"
 #include "OPM.h"
@@ -332,7 +332,7 @@ static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, IN
 					return _o_result;
 					break;
 				default: 
-					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence Nmop, subclass = ", (LONGINT)51);
+					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPM.Nmop, subclass = ", (LONGINT)55);
 					OPM_LogWNum(subclass, ((LONGINT)(0)));
 					OPM_LogWLn();
 					break;
@@ -402,7 +402,7 @@ static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, IN
 					return _o_result;
 					break;
 				default: 
-					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence Ndop, subclass = ", (LONGINT)51);
+					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPM.Ndop, subclass = ", (LONGINT)55);
 					OPM_LogWNum(subclass, ((LONGINT)(0)));
 					OPM_LogWLn();
 					break;
@@ -954,7 +954,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 					}
 					break;
 				case 29: 
-					if ((((__IN(n->typ->form, 0x6240) && __IN(l->typ->form, 0x6240))) && n->typ->size == l->typ->size) || !__IN(l->class, 0x17)) {
+					if (!__IN(l->class, 0x17) || (((__IN(n->typ->form, 0x6240) && __IN(l->typ->form, 0x6240))) && n->typ->size == l->typ->size)) {
 						OPM_Write('(');
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');

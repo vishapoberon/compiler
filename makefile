@@ -133,6 +133,7 @@ clean: configuration
 # full: Full build of compiler and libarary.
 full: configuration
 	@make -f src/tools/make/vishap.make -s installable
+	@-make -f src/tools/make/vishap.make -s uninstall
 	@make -f src/tools/make/vishap.make -s clean
 # Make bootstrap compiler from source suitable for current data model
 	@printf "\n\n--- Compiler build started ---\n\n"

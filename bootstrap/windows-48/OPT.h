@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -59,8 +59,7 @@ typedef
 		INTEGER ref, sysflag;
 		LONGINT n, size, align, txtpos;
 		BOOLEAN allocated, pbused, pvused;
-		char _prvt0[8];
-		LONGINT pbfp, pvfp;
+		char _prvt0[16];
 		OPT_Struct BaseTyp;
 		OPT_Object link, strobj;
 	} OPT_StrDesc;

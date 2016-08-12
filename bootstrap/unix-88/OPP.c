@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPB.h"
@@ -439,10 +439,10 @@ static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned)
 	if (OPP_sym == 38) {
 		OPP_qualident(&id);
 		if (id->mode == 5) {
-			if (id->typ != *banned) {
-				*typ = id->typ;
-			} else {
+			if (id->typ == *banned) {
 				OPP_err(58);
+			} else {
+				*typ = id->typ;
 			}
 		} else {
 			OPP_err(52);

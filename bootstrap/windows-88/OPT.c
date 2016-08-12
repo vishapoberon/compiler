@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -1810,6 +1810,7 @@ export void *OPT__init(void)
 	OPT_syslink = OPT_topScope->right;
 	OPT_universe = OPT_topScope;
 	OPT_topScope->right = NIL;
+	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, OPM_BoolSize, &OPT_booltyp);
 	OPT_EnterTyp((CHAR*)"CHAR", 3, OPM_CharSize, &OPT_chartyp);
 	OPT_EnterTyp((CHAR*)"SET", 9, OPM_SetSize, &OPT_settyp);
 	OPT_EnterTyp((CHAR*)"REAL", 7, OPM_RealSize, &OPT_realtyp);
@@ -1817,7 +1818,6 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"LONGINT", 6, OPM_LIntSize, &OPT_linttyp);
 	OPT_EnterTyp((CHAR*)"LONGREAL", 8, OPM_LRealSize, &OPT_lrltyp);
 	OPT_EnterTyp((CHAR*)"SHORTINT", 4, OPM_SIntSize, &OPT_sinttyp);
-	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, OPM_BoolSize, &OPT_booltyp);
 	OPT_EnterBoolConst((CHAR*)"FALSE", ((LONGINT)(0)));
 	OPT_EnterBoolConst((CHAR*)"TRUE", ((LONGINT)(1)));
 	OPT_EnterProc((CHAR*)"HALT", 0);

@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -18,6 +18,7 @@ import SET OPM_opt, OPM_glbopt;
 import BOOLEAN OPM_dontAsm, OPM_dontLink, OPM_mainProg, OPM_mainLinkStat, OPM_notColorOutput, OPM_forceNewSym, OPM_Verbose;
 
 
+import INTEGER OPM_AlignSize (LONGINT size);
 import void OPM_CloseFiles (void);
 import void OPM_CloseOldSym (void);
 import void OPM_DeleteNewSym (void);

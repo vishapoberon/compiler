@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "OPM.h"
@@ -315,7 +315,7 @@ void OPC_Andent (OPT_Struct typ)
 static BOOLEAN OPC_Undefined (OPT_Object obj)
 {
 	BOOLEAN _o_result;
-	_o_result = (((obj->mnolev >= 0 && obj->linkadr != (LONGINT)(3 + OPM_currFile))) && obj->linkadr != 2) || obj->name[0] == 0x00;
+	_o_result = obj->name[0] == 0x00 || (((obj->mnolev >= 0 && obj->linkadr != (LONGINT)(3 + OPM_currFile))) && obj->linkadr != 2);
 	return _o_result;
 }
 
@@ -1238,8 +1238,8 @@ void OPC_GenHdr (OPT_Node n)
 static void OPC_GenHeaderMsg (void)
 {
 	INTEGER i;
-	OPM_WriteString((CHAR*)"/*", (LONGINT)3);
-	OPM_WriteString((CHAR*)" voc ", (LONGINT)6);
+	OPM_WriteString((CHAR*)"/* ", (LONGINT)4);
+	OPM_WriteString((CHAR*)"voc", (LONGINT)4);
 	OPM_Write(' ');
 	OPM_WriteString(Configuration_versionLong, ((LONGINT)(41)));
 	OPM_Write(' ');

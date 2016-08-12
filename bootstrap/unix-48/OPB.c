@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/07/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
@@ -90,8 +90,8 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 			node = OPT_NewNode(9);
 			break;
 		default: 
-			OPB_err(127);
 			node = OPT_NewNode(0);
+			OPB_err(127);
 			break;
 	}
 	node->obj = obj;
@@ -1596,8 +1596,9 @@ void OPB_SetElem (OPT_Node *x)
 
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 {
+	OPT_Struct y = NIL;
 	INTEGER f, g;
-	OPT_Struct y = NIL, p = NIL, q = NIL;
+	OPT_Struct p = NIL, q = NIL;
 	if (OPM_Verbose) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"PROCEDURE CheckAssign", (LONGINT)22);
@@ -1642,14 +1643,8 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 			}
 			break;
 		case 6: 
-			if (OPM_LIntSize == 4) {
-				if (!__IN(g, 0x70)) {
-					OPB_err(113);
-				}
-			} else {
-				if (!__IN(g, 0x70)) {
-					OPB_err(113);
-				}
+			if (!__IN(g, 0x70)) {
+				OPB_err(113);
 			}
 			break;
 		case 7: 
