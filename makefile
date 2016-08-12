@@ -230,6 +230,8 @@ revertbootstrap:
 
 # --- multi-machine multi-platform build management ---
 
+# NOTE: No longer used. Obsoleted by postpush.pl and buildall.pl.
+
 
 
 # coordinator: Start the test machine coordinator
