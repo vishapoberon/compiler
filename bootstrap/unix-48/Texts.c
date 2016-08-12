@@ -787,9 +787,9 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 		(*S).s[__X(i, ((LONGINT)(64)))] = 0x00;
 		(*S).len = i;
 		(*S).class = 1;
-	} else if (ch == '\"') {
+	} else if (ch == '"') {
 		Texts_Read((void*)&*S, S__typ, &ch);
-		while ((((ch != '\"' && ch >= ' ')) && i != 63)) {
+		while ((((ch != '"' && ch >= ' ')) && i != 63)) {
 			(*S).s[__X(i, ((LONGINT)(64)))] = ch;
 			i += 1;
 			Texts_Read((void*)&*S, S__typ, &ch);

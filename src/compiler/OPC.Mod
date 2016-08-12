@@ -31,7 +31,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     DynTypExt   = "__typ";
     TagExt      = "__typ";
     Tab         = 9X;
-    Backslash   = 5CX;        (* Defined as hex to avoid confusing editor syntax parsing *)
+
+    (* The following are defined as hex to avoid confusing editor syntax highlighting *)
+    Backslash   = 5CX;
+    DoubleQuote = 22X;
 
 
   VAR
@@ -542,9 +545,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     BegStat; OPM.WriteString("__TDESC(");
     Andent(typ);
     Str1(", #", typ^.n + 1); Str1(", #) = {__TDFLDS(", NofPtrs(typ));
-    OPM.Write('"');
+    OPM.Write(DoubleQuote);
     IF typ^.strobj # NIL THEN OPM.WriteStringVar(typ^.strobj^.name) END ;
-    Str1('", #), {', typ^.size);
+    OPM.Write(DoubleQuote);
+    Str1(', #), {', typ^.size);
     nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.LIntSize);
     EndStat
   END TDescDecl;
@@ -562,12 +566,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE Align*(VAR adr: LONGINT; base: LONGINT);
   BEGIN
     CASE base OF
-    |  2: INC(adr, adr MOD 2)
+    |  2: INC(adr,   adr  MOD 2)
     |  4: INC(adr, (-adr) MOD 4)
     |  8: INC(adr, (-adr) MOD 8)
-    |16: INC(adr, (-adr) MOD 16)
-    ELSE (*1*)
-       (*OPM.LogWStr("unhandled case at OPC.Align, base = "); OPM.LogWNum(base, 0); OPM.LogWLn;*)
+    | 16: INC(adr, (-adr) MOD 16)
+    ELSE (*1*) (*OPM.LogWStr("unhandled case at OPC.Align, base = "); OPM.LogWNum(base, 0); OPM.LogWLn;*)
     END
   END Align;
 
@@ -585,10 +588,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     | OPM.Set:     RETURN OPM.SetAlign
     | OPM.Pointer: RETURN OPM.PointerAlign
     | OPM.ProcTyp: RETURN OPM.ProcAlign
-    | OPM.Comp:
-      IF typ^.comp = OPM.Record THEN RETURN typ^.align MOD 10000H
-      ELSE RETURN Base(typ^.BaseTyp)
-      END
+    | OPM.Comp:    IF typ^.comp = OPM.Record THEN RETURN typ^.align MOD 10000H
+                   ELSE RETURN Base(typ^.BaseTyp)
+                   END
     ELSE OPM.LogWStr("unhandled case in OPC.Base, typ^form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;
     END
   END Base;
@@ -749,8 +751,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   PROCEDURE Include(name: ARRAY OF CHAR);
   BEGIN
-    OPM.WriteString("#include "); OPM.Write('"'); OPM.WriteStringVar(name);
-    OPM.WriteString(".h"); OPM.Write('"'); OPM.WriteLn
+    OPM.WriteString("#include "); OPM.Write(DoubleQuote); OPM.WriteStringVar(name);
+    OPM.WriteString(".h"); OPM.Write(DoubleQuote); OPM.WriteLn
   END Include;
 
   PROCEDURE IncludeImports(obj: OPT.Object; vis: INTEGER);
@@ -821,14 +823,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         | OPM.notcoloroutput: OPM.Write("f")
         | OPM.forcenewsym:    OPM.Write("F")
         | OPM.verbose:        OPM.Write("v")
-        ELSE
-           (* this else is necessary cause
-           if someone defined a new option in OPM module
-           and forgot to add it here then
-           if option is passed this will
-           generate __CASECHK and cause Halt,
-           noch *)
-                 OPM.LogWStr ("( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg"); OPM.LogWLn;
+        ELSE OPM.LogWStr ("( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg"); OPM.LogWLn;
         END
       END
     END;
@@ -1173,22 +1168,55 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE Cmp*(rel: INTEGER);
   BEGIN
     CASE rel OF
-      OPM.eql :
-          OPM.WriteString(" == ");
-    |  OPM.neq :
-          OPM.WriteString(" != ");
-    |  OPM.lss :
-          OPM.WriteString(" < ");
-    |  OPM.leq :
-          OPM.WriteString(" <= ");
-    |  OPM.gtr :
-          OPM.WriteString(" > ");
-    |  OPM.geq :
-          OPM.WriteString(" >= ");
-    ELSE
-       OPM.LogWStr("unhandled case in OPC.Cmp, rel = "); OPM.LogWNum(rel, 0); OPM.LogWLn;
+    | OPM.eql: OPM.WriteString(" == ")
+    | OPM.neq: OPM.WriteString(" != ")
+    | OPM.lss: OPM.WriteString(" < ")
+    | OPM.leq: OPM.WriteString(" <= ")
+    | OPM.gtr: OPM.WriteString(" > ")
+    | OPM.geq: OPM.WriteString(" >= ")
+    ELSE OPM.LogWStr("unhandled case in OPC.Cmp, rel = "); OPM.LogWNum(rel, 0); OPM.LogWLn;
     END;
   END Cmp;
+
+  PROCEDURE CharacterLiteral(c: LONGINT);
+  BEGIN
+    IF (c < 32) OR (c > 126) THEN
+      OPM.WriteString("0x"); OPM.WriteHex(c)
+    ELSE
+      OPM.Write("'");
+      IF (c = ORD(Backslash)) OR (c = ORD("'"))  OR (c = ORD("?")) THEN
+        OPM.Write(Backslash)
+      END;
+      OPM.Write(CHR(c));
+      OPM.Write("'")
+    END
+  END CharacterLiteral;
+
+  PROCEDURE StringLiteral(s: ARRAY OF CHAR; l: LONGINT);
+    VAR i: LONGINT; c: INTEGER;
+  BEGIN
+    OPM.Write(DoubleQuote);
+    i := 0; WHILE i < l DO
+      c := ORD(s[i]);
+      IF (c < 32) OR (c > 126) THEN
+        (* Encode binary character value using exactly 3 octal digits.
+           Use octal in preference to hex as only the octal escape
+           syntax ensures a subsequent character will not be absorbed
+           into this literal. *)
+        OPM.Write(Backslash);
+        OPM.Write(CHR(ORD("0") + c DIV 64)); c := c MOD 64;
+        OPM.Write(CHR(ORD("0") + c DIV 8));  c := c MOD 8;
+        OPM.Write(CHR(ORD("0") + c))
+      ELSE
+        IF (c = ORD(Backslash)) OR (c = ORD(DoubleQuote))  OR (c = ORD("?")) THEN
+          OPM.Write(Backslash)
+        END;
+        OPM.Write(CHR(c));
+      END;
+      INC(i);
+    END;
+    OPM.Write(DoubleQuote)
+  END StringLiteral;
 
   PROCEDURE Case*(caseVal: LONGINT; form: INTEGER);
   VAR
@@ -1196,21 +1224,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     OPM.WriteString('case ');
     CASE form OF
-    |  OPM.Char :
-          ch := CHR (caseVal);
-          IF (ch >= " ") & (ch <= "~") THEN
-            OPM.Write("'");
-            IF (ch = Backslash) OR (ch = "?") OR (ch = "'") OR (ch = '"') THEN OPM.Write(Backslash); OPM.Write(ch);
-            ELSE OPM.Write(ch);
-            END;
-            OPM.Write("'");
-          ELSE
-            OPM.WriteString("0x"); OPM.WriteHex (caseVal);
-          END;
-    |  OPM.SInt, OPM.Int, OPM.LInt :
-          OPM.WriteInt(caseVal);
-    ELSE
-       OPM.LogWStr("unhandled case in OPC.Case, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
+    | OPM.Char: CharacterLiteral(caseVal)
+    | OPM.SInt,
+      OPM.Int,
+      OPM.LInt: OPM.WriteInt(caseVal);
+    ELSE OPM.LogWStr("unhandled case in OPC.Case, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
     END;
     OPM.WriteString(': ');
   END Case;
@@ -1242,58 +1260,36 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END Len;
 
   PROCEDURE Constant* (con: OPT.Const; form: INTEGER);
-    VAR i, len: INTEGER; ch: CHAR; s: SET;
+    VAR i: INTEGER; s: SET;
       hex: LONGINT; skipLeading: BOOLEAN;
   BEGIN
     CASE form OF
-      OPM.Byte:
-          OPM.WriteInt(con^.intval)
-    |  OPM.Bool:
-          OPM.WriteInt(con^.intval)
-    |  OPM.Char:
-          ch := CHR(con^.intval);
-          IF (ch >= " ") & (ch <= "~") THEN
-            OPM.Write("'");
-            IF (ch = Backslash) OR (ch = "?") OR (ch = "'") OR (ch = '"') THEN OPM.Write(Backslash) END ;
-            OPM.Write(ch);
-            OPM.Write("'")
-          ELSE
-            OPM.WriteString("0x"); OPM.WriteHex(con^.intval)
-          END
-    |  OPM.SInt, OPM.Int, OPM.LInt:
-          OPM.WriteInt(con^.intval)
-    |  OPM.Real:
-          OPM.WriteReal(con^.realval, "f")
-    |  OPM.LReal:
-          OPM.WriteReal(con^.realval, 0X)
-    |  OPM.Set:
-          OPM.WriteString("0x");
-          skipLeading := TRUE;
-          s := con^.setval; i := MAX(SET) + 1;
-          REPEAT
-            hex := 0;
-            REPEAT
-              DEC(i); hex := 2 * hex;
-              IF i IN s THEN INC(hex) END
-            UNTIL i MOD 8 = 0;
-            IF (hex # 0) OR ~skipLeading THEN
-              OPM.WriteHex(hex);
-              skipLeading := FALSE
-            END
-          UNTIL i = 0;
-          IF skipLeading THEN OPM.Write("0") END
-    |  OPM.String:
-          OPM.Write('"');
-          len := SHORT(con^.intval2) - 1; i := 0;
-          WHILE i < len DO ch := con^.ext^[i];
-            IF (ch = Backslash) OR (ch = "?") OR (ch = "'") OR (ch = '"') THEN OPM.Write(Backslash) END ;
-            OPM.Write(ch); INC(i)
-          END ;
-          OPM.Write('"')
-    |  OPM.NilTyp:
-          OPM.WriteString('NIL');
-    ELSE
-       OPM.LogWStr("unhandled case in OPC.Constant, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
+    | OPM.Byte:   OPM.WriteInt(con^.intval)
+    | OPM.Bool:   OPM.WriteInt(con^.intval)
+    | OPM.Char:   CharacterLiteral(con.intval)
+    | OPM.SInt,
+      OPM.Int,
+      OPM.LInt:   OPM.WriteInt(con^.intval)
+    | OPM.Real:   OPM.WriteReal(con^.realval, "f")
+    | OPM.LReal:  OPM.WriteReal(con^.realval, 0X)
+    | OPM.Set:    OPM.WriteString("0x");
+                  skipLeading := TRUE;
+                  s := con^.setval; i := MAX(SET) + 1;
+                  REPEAT
+                    hex := 0;
+                    REPEAT
+                      DEC(i); hex := 2 * hex;
+                      IF i IN s THEN INC(hex) END
+                    UNTIL i MOD 8 = 0;
+                    IF (hex # 0) OR ~skipLeading THEN
+                      OPM.WriteHex(hex);
+                      skipLeading := FALSE
+                    END
+                  UNTIL i = 0;
+                  IF skipLeading THEN OPM.Write("0") END
+    | OPM.String: StringLiteral(con.ext^, con.intval2-1)
+    | OPM.NilTyp: OPM.WriteString('NIL');
+    ELSE OPM.LogWStr("unhandled case in OPC.Constant, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
     END;
   END Constant;
 

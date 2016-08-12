@@ -22,6 +22,7 @@ export void OPC_BegBlk (void);
 export void OPC_BegStat (void);
 static void OPC_CProcDefs (OPT_Object obj, INTEGER vis);
 export void OPC_Case (LONGINT caseVal, INTEGER form);
+static void OPC_CharacterLiteral (LONGINT c);
 export void OPC_Cmp (INTEGER rel);
 export void OPC_CompleteIdent (OPT_Object obj);
 export void OPC_Constant (OPT_Const con, INTEGER form);
@@ -75,6 +76,7 @@ static void OPC_RegCmds (OPT_Object obj);
 export void OPC_SetInclude (BOOLEAN exclude);
 static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause);
 static void OPC_Str1 (CHAR *s, LONGINT s__len, LONGINT x);
+static void OPC_StringLiteral (CHAR *s, LONGINT s__len, LONGINT l);
 export void OPC_TDescDecl (OPT_Struct typ);
 export void OPC_TypeDefs (OPT_Object obj, INTEGER vis);
 export void OPC_TypeOf (OPT_Object ap);
@@ -815,11 +817,12 @@ void OPC_TDescDecl (OPT_Struct typ)
 	OPC_Andent(typ);
 	OPC_Str1((CHAR*)", #", (LONGINT)4, typ->n + 1);
 	OPC_Str1((CHAR*)", #) = {__TDFLDS(", (LONGINT)18, OPC_NofPtrs(typ));
-	OPM_Write('\"');
+	OPM_Write('"');
 	if (typ->strobj != NIL) {
 		OPM_WriteStringVar((void*)typ->strobj->name, ((LONGINT)(256)));
 	}
-	OPC_Str1((CHAR*)"\", #), {", (LONGINT)9, typ->size);
+	OPM_Write('"');
+	OPC_Str1((CHAR*)", #), {", (LONGINT)8, typ->size);
 	nofptrs = 0;
 	OPC_PutPtrOffsets(typ, ((LONGINT)(0)), &nofptrs);
 	OPC_Str1((CHAR*)"#}}", (LONGINT)4, -((nofptrs + 1) * (LONGINT)OPM_LIntSize));
@@ -1170,10 +1173,10 @@ static void OPC_Include (CHAR *name, LONGINT name__len)
 {
 	__DUP(name, name__len, CHAR);
 	OPM_WriteString((CHAR*)"#include ", (LONGINT)10);
-	OPM_Write('\"');
+	OPM_Write('"');
 	OPM_WriteStringVar((void*)name, name__len);
 	OPM_WriteString((CHAR*)".h", (LONGINT)3);
-	OPM_Write('\"');
+	OPM_Write('"');
 	OPM_WriteLn();
 	__DEL(name);
 }
@@ -1855,26 +1858,56 @@ void OPC_Cmp (INTEGER rel)
 	}
 }
 
+static void OPC_CharacterLiteral (LONGINT c)
+{
+	if (c < 32 || c > 126) {
+		OPM_WriteString((CHAR*)"0x", (LONGINT)3);
+		OPM_WriteHex(c);
+	} else {
+		OPM_Write('\'');
+		if ((c == 92 || c == 39) || c == 63) {
+			OPM_Write('\\');
+		}
+		OPM_Write((CHAR)c);
+		OPM_Write('\'');
+	}
+}
+
+static void OPC_StringLiteral (CHAR *s, LONGINT s__len, LONGINT l)
+{
+	LONGINT i;
+	INTEGER c;
+	__DUP(s, s__len, CHAR);
+	OPM_Write('"');
+	i = 0;
+	while (i < l) {
+		c = (int)s[__X(i, s__len)];
+		if (c < 32 || c > 126) {
+			OPM_Write('\\');
+			OPM_Write((CHAR)(48 + __ASHR(c, 6)));
+			c = __MASK(c, -64);
+			OPM_Write((CHAR)(48 + __ASHR(c, 3)));
+			c = __MASK(c, -8);
+			OPM_Write((CHAR)(48 + c));
+		} else {
+			if ((c == 92 || c == 34) || c == 63) {
+				OPM_Write('\\');
+			}
+			OPM_Write((CHAR)c);
+		}
+		i += 1;
+	}
+	OPM_Write('"');
+	__DEL(s);
+}
+
 void OPC_Case (LONGINT caseVal, INTEGER form)
 {
 	CHAR ch;
 	OPM_WriteString((CHAR*)"case ", (LONGINT)6);
 	switch (form) {
 		case 3: 
-			ch = (CHAR)caseVal;
-			if ((ch >= ' ' && ch <= '~')) {
-				OPM_Write('\'');
-				if (((ch == '\\' || ch == '\?') || ch == '\'') || ch == '\"') {
-					OPM_Write('\\');
-					OPM_Write(ch);
-				} else {
-					OPM_Write(ch);
-				}
-				OPM_Write('\'');
-			} else {
-				OPM_WriteString((CHAR*)"0x", (LONGINT)3);
-				OPM_WriteHex(caseVal);
-			}
+			OPC_CharacterLiteral(caseVal);
 			break;
 		case 4: case 5: case 6: 
 			OPM_WriteInt(caseVal);
@@ -1932,8 +1965,7 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, LONGINT dim)
 
 void OPC_Constant (OPT_Const con, INTEGER form)
 {
-	INTEGER i, len;
-	CHAR ch;
+	INTEGER i;
 	SET s;
 	LONGINT hex;
 	BOOLEAN skipLeading;
@@ -1945,18 +1977,7 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 			OPM_WriteInt(con->intval);
 			break;
 		case 3: 
-			ch = (CHAR)con->intval;
-			if ((ch >= ' ' && ch <= '~')) {
-				OPM_Write('\'');
-				if (((ch == '\\' || ch == '\?') || ch == '\'') || ch == '\"') {
-					OPM_Write('\\');
-				}
-				OPM_Write(ch);
-				OPM_Write('\'');
-			} else {
-				OPM_WriteString((CHAR*)"0x", (LONGINT)3);
-				OPM_WriteHex(con->intval);
-			}
+			OPC_CharacterLiteral(con->intval);
 			break;
 		case 4: case 5: case 6: 
 			OPM_WriteInt(con->intval);
@@ -1991,18 +2012,7 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 			}
 			break;
 		case 10: 
-			OPM_Write('\"');
-			len = (int)con->intval2 - 1;
-			i = 0;
-			while (i < len) {
-				ch = (*con->ext)[__X(i, ((LONGINT)(256)))];
-				if (((ch == '\\' || ch == '\?') || ch == '\'') || ch == '\"') {
-					OPM_Write('\\');
-				}
-				OPM_Write(ch);
-				i += 1;
-			}
-			OPM_Write('\"');
+			OPC_StringLiteral(*con->ext, ((LONGINT)(256)), con->intval2 - 1);
 			break;
 		case 11: 
 			OPM_WriteString((CHAR*)"NIL", (LONGINT)4);
@@ -2015,74 +2025,74 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 	}
 }
 
-static struct InitKeywords__47 {
+static struct InitKeywords__48 {
 	SHORTINT *n;
-	struct InitKeywords__47 *lnk;
-} *InitKeywords__47_s;
+	struct InitKeywords__48 *lnk;
+} *InitKeywords__48_s;
 
-static void Enter__48 (CHAR *s, LONGINT s__len);
+static void Enter__49 (CHAR *s, LONGINT s__len);
 
-static void Enter__48 (CHAR *s, LONGINT s__len)
+static void Enter__49 (CHAR *s, LONGINT s__len)
 {
 	INTEGER h;
 	__DUP(s, s__len, CHAR);
 	h = OPC_PerfectHash((void*)s, s__len);
-	OPC_hashtab[__X(h, ((LONGINT)(105)))] = *InitKeywords__47_s->n;
-	__COPY(s, OPC_keytab[__X(*InitKeywords__47_s->n, ((LONGINT)(36)))], ((LONGINT)(9)));
-	*InitKeywords__47_s->n += 1;
+	OPC_hashtab[__X(h, ((LONGINT)(105)))] = *InitKeywords__48_s->n;
+	__COPY(s, OPC_keytab[__X(*InitKeywords__48_s->n, ((LONGINT)(36)))], ((LONGINT)(9)));
+	*InitKeywords__48_s->n += 1;
 	__DEL(s);
 }
 
 static void OPC_InitKeywords (void)
 {
 	SHORTINT n, i;
-	struct InitKeywords__47 _s;
+	struct InitKeywords__48 _s;
 	_s.n = &n;
-	_s.lnk = InitKeywords__47_s;
-	InitKeywords__47_s = &_s;
+	_s.lnk = InitKeywords__48_s;
+	InitKeywords__48_s = &_s;
 	n = 0;
 	i = 0;
 	while (i <= 104) {
 		OPC_hashtab[__X(i, ((LONGINT)(105)))] = -1;
 		i += 1;
 	}
-	Enter__48((CHAR*)"asm", (LONGINT)4);
-	Enter__48((CHAR*)"auto", (LONGINT)5);
-	Enter__48((CHAR*)"break", (LONGINT)6);
-	Enter__48((CHAR*)"case", (LONGINT)5);
-	Enter__48((CHAR*)"char", (LONGINT)5);
-	Enter__48((CHAR*)"const", (LONGINT)6);
-	Enter__48((CHAR*)"continue", (LONGINT)9);
-	Enter__48((CHAR*)"default", (LONGINT)8);
-	Enter__48((CHAR*)"do", (LONGINT)3);
-	Enter__48((CHAR*)"double", (LONGINT)7);
-	Enter__48((CHAR*)"else", (LONGINT)5);
-	Enter__48((CHAR*)"enum", (LONGINT)5);
-	Enter__48((CHAR*)"extern", (LONGINT)7);
-	Enter__48((CHAR*)"export", (LONGINT)7);
-	Enter__48((CHAR*)"float", (LONGINT)6);
-	Enter__48((CHAR*)"for", (LONGINT)4);
-	Enter__48((CHAR*)"fortran", (LONGINT)8);
-	Enter__48((CHAR*)"goto", (LONGINT)5);
-	Enter__48((CHAR*)"if", (LONGINT)3);
-	Enter__48((CHAR*)"import", (LONGINT)7);
-	Enter__48((CHAR*)"int", (LONGINT)4);
-	Enter__48((CHAR*)"long", (LONGINT)5);
-	Enter__48((CHAR*)"register", (LONGINT)9);
-	Enter__48((CHAR*)"return", (LONGINT)7);
-	Enter__48((CHAR*)"short", (LONGINT)6);
-	Enter__48((CHAR*)"signed", (LONGINT)7);
-	Enter__48((CHAR*)"sizeof", (LONGINT)7);
-	Enter__48((CHAR*)"static", (LONGINT)7);
-	Enter__48((CHAR*)"struct", (LONGINT)7);
-	Enter__48((CHAR*)"switch", (LONGINT)7);
-	Enter__48((CHAR*)"typedef", (LONGINT)8);
-	Enter__48((CHAR*)"union", (LONGINT)6);
-	Enter__48((CHAR*)"unsigned", (LONGINT)9);
-	Enter__48((CHAR*)"void", (LONGINT)5);
-	Enter__48((CHAR*)"volatile", (LONGINT)9);
-	Enter__48((CHAR*)"while", (LONGINT)6);
-	InitKeywords__47_s = _s.lnk;
+	Enter__49((CHAR*)"asm", (LONGINT)4);
+	Enter__49((CHAR*)"auto", (LONGINT)5);
+	Enter__49((CHAR*)"break", (LONGINT)6);
+	Enter__49((CHAR*)"case", (LONGINT)5);
+	Enter__49((CHAR*)"char", (LONGINT)5);
+	Enter__49((CHAR*)"const", (LONGINT)6);
+	Enter__49((CHAR*)"continue", (LONGINT)9);
+	Enter__49((CHAR*)"default", (LONGINT)8);
+	Enter__49((CHAR*)"do", (LONGINT)3);
+	Enter__49((CHAR*)"double", (LONGINT)7);
+	Enter__49((CHAR*)"else", (LONGINT)5);
+	Enter__49((CHAR*)"enum", (LONGINT)5);
+	Enter__49((CHAR*)"extern", (LONGINT)7);
+	Enter__49((CHAR*)"export", (LONGINT)7);
+	Enter__49((CHAR*)"float", (LONGINT)6);
+	Enter__49((CHAR*)"for", (LONGINT)4);
+	Enter__49((CHAR*)"fortran", (LONGINT)8);
+	Enter__49((CHAR*)"goto", (LONGINT)5);
+	Enter__49((CHAR*)"if", (LONGINT)3);
+	Enter__49((CHAR*)"import", (LONGINT)7);
+	Enter__49((CHAR*)"int", (LONGINT)4);
+	Enter__49((CHAR*)"long", (LONGINT)5);
+	Enter__49((CHAR*)"register", (LONGINT)9);
+	Enter__49((CHAR*)"return", (LONGINT)7);
+	Enter__49((CHAR*)"short", (LONGINT)6);
+	Enter__49((CHAR*)"signed", (LONGINT)7);
+	Enter__49((CHAR*)"sizeof", (LONGINT)7);
+	Enter__49((CHAR*)"static", (LONGINT)7);
+	Enter__49((CHAR*)"struct", (LONGINT)7);
+	Enter__49((CHAR*)"switch", (LONGINT)7);
+	Enter__49((CHAR*)"typedef", (LONGINT)8);
+	Enter__49((CHAR*)"union", (LONGINT)6);
+	Enter__49((CHAR*)"unsigned", (LONGINT)9);
+	Enter__49((CHAR*)"void", (LONGINT)5);
+	Enter__49((CHAR*)"volatile", (LONGINT)9);
+	Enter__49((CHAR*)"while", (LONGINT)6);
+	InitKeywords__48_s = _s.lnk;
 }
 
 

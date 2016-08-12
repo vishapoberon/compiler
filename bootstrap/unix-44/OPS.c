@@ -325,7 +325,7 @@ void OPS_Get (SHORTINT *sym)
 		}
 	}
 	switch (OPS_ch) {
-		case '\"': case '\'': 
+		case '"': case '\'': 
 			OPS_Str(&s);
 			break;
 		case '#': 
