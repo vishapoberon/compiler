@@ -176,95 +176,99 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
       END
     END ;
     CASE ch OF   (* ch > " " *)
-      | 22X, 27X  : Str(s)
-      | "#"  : s := OPM.neq; OPM.Get(ch)
-      | "&"  : s := OPM.and; OPM.Get(ch)
-      | "("  : OPM.Get(ch);
-               IF ch = "*" THEN Comment; Get(s) ELSE s := OPM.lparen END
-      | ")"  : s := OPM.rparen; OPM.Get(ch)
-      | "*"  : s := OPM.times;  OPM.Get(ch)
-      | "+"  : s := OPM.plus;   OPM.Get(ch)
-      | ","  : s := OPM.comma;  OPM.Get(ch)
-      | "-"  : s := OPM.minus;  OPM.Get(ch)
-      | "."  : OPM.Get(ch);
-               IF ch = "." THEN OPM.Get(ch); s := OPM.upto ELSE s := OPM.period END
-      | "/"  : s := OPM.slash;  OPM.Get(ch)
-      | "0".."9": Number; s := OPM.number
-      | ":"  : OPM.Get(ch);
-               IF ch = "=" THEN OPM.Get(ch); s := OPM.becomes ELSE s := OPM.colon END
-      | ";"  : s := OPM.semicolon; OPM.Get(ch)
-      | "<"  : OPM.Get(ch);
-               IF ch = "=" THEN OPM.Get(ch); s := OPM.leq ELSE s := OPM.lss END
-      | "="  : s :=  OPM.eql; OPM.Get(ch)
-      | ">"  : OPM.Get(ch);
-               IF ch = "=" THEN OPM.Get(ch); s := OPM.geq ELSE s := OPM.gtr END
-      | "A": Identifier(s); IF name = "ARRAY" THEN s := OPM.array END
-      | "B": Identifier(s);
-            IF name = "BEGIN" THEN s := OPM.begin
-            ELSIF name = "BY" THEN s := OPM.by
-            END
-      | "C": Identifier(s);
-            IF name = "CASE" THEN s := OPM.case
-            ELSIF name = "CONST" THEN s := OPM.const
-            END
-      | "D": Identifier(s);
-            IF name = "DO" THEN s := OPM.do
-            ELSIF name = "DIV" THEN s := OPM.div
-            END
-      | "E": Identifier(s);
-            IF name = "END" THEN s := OPM.end
-            ELSIF name = "ELSE" THEN s := OPM.else
-            ELSIF name = "ELSIF" THEN s := OPM.elsif
-            ELSIF name = "EXIT" THEN s := OPM.exit
-            END
-      | "F": Identifier(s); IF name = "FOR" THEN s := OPM.for END
-      | "I": Identifier(s);
-            IF name = "IF" THEN s := OPM.if
-            ELSIF name = "IN" THEN s := OPM.in
-            ELSIF name = "IS" THEN s := OPM.is
-            ELSIF name = "IMPORT" THEN s := OPM.import
-            END
-      | "L": Identifier(s); IF name = "LOOP" THEN s := OPM.loop END
-      | "M": Identifier(s);
-            IF name = "MOD" THEN s := OPM.mod
-            ELSIF name = "MODULE" THEN s := OPM.module
-            END
-      | "N": Identifier(s); IF name = "NIL" THEN s := OPM.nil END
-      | "O": Identifier(s);
-            IF name = "OR" THEN s := OPM.or
-            ELSIF name = "OF" THEN s := OPM.of
-            END
-      | "P": Identifier(s);
-            IF name = "PROCEDURE" THEN s := OPM.procedure
-            ELSIF name = "POINTER" THEN s := OPM.pointer
-            END
-      | "R": Identifier(s);
-            IF name = "RECORD" THEN s := OPM.record
-            ELSIF name = "REPEAT" THEN s := OPM.repeat
-            ELSIF name = "RETURN" THEN s := OPM.return
-            END
-      | "T": Identifier(s);
-            IF name = "THEN" THEN s := OPM.then
-            ELSIF name = "TO" THEN s := OPM.to
-            ELSIF name = "TYPE" THEN s := OPM.type
-            END
-      | "U": Identifier(s); IF name = "UNTIL" THEN s := OPM.until END
-      | "V": Identifier(s); IF name = "VAR" THEN s := OPM.var END
-      | "W": Identifier(s);
-            IF name = "WHILE" THEN s := OPM.while
-            ELSIF name = "WITH" THEN s := OPM.with
-            END
-      | "G".."H", "J", "K", "Q", "S", "X".."Z": Identifier(s)
-      | "["  : s := OPM.lbrak; OPM.Get(ch)
-      | "]"  : s := OPM.rbrak; OPM.Get(ch)
-      | "^"  : s := OPM.arrow; OPM.Get(ch)
-      | "a".."z": Identifier(s)
-      | "{"  : s := OPM.lbrace; OPM.Get(ch)
-      | "|"  : s := OPM.bar; OPM.Get(ch)
-      | "}"  : s := OPM.rbrace; OPM.Get(ch)
-      | "~"  : s := OPM.not; OPM.Get(ch)
-      | 7FX  : s := OPM.upto; OPM.Get(ch)
-    ELSE s :=  OPM.null; OPM.Get(ch)
+    | 22X,
+      27X:      Str(s)
+    | "#":      s := OPM.neq; OPM.Get(ch)
+    | "&":      s := OPM.and; OPM.Get(ch)
+    | "(":      OPM.Get(ch);
+                IF ch = "*" THEN Comment; Get(s) ELSE s := OPM.lparen END
+    | ")":      s := OPM.rparen; OPM.Get(ch)
+    | "*":      s := OPM.times;  OPM.Get(ch)
+    | "+":      s := OPM.plus;   OPM.Get(ch)
+    | ",":      s := OPM.comma;  OPM.Get(ch)
+    | "-":      s := OPM.minus;  OPM.Get(ch)
+    | ".":      OPM.Get(ch);
+                IF ch = "." THEN OPM.Get(ch); s := OPM.upto ELSE s := OPM.period END
+    | "/":      s := OPM.slash;  OPM.Get(ch)
+    | "0".."9": Number; s := OPM.number
+    | ":":      OPM.Get(ch);
+                IF ch = "=" THEN OPM.Get(ch); s := OPM.becomes ELSE s := OPM.colon END
+    | ";":      s := OPM.semicolon; OPM.Get(ch)
+    | "<":      OPM.Get(ch);
+                IF ch = "=" THEN OPM.Get(ch); s := OPM.leq ELSE s := OPM.lss END
+    | "=":      s :=  OPM.eql; OPM.Get(ch)
+    | ">":      OPM.Get(ch);
+                IF ch = "=" THEN OPM.Get(ch); s := OPM.geq ELSE s := OPM.gtr END
+    | "A":      Identifier(s); IF name = "ARRAY" THEN s := OPM.array END
+    | "B":      Identifier(s);
+                IF    name = "BEGIN" THEN s := OPM.begin
+                ELSIF name = "BY"    THEN s := OPM.by
+                END
+    | "C":      Identifier(s);
+                IF    name = "CASE"  THEN s := OPM.case
+                ELSIF name = "CONST" THEN s := OPM.const
+                END
+    | "D":      Identifier(s);
+                IF    name = "DO"  THEN s := OPM.do
+                ELSIF name = "DIV" THEN s := OPM.div
+                END
+    | "E":      Identifier(s);
+                IF    name = "END"   THEN s := OPM.end
+                ELSIF name = "ELSE"  THEN s := OPM.else
+                ELSIF name = "ELSIF" THEN s := OPM.elsif
+                ELSIF name = "EXIT"  THEN s := OPM.exit
+                END
+    | "F":      Identifier(s); IF name = "FOR" THEN s := OPM.for END
+    | "I":      Identifier(s);
+                IF    name = "IF"     THEN s := OPM.if
+                ELSIF name = "IN"     THEN s := OPM.in
+                ELSIF name = "IS"     THEN s := OPM.is
+                ELSIF name = "IMPORT" THEN s := OPM.import
+                END
+    | "L":      Identifier(s); IF name = "LOOP" THEN s := OPM.loop END
+    | "M":      Identifier(s);
+                IF    name = "MOD"    THEN s := OPM.mod
+                ELSIF name = "MODULE" THEN s := OPM.module
+                END
+    | "N":      Identifier(s); IF name = "NIL" THEN s := OPM.nil END
+    | "O":      Identifier(s);
+                IF    name = "OR" THEN s := OPM.or
+                ELSIF name = "OF" THEN s := OPM.of
+                END
+    | "P":      Identifier(s);
+                IF    name = "PROCEDURE" THEN s := OPM.procedure
+                ELSIF name = "POINTER"   THEN s := OPM.pointer
+                END
+    | "R":      Identifier(s);
+                IF    name = "RECORD" THEN s := OPM.record
+                ELSIF name = "REPEAT" THEN s := OPM.repeat
+                ELSIF name = "RETURN" THEN s := OPM.return
+                END
+    | "T":      Identifier(s);
+                IF    name = "THEN" THEN s := OPM.then
+                ELSIF name = "TO"   THEN s := OPM.to
+                ELSIF name = "TYPE" THEN s := OPM.type
+                END
+    | "U":      Identifier(s); IF name = "UNTIL" THEN s := OPM.until END
+    | "V":      Identifier(s); IF name = "VAR"   THEN s := OPM.var END
+    | "W":      Identifier(s);
+                IF    name = "WHILE" THEN s := OPM.while
+                ELSIF name = "WITH"  THEN s := OPM.with
+                END
+    | "G".."H",
+      "J".."K",
+      "Q", "S",
+      "X".."Z": Identifier(s)
+    | "[":      s := OPM.lbrak;  OPM.Get(ch)
+    | "]":      s := OPM.rbrak;  OPM.Get(ch)
+    | "^":      s := OPM.arrow;  OPM.Get(ch)
+    | "a".."z": Identifier(s)
+    | "{":      s := OPM.lbrace; OPM.Get(ch)
+    | "|":      s := OPM.bar;    OPM.Get(ch)
+    | "}":      s := OPM.rbrace; OPM.Get(ch)
+    | "~":      s := OPM.not;    OPM.Get(ch)
+    | 7FX:      s := OPM.upto;   OPM.Get(ch)
+    ELSE        s := OPM.null;   OPM.Get(ch)
     END ;
     sym := s
   END Get;
