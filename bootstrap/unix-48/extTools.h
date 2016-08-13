@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/12] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/13] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef extTools__h
 #define extTools__h
