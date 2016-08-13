@@ -95,7 +95,47 @@ BEGIN
 
 END Shift;
 
+
+PROCEDURE TestValue(v,e: LONGINT; name: ARRAY OF CHAR);
+BEGIN
+  IF v # e THEN
+    Console.String(name);
+    Console.String(" = ");
+    Console.Int(v,1);
+    Console.String(", expected ");
+    Console.Int(e,1);
+    Console.Ln;
+  END
+END TestValue;
+
+PROCEDURE IntSize;
+  VAR l: LONGINT;
+BEGIN
+  TestValue(MIN(SHORTINT), -80H, "MIN(SHORTINT)");
+  TestValue(MAX(SHORTINT),  7FH, "MAX(SHORTINT)");
+  IF SIZE(INTEGER) = 2 THEN (* 32 bit machine *)
+    TestValue(MIN(INTEGER),      -7FFFH - 1, "MIN(INTEGER)");
+    TestValue(MAX(INTEGER),       7FFFH,     "MAX(INTEGER)");
+    TestValue(MIN(LONGINT),  -7FFFFFFFH - 1, "MIN(LONGINT)");
+    TestValue(MAX(LONGINT),   7FFFFFFFH,     "MAX(LONGINT)");
+  ELSIF SIZE(INTEGER) = 4 THEN (* 64 bit machine *)
+    TestValue(MIN(INTEGER),          -7FFFFFFFH - 1, "MIN(INTEGER)");
+    TestValue(MAX(INTEGER),           7FFFFFFFH,     "MAX(INTEGER)");
+    (* Since we need to be compilable on 32 bit machines we cannot use
+       a 64 bit constant, so use arithmetic. *)
+    l := 1; l := SYSTEM.LSH(l, 63); l := l-1;  (* Generate l = 7FFFFFFFFFFFFFFFH *)
+    TestValue(MIN(LONGINT),  -l - 1, "MIN(LONGINT)");
+    TestValue(MAX(LONGINT),   l,     "MAX(LONGINT)");
+  ELSE
+    Console.String("SIZE(INTEGER) = ");
+    Console.Int(SIZE(INTEGER),1);
+    Console.String(", expected 2 or 4.");
+    Console.Ln;
+  END;
+END IntSize;
+
 BEGIN
   Shift;
+  IntSize;
   Console.String("Language tests successful."); Console.Ln;
 END TestLanguage.

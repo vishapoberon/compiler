@@ -940,6 +940,19 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 *)
   END CheckLeaf;
 
+
+  PROCEDURE SignedMaximum(bytecount: LONGINT): LONGINT;
+  VAR result: LONGINT;
+  BEGIN
+    result := 1;
+    result := SYSTEM.LSH(result, bytecount*8-1);
+    RETURN result - 1;
+  END SignedMaximum;
+
+  PROCEDURE SignedMinimum(bytecount: LONGINT): LONGINT;
+  BEGIN RETURN -SignedMaximum(bytecount) - 1
+  END SignedMinimum;
+
   PROCEDURE StPar0*(VAR par0: OPT.Node; fctno: INTEGER);  (* par0: first param of standard proc *)
     VAR f: INTEGER; typ: OPT.Struct; x: OPT.Node;
   BEGIN x := par0; f := x^.typ^.form;
@@ -991,9 +1004,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      CASE f OF
                        OPM.Bool:  x := NewBoolConst(FALSE)
                      | OPM.Char:  x := NewIntConst(0); x^.typ := OPT.chartyp
-                     | OPM.SInt:  x := NewIntConst(OPM.MinSInt)
-                     | OPM.Int:   x := NewIntConst(OPM.MinInt)
-                     | OPM.LInt:  x := NewIntConst(OPM.MinLInt)
+                     | OPM.SInt,
+                       OPM.Int,
+                       OPM.LInt:  x := NewIntConst(SignedMinimum(x.typ.size))
                      | OPM.Set:   x := NewIntConst(0); x^.typ := OPT.inttyp
                      | OPM.Real:  x := NewRealConst(OPM.MinReal, OPT.realtyp)
                      | OPM.LReal: x := NewRealConst(OPM.MinLReal, OPT.lrltyp)
@@ -1006,9 +1019,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      CASE f OF
                        OPM.Bool:  x := NewBoolConst(TRUE)
                      | OPM.Char:  x := NewIntConst(0FFH); x^.typ := OPT.chartyp
-                     | OPM.SInt:  x := NewIntConst(OPM.MaxSInt)
-                     | OPM.Int:   x := NewIntConst(OPM.MaxInt)
-                     | OPM.LInt:  x := NewIntConst(OPM.MaxLInt)
+                     | OPM.SInt,
+                       OPM.Int,
+                       OPM.LInt:  x := NewIntConst(SignedMaximum(x.typ.size))
                      | OPM.Set:   x := NewIntConst(OPM.MaxSet); x^.typ := OPT.inttyp
                      | OPM.Real:  x := NewRealConst(OPM.MaxReal, OPT.realtyp)
                      | OPM.LReal: x := NewRealConst(OPM.MaxLReal, OPT.lrltyp)
