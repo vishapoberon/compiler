@@ -874,10 +874,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     | OPM.Byte:     IF ~(g IN {OPM.Byte, OPM.Char, OPM.SInt}) THEN err(113) END
     | OPM.Bool,
       OPM.Char,
-      OPM.SInt,
       OPM.Set:      IF g # f THEN err(113) END
-    | OPM.Int:      IF ~(g IN {OPM.SInt, OPM.Int})   THEN err(113) END
-    | OPM.LInt:     IF ~(g IN OPM.intSet)            THEN err(113) END
+    | OPM.SInt,
+      OPM.Int,
+      OPM.LInt:     IF ~(g IN OPM.intSet) OR (x.size < y.size) THEN err(113) END
     | OPM.Real:     IF ~(g IN {OPM.SInt..OPM.Real})  THEN err(113) END
     | OPM.LReal:    IF ~(g IN {OPM.SInt..OPM.LReal}) THEN err(113) END
     | OPM.Pointer:  IF (x = y) OR (g = OPM.NilTyp) OR (x = OPT.sysptrtyp) & (g = OPM.Pointer) THEN (* ok *)

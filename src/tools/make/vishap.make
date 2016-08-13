@@ -375,13 +375,16 @@ sourcechanges:
 
 
 
+RUNTEST = COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
-	cd src/test/confidence/hello;           COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
-	cd src/test/confidence/language;        COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
-	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"; fi
-	cd src/test/confidence/lola;            COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
-	cd src/test/confidence/arrayassignment; COMPILER=$(COMPILER) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+	cd src/test/confidence/hello;           $(RUNTEST)
+	cd src/test/confidence/intsyntax;       $(RUNTEST)
+	cd src/test/confidence/language;        $(RUNTEST)
+	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
+	cd src/test/confidence/lola;            $(RUNTEST)
+	cd src/test/confidence/arrayassignment; $(RUNTEST)
 	@printf "\n\n--- Confidence tests passed ---\n\n"
 
 
