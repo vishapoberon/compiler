@@ -714,6 +714,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         g := y^.typ^.form;
         CASE z^.typ^.form OF
         |OPM.Char:    IF z^.class = OPM.Nconst THEN CharToString(z) ELSE err(100) END
+
+        (*
         |OPM.SInt:    IF g IN OPM.intSet + OPM.realSet THEN Convert(z, y^.typ)
                       ELSE  err(100)
                       END
@@ -725,12 +727,30 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                       ELSIF g IN OPM.realSet THEN Convert(z, y^.typ)
                       ELSE  err(100)
                       END
+          x.typ  y.typ     Conversion
+          SInt   SInt      Convert(z, y.typ)
+          SInt    Int      Convert(z, y.typ)
+          SInt   Lint      Convert(z, y.typ)
+           Int   SInt      Convert(y, z.typ)
+           Int    Int      Convert(z, y.typ)
+           Int   Lint      Convert(z, y.typ)
+          LInt   SInt      Convert(y, z.typ)
+          LInt    Int      Convert(y, z.typ)
+          LInt   Lint      Convert(y, z.typ)
+        *)
+        |OPM.SInt,
+         OPM.Int,
+         OPM.LInt:    IF (g IN OPM.intSet) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
+                      ELSIF g IN OPM.intSet + OPM.realSet              THEN Convert(z, y.typ)
+                      ELSE err(100)
+                      END
+
         |OPM.Real:    IF g IN OPM.intSet THEN Convert(y, z^.typ)
                       ELSIF g IN OPM.realSet THEN Convert(z, y^.typ)
                       ELSE  err(100)
                       END
         |OPM.LReal:   IF g IN OPM.intSet + OPM.realSet THEN Convert(y, z^.typ)
-                      ELSIF g IN OPM.realSet THEN Convert(y, z^.typ)
+                      ELSIF g IN OPM.realSet THEN Convert(y, z^.typ)          (* DCWB: Surely this line does nothing. *)
                       ELSE  err(100)
                       END
         |OPM.NilTyp:  IF ~(g IN {OPM.Pointer, OPM.ProcTyp}) THEN err(100) END
@@ -803,7 +823,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     END
                   ELSIF f # OPM.Undef THEN err(94); z^.typ := OPT.undftyp
                   END
-      |OPM.plus:  IF ~(f IN {OPM.Undef, OPM.SInt..OPM.Set(*, Int8..Int64*)}) THEN err(105); typ := OPT.undftyp END ;
+      |OPM.plus:  IF ~(f IN {OPM.Undef, OPM.SInt..OPM.Set}) THEN err(105); typ := OPT.undftyp END ;
                   do := TRUE;
                   IF f IN OPM.intSet THEN
                     IF (z^.class = OPM.Nconst) & (z^.conval^.intval = 0) THEN do := FALSE; z := y END ;
