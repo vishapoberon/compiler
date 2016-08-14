@@ -420,6 +420,16 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     END
   END CheckProc;
 
+  PROCEDURE IntType(size: LONGINT): OPT.Struct;
+    VAR result: OPT.Struct;
+  BEGIN
+    IF    size = OPT.sinttyp.size THEN result := OPT.sinttyp
+    ELSIF size = OPT.inttyp.size  THEN result := OPT.inttyp
+    ELSIF size = OPT.linttyp.size THEN result := OPT.linttyp END;
+    ASSERT(result # NIL,1);
+    RETURN result
+  END IntType;
+
   PROCEDURE ConstOp(op: INTEGER; x, y: OPT.Node);
     VAR f, g: INTEGER; xval, yval: OPT.Const; xv, yv: LONGINT;
         temp: BOOLEAN; (* temp avoids err 215 *)
@@ -461,12 +471,14 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     END ConstCmp;
 
   BEGIN
+    (* f, x, xval are for left side; g, y, yval for right side. *)
     f := x^.typ^.form; g := y^.typ^.form; xval := x^.conval; yval := y^.conval;
     IF f # g THEN
       CASE f OF
       |OPM.Char:    IF g = OPM.String THEN CharToString(x)
                     ELSE err(100); y^.typ := x^.typ; yval^ := xval^
                     END ;
+      (*
       |OPM.SInt:    IF g IN OPM.intSet THEN x^.typ := y^.typ
                     ELSIF g = OPM.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
                     ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
@@ -483,6 +495,28 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
                     END
+
+         f      g       x.typ :=
+       SInt   SInt      y.typ
+       SInt    Int      y.typ
+       SInt   Lint      y.typ
+        Int   SInt      OPT.inttyp
+        Int    Int      y.typ
+        Int   Lint      y.typ
+       LInt   SInt      OPT.linttyp
+       LInt    Int      OPT.linttyp
+       LInt   Lint      OPT.linttyp
+      *)
+      |OPM.SInt,
+       OPM.Int,
+       OPM.LInt:    IF g IN OPM.intSet THEN
+                      IF x.typ.size <= y.typ.size THEN x.typ := y.typ ELSE x.typ := IntType(x.typ.size) END
+                    ELSIF g = OPM.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
+                    ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
+                    ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
+                    END
+
+
       |OPM.Real:    IF g IN OPM.intSet THEN y^.typ := x^.typ; yval^.realval := yval^.intval
                     ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
@@ -1079,7 +1113,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    CheckLeaf(x, FALSE); MOp(OPM.adr, x)
     |OPM.sizefn:   (*SIZE*)
                    IF x^.class # OPM.Ntype THEN err(110); x := NewIntConst(1)
-                   ELSIF (f IN {OPM.Byte..OPM.Set(*, Int8..Int64*), OPM.Pointer, OPM.ProcTyp}) OR (x^.typ^.comp IN {OPM.Array, OPM.Record}) THEN
+                   ELSIF (f IN {OPM.Byte..OPM.Set, OPM.Pointer, OPM.ProcTyp})
+                      OR (x^.typ^.comp IN {OPM.Array, OPM.Record}) THEN
                      typSize(x^.typ); x^.typ^.pvused := TRUE; x := NewIntConst(x^.typ^.size)
                    ELSE err(111); x := NewIntConst(1)
                    END
@@ -1160,7 +1195,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    p^.typ := OPT.notyp
     |OPM.lenfn:    (*LEN*)
                    IF ~(f IN OPM.intSet) OR (x^.class # OPM.Nconst) THEN err(69)
-                   ELSIF f = OPM.SInt THEN
+                   ELSIF x.typ.size = 1 THEN (* Hard limit of 127 dimensions *)
                      L := SHORT(x^.conval^.intval); typ := p^.typ;
                      WHILE (L > 0) & (typ^.comp IN {OPM.DynArr, OPM.Array}) DO typ := typ^.BaseTyp; DEC(L) END ;
                      IF (L # 0) OR ~(typ^.comp IN {OPM.DynArr, OPM.Array}) THEN err(132)
