@@ -105,24 +105,41 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     x^.conval := OPT.NewConst(); x^.conval^.setval := {}; RETURN x
   END EmptySet;
 
+
+  PROCEDURE SignedByteSize(n: LONGINT): INTEGER;
+  (* Returns number of bytes required to represent signed value n *)
+    VAR b: INTEGER;
+  BEGIN
+    IF n < 0 THEN n := -(n+1) END; (* Positive value in the range 0 - 7F..FF *)
+    b := 1;
+    WHILE b < 8 DO
+      IF ASH(n, -(8*b-1)) = 0 THEN RETURN b END;
+      INC(b);
+    END;
+    RETURN 8
+  END SignedByteSize;
+
+  PROCEDURE IntType(size: LONGINT): OPT.Struct;
+  (* Selects smallest standard integer type for given size in bytes *)
+    VAR result: OPT.Struct;
+  BEGIN
+    IF    size <= OPT.sinttyp.size THEN result := OPT.sinttyp
+    ELSIF size <= OPT.inttyp.size  THEN result := OPT.inttyp
+    ELSE
+      result := OPT.linttyp
+    END;
+    IF size > OPT.linttyp.size THEN err(203) END; (* Number too large *)
+    RETURN result
+  END IntType;
+
   PROCEDURE SetIntType(node: OPT.Node);
-    VAR v: LONGINT(*SYSTEM.INT64*);
-  BEGIN v := node^.conval^.intval;
-    (* TODO: XInt set to size based type *)
-    IF (OPM.MinSInt <= SYSTEM.VAL(LONGINT, v)) & (SYSTEM.VAL(LONGINT, v) <= OPM.MaxSInt) THEN node^.typ := OPT.sinttyp
-    ELSIF (OPM.MinInt <= SYSTEM.VAL(LONGINT, v)) & (SYSTEM.VAL(LONGINT, v) <= OPM.MaxInt) THEN node^.typ := OPT.inttyp
-    ELSIF (OPM.MinLInt <= v) & (v <= OPM.MaxLInt) (*bootstrap or cross*) THEN
-      node^.typ := OPT.linttyp
-    (*ELSIF (OPM.MinInt64) <= v) & (v <= OPM.MaxInt64) THEN
-          node^.typ := OPT.int64typ*)
-    ELSE err(203); node^.typ := OPT.sinttyp; node^.conval^.intval := 1
-    END
+  BEGIN node.typ := IntType(SignedByteSize(node.conval.intval))
   END SetIntType;
 
   PROCEDURE NewIntConst*(intval: LONGINT): OPT.Node;
     VAR x: OPT.Node;
   BEGIN
-    x := OPT.NewNode(OPM.Nconst); x^.conval := OPT.NewConst();
+    x := OPT.NewNode(OPM.Nconst);  x^.conval := OPT.NewConst();
     x^.conval^.intval := intval; SetIntType(x); RETURN x
   END NewIntConst;
 
@@ -420,16 +437,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     END
   END CheckProc;
 
-  PROCEDURE IntType(size: LONGINT): OPT.Struct;
-    VAR result: OPT.Struct;
-  BEGIN
-    IF    size = OPT.sinttyp.size THEN result := OPT.sinttyp
-    ELSIF size = OPT.inttyp.size  THEN result := OPT.inttyp
-    ELSIF size = OPT.linttyp.size THEN result := OPT.linttyp END;
-    ASSERT(result # NIL,1);
-    RETURN result
-  END IntType;
-
   PROCEDURE ConstOp(op: INTEGER; x, y: OPT.Node);
     VAR f, g: INTEGER; xval, yval: OPT.Const; xv, yv: LONGINT;
         temp: BOOLEAN; (* temp avoids err 215 *)
@@ -541,7 +548,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     (xv > 0) & (yv > 0) & (yv <= MAX(LONGINT) DIV xv) OR
                     (xv > 0) & (yv < 0) & (yv >= MIN(LONGINT) DIV xv) OR
                     (xv < 0) & (yv > 0) & (xv >= MIN(LONGINT) DIV yv) OR
-                    (xv < 0) & (yv < 0) & (xv # MIN(LONGINT)) & (yv # MIN(LONGINT)) & (-xv <= MAX(LONGINT) DIV (-yv)) THEN
+                    (xv < 0) & (yv < 0) & (xv  # MIN(LONGINT)) & (yv # MIN(LONGINT)) & (-xv <= MAX(LONGINT) DIV (-yv)) THEN
                     xval^.intval := xv * yv; SetIntType(x)
                   ELSE err(204)
                   END
@@ -607,7 +614,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                 END
     |OPM.minus: IF f IN OPM.intSet THEN
                   IF (yval^.intval >= 0) & (xval^.intval >= MIN(LONGINT) + yval^.intval) OR
-                    (yval^.intval < 0) & (xval^.intval <= MAX(LONGINT) + yval^.intval) THEN
+                    (yval^.intval < 0) & (xval^.intval  <= MAX(LONGINT) + yval^.intval) THEN
                       DEC(xval^.intval, yval^.intval); SetIntType(x)
                   ELSE err(207)
                   END
@@ -830,7 +837,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     IF (y^.class = OPM.Nconst) & (y^.conval^.intval = 0) THEN do := FALSE END
                   END ;
                   IF do THEN NewOp(op, typ, z, y) END
-      |OPM.minus: IF ~(f IN {OPM.Undef, OPM.SInt..OPM.Set(*, Int8..Int64*)}) THEN err(106); typ := OPT.undftyp END ;
+      |OPM.minus: IF ~(f IN {OPM.Undef, OPM.SInt..OPM.Set}) THEN err(106); typ := OPT.undftyp END ;
                   IF ~(f IN OPM.intSet) OR (y^.class # OPM.Nconst) OR (y^.conval^.intval # 0) THEN NewOp(op, typ, z, y) END
       |OPM.or:    IF f = OPM.Bool THEN
                     IF z^.class = OPM.Nconst THEN
@@ -843,14 +850,14 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSIF f # OPM.Undef THEN err(95); z^.typ := OPT.undftyp
                   END
       |OPM.eql,
-       OPM.neq:   IF (f IN {OPM.Undef..OPM.Set, OPM.NilTyp, OPM.Pointer, OPM.ProcTyp(*, Int8..Int64*)}) OR strings(z, y) THEN typ := OPT.booltyp
+       OPM.neq:   IF (f IN {OPM.Undef..OPM.Set, OPM.NilTyp, OPM.Pointer, OPM.ProcTyp}) OR strings(z, y) THEN typ := OPT.booltyp
                   ELSE err(107); typ := OPT.undftyp
                   END ;
                   NewOp(op, typ, z, y)
       |OPM.lss,
        OPM.leq,
        OPM.gtr,
-       OPM.geq:   IF (f IN {OPM.Undef, OPM.Char..OPM.LReal(*, Int8..Int64*)}) OR strings(z, y) THEN typ := OPT.booltyp
+       OPM.geq:   IF (f IN {OPM.Undef, OPM.Char..OPM.LReal}) OR strings(z, y) THEN typ := OPT.booltyp
                   ELSE
                     OPM.LogWLn; OPM.LogWStr("ELSE in Op()"); OPM.LogWLn;
                     err(108); typ := OPT.undftyp
@@ -1293,9 +1300,14 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END ;
                    p^.typ := OPT.booltyp
     |OPM.valfn:    (*SYSTEM.VAL*)  (* type is changed without considering the byte ordering on the target machine *)
-                   IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) OR
-                     (f IN {OPM.Undef, OPM.String, OPM.NoTyp}) OR (x^.typ^.comp = OPM.DynArr) THEN err(126)
-                   END ;
+                   IF (x^.class = OPM.Ntype)
+                   OR (x^.class = OPM.Nproc)
+                   OR (f IN {OPM.Undef, OPM.String, OPM.NoTyp})
+                   OR (x^.typ^.comp = OPM.DynArr) THEN
+                     err(126)
+                   END;
+                   (* Warn if the result type includes memory past the end of the source variable *)
+                   (* IF x.typ.size < p.typ.size THEN err(-100) END; *)
                    t := OPT.NewNode(OPM.Nmop); t^.subcl := OPM.val; t^.left := x; x := t;
                    (*
                    IF (x^.class >= OPM.Nconst) OR ((f IN OPM.realSet) # (p^.typ^.form IN OPM.realSet)) THEN
@@ -1410,7 +1422,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN (* ftyp^.comp = OPM.DynArr *)
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
     IF fvarpar & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
-      IF ~(f IN {OPM.Array, OPM.DynArr}) OR ~(atyp^.form IN {OPM.Byte..OPM.SInt(*, Int8..Int64*)}) THEN
+      IF ~(f IN {OPM.Array, OPM.DynArr}) OR ~(atyp^.form IN {OPM.Byte..OPM.SInt}) THEN
         IF OPM.verbose IN OPM.opt THEN err(-301) END
       END
     ELSIF f IN {OPM.Array, OPM.DynArr} THEN

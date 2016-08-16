@@ -4,6 +4,8 @@
 #ifndef _WIN32
 
   // Building for a Unix/Linux based system
+
+  // TODO: Remove these includes
   #include <string.h>  // For memcpy ...
   #include <stdint.h>  // For uintptr_t ...
 
@@ -70,6 +72,7 @@ typedef unsigned char U_SHORTINT;
 #endif
 
 typedef U_LONGINT SET;
+typedef U_LONGINT U_SET;
 
 
 // OS Memory allocation interfaces are in PlatformXXX.Mod

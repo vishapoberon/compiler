@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/13] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/16] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -195,5 +195,6 @@ export void *errors__init(void)
 	__MOVE("implicit type cast", errors_errors[301], 19);
 	__MOVE("inappropriate symbol file ignored", errors_errors[306], 34);
 	__MOVE("no ELSE symbol after CASE statement sequence may lead to trap", errors_errors[307], 62);
+	__MOVE("SYSTEM.VAL result includes memory past end of source variable", errors_errors[308], 62);
 	__ENDMOD;
 }

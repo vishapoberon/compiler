@@ -576,6 +576,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                  END;
                                  expr(l, exprPrec)
                                ELSE
+                                 (*
+                                 OPM.WriteString("__VAL(");
+                                 *)
                                  IF (n^.typ^.form IN {OPM.Pointer, OPM.ProcTyp}) OR (l^.typ^.form IN {OPM.Pointer, OPM.ProcTyp}) THEN
                                    OPM.WriteString("__VALP(");
                                  ELSE
