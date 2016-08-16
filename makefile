@@ -178,6 +178,27 @@ browsercmd: configuration
 library: configuration
 	@make -f src/tools/make/vishap.make -s library
 
+# Individual library components
+v4: configuration
+	@make -f src/tools/make/vishap.make -s v4
+
+ooc2: configuration
+	@make -f src/tools/make/vishap.make -s ooc2
+
+ooc: configuration
+	@make -f src/tools/make/vishap.make -s ooc
+
+ulm: configuration
+	@make -f src/tools/make/vishap.make -s ulm
+
+pow32: configuration
+	@make -f src/tools/make/vishap.make -s pow32
+
+misc: configuration
+	@make -f src/tools/make/vishap.make -s misc
+
+s3: configuration
+	@make -f src/tools/make/vishap.make -s s3
 
 
 

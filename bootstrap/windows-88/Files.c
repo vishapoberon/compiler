@@ -865,8 +865,10 @@ void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
 {
 	CHAR b[4];
+	LONGINT l;
 	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	*x = (SET)((((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24));
+	l = (((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
+	*x = (SET)l;
 }
 
 void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x)

@@ -542,7 +542,11 @@ void OPM_FPrintSet (LONGINT *fp, SET set)
 
 void OPM_FPrintReal (LONGINT *fp, REAL real)
 {
-	OPM_FPrint(&*fp, __VAL(LONGINT, real));
+	INTEGER i;
+	LONGINT l;
+	__GET((LONGINT)(uintptr_t)&real, i, INTEGER);
+	l = i;
+	OPM_FPrint(&*fp, l);
 }
 
 void OPM_FPrintLReal (LONGINT *fp, LONGREAL lr)

@@ -615,9 +615,12 @@ Especially Length would become fairly complex.
   END ReadLInt;
 
   PROCEDURE ReadSet* (VAR R: Rider; VAR x: SET);
-    VAR b: ARRAY 4 OF CHAR;
+  (* Reads 32 bits as a SET value (even on 64 bit systems. See Oakwood appendix 1.2.5.4 *)
+    VAR b: ARRAY 4 OF CHAR; l: LONGINT;
   BEGIN ReadBytes(R, b, 4);
-    x := SYSTEM.VAL(SET, ORD(b[0]) + ORD(b[1])*100H + ORD(b[2])*10000H + ORD(b[3])*1000000H)
+    (* Need to read via a LONGINT to provide correct behaviour for 64 bit sets. *)
+    l := ORD(b[0]) + ORD(b[1])*100H + ORD(b[2])*10000H + ORD(b[3])*1000000H;
+    x := SYSTEM.VAL(SET, l)
   END ReadSet;
 
   PROCEDURE ReadReal* (VAR R: Rider; VAR x: REAL);

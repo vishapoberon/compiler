@@ -541,16 +541,16 @@ void OPM_FPrintSet (LONGINT *fp, SET set)
 
 void OPM_FPrintReal (LONGINT *fp, REAL real)
 {
-	OPM_FPrint(&*fp, __VAL(LONGINT, real));
+	INTEGER i;
+	LONGINT l;
+	__GET((LONGINT)(uintptr_t)&real, l, LONGINT);
+	OPM_FPrint(&*fp, l);
 }
 
 void OPM_FPrintLReal (LONGINT *fp, LONGREAL lr)
 {
 	LONGINT l, h;
-	__GET((LONGINT)(uintptr_t)&lr, l, LONGINT);
-	__GET((LONGINT)(uintptr_t)&lr + 4, h, LONGINT);
-	OPM_FPrint(&*fp, l);
-	OPM_FPrint(&*fp, h);
+	OPM_FPrint(&*fp, __VAL(LONGINT, lr));
 }
 
 static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONGINT name__len, INTEGER *size, INTEGER *align)

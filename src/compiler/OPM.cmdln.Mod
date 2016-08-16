@@ -582,15 +582,26 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
   PROCEDURE FPrintReal*(VAR fp: LONGINT; real: REAL);
-  BEGIN FPrint(fp, SYSTEM.VAL(LONGINT, real))
+    VAR i: INTEGER; l: LONGINT;
+  BEGIN
+    IF SIZE(REAL) = SIZE(INTEGER) THEN
+      SYSTEM.GET(SYSTEM.ADR(real), i); l := i;
+    ELSE
+      SYSTEM.GET(SYSTEM.ADR(real), l);
+    END;
+    FPrint(fp, l)
   END FPrintReal;
 
 
   PROCEDURE FPrintLReal*(VAR fp: LONGINT; lr: LONGREAL);
   VAR l, h: LONGINT;
   BEGIN
-    SYSTEM.GET(SYSTEM.ADR(lr), l); SYSTEM.GET(SYSTEM.ADR(lr)+4, h);
-    FPrint(fp, l); FPrint(fp, h)
+    IF SIZE(REAL) = SIZE(INTEGER) THEN
+      SYSTEM.GET(SYSTEM.ADR(lr), l); SYSTEM.GET(SYSTEM.ADR(lr)+4, h);
+      FPrint(fp, l); FPrint(fp, h)
+    ELSE
+      FPrint(fp, SYSTEM.VAL(LONGINT, lr))
+    END
   END FPrintLReal;
 
 

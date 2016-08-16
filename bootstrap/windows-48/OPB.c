@@ -2237,6 +2237,9 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (((x->class == 8 || x->class == 9) || __IN(f, 0x1401)) || x->typ->comp == 3) {
 				OPB_err(126);
 			}
+			if (x->typ->size < p->typ->size) {
+				OPB_err(-308);
+			}
 			t = OPT_NewNode(11);
 			t->subcl = 29;
 			t->left = x;

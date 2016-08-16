@@ -134,8 +134,11 @@ static int __str_cmp(CHAR *x, CHAR *y){
 
 /* SYSTEM ops */
 
-#define __VAL(t, x)     ((t)(x))
-#define __VALP(t, x)    ((t)(uintptr_t)(x))
+//#define __VAL(t, x)     ((t)(x))
+//#define __VALP(t, x)    ((t)(uintptr_t)(x))
+#define __VAL(t, x)     (*(t*)&(x))
+#define __VALP(t, x)    (*(t*)&(x))
+
 
 #define __GET(a, x, t)  x= *(t*)(uintptr_t)(a)
 #define __PUT(a, x, t)  *(t*)(uintptr_t)(a)=x

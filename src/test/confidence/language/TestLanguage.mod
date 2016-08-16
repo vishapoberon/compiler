@@ -91,7 +91,7 @@ BEGIN
   (* Also need full tests for CHAR, and poossibly SYSTEM.BYTE. Here's a simple one *)
 
   c := 1X; c := SYSTEM.LSH(c,2); c := SYSTEM.ROT(c,-2); ASSERT(c=1X, 93);
-  b := 1;  b := SYSTEM.LSH(b,2); b := SYSTEM.ROT(b,-2); ASSERT(SYSTEM.VAL(INTEGER,b)=1, 94);
+  b := 1;  b := SYSTEM.LSH(b,2); b := SYSTEM.ROT(b,-2); ASSERT(SYSTEM.VAL(CHAR,b)=1X, 94);
 
 END Shift;
 
