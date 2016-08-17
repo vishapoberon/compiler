@@ -596,11 +596,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE FPrintLReal*(VAR fp: LONGINT; lr: LONGREAL);
   VAR l, h: LONGINT;
   BEGIN
-    IF SIZE(REAL) = SIZE(INTEGER) THEN
+    IF SIZE(LONGREAL) = SIZE(LONGINT) THEN
+      (* 64 bit LONGINT *)
+      FPrint(fp, SYSTEM.VAL(LONGINT, lr))
+    ELSE
+      (* 32 bit LONGINT *)
       SYSTEM.GET(SYSTEM.ADR(lr), l); SYSTEM.GET(SYSTEM.ADR(lr)+4, h);
       FPrint(fp, l); FPrint(fp, h)
-    ELSE
-      FPrint(fp, SYSTEM.VAL(LONGINT, lr))
     END
   END FPrintLReal;
 

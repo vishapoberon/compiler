@@ -385,9 +385,10 @@ confidence:
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/intsyntax;       $(RUNTEST)
 	cd src/test/confidence/language;        $(RUNTEST)
-	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
+	cd src/test/confidence/library;         $(RUNTEST)
 	cd src/test/confidence/lola;            $(RUNTEST)
 	cd src/test/confidence/arrayassignment; $(RUNTEST)
+	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
 	@printf "\n\n--- Confidence tests passed ---\n\n"
 
 
