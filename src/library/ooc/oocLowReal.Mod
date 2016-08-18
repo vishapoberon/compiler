@@ -23,7 +23,7 @@ MODULE oocLowReal;
 *)
 
 
-IMPORT S := SYSTEM, Console;
+IMPORT S := SYSTEM, Console, Reals;
 
 (*
 
@@ -114,21 +114,6 @@ VAR
 
 (* Error handler default stub which can be replaced *)
 
-(*  PROCEDURE power0(i, j : INTEGER) : REAL; (* used to calculate sml at runtime; -- noch *)
-  VAR k : INTEGER;
-      p : REAL;
-  BEGIN
-     k := 1;
-     p := i;
-     REPEAT
-p := p * i;
-        INC(k);
-     UNTIL k=j;
-     RETURN p;
-  END power0;*)
-
-
-
 PROCEDURE DefaultHandler (errno : INTEGER);
 BEGIN
   err:=errno
@@ -140,8 +125,6 @@ BEGIN
 END ClearError;
 
 
-
-(*** Refactor for 64 bit support.
 PROCEDURE exponent*(x: REAL): INTEGER;
 (*
    The value of the call exponent(x) shall be the exponent value of `x'
@@ -151,10 +134,9 @@ PROCEDURE exponent*(x: REAL): INTEGER;
 BEGIN
   (* NOTE: x=0.0 should raise exception *)
   IF x=ZERO THEN RETURN 0
-  ELSE RETURN SHORT(S.LSH(S.VAL(LONGINT,x),-expBit) MOD 256)-expOffset
+  ELSE RETURN Reals.Expo(x) - expOffset
   END
 END exponent;
-*)
 
 PROCEDURE exponent10*(x: REAL): INTEGER;
 (*
@@ -171,34 +153,58 @@ BEGIN
   RETURN exp
 END exponent10;
 
-(*** Refactor for 64 bit support.
+(* TYPE REAL: 1/sign, 8/exponent, 23/significand *)
+
 PROCEDURE fraction*(x: REAL): REAL;
 (*
    The value of the call fraction(x) shall be the significand (or
    significant) part of `x'.  Hence the following relationship shall
    hold: x = scale(fraction(x), exponent(x)).
 *)
+VAR c: CHAR;
+BEGIN
+  IF x=ZERO THEN RETURN ZERO
+  ELSE
+    (* Set top 7 bits of exponent to 0111111 *)
+    S.GET(S.ADR(x)+3, c);
+    c := CHR(((ORD(c) DIV 128) * 128) + 63); (* Set X0111111 (X unchanged) *)
+    S.PUT(S.ADR(x)+3, c);
+    (* Set bottom bit of exponent to 0 *)
+    S.GET(S.ADR(x)+2, c);
+    c := CHR(ORD(c) MOD 128); (* Set 0XXXXXXX (X unchanged) *)
+    S.PUT(S.ADR(x)+2, c);
+    RETURN x * 2.0;
+  END
+(*
   CONST eZero={(hiBit+2)..29};
 BEGIN
   IF x=ZERO THEN RETURN ZERO
   ELSE RETURN S.VAL(REAL,(S.VAL(SET,x)*nMask)+eZero)*2.0  (* set the mantissa's exponent to zero *)
   END
+*)
 END fraction;
 
 PROCEDURE IsInfinity * (real: REAL) : BOOLEAN;
-  CONST signMask={0..30};
+  VAR c0, c1, c2, c3: CHAR;
 BEGIN
-  RETURN S.VAL(SET,real)*signMask=expMask
+  S.GET(S.ADR(real)+0, c3);
+  S.GET(S.ADR(real)+1, c2);
+  S.GET(S.ADR(real)+2, c1);
+  S.GET(S.ADR(real)+3, c0);
+  RETURN (ORD(c0) MOD 128 = 127) & (ORD(c1) = 128) & (ORD(c2) = 0) & (ORD(c3) = 0)
 END IsInfinity;
 
 PROCEDURE IsNaN * (real: REAL) : BOOLEAN;
-  CONST fracMask={0..hiBit};
-  VAR sreal: SET;
+  VAR c0, c1, c2, c3: CHAR;
 BEGIN
-  sreal:=S.VAL(SET, real);
-  RETURN (sreal*expMask=expMask) & (sreal*fracMask#{})
+  S.GET(S.ADR(real)+0, c3);
+  S.GET(S.ADR(real)+1, c2);
+  S.GET(S.ADR(real)+2, c1);
+  S.GET(S.ADR(real)+3, c0);
+  RETURN (ORD(c0) MOD 128 = 127)
+       & (ORD(c1) DIV 128 = 1)
+       & ((ORD(c1) MOD 128 # 0) OR (ORD(c2) # 0) OR (ORD(c3) # 0))
 END IsNaN;
-*)
 
 PROCEDURE sign*(x: REAL): REAL;
 (*

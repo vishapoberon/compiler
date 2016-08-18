@@ -46,20 +46,29 @@ MODULE Reals;
 
 
   PROCEDURE Expo*(x: REAL): INTEGER;
-    VAR  i: INTEGER;
+    VAR i: INTEGER;
   BEGIN
     SYSTEM.GET(SYSTEM.ADR(x)+2, i);
-    RETURN (i DIV 127) MOD 256
+    RETURN (i DIV 128) MOD 256
   END Expo;
 
+  PROCEDURE SetExpo*(VAR x: REAL; ex: INTEGER);
+  VAR c: CHAR;
+  BEGIN
+    (* Replace exponent bits within top byte of REAL *)
+    SYSTEM.GET(SYSTEM.ADR(x)+3, c);
+    SYSTEM.PUT(SYSTEM.ADR(x)+3, CHR(((ORD(c) DIV 128) * 128) + ((ex DIV 2) MOD 128)));
+    (* Replace exponent bits within 2nd byte of REAL *)
+    SYSTEM.GET(SYSTEM.ADR(x)+2, c);
+    SYSTEM.PUT(SYSTEM.ADR(x)+2, CHR((ORD(c) MOD 128) + ((ex MOD 2) * 128)))
+  END SetExpo;
 
   PROCEDURE ExpoL*(x: LONGREAL): INTEGER;
-    VAR i: INTEGER; l: LONGINT;
+    VAR i: INTEGER;
   BEGIN
     SYSTEM.GET(SYSTEM.ADR(x)+6, i);
     RETURN (i DIV 16) MOD 2048
   END ExpoL;
-
 
   (* Convert LONGREAL: Write positive integer value of x into array d.
      The value is stored backwards, i.e. least significant digit
@@ -107,7 +116,7 @@ MODULE Reals;
   BEGIN
     i := 0; l := LEN(b);
     WHILE i < l DO
-      by := SYSTEM.VAL(CHAR, d[i]);
+      by := SYSTEM.VAL(CHAR, b[i]);
       d[i*2]   := ToHex(ORD(by) DIV 16);
       d[i*2+1] := ToHex(ORD(by) MOD 16);
       INC(i)

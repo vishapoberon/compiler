@@ -221,7 +221,7 @@ TODO: Comment disabled lines contain use of VAL that reads beyond source variabl
 
 ooc:
 	@printf "\nMaking ooc library\n"
-#	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/ooc/oocLowReal.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/ooc/oocLowReal.Mod
 #	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/ooc/oocLowLReal.Mod
 #	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/ooc/oocRealMath.Mod
 #	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/ooc/oocOakMath.Mod
