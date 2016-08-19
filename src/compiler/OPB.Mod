@@ -932,7 +932,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     CASE f OF
       OPM.Undef,
       OPM.String:
-    | OPM.Byte:     IF ~(g IN {OPM.Byte, OPM.Char, OPM.SInt}) THEN err(113) END
+    | OPM.Byte:     IF ~(   (g IN {OPM.Byte, OPM.Char})
+                         OR ((g IN OPM.intSet) & (y.size = 1))) THEN err(113) END
     | OPM.Bool,
       OPM.Char,
       OPM.Set:      IF g # f THEN err(113) END
@@ -1013,6 +1014,16 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   PROCEDURE SignedMinimum(bytecount: LONGINT): LONGINT;
   BEGIN RETURN -SignedMaximum(bytecount) - 1
   END SignedMinimum;
+
+  PROCEDURE ByteSized(typ: OPT.Struct): BOOLEAN;
+  BEGIN RETURN (typ.form IN {OPM.Byte..OPM.Char})
+            OR (typ.form IN OPM.intSet) & (typ.size = 1);
+  END ByteSized;
+
+  PROCEDURE PointerSized(typ: OPT.Struct): BOOLEAN;
+  BEGIN RETURN (typ.form = OPM.Pointer)
+            OR (typ.form IN OPM.intSet) & (typ.size = OPM.PointerSize)
+  END PointerSized;
 
   PROCEDURE StPar0*(VAR par0: OPT.Node; fctno: INTEGER);  (* par0: first param of standard proc *)
     VAR f: INTEGER; typ: OPT.Struct; x: OPT.Node;
@@ -1133,7 +1144,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPM.ashfn:    (*ASH*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
                    ELSIF f IN OPM.intSet THEN
-                     IF f # OPM.LInt THEN Convert(x, OPT.linttyp) END
+                     IF x.typ.size # OPM.LIntSize THEN Convert(x, OPT.linttyp) END
                    ELSE err(111); x^.typ := OPT.linttyp
                    END
     |OPM.adrfn:    (*SYSTEM.ADR*)
@@ -1157,8 +1168,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
      OPM.bitfn,
      OPM.movefn:   (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
-                   ELSIF (x^.class = OPM.Nconst) & (f IN {OPM.SInt, OPM.Int}) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~(f IN {OPM.LInt, OPM.Pointer}) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF (x^.class = OPM.Nconst) & (f IN OPM.intSet) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
+                   ELSIF ~PointerSized(x.typ) THEN err(111); x^.typ := OPT.linttyp
                    END
     |OPM.getrfn,
      OPM.putrfn:   (*SYSTEM.GETREG, SYSTEM.PUTREG*)
@@ -1325,8 +1336,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    p^.typ := OPT.notyp
     |OPM.movefn:   (*SYSTEM.MOVE*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
-                   ELSIF (x^.class = OPM.Nconst) & (f IN {OPM.SInt, OPM.Int}) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~(f IN {OPM.LInt, OPM.Pointer}) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF (x^.class = OPM.Nconst) & (f IN OPM.intSet) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
+                   ELSIF ~(PointerSized(x.typ)) THEN err(111); x^.typ := OPT.linttyp
                    END ;
                    p^.link := x
     |OPM.assertfn: (*ASSERT*)
@@ -1422,7 +1433,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN (* ftyp^.comp = OPM.DynArr *)
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
     IF fvarpar & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
-      IF ~(f IN {OPM.Array, OPM.DynArr}) OR ~(atyp^.form IN {OPM.Byte..OPM.SInt}) THEN
+      IF ~(f IN {OPM.Array, OPM.DynArr}) OR ~(ByteSized(atyp)) THEN
         IF OPM.verbose IN OPM.opt THEN err(-301) END
       END
     ELSIF f IN {OPM.Array, OPM.DynArr} THEN
@@ -1475,7 +1486,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           WHILE (q # fp^.typ) & (q # NIL) & (q # OPT.undftyp) DO q := q^.BaseTyp END ;
           IF q = NIL THEN err(111) END
         ELSIF (fp^.typ = OPT.sysptrtyp) & (ap^.typ^.form = OPM.Pointer) THEN (* ok *)
-        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPM.Byte) & (ap^.typ^.form IN {OPM.Char, OPM.SInt})) THEN err(123)
+        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPM.Byte) & (ByteSized(ap.typ))) THEN err(123)
         ELSIF (fp^.typ^.form = OPM.Pointer) & (ap^.class = OPM.Nguard) THEN err(123)
         END
       ELSIF fp^.typ^.comp = OPM.DynArr THEN

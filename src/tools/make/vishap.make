@@ -46,7 +46,7 @@ assemble:
 	@printf "\nmake assemble - compiling Oberon compiler c source:\n"
 	@printf "  VERSION: %s\n" "$(VERSION)"
 	@printf "  BRANCH:  %s\n" "$(BRANCH)"
-	@printf "  Target characeristics:\n"
+	@printf "  Target characteristics:\n"
 	@printf "    PLATFORM:   %s\n" "$(PLATFORM)"
 	@printf "    OS:         %s\n" "$(OS)"
 	@printf "    BUILDDIR:   %s\n" "$(BUILDDIR)"
