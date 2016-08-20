@@ -76,7 +76,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSIF typ^.size = -1 THEN
       f := typ^.form; c := typ^.comp;
       IF c = OPM.Record THEN btyp := typ^.BaseTyp;
-        IF btyp = NIL THEN offset := 0; base := OPM.RecAlign;
+        IF btyp = NIL THEN offset := 0; base := (*OPM.RecAlign*)OPC.SizeAlignment(OPM.RecSize);
         ELSE TypSize(btyp); offset := btyp^.size - btyp^.sysflag DIV 100H; base := btyp^.align;
         END;
         fld := typ^.link;
@@ -90,7 +90,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         END ;
         off0 := offset;
         IF offset = 0 THEN offset := 1 END ;  (* 1 byte filler to avoid empty struct *)
-        IF OPM.RecSize = 0 THEN base := NaturalAlignment(offset, OPM.RecAlign) END ;
+        IF OPM.RecSize = 0 THEN base := NaturalAlignment(offset, (*OPM.RecAlign*)OPC.SizeAlignment(OPM.RecSize)) END ;
         OPC.Align(offset, base);
         IF (typ^.strobj = NIL) & (typ^.align MOD 10000H = 0) THEN INC(recno); INC(base, recno * 10000H) END ;
         typ^.size := offset; typ^.align := base;
@@ -303,7 +303,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__SHORT");
           IF SideEffects(n) THEN OPM.Write("F") END ;
           OPM.Write(OpenParen); Entier(n, MinPrec);
-          OPM.WriteString(Comma); OPM.WriteInt(OPM.MaxInt + 1); OPM.Write(CloseParen)
+          OPM.WriteString(Comma); OPM.WriteInt(OPM.SignedMaximum(OPM.IntSize) + 1); OPM.Write(CloseParen)
         ELSE OPM.WriteString("(int)"); Entier(n, 9)
         END
       END
@@ -311,7 +311,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__SHORT");
         IF SideEffects(n) THEN OPM.Write("F") END ;
         OPM.Write(OpenParen); Entier(n, MinPrec);
-        OPM.WriteString(Comma); OPM.WriteInt(OPM.MaxSInt + 1); OPM.Write(CloseParen)
+        OPM.WriteString(Comma); OPM.WriteInt(OPM.SignedMaximum(OPM.SIntSize) + 1); OPM.Write(CloseParen)
       ELSE OPM.WriteString("(int)"); Entier(n, 9)
       END
     ELSIF form = OPM.Char THEN
@@ -475,7 +475,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       IF (mode = OPM.VarPar) & (n^.class = OPM.Nmop) & (n^.subcl = OPM.val) THEN
         expr(n^.left, prec)  (* avoid cast in lvalue *)
       ELSIF (form = OPM.LInt) & (n^.class = OPM.Nconst)
-          & (n^.conval^.intval <= OPM.MaxInt) & (n^.conval^.intval >= OPM.MinInt) THEN
+          & (n^.conval^.intval <= OPM.SignedMaximum(OPM.IntSize)) & (n^.conval^.intval >= OPM.SignedMinimum(OPM.IntSize)) THEN
         OPM.WriteString("((LONGINT)("); expr(n, prec); OPM.WriteString("))");
       ELSE
         expr(n, prec)

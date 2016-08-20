@@ -11,7 +11,7 @@
 
 import void OPC_Align (LONGINT *adr, LONGINT base);
 import void OPC_Andent (OPT_Struct typ);
-import LONGINT OPC_Base (OPT_Struct typ);
+import LONGINT OPC_BaseAlignment (OPT_Struct typ);
 import OPT_Object OPC_BaseTProc (OPT_Object obj);
 import void OPC_BegBlk (void);
 import void OPC_BegStat (void);
@@ -40,6 +40,7 @@ import void OPC_InitTDesc (OPT_Struct typ);
 import void OPC_Len (OPT_Object obj, OPT_Struct array, LONGINT dim);
 import LONGINT OPC_NofPtrs (OPT_Struct typ);
 import void OPC_SetInclude (BOOLEAN exclude);
+import LONGINT OPC_SizeAlignment (LONGINT size);
 import void OPC_TDescDecl (OPT_Struct typ);
 import void OPC_TypeDefs (OPT_Object obj, INTEGER vis);
 import void OPC_TypeOf (OPT_Object ap);

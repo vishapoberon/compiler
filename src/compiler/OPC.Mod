@@ -574,6 +574,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END
   END Align;
 
+  (*
   PROCEDURE Base0(typ: OPT.Struct): LONGINT;
   BEGIN
     CASE typ^.form OF
@@ -594,39 +595,42 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     ELSE OPM.LogWStr("unhandled case in OPC.BaseAlignment, typ^form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;
     END
   END Base0;
+  *)
+
+  PROCEDURE SizeAlignment*(size: LONGINT): LONGINT;
+    VAR alignment: LONGINT;
+  BEGIN
+    IF size < OPM.Alignment THEN
+      (* Round up to next power of 2 *)
+      alignment := 1; WHILE alignment < size DO alignment := alignment * 2 END;
+    ELSE
+      alignment := OPM.Alignment
+    END;
+    RETURN alignment
+  END SizeAlignment;
 
   PROCEDURE BaseAlignment*(typ: OPT.Struct): LONGINT;
-    VAR align, result: LONGINT;
+    VAR alignment: LONGINT;
   BEGIN
     IF typ.form = OPM.Comp THEN
       IF typ.comp = OPM.Record THEN
-        result := typ.align MOD 10000H
+        alignment := typ.align MOD 10000H
       ELSE
-        result := BaseAlignment(typ.BaseTyp)
+        alignment := BaseAlignment(typ.BaseTyp)
       END
     ELSE
-      (* Not a compound type *)
-      result := Base0(typ);
-
-      (* Now determine alignment from size *)
-      IF typ.size < OPM.Alignment THEN
-        (* Round up to next power of 2 *)
-        align := 1; WHILE align < typ.size DO align := align * 2 END;
-      ELSE
-        align := OPM.Alignment
-      END;
-
-      IF align # result THEN
+      (* Not a compound type, determine alignment from size *)
+      alignment := SizeAlignment(typ.size)
+      (*
+      IF alignment # Base0(typ) THEN
         OPM.LogWStr("BaseAlignment. typ.form ");   OPM.LogWNum(typ.form,1);
         OPM.LogWStr(", typ.size ");                OPM.LogWNum(typ.size,1);
-        OPM.LogWStr(", old alignment ");           OPM.LogWNum(result,1);
+        OPM.LogWStr(", old alignment ");           OPM.LogWNum(alignment,1);
         OPM.LogWStr(", alignment based on size "); OPM.LogWNum(align,1); OPM.LogWLn
       END;
-      ASSERT(align = result)
+      *)
     END;
-
-
-    RETURN result
+    RETURN alignment
   END BaseAlignment;
 
 

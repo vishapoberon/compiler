@@ -16,7 +16,7 @@ static CHAR OPC_BodyNameExt[13];
 export void OPC_Align (LONGINT *adr, LONGINT base);
 export void OPC_Andent (OPT_Struct typ);
 static void OPC_AnsiParamList (OPT_Object obj, BOOLEAN showParamNames);
-export LONGINT OPC_Base (OPT_Struct typ);
+export LONGINT OPC_BaseAlignment (OPT_Struct typ);
 export OPT_Object OPC_BaseTProc (OPT_Object obj);
 export void OPC_BegBlk (void);
 export void OPC_BegStat (void);
@@ -74,6 +74,7 @@ static void OPC_PutBase (OPT_Struct typ);
 static void OPC_PutPtrOffsets (OPT_Struct typ, LONGINT adr, LONGINT *cnt);
 static void OPC_RegCmds (OPT_Object obj);
 export void OPC_SetInclude (BOOLEAN exclude);
+export LONGINT OPC_SizeAlignment (LONGINT size);
 static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause);
 static void OPC_Str1 (CHAR *s, LONGINT s__len, LONGINT x);
 static void OPC_StringLiteral (CHAR *s, LONGINT s__len, LONGINT l);
@@ -867,70 +868,37 @@ void OPC_Align (LONGINT *adr, LONGINT base)
 	}
 }
 
-LONGINT OPC_Base (OPT_Struct typ)
+LONGINT OPC_SizeAlignment (LONGINT size)
 {
 	LONGINT _o_result;
-	switch (typ->form) {
-		case 1: 
-			_o_result = 1;
-			return _o_result;
-			break;
-		case 3: 
-			_o_result = OPM_CharAlign;
-			return _o_result;
-			break;
-		case 2: 
-			_o_result = OPM_BoolAlign;
-			return _o_result;
-			break;
-		case 4: 
-			_o_result = OPM_SIntAlign;
-			return _o_result;
-			break;
-		case 5: 
-			_o_result = OPM_IntAlign;
-			return _o_result;
-			break;
-		case 6: 
-			_o_result = OPM_LIntAlign;
-			return _o_result;
-			break;
-		case 7: 
-			_o_result = OPM_RealAlign;
-			return _o_result;
-			break;
-		case 8: 
-			_o_result = OPM_LRealAlign;
-			return _o_result;
-			break;
-		case 9: 
-			_o_result = OPM_SetAlign;
-			return _o_result;
-			break;
-		case 13: 
-			_o_result = OPM_PointerAlign;
-			return _o_result;
-			break;
-		case 14: 
-			_o_result = OPM_ProcAlign;
-			return _o_result;
-			break;
-		case 15: 
-			if (typ->comp == 4) {
-				_o_result = __MASK(typ->align, -65536);
-				return _o_result;
-			} else {
-				_o_result = OPC_Base(typ->BaseTyp);
-				return _o_result;
-			}
-			break;
-		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPC.Base, typ^form = ", (LONGINT)40);
-			OPM_LogWNum(typ->form, ((LONGINT)(0)));
-			OPM_LogWLn();
-			break;
+	LONGINT alignment;
+	if (size < (LONGINT)OPM_Alignment) {
+		alignment = 1;
+		while (alignment < size) {
+			alignment = __ASHL(alignment, 1);
+		}
+	} else {
+		alignment = OPM_Alignment;
 	}
-	__RETCHK;
+	_o_result = alignment;
+	return _o_result;
+}
+
+LONGINT OPC_BaseAlignment (OPT_Struct typ)
+{
+	LONGINT _o_result;
+	LONGINT alignment;
+	if (typ->form == 15) {
+		if (typ->comp == 4) {
+			alignment = __MASK(typ->align, -65536);
+		} else {
+			alignment = OPC_BaseAlignment(typ->BaseTyp);
+		}
+	} else {
+		alignment = OPC_SizeAlignment(typ->size);
+	}
+	_o_result = alignment;
+	return _o_result;
 }
 
 static void OPC_FillGap (LONGINT gap, LONGINT off, LONGINT align, LONGINT *n, LONGINT *curAlign)
@@ -984,7 +952,7 @@ static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, LONGINT *off, LONGINT *
 			}
 		} else {
 			adr = *off;
-			fldAlign = OPC_Base(fld->typ);
+			fldAlign = OPC_BaseAlignment(fld->typ);
 			OPC_Align(&adr, fldAlign);
 			gap = fld->adr - adr;
 			if (fldAlign > *curAlign) {

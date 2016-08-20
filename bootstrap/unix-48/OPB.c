@@ -55,8 +55,6 @@ static void OPB_SetIntType (OPT_Node node);
 export void OPB_SetRange (OPT_Node *x, OPT_Node y);
 static LONGINT OPB_ShorterSize (LONGINT i);
 static INTEGER OPB_SignedByteSize (LONGINT n);
-static LONGINT OPB_SignedMaximum (LONGINT bytecount);
-static LONGINT OPB_SignedMinimum (LONGINT bytecount);
 export void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno);
 export void OPB_StPar0 (OPT_Node *par0, INTEGER fctno);
 export void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno);
@@ -223,23 +221,6 @@ OPT_Node OPB_EmptySet (void)
 	x->conval = OPT_NewConst();
 	x->conval->setval = 0x0;
 	_o_result = x;
-	return _o_result;
-}
-
-static LONGINT OPB_SignedMaximum (LONGINT bytecount)
-{
-	LONGINT _o_result;
-	LONGINT result;
-	result = 1;
-	result = __LSH(result, __ASHL(bytecount, 3) - 1, LONGINT);
-	_o_result = result - 1;
-	return _o_result;
-}
-
-static LONGINT OPB_SignedMinimum (LONGINT bytecount)
-{
-	LONGINT _o_result;
-	_o_result = -OPB_SignedMaximum(bytecount) - 1;
 	return _o_result;
 }
 
@@ -448,16 +429,16 @@ void OPB_Field (OPT_Node *x, OPT_Object y)
 	}
 }
 
-static struct TypTest__63 {
+static struct TypTest__61 {
 	OPT_Node *x;
 	OPT_Object *obj;
 	BOOLEAN *guard;
-	struct TypTest__63 *lnk;
-} *TypTest__63_s;
+	struct TypTest__61 *lnk;
+} *TypTest__61_s;
 
-static void GTT__64 (OPT_Struct t0, OPT_Struct t1);
+static void GTT__62 (OPT_Struct t0, OPT_Struct t1);
 
-static void GTT__64 (OPT_Struct t0, OPT_Struct t1)
+static void GTT__62 (OPT_Struct t0, OPT_Struct t1)
 {
 	OPT_Node node = NIL;
 	OPT_Struct t = NIL;
@@ -470,54 +451,54 @@ static void GTT__64 (OPT_Struct t0, OPT_Struct t1)
 			t1 = t1->BaseTyp;
 		}
 		if (t1 == t0 || t0->form == 0) {
-			if (*TypTest__63_s->guard) {
-				OPB_BindNodes(5, NIL, &*TypTest__63_s->x, NIL);
-				(*TypTest__63_s->x)->readonly = (*TypTest__63_s->x)->left->readonly;
+			if (*TypTest__61_s->guard) {
+				OPB_BindNodes(5, NIL, &*TypTest__61_s->x, NIL);
+				(*TypTest__61_s->x)->readonly = (*TypTest__61_s->x)->left->readonly;
 			} else {
 				node = OPT_NewNode(11);
 				node->subcl = 16;
-				node->left = *TypTest__63_s->x;
-				node->obj = *TypTest__63_s->obj;
-				*TypTest__63_s->x = node;
+				node->left = *TypTest__61_s->x;
+				node->obj = *TypTest__61_s->obj;
+				*TypTest__61_s->x = node;
 			}
 		} else {
 			OPB_err(85);
 		}
 	} else if (t0 != t1) {
 		OPB_err(85);
-	} else if (!*TypTest__63_s->guard) {
-		if ((*TypTest__63_s->x)->class == 5) {
+	} else if (!*TypTest__61_s->guard) {
+		if ((*TypTest__61_s->x)->class == 5) {
 			node = OPT_NewNode(11);
 			node->subcl = 16;
-			node->left = *TypTest__63_s->x;
-			node->obj = *TypTest__63_s->obj;
-			*TypTest__63_s->x = node;
+			node->left = *TypTest__61_s->x;
+			node->obj = *TypTest__61_s->obj;
+			*TypTest__61_s->x = node;
 		} else {
-			*TypTest__63_s->x = OPB_NewBoolConst(1);
+			*TypTest__61_s->x = OPB_NewBoolConst(1);
 		}
 	}
 }
 
 void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard)
 {
-	struct TypTest__63 _s;
+	struct TypTest__61 _s;
 	_s.x = x;
 	_s.obj = &obj;
 	_s.guard = &guard;
-	_s.lnk = TypTest__63_s;
-	TypTest__63_s = &_s;
+	_s.lnk = TypTest__61_s;
+	TypTest__61_s = &_s;
 	if (OPB_NotVar(*x)) {
 		OPB_err(112);
 	} else if ((*x)->typ->form == 13) {
 		if (((*x)->typ->BaseTyp->comp != 4 && (*x)->typ != OPT_sysptrtyp)) {
 			OPB_err(85);
 		} else if (obj->typ->form == 13) {
-			GTT__64((*x)->typ->BaseTyp, obj->typ->BaseTyp);
+			GTT__62((*x)->typ->BaseTyp, obj->typ->BaseTyp);
 		} else {
 			OPB_err(86);
 		}
 	} else if (((((*x)->typ->comp == 4 && (*x)->class == 1)) && obj->typ->comp == 4)) {
-		GTT__64((*x)->typ, obj->typ);
+		GTT__62((*x)->typ, obj->typ);
 	} else {
 		OPB_err(87);
 	}
@@ -526,7 +507,7 @@ void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard)
 	} else {
 		(*x)->typ = OPT_booltyp;
 	}
-	TypTest__63_s = _s.lnk;
+	TypTest__61_s = _s.lnk;
 }
 
 void OPB_In (OPT_Node *x, OPT_Node y)
@@ -1849,7 +1830,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 						x->typ = OPT_chartyp;
 						break;
 					case 4: case 5: case 6: 
-						x = OPB_NewIntConst(OPB_SignedMinimum(x->typ->size));
+						x = OPB_NewIntConst(OPM_SignedMinimum(x->typ->size));
 						break;
 					case 9: 
 						x = OPB_NewIntConst(((LONGINT)(0)));
@@ -1880,7 +1861,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 						x->typ = OPT_chartyp;
 						break;
 					case 4: case 5: case 6: 
-						x = OPB_NewIntConst(OPB_SignedMaximum(x->typ->size));
+						x = OPB_NewIntConst(OPM_SignedMaximum(x->typ->size));
 						break;
 					case 9: 
 						x = OPB_NewIntConst(OPM_MaxSet);
@@ -2062,13 +2043,13 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 	*par0 = x;
 }
 
-static struct StPar1__58 {
-	struct StPar1__58 *lnk;
-} *StPar1__58_s;
+static struct StPar1__56 {
+	struct StPar1__56 *lnk;
+} *StPar1__56_s;
 
-static OPT_Node NewOp__59 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right);
+static OPT_Node NewOp__57 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right);
 
-static OPT_Node NewOp__59 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right)
+static OPT_Node NewOp__57 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right)
 {
 	OPT_Node _o_result;
 	OPT_Node node = NIL;
@@ -2085,9 +2066,9 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 	INTEGER f, L;
 	OPT_Struct typ = NIL;
 	OPT_Node p = NIL, t = NIL;
-	struct StPar1__58 _s;
-	_s.lnk = StPar1__58_s;
-	StPar1__58_s = &_s;
+	struct StPar1__56 _s;
+	_s.lnk = StPar1__56_s;
+	StPar1__56_s = &_s;
 	p = *par0;
 	f = x->typ->form;
 	switch (fctno) {
@@ -2103,7 +2084,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 						OPB_err(111);
 					}
 				}
-				p = NewOp__59(19, fctno, p, x);
+				p = NewOp__57(19, fctno, p, x);
 				p->typ = OPT_notyp;
 			}
 			break;
@@ -2114,7 +2095,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (LONGINT)OPM_MaxSet))) {
 					OPB_err(202);
 				}
-				p = NewOp__59(19, fctno, p, x);
+				p = NewOp__57(19, fctno, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2139,7 +2120,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 							p = p->left;
 							x->conval->intval += 1;
 						}
-						p = NewOp__59(12, 19, p, x);
+						p = NewOp__57(12, 19, p, x);
 						p->typ = OPT_linttyp;
 					} else {
 						p = x;
@@ -2161,7 +2142,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 				t = x;
 				x = p;
 				p = t;
-				p = NewOp__59(19, 18, p, x);
+				p = NewOp__57(19, 18, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2187,7 +2168,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 					}
 					p->obj = NIL;
 				} else {
-					p = NewOp__59(12, 17, p, x);
+					p = NewOp__57(12, 17, p, x);
 					p->typ = OPT_linttyp;
 				}
 			} else {
@@ -2218,9 +2199,9 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 				OPB_err(111);
 			} else {
 				if (fctno == 22) {
-					p = NewOp__59(12, 27, p, x);
+					p = NewOp__57(12, 27, p, x);
 				} else {
-					p = NewOp__59(12, 28, p, x);
+					p = NewOp__57(12, 28, p, x);
 				}
 				p->typ = p->left->typ;
 			}
@@ -2237,7 +2218,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 					x = p;
 					p = t;
 				}
-				p = NewOp__59(19, fctno, p, x);
+				p = NewOp__57(19, fctno, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2247,7 +2228,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (__IN(f, 0x70)) {
-				p = NewOp__59(12, 26, p, x);
+				p = NewOp__57(12, 26, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2271,7 +2252,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (__IN(f, 0x70)) {
-				p = NewOp__59(19, 30, p, x);
+				p = NewOp__57(19, 30, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2317,7 +2298,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			break;
 	}
 	*par0 = p;
-	StPar1__58_s = _s.lnk;
+	StPar1__56_s = _s.lnk;
 }
 
 void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)

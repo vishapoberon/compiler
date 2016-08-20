@@ -82,7 +82,7 @@ void OPV_TypSize (OPT_Struct typ)
 			btyp = typ->BaseTyp;
 			if (btyp == NIL) {
 				offset = 0;
-				base = OPM_RecAlign;
+				base = OPC_SizeAlignment(OPM_RecSize);
 			} else {
 				OPV_TypSize(btyp);
 				offset = btyp->size - (LONGINT)__ASHR(btyp->sysflag, 8);
@@ -93,7 +93,7 @@ void OPV_TypSize (OPT_Struct typ)
 				btyp = fld->typ;
 				OPV_TypSize(btyp);
 				size = btyp->size;
-				fbase = OPC_Base(btyp);
+				fbase = OPC_BaseAlignment(btyp);
 				OPC_Align(&offset, fbase);
 				fld->adr = offset;
 				offset += size;
@@ -107,7 +107,7 @@ void OPV_TypSize (OPT_Struct typ)
 				offset = 1;
 			}
 			if (OPM_RecSize == 0) {
-				base = OPV_NaturalAlignment(offset, OPM_RecAlign);
+				base = OPV_NaturalAlignment(offset, OPC_SizeAlignment(OPM_RecSize));
 			}
 			OPC_Align(&offset, base);
 			if ((typ->strobj == NIL && __MASK(typ->align, -65536) == 0)) {
@@ -491,7 +491,7 @@ static void OPV_Convert (OPT_Node n, INTEGER form, INTEGER prec)
 				OPM_Write('(');
 				OPV_Entier(n, -1);
 				OPM_WriteString((CHAR*)", ", (LONGINT)3);
-				OPM_WriteInt(OPM_MaxInt + 1);
+				OPM_WriteInt(OPM_SignedMaximum(OPM_IntSize) + 1);
 				OPM_Write(')');
 			} else {
 				OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
@@ -507,7 +507,7 @@ static void OPV_Convert (OPT_Node n, INTEGER form, INTEGER prec)
 			OPM_Write('(');
 			OPV_Entier(n, -1);
 			OPM_WriteString((CHAR*)", ", (LONGINT)3);
-			OPM_WriteInt(OPM_MaxSInt + 1);
+			OPM_WriteInt(OPM_SignedMaximum(OPM_SIntSize) + 1);
 			OPM_Write(')');
 		} else {
 			OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
@@ -795,7 +795,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 		}
 		if ((((mode == 2 && n->class == 11)) && n->subcl == 29)) {
 			OPV_expr(n->left, prec);
-		} else if ((((((form == 6 && n->class == 7)) && n->conval->intval <= OPM_MaxInt)) && n->conval->intval >= OPM_MinInt)) {
+		} else if ((((((form == 6 && n->class == 7)) && n->conval->intval <= OPM_SignedMaximum(OPM_IntSize))) && n->conval->intval >= OPM_SignedMinimum(OPM_IntSize))) {
 			OPM_WriteString((CHAR*)"((LONGINT)(", (LONGINT)12);
 			OPV_expr(n, prec);
 			OPM_WriteString((CHAR*)"))", (LONGINT)3);
@@ -1322,7 +1322,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x)
 	OPM_WriteInt(base->size);
 	OPM_WriteString((CHAR*)"))", (LONGINT)3);
 	OPM_WriteString((CHAR*)", ", (LONGINT)3);
-	OPM_WriteInt(OPC_Base(base));
+	OPM_WriteInt(OPC_BaseAlignment(base));
 	OPM_WriteString((CHAR*)", ", (LONGINT)3);
 	OPM_WriteInt(nofdim);
 	OPM_WriteString((CHAR*)", ", (LONGINT)3);

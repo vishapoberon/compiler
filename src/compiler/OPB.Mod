@@ -108,18 +108,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 
   (* Integer size support *)
 
-  PROCEDURE SignedMaximum(bytecount: LONGINT): LONGINT;
-  VAR result: LONGINT;
-  BEGIN
-    result := 1;
-    result := SYSTEM.LSH(result, bytecount*8-1);
-    RETURN result - 1;
-  END SignedMaximum;
-
-  PROCEDURE SignedMinimum(bytecount: LONGINT): LONGINT;
-  BEGIN RETURN -SignedMaximum(bytecount) - 1
-  END SignedMinimum;
-
   PROCEDURE SignedByteSize(n: LONGINT): INTEGER;
   (* Returns number of bytes required to represent signed value n *)
     VAR b: INTEGER;
@@ -1016,7 +1004,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      | OPM.Char:  x := NewIntConst(0); x^.typ := OPT.chartyp
                      | OPM.SInt,
                        OPM.Int,
-                       OPM.LInt:  x := NewIntConst(SignedMinimum(x.typ.size))
+                       OPM.LInt:  x := NewIntConst(OPM.SignedMinimum(x.typ.size))
                      | OPM.Set:   x := NewIntConst(0); x^.typ := OPT.inttyp
                      | OPM.Real:  x := NewRealConst(OPM.MinReal, OPT.realtyp)
                      | OPM.LReal: x := NewRealConst(OPM.MinLReal, OPT.lrltyp)
@@ -1031,7 +1019,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      | OPM.Char:  x := NewIntConst(0FFH); x^.typ := OPT.chartyp
                      | OPM.SInt,
                        OPM.Int,
-                       OPM.LInt:  x := NewIntConst(SignedMaximum(x.typ.size))
+                       OPM.LInt:  x := NewIntConst(OPM.SignedMaximum(x.typ.size))
                      | OPM.Set:   x := NewIntConst(OPM.MaxSet); x^.typ := OPT.inttyp
                      | OPM.Real:  x := NewRealConst(OPM.MaxReal, OPT.realtyp)
                      | OPM.LReal: x := NewRealConst(OPM.MaxLReal, OPT.lrltyp)

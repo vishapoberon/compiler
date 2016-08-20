@@ -14,8 +14,8 @@ typedef
 
 
 static CHAR OPM_SourceFileName[256];
-export INTEGER OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_CharAlign, OPM_BoolAlign, OPM_SIntAlign, OPM_IntAlign, OPM_LIntAlign, OPM_SetAlign, OPM_RealAlign, OPM_LRealAlign, OPM_PointerAlign, OPM_ProcAlign, OPM_RecAlign, OPM_MaxSet;
-export LONGINT OPM_MinSInt, OPM_MinInt, OPM_MinLInt, OPM_MaxSInt, OPM_MaxInt, OPM_MaxLInt, OPM_MaxIndex;
+export INTEGER OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
+export LONGINT OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
 export LONGINT OPM_curpos, OPM_errpos, OPM_breakpc;
@@ -36,7 +36,6 @@ static CHAR OPM_OBERON[1024];
 static CHAR OPM_MODULES[1024];
 
 
-export INTEGER OPM_AlignSize (LONGINT size);
 static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F);
 export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
@@ -65,6 +64,8 @@ export BOOLEAN OPM_OpenPar (void);
 export void OPM_RegisterNewSym (void);
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt);
 static void OPM_ShowLine (LONGINT pos);
+export LONGINT OPM_SignedMaximum (LONGINT bytecount);
+export LONGINT OPM_SignedMinimum (LONGINT bytecount);
 export void OPM_SymRCh (CHAR *ch);
 export LONGINT OPM_SymRInt (void);
 export void OPM_SymRLReal (LONGREAL *lr);
@@ -607,111 +608,62 @@ static void OPM_VerboseListSizes (void)
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"CHAR         ", (LONGINT)14);
 	OPM_LogWNum(OPM_CharSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_CharAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"BOOLEAN      ", (LONGINT)14);
 	OPM_LogWNum(OPM_BoolSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_BoolAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"SHORTINT     ", (LONGINT)14);
 	OPM_LogWNum(OPM_SIntSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_SIntAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"INTEGER      ", (LONGINT)14);
 	OPM_LogWNum(OPM_IntSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_IntAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"LONGINT      ", (LONGINT)14);
 	OPM_LogWNum(OPM_LIntSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_LIntAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"SET          ", (LONGINT)14);
 	OPM_LogWNum(OPM_SetSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_SetAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"REAL         ", (LONGINT)14);
 	OPM_LogWNum(OPM_RealSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_RealAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"LONGREAL     ", (LONGINT)14);
 	OPM_LogWNum(OPM_LRealSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_LRealAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"PTR          ", (LONGINT)14);
 	OPM_LogWNum(OPM_PointerSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_PointerAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"PROC         ", (LONGINT)14);
 	OPM_LogWNum(OPM_ProcSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_ProcAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"RECORD       ", (LONGINT)14);
 	OPM_LogWNum(OPM_RecSize, ((LONGINT)(4)));
-	OPM_LogWNum(OPM_RecAlign, ((LONGINT)(5)));
 	OPM_LogWLn();
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Min shortint ", (LONGINT)14);
-	OPM_LogWNum(OPM_MinSInt, ((LONGINT)(4)));
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Max shortint ", (LONGINT)14);
-	OPM_LogWNum(OPM_MaxSInt, ((LONGINT)(4)));
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Min integer  ", (LONGINT)14);
-	OPM_LogWNum(OPM_MinInt, ((LONGINT)(4)));
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Max integer  ", (LONGINT)14);
-	OPM_LogWNum(OPM_MaxInt, ((LONGINT)(4)));
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Min longint  ", (LONGINT)14);
-	OPM_LogWNum(OPM_MinLInt, ((LONGINT)(4)));
 	OPM_LogWLn();
 }
 
-INTEGER OPM_AlignSize (LONGINT size)
+LONGINT OPM_SignedMaximum (LONGINT bytecount)
 {
-	INTEGER _o_result;
-	INTEGER align;
-	if (size < (LONGINT)OPM_Alignment) {
-		if (size > 8) {
-			align = 16;
-		} else if (size > 4) {
-			align = 8;
-		} else if (size > 2) {
-			align = 4;
-		} else {
-			align = (int)size;
-		}
-	} else {
-		align = OPM_Alignment;
-	}
-	_o_result = align;
+	LONGINT _o_result;
+	LONGINT result;
+	result = 1;
+	result = __LSH(result, __ASHL(bytecount, 3) - 1, LONGINT);
+	_o_result = result - 1;
+	return _o_result;
+}
+
+LONGINT OPM_SignedMinimum (LONGINT bytecount)
+{
+	LONGINT _o_result;
+	_o_result = -OPM_SignedMaximum(bytecount) - 1;
 	return _o_result;
 }
 
 static void OPM_GetProperties (void)
 {
-	LONGINT base;
 	OPM_ProcSize = OPM_PointerSize;
 	OPM_LIntSize = __ASHL(OPM_IntSize, 1);
 	OPM_SetSize = OPM_LIntSize;
-	OPM_CharAlign = OPM_AlignSize(OPM_CharSize);
-	OPM_BoolAlign = OPM_AlignSize(OPM_BoolSize);
-	OPM_SIntAlign = OPM_AlignSize(OPM_SIntSize);
-	OPM_RecAlign = OPM_AlignSize(OPM_RecSize);
-	OPM_RealAlign = OPM_AlignSize(OPM_RealSize);
-	OPM_LRealAlign = OPM_AlignSize(OPM_LRealSize);
-	OPM_PointerAlign = OPM_AlignSize(OPM_PointerSize);
-	OPM_ProcAlign = OPM_AlignSize(OPM_ProcSize);
-	OPM_IntAlign = OPM_AlignSize(OPM_IntSize);
-	OPM_LIntAlign = OPM_AlignSize(OPM_LIntSize);
-	OPM_SetAlign = OPM_AlignSize(OPM_SetSize);
-	base = -2;
-	OPM_MinSInt = __ASH(base, __ASHL(OPM_SIntSize, 3) - 2);
-	OPM_MaxSInt = OPM_minusop(OPM_MinSInt + 1);
-	OPM_MinInt = __ASH(base, __ASHL(OPM_IntSize, 3) - 2);
-	OPM_MaxInt = OPM_minusop(OPM_MinInt + 1);
-	OPM_MinLInt = __ASH(base, __ASHL(OPM_LIntSize, 3) - 2);
-	OPM_MaxLInt = OPM_minusop(OPM_MinLInt + 1);
 	if (OPM_RealSize == 4) {
 		OPM_MaxReal =   3.40282346000000e+038;
 	} else if (OPM_RealSize == 8) {
@@ -725,7 +677,7 @@ static void OPM_GetProperties (void)
 	OPM_MinReal = -OPM_MaxReal;
 	OPM_MinLReal = -OPM_MaxLReal;
 	OPM_MaxSet = __ASHL(OPM_SetSize, 3) - 1;
-	OPM_MaxIndex = OPM_MaxLInt;
+	OPM_MaxIndex = OPM_SignedMaximum(OPM_PointerSize);
 	if (OPM_Verbose) {
 		OPM_VerboseListSizes();
 	}
@@ -887,7 +839,7 @@ void OPM_WriteInt (LONGINT i)
 {
 	CHAR s[20];
 	LONGINT i1, k;
-	if (i == OPM_MinInt || i == OPM_MinLInt) {
+	if (i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) {
 		OPM_Write('(');
 		OPM_WriteInt(i + 1);
 		OPM_WriteString((CHAR*)"-1)", (LONGINT)4);
@@ -920,7 +872,7 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 	CHAR s[32];
 	CHAR ch;
 	INTEGER i;
-	if ((((r < OPM_MaxLInt && r > OPM_MinLInt)) && r == (__ENTIER(r)))) {
+	if ((((r < OPM_SignedMaximum(OPM_LIntSize) && r > OPM_SignedMinimum(OPM_LIntSize))) && r == (__ENTIER(r)))) {
 		if (suffx == 'f') {
 			OPM_WriteString((CHAR*)"(REAL)", (LONGINT)7);
 		} else {
