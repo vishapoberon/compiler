@@ -106,18 +106,36 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END EmptySet;
 
 
+  (* Integer size support *)
+
+  PROCEDURE SignedMaximum(bytecount: LONGINT): LONGINT;
+  VAR result: LONGINT;
+  BEGIN
+    result := 1;
+    result := SYSTEM.LSH(result, bytecount*8-1);
+    RETURN result - 1;
+  END SignedMaximum;
+
+  PROCEDURE SignedMinimum(bytecount: LONGINT): LONGINT;
+  BEGIN RETURN -SignedMaximum(bytecount) - 1
+  END SignedMinimum;
+
   PROCEDURE SignedByteSize(n: LONGINT): INTEGER;
   (* Returns number of bytes required to represent signed value n *)
     VAR b: INTEGER;
   BEGIN
-    IF n < 0 THEN n := -(n+1) END; (* Positive value in the range 0 - 7F..FF *)
-    b := 1;
-    WHILE b < 8 DO
-      IF ASH(n, -(8*b-1)) = 0 THEN RETURN b END;
-      INC(b);
-    END;
-    RETURN 8
+    IF n < 0 THEN n := -(n+1) END; (* Positive value in the range 0 - 7F.. *)
+    b := 1; WHILE (b < 8) & (ASH(n, -(8*b-1)) # 0) DO INC(b) END;
+    RETURN b
   END SignedByteSize;
+
+  PROCEDURE ShorterSize(i: LONGINT): LONGINT;
+  BEGIN IF i >= OPM.LIntSize THEN RETURN OPM.IntSize ELSE RETURN OPM.SIntSize END
+  END ShorterSize;
+
+  PROCEDURE LongerSize(i: LONGINT): LONGINT;
+  BEGIN IF i <= OPM.SIntSize THEN RETURN OPM.IntSize ELSE RETURN OPM.LIntSize END
+  END LongerSize;
 
   PROCEDURE IntType(size: LONGINT): OPT.Struct;
   (* Selects smallest standard integer type for given size in bytes *)
@@ -485,35 +503,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPM.Char:    IF g = OPM.String THEN CharToString(x)
                     ELSE err(100); y^.typ := x^.typ; yval^ := xval^
                     END ;
-      (*
-      |OPM.SInt:    IF g IN OPM.intSet THEN x^.typ := y^.typ
-                    ELSIF g = OPM.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
-                    ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
-                    ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
-                    END
-      |OPM.Int:     IF g = OPM.SInt THEN y^.typ := OPT.inttyp
-                    ELSIF g IN OPM.intSet THEN x^.typ := y^.typ
-                    ELSIF g = OPM.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
-                    ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
-                    ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
-                    END
-      |OPM.LInt:    IF g IN OPM.intSet THEN y^.typ := OPT.linttyp
-                    ELSIF g = OPM.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
-                    ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
-                    ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
-                    END
-
-         f      g       x.typ :=
-       SInt   SInt      y.typ
-       SInt    Int      y.typ
-       SInt   Lint      y.typ
-        Int   SInt      OPT.inttyp
-        Int    Int      y.typ
-        Int   Lint      y.typ
-       LInt   SInt      OPT.linttyp
-       LInt    Int      OPT.linttyp
-       LInt   Lint      OPT.linttyp
-      *)
       |OPM.SInt,
        OPM.Int,
        OPM.LInt:    IF g IN OPM.intSet THEN
@@ -522,8 +511,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
                     END
-
-
       |OPM.Real:    IF g IN OPM.intSet THEN y^.typ := x^.typ; yval^.realval := yval^.intval
                     ELSIF g = OPM.LReal THEN x^.typ := OPT.lrltyp
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
@@ -721,37 +708,12 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         g := y^.typ^.form;
         CASE z^.typ^.form OF
         |OPM.Char:    IF z^.class = OPM.Nconst THEN CharToString(z) ELSE err(100) END
-
-        (*
-        |OPM.SInt:    IF g IN OPM.intSet + OPM.realSet THEN Convert(z, y^.typ)
-                      ELSE  err(100)
-                      END
-        |OPM.Int:     IF g = OPM.SInt THEN Convert(y, z^.typ)
-                      ELSIF g IN OPM.intSet + OPM.realSet THEN Convert(z, y^.typ)
-                      ELSE  err(100)
-                      END
-        |OPM.LInt:    IF g IN OPM.intSet THEN Convert(y, z^.typ)
-                      ELSIF g IN OPM.realSet THEN Convert(z, y^.typ)
-                      ELSE  err(100)
-                      END
-          x.typ  y.typ     Conversion
-          SInt   SInt      Convert(z, y.typ)
-          SInt    Int      Convert(z, y.typ)
-          SInt   Lint      Convert(z, y.typ)
-           Int   SInt      Convert(y, z.typ)
-           Int    Int      Convert(z, y.typ)
-           Int   Lint      Convert(z, y.typ)
-          LInt   SInt      Convert(y, z.typ)
-          LInt    Int      Convert(y, z.typ)
-          LInt   Lint      Convert(y, z.typ)
-        *)
         |OPM.SInt,
          OPM.Int,
          OPM.LInt:    IF (g IN OPM.intSet) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
                       ELSIF g IN OPM.intSet + OPM.realSet              THEN Convert(z, y.typ)
                       ELSE err(100)
                       END
-
         |OPM.Real:    IF g IN OPM.intSet THEN Convert(y, z^.typ)
                       ELSIF g IN OPM.realSet THEN Convert(z, y^.typ)
                       ELSE  err(100)
@@ -932,8 +894,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     CASE f OF
       OPM.Undef,
       OPM.String:
-    | OPM.Byte:     IF ~(   (g IN {OPM.Byte, OPM.Char})
-                         OR ((g IN OPM.intSet) & (y.size = 1))) THEN err(113) END
+    | OPM.Byte:     IF ~((g IN ({OPM.Byte, OPM.Char} + OPM.intSet)) & (y.size = 1)) THEN err(113) END
     | OPM.Bool,
       OPM.Char,
       OPM.Set:      IF g # f THEN err(113) END
@@ -1001,29 +962,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     IF (x^.class = OPM.Nvar) & (dynArrToo OR (x^.typ^.comp # OPM.DynArr)) THEN x^.obj^.leaf := FALSE END
 *)
   END CheckLeaf;
-
-
-  PROCEDURE SignedMaximum(bytecount: LONGINT): LONGINT;
-  VAR result: LONGINT;
-  BEGIN
-    result := 1;
-    result := SYSTEM.LSH(result, bytecount*8-1);
-    RETURN result - 1;
-  END SignedMaximum;
-
-  PROCEDURE SignedMinimum(bytecount: LONGINT): LONGINT;
-  BEGIN RETURN -SignedMaximum(bytecount) - 1
-  END SignedMinimum;
-
-  PROCEDURE ByteSized(typ: OPT.Struct): BOOLEAN;
-  BEGIN RETURN (typ.form IN {OPM.Byte..OPM.Char})
-            OR (typ.form IN OPM.intSet) & (typ.size = 1);
-  END ByteSized;
-
-  PROCEDURE PointerSized(typ: OPT.Struct): BOOLEAN;
-  BEGIN RETURN (typ.form = OPM.Pointer)
-            OR (typ.form IN OPM.intSet) & (typ.size = OPM.PointerSize)
-  END PointerSized;
 
   PROCEDURE StPar0*(VAR par0: OPT.Node; fctno: INTEGER);  (* par0: first param of standard proc *)
     VAR f: INTEGER; typ: OPT.Struct; x: OPT.Node;
@@ -1108,15 +1046,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END
     |OPM.shortfn:  (*SHORT*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
-                   ELSIF f = OPM.Int THEN Convert(x, OPT.sinttyp)
-                   ELSIF f = OPM.LInt THEN Convert(x, OPT.inttyp)
+                   ELSIF (f IN OPM.intSet) & (x.typ.size > OPM.SIntSize) THEN Convert(x, IntType(ShorterSize(x.typ.size)))
                    ELSIF f = OPM.LReal THEN Convert(x, OPT.realtyp)
                    ELSE err(111)
                    END
     |OPM.longfn:   (*LONG*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
-                   ELSIF f = OPM.SInt THEN Convert(x, OPT.inttyp)
-                   ELSIF f = OPM.Int THEN Convert(x, OPT.linttyp)
+                   ELSIF (f IN OPM.intSet) & (x.typ.size < OPM.LIntSize) THEN Convert(x, IntType(LongerSize(x.typ.size)))
                    ELSIF f = OPM.Real THEN Convert(x, OPT.lrltyp)
                    ELSIF f = OPM.Char THEN Convert(x, OPT.linttyp)
                    ELSE err(111)
@@ -1169,7 +1105,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
      OPM.movefn:   (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
                    ELSIF (x^.class = OPM.Nconst) & (f IN OPM.intSet) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~PointerSized(x.typ) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF ~((x.typ.form IN {OPM.Pointer} + OPM.intSet) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
                    END
     |OPM.getrfn,
      OPM.putrfn:   (*SYSTEM.GETREG, SYSTEM.PUTREG*)
@@ -1337,8 +1273,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPM.movefn:   (*SYSTEM.MOVE*)
                    IF (x^.class = OPM.Ntype) OR (x^.class = OPM.Nproc) THEN err(126)
                    ELSIF (x^.class = OPM.Nconst) & (f IN OPM.intSet) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~(PointerSized(x.typ)) THEN err(111); x^.typ := OPT.linttyp
-                   END ;
+                   ELSIF ~((x.typ.form IN {OPM.Pointer} + OPM.intSet) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
+                   END;
                    p^.link := x
     |OPM.assertfn: (*ASSERT*)
                    IF (f IN OPM.intSet) & (x^.class = OPM.Nconst) THEN
@@ -1433,7 +1369,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN (* ftyp^.comp = OPM.DynArr *)
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
     IF fvarpar & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
-      IF ~(f IN {OPM.Array, OPM.DynArr}) OR ~(ByteSized(atyp)) THEN
+      IF ~(f IN {OPM.Array, OPM.DynArr}) OR ~((atyp.form IN {OPM.Byte..OPM.Char} + OPM.intSet) & (atyp.size = 1)) THEN
         IF OPM.verbose IN OPM.opt THEN err(-301) END
       END
     ELSIF f IN {OPM.Array, OPM.DynArr} THEN
@@ -1486,7 +1422,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           WHILE (q # fp^.typ) & (q # NIL) & (q # OPT.undftyp) DO q := q^.BaseTyp END ;
           IF q = NIL THEN err(111) END
         ELSIF (fp^.typ = OPT.sysptrtyp) & (ap^.typ^.form = OPM.Pointer) THEN (* ok *)
-        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPM.Byte) & (ByteSized(ap.typ))) THEN err(123)
+        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPM.Byte) & ((ap.typ.form IN {OPM.Byte..OPM.Char} + OPM.intSet) & (ap.typ.size = 1))) THEN err(123)
         ELSIF (fp^.typ^.form = OPM.Pointer) & (ap^.class = OPM.Nguard) THEN err(123)
         END
       ELSIF fp^.typ^.comp = OPM.DynArr THEN

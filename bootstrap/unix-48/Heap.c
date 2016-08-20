@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/16] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/08/20] for gcc LP64 on cygwin tskSfF */
 #include "SYSTEM.h"
 
 struct Heap__1 {

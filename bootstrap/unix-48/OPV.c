@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/16] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/20] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPC.h"
 #include "OPM.h"
@@ -963,11 +963,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 						}
 						OPV_expr(l, exprPrec);
 					} else {
-						if (__IN(n->typ->form, 0x6000) || __IN(l->typ->form, 0x6000)) {
-							OPM_WriteString((CHAR*)"__VALP(", (LONGINT)8);
-						} else {
-							OPM_WriteString((CHAR*)"__VAL(", (LONGINT)7);
-						}
+						OPM_WriteString((CHAR*)"__VAL(", (LONGINT)7);
 						OPC_Ident(n->typ->strobj);
 						OPM_WriteString((CHAR*)", ", (LONGINT)3);
 						OPV_expr(l, -1);

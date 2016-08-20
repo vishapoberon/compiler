@@ -1,15 +1,17 @@
-/* voc 1.95 [2016/08/16] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/20] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 
 
 
 
+static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LONGINT d__len);
 export void Reals_Convert (REAL x, INTEGER n, CHAR *d, LONGINT d__len);
 export void Reals_ConvertH (REAL y, CHAR *d, LONGINT d__len);
-export void Reals_ConvertHL (LONGREAL y, CHAR *d, LONGINT d__len);
+export void Reals_ConvertHL (LONGREAL x, CHAR *d, LONGINT d__len);
 export void Reals_ConvertL (LONGREAL x, INTEGER n, CHAR *d, LONGINT d__len);
 export INTEGER Reals_Expo (REAL x);
 export INTEGER Reals_ExpoL (LONGREAL x);
+export void Reals_SetExpo (REAL *x, INTEGER ex);
 export REAL Reals_Ten (INTEGER e);
 export LONGREAL Reals_TenL (INTEGER e);
 static CHAR Reals_ToHex (INTEGER i);
@@ -55,17 +57,27 @@ LONGREAL Reals_TenL (INTEGER e)
 INTEGER Reals_Expo (REAL x)
 {
 	INTEGER _o_result;
-	_o_result = (int)__MASK(__ASHR((LONGINT)(__VAL(INTEGER, x)), 23), -256);
+	INTEGER i;
+	__GET((LONGINT)(uintptr_t)&x + 2, i, INTEGER);
+	_o_result = __MASK(__ASHR(i, 7), -256);
 	return _o_result;
+}
+
+void Reals_SetExpo (REAL *x, INTEGER ex)
+{
+	CHAR c;
+	__GET((LONGINT)(uintptr_t)x + 3, c, CHAR);
+	__PUT((LONGINT)(uintptr_t)x + 3, (CHAR)(__ASHL(__ASHR((int)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
+	__GET((LONGINT)(uintptr_t)x + 2, c, CHAR);
+	__PUT((LONGINT)(uintptr_t)x + 2, (CHAR)(__MASK((int)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
 }
 
 INTEGER Reals_ExpoL (LONGREAL x)
 {
 	INTEGER _o_result;
 	INTEGER i;
-	LONGINT l;
-	__GET((LONGINT)(uintptr_t)&x + 4, l, LONGINT);
-	_o_result = (int)__MASK(__ASHR(l, 20), -2048);
+	__GET((LONGINT)(uintptr_t)&x + 6, i, INTEGER);
+	_o_result = __MASK(__ASHR(i, 4), -2048);
 	return _o_result;
 }
 
@@ -115,34 +127,29 @@ static CHAR Reals_ToHex (INTEGER i)
 	__RETCHK;
 }
 
-typedef
-	CHAR (*pc4__3)[4];
-
-void Reals_ConvertH (REAL y, CHAR *d, LONGINT d__len)
+static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LONGINT d__len)
 {
-	pc4__3 p = NIL;
 	INTEGER i;
-	p = (pc4__3)(uintptr_t)((LONGINT)(uintptr_t)&y);
+	LONGINT l;
+	CHAR by;
 	i = 0;
-	while (i < 4) {
-		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((int)(*p)[__X(i, ((LONGINT)(4)))], 4));
-		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((int)(*p)[__X(i, ((LONGINT)(4)))], -16));
+	l = b__len;
+	while ((LONGINT)i < l) {
+		by = __VAL(CHAR, b[__X(i, b__len)]);
+		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((int)by, 4));
+		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((int)by, -16));
+		i += 1;
 	}
 }
 
-typedef
-	CHAR (*pc8__5)[8];
-
-void Reals_ConvertHL (LONGREAL y, CHAR *d, LONGINT d__len)
+void Reals_ConvertH (REAL y, CHAR *d, LONGINT d__len)
 {
-	pc8__5 p = NIL;
-	INTEGER i;
-	p = (pc8__5)(uintptr_t)((LONGINT)(uintptr_t)&y);
-	i = 0;
-	while (i < 8) {
-		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((int)(*p)[__X(i, ((LONGINT)(8)))], 4));
-		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((int)(*p)[__X(i, ((LONGINT)(8)))], -16));
-	}
+	Reals_BytesToHex((void*)&y, ((LONGINT)(4)), (void*)d, d__len * ((LONGINT)(1)));
+}
+
+void Reals_ConvertHL (LONGREAL x, CHAR *d, LONGINT d__len)
+{
+	Reals_BytesToHex((void*)&x, ((LONGINT)(8)), (void*)d, d__len * ((LONGINT)(1)));
 }
 
 

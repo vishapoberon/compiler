@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/16] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/20] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Platform__h
 #define Platform__h

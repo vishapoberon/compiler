@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/16] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/20] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Console.h"
@@ -550,7 +550,10 @@ void OPM_FPrintReal (LONGINT *fp, REAL real)
 void OPM_FPrintLReal (LONGINT *fp, LONGREAL lr)
 {
 	LONGINT l, h;
-	OPM_FPrint(&*fp, __VAL(LONGINT, lr));
+	__GET((LONGINT)(uintptr_t)&lr, l, LONGINT);
+	__GET((LONGINT)(uintptr_t)&lr + 4, h, LONGINT);
+	OPM_FPrint(&*fp, l);
+	OPM_FPrint(&*fp, h);
 }
 
 static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONGINT name__len, INTEGER *size, INTEGER *align)
