@@ -82,7 +82,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         fld := typ^.link;
         WHILE (fld # NIL) & (fld^.mode = OPM.Fld) DO
           btyp := fld^.typ; TypSize(btyp);
-          size := btyp^.size; fbase := OPC.Base(btyp);
+          size := btyp^.size; fbase := OPC.BaseAlignment(btyp);
           OPC.Align(offset, fbase);
           fld^.adr := offset; INC(offset, size);
           IF fbase > base THEN base := fbase END ;
@@ -782,7 +782,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSE OPM.WriteString("NIL")
     END ;
     OPM.WriteString(", "); OPM.WriteString("((LONGINT)("); OPM.WriteInt(base^.size); OPM.WriteString("))");
-    OPM.WriteString(", "); OPM.WriteInt(OPC.Base(base));  (* element alignment *)
+    OPM.WriteString(", "); OPM.WriteInt(OPC.BaseAlignment(base));  (* element alignment *)
     OPM.WriteString(", "); OPM.WriteInt(nofdim);  (* total number of dimensions = number of additional parameters *)
     OPM.WriteString(", "); OPM.WriteInt(nofdyn);  (* number of dynamic dimensions *)
     WHILE typ # base DO

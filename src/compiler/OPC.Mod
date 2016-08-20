@@ -574,7 +574,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END
   END Align;
 
-  PROCEDURE Base*(typ: OPT.Struct): LONGINT;
+  PROCEDURE Base0(typ: OPT.Struct): LONGINT;
   BEGIN
     CASE typ^.form OF
     | OPM.Byte:    RETURN 1
@@ -589,11 +589,46 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     | OPM.Pointer: RETURN OPM.PointerAlign
     | OPM.ProcTyp: RETURN OPM.ProcAlign
     | OPM.Comp:    IF typ^.comp = OPM.Record THEN RETURN typ^.align MOD 10000H
-                   ELSE RETURN Base(typ^.BaseTyp)
+                   ELSE RETURN Base0(typ^.BaseTyp)
                    END
-    ELSE OPM.LogWStr("unhandled case in OPC.Base, typ^form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;
+    ELSE OPM.LogWStr("unhandled case in OPC.BaseAlignment, typ^form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;
     END
-  END Base;
+  END Base0;
+
+  PROCEDURE BaseAlignment*(typ: OPT.Struct): LONGINT;
+    VAR align, result: LONGINT;
+  BEGIN
+    IF typ.form = OPM.Comp THEN
+      IF typ.comp = OPM.Record THEN
+        result := typ.align MOD 10000H
+      ELSE
+        result := BaseAlignment(typ.BaseTyp)
+      END
+    ELSE
+      (* Not a compound type *)
+      result := Base0(typ);
+
+      (* Now determine alignment from size *)
+      IF typ.size < OPM.Alignment THEN
+        (* Round up to next power of 2 *)
+        align := 1; WHILE align < typ.size DO align := align * 2 END;
+      ELSE
+        align := OPM.Alignment
+      END;
+
+      IF align # result THEN
+        OPM.LogWStr("BaseAlignment. typ.form ");   OPM.LogWNum(typ.form,1);
+        OPM.LogWStr(", typ.size ");                OPM.LogWNum(typ.size,1);
+        OPM.LogWStr(", old alignment ");           OPM.LogWNum(result,1);
+        OPM.LogWStr(", alignment based on size "); OPM.LogWNum(align,1); OPM.LogWLn
+      END;
+      ASSERT(align = result)
+    END;
+
+
+    RETURN result
+  END BaseAlignment;
+
 
   PROCEDURE FillGap(gap, off, align: LONGINT; VAR n, curAlign: LONGINT);
     VAR adr: LONGINT;
@@ -626,7 +661,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         WHILE (fld # NIL) & (fld.mode = OPM.Fld) & (fld.vis = OPM.internal) DO fld := fld.link END ;
       ELSE
         (* mimic OPV.TypSize to detect gaps caused by private fields *)
-        adr := off; fldAlign := Base(fld^.typ); Align(adr, fldAlign);
+        adr := off; fldAlign := BaseAlignment(fld^.typ); Align(adr, fldAlign);
         gap := fld.adr - adr;
         IF fldAlign > curAlign THEN curAlign := fldAlign END ;
         IF gap > 0 THEN FillGap(gap, off, align, n, curAlign) END ;
