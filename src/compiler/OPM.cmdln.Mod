@@ -717,33 +717,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     LIntSize := IntSize * 2;
     SetSize  := LIntSize;
 
-    (* Calculate all type alignments *)
-    (*
-    CharAlign    := AlignSize(CharSize);
-    BoolAlign    := AlignSize(BoolSize);
-    SIntAlign    := AlignSize(SIntSize);
-    RecAlign     := AlignSize(RecSize);
-    RealAlign    := AlignSize(RealSize);
-    LRealAlign   := AlignSize(LRealSize);
-    PointerAlign := AlignSize(PointerSize);
-    ProcAlign    := AlignSize(ProcSize);
-    IntAlign     := AlignSize(IntSize);
-    LIntAlign    := AlignSize(LIntSize);
-    SetAlign     := AlignSize(SetSize);
-    *)
-
-    (*
-    base := -2;
-    MinSInt := ASH(base, SIntSize*8-2);
-    MaxSInt := minusop(MinSInt + 1);
-
-    MinInt := ASH(base, IntSize*8-2);
-    MaxInt := minusop(MinInt + 1);
-
-    MinLInt := ASH(base, LIntSize*8-2);
-    MaxLInt := minusop(MinLInt +1);
-    *)
-
     IF RealSize = 4 THEN MaxReal := 3.40282346D38
     ELSIF RealSize = 8 THEN MaxReal := 1.7976931348623157D307 * 9.999999
       (*should be 1.7976931348623157D308 *)
@@ -754,13 +727,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       (*should be 1.7976931348623157D308 *)
     END ;
 
-    MinReal := -MaxReal;
+    MinReal  := -MaxReal;
     MinLReal := -MaxLReal;
-
-    MaxSet := SetSize * 8 - 1;
-    (*
-    MaxIndex := MaxLInt; (* shouldn't it be like max(int)? so that for loop will be safe, noch *)
-    *)
+    MaxSet   := SetSize * 8 - 1;
     MaxIndex := SignedMaximum(PointerSize);
 
     IF Verbose THEN VerboseListSizes END;

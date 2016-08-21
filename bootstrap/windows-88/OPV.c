@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/21] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPC.h"
@@ -24,7 +24,7 @@ export LONGINT *OPV_ExitInfo__typ;
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp);
 export void OPV_AdrAndSize (OPT_Object topScope);
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc);
-static void OPV_Convert (OPT_Node n, INTEGER form, INTEGER prec);
+static void OPV_Convert (OPT_Node n, OPT_Struct typ, INTEGER prec);
 static void OPV_DefineTDescs (OPT_Node n);
 static void OPV_Entier (OPT_Node n, INTEGER prec);
 static void OPV_GetTProcNum (OPT_Object obj);
@@ -39,6 +39,7 @@ static LONGINT OPV_NaturalAlignment (LONGINT size, LONGINT max);
 static void OPV_NewArr (OPT_Node d, OPT_Node x);
 static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, INTEGER comp);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
+static void OPV_SizeCast (LONGINT size);
 static void OPV_Stamp (OPS_Name s);
 static OPT_Object OPV_SuperProc (OPT_Node n);
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported);
@@ -466,20 +467,32 @@ static void OPV_Entier (OPT_Node n, INTEGER prec)
 	}
 }
 
-static void OPV_Convert (OPT_Node n, INTEGER form, INTEGER prec)
+static void OPV_SizeCast (LONGINT size)
 {
-	INTEGER from;
+	if (size <= (LONGINT)OPM_SIntSize) {
+		OPM_WriteString((CHAR*)"(SHORTINT)", (LONGINT)11);
+	} else if (size <= (LONGINT)OPM_IntSize) {
+		OPM_WriteString((CHAR*)"(INTEGER)", (LONGINT)10);
+	} else {
+		OPM_WriteString((CHAR*)"(LONGINT)", (LONGINT)10);
+	}
+}
+
+static void OPV_Convert (OPT_Node n, OPT_Struct typ, INTEGER prec)
+{
+	INTEGER from, to;
 	from = n->typ->form;
-	if (form == 9) {
+	to = typ->form;
+	if (to == 9) {
 		OPM_WriteString((CHAR*)"__SETOF(", (LONGINT)9);
 		OPV_Entier(n, -1);
 		OPM_Write(')');
-	} else if (form == 6) {
+	} else if (to == 6) {
 		if (from < 6) {
 			OPM_WriteString((CHAR*)"(LONGINT)", (LONGINT)10);
 		}
 		OPV_Entier(n, 9);
-	} else if (form == 5) {
+	} else if (to == 5) {
 		if (from < 5) {
 			OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
 			OPV_expr(n, 9);
@@ -499,7 +512,7 @@ static void OPV_Convert (OPT_Node n, INTEGER form, INTEGER prec)
 				OPV_Entier(n, 9);
 			}
 		}
-	} else if (form == 4) {
+	} else if (to == 4) {
 		if (__IN(2, OPM_opt)) {
 			OPM_WriteString((CHAR*)"__SHORT", (LONGINT)8);
 			if (OPV_SideEffects(n)) {
@@ -514,7 +527,7 @@ static void OPV_Convert (OPT_Node n, INTEGER form, INTEGER prec)
 			OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
 			OPV_Entier(n, 9);
 		}
-	} else if (form == 3) {
+	} else if (to == 3) {
 		if (__IN(2, OPM_opt)) {
 			OPM_WriteString((CHAR*)"__CHR", (LONGINT)6);
 			if (OPV_SideEffects(n)) {
@@ -577,7 +590,7 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 	OPT_Struct typ = NIL;
 	INTEGER class, designPrec, comp;
 	OPT_Node d = NIL, x = NIL;
-	INTEGER dims, i, _for__26;
+	INTEGER dims, i, _for__27;
 	comp = n->typ->comp;
 	obj = n->obj;
 	class = n->class;
@@ -653,9 +666,9 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 					}
 					x = x->left;
 				}
-				_for__26 = dims;
+				_for__27 = dims;
 				i = 1;
-				while (i <= _for__26) {
+				while (i <= _for__27) {
 					OPM_Write(')');
 					i += 1;
 				}
@@ -915,7 +928,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 					OPM_Write(')');
 					break;
 				case 20: 
-					OPV_Convert(l, form, exprPrec);
+					OPV_Convert(l, n->typ, exprPrec);
 					break;
 				case 21: 
 					if (OPV_SideEffects(l)) {

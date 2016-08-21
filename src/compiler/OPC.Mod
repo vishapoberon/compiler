@@ -574,29 +574,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END
   END Align;
 
-  (*
-  PROCEDURE Base0(typ: OPT.Struct): LONGINT;
-  BEGIN
-    CASE typ^.form OF
-    | OPM.Byte:    RETURN 1
-    | OPM.Char:    RETURN OPM.CharAlign
-    | OPM.Bool:    RETURN OPM.BoolAlign
-    | OPM.SInt:    RETURN OPM.SIntAlign
-    | OPM.Int:     RETURN OPM.IntAlign
-    | OPM.LInt:    RETURN OPM.LIntAlign
-    | OPM.Real:    RETURN OPM.RealAlign
-    | OPM.LReal:   RETURN OPM.LRealAlign
-    | OPM.Set:     RETURN OPM.SetAlign
-    | OPM.Pointer: RETURN OPM.PointerAlign
-    | OPM.ProcTyp: RETURN OPM.ProcAlign
-    | OPM.Comp:    IF typ^.comp = OPM.Record THEN RETURN typ^.align MOD 10000H
-                   ELSE RETURN Base0(typ^.BaseTyp)
-                   END
-    ELSE OPM.LogWStr("unhandled case in OPC.BaseAlignment, typ^form = "); OPM.LogWNum(typ^.form, 0); OPM.LogWLn;
-    END
-  END Base0;
-  *)
-
   PROCEDURE SizeAlignment*(size: LONGINT): LONGINT;
     VAR alignment: LONGINT;
   BEGIN
@@ -619,16 +596,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         alignment := BaseAlignment(typ.BaseTyp)
       END
     ELSE
-      (* Not a compound type, determine alignment from size *)
       alignment := SizeAlignment(typ.size)
-      (*
-      IF alignment # Base0(typ) THEN
-        OPM.LogWStr("BaseAlignment. typ.form ");   OPM.LogWNum(typ.form,1);
-        OPM.LogWStr(", typ.size ");                OPM.LogWNum(typ.size,1);
-        OPM.LogWStr(", old alignment ");           OPM.LogWNum(alignment,1);
-        OPM.LogWStr(", alignment based on size "); OPM.LogWNum(align,1); OPM.LogWLn
-      END;
-      *)
     END;
     RETURN alignment
   END BaseAlignment;
