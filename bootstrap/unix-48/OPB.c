@@ -1201,7 +1201,7 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 					OPB_err(203);
 					r = (LONGREAL)1;
 				}
-				(*x)->conval->intval = __ENTIER(r);
+				(*x)->conval->intval = (LONGINT)__ENTIER(r);
 				OPB_SetIntType(*x);
 			}
 		}

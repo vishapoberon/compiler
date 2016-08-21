@@ -23,7 +23,7 @@ export LONGINT *OPV_ExitInfo__typ;
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp);
 export void OPV_AdrAndSize (OPT_Object topScope);
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc);
-static void OPV_Convert (OPT_Node n, OPT_Struct typ, INTEGER prec);
+static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INTEGER prec);
 static void OPV_DefineTDescs (OPT_Node n);
 static void OPV_Entier (OPT_Node n, INTEGER prec);
 static void OPV_GetTProcNum (OPT_Object obj);
@@ -469,50 +469,27 @@ static void OPV_Entier (OPT_Node n, INTEGER prec)
 static void OPV_SizeCast (LONGINT size)
 {
 	if (size <= (LONGINT)OPM_SIntSize) {
-		OPM_WriteString((CHAR*)"(SHORTINT)", (LONGINT)11);
+		OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
 	} else if (size <= (LONGINT)OPM_IntSize) {
-		OPM_WriteString((CHAR*)"(INTEGER)", (LONGINT)10);
+		OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
 	} else {
 		OPM_WriteString((CHAR*)"(LONGINT)", (LONGINT)10);
 	}
 }
 
-static void OPV_Convert (OPT_Node n, OPT_Struct typ, INTEGER prec)
+static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INTEGER prec)
 {
 	INTEGER from, to;
 	from = n->typ->form;
-	to = typ->form;
+	to = newtype->form;
 	if (to == 9) {
 		OPM_WriteString((CHAR*)"__SETOF(", (LONGINT)9);
 		OPV_Entier(n, -1);
 		OPM_Write(')');
-	} else if (to == 6) {
-		if (from < 6) {
-			OPM_WriteString((CHAR*)"(LONGINT)", (LONGINT)10);
-		}
-		OPV_Entier(n, 9);
-	} else if (to == 5) {
-		if (from < 5) {
-			OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
-			OPV_expr(n, 9);
-		} else {
-			if (__IN(2, OPM_opt)) {
-				OPM_WriteString((CHAR*)"__SHORT", (LONGINT)8);
-				if (OPV_SideEffects(n)) {
-					OPM_Write('F');
-				}
-				OPM_Write('(');
-				OPV_Entier(n, -1);
-				OPM_WriteString((CHAR*)", ", (LONGINT)3);
-				OPM_WriteInt(OPM_SignedMaximum(OPM_IntSize) + 1);
-				OPM_Write(')');
-			} else {
-				OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
-				OPV_Entier(n, 9);
-			}
-		}
-	} else if (to == 4) {
-		if (__IN(2, OPM_opt)) {
+	} else if (__IN(to, 0x70)) {
+		__ASSERT(newtype->size > 0, 0);
+		__ASSERT(n->typ->size > 0, 0);
+		if ((newtype->size < n->typ->size && __IN(2, OPM_opt))) {
 			OPM_WriteString((CHAR*)"__SHORT", (LONGINT)8);
 			if (OPV_SideEffects(n)) {
 				OPM_Write('F');
@@ -520,10 +497,12 @@ static void OPV_Convert (OPT_Node n, OPT_Struct typ, INTEGER prec)
 			OPM_Write('(');
 			OPV_Entier(n, -1);
 			OPM_WriteString((CHAR*)", ", (LONGINT)3);
-			OPM_WriteInt(OPM_SignedMaximum(OPM_SIntSize) + 1);
+			OPM_WriteInt(OPM_SignedMaximum(newtype->size) + 1);
 			OPM_Write(')');
 		} else {
-			OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
+			if (newtype->size != n->typ->size) {
+				OPV_SizeCast(newtype->size);
+			}
 			OPV_Entier(n, 9);
 		}
 	} else if (to == 3) {

@@ -89,8 +89,8 @@ void Reals_ConvertL (LONGREAL x, INTEGER n, CHAR *d, LONGINT d__len)
 	}
 	k = 0;
 	if (n > 9) {
-		i = __ENTIER(x / (LONGREAL)(LONGREAL)1000000000);
-		j = __ENTIER(x - i * (LONGREAL)1000000000);
+		i = (LONGINT)__ENTIER(x / (LONGREAL)(LONGREAL)1000000000);
+		j = (LONGINT)__ENTIER(x - i * (LONGREAL)1000000000);
 		if (j < 0) {
 			j = 0;
 		}
@@ -100,7 +100,7 @@ void Reals_ConvertL (LONGREAL x, INTEGER n, CHAR *d, LONGINT d__len)
 			k += 1;
 		}
 	} else {
-		i = __ENTIER(x);
+		i = (LONGINT)__ENTIER(x);
 	}
 	while (k < (LONGINT)n) {
 		d[__X(k, d__len)] = (CHAR)(__MOD(i, 10) + 48);

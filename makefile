@@ -166,6 +166,10 @@ compiler: configuration
 
 
 
+# Report changes to compiler source relative to bootstrap compiler
+sourcechanges:
+	@make -f src/tools/make/vishap.make -s sourcechanges
+
 
 # browsercmd: build the 'showdef' command
 browsercmd: configuration

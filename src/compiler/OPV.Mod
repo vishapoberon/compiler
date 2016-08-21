@@ -292,60 +292,25 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE SizeCast(size: LONGINT);
   BEGIN
-    IF    size <= OPM.SIntSize THEN OPM.WriteString("(SHORTINT)")
-    ELSIF size <= OPM.IntSize  THEN OPM.WriteString("(INTEGER)")
+    IF    size <= OPM.SIntSize THEN OPM.WriteString("(int)")     (* TODO: int for temporary source comparison only. *)
+    ELSIF size <= OPM.IntSize  THEN OPM.WriteString("(int)")     (* TODO: int for temporary source comparison only. *)
     ELSE                            OPM.WriteString("(LONGINT)")
     END
   END SizeCast;
 
-  PROCEDURE Convert(n: OPT.Node; typ: OPT.Struct; prec: INTEGER);
+  PROCEDURE Convert(n: OPT.Node; newtype: OPT.Struct; prec: INTEGER);
     VAR from, to: INTEGER;
-  BEGIN from := n^.typ^.form; to := typ.form;
+  BEGIN from := n^.typ^.form; to := newtype.form;
     IF to = OPM.Set THEN OPM.WriteString(SetOfFunc); Entier(n, MinPrec); OPM.Write(CloseParen)
-
-    ELSIF to = OPM.LInt THEN
-      IF from < OPM.LInt THEN OPM.WriteString("(LONGINT)") END ;
-      Entier(n, 9)
-    ELSIF to = OPM.Int THEN
-      IF from < OPM.Int THEN OPM.WriteString("(int)"); expr(n, 9)
-      ELSE
-        IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__SHORT");
-          IF SideEffects(n) THEN OPM.Write("F") END ;
-          OPM.Write(OpenParen); Entier(n, MinPrec);
-          OPM.WriteString(Comma); OPM.WriteInt(OPM.SignedMaximum(OPM.IntSize) + 1); OPM.Write(CloseParen)
-        ELSE OPM.WriteString("(int)"); Entier(n, 9)
-        END
-      END
-    ELSIF to = OPM.SInt THEN
-      IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__SHORT");
-        IF SideEffects(n) THEN OPM.Write("F") END ;
-        OPM.Write(OpenParen); Entier(n, MinPrec);
-        OPM.WriteString(Comma); OPM.WriteInt(OPM.SignedMaximum(OPM.SIntSize) + 1); OPM.Write(CloseParen)
-      ELSE OPM.WriteString("(int)"); Entier(n, 9)
-      END
-
-    (*
     ELSIF to IN OPM.intSet THEN
-      IF from IN OPM.intSet
-        IF typ.size > n.typ.size (* Result is  larger *)
-          SizeCast(typ.size); Entier(n, 9)
-        ELSIF typ.size = n.typ.size THEN
-          Entier(n, 9)
-        ELSE (* Result is smaller *)
-          IF OPM.ranchk IN OPM.opt THEN
-            OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
-            OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
-            OPM.WriteInt(OPM.SignedMaximum(typ.size) + 1); OPM.Write(CloseParen)
-          ELSE
-            SizeCast(typ.size); Entier(n, 9)
-          END
-        END
+      IF (newtype.size < n.typ.size) & (OPM.ranchk IN OPM.opt) THEN
+        OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
+        OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
+        OPM.WriteInt(OPM.SignedMaximum(newtype.size) + 1); OPM.Write(CloseParen)
       ELSE
-        IF (from < OPM.SInt) & (typ.size > OPM.SIntSize) THEN SizeCast(typ.size) END;
+        IF newtype.size # n.typ.size THEN SizeCast(newtype.size) END;
         Entier(n, 9)
       END
-    *)
-
     ELSIF to = OPM.Char THEN
       IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__CHR");
         IF SideEffects(n) THEN OPM.Write("F") END ;

@@ -872,13 +872,13 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 	CHAR s[32];
 	CHAR ch;
 	INTEGER i;
-	if ((((r < OPM_SignedMaximum(OPM_LIntSize) && r > OPM_SignedMinimum(OPM_LIntSize))) && r == (__ENTIER(r)))) {
+	if ((((r < OPM_SignedMaximum(OPM_LIntSize) && r > OPM_SignedMinimum(OPM_LIntSize))) && r == ((LONGINT)__ENTIER(r)))) {
 		if (suffx == 'f') {
 			OPM_WriteString((CHAR*)"(REAL)", (LONGINT)7);
 		} else {
 			OPM_WriteString((CHAR*)"(LONGREAL)", (LONGINT)11);
 		}
-		OPM_WriteInt(__ENTIER(r));
+		OPM_WriteInt((LONGINT)__ENTIER(r));
 	} else {
 		Texts_OpenWriter(&W, Texts_Writer__typ);
 		if (suffx == 'f') {
