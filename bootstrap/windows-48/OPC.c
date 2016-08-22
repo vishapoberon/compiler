@@ -318,7 +318,7 @@ void OPC_Andent (OPT_Struct typ)
 static BOOLEAN OPC_Undefined (OPT_Object obj)
 {
 	BOOLEAN _o_result;
-	_o_result = obj->name[0] == 0x00 || (((obj->mnolev >= 0 && obj->linkadr != (LONGINT)(3 + OPM_currFile))) && obj->linkadr != 2);
+	_o_result = obj->name[0] == 0x00 || (((obj->mnolev >= 0 && obj->linkadr != (int)(3 + OPM_currFile))) && obj->linkadr != 2);
 	return _o_result;
 }
 
@@ -826,7 +826,7 @@ void OPC_TDescDecl (OPT_Struct typ)
 	OPC_Str1((CHAR*)", #), {", (LONGINT)8, typ->size);
 	nofptrs = 0;
 	OPC_PutPtrOffsets(typ, ((LONGINT)(0)), &nofptrs);
-	OPC_Str1((CHAR*)"#}}", (LONGINT)4, -((nofptrs + 1) * (LONGINT)OPM_LIntSize));
+	OPC_Str1((CHAR*)"#}}", (LONGINT)4, -((nofptrs + 1) * (int)OPM_LIntSize));
 	OPC_EndStat();
 }
 
@@ -872,7 +872,7 @@ LONGINT OPC_SizeAlignment (LONGINT size)
 {
 	LONGINT _o_result;
 	LONGINT alignment;
-	if (size < (LONGINT)OPM_Alignment) {
+	if (size < (int)OPM_Alignment) {
 		alignment = 1;
 		while (alignment < size) {
 			alignment = __ASHL(alignment, 1);
@@ -909,11 +909,11 @@ static void OPC_FillGap (LONGINT gap, LONGINT off, LONGINT align, LONGINT *n, LO
 	if ((*curAlign < align && gap - (adr - off) >= align)) {
 		gap -= (adr - off) + align;
 		OPC_BegStat();
-		if (align == (LONGINT)OPM_IntSize) {
+		if (align == (int)OPM_IntSize) {
 			OPM_WriteString((CHAR*)"INTEGER", (LONGINT)8);
-		} else if (align == (LONGINT)OPM_LIntSize) {
+		} else if (align == (int)OPM_LIntSize) {
 			OPM_WriteString((CHAR*)"LONGINT", (LONGINT)8);
-		} else if (align == (LONGINT)OPM_LRealSize) {
+		} else if (align == (int)OPM_LRealSize) {
 			OPM_WriteString((CHAR*)"LONGREAL", (LONGINT)9);
 		}
 		OPC_Str1((CHAR*)" _prvt#", (LONGINT)8, *n);
@@ -978,7 +978,7 @@ static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, LONGINT *off, LONGINT *
 		}
 	}
 	if (last) {
-		adr = typ->size - (LONGINT)__ASHR(typ->sysflag, 8);
+		adr = typ->size - (int)__ASHR(typ->sysflag, 8);
 		if (adr == 0) {
 			gap = 1;
 		} else {

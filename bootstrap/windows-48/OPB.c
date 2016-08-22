@@ -242,7 +242,7 @@ static INTEGER OPB_SignedByteSize (LONGINT n)
 static LONGINT OPB_ShorterSize (LONGINT i)
 {
 	LONGINT _o_result;
-	if (i >= (LONGINT)OPM_LIntSize) {
+	if (i >= (int)OPM_LIntSize) {
 		_o_result = OPM_IntSize;
 		return _o_result;
 	} else {
@@ -255,7 +255,7 @@ static LONGINT OPB_ShorterSize (LONGINT i)
 static LONGINT OPB_LongerSize (LONGINT i)
 {
 	LONGINT _o_result;
-	if (i <= (LONGINT)OPM_SIntSize) {
+	if (i <= (int)OPM_SIntSize) {
 		_o_result = OPM_IntSize;
 		return _o_result;
 	} else {
@@ -520,7 +520,7 @@ void OPB_In (OPT_Node *x, OPT_Node y)
 	} else if ((__IN(f, 0x70) && y->typ->form == 9)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (k < 0 || k > (LONGINT)OPM_MaxSet) {
+			if (k < 0 || k > (int)OPM_MaxSet) {
 				OPB_err(202);
 			} else if (y->class == 7) {
 				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval));
@@ -1201,7 +1201,7 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 					OPB_err(203);
 					r = (LONGREAL)1;
 				}
-				(*x)->conval->intval = (LONGINT)__ENTIER(r);
+				(*x)->conval->intval = (int)__ENTIER(r);
 				OPB_SetIntType(*x);
 			}
 		}
@@ -1553,13 +1553,13 @@ void OPB_SetRange (OPT_Node *x, OPT_Node y)
 	} else if ((__IN((*x)->typ->form, 0x70) && __IN(y->typ->form, 0x70))) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (0 > k || k > (LONGINT)OPM_MaxSet) {
+			if (0 > k || k > (int)OPM_MaxSet) {
 				OPB_err(202);
 			}
 		}
 		if (y->class == 7) {
 			l = y->conval->intval;
-			if (0 > l || l > (LONGINT)OPM_MaxSet) {
+			if (0 > l || l > (int)OPM_MaxSet) {
 				OPB_err(202);
 			}
 		}
@@ -1589,7 +1589,7 @@ void OPB_SetElem (OPT_Node *x)
 		OPB_err(93);
 	} else if ((*x)->class == 7) {
 		k = (*x)->conval->intval;
-		if ((0 <= k && k <= (LONGINT)OPM_MaxSet)) {
+		if ((0 <= k && k <= (int)OPM_MaxSet)) {
 			(*x)->conval->setval = __SETOF(k);
 		} else {
 			OPB_err(202);
@@ -1894,7 +1894,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 10: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((__IN(f, 0x70) && x->typ->size > (LONGINT)OPM_SIntSize)) {
+			} else if ((__IN(f, 0x70) && x->typ->size > (int)OPM_SIntSize)) {
 				OPB_Convert(&x, OPB_IntType(OPB_ShorterSize(x->typ->size)));
 			} else if (f == 8) {
 				OPB_Convert(&x, OPT_realtyp);
@@ -1905,7 +1905,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 11: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((__IN(f, 0x70) && x->typ->size < (LONGINT)OPM_LIntSize)) {
+			} else if ((__IN(f, 0x70) && x->typ->size < (int)OPM_LIntSize)) {
 				OPB_Convert(&x, OPB_IntType(OPB_LongerSize(x->typ->size)));
 			} else if (f == 7) {
 				OPB_Convert(&x, OPT_lrltyp);
@@ -1954,7 +1954,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (__IN(f, 0x70)) {
-				if (x->typ->size != (LONGINT)OPM_LIntSize) {
+				if (x->typ->size != (int)OPM_LIntSize) {
 					OPB_Convert(&x, OPT_linttyp);
 				}
 			} else {
@@ -1994,7 +1994,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 				OPB_err(126);
 			} else if ((((x->class == 7 && __IN(f, 0x70))) && x->typ->size < OPT_linttyp->size)) {
 				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x2070) && x->typ->size == (LONGINT)OPM_PointerSize))) {
+			} else if (!((__IN(x->typ->form, 0x2070) && x->typ->size == (int)OPM_PointerSize))) {
 				OPB_err(111);
 				x->typ = OPT_linttyp;
 			}
@@ -2092,7 +2092,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (__IN(f, 0x70)) {
-				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (LONGINT)OPM_MaxSet))) {
+				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (int)OPM_MaxSet))) {
 					OPB_err(202);
 				}
 				p = NewOp__57(19, fctno, p, x);
@@ -2263,7 +2263,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 				OPB_err(126);
 			} else if ((((x->class == 7 && __IN(f, 0x70))) && x->typ->size < OPT_linttyp->size)) {
 				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x2070) && x->typ->size == (LONGINT)OPM_PointerSize))) {
+			} else if (!((__IN(x->typ->form, 0x2070) && x->typ->size == (int)OPM_PointerSize))) {
 				OPB_err(111);
 				x->typ = OPT_linttyp;
 			}

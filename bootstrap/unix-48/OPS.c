@@ -173,7 +173,7 @@ static void OPS_Number (void)
 				OPS_numtyp = 1;
 				if (n <= 2) {
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (LONGINT)Ord__7(dig[i], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (int)Ord__7(dig[i], 1);
 						i += 1;
 					}
 				} else {
@@ -188,7 +188,7 @@ static void OPS_Number (void)
 						OPS_intval = -1;
 					}
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (LONGINT)Ord__7(dig[i], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (int)Ord__7(dig[i], 1);
 						i += 1;
 					}
 				} else {
@@ -199,8 +199,8 @@ static void OPS_Number (void)
 				while (i < n) {
 					d = Ord__7(dig[i], 0);
 					i += 1;
-					if (OPS_intval <= __DIV(2147483647 - (LONGINT)d, 10)) {
-						OPS_intval = OPS_intval * 10 + (LONGINT)d;
+					if (OPS_intval <= __DIV(2147483647 - (int)d, 10)) {
+						OPS_intval = OPS_intval * 10 + (int)d;
 					} else {
 						OPS_err(203);
 					}

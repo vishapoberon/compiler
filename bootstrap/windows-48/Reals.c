@@ -89,8 +89,8 @@ void Reals_ConvertL (LONGREAL x, INTEGER n, CHAR *d, LONGINT d__len)
 	}
 	k = 0;
 	if (n > 9) {
-		i = (LONGINT)__ENTIER(x / (LONGREAL)(LONGREAL)1000000000);
-		j = (LONGINT)__ENTIER(x - i * (LONGREAL)1000000000);
+		i = (int)__ENTIER(x / (LONGREAL)(LONGREAL)1000000000);
+		j = (int)__ENTIER(x - i * (LONGREAL)1000000000);
 		if (j < 0) {
 			j = 0;
 		}
@@ -100,9 +100,9 @@ void Reals_ConvertL (LONGREAL x, INTEGER n, CHAR *d, LONGINT d__len)
 			k += 1;
 		}
 	} else {
-		i = (LONGINT)__ENTIER(x);
+		i = (int)__ENTIER(x);
 	}
-	while (k < (LONGINT)n) {
+	while (k < (int)n) {
 		d[__X(k, d__len)] = (CHAR)(__MOD(i, 10) + 48);
 		i = __DIV(i, 10);
 		k += 1;
@@ -134,7 +134,7 @@ static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LO
 	CHAR by;
 	i = 0;
 	l = b__len;
-	while ((LONGINT)i < l) {
+	while ((int)i < l) {
 		by = __VAL(CHAR, b[__X(i, b__len)]);
 		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((int)by, 4));
 		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((int)by, -16));

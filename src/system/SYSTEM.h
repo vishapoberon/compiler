@@ -1,32 +1,39 @@
 #ifndef SYSTEM__h
 #define SYSTEM__h
 
-#ifndef _WIN32
-
-  // Building for a Unix/Linux based system
-
-  // TODO: Remove these includes
-  #include <string.h>  // For memcpy ...
-  #include <stdint.h>  // For uintptr_t ...
-
-  typedef long SYSTEM_INT64;
-
+#if defined(_WIN64)
+  typedef long long          SYSTEM_INT64;
+  typedef unsigned long long SYSTEM_CARD64;
 #else
-
-  // Building for Windows platform with either mingw under cygwin, or the MS C compiler
-  #ifdef _WIN64
-    typedef unsigned long long size_t;
-    typedef unsigned long long uintptr_t;
-  #else
-    typedef unsigned int size_t;
-    typedef unsigned int uintptr_t;
-  #endif /* _WIN64 */
-
-  typedef long long SYSTEM_INT64
-  typedef unsigned int uint32_t;
-  void * __cdecl memcpy(void *dest, const void *source, size_t size);
-
+  typedef long               SYSTEM_INT64;
+  typedef unsigned long      SYSTEM_CARD64;
 #endif
+
+typedef int                  SYSTEM_INT32;
+typedef unsigned int         SYSTEM_CARD32;
+typedef short int            SYSTEM_INT16;
+typedef unsigned short int   SYSTEM_CARD16;
+typedef signed char          SYSTEM_INT8;
+typedef unsigned char        SYSTEM_CARD8;
+
+#if (__SIZEOF_POINTER__ == 8)
+  #if defined(_WIN64)
+    typedef unsigned long long SYSTEM_PTRINT;
+    typedef unsigned long long uintptr_t;
+    typedef unsigned long long size_t;
+  #else
+    typedef unsigned long      SYSTEM_PTRINT;
+    typedef unsigned long      uintptr_t;
+    typedef unsigned long      size_t;
+  #endif
+#else
+  typedef unsigned int         SYSTEM_PTRINT;
+  typedef unsigned int         uintptr_t;
+  typedef unsigned int         size_t;
+#endif
+
+void * __cdecl memcpy(void *dest, const void *source, size_t size);
+
 
 
 // The compiler uses 'import' and 'export' which translate to 'extern' and

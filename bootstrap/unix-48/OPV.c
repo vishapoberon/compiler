@@ -86,7 +86,7 @@ void OPV_TypSize (OPT_Struct typ)
 				base = OPC_SizeAlignment(OPM_RecSize);
 			} else {
 				OPV_TypSize(btyp);
-				offset = btyp->size - (LONGINT)__ASHR(btyp->sysflag, 8);
+				offset = btyp->size - (int)__ASHR(btyp->sysflag, 8);
 				base = btyp->align;
 			}
 			fld = typ->link;
@@ -468,12 +468,10 @@ static void OPV_Entier (OPT_Node n, INTEGER prec)
 
 static void OPV_SizeCast (LONGINT size)
 {
-	if (size <= (LONGINT)OPM_SIntSize) {
-		OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
-	} else if (size <= (LONGINT)OPM_IntSize) {
+	if (size <= 4) {
 		OPM_WriteString((CHAR*)"(int)", (LONGINT)6);
 	} else {
-		OPM_WriteString((CHAR*)"(LONGINT)", (LONGINT)10);
+		OPM_WriteString((CHAR*)"(SYSTEM_INT64)", (LONGINT)15);
 	}
 }
 
@@ -650,7 +648,7 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 				}
 				if (n->typ->comp == 3) {
 					OPM_Write(')');
-					while ((LONGINT)i < __ASHR(d->typ->size - 4, 2)) {
+					while ((int)i < __ASHR(d->typ->size - 4, 2)) {
 						OPM_WriteString((CHAR*)" * ", (LONGINT)4);
 						OPV_Len(d, i);
 						i += 1;

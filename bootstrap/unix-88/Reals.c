@@ -90,7 +90,7 @@ void Reals_ConvertL (LONGREAL x, INTEGER n, CHAR *d, LONGINT d__len)
 	}
 	k = 0;
 	i = __ENTIER(x);
-	while (k < (LONGINT)n) {
+	while (k < (SYSTEM_INT64)n) {
 		d[__X(k, d__len)] = (CHAR)(__MOD(i, 10) + 48);
 		i = __DIV(i, 10);
 		k += 1;
@@ -122,7 +122,7 @@ static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LO
 	CHAR by;
 	i = 0;
 	l = b__len;
-	while ((LONGINT)i < l) {
+	while ((SYSTEM_INT64)i < l) {
 		by = __VAL(CHAR, b[__X(i, b__len)]);
 		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((int)by, 4));
 		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((int)by, -16));

@@ -858,7 +858,7 @@ void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 {
 	CHAR b[4];
 	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	*x = ((LONGINT)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((LONGINT)b[2], 16)) + __ASHL((LONGINT)b[3], 24);
+	*x = ((int)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
 }
 
 void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
@@ -866,7 +866,7 @@ void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
 	CHAR b[4];
 	LONGINT l;
 	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	l = ((LONGINT)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((LONGINT)b[2], 16)) + __ASHL((LONGINT)b[3], 24);
+	l = ((int)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
 	*x = (SET)l;
 }
 
@@ -923,11 +923,11 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 	n = 0;
 	Files_Read(&*R, R__typ, (void*)&ch);
 	while ((int)ch >= 128) {
-		n += __ASH((LONGINT)((int)ch - 128), s);
+		n += __ASH((int)((int)ch - 128), s);
 		s += 7;
 		Files_Read(&*R, R__typ, (void*)&ch);
 	}
-	n += __ASH((LONGINT)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
+	n += __ASH((int)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
 	*x = n;
 }
 

@@ -334,8 +334,8 @@ void Platform_SetBadInstructionHandler (Platform_SignalHandler handler)
 
 static void Platform_YMDHMStoClock (INTEGER ye, INTEGER mo, INTEGER da, INTEGER ho, INTEGER mi, INTEGER se, LONGINT *t, LONGINT *d)
 {
-	*d = (__ASHL((LONGINT)(int)__MOD(ye, 100), 9) + __ASHL((LONGINT)(mo + 1), 5)) + (LONGINT)da;
-	*t = (__ASHL((LONGINT)ho, 12) + __ASHL((LONGINT)mi, 6)) + (LONGINT)se;
+	*d = (__ASHL((int)(int)__MOD(ye, 100), 9) + __ASHL((int)(mo + 1), 5)) + (int)da;
+	*t = (__ASHL((int)ho, 12) + __ASHL((int)mi, 6)) + (int)se;
 }
 
 void Platform_GetClock (LONGINT *t, LONGINT *d)

@@ -840,7 +840,7 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 					k -= 16;
 				}
 				while (j < i) {
-					k = __ASHL(k, 4) + (LONGINT)((int)d[__X(j, ((LONGINT)(32)))] - 48);
+					k = __ASHL(k, 4) + (SYSTEM_INT64)((int)d[__X(j, ((LONGINT)(32)))] - 48);
 					j += 1;
 				}
 				if (neg) {
@@ -930,7 +930,7 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 				(*S).class = 3;
 				k = 0;
 				do {
-					k = k * 10 + (LONGINT)((int)d[__X(j, ((LONGINT)(32)))] - 48);
+					k = k * 10 + (SYSTEM_INT64)((int)d[__X(j, ((LONGINT)(32)))] - 48);
 					j += 1;
 				} while (!(j == i));
 				if (neg) {
@@ -1068,7 +1068,7 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, LONGINT x, LONGINT n)
 		x0 = __DIV(x0, 10);
 		i += 1;
 	} while (!(x0 == 0));
-	while (n > (LONGINT)i) {
+	while (n > (SYSTEM_INT64)i) {
 		Texts_Write(&*W, W__typ, ' ');
 		n -= 1;
 	}
@@ -1320,7 +1320,7 @@ void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, INTEGER 
 		} else {
 			Texts_Write(&*W, W__typ, ' ');
 		}
-		e = (int)__ASHR((LONGINT)(e - 1023) * 77, 8);
+		e = (int)__ASHR((SYSTEM_INT64)(e - 1023) * 77, 8);
 		if (e >= 0) {
 			x = x / (LONGREAL)Reals_TenL(e);
 		} else {

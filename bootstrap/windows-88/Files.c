@@ -924,11 +924,11 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 	n = 0;
 	Files_Read(&*R, R__typ, (void*)&ch);
 	while ((int)ch >= 128) {
-		n += __ASH((LONGINT)((int)ch - 128), s);
+		n += __ASH((SYSTEM_INT64)((int)ch - 128), s);
 		s += 7;
 		Files_Read(&*R, R__typ, (void*)&ch);
 	}
-	n += __ASH((LONGINT)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
+	n += __ASH((SYSTEM_INT64)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
 	*x = n;
 }
 
