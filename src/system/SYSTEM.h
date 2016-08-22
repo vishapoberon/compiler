@@ -32,7 +32,7 @@ typedef unsigned char        SYSTEM_CARD8;
   typedef unsigned int         size_t;
 #endif
 
-void * __cdecl memcpy(void *dest, const void *source, size_t size);
+void *memcpy(void *dest, const void *source, size_t size);
 
 
 
