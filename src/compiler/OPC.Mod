@@ -1175,12 +1175,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE Cmp*(rel: INTEGER);
   BEGIN
     CASE rel OF
-    | OPM.eql: OPM.WriteString(" == ")
-    | OPM.neq: OPM.WriteString(" != ")
-    | OPM.lss: OPM.WriteString(" < ")
-    | OPM.leq: OPM.WriteString(" <= ")
-    | OPM.gtr: OPM.WriteString(" > ")
-    | OPM.geq: OPM.WriteString(" >= ")
+    | OPT.eql: OPM.WriteString(" == ")
+    | OPT.neq: OPM.WriteString(" != ")
+    | OPT.lss: OPM.WriteString(" < ")
+    | OPT.leq: OPM.WriteString(" <= ")
+    | OPT.gtr: OPM.WriteString(" > ")
+    | OPT.geq: OPM.WriteString(" >= ")
     ELSE OPM.LogWStr("unhandled case in OPC.Cmp, rel = "); OPM.LogWNum(rel, 0); OPM.LogWLn;
     END;
   END Cmp;

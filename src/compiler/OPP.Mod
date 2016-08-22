@@ -31,13 +31,13 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 
   PROCEDURE qualident(VAR id: OPT.Object);
     VAR obj: OPT.Object; lev: SHORTINT;
-  BEGIN (*sym = OPM.ident*)
+  BEGIN (*sym = OPS.ident*)
     OPT.Find(obj); OPS.Get(sym);
-    IF (sym = OPM.period) & (obj # NIL) & (obj^.mode = OPT.Mod) THEN
+    IF (sym = OPS.period) & (obj # NIL) & (obj^.mode = OPT.Mod) THEN
       OPS.Get(sym);
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         OPT.FindImport(obj, obj); OPS.Get(sym)
-      ELSE err(OPM.ident); obj := NIL
+      ELSE err(OPS.ident); obj := NIL
       END
     END ;
     IF obj = NIL THEN err(0);
@@ -60,9 +60,9 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 
   PROCEDURE CheckMark(VAR vis: SHORTINT);
   BEGIN OPS.Get(sym);
-    IF (sym = OPM.times) OR (sym = OPM.minus) THEN
+    IF (sym = OPS.times) OR (sym = OPS.minus) THEN
       IF level > 0 THEN err(47) END ;
-      IF sym = OPM.times THEN vis := OPT.external ELSE vis := OPT.externalR END ;
+      IF sym = OPS.times THEN vis := OPT.external ELSE vis := OPT.externalR END ;
       OPS.Get(sym)
     ELSE vis := OPT.internal
     END
@@ -71,14 +71,14 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE CheckSysFlag(VAR sysflag: INTEGER; default: INTEGER);
     VAR x: OPT.Node; sf: LONGINT;
   BEGIN
-    IF sym = OPM.lbrak THEN OPS.Get(sym);
+    IF sym = OPS.lbrak THEN OPS.Get(sym);
 	  IF ~OPT.SYSimported THEN err(135) END;
 	  ConstExpression(x);
       IF x^.typ^.form IN OPT.intSet THEN sf := x^.conval^.intval;
         IF (sf < 0) OR (sf > OPM.MaxSysFlag) THEN err(220); sf := 0 END
       ELSE err(51); sf := 0
       END ;
-      sysflag := SHORT(sf); CheckSym(OPM.rbrak)
+      sysflag := SHORT(sf); CheckSym(OPS.rbrak)
     ELSE sysflag := default
     END
   END CheckSysFlag;
@@ -88,9 +88,9 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ftyp: OPT.Struct; sysflag: INTEGER;
   BEGIN typ := OPT.NewStr(OPT.Comp, OPT.Record); typ^.BaseTyp := NIL;
     CheckSysFlag(sysflag, -1);
-    IF sym = OPM.lparen THEN
+    IF sym = OPS.lparen THEN
       OPS.Get(sym); (*record extension*)
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         qualident(base);
         IF (base^.mode = OPT.Typ) & (base^.typ^.comp = OPT.Record) THEN
           IF base^.typ = banned THEN err(58)
@@ -99,16 +99,16 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           END
         ELSE err(52)
         END
-      ELSE err(OPM.ident)
+      ELSE err(OPS.ident)
       END ;
-      CheckSym(OPM.rparen)
+      CheckSym(OPS.rparen)
     END ;
     IF sysflag >= 0 THEN typ^.sysflag := sysflag END ;
     OPT.OpenScope(0, NIL); first := NIL; last := NIL;
     LOOP
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         LOOP
-          IF sym = OPM.ident THEN
+          IF sym = OPS.ident THEN
             IF typ^.BaseTyp # NIL THEN
               OPT.FindField(OPS.name, typ^.BaseTyp, fld);
               IF fld # NIL THEN err(1) END
@@ -118,22 +118,22 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
             IF first = NIL THEN first := fld END ;
             IF last = NIL THEN typ^.link := fld ELSE last^.link := fld END ;
             last := fld
-          ELSE err(OPM.ident)
+          ELSE err(OPS.ident)
           END ;
-          IF sym = OPM.comma THEN OPS.Get(sym)
-          ELSIF sym = OPM.ident THEN err(OPM.comma)
+          IF sym = OPS.comma THEN OPS.Get(sym)
+          ELSIF sym = OPS.ident THEN err(OPS.comma)
           ELSE EXIT
           END
         END ;
-        CheckSym(OPM.colon); Type(ftyp, banned);
+        CheckSym(OPS.colon); Type(ftyp, banned);
         ftyp^.pvused := TRUE;
         IF ftyp^.comp = OPT.DynArr THEN ftyp := OPT.undftyp; err(88) END ;
         WHILE first # NIL DO
           first^.typ := ftyp; first := first^.link
         END
       END ;
-      IF sym = OPM.semicolon THEN OPS.Get(sym)
-      ELSIF sym = OPM.ident THEN err(OPM.semicolon)
+      IF sym = OPS.semicolon THEN OPS.Get(sym)
+      ELSIF sym = OPS.ident THEN err(OPS.semicolon)
       ELSE EXIT
       END
     END ;
@@ -143,7 +143,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE ArrayType(VAR typ, banned: OPT.Struct);
     VAR x: OPT.Node; n: LONGINT; sysflag: INTEGER;
   BEGIN CheckSysFlag(sysflag, 0);
-    IF sym = OPM.of THEN  (*dynamic array*)
+    IF sym = OPS.of THEN  (*dynamic array*)
       typ := OPT.NewStr(OPT.Comp, OPT.DynArr); typ^.mno := 0; typ^.sysflag := sysflag;
       OPS.Get(sym); Type(typ^.BaseTyp, banned);
       typ^.BaseTyp^.pvused := TRUE;
@@ -157,11 +157,11 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ELSE err(51); n := 1
       END ;
       typ^.n := n;
-      IF sym = OPM.of THEN
+      IF sym = OPS.of THEN
         OPS.Get(sym); Type(typ^.BaseTyp, banned);
         typ^.BaseTyp^.pvused := TRUE
-      ELSIF sym = OPM.comma THEN
-        OPS.Get(sym); IF sym # OPM.of THEN ArrayType(typ^.BaseTyp, banned) END
+      ELSIF sym = OPS.comma THEN
+        OPS.Get(sym); IF sym # OPS.of THEN ArrayType(typ^.BaseTyp, banned) END
       ELSE err(35)
       END ;
       IF typ^.BaseTyp^.comp = OPT.DynArr THEN typ^.BaseTyp := OPT.undftyp; err(88) END
@@ -171,8 +171,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE PointerType(VAR typ: OPT.Struct);
     VAR id: OPT.Object;
   BEGIN typ := OPT.NewStr(OPT.Pointer, OPT.Basic); CheckSysFlag(typ^.sysflag, 0);
-    CheckSym(OPM.to);
-    IF sym = OPM.ident THEN OPT.Find(id);
+    CheckSym(OPS.to);
+    IF sym = OPS.ident THEN OPT.Find(id);
       IF id = NIL THEN
         IF nofFwdPtr < LEN(FwdPtr) THEN FwdPtr[nofFwdPtr] := typ; INC(nofFwdPtr)
         ELSE err(224)
@@ -199,45 +199,45 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     VAR mode: SHORTINT;
         par, first, last, res: OPT.Object; typ: OPT.Struct;
   BEGIN first := NIL; last := firstPar;
-    IF (sym = OPM.ident) OR (sym = OPM.var) THEN
+    IF (sym = OPS.ident) OR (sym = OPS.var) THEN
       LOOP
-        IF sym = OPM.var THEN OPS.Get(sym); mode := OPT.VarPar ELSE mode := OPT.Var END ;
+        IF sym = OPS.var THEN OPS.Get(sym); mode := OPT.VarPar ELSE mode := OPT.Var END ;
         LOOP
-          IF sym = OPM.ident THEN
+          IF sym = OPS.ident THEN
             OPT.Insert(OPS.name, par); OPS.Get(sym);
             par^.mode := mode; par^.link := NIL;
             IF first = NIL THEN first := par END ;
             IF firstPar = NIL THEN firstPar := par ELSE last^.link := par END ;
             last := par
-          ELSE err(OPM.ident)
+          ELSE err(OPS.ident)
           END ;
-          IF sym = OPM.comma THEN OPS.Get(sym)
-          ELSIF sym = OPM.ident THEN err(OPM.comma)
-          ELSIF sym = OPM.var THEN err(OPM.comma); OPS.Get(sym)
+          IF sym = OPS.comma THEN OPS.Get(sym)
+          ELSIF sym = OPS.ident THEN err(OPS.comma)
+          ELSIF sym = OPS.var THEN err(OPS.comma); OPS.Get(sym)
           ELSE EXIT
           END
         END ;
-        CheckSym(OPM.colon); Type(typ, OPT.notyp);
+        CheckSym(OPS.colon); Type(typ, OPT.notyp);
         IF mode = OPT.Var THEN typ^.pvused := TRUE END ;
         (* typ^.pbused is set when parameter type name is parsed *)
         WHILE first # NIL DO first^.typ := typ; first := first^.link END ;
-        IF sym = OPM.semicolon THEN OPS.Get(sym)
-        ELSIF sym = OPM.ident THEN err(OPM.semicolon)
+        IF sym = OPS.semicolon THEN OPS.Get(sym)
+        ELSIF sym = OPS.ident THEN err(OPS.semicolon)
         ELSE EXIT
         END
       END
     END ;
-    CheckSym(OPM.rparen);
-    IF sym = OPM.colon THEN
+    CheckSym(OPS.rparen);
+    IF sym = OPS.colon THEN
       OPS.Get(sym); resTyp := OPT.undftyp;
-      IF sym = OPM.ident THEN qualident(res);
+      IF sym = OPS.ident THEN qualident(res);
         IF res^.mode = OPT.Typ THEN
           IF (res^.typ^.form < OPT.Comp) (*OR (res^.typ^.form >= Int8) & (res^.typ^.form <= Int64)*) THEN resTyp := res^.typ;
           ELSE err(54)
           END
         ELSE err(52)
         END
-      ELSE err(OPM.ident)
+      ELSE err(OPS.ident)
       END
     ELSE resTyp := OPT.notyp
     END
@@ -246,26 +246,26 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE TypeDecl(VAR typ, banned: OPT.Struct);
     VAR id: OPT.Object;
   BEGIN typ := OPT.undftyp;
-    IF sym < OPM.lparen THEN err(12);
-      REPEAT OPS.Get(sym) UNTIL sym >= OPM.lparen
+    IF sym < OPS.lparen THEN err(12);
+      REPEAT OPS.Get(sym) UNTIL sym >= OPS.lparen
     END ;
-    IF sym = OPM.ident THEN qualident(id);
+    IF sym = OPS.ident THEN qualident(id);
       IF id^.mode = OPT.Typ THEN
         IF id^.typ = banned THEN err(58) ELSE
           typ := id.typ
         END
       ELSE err(52)
       END
-    ELSIF sym = OPM.array THEN
+    ELSIF sym = OPS.array THEN
       OPS.Get(sym); ArrayType(typ, banned)
-    ELSIF sym = OPM.record THEN
+    ELSIF sym = OPS.record THEN
       OPS.Get(sym); RecordType(typ, banned);
-      OPB.Inittd(TDinit, lastTDinit, typ); CheckSym(OPM.end)
-    ELSIF sym = OPM.pointer THEN
+      OPB.Inittd(TDinit, lastTDinit, typ); CheckSym(OPS.end)
+    ELSIF sym = OPS.pointer THEN
       OPS.Get(sym); PointerType(typ)
-    ELSIF sym = OPM.procedure THEN
+    ELSIF sym = OPS.procedure THEN
       OPS.Get(sym); typ := OPT.NewStr(OPT.ProcTyp, OPT.Basic); CheckSysFlag(typ^.sysflag, 0);
-      IF sym = OPM.lparen THEN
+      IF sym = OPS.lparen THEN
         OPS.Get(sym); OPT.OpenScope(level, NIL);
         FormalParameters(typ^.link, typ^.BaseTyp); OPT.CloseScope
       ELSE typ^.BaseTyp := OPT.notyp; typ^.link := NIL
@@ -273,8 +273,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     ELSE err(12)
     END ;
     LOOP
-      IF (sym >= OPM.semicolon) & (sym <= OPM.else) OR (sym = OPM.rparen) OR (sym = OPM.eof) THEN EXIT END;
-      err(15); IF sym = OPM.ident THEN EXIT END;
+      IF (sym >= OPS.semicolon) & (sym <= OPS.else) OR (sym = OPS.rparen) OR (sym = OPS.eof) THEN EXIT END;
+      err(15); IF sym = OPS.ident THEN EXIT END;
       OPS.Get(sym)
     END
   END TypeDecl;
@@ -288,21 +288,21 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     VAR obj, proc: OPT.Object; y: OPT.Node; typ: OPT.Struct; name: OPS.Name;
   BEGIN
     LOOP
-      IF sym = OPM.lbrak THEN OPS.Get(sym);
+      IF sym = OPS.lbrak THEN OPS.Get(sym);
         LOOP
           IF (x^.typ # NIL) & (x^.typ^.form = OPT.Pointer) THEN OPB.DeRef(x) END ;
           Expression(y); OPB.Index(x, y);
-          IF sym = OPM.comma THEN OPS.Get(sym) ELSE EXIT END
+          IF sym = OPS.comma THEN OPS.Get(sym) ELSE EXIT END
         END ;
-        CheckSym(OPM.rbrak)
-      ELSIF sym = OPM.period THEN OPS.Get(sym);
-        IF sym = OPM.ident THEN name := OPS.name; OPS.Get(sym);
+        CheckSym(OPS.rbrak)
+      ELSIF sym = OPS.period THEN OPS.Get(sym);
+        IF sym = OPS.ident THEN name := OPS.name; OPS.Get(sym);
           IF x^.typ # NIL THEN
             IF x^.typ^.form = OPT.Pointer THEN OPB.DeRef(x) END ;
             IF x^.typ^.comp = OPT.Record THEN
               OPT.FindField(name, x^.typ, obj); OPB.Field(x, obj);
               IF (obj # NIL) & (obj^.mode = OPT.TProc) THEN
-                IF sym = OPM.arrow THEN  (* super call *) OPS.Get(sym);
+                IF sym = OPS.arrow THEN  (* super call *) OPS.Get(sym);
                   y := x^.left;
                   IF y^.class = OPT.Nderef THEN y := y^.left END ;  (* y = record variable *)
                   IF y^.obj # NIL THEN
@@ -316,26 +316,26 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
                   ELSE err(75)
                   END
                 END ;
-                IF (obj^.typ # OPT.notyp) & (sym # OPM.lparen) THEN err(OPM.lparen) END
+                IF (obj^.typ # OPT.notyp) & (sym # OPS.lparen) THEN err(OPS.lparen) END
               END
             ELSE err(53)
             END
           ELSE err(52)
           END
-        ELSE err(OPM.ident)
+        ELSE err(OPS.ident)
         END
-      ELSIF sym = OPM.arrow THEN OPS.Get(sym); OPB.DeRef(x)
-      ELSIF (sym = OPM.lparen) & (x^.class < OPT.Nconst) & (x^.typ^.form # OPT.ProcTyp) &
+      ELSIF sym = OPS.arrow THEN OPS.Get(sym); OPB.DeRef(x)
+      ELSIF (sym = OPS.lparen) & (x^.class < OPT.Nconst) & (x^.typ^.form # OPT.ProcTyp) &
           ((x^.obj = NIL) OR (x^.obj^.mode # OPT.TProc)) THEN
         OPS.Get(sym);
-        IF sym = OPM.ident THEN
+        IF sym = OPS.ident THEN
           qualident(obj);
           IF obj^.mode = OPT.Typ THEN OPB.TypTest(x, obj, TRUE)
           ELSE err(52)
           END
-        ELSE err(OPM.ident)
+        ELSE err(OPS.ident)
         END ;
-        CheckSym(OPM.rparen)
+        CheckSym(OPS.rparen)
       ELSE EXIT
       END
     END
@@ -344,15 +344,15 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE ActualParameters(VAR aparlist: OPT.Node; fpar: OPT.Object);
     VAR apar, last: OPT.Node;
   BEGIN aparlist := NIL; last := NIL;
-    IF sym # OPM.rparen THEN
+    IF sym # OPS.rparen THEN
       LOOP Expression(apar);
         IF fpar # NIL THEN
           OPB.Param(apar, fpar); OPB.Link(aparlist, last, apar);
           fpar := fpar^.link;
         ELSE err(64)
         END ;
-        IF sym = OPM.comma THEN OPS.Get(sym)
-        ELSIF (OPM.lparen <= sym) & (sym <= OPM.ident) THEN err(OPM.comma)
+        IF sym = OPS.comma THEN OPS.Get(sym)
+        ELSIF (OPS.lparen <= sym) & (sym <= OPS.ident) THEN err(OPS.comma)
         ELSE EXIT
         END
       END
@@ -363,23 +363,23 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE StandProcCall(VAR x: OPT.Node);
     VAR y: OPT.Node; m: SHORTINT; n: INTEGER;
   BEGIN m := SHORT(SHORT(x^.obj^.adr)); n := 0;
-    IF sym = OPM.lparen THEN OPS.Get(sym);
-      IF sym # OPM.rparen THEN
+    IF sym = OPS.lparen THEN OPS.Get(sym);
+      IF sym # OPS.rparen THEN
         LOOP
           IF n = 0 THEN Expression(x); OPB.StPar0(x, m); n := 1
           ELSIF n = 1 THEN Expression(y); OPB.StPar1(x, y, m); n := 2
           ELSE Expression(y); OPB.StParN(x, y, m, n); INC(n)
           END ;
-          IF sym = OPM.comma THEN OPS.Get(sym)
-          ELSIF (OPM.lparen <= sym) & (sym <= OPM.ident) THEN err(OPM.comma)
+          IF sym = OPS.comma THEN OPS.Get(sym)
+          ELSIF (OPS.lparen <= sym) & (sym <= OPS.ident) THEN err(OPS.comma)
           ELSE EXIT
           END
         END ;
-        CheckSym(OPM.rparen)
+        CheckSym(OPS.rparen)
       ELSE OPS.Get(sym)
       END ;
       OPB.StFct(x, m, n)
-    ELSE err(OPM.lparen)
+    ELSE err(OPS.lparen)
     END ;
     IF (level > 0) & ((m = OPT.newfn) OR (m = OPT.sysnewfn)) THEN OPT.topScope^.link^.leaf := FALSE END
   END StandProcCall;
@@ -387,7 +387,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE Element(VAR x: OPT.Node);
     VAR y: OPT.Node;
   BEGIN Expression(x);
-    IF sym = OPM.upto THEN
+    IF sym = OPS.upto THEN
       OPS.Get(sym); Expression(y); OPB.SetRange(x, y)
     ELSE OPB.SetElem(x)
     END
@@ -396,57 +396,57 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE Sets(VAR x: OPT.Node);
     VAR y: OPT.Node;
   BEGIN
-    IF sym # OPM.rbrace THEN
+    IF sym # OPS.rbrace THEN
       Element(x);
       LOOP
-        IF sym = OPM.comma THEN OPS.Get(sym)
-        ELSIF (OPM.lparen <= sym) & (sym <= OPM.ident) THEN err(OPM.comma)
+        IF sym = OPS.comma THEN OPS.Get(sym)
+        ELSIF (OPS.lparen <= sym) & (sym <= OPS.ident) THEN err(OPS.comma)
         ELSE EXIT
         END ;
-        Element(y); OPB.Op(OPM.plus, x, y)
+        Element(y); OPB.Op(OPS.plus, x, y)
       END
     ELSE x := OPB.EmptySet()
     END ;
-    CheckSym(OPM.rbrace)
+    CheckSym(OPS.rbrace)
   END Sets;
 
   PROCEDURE Factor(VAR x: OPT.Node);
     VAR fpar, id: OPT.Object; apar: OPT.Node;
   BEGIN
-    IF sym < OPM.lparen THEN err(13);
-      REPEAT OPS.Get(sym) UNTIL sym >= OPM.lparen
+    IF sym < OPS.lparen THEN err(13);
+      REPEAT OPS.Get(sym) UNTIL sym >= OPS.lparen
     END ;
-    IF sym = OPM.ident THEN
+    IF sym = OPS.ident THEN
       qualident(id); x := OPB.NewLeaf(id); selector(x);
       IF (x^.class = OPT.Nproc) & (x^.obj^.mode = OPT.SProc) THEN StandProcCall(x)  (* x may be NIL *)
-      ELSIF sym = OPM.lparen THEN
+      ELSIF sym = OPS.lparen THEN
         OPS.Get(sym); OPB.PrepCall(x, fpar);
         ActualParameters(apar, fpar);
         OPB.Call(x, apar, fpar);
-        CheckSym(OPM.rparen);
+        CheckSym(OPS.rparen);
         IF level > 0 THEN OPT.topScope^.link^.leaf := FALSE END
       END
-    ELSIF sym = OPM.number THEN
+    ELSIF sym = OPS.number THEN
       CASE OPS.numtyp OF
-      | OPM.char:     x := OPB.NewIntConst(OPS.intval); x^.typ := OPT.chartyp
-      | OPM.integer:  x := OPB.NewIntConst(OPS.intval)
-      | OPM.real:     x := OPB.NewRealConst(OPS.realval, OPT.realtyp)
-      | OPM.longreal: x := OPB.NewRealConst(OPS.lrlval, OPT.lrltyp)
+      | OPS.char:     x := OPB.NewIntConst(OPS.intval); x^.typ := OPT.chartyp
+      | OPS.integer:  x := OPB.NewIntConst(OPS.intval)
+      | OPS.real:     x := OPB.NewRealConst(OPS.realval, OPT.realtyp)
+      | OPS.longreal: x := OPB.NewRealConst(OPS.lrlval, OPT.lrltyp)
       ELSE
          OPM.LogWStr("unhandled case in OPP.Factor, OPS.numtyp = "); OPM.LogWNum(OPS.numtyp, 0); OPM.LogWLn;
       END ;
       OPS.Get(sym)
-    ELSIF sym = OPM.string THEN
+    ELSIF sym = OPS.string THEN
       x := OPB.NewString(OPS.str, OPS.intval); OPS.Get(sym)
-    ELSIF sym = OPM.nil THEN
+    ELSIF sym = OPS.nil THEN
       x := OPB.Nil(); OPS.Get(sym)
-    ELSIF sym = OPM.lparen THEN
-      OPS.Get(sym); Expression(x); CheckSym(OPM.rparen)
-    ELSIF sym = OPM.lbrak THEN
-      OPS.Get(sym); err(OPM.lparen); Expression(x); CheckSym(OPM.rparen)
-    ELSIF sym = OPM.lbrace THEN OPS.Get(sym); Sets(x)
-    ELSIF sym = OPM.not THEN
-      OPS.Get(sym); Factor(x); OPB.MOp(OPM.not, x)
+    ELSIF sym = OPS.lparen THEN
+      OPS.Get(sym); Expression(x); CheckSym(OPS.rparen)
+    ELSIF sym = OPS.lbrak THEN
+      OPS.Get(sym); err(OPS.lparen); Expression(x); CheckSym(OPS.rparen)
+    ELSIF sym = OPS.lbrace THEN OPS.Get(sym); Sets(x)
+    ELSIF sym = OPS.not THEN
+      OPS.Get(sym); Factor(x); OPB.MOp(OPS.not, x)
     ELSE err(13); OPS.Get(sym); x := NIL
     END ;
     IF x = NIL THEN x := OPB.NewIntConst(1); x^.typ := OPT.undftyp END
@@ -455,7 +455,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE Term(VAR x: OPT.Node);
     VAR y: OPT.Node; mulop: SHORTINT;
   BEGIN Factor(x);
-    WHILE (OPM.times <= sym) & (sym <= OPM.and) DO
+    WHILE (OPS.times <= sym) & (sym <= OPS.and) DO
       mulop := sym; OPS.Get(sym);
       Factor(y); OPB.Op(mulop, x, y)
     END
@@ -464,11 +464,11 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE SimpleExpression(VAR x: OPT.Node);
     VAR y: OPT.Node; addop: SHORTINT;
   BEGIN
-    IF sym = OPM.minus THEN OPS.Get(sym); Term(x); OPB.MOp(OPM.minus, x)
-    ELSIF sym = OPM.plus THEN OPS.Get(sym); Term(x); OPB.MOp(OPM.plus, x)
+    IF sym = OPS.minus THEN OPS.Get(sym); Term(x); OPB.MOp(OPS.minus, x)
+    ELSIF sym = OPS.plus THEN OPS.Get(sym); Term(x); OPB.MOp(OPS.plus, x)
     ELSE Term(x)
     END ;
-    WHILE (OPM.plus <= sym) & (sym <= OPM.or) DO
+    WHILE (OPS.plus <= sym) & (sym <= OPS.or) DO
       addop := sym; OPS.Get(sym);
       Term(y); OPB.Op(addop, x, y)
     END
@@ -477,19 +477,19 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE Expression(VAR x: OPT.Node);
     VAR y: OPT.Node; obj: OPT.Object; relation: SHORTINT;
   BEGIN SimpleExpression(x);
-    IF (OPM.eql <= sym) & (sym <= OPM.geq) THEN
+    IF (OPS.eql <= sym) & (sym <= OPS.geq) THEN
       relation := sym; OPS.Get(sym);
       SimpleExpression(y); OPB.Op(relation, x, y)
-    ELSIF sym = OPM.in THEN
+    ELSIF sym = OPS.in THEN
       OPS.Get(sym); SimpleExpression(y); OPB.In(x, y)
-    ELSIF sym = OPM.is THEN
+    ELSIF sym = OPS.is THEN
       OPS.Get(sym);
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         qualident(obj);
         IF obj^.mode = OPT.Typ THEN OPB.TypTest(x, obj, FALSE)
         ELSE err(52)
         END
-      ELSE err(OPM.ident)
+      ELSE err(OPS.ident)
       END
     END
   END Expression;
@@ -497,9 +497,9 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE Receiver(VAR mode: SHORTINT; VAR name: OPS.Name; VAR typ, rec: OPT.Struct);
     VAR obj: OPT.Object;
   BEGIN typ := OPT.undftyp; rec := NIL;
-    IF sym = OPM.var THEN OPS.Get(sym); mode := OPT.VarPar ELSE mode := OPT.Var END ;
-    name := OPS.name; CheckSym(OPM.ident); CheckSym(OPM.colon);
-    IF sym = OPM.ident THEN OPT.Find(obj); OPS.Get(sym);
+    IF sym = OPS.var THEN OPS.Get(sym); mode := OPT.VarPar ELSE mode := OPT.Var END ;
+    name := OPS.name; CheckSym(OPS.ident); CheckSym(OPS.colon);
+    IF sym = OPS.ident THEN OPT.Find(obj); OPS.Get(sym);
       IF obj = NIL THEN err(0)
       ELSIF obj^.mode # OPT.Typ THEN err(72)
       ELSE typ := obj^.typ; rec := typ;
@@ -508,9 +508,9 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           (mode = OPT.VarPar) & (typ^.comp = OPT.Record)) THEN err(70); rec := NIL END ;
         IF (rec # NIL) & (rec^.mno # level) THEN err(72); rec := NIL END
       END
-    ELSE err(OPM.ident)
+    ELSE err(OPS.ident)
     END ;
-    CheckSym(OPM.rparen);
+    CheckSym(OPS.rparen);
     IF rec = NIL THEN rec := OPT.NewStr(OPT.Comp, OPT.Record); rec^.BaseTyp := NIL END
   END Receiver;
 
@@ -533,7 +533,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       VAR ext: OPT.ConstExt; n: INTEGER; c: LONGINT;
     BEGIN
       ext := OPT.NewExt(); proc^.conval^.ext := ext; n := 0;
-      IF sym = OPM.string THEN
+      IF sym = OPS.string THEN
         WHILE OPS.str[n] # 0X DO ext[n+1] := OPS.str[n]; INC(n) END ;
         ext^[0] := CHR(n); OPS.Get(sym);
         (*
@@ -542,14 +542,14 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         *)
       ELSE
         LOOP
-          IF sym = OPM.number THEN c := OPS.intval; INC(n);
+          IF sym = OPS.number THEN c := OPS.intval; INC(n);
             IF (c < 0) OR (c > 255) OR (n = OPT.MaxConstLen) THEN
               err(64); c := 1; n := 1
             END ;
             OPS.Get(sym); ext^[n] := CHR(c)
           END ;
-          IF sym = OPM.comma THEN OPS.Get(sym)
-          ELSIF sym = OPM.number THEN err(OPM.comma)
+          IF sym = OPS.comma THEN OPS.Get(sym)
+          ELSIF sym = OPS.number THEN err(OPS.comma)
           ELSE ext^[0] := CHR(n); EXIT
           END
         END
@@ -561,7 +561,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     BEGIN
       proc^.vis := vis; proc^.mode := mode; proc^.typ := OPT.notyp;
       proc^.conval := OPT.NewConst(); proc^.conval^.setval := {};
-      IF sym = OPM.lparen THEN
+      IF sym = OPS.lparen THEN
         OPS.Get(sym); FormalParameters(proc^.link, proc^.typ)
       END ;
       IF fwd # NIL THEN
@@ -577,13 +577,13 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     BEGIN
       c := OPM.errpos;
       INCL(proc^.conval^.setval, OPT.hasBody);
-      CheckSym(OPM.semicolon); Block(procdec, statseq);
+      CheckSym(OPS.semicolon); Block(procdec, statseq);
       OPB.Enter(procdec, statseq, proc); x := procdec;
       x^.conval := OPT.NewConst(); x^.conval^.intval := c;
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         IF OPS.name # proc^.name THEN err(4) END ;
         OPS.Get(sym)
-      ELSE err(OPM.ident)
+      ELSE err(OPS.ident)
       END
     END Body;
 
@@ -596,7 +596,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       OPS.Get(sym); mode := OPT.TProc;
       IF level > 0 THEN err(73) END ;
       Receiver(objMode, objName, objTyp, recTyp);
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         name := OPS.name; CheckMark(vis);
         OPT.FindField(name, recTyp, fwd);
         OPT.FindField(name, recTyp^.BaseTyp, baseProc);
@@ -626,23 +626,23 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         END ;
         IF ~forward THEN Body END ;
         DEC(level); OPT.CloseScope
-      ELSE err(OPM.ident)
+      ELSE err(OPS.ident)
       END
     END TProcDecl;
 
   BEGIN proc := NIL; forward := FALSE; x := NIL; mode := OPT.LProc;
-    IF (sym # OPM.ident) & (sym # OPM.lparen) THEN
-      IF sym = OPM.times THEN  (* mode set later in OPB.CheckAssign *)
-      ELSIF sym = OPM.arrow THEN forward := TRUE
-      ELSIF sym = OPM.plus THEN mode := OPT.IProc
-      ELSIF sym = OPM.minus THEN mode := OPT.CProc
-      ELSE err(OPM.ident)
+    IF (sym # OPS.ident) & (sym # OPS.lparen) THEN
+      IF sym = OPS.times THEN  (* mode set later in OPB.CheckAssign *)
+      ELSIF sym = OPS.arrow THEN forward := TRUE
+      ELSIF sym = OPS.plus THEN mode := OPT.IProc
+      ELSIF sym = OPS.minus THEN mode := OPT.CProc
+      ELSE err(OPS.ident)
       END ;
       IF (mode IN {OPT.IProc, OPT.CProc}) & ~OPT.SYSimported THEN err(135) END ;
       OPS.Get(sym)
     END ;
-    IF sym = OPM.lparen THEN TProcDecl
-    ELSIF sym = OPM.ident THEN OPT.Find(fwd);
+    IF sym = OPS.lparen THEN TProcDecl
+    ELSIF sym = OPS.ident THEN OPT.Find(fwd);
       name := OPS.name; CheckMark(vis);
       IF (vis # OPT.internal) & (mode = OPT.LProc) THEN mode := OPT.XProc END ;
       IF (fwd # NIL) & ((fwd^.mnolev # level) OR (fwd^.mode = OPT.SProc)) THEN fwd := NIL END ;
@@ -661,7 +661,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ELSIF ~forward THEN Body
       END ;
       DEC(level); OPT.CloseScope
-    ELSE err(OPM.ident)
+    ELSE err(OPS.ident)
     END
   END ProcedureDeclaration;
 
@@ -676,7 +676,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         IF LabelForm < f THEN err(60) END
       ELSIF LabelForm # f THEN err(60)
       END ;
-      IF sym = OPM.upto THEN
+      IF sym = OPS.upto THEN
         OPS.Get(sym); ConstExpression(y); yval := y^.conval^.intval;
         IF (y^.typ^.form # f) & ~((f IN OPT.intSet) & (y^.typ^.form IN OPT.intSet)) THEN err(60) END ;
         IF yval < xval THEN err(63); yval := xval END
@@ -697,8 +697,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ELSE err(213)
       END ;
       OPB.Link(lab, lastlab, x);
-      IF sym = OPM.comma THEN OPS.Get(sym)
-      ELSIF (sym = OPM.number) OR (sym = OPM.ident) THEN err(OPM.comma)
+      IF sym = OPS.comma THEN OPS.Get(sym)
+      ELSIF (sym = OPS.number) OR (sym = OPS.ident) THEN err(OPS.comma)
       ELSE EXIT
       END
     END
@@ -716,24 +716,24 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
       ELSIF ~(x^.typ^.form IN {OPT.Char..OPT.LInt}) THEN err(125)
       END ;
-      CheckSym(OPM.of); cases := NIL; lastcase := NIL; n := 0;
+      CheckSym(OPS.of); cases := NIL; lastcase := NIL; n := 0;
       LOOP
-        IF sym < OPM.bar THEN
+        IF sym < OPS.bar THEN
           CaseLabelList(lab, x^.typ^.form, n, tab);
-          CheckSym(OPM.colon); StatSeq(y);
+          CheckSym(OPS.colon); StatSeq(y);
           OPB.Construct(OPT.Ncasedo, lab, y); OPB.Link(cases, lastcase, lab)
         END ;
-        IF sym = OPM.bar THEN OPS.Get(sym) ELSE EXIT END
+        IF sym = OPS.bar THEN OPS.Get(sym) ELSE EXIT END
       END ;
       IF n > 0 THEN low := tab[0].low; high := tab[n-1].high;
         IF high - low > OPM.MaxCaseRange THEN err(209) END
       ELSE low := 1; high := 0
       END ;
-      e := sym = OPM.else;
+      e := sym = OPS.else;
       IF e THEN OPS.Get(sym); StatSeq(y)
       ELSE
          y := NIL;
-	 OPM.Mark(-307, OPM.curpos); (* notice about no OPM.else symbol; -- noch *)
+	 OPM.Mark(-307, OPM.curpos); (* notice about no OPS.else symbol; -- noch *)
       END ;
       OPB.Construct(OPT.Ncaselse, cases, y); OPB.Construct(OPT.Ncase, x, cases);
       cases^.conval := OPT.NewConst();
@@ -756,21 +756,21 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 
   BEGIN stat := NIL; last := NIL;
     LOOP x := NIL;
-      IF sym < OPM.ident THEN err(14);
-        REPEAT OPS.Get(sym) UNTIL sym >= OPM.ident
+      IF sym < OPS.ident THEN err(14);
+        REPEAT OPS.Get(sym) UNTIL sym >= OPS.ident
       END ;
-      IF sym = OPM.ident THEN
+      IF sym = OPS.ident THEN
         qualident(id); x := OPB.NewLeaf(id); selector(x);
-        IF sym = OPM.becomes THEN
+        IF sym = OPS.becomes THEN
           OPS.Get(sym); Expression(y); OPB.Assign(x, y)
-        ELSIF sym = OPM.eql THEN
-          err(OPM.becomes); OPS.Get(sym); Expression(y); OPB.Assign(x, y)
+        ELSIF sym = OPS.eql THEN
+          err(OPS.becomes); OPS.Get(sym); Expression(y); OPB.Assign(x, y)
         ELSIF (x^.class = OPT.Nproc) & (x^.obj^.mode = OPT.SProc) THEN
           StandProcCall(x);
           IF (x # NIL) & (x^.typ # OPT.notyp) THEN err(55) END
         ELSE OPB.PrepCall(x, fpar);
-          IF sym = OPM.lparen THEN
-            OPS.Get(sym); ActualParameters(apar, fpar); CheckSym(OPM.rparen)
+          IF sym = OPS.lparen THEN
+            OPS.Get(sym); ActualParameters(apar, fpar); CheckSym(OPS.rparen)
           ELSE apar := NIL;
             IF fpar # NIL THEN err(65) END
           END ;
@@ -779,33 +779,33 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           IF level > 0 THEN OPT.topScope^.link^.leaf := FALSE END
         END ;
         pos := OPM.errpos
-      ELSIF sym = OPM.if THEN
-        OPS.Get(sym); Expression(x); CheckBool(x); CheckSym(OPM.then); StatSeq(y);
+      ELSIF sym = OPS.if THEN
+        OPS.Get(sym); Expression(x); CheckBool(x); CheckSym(OPS.then); StatSeq(y);
         OPB.Construct(OPT.Nif, x, y); SetPos(x); lastif := x;
-        WHILE sym = OPM.elsif DO
-          OPS.Get(sym); Expression(y); CheckBool(y); CheckSym(OPM.then); StatSeq(z);
+        WHILE sym = OPS.elsif DO
+          OPS.Get(sym); Expression(y); CheckBool(y); CheckSym(OPS.then); StatSeq(z);
           OPB.Construct(OPT.Nif, y, z); SetPos(y); OPB.Link(x, lastif, y)
         END ;
-        IF sym = OPM.else THEN OPS.Get(sym); StatSeq(y) ELSE y := NIL END ;
-        OPB.Construct(OPT.Nifelse, x, y); CheckSym(OPM.end); OPB.OptIf(x); pos := OPM.errpos
-      ELSIF sym = OPM.case THEN
-        OPS.Get(sym); CasePart(x); CheckSym(OPM.end)
-      ELSIF sym = OPM.while THEN
-        OPS.Get(sym); Expression(x); CheckBool(x); CheckSym(OPM.do); StatSeq(y);
-        OPB.Construct(OPT.Nwhile, x, y); CheckSym(OPM.end)
-      ELSIF sym = OPM.repeat THEN
+        IF sym = OPS.else THEN OPS.Get(sym); StatSeq(y) ELSE y := NIL END ;
+        OPB.Construct(OPT.Nifelse, x, y); CheckSym(OPS.end); OPB.OptIf(x); pos := OPM.errpos
+      ELSIF sym = OPS.case THEN
+        OPS.Get(sym); CasePart(x); CheckSym(OPS.end)
+      ELSIF sym = OPS.while THEN
+        OPS.Get(sym); Expression(x); CheckBool(x); CheckSym(OPS.do); StatSeq(y);
+        OPB.Construct(OPT.Nwhile, x, y); CheckSym(OPS.end)
+      ELSIF sym = OPS.repeat THEN
         OPS.Get(sym); StatSeq(x);
-        IF sym = OPM.until THEN OPS.Get(sym); Expression(y); CheckBool(y)
-        ELSE err(OPM.until)
+        IF sym = OPS.until THEN OPS.Get(sym); Expression(y); CheckBool(y)
+        ELSE err(OPS.until)
         END ;
         OPB.Construct(OPT.Nrepeat, x, y)
-      ELSIF sym = OPM.for THEN
+      ELSIF sym = OPS.for THEN
         OPS.Get(sym);
-        IF sym = OPM.ident THEN qualident(id);
+        IF sym = OPS.ident THEN qualident(id);
           IF ~(id^.typ^.form IN OPT.intSet) THEN err(68) END ;
-          CheckSym(OPM.becomes); Expression(y); pos := OPM.errpos;
+          CheckSym(OPS.becomes); Expression(y); pos := OPM.errpos;
           x := OPB.NewLeaf(id); OPB.Assign(x, y); SetPos(x);
-          CheckSym(OPM.to); Expression(y); pos := OPM.errpos;
+          CheckSym(OPS.to); Expression(y); pos := OPM.errpos;
           IF y^.class # OPT.Nconst THEN
             name := "@@"; OPT.Insert(name, t); t^.name := "@for";  (* avoid err 1 *)
             t^.mode := OPT.Var; t^.typ := x^.left^.typ;
@@ -820,35 +820,35 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           ELSIF (y^.typ^.form < OPT.SInt) OR (y^.typ^.form > x^.left^.typ^.form) THEN err(113)
           END ;
           OPB.Link(stat, last, x);
-          IF sym = OPM.by THEN OPS.Get(sym); ConstExpression(z) ELSE z := OPB.NewIntConst(1) END ;
+          IF sym = OPS.by THEN OPS.Get(sym); ConstExpression(z) ELSE z := OPB.NewIntConst(1) END ;
           pos := OPM.errpos; x := OPB.NewLeaf(id);
-          IF z^.conval^.intval > 0 THEN OPB.Op(OPM.leq, x, y)
-          ELSIF z^.conval^.intval < 0 THEN OPB.Op(OPM.geq, x, y)
-          ELSE err(63); OPB.Op(OPM.geq, x, y)
+          IF z^.conval^.intval > 0 THEN OPB.Op(OPS.leq, x, y)
+          ELSIF z^.conval^.intval < 0 THEN OPB.Op(OPS.geq, x, y)
+          ELSE err(63); OPB.Op(OPS.geq, x, y)
           END ;
-          CheckSym(OPM.do); StatSeq(s);
+          CheckSym(OPS.do); StatSeq(s);
           y := OPB.NewLeaf(id); OPB.StPar1(y, z, OPT.incfn); SetPos(y);
           IF s = NIL THEN s := y
           ELSE z := s;
             WHILE z^.link # NIL DO z := z^.link END ;
             z^.link := y
           END ;
-          CheckSym(OPM.end); OPB.Construct(OPT.Nwhile, x, s)
-        ELSE err(OPM.ident)
+          CheckSym(OPS.end); OPB.Construct(OPT.Nwhile, x, s)
+        ELSE err(OPS.ident)
         END
-      ELSIF sym = OPM.loop THEN
+      ELSIF sym = OPS.loop THEN
         OPS.Get(sym); INC(LoopLevel); StatSeq(x); DEC(LoopLevel);
-        OPB.Construct(OPT.Nloop, x, NIL); CheckSym(OPM.end); pos := OPM.errpos
-      ELSIF sym = OPM.with THEN
+        OPB.Construct(OPT.Nloop, x, NIL); CheckSym(OPS.end); pos := OPM.errpos
+      ELSIF sym = OPS.with THEN
         OPS.Get(sym); idtyp := NIL; x := NIL;
         LOOP
-          IF sym = OPM.ident THEN
+          IF sym = OPS.ident THEN
             qualident(id); y := OPB.NewLeaf(id);
             IF (id # NIL) & (id^.typ^.form = OPT.Pointer) & ((id^.mode = OPT.VarPar) OR ~id^.leaf) THEN
               err(245)  (* jt: do not allow WITH on non-local pointers *)
             END ;
-            CheckSym(OPM.colon);
-            IF sym = OPM.ident THEN qualident(t);
+            CheckSym(OPS.colon);
+            IF sym = OPS.ident THEN qualident(t);
               IF t^.mode = OPT.Typ THEN
                 IF id # NIL THEN
                   idtyp := id^.typ; OPB.TypTest(y, t, FALSE); id^.typ := t^.typ
@@ -856,34 +856,34 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
                 END
               ELSE err(52)
               END
-            ELSE err(OPM.ident)
+            ELSE err(OPS.ident)
             END
-          ELSE err(OPM.ident)
+          ELSE err(OPS.ident)
           END ;
-          pos := OPM.errpos; CheckSym(OPM.do); StatSeq(s); OPB.Construct(OPT.Nif, y, s); SetPos(y);
+          pos := OPM.errpos; CheckSym(OPS.do); StatSeq(s); OPB.Construct(OPT.Nif, y, s); SetPos(y);
           IF idtyp # NIL THEN id^.typ := idtyp; idtyp := NIL END ;
           IF x = NIL THEN x := y; lastif := x ELSE OPB.Link(x, lastif, y) END ;
-          IF sym = OPM.bar THEN OPS.Get(sym) ELSE EXIT END
+          IF sym = OPS.bar THEN OPS.Get(sym) ELSE EXIT END
         END;
-        e := sym = OPM.else;
+        e := sym = OPS.else;
         IF e THEN OPS.Get(sym); StatSeq(s) ELSE s := NIL END ;
-        OPB.Construct(OPT.Nwith, x, s); CheckSym(OPM.end);
+        OPB.Construct(OPT.Nwith, x, s); CheckSym(OPS.end);
         IF e THEN x^.subcl := 1 END
-      ELSIF sym = OPM.exit THEN
+      ELSIF sym = OPS.exit THEN
         OPS.Get(sym);
         IF LoopLevel = 0 THEN err(46) END ;
         OPB.Construct(OPT.Nexit, x, NIL);
         pos := OPM.errpos
-      ELSIF sym = OPM.return THEN OPS.Get(sym);
-        IF sym < OPM.semicolon THEN Expression(x) END ;
+      ELSIF sym = OPS.return THEN OPS.Get(sym);
+        IF sym < OPS.semicolon THEN Expression(x) END ;
         IF level > 0 THEN OPB.Return(x, OPT.topScope^.link)
         ELSE (* not standard Oberon *) OPB.Return(x, NIL)
         END ;
         pos := OPM.errpos
       END ;
       IF x # NIL THEN SetPos(x); OPB.Link(stat, last, x) END ;
-      IF sym = OPM.semicolon THEN OPS.Get(sym)
-      ELSIF (sym <= OPM.ident) OR (OPM.if <= sym) & (sym <= OPM.return) THEN err(OPM.semicolon)
+      IF sym = OPS.semicolon THEN OPS.Get(sym)
+      ELSIF (sym <= OPS.ident) OR (OPS.if <= sym) & (sym <= OPS.return) THEN err(OPS.semicolon)
       ELSE EXIT
       END
     END
@@ -897,31 +897,31 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 
   BEGIN first := NIL; last := NIL; nofFwdPtr := 0;
     LOOP
-      IF sym = OPM.const THEN
+      IF sym = OPS.const THEN
         OPS.Get(sym);
-        WHILE sym = OPM.ident DO
+        WHILE sym = OPS.ident DO
           OPT.Insert(OPS.name, obj); CheckMark(obj^.vis);
           obj^.typ := OPT.sinttyp; obj^.mode := OPT.Var;  (* OPT.Var to avoid recursive definition *)
-          IF sym = OPM.eql THEN
+          IF sym = OPS.eql THEN
             OPS.Get(sym); ConstExpression(x)
-          ELSIF sym = OPM.becomes THEN
-            err(OPM.eql); OPS.Get(sym); ConstExpression(x)
-          ELSE err(OPM.eql); x := OPB.NewIntConst(1)
+          ELSIF sym = OPS.becomes THEN
+            err(OPS.eql); OPS.Get(sym); ConstExpression(x)
+          ELSE err(OPS.eql); x := OPB.NewIntConst(1)
           END ;
           obj^.mode := OPT.Con; obj^.typ := x^.typ; obj^.conval := x^.conval; (* ConstDesc ist not copied *)
-          CheckSym(OPM.semicolon)
+          CheckSym(OPS.semicolon)
         END
       END ;
-      IF sym = OPM.type THEN
+      IF sym = OPS.type THEN
         OPS.Get(sym);
-        WHILE sym = OPM.ident DO
+        WHILE sym = OPS.ident DO
           OPT.Insert(OPS.name, obj); obj^.mode := OPT.Typ; obj^.typ := OPT.undftyp;
           CheckMark(obj^.vis);
-          IF sym = OPM.eql THEN
+          IF sym = OPS.eql THEN
             OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
-          ELSIF (sym = OPM.becomes) OR (sym = OPM.colon) THEN
-            err(OPM.eql); OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
-          ELSE err(OPM.eql)
+          ELSIF (sym = OPS.becomes) OR (sym = OPS.colon) THEN
+            err(OPS.eql); OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
+          ELSE err(OPS.eql)
           END ;
           IF obj^.typ^.strobj = NIL THEN obj^.typ^.strobj := obj END ;
           IF obj^.typ^.comp IN {OPT.Record, OPT.Array, OPT.DynArr} THEN
@@ -930,34 +930,34 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
               IF typ^.link^.name = obj^.name THEN typ^.BaseTyp := obj^.typ; typ^.link^.name := "" END
             END
           END ;
-          CheckSym(OPM.semicolon)
+          CheckSym(OPS.semicolon)
         END
       END ;
-      IF sym = OPM.var THEN
+      IF sym = OPS.var THEN
         OPS.Get(sym);
-        WHILE sym = OPM.ident DO
+        WHILE sym = OPS.ident DO
           LOOP
-            IF sym = OPM.ident THEN
+            IF sym = OPS.ident THEN
               OPT.Insert(OPS.name, obj); CheckMark(obj^.vis);
               obj^.mode := OPT.Var; obj^.link := NIL; obj^.leaf := obj^.vis = OPT.internal; obj^.typ := OPT.undftyp;
               IF first = NIL THEN first := obj END ;
               IF last = NIL THEN OPT.topScope^.scope := obj ELSE last^.link := obj END ;
               last := obj
-            ELSE err(OPM.ident)
+            ELSE err(OPS.ident)
             END ;
-            IF sym = OPM.comma THEN OPS.Get(sym)
-            ELSIF sym = OPM.ident THEN err(OPM.comma)
+            IF sym = OPS.comma THEN OPS.Get(sym)
+            ELSIF sym = OPS.ident THEN err(OPS.comma)
             ELSE EXIT
             END
           END ;
-          CheckSym(OPM.colon); Type(typ, OPT.notyp);
+          CheckSym(OPS.colon); Type(typ, OPT.notyp);
           typ^.pvused := TRUE;
           IF typ^.comp = OPT.DynArr THEN typ := OPT.undftyp; err(88) END ;
           WHILE first # NIL DO first^.typ := typ; first := first^.link END ;
-          CheckSym(OPM.semicolon)
+          CheckSym(OPS.semicolon)
         END
       END ;
-      IF (sym < OPM.const) OR (sym > OPM.var) THEN EXIT END ;
+      IF (sym < OPS.const) OR (sym > OPS.var) THEN EXIT END ;
     END ;
     i := 0;
     WHILE i < nofFwdPtr DO
@@ -967,21 +967,21 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     END ;
     OPT.topScope^.adr := OPM.errpos;
     procdec := NIL; lastdec := NIL;
-    WHILE sym = OPM.procedure DO
+    WHILE sym = OPS.procedure DO
       OPS.Get(sym); ProcedureDeclaration(x);
       IF x # NIL THEN
         IF lastdec = NIL THEN procdec := x ELSE lastdec^.link := x END ;
         lastdec := x
       END ;
-      CheckSym(OPM.semicolon)
+      CheckSym(OPS.semicolon)
     END ;
-    IF sym = OPM.begin THEN OPS.Get(sym); StatSeq(statseq)
+    IF sym = OPS.begin THEN OPS.Get(sym); StatSeq(statseq)
     ELSE statseq := NIL
     END ;
     IF (level = 0) & (TDinit # NIL) THEN
       lastTDinit^.link := statseq; statseq := TDinit
     END ;
-    CheckSym(OPM.end)
+    CheckSym(OPS.end)
   END Block;
 
   PROCEDURE Module*(VAR prog: OPT.Node; opt: SET);
@@ -990,38 +990,38 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         c: LONGINT; done: BOOLEAN;
   BEGIN
     OPS.Init; LoopLevel := 0; level := 0; OPS.Get(sym);
-    IF sym = OPM.module THEN OPS.Get(sym) ELSE err(16) END ;
-    IF sym = OPM.ident THEN
+    IF sym = OPS.module THEN OPS.Get(sym) ELSE err(16) END ;
+    IF sym = OPS.ident THEN
       OPM.LogWStr("compiling "); OPM.LogWStr(OPS.name); OPM.LogW(".");
-      OPT.Init(OPS.name, opt); OPS.Get(sym); CheckSym(OPM.semicolon);
-      IF sym = OPM.import THEN OPS.Get(sym);
+      OPT.Init(OPS.name, opt); OPS.Get(sym); CheckSym(OPS.semicolon);
+      IF sym = OPS.import THEN OPS.Get(sym);
         LOOP
-          IF sym = OPM.ident THEN
+          IF sym = OPS.ident THEN
             COPY(OPS.name, aliasName); COPY(aliasName, impName); OPS.Get(sym);
-            IF sym = OPM.becomes THEN OPS.Get(sym);
-              IF sym = OPM.ident THEN COPY(OPS.name, impName); OPS.Get(sym) ELSE err(OPM.ident) END
+            IF sym = OPS.becomes THEN OPS.Get(sym);
+              IF sym = OPS.ident THEN COPY(OPS.name, impName); OPS.Get(sym) ELSE err(OPS.ident) END
             END ;
             OPT.Import(aliasName, impName, done)
-          ELSE err(OPM.ident)
+          ELSE err(OPS.ident)
           END ;
-          IF sym = OPM.comma THEN OPS.Get(sym)
-          ELSIF sym = OPM.ident THEN err(OPM.comma)
+          IF sym = OPS.comma THEN OPS.Get(sym)
+          ELSIF sym = OPS.ident THEN err(OPS.comma)
           ELSE EXIT
           END
         END ;
-        CheckSym(OPM.semicolon)
+        CheckSym(OPS.semicolon)
       END ;
       IF OPM.noerr THEN TDinit := NIL; lastTDinit := NIL; c := OPM.errpos;
         Block(procdec, statseq); OPB.Enter(procdec, statseq, NIL); prog := procdec;
         prog^.conval := OPT.NewConst(); prog^.conval^.intval := c;
-        IF sym = OPM.ident THEN
+        IF sym = OPS.ident THEN
           IF OPS.name # OPT.SelfName THEN err(4) END ;
           OPS.Get(sym)
-        ELSE err(OPM.ident)
+        ELSE err(OPS.ident)
         END ;
-        IF sym # OPM.period THEN err(OPM.period) END
+        IF sym # OPS.period THEN err(OPS.period) END
       END
-    ELSE err(OPM.ident)
+    ELSE err(OPS.ident)
     END ;
     TDinit := NIL; lastTDinit := NIL
   END Module;

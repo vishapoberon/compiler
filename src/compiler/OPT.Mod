@@ -138,7 +138,8 @@ CONST
 
   (* Note: some object.adr function numbers and some symbol types are
   also are used as Node.subcl function ids *)
-
+  eql* = OPS.eql;  neq* = OPS.neq;  lss* = OPS.lss;
+  leq* = OPS.leq;  gtr* = OPS.gtr;  geq* = OPS.geq;
 
 
 

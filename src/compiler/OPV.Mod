@@ -1,6 +1,6 @@
 MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
-  26.7.2002 jt bug fix OPM.in Len: wrong result if called for fixed OPT.Array
+  26.7.2002 jt bug fix OPS.in Len: wrong result if called for fixed OPT.Array
   31.1.2007 jt synchronized with BlackBox version, in particular:
     various promotion rules changed (long) => (LONGINT), xxxL avoided
 *)
@@ -227,27 +227,27 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     | OPT.Nvarpar: IF comp IN {OPT.Array, OPT.DynArr} THEN RETURN 10 ELSE RETURN 9 END (* arrays don't need deref *)
     | OPT.Nderef:  RETURN 9
     | OPT.Nmop:    CASE subclass OF
-                   | OPM.not, OPM.minus, OPT.adr, OPT.val, OPT.conv: RETURN 9
-                   | OPM.is, OPT.abs, OPT.cap, OPT.odd, OPT.cc:      RETURN 10
+                   | OPS.not, OPS.minus, OPT.adr, OPT.val, OPT.conv: RETURN 9
+                   | OPS.is, OPT.abs, OPT.cap, OPT.odd, OPT.cc:      RETURN 10
                    ELSE OPM.LogWStr("unhandled case in OPV.Precedence OPT.Nmop, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
                    END
     | OPT.Ndop:    CASE subclass OF
-                   | OPM.times: IF form = OPT.Set THEN RETURN 4 ELSE RETURN 8 END
-                   | OPM.slash: IF form = OPT.Set THEN RETURN 3 ELSE RETURN 8 END
-                   | OPM.div,
-                     OPM.mod:   RETURN 10 (* div/mod are replaced by functions *)
-                   | OPM.plus:  IF form = OPT.Set THEN RETURN 2 ELSE RETURN 7 END
-                   | OPM.minus: IF form = OPT.Set THEN RETURN 4 ELSE RETURN 7 END
-                   | OPM.lss,
-                     OPM.leq,
-                     OPM.gtr,
-                     OPM.geq:   RETURN 6
-                   | OPM.eql,
-                     OPM.neq:   RETURN 5
-                   | OPM.and:   RETURN 1
-                   | OPM.or:    RETURN 0
+                   | OPS.times: IF form = OPT.Set THEN RETURN 4 ELSE RETURN 8 END
+                   | OPS.slash: IF form = OPT.Set THEN RETURN 3 ELSE RETURN 8 END
+                   | OPS.div,
+                     OPS.mod:   RETURN 10 (* div/mod are replaced by functions *)
+                   | OPS.plus:  IF form = OPT.Set THEN RETURN 2 ELSE RETURN 7 END
+                   | OPS.minus: IF form = OPT.Set THEN RETURN 4 ELSE RETURN 7 END
+                   | OPS.lss,
+                     OPS.leq,
+                     OPS.gtr,
+                     OPS.geq:   RETURN 6
+                   | OPS.eql,
+                     OPS.neq:   RETURN 5
+                   | OPS.and:   RETURN 1
+                   | OPS.or:    RETURN 0
                    | OPT.len,
-                     OPM.in,
+                     OPS.in,
                      OPT.ash,
                      OPT.msk,
                      OPT.bit,
@@ -534,10 +534,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                   OPM.Write(CloseParen)
     | OPT.Nmop:
                   CASE subclass OF
-                  | OPM.not:   OPM.Write("!"); expr(l, exprPrec)
-                  | OPM.minus: IF form = OPT.Set THEN OPM.Write("~") ELSE OPM.Write("-") END;
+                  | OPS.not:   OPM.Write("!"); expr(l, exprPrec)
+                  | OPS.minus: IF form = OPT.Set THEN OPM.Write("~") ELSE OPM.Write("-") END;
                                expr(l, exprPrec)
-                  | OPM.is:    typ := n^.obj^.typ;
+                  | OPS.is:    typ := n^.obj^.typ;
                                IF l^.typ^.comp = OPT.Record THEN OPM.WriteString(IsFunc); OPC.TypeOf(l^.obj)
                                ELSE OPM.WriteString(IsPFunc); expr(l, MinPrec); typ := typ^.BaseTyp
                                END ;
@@ -581,15 +581,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                   END
     | OPT.Ndop:   CASE subclass OF
                   | OPT.len:  Len(l, r^.conval^.intval)
-                  | OPM.in,
+                  | OPS.in,
                     OPT.ash,
                     OPT.msk,
                     OPT.bit,
                     OPT.lsh,
                     OPT.rot,
-                    OPM.div,
-                    OPM.mod:  CASE subclass OF
-                              | OPM.in:   OPM.WriteString("__IN(")
+                    OPS.div,
+                    OPS.mod:  CASE subclass OF
+                              | OPS.in:   OPM.WriteString("__IN(")
                               | OPT.ash:  IF r^.class = OPT.Nconst THEN
                                             IF r^.conval^.intval >= 0 THEN OPM.WriteString("__ASHL(")
                                             ELSE OPM.WriteString("__ASHR(")
@@ -611,12 +611,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                             END
                                           ELSE OPM.WriteString("__ROT(")
                                           END
-                              | OPM.div:  IF SideEffects(n) THEN
+                              | OPS.div:  IF SideEffects(n) THEN
                                             IF form < OPT.LInt THEN OPM.WriteString("(int)") END ;
                                             OPM.WriteString("__DIVF(")
                                           ELSE OPM.WriteString("__DIV(")
                                           END
-                              | OPM.mod:  IF form < OPT.LInt THEN OPM.WriteString("(int)") END ;
+                              | OPS.mod:  IF form < OPT.LInt THEN OPM.WriteString("(int)") END ;
                                           IF SideEffects(n) THEN OPM.WriteString("__MODF(")
                                           ELSE OPM.WriteString("__MOD(")
                                           END;
@@ -630,8 +630,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                               END ;
                               IF subclass IN {OPT.lsh, OPT.rot} THEN OPM.WriteString(Comma); OPC.Ident(l^.typ^.strobj) END ;
                               OPM.Write(CloseParen)
-                  | OPM.eql
-                  .. OPM.geq: IF l^.typ^.form IN {OPT.String, OPT.Comp} THEN
+                  | OPS.eql
+                  .. OPS.geq: IF l^.typ^.form IN {OPT.String, OPT.Comp} THEN
                                 OPM.WriteString("__STRCMP(");
                                 expr(l, MinPrec); OPM.WriteString(Comma); expr(r, MinPrec); OPM.Write(CloseParen);
                                 OPC.Cmp(subclass); OPM.Write("0")
@@ -643,30 +643,30 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                 END ;
                                 expr(r, exprPrec)
                               END
-                  ELSE        IF (subclass = OPM.and) OR ((form = OPT.Set) & ((subclass = OPM.times) OR (subclass = OPM.minus))) THEN OPM.Write(OpenParen); END; (* to silence clang warnings; -- noch *)
+                  ELSE        IF (subclass = OPS.and) OR ((form = OPT.Set) & ((subclass = OPS.times) OR (subclass = OPS.minus))) THEN OPM.Write(OpenParen); END; (* to silence clang warnings; -- noch *)
                               expr(l, exprPrec);
                               CASE subclass OF
-                              | OPM.times: IF form = OPT.Set THEN OPM.WriteString(" & ")
+                              | OPS.times: IF form = OPT.Set THEN OPM.WriteString(" & ")
                                              ELSE OPM.WriteString(" * ")
                                            END
-                              | OPM.slash: IF form = OPT.Set THEN OPM.WriteString(" ^ ")
+                              | OPS.slash: IF form = OPT.Set THEN OPM.WriteString(" ^ ")
                                            ELSE OPM.WriteString(" / ");
                                              IF (r^.obj = NIL) OR (r^.obj^.typ^.form IN OPT.intSet) THEN
                                                OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen)
                                              END
                                            END
-                              | OPM.and:   OPM.WriteString(" && ")
-                              | OPM.plus:  IF form = OPT.Set THEN OPM.WriteString(" | ")
+                              | OPS.and:   OPM.WriteString(" && ")
+                              | OPS.plus:  IF form = OPT.Set THEN OPM.WriteString(" | ")
                                            ELSE OPM.WriteString(" + ")
                                            END
-                              | OPM.minus: IF form = OPT.Set THEN OPM.WriteString(" & ~")
+                              | OPS.minus: IF form = OPT.Set THEN OPM.WriteString(" & ~")
                                            ELSE OPM.WriteString(" - ")
                                            END;
-                              | OPM.or:    OPM.WriteString(" || ");
+                              | OPS.or:    OPM.WriteString(" || ");
 	                            ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
                               END;
                               expr(r, exprPrec);
-	                            IF (subclass = OPM.and) OR ((form = OPT.Set) & ((subclass = OPM.times) OR (subclass = OPM.minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
+	                            IF (subclass = OPS.and) OR ((form = OPT.Set) & ((subclass = OPS.times) OR (subclass = OPS.minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
                   END
     | OPT.Ncall:  IF (l^.obj # NIL) & (l^.obj^.mode = OPT.TProc) THEN
                     IF l^.subcl = OPT.super THEN proc := SuperProc(n)

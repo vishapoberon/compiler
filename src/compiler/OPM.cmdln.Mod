@@ -82,45 +82,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
 
-    (***** Symbols *****)
-
-
-    (* Symbols values (also used as op values):
-       |  0          1          2          3          4
-    ---|--------------------------------------------------------
-     0 |  null       *          /          DIV        MOD
-     5 |  &          +          -          OR         =
-    10 |  #          <          <=         >          >=
-    15 |  IN         IS         ^          .          ,
-    20 |  :          ..         )          ]          }
-    25 |  OF         THEN       DO         TO         BY
-    30 |  (          [          {          ~          :=
-    35 |  number     NIL        string     OPM.ident      ;
-    40 |  |          END        ELSE       ELSIF      UNTIL
-    45 |  IF         CASE       WHILE      REPEAT     FOR
-    50 |  LOOP       WITH       EXIT       RETURN     ARRAY
-    55 |  RECORD     POINTER    BEGIN      CONST      TYPE
-    60 |  VAR        PROCEDURE  IMPORT     MODULE     eof
-    *)
-
-    null*   = 0;  times*     = 1;  slash*   = 2;  div*    = 3;  mod*       = 4;
-    and*    = 5;  plus*      = 6;  minus*   = 7;  or*     = 8;  eql*       = 9;
-    neq*    = 10; lss*       = 11; leq*     = 12; gtr*    = 13; geq*       = 14;
-    in*     = 15; is*        = 16; arrow*   = 17; period* = 18; comma*     = 19;
-    colon*  = 20; upto*      = 21; rparen*  = 22; rbrak*  = 23; rbrace*    = 24;
-    of*     = 25; then*      = 26; do*      = 27; to*     = 28; by*        = 29;
-    lparen* = 30; lbrak*     = 31; lbrace*  = 32; not*    = 33; becomes*   = 34;
-    number* = 35; nil*       = 36; string*  = 37; ident*  = 38; semicolon* = 39;
-    bar*    = 40; end*       = 41; else*    = 42; elsif*  = 43; until*     = 44;
-    if*     = 45; case*      = 46; while*   = 47; repeat* = 48; for*       = 49;
-    loop*   = 50; with*      = 51; exit*    = 52; return* = 53; array*     = 54;
-    record* = 55; pointer*   = 56; begin*   = 57; const*  = 58; type*      = 59;
-    var*    = 60; procedure* = 61; import*  = 62; module* = 63; eof*       = 64;
-
-    (* Symbol numtyp values *)
-    char* = 1; integer* = 2; real* = 3; longreal* = 4;
-
-
   TYPE
     FileName = ARRAY 32 OF CHAR;
 
@@ -131,15 +92,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     ByteSize*, CharSize*, BoolSize*, SIntSize*, IntSize*,
     LIntSize*, SetSize*, RealSize*, LRealSize*, PointerSize*, ProcSize*, RecSize*,
-    (*
-    CharAlign*, BoolAlign*, SIntAlign*, IntAlign*,
-    LIntAlign*, SetAlign*, RealAlign*, LRealAlign*, PointerAlign*, ProcAlign*, RecAlign*,
-    *)
     MaxSet*: INTEGER;
 
-    (*
-    MinSInt*, MinInt*, MinLInt*, MaxSInt*, MaxInt*, MaxLInt*,
-    *)
     MaxIndex*: LONGINT;
 
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;

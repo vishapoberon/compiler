@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/22] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPC.h"
 #include "OPM.h"
@@ -333,7 +333,7 @@ static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, IN
 					return _o_result;
 					break;
 				default: 
-					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPM.Nmop, subclass = ", (LONGINT)55);
+					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPT.Nmop, subclass = ", (LONGINT)55);
 					OPM_LogWNum(subclass, ((LONGINT)(0)));
 					OPM_LogWLn();
 					break;
@@ -403,7 +403,7 @@ static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, IN
 					return _o_result;
 					break;
 				default: 
-					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPM.Ndop, subclass = ", (LONGINT)55);
+					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPT.Ndop, subclass = ", (LONGINT)55);
 					OPM_LogWNum(subclass, ((LONGINT)(0)));
 					OPM_LogWLn();
 					break;
@@ -487,8 +487,6 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INTEGER prec)
 		OPV_Entier(n, -1);
 		OPM_Write(')');
 	} else if (__IN(to, 0x70)) {
-		__ASSERT(newtype->size > 0, 0);
-		__ASSERT(n->typ->size > 0, 0);
 		if ((newtype->size < n->typ->size && __IN(2, OPM_opt))) {
 			OPM_WriteString((CHAR*)"__SHORT", (LONGINT)8);
 			if (OPV_SideEffects(n)) {
