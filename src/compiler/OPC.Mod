@@ -111,15 +111,15 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR mode, level, h: INTEGER;
   BEGIN
     mode := obj^.mode; level := obj^.mnolev;
-    IF (mode IN {OPM.Var, OPM.Typ, OPM.LProc}) & (level > 0) OR (mode IN {OPM.Fld, OPM.VarPar}) THEN
+    IF (mode IN {OPT.Var, OPT.Typ, OPT.LProc}) & (level > 0) OR (mode IN {OPT.Fld, OPT.VarPar}) THEN
       OPM.WriteStringVar(obj^.name);
       h := PerfectHash(obj^.name);
       IF hashtab[h] >= 0 THEN
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
     ELSE
-      IF (mode # OPM.Typ) OR (obj^.linkadr # PredefinedType) THEN
-        IF mode = OPM.TProc THEN Ident(obj^.link^.typ^.strobj)
+      IF (mode # OPT.Typ) OR (obj^.linkadr # PredefinedType) THEN
+        IF mode = OPT.TProc THEN Ident(obj^.link^.typ^.strobj)
         ELSIF level < 0 THEN (* use unaliased module name *)
           OPM.WriteStringVar(OPT.GlbMod[-level].name);
           IF OPM.currFile = OPM.HeaderFile THEN OPT.GlbMod[-level].vis := 1 (*include in header file*) END ;
@@ -138,21 +138,21 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR pointers: INTEGER;
   BEGIN
     openClause := FALSE;
-    IF ((typ^.strobj = NIL) OR (typ^.strobj^.name = "")) & (typ^.comp # OPM.Record) THEN
-      IF typ^.comp IN {OPM.Array, OPM.DynArr} THEN
+    IF ((typ^.strobj = NIL) OR (typ^.strobj^.name = "")) & (typ^.comp # OPT.Record) THEN
+      IF typ^.comp IN {OPT.Array, OPT.DynArr} THEN
         Stars (typ^.BaseTyp, openClause);
-        openClause := (typ^.comp = OPM.Array)
-      ELSIF typ^.form = OPM.ProcTyp THEN
+        openClause := (typ^.comp = OPT.Array)
+      ELSIF typ^.form = OPT.ProcTyp THEN
         OPM.Write('('); OPM.Write('*')
       ELSE
         pointers := 0;
-        (*WHILE (typ^.strobj = NIL) & (typ^.form = OPM.Pointer) DO INC (pointers); typ := typ^.BaseTyp END ;
-        IF (typ^.comp # OPM.DynArr) & (pointers # 0) THEN Stars (typ, openClause) END ;*)
-        WHILE ((typ^.strobj = NIL) OR (typ^.strobj^.name = "")) & (typ^.form = OPM.Pointer) DO
+        (*WHILE (typ^.strobj = NIL) & (typ^.form = OPT.Pointer) DO INC (pointers); typ := typ^.BaseTyp END ;
+        IF (typ^.comp # OPT.DynArr) & (pointers # 0) THEN Stars (typ, openClause) END ;*)
+        WHILE ((typ^.strobj = NIL) OR (typ^.strobj^.name = "")) & (typ^.form = OPT.Pointer) DO
            INC (pointers); typ := typ^.BaseTyp
         END ;
         IF pointers > 0 THEN
-            IF typ^.comp # OPM.DynArr THEN Stars (typ, openClause) END ;
+            IF typ^.comp # OPT.DynArr THEN Stars (typ, openClause) END ;
           IF openClause THEN OPM.Write('('); openClause := FALSE END ;
           WHILE pointers > 0 DO OPM.Write('*'); DEC (pointers) END
         END
@@ -168,7 +168,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       varPar, openClause: BOOLEAN; form, comp: INTEGER;
   BEGIN
     typ := dcl^.typ;
-    varPar := ((dcl^.mode = OPM.VarPar) & (typ^.comp # OPM.Array)) OR (typ^.comp = OPM.DynArr) OR scopeDef;
+    varPar := ((dcl^.mode = OPT.VarPar) & (typ^.comp # OPT.Array)) OR (typ^.comp = OPT.DynArr) OR scopeDef;
     Stars(typ, openClause);
     IF varPar THEN
       IF openClause THEN OPM.Write('(') END ;
@@ -180,17 +180,17 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     LOOP
       form := typ^.form;
       comp := typ^.comp;
-      IF ((typ^.strobj # NIL) & (typ^.strobj^.name # "")) OR (form = OPM.NoTyp) OR (comp = OPM.Record) THEN EXIT
-      ELSIF (form = OPM.Pointer) & (typ^.BaseTyp^.comp # OPM.DynArr) THEN
+      IF ((typ^.strobj # NIL) & (typ^.strobj^.name # "")) OR (form = OPT.NoTyp) OR (comp = OPT.Record) THEN EXIT
+      ELSIF (form = OPT.Pointer) & (typ^.BaseTyp^.comp # OPT.DynArr) THEN
         openClause := TRUE
-      ELSIF (form = OPM.ProcTyp) OR (comp IN {OPM.Array, OPM.DynArr}) THEN
+      ELSIF (form = OPT.ProcTyp) OR (comp IN {OPT.Array, OPT.DynArr}) THEN
         IF openClause THEN OPM.Write(')'); openClause := FALSE END ;
-        IF form = OPM.ProcTyp THEN
+        IF form = OPT.ProcTyp THEN
           IF ansi THEN OPM.Write(")"); AnsiParamList(typ^.link, FALSE)
           ELSE OPM.WriteString(")()")
           END ;
           EXIT
-        ELSIF comp = OPM.Array THEN
+        ELSIF comp = OPT.Array THEN
           OPM.Write('['); OPM.WriteInt(typ^.n); OPM.Write(']')
         END
       ELSE
@@ -224,35 +224,35 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR typ, prev: OPT.Struct; obj: OPT.Object; nofdims: INTEGER; off, n, dummy: LONGINT;
   BEGIN
     typ := dcl^.typ; prev := typ;
-    WHILE ((typ^.strobj = NIL) OR (typ^.comp = OPM.DynArr) OR Undefined(typ^.strobj))
-        & (typ^.comp # OPM.Record)
-        & (typ^.form # OPM.NoTyp)
-        & ~((typ^.form = OPM.Pointer) & (typ^.BaseTyp^.comp = OPM.DynArr)) DO
+    WHILE ((typ^.strobj = NIL) OR (typ^.comp = OPT.DynArr) OR Undefined(typ^.strobj))
+        & (typ^.comp # OPT.Record)
+        & (typ^.form # OPT.NoTyp)
+        & ~((typ^.form = OPT.Pointer) & (typ^.BaseTyp^.comp = OPT.DynArr)) DO
       prev := typ; typ := typ^.BaseTyp;
     END ;
     obj := typ^.strobj;
-    IF typ^.form = OPM.NoTyp THEN  (* proper procedure *)
+    IF typ^.form = OPT.NoTyp THEN  (* proper procedure *)
       OPM.WriteString('void')
     ELSIF (obj # NIL) & ~Undefined(obj) THEN  (* named type, already declared *)
       Ident(obj)
-    ELSIF typ^.comp = OPM.Record THEN
+    ELSIF typ^.comp = OPT.Record THEN
       OPM.WriteString('struct '); Andent(typ);
-      IF (prev.form # OPM.Pointer) & ((obj # NIL) OR (dcl.name = "")) THEN
+      IF (prev.form # OPT.Pointer) & ((obj # NIL) OR (dcl.name = "")) THEN
         (* named record type not yet declared OR anonymous record with empty name *)
-        IF (typ^.BaseTyp # NIL) & (typ^.BaseTyp^.strobj.vis # OPM.internal) THEN
+        IF (typ^.BaseTyp # NIL) & (typ^.BaseTyp^.strobj.vis # OPT.internal) THEN
           OPM.WriteString(" { /* "); Ident(typ^.BaseTyp^.strobj); OPM.WriteString(" */"); OPM.WriteLn; Indent(1)
         ELSE OPM.Write(' '); BegBlk
         END ;
         FieldList(typ, TRUE, off, n, dummy);
         EndBlk0
       END
-    ELSIF (typ^.form = OPM.Pointer) & (typ^.BaseTyp^.comp = OPM.DynArr) THEN
+    ELSIF (typ^.form = OPT.Pointer) & (typ^.BaseTyp^.comp = OPT.DynArr) THEN
       typ := typ^.BaseTyp^.BaseTyp; nofdims := 1;
-      WHILE typ^.comp = OPM.DynArr DO INC(nofdims); typ := typ^.BaseTyp END ;
+      WHILE typ^.comp = OPT.DynArr DO INC(nofdims); typ := typ^.BaseTyp END ;
       OPM.WriteString('struct '); BegBlk;
       BegStat; Str1("LONGINT len[#]", nofdims); EndStat;
       BegStat; NEW(obj); NEW(obj.typ);  (* aux. object for easy declaration *)
-      obj.typ.form := OPM.Comp; obj.typ.comp := OPM.Array; obj.typ.n := 1; obj.typ.BaseTyp := typ; obj.mode := OPM.Fld; obj.name := "data";
+      obj.typ.form := OPT.Comp; obj.typ.comp := OPT.Array; obj.typ.n := 1; obj.typ.BaseTyp := typ; obj.mode := OPT.Fld; obj.name := "data";
       obj.linkadr := UndefinedType; DeclareBase(obj); OPM.Write(' ');  DeclareObj(obj, FALSE);
       EndStat; EndBlk0
     END
@@ -261,21 +261,21 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE NofPtrs* (typ: OPT.Struct): LONGINT;
     VAR fld: OPT.Object; btyp: OPT.Struct; n: LONGINT;
   BEGIN
-    IF (typ^.form = OPM.Pointer) & (typ^.sysflag = 0) THEN RETURN 1
-    ELSIF (typ^.comp = OPM.Record) & (typ^.sysflag MOD 100H = 0) THEN
+    IF (typ^.form = OPT.Pointer) & (typ^.sysflag = 0) THEN RETURN 1
+    ELSIF (typ^.comp = OPT.Record) & (typ^.sysflag MOD 100H = 0) THEN
       btyp := typ^.BaseTyp;
       IF btyp # NIL THEN n := NofPtrs(btyp) ELSE n := 0 END ;
       fld := typ^.link;
-      WHILE (fld # NIL) & (fld^.mode = OPM.Fld) DO
+      WHILE (fld # NIL) & (fld^.mode = OPT.Fld) DO
         IF fld^.name # OPM.HdPtrName THEN n := n + NofPtrs(fld^.typ)
         ELSE INC(n)
         END ;
         fld := fld^.link
       END ;
       RETURN n
-    ELSIF typ^.comp = OPM.Array THEN
+    ELSIF typ^.comp = OPT.Array THEN
       btyp := typ^.BaseTyp; n := typ^.n;
-      WHILE btyp^.comp = OPM.Array DO n := btyp^.n * n; btyp := btyp^.BaseTyp END ;
+      WHILE btyp^.comp = OPT.Array DO n := btyp^.n * n; btyp := btyp^.BaseTyp END ;
       RETURN NofPtrs(btyp) * n
     ELSE RETURN 0
     END
@@ -284,14 +284,14 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE PutPtrOffsets (typ: OPT.Struct; adr: LONGINT; VAR cnt: LONGINT);
     VAR fld: OPT.Object; btyp: OPT.Struct; n, i: LONGINT;
   BEGIN
-    IF (typ^.form = OPM.Pointer) & (typ^.sysflag = 0) THEN
+    IF (typ^.form = OPT.Pointer) & (typ^.sysflag = 0) THEN
       OPM.WriteInt(adr); OPM.WriteString(", "); INC(cnt);
       IF cnt MOD 16 = 0 THEN OPM.WriteLn; OPM.Write(Tab) END
-    ELSIF (typ^.comp = OPM.Record) & (typ^.sysflag MOD 100H = 0) THEN
+    ELSIF (typ^.comp = OPT.Record) & (typ^.sysflag MOD 100H = 0) THEN
       btyp := typ^.BaseTyp;
       IF btyp # NIL THEN PutPtrOffsets(btyp, adr, cnt) END ;
       fld := typ^.link;
-      WHILE (fld # NIL) & (fld^.mode = OPM.Fld) DO
+      WHILE (fld # NIL) & (fld^.mode = OPT.Fld) DO
         IF fld^.name # OPM.HdPtrName THEN PutPtrOffsets(fld^.typ, adr + fld^.adr, cnt)
         ELSE
           OPM.WriteInt(adr + fld^.adr); OPM.WriteString(", "); INC(cnt);
@@ -299,9 +299,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         END ;
         fld := fld^.link
       END
-    ELSIF typ^.comp = OPM.Array THEN
+    ELSIF typ^.comp = OPT.Array THEN
       btyp := typ^.BaseTyp; n := typ^.n;
-      WHILE btyp^.comp = OPM.Array DO n := btyp^.n * n; btyp := btyp^.BaseTyp END ;
+      WHILE btyp^.comp = OPT.Array DO n := btyp^.n * n; btyp := btyp^.BaseTyp END ;
       IF NofPtrs(btyp) > 0 THEN i := 0;
         WHILE i < n DO PutPtrOffsets(btyp, adr + i * btyp^.size, cnt); INC(i) END
       END
@@ -312,7 +312,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       InitTProcs(typ, obj^.left);
-      IF obj^.mode = OPM.TProc THEN
+      IF obj^.mode = OPT.TProc THEN
         BegStat;
         OPM.WriteString("__INITBP(");
         Ident(typ); OPM.WriteString(', '); Ident(obj);
@@ -336,7 +336,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF showParamName THEN Ident(par); OPM.WriteString(LenExt) END ;
     dim := 1; typ := par^.typ^.BaseTyp;
-    WHILE typ^.comp = OPM.DynArr DO
+    WHILE typ^.comp = OPT.DynArr DO
       IF ansiDefine THEN OPM.WriteString(", LONGINT ") ELSE OPM.WriteString(', ') END ;
       IF showParamName THEN Ident(par); OPM.WriteString(LenExt); OPM.WriteInt(dim) END ;
       typ := typ^.BaseTyp; INC(dim)
@@ -349,12 +349,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     WHILE par # NIL DO
       IF macro THEN OPM.WriteStringVar(par.name)
       ELSE
-        IF (par^.mode = OPM.Var) & (par^.typ^.form = OPM.Real) THEN OPM.Write("_") END ;
+        IF (par^.mode = OPT.Var) & (par^.typ^.form = OPT.Real) THEN OPM.Write("_") END ;
         Ident(par)
       END ;
-      IF par^.typ^.comp = OPM.DynArr THEN
+      IF par^.typ^.comp = OPT.DynArr THEN
         OPM.WriteString(', '); LenList(par, FALSE, TRUE);
-      ELSIF (par^.mode = OPM.VarPar) & (par^.typ^.comp = OPM.Record) THEN
+      ELSIF (par^.mode = OPT.VarPar) & (par^.typ^.comp = OPT.Record) THEN
         OPM.WriteString(', '); OPM.WriteStringVar(par.name); OPM.WriteString(TagExt)
       END ;
       par := par^.link;
@@ -366,7 +366,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE ^DefineType(str: OPT.Struct);
   PROCEDURE ^ProcHeader(proc: OPT.Object; define: BOOLEAN);
 
-  PROCEDURE DefineTProcTypes(obj: OPT.Object);  (* define all types that are used in a OPM.TProc definition *)
+  PROCEDURE DefineTProcTypes(obj: OPT.Object);  (* define all types that are used in a OPT.TProc definition *)
     VAR par: OPT.Object;
   BEGIN
     IF obj^.typ # OPT.notyp THEN DefineType(obj^.typ) END ;
@@ -379,17 +379,17 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       DeclareTProcs(obj^.left, empty);
-      IF obj^.mode = OPM.TProc THEN
+      IF obj^.mode = OPT.TProc THEN
         IF obj^.typ # OPT.notyp THEN DefineType(obj^.typ) END ;
         IF OPM.currFile = OPM.HeaderFile THEN
-          IF obj^.vis = OPM.external THEN
+          IF obj^.vis = OPT.external THEN
             DefineTProcTypes(obj);
             OPM.WriteString(Extern); empty := FALSE;
             ProcHeader(obj, FALSE)
           END
         ELSE empty := FALSE;
           DefineTProcTypes(obj);
-          IF obj^.vis = OPM.internal THEN OPM.WriteString('static ')
+          IF obj^.vis = OPT.internal THEN OPM.WriteString('static ')
           ELSE OPM.WriteString(Export)
           END ;
           ProcHeader(obj, FALSE)
@@ -402,7 +402,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE BaseTProc*(obj: OPT.Object): OPT.Object;
     VAR typ, base: OPT.Struct; mno: LONGINT;
   BEGIN typ := obj^.link^.typ;  (* receiver type *)
-    IF typ^.form = OPM.Pointer THEN typ := typ^.BaseTyp END ;
+    IF typ^.form = OPT.Pointer THEN typ := typ^.BaseTyp END ;
     base := typ^.BaseTyp; mno := obj^.adr DIV 10000H;
     WHILE (base # NIL) & (mno < base^.n) DO typ := base; base := typ^.BaseTyp END ;
     OPT.FindField(obj^.name, typ, obj);
@@ -413,12 +413,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       DefineTProcMacros(obj^.left, empty);
-      IF (obj^.mode = OPM.TProc) & (obj = BaseTProc(obj)) & ((OPM.currFile # OPM.HeaderFile) OR (obj^.vis = OPM.external)) THEN
+      IF (obj^.mode = OPT.TProc) & (obj = BaseTProc(obj)) & ((OPM.currFile # OPM.HeaderFile) OR (obj^.vis = OPT.external)) THEN
         OPM.WriteString("#define __");
         Ident(obj);
         DeclareParams(obj^.link, TRUE);
         OPM.WriteString(" __SEND(");
-        IF obj^.link^.typ^.form = OPM.Pointer THEN
+        IF obj^.link^.typ^.form = OPT.Pointer THEN
           OPM.WriteString("__TYPEOF("); Ident(obj^.link); OPM.Write(")")
         ELSE Ident(obj^.link); OPM.WriteString(TagExt)
         END ;
@@ -446,23 +446,23 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       IF (obj = NIL) OR Undefined(obj) THEN
         IF obj # NIL THEN (* check for cycles *)
           IF obj^.linkadr = ProcessingType THEN
-            IF str^.form # OPM.Pointer THEN OPM.Mark(244, str^.txtpos); obj^.linkadr := PredefinedType END
+            IF str^.form # OPT.Pointer THEN OPM.Mark(244, str^.txtpos); obj^.linkadr := PredefinedType END
           ELSE obj^.linkadr := ProcessingType
           END
         END ;
-        IF str^.comp = OPM.Record THEN
+        IF str^.comp = OPT.Record THEN
           (* the following exports the base type of an exported type even if the former is non-exported *)
           IF str^.BaseTyp # NIL THEN DefineType(str^.BaseTyp) END ;
           field := str^.link;
-          WHILE (field # NIL) & (field^.mode = OPM.Fld) DO
-            IF (field^.vis # OPM.internal) OR (OPM.currFile = OPM.BodyFile) THEN DefineType(field^.typ) END ;
+          WHILE (field # NIL) & (field^.mode = OPT.Fld) DO
+            IF (field^.vis # OPT.internal) OR (OPM.currFile = OPM.BodyFile) THEN DefineType(field^.typ) END ;
             field := field^.link
           END
-        ELSIF str^.form = OPM.Pointer THEN
-          IF str^.BaseTyp^.comp # OPM.Record THEN DefineType(str^.BaseTyp) END
-        ELSIF str^.comp IN {OPM.Array, OPM.DynArr} THEN
+        ELSIF str^.form = OPT.Pointer THEN
+          IF str^.BaseTyp^.comp # OPT.Record THEN DefineType(str^.BaseTyp) END
+        ELSIF str^.comp IN {OPT.Array, OPT.DynArr} THEN
           DefineType(str^.BaseTyp)
-        ELSIF str^.form = OPM.ProcTyp THEN
+        ELSIF str^.form = OPT.ProcTyp THEN
           IF str^.BaseTyp # OPT.notyp THEN DefineType(str^.BaseTyp) END ;
           field := str^.link;
           WHILE field # NIL DO DefineType(field^.typ); field := field^.link END
@@ -477,7 +477,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         obj^.typ^.strobj := obj; (* SG: revert trick *)
         obj^.linkadr := 3+OPM.currFile;
         EndStat; Indent(-1); OPM.WriteLn;
-        IF obj^.typ^.comp = OPM.Record THEN empty := TRUE;
+        IF obj^.typ^.comp = OPT.Record THEN empty := TRUE;
           DeclareTProcs(str^.link, empty); DefineTProcMacros(str^.link, empty);
           IF ~empty THEN OPM.WriteLn END
         END
@@ -499,7 +499,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF obj # NIL THEN
       CProcDefs(obj^.left, vis);
       (* bug: obj.history cannot be used to cover unexported and deleted CProcs; use special flag obj.adr = 1 *)
-      IF (obj^.mode = OPM.CProc) & (obj^.vis >= vis) & (obj^.adr = 1) THEN
+      IF (obj^.mode = OPT.CProc) & (obj^.vis >= vis) & (obj^.adr = 1) THEN
         ext := obj.conval.ext; i := 1;
         IF (ext[1] # "#") & ~(Prefixed(ext, "extern ") OR Prefixed(ext, Extern)) THEN
           OPM.WriteString("#define "); Ident(obj);
@@ -518,7 +518,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF obj # NIL THEN
       TypeDefs(obj^.left, vis);
       (* test typ.txtpos to skip types that have been unexported; obj.history # removed is not enough!*)
-      IF (obj^.mode = OPM.Typ) & (obj^.typ^.txtpos > 0) THEN DefineType(obj^.typ) END ;
+      IF (obj^.mode = OPT.Typ) & (obj^.typ^.txtpos > 0) THEN DefineType(obj^.typ) END ;
       TypeDefs(obj^.right, vis)
     END
   END TypeDefs;
@@ -526,7 +526,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE DefAnonRecs(n: OPT.Node);
     VAR o: OPT.Object; typ: OPT.Struct;
   BEGIN
-    WHILE (n # NIL) & (n^.class = OPM.Ninittd) DO
+    WHILE (n # NIL) & (n^.class = OPT.Ninittd) DO
       typ := n^.typ;
       IF (typ^.strobj = NIL) & ((OPM.currFile = OPM.BodyFile) OR (typ.ref < OPM.MaxStruct)) THEN
         DefineType(typ);  (* declare base and field types, if any *)
@@ -589,8 +589,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE BaseAlignment*(typ: OPT.Struct): LONGINT;
     VAR alignment: LONGINT;
   BEGIN
-    IF typ.form = OPM.Comp THEN
-      IF typ.comp = OPM.Record THEN
+    IF typ.form = OPT.Comp THEN
+      IF typ.comp = OPT.Record THEN
         alignment := typ.align MOD 10000H
       ELSE
         alignment := BaseAlignment(typ.BaseTyp)
@@ -626,11 +626,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF typ.BaseTyp # NIL THEN FieldList(typ.BaseTyp, FALSE, off, n, curAlign)
     ELSE off := 0; n := 0; curAlign := 1
     END ;
-    WHILE (fld # NIL) & (fld.mode = OPM.Fld) DO
-      IF (OPM.currFile = OPM.HeaderFile) & (fld.vis = OPM.internal) OR
-        (OPM.currFile = OPM.BodyFile) & (fld.vis = OPM.internal) & (typ^.mno # 0) THEN
+    WHILE (fld # NIL) & (fld.mode = OPT.Fld) DO
+      IF (OPM.currFile = OPM.HeaderFile) & (fld.vis = OPT.internal) OR
+        (OPM.currFile = OPM.BodyFile) & (fld.vis = OPT.internal) & (typ^.mno # 0) THEN
         fld := fld.link;
-        WHILE (fld # NIL) & (fld.mode = OPM.Fld) & (fld.vis = OPM.internal) DO fld := fld.link END ;
+        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.vis = OPT.internal) DO fld := fld.link END ;
       ELSE
         (* mimic OPV.TypSize to detect gaps caused by private fields *)
         adr := off; fldAlign := BaseAlignment(fld^.typ); Align(adr, fldAlign);
@@ -639,8 +639,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF gap > 0 THEN FillGap(gap, off, align, n, curAlign) END ;
         BegStat; DeclareBase(fld); OPM.Write(' '); DeclareObj(fld, FALSE);
         off := fld.adr + fld.typ.size; base := fld.typ; fld := fld.link;
-        WHILE (fld # NIL) & (fld.mode = OPM.Fld) & (fld.typ = base) & (fld.adr = off)
-(* ?? *)    & ((OPM.currFile = OPM.BodyFile) OR (fld.vis # OPM.internal) OR (fld.typ.strobj = NIL)) DO
+        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.typ = base) & (fld.adr = off)
+(* ?? *)    & ((OPM.currFile = OPM.BodyFile) OR (fld.vis # OPT.internal) OR (fld.typ.strobj = NIL)) DO
           OPM.WriteString(", "); DeclareObj(fld, FALSE); off := fld.adr + fld.typ.size; fld := fld.link
         END ;
         EndStat
@@ -658,36 +658,36 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR base: OPT.Struct; first: BOOLEAN; lastvis: INTEGER;
   BEGIN
     base := NIL; first := TRUE;
-    WHILE (obj # NIL) & (obj^.mode # OPM.TProc) DO
+    WHILE (obj # NIL) & (obj^.mode # OPT.TProc) DO
       IF (vis IN {0, 2}) OR ((vis = 1) & (obj^.vis # 0)) OR ((vis = 3) & ~obj^.leaf) THEN
         IF (obj^.typ # base) OR (obj^.vis # lastvis) THEN  (* new variable base type definition required *)
           IF ~first THEN EndStat END ;
           first := FALSE;
           base := obj^.typ; lastvis := obj^.vis;
           BegStat;
-          IF (vis = 1) & (obj^.vis # OPM.internal) THEN OPM.WriteString(Extern)
+          IF (vis = 1) & (obj^.vis # OPT.internal) THEN OPM.WriteString(Extern)
           ELSIF (obj^.mnolev = 0) & (vis = 0) THEN
-            IF obj^.vis = OPM.internal THEN OPM.WriteString('static ')
+            IF obj^.vis = OPT.internal THEN OPM.WriteString('static ')
             ELSE OPM.WriteString(Export)
             END
           END ;
-          IF (vis = 2) & (obj^.mode = OPM.Var) & (base^.form = OPM.Real) THEN OPM.WriteString("double")
+          IF (vis = 2) & (obj^.mode = OPT.Var) & (base^.form = OPT.Real) THEN OPM.WriteString("double")
           ELSE DeclareBase(obj)
           END
         ELSE OPM.Write(",");
         END ;
         OPM.Write(' ');
-        IF (vis = 2) & (obj^.mode = OPM.Var) & (base^.form = OPM.Real) THEN OPM.Write("_") END ;
+        IF (vis = 2) & (obj^.mode = OPT.Var) & (base^.form = OPT.Real) THEN OPM.Write("_") END ;
         DeclareObj(obj, vis = 3);
-        IF obj^.typ^.comp = OPM.DynArr THEN (* declare len parameter(s) *)
+        IF obj^.typ^.comp = OPT.DynArr THEN (* declare len parameter(s) *)
           EndStat; BegStat;
           base := OPT.linttyp;
           OPM.WriteString("LONGINT "); LenList(obj, FALSE, TRUE)
-        ELSIF (obj^.mode = OPM.VarPar) & (obj^.typ^.comp = OPM.Record) THEN
+        ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           EndStat; BegStat;
           OPM.WriteString("LONGINT *"); Ident(obj); OPM.WriteString(TagExt);
           base := NIL
-        ELSIF ptrinit & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPM.Pointer) THEN
+        ELSIF ptrinit & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
           OPM.WriteString(" = NIL")
         END
       END ;
@@ -700,7 +700,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR name: ARRAY 32 OF CHAR;
   BEGIN
     OPM.Write("(");
-    IF (obj = NIL) OR (obj^.mode = OPM.TProc) THEN OPM.WriteString("void")
+    IF (obj = NIL) OR (obj^.mode = OPT.TProc) THEN OPM.WriteString("void")
     ELSE
       LOOP
         DeclareBase(obj);
@@ -709,14 +709,14 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         ELSE
           COPY(obj^.name, name);  obj^.name := ""; DeclareObj(obj, FALSE); COPY(name, obj^.name)
         END ;
-        IF obj^.typ^.comp = OPM.DynArr THEN
+        IF obj^.typ^.comp = OPT.DynArr THEN
           OPM.WriteString(", LONGINT ");
           LenList(obj, TRUE, showParamNames)
-        ELSIF (obj^.mode = OPM.VarPar) & (obj^.typ^.comp = OPM.Record) THEN
+        ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           OPM.WriteString(", LONGINT *");
           IF showParamNames THEN Ident(obj); OPM.WriteString(TagExt) END
         END ;
-        IF (obj^.link = NIL) OR (obj^.link.mode = OPM.TProc) THEN EXIT END ;
+        IF (obj^.link = NIL) OR (obj^.link.mode = OPT.TProc) THEN EXIT END ;
         OPM.WriteString(", ");
         obj := obj^.link
       END
@@ -744,10 +744,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       ProcPredefs(obj^.left, vis);
-      IF (obj^.mode IN {OPM.LProc, OPM.XProc}) & (obj^.vis >= vis) & ((obj^.history # OPM.removed) OR (obj^.mode = OPM.LProc)) THEN
-        (* previous OPM.XProc may be deleted or become OPM.LProc after interface change*)
-        IF vis = OPM.external THEN OPM.WriteString(Extern)
-        ELSIF obj^.vis = OPM.internal THEN OPM.WriteString('static ')
+      IF (obj^.mode IN {OPT.LProc, OPT.XProc}) & (obj^.vis >= vis) & ((obj^.history # OPT.removed) OR (obj^.mode = OPT.LProc)) THEN
+        (* previous OPT.XProc may be deleted or become OPT.LProc after interface change*)
+        IF vis = OPT.external THEN OPM.WriteString(Extern)
+        ELSIF obj^.vis = OPT.internal THEN OPM.WriteString('static ')
         ELSE OPM.WriteString(Export)
         END ;
         ProcHeader(obj, FALSE);
@@ -766,7 +766,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       IncludeImports(obj^.left, vis);
-      IF (obj^.mode = OPM.Mod) & (obj^.mnolev # 0) & (OPT.GlbMod[-obj^.mnolev].vis >= vis) THEN  (* @self and SYSTEM have mnolev = 0 *)
+      IF (obj^.mode = OPT.Mod) & (obj^.mnolev # 0) & (OPT.GlbMod[-obj^.mnolev].vis >= vis) THEN  (* @self and SYSTEM have mnolev = 0 *)
         Include(OPT.GlbMod[-obj^.mnolev].name)  (* use unaliased module name *)
       END;
       IncludeImports(obj^.right, vis);
@@ -776,11 +776,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE GenDynTypes (n: OPT.Node; vis: INTEGER);
     VAR typ: OPT.Struct;
   BEGIN
-    WHILE (n # NIL) & (n^.class = OPM.Ninittd) DO
+    WHILE (n # NIL) & (n^.class = OPT.Ninittd) DO
       typ := n^.typ;
-      IF (vis = OPM.internal) OR (typ^.ref < OPM.MaxStruct (*type needed in symbol file*)) THEN
+      IF (vis = OPT.internal) OR (typ^.ref < OPM.MaxStruct (*type needed in symbol file*)) THEN
         BegStat;
-        IF vis = OPM.external THEN OPM.WriteString(Extern)
+        IF vis = OPT.external THEN OPM.WriteString(Extern)
         ELSIF (typ^.strobj # NIL) & (typ^.strobj^.mnolev > 0) THEN OPM.WriteString('static ')
         ELSE OPM.WriteString(Export)
         END ;
@@ -798,7 +798,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     DefAnonRecs(n);
     TypeDefs(OPT.topScope^.right, 1); OPM.WriteLn;
     IdentList(OPT.topScope^.scope, 1); OPM.WriteLn;
-    GenDynTypes(n, OPM.external); OPM.WriteLn;
+    GenDynTypes(n, OPT.external); OPM.WriteLn;
     ProcPredefs(OPT.topScope^.right, 1);
     OPM.WriteString(Extern); OPM.WriteString("void *");
     OPM.WriteStringVar(OPM.modName); OPM.WriteString(BodyNameExt);
@@ -860,7 +860,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     DefAnonRecs(n);
     TypeDefs(OPT.topScope^.right, 0); OPM.WriteLn;
     IdentList(OPT.topScope^.scope, 0); OPM.WriteLn;
-    GenDynTypes(n, OPM.internal); OPM.WriteLn;
+    GenDynTypes(n, OPT.internal); OPM.WriteLn;
     ProcPredefs(OPT.topScope^.right, 0); OPM.WriteLn;
     CProcDefs(OPT.topScope^.right, 0); OPM.WriteLn
   END GenBdy;
@@ -869,7 +869,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       RegCmds(obj^.left);
-      IF (obj^.mode = OPM.XProc) & (obj^.history # OPM.removed) THEN
+      IF (obj^.mode = OPT.XProc) & (obj^.history # OPT.removed) THEN
         IF (obj^.vis # 0) & (obj^.link = NIL) & (obj^.typ = OPT.notyp) THEN (*command*)
           BegStat; OPM.WriteString('__REGCMD("');
           OPM.WriteStringVar(obj.name); OPM.WriteString('", '); Ident(obj); OPM.Write(")"); EndStat
@@ -883,7 +883,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       InitImports(obj^.left);
-      IF (obj^.mode = OPM.Mod) & (obj^.mnolev # 0) THEN
+      IF (obj^.mode = OPT.Mod) & (obj^.mnolev # 0) THEN
         BegStat; OPM.WriteString("__MODULE_IMPORT(");
         OPM.WriteStringVar(OPT.GlbMod[-obj^.mnolev].name);
         OPM.Write(')'); EndStat
@@ -910,17 +910,17 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           BegBlk
         END ;
         BegStat;
-        IF typ^.form = OPM.Pointer THEN
+        IF typ^.form = OPT.Pointer THEN
           OPM.WriteString("P("); Ident(var); OPM.Write(")");
-        ELSIF typ^.comp = OPM.Record THEN
+        ELSIF typ^.comp = OPT.Record THEN
           OPM.WriteString("__ENUMR(&"); Ident(var); OPM.WriteString(", ");
           Andent(typ); OPM.WriteString(DynTypExt); Str1(", #", typ^.size); OPM.WriteString(", 1, P)")
-        ELSIF typ^.comp = OPM.Array THEN
+        ELSIF typ^.comp = OPT.Array THEN
           n := typ^.n; typ := typ^.BaseTyp;
-          WHILE typ^.comp = OPM.Array DO n := n * typ^.n; typ := typ^.BaseTyp END ;
-          IF typ^.form = OPM.Pointer THEN
+          WHILE typ^.comp = OPT.Array DO n := n * typ^.n; typ := typ^.BaseTyp END ;
+          IF typ^.form = OPT.Pointer THEN
             OPM.WriteString("__ENUMP("); Ident(var); Str1(", #, P)", n)
-          ELSIF typ^.comp = OPM.Record THEN
+          ELSIF typ^.comp = OPT.Record THEN
             OPM.WriteString("__ENUMR("); Ident(var); OPM.WriteString(", ");
             Andent(typ); OPM.WriteString(DynTypExt); Str1(", #", typ^.size); Str1(", #, P)", n)
           END
@@ -991,7 +991,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE EnterProc* (proc: OPT.Object);
     VAR var, scope: OPT.Object; typ: OPT.Struct; dim: INTEGER;
   BEGIN
-    IF proc^.vis # OPM.external THEN OPM.WriteString('static ') END ;
+    IF proc^.vis # OPT.external THEN OPM.WriteString('static ') END ;
     ProcHeader(proc, TRUE);
     BegBlk;
 
@@ -1011,7 +1011,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END ;
     var := proc^.link;
     WHILE var # NIL DO (* declare copy of fixed size value array parameters *)
-      IF (var^.typ^.comp = OPM.Array) & (var^.mode = OPM.Var) THEN
+      IF (var^.typ^.comp = OPT.Array) & (var^.mode = OPT.Var) THEN
         BegStat;
         IF var^.typ^.strobj = NIL THEN OPM.Mark(200, var^.typ^.txtpos) ELSE Ident(var^.typ^.strobj) END ;
         OPM.Write(' '); Ident(var); OPM.WriteString("__copy");
@@ -1022,7 +1022,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF ~ansi THEN
       var := proc^.link;
       WHILE var # NIL DO (* "unpromote" value real parameters *)
-        IF (var^.typ^.form = OPM.Real) & (var^.mode = OPM.Var) THEN
+        IF (var^.typ^.form = OPT.Real) & (var^.mode = OPT.Var) THEN
           BegStat;
           Ident(var^.typ^.strobj); OPM.Write(' '); Ident(var); OPM.WriteString(" = _"); Ident(var);
           EndStat
@@ -1032,9 +1032,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END ;
     var := proc^.link;
     WHILE var # NIL DO (* copy value array parameters *)
-      IF (var^.typ^.comp IN {OPM.Array, OPM.DynArr}) & (var^.mode = OPM.Var) & (var^.typ^.sysflag = 0) THEN
+      IF (var^.typ^.comp IN {OPT.Array, OPT.DynArr}) & (var^.mode = OPT.Var) & (var^.typ^.sysflag = 0) THEN
         BegStat;
-        IF var^.typ^.comp = OPM.Array THEN
+        IF var^.typ^.comp = OPT.Array THEN
           OPM.WriteString("__DUPARR(");
           Ident(var); OPM.WriteString(', ');
           IF var^.typ^.strobj = NIL THEN OPM.Mark(200, var^.typ^.txtpos) ELSE Ident(var^.typ^.strobj) END
@@ -1042,7 +1042,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString('__DUP(');
           Ident(var); OPM.WriteString(', '); Ident(var); OPM.WriteString(LenExt);
           typ := var^.typ^.BaseTyp; dim := 1;
-          WHILE typ^.comp = OPM.DynArr DO
+          WHILE typ^.comp = OPT.DynArr DO
             OPM.WriteString(" * "); Ident(var); OPM.WriteString(LenExt); OPM.WriteInt(dim);
             typ := typ^.BaseTyp; INC(dim)
           END ;
@@ -1062,12 +1062,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           BegStat;
           OPM.WriteString(LocalScope); OPM.Write('.'); Ident(var);
           OPM.WriteString(' = ');
-          IF var^.typ^.comp IN {OPM.Array, OPM.DynArr} THEN OPM.WriteString("(void*)")
+          IF var^.typ^.comp IN {OPT.Array, OPT.DynArr} THEN OPM.WriteString("(void*)")
             (* K&R and ANSI differ in the type: array or element type*)
-          ELSIF var^.mode # OPM.VarPar THEN OPM.Write("&")
+          ELSIF var^.mode # OPT.VarPar THEN OPM.Write("&")
           END ;
           Ident(var);
-          IF var^.typ^.comp = OPM.DynArr THEN
+          IF var^.typ^.comp = OPT.DynArr THEN
             typ := var^.typ; dim := 0;
             REPEAT (* copy len(s) *)
               OPM.WriteString("; ");
@@ -1076,8 +1076,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
               OPM.WriteString(' = '); Ident(var); OPM.WriteString(LenExt);
               IF dim # 0 THEN OPM.WriteInt(dim) END ;
               typ := typ^.BaseTyp
-            UNTIL typ^.comp # OPM.DynArr;
-          ELSIF (var^.mode = OPM.VarPar) & (var^.typ^.comp = OPM.Record) THEN
+            UNTIL typ^.comp # OPT.DynArr;
+          ELSIF (var^.mode = OPT.VarPar) & (var^.typ^.comp = OPT.Record) THEN
             OPM.WriteString("; ");
             OPM.WriteString(LocalScope); OPM.Write('.'); Ident(var); OPM.WriteString(TagExt);
             OPM.WriteString(' = '); Ident(var); OPM.WriteString(TagExt)
@@ -1091,7 +1091,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF ~var^.leaf THEN (* only if used by a nested procedure *)
           BegStat;
           OPM.WriteString(LocalScope); OPM.Write('.'); Ident(var); OPM.WriteString(' = ');
-          IF var^.typ^.comp # OPM.Array THEN OPM.Write("&")
+          IF var^.typ^.comp # OPT.Array THEN OPM.Write("&")
           ELSE OPM.WriteString("(void*)")  (* K&R and ANSI differ in the type: array or element type*)
           END ;
           Ident(var); EndStat
@@ -1123,7 +1123,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       (* delete array value parameters *)
       var := proc^.link;
       WHILE var # NIL DO
-        IF (var^.typ^.comp = OPM.DynArr) & (var^.mode = OPM.Var) & (var^.typ^.sysflag = 0) THEN
+        IF (var^.typ^.comp = OPT.DynArr) & (var^.mode = OPT.Var) & (var^.typ^.sysflag = 0) THEN
           IF indent THEN BegStat ELSE indent := TRUE END ;
           OPM.WriteString('__DEL('); Ident(var); OPM.Write(')'); EndStat
         END ;
@@ -1138,16 +1138,16 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE CompleteIdent*(obj: OPT.Object);
     VAR comp, level: INTEGER;
   BEGIN
-    (* obj^.mode IN {OPM.Var, OPM.VarPar} *)
+    (* obj^.mode IN {OPT.Var, OPT.VarPar} *)
     level := obj^.mnolev;
     IF obj^.adr = 1 THEN  (* WITH-variable *)
-      IF obj^.typ^.comp = OPM.Record THEN Ident(obj); OPM.WriteString("__")
+      IF obj^.typ^.comp = OPT.Record THEN Ident(obj); OPM.WriteString("__")
       ELSE (* cast with guard pointer type *)
         OPM.WriteString("(("); Ident(obj^.typ^.strobj); OPM.Write(")"); Ident(obj); OPM.Write(")")
       END
     ELSIF (level # OPM.level) & (level > 0) THEN (* intermediate var *)
       comp := obj^.typ^.comp;
-      IF (obj^.mode # OPM.VarPar) & (comp # OPM.DynArr) THEN OPM.Write('*'); END;
+      IF (obj^.mode # OPT.VarPar) & (comp # OPT.DynArr) THEN OPM.Write('*'); END;
       OPM.WriteStringVar(obj^.scope^.name); OPM.WriteString(GlobalScope);
       OPM.WriteString("->"); Ident(obj)
     ELSE
@@ -1158,8 +1158,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE TypeOf*(ap: OPT.Object);
     VAR i: INTEGER;
   BEGIN
-    ASSERT(ap.typ.comp = OPM.Record);
-    IF ap.mode = OPM.VarPar THEN
+    ASSERT(ap.typ.comp = OPT.Record);
+    IF ap.mode = OPT.VarPar THEN
       IF ap.mnolev # OPM.level THEN  (*intermediate level var-par record; possible WITH-guarded*)
         OPM.WriteStringVar(ap^.scope^.name); OPM.WriteString("_s->"); Ident(ap)
       ELSE (*local var-par record*)
@@ -1231,10 +1231,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     OPM.WriteString('case ');
     CASE form OF
-    | OPM.Char: CharacterLiteral(caseVal)
-    | OPM.SInt,
-      OPM.Int,
-      OPM.LInt: OPM.WriteInt(caseVal);
+    | OPT.Char: CharacterLiteral(caseVal)
+    | OPT.SInt,
+      OPT.Int,
+      OPT.LInt: OPM.WriteInt(caseVal);
     ELSE OPM.LogWStr("unhandled case in OPC.Case, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
     END;
     OPM.WriteString(': ');
@@ -1257,7 +1257,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: LONGINT);
   BEGIN
-    IF array^.comp = OPM.DynArr THEN
+    IF array^.comp = OPT.DynArr THEN
       CompleteIdent(obj); OPM.WriteString(LenExt);
       IF dim # 0 THEN OPM.WriteInt(dim) END
     ELSE (* array *)
@@ -1271,15 +1271,15 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       hex: LONGINT; skipLeading: BOOLEAN;
   BEGIN
     CASE form OF
-    | OPM.Byte:   OPM.WriteInt(con^.intval)
-    | OPM.Bool:   OPM.WriteInt(con^.intval)
-    | OPM.Char:   CharacterLiteral(con.intval)
-    | OPM.SInt,
-      OPM.Int,
-      OPM.LInt:   OPM.WriteInt(con^.intval)
-    | OPM.Real:   OPM.WriteReal(con^.realval, "f")
-    | OPM.LReal:  OPM.WriteReal(con^.realval, 0X)
-    | OPM.Set:    OPM.WriteString("0x");
+    | OPT.Byte:   OPM.WriteInt(con^.intval)
+    | OPT.Bool:   OPM.WriteInt(con^.intval)
+    | OPT.Char:   CharacterLiteral(con.intval)
+    | OPT.SInt,
+      OPT.Int,
+      OPT.LInt:   OPM.WriteInt(con^.intval)
+    | OPT.Real:   OPM.WriteReal(con^.realval, "f")
+    | OPT.LReal:  OPM.WriteReal(con^.realval, 0X)
+    | OPT.Set:    OPM.WriteString("0x");
                   skipLeading := TRUE;
                   s := con^.setval; i := MAX(SET) + 1;
                   REPEAT
@@ -1294,8 +1294,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
                     END
                   UNTIL i = 0;
                   IF skipLeading THEN OPM.Write("0") END
-    | OPM.String: StringLiteral(con.ext^, con.intval2-1)
-    | OPM.NilTyp: OPM.WriteString('NIL');
+    | OPT.String: StringLiteral(con.ext^, con.intval2-1)
+    | OPT.NilTyp: OPM.WriteString('NIL');
     ELSE OPM.LogWStr("unhandled case in OPC.Constant, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
     END;
   END Constant;
