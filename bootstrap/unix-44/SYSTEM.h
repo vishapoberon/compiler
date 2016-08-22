@@ -32,6 +32,8 @@ typedef unsigned char        SYSTEM_CARD8;
   typedef unsigned int         size_t;
 #endif
 
+#define _SIZE_T_DEFINED_  // For OpenBSD
+
 void *memcpy(void *dest, const void *source, size_t size);
 
 

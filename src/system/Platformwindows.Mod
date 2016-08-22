@@ -232,7 +232,7 @@ BEGIN
   YMDHMStoClock(styear(), stmon(), stmday(), sthour(), stmin(), stsec(), t, d);
 END GetClock;
 
-PROCEDURE -GetTickCount(): LONGINT "(LONGINT)(uint32_t)GetTickCount()";
+PROCEDURE -GetTickCount(): LONGINT "(LONGINT)(SYSTEM_CARD32)GetTickCount()";
 
 PROCEDURE Time*(): LONGINT;
 VAR ms: LONGINT;
