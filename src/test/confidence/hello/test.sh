@@ -1,5 +1,5 @@
 #!/bin/sh
 . ../testenv.sh
-voc hello.mod -m
+$OBECOMP hello.mod -m
 ./hello >result
 . ../testresult.sh

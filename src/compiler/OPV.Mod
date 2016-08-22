@@ -292,9 +292,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE SizeCast(size: LONGINT);
   BEGIN
-    IF    size <= OPM.SIntSize THEN OPM.WriteString("(int)")     (* TODO: int for temporary source comparison only. *)
-    ELSIF size <= OPM.IntSize  THEN OPM.WriteString("(int)")     (* TODO: int for temporary source comparison only. *)
-    ELSE                            OPM.WriteString("(LONGINT)")
+    IF size <= 4 THEN OPM.WriteString("(int)")
+    ELSE              OPM.WriteString("(SYSTEM_INT64)")
     END
   END SizeCast;
 

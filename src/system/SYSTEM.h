@@ -9,6 +9,8 @@
   #include <string.h>  // For memcpy ...
   #include <stdint.h>  // For uintptr_t ...
 
+  typedef long SYSTEM_INT64;
+
 #else
 
   // Building for Windows platform with either mingw under cygwin, or the MS C compiler
@@ -20,8 +22,9 @@
     typedef unsigned int uintptr_t;
   #endif /* _WIN64 */
 
+  typedef long long SYSTEM_INT64
   typedef unsigned int uint32_t;
-  void * __cdecl memcpy(void * dest, const void * source, size_t size);
+  void * __cdecl memcpy(void *dest, const void *source, size_t size);
 
 #endif
 
