@@ -16,6 +16,9 @@
 
 #include "SYSTEM.h"
 
+#define _SIZE_T_DEFINED_
+
+
 #ifdef _WIN32
   #define strncasecmp _strnicmp
 #else
