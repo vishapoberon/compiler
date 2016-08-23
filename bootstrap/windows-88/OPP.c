@@ -1784,6 +1784,24 @@ void OPP_Module (OPT_Node *prog, SET opt)
 	if (OPP_sym == 63) {
 		OPS_Get(&OPP_sym);
 	} else {
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"Unexpected symbol found when MODULE expected:", (LONGINT)46);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  sym:        ", (LONGINT)15);
+		OPM_LogWNum(OPP_sym, ((LONGINT)(1)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.name:   ", (LONGINT)15);
+		OPM_LogWStr(OPS_name, ((LONGINT)(256)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.str:    ", (LONGINT)15);
+		OPM_LogWStr(OPS_str, ((LONGINT)(256)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.numtyp: ", (LONGINT)15);
+		OPM_LogWNum(OPS_numtyp, ((LONGINT)(1)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.intval: ", (LONGINT)15);
+		OPM_LogWNum(OPS_intval, ((LONGINT)(1)));
+		OPM_LogWLn();
 		OPP_err(16);
 	}
 	if (OPP_sym == 38) {

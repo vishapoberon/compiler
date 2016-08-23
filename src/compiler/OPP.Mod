@@ -990,7 +990,17 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         c: LONGINT; done: BOOLEAN;
   BEGIN
     OPS.Init; LoopLevel := 0; level := 0; OPS.Get(sym);
-    IF sym = OPS.module THEN OPS.Get(sym) ELSE err(16) END ;
+    IF sym = OPS.module THEN OPS.Get(sym) ELSE
+      (* Debug intermittent failure only found on OpenBSD *)
+      OPM.LogWLn;
+      OPM.LogWStr("Unexpected symbol found when MODULE expected:"); OPM.LogWLn;
+      OPM.LogWStr("  sym:        "); OPM.LogWNum(sym,1);            OPM.LogWLn;
+      OPM.LogWStr("  OPS.name:   "); OPM.LogWStr(OPS.name);         OPM.LogWLn;
+      OPM.LogWStr("  OPS.str:    "); OPM.LogWStr(OPS.str);          OPM.LogWLn;
+      OPM.LogWStr("  OPS.numtyp: "); OPM.LogWNum(OPS.numtyp,1);     OPM.LogWLn;
+      OPM.LogWStr("  OPS.intval: "); OPM.LogWNum(OPS.intval,1);     OPM.LogWLn;
+      err(16)
+    END;
     IF sym = OPS.ident THEN
       OPM.LogWStr("compiling "); OPM.LogWStr(OPS.name); OPM.LogW(".");
       OPT.Init(OPS.name, opt); OPS.Get(sym); CheckSym(OPS.semicolon);
