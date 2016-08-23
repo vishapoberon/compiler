@@ -28,7 +28,7 @@ typedef unsigned char        SYSTEM_CARD8;
 
 
 // For FreeBSD and OpenBSD:
-typedef SYSTEM_ADDRESS size_t
+typedef SYSTEM_ADDRESS size_t;
 #define _SIZE_T_DECLARED
 
 void *memcpy(void *dest, const void *source, SYSTEM_ADDRESS size);
