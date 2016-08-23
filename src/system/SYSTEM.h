@@ -16,7 +16,7 @@ typedef unsigned short int   SYSTEM_CARD16;
 typedef signed char          SYSTEM_INT8;
 typedef unsigned char        SYSTEM_CARD8;
 
-#if (__SIZEOF_POINTER__ == 8)
+#if (__SIZEOF_POINTER__ == 8) || defined(_WIN64)
   #if defined(_WIN64)
     typedef unsigned long long size_t;
   #else

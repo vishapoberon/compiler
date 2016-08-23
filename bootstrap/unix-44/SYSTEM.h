@@ -16,16 +16,18 @@ typedef unsigned short int   SYSTEM_CARD16;
 typedef signed char          SYSTEM_INT8;
 typedef unsigned char        SYSTEM_CARD8;
 
-#if (__SIZEOF_POINTER__ == 8)
+#if (__SIZEOF_POINTER__ == 8) || defined(_WIN64)
   #if defined(_WIN64)
-    typedef unsigned long long SYSTEM_ADDRESS;
+    typedef unsigned long long size_t;
   #else
-    typedef unsigned long      SYSTEM_ADDRESS;
+    typedef unsigned long      size_t;
   #endif
 #else
-  typedef unsigned int         SYSTEM_ADDRESS;
+  typedef unsigned int         size_t;
 #endif
 
+#define SYSTEM_ADDRESS size_t
+#define _SIZE_T_DECLARED // For FreeBSD and OpenBSD:
 
 void *memcpy(void *dest, const void *source, SYSTEM_ADDRESS size);
 
