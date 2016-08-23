@@ -407,7 +407,7 @@ void writeConfigurationMod() {
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
   fprintf(fd, "VAR\n");
-  fprintf(fd, "  versionLong-: ARRAY %zd OF CHAR;\n", strnlen(versionstring, 100)+1);
+  fprintf(fd, "  versionLong-: ARRAY %d OF CHAR;\n", (int)strnlen(versionstring, 100)+1);
   fprintf(fd, "BEGIN\n");
   fprintf(fd, "  versionLong := '%s';\n", versionstring);
   fprintf(fd, "END Configuration.\n");
