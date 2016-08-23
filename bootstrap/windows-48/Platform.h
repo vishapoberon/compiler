@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -78,7 +78,7 @@ import INTEGER Platform_Write (LONGINT h, LONGINT p, LONGINT l);
 import BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 import void *Platform__init(void);
 
-#define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((uintptr_t)h)
-#define Platform_SetQuitHandler(h)	SystemSetQuitHandler((uintptr_t)h)
+#define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((SYSTEM_ADDRESS)h)
+#define Platform_SetQuitHandler(h)	SystemSetQuitHandler((SYSTEM_ADDRESS)h)
 
 #endif

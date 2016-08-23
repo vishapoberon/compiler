@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPC.h"
 #include "OPM.h"
@@ -931,7 +931,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 					OPM_Write(')');
 					break;
 				case 24: 
-					OPM_WriteString((CHAR*)"(LONGINT)(uintptr_t)", (LONGINT)21);
+					OPM_WriteString((CHAR*)"(LONGINT)(SYSTEM_ADDRESS)", (LONGINT)26);
 					if (l->class == 1) {
 						OPC_CompleteIdent(l->obj);
 					} else {
@@ -947,7 +947,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');
 						if (__IN(n->typ->form, 0x6000) || __IN(l->typ->form, 0x6000)) {
-							OPM_WriteString((CHAR*)"(uintptr_t)", (LONGINT)12);
+							OPM_WriteString((CHAR*)"(SYSTEM_ADDRESS)", (LONGINT)17);
 						}
 						OPV_expr(l, exprPrec);
 					} else {

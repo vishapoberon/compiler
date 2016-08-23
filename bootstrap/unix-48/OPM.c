@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/22] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Console.h"
@@ -544,15 +544,15 @@ void OPM_FPrintReal (LONGINT *fp, REAL real)
 {
 	INTEGER i;
 	LONGINT l;
-	__GET((LONGINT)(uintptr_t)&real, l, LONGINT);
+	__GET((LONGINT)(SYSTEM_ADDRESS)&real, l, LONGINT);
 	OPM_FPrint(&*fp, l);
 }
 
 void OPM_FPrintLReal (LONGINT *fp, LONGREAL lr)
 {
 	LONGINT l, h;
-	__GET((LONGINT)(uintptr_t)&lr, l, LONGINT);
-	__GET((LONGINT)(uintptr_t)&lr + 4, h, LONGINT);
+	__GET((LONGINT)(SYSTEM_ADDRESS)&lr, l, LONGINT);
+	__GET((LONGINT)(SYSTEM_ADDRESS)&lr + 4, h, LONGINT);
 	OPM_FPrint(&*fp, l);
 	OPM_FPrint(&*fp, h);
 }

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/22] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin tskSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -102,7 +102,7 @@ export void Heap_Unlock (void);
 extern void *Heap__init();
 extern LONGINT Platform_MainStackFrame;
 extern LONGINT Platform_OSAllocate(LONGINT size);
-#define Heap_FetchAddress(pointer)	(LONGINT)(uintptr_t)(*((void**)((uintptr_t)pointer)))
+#define Heap_FetchAddress(pointer)	(LONGINT)(SYSTEM_ADDRESS)(*((void**)((SYSTEM_ADDRESS)pointer)))
 #define Heap_HeapModuleInit()	Heap__init()
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)
 #define Heap_PlatformHalt(code)	Platform_Halt(code)
@@ -135,7 +135,7 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 	__COPY(name, m->name, ((LONGINT)(20)));
 	m->refcnt = 0;
 	m->enumPtrs = enumPtrs;
-	m->next = (Heap_Module)(uintptr_t)Heap_modules;
+	m->next = (Heap_Module)(SYSTEM_ADDRESS)Heap_modules;
 	Heap_modules = (SYSTEM_PTR)m;
 	_o_result = (void*)m;
 	return _o_result;
@@ -316,7 +316,7 @@ SYSTEM_PTR Heap_NEWREC (LONGINT tag)
 	__PUT(adr + 16, 0, LONGINT);
 	Heap_allocated += blksz;
 	Heap_Unlock();
-	_o_result = (SYSTEM_PTR)(uintptr_t)(adr + 8);
+	_o_result = (SYSTEM_PTR)(SYSTEM_ADDRESS)(adr + 8);
 	return _o_result;
 }
 
@@ -327,12 +327,12 @@ SYSTEM_PTR Heap_NEWBLK (LONGINT size)
 	SYSTEM_PTR new;
 	Heap_Lock();
 	blksz = __ASHL(__ASHR(size + 63, 5), 5);
-	new = Heap_NEWREC((LONGINT)(uintptr_t)&blksz);
-	tag = ((LONGINT)(uintptr_t)new + blksz) - 24;
+	new = Heap_NEWREC((LONGINT)(SYSTEM_ADDRESS)&blksz);
+	tag = ((LONGINT)(SYSTEM_ADDRESS)new + blksz) - 24;
 	__PUT(tag - 8, 0, LONGINT);
 	__PUT(tag, blksz, LONGINT);
 	__PUT(tag + 8, -8, LONGINT);
-	__PUT((LONGINT)(uintptr_t)new - 8, tag, LONGINT);
+	__PUT((LONGINT)(SYSTEM_ADDRESS)new - 8, tag, LONGINT);
 	Heap_Unlock();
 	_o_result = new;
 	return _o_result;
@@ -361,7 +361,7 @@ static void Heap_Mark (LONGINT q)
 					__GET(tag, offset, LONGINT);
 					fld = q + offset;
 					p = Heap_FetchAddress(fld);
-					__PUT(fld, (SYSTEM_PTR)(uintptr_t)n, SYSTEM_PTR);
+					__PUT(fld, (SYSTEM_PTR)(SYSTEM_ADDRESS)n, SYSTEM_PTR);
 				} else {
 					fld = q + offset;
 					n = Heap_FetchAddress(fld);
@@ -370,7 +370,7 @@ static void Heap_Mark (LONGINT q)
 						if (!__ODD(tagbits)) {
 							__PUT(n - 8, tagbits + 1, LONGINT);
 							__PUT(q - 8, tag + 1, LONGINT);
-							__PUT(fld, (SYSTEM_PTR)(uintptr_t)p, SYSTEM_PTR);
+							__PUT(fld, (SYSTEM_PTR)(SYSTEM_ADDRESS)p, SYSTEM_PTR);
 							p = q;
 							q = n;
 							tag = tagbits;
@@ -385,7 +385,7 @@ static void Heap_Mark (LONGINT q)
 
 static void Heap_MarkP (SYSTEM_PTR p)
 {
-	Heap_Mark((LONGINT)(uintptr_t)p);
+	Heap_Mark((LONGINT)(SYSTEM_ADDRESS)p);
 }
 
 static void Heap_Scan (void)
@@ -554,7 +554,7 @@ static void Heap_Finalize (void)
 			} else {
 				prev->next = n->next;
 			}
-			(*n->finalize)((SYSTEM_PTR)(uintptr_t)n->obj);
+			(*n->finalize)((SYSTEM_PTR)(SYSTEM_ADDRESS)n->obj);
 			if (prev == NIL) {
 				n = Heap_fin;
 			} else {
@@ -573,7 +573,7 @@ void Heap_FINALL (void)
 	while (Heap_fin != NIL) {
 		n = Heap_fin;
 		Heap_fin = Heap_fin->next;
-		(*n->finalize)((SYSTEM_PTR)(uintptr_t)n->obj);
+		(*n->finalize)((SYSTEM_PTR)(SYSTEM_ADDRESS)n->obj);
 	}
 }
 
@@ -590,9 +590,9 @@ static void Heap_MarkStack (LONGINT n, LONGINT *cand, LONGINT cand__len)
 	}
 	if (n == 0) {
 		nofcand = 0;
-		sp = (LONGINT)(uintptr_t)&frame;
+		sp = (LONGINT)(SYSTEM_ADDRESS)&frame;
 		stack0 = Heap_PlatformMainStackFrame();
-		inc = (LONGINT)(uintptr_t)&align.p - (LONGINT)(uintptr_t)&align;
+		inc = (LONGINT)(SYSTEM_ADDRESS)&align.p - (LONGINT)(SYSTEM_ADDRESS)&align;
 		if (sp > stack0) {
 			inc = -inc;
 		}
@@ -623,7 +623,7 @@ void Heap_GC (BOOLEAN markStack)
 	LONGINT cand[10000];
 	if (Heap_lockdepth == 0 || (Heap_lockdepth == 1 && !markStack)) {
 		Heap_Lock();
-		m = (Heap_Module)(uintptr_t)Heap_modules;
+		m = (Heap_Module)(SYSTEM_ADDRESS)Heap_modules;
 		while (m != NIL) {
 			if (m->enumPtrs != NIL) {
 				(*m->enumPtrs)(Heap_MarkP);
@@ -700,7 +700,7 @@ void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
 {
 	Heap_FinNode f;
 	__NEW(f, Heap_FinDesc);
-	f->obj = (LONGINT)(uintptr_t)obj;
+	f->obj = (LONGINT)(SYSTEM_ADDRESS)obj;
 	f->finalize = finalize;
 	f->marked = 1;
 	f->next = Heap_fin;
