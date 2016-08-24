@@ -378,7 +378,7 @@ sourcechanges:
 
 
 
-RUNTEST = COMPILER=$(COMPILER) OBECOMP=$(VISHAP) FLAVOUR=$(FLAVOUR) sh ./test.sh "$(INSTALLDIR)"
+RUNTEST = COMPILER=$(COMPILER) OBECOMP=$(VISHAP) FLAVOUR=$(FLAVOUR) BRANCH=$(BRANCH) sh ./test.sh "$(INSTALLDIR)"
 
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"

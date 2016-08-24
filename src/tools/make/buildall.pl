@@ -14,7 +14,7 @@ my %machines = (
   "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
                                                                        . "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd vishaps/voc && git checkout $branch && git pull;"
+                                                                       . "sh start64.sh \\\"cd vishaps/voc && git pull && git checkout $branch && git pull;"
                                                                                          . "export CC=gcc && make full;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
