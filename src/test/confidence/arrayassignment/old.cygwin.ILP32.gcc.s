@@ -55,7 +55,7 @@ C7442404 		movl	$0, 4(%esp)
 00000000 
 C7042400 		movl	$LC0, (%esp)
 E8000000 		call	_Heap_REGMOD
-A3800000 		movl	%eax, _m.2056
+A3800000 		movl	%eax, _m.1612
 C7050000 		movl	$544502577, _aa_a30
 00003173 
 C7050400 		movl	$1663053873, _aa_a30+4

@@ -16,6 +16,8 @@
 /src/test/**/*.sym
 /src/test/**/*.stackdump
 /src/test/confidence/**/result
+/src/test/confidence/**/*.asm
+/src/test/confidence/**/*.s
 /.DS_store
 **/.DS_store
 **/*.dSYM

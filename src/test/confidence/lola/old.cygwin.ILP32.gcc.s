@@ -71,7 +71,7 @@ C7442404 		movl	$0, 4(%esp)
 00000000 
 C7042400 		movl	$LC0, (%esp)
 E8000000 		call	_Heap_REGMOD
-A3000000 		movl	%eax, _m.2287
+A3000000 		movl	%eax, _m.1843
 0FB70500 		movzwl	_Platform_ArgCount, %eax
 6683F802 		cmpw	$2, %ax
 7F5C     		jg	L6

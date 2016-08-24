@@ -368,7 +368,7 @@ C7442404 		movl	$_EnumPtrs, 4(%esp)
 02040000 
 C7042411 		movl	$LC2, (%esp)
 E8000000 		call	_Heap_REGMOD
-A3180000 		movl	%eax, _m.2428
+A3180000 		movl	%eax, _m.1984
 C7442404 		movl	$7, 4(%esp)
 07000000 
 C704241C 		movl	$LC3, (%esp)

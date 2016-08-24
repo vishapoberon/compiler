@@ -1,5 +1,5 @@
 #!/bin/sh
 . ../testenv.sh
-voc aa.mod -m
+$OBECOMP aa.mod -m
 ./aa >result
 . ../testresult.sh

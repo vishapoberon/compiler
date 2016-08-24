@@ -484,3 +484,58 @@ D3E2     		sall	%cl, %edx
 89D0     		movl	%edx, %eax
 09D8     		orl	%ebx, %eax
 8845E5   		movb	%al, -27(%ebp)
+0FB645E5 		movzbl	-27(%ebp), %eax
+3A45F7   		cmpb	-9(%ebp), %al
+740C     		je	L52
+C7042436 		movl	$54, (%esp)
+E8000000 		call	_Platform_AssertFail
+D07DF7   		sarb	-9(%ebp)
+0FB745F4 		movzwl	-12(%ebp), %eax
+83E801   		subl	$1, %eax
+668945F4 		movw	%ax, -12(%ebp)
+66837DF4 		cmpw	$-7, -12(%ebp)
+0F8D19FF 		jge	L53
+66C745F4 		movw	$0, -12(%ebp)
+C745EC01 		movl	$1, -20(%ebp)
+8B45EC   		movl	-20(%ebp), %eax
+C1E01F   		sall	$31, %eax
+8945EC   		movl	%eax, -20(%ebp)
+8B45EC   		movl	-20(%ebp), %eax
+8945E0   		movl	%eax, -32(%ebp)
+EB50     		jmp	L54
+8B45E0   		movl	-32(%ebp), %eax
+8945E8   		movl	%eax, -24(%ebp)
+66837DF4 		cmpw	$0, -12(%ebp)
+780F     		js	L55
+0FBF45F4 		movswl	-12(%ebp), %eax
+8B55E8   		movl	-24(%ebp), %edx
+89C1     		movl	%eax, %ecx
+D3E2     		sall	%cl, %edx
+89D0     		movl	%edx, %eax
+EB0F     		jmp	L56
+0FBF45F4 		movswl	-12(%ebp), %eax
+F7D8     		negl	%eax
+8B55E8   		movl	-24(%ebp), %edx
+89C1     		movl	%eax, %ecx
+D3FA     		sarl	%cl, %edx
+89D0     		movl	%edx, %eax
+8945E8   		movl	%eax, -24(%ebp)
+8B45E8   		movl	-24(%ebp), %eax
+3B45EC   		cmpl	-20(%ebp), %eax
+740C     		je	L57
+C704243E 		movl	$62, (%esp)
+E8000000 		call	_Platform_AssertFail
+D17DEC   		sarl	-20(%ebp)
+0FB745F4 		movzwl	-12(%ebp), %eax
+83E801   		subl	$1, %eax
+668945F4 		movw	%ax, -12(%ebp)
+66837DF4 		cmpw	$-31, -12(%ebp)
+7DA9     		jge	L58
+66C745F4 		movw	$0, -12(%ebp)
+66C745E6 		movw	$1, -26(%ebp)
+0FB745E6 		movzwl	-26(%ebp), %eax
+0FB7C0   		movzwl	%ax, %eax
+C1E00F   		sall	$15, %eax
+668945E6 		movw	%ax, -26(%ebp)
+0FB745E6 		movzwl	-26(%ebp), %eax
+668945F2 		movw	%ax, -14(%ebp)

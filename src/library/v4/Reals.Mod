@@ -1,7 +1,8 @@
 MODULE Reals;
   (* JT, 5.2.90 / RC 9.12.91 conversion between reals and strings for HP-700, MB 9.12.91, JT for Ofront, 16.3. 95*)
+  (* DCWB 20160817 Made independent of INTEGER size *)
 
-  IMPORT S := SYSTEM;
+  IMPORT SYSTEM;
 
   PROCEDURE Ten*(e: INTEGER): REAL;
   VAR r, power: LONGREAL;
@@ -13,7 +14,7 @@ MODULE Reals;
     END ;
     RETURN SHORT(r)
   END Ten;
-  
+
 
   PROCEDURE TenL*(e: INTEGER): LONGREAL;
     VAR r, power: LONGREAL;
@@ -26,31 +27,52 @@ MODULE Reals;
       power := power * power
     END
   END TenL;
-  
- 
-  PROCEDURE Expo*(x: REAL): INTEGER;
-  BEGIN
-    RETURN SHORT(ASH(S.VAL(INTEGER, x), -23) MOD 256)
-  END Expo;
-  
- 
-  PROCEDURE ExpoL*(x: LONGREAL): INTEGER;
-    VAR i: INTEGER; l: LONGINT;
-  BEGIN
-    IF SIZE(INTEGER) = 4 THEN
-      S.GET(S.ADR(x)+4, i); (* Fetch top 32 bits *)
-      RETURN SHORT(ASH(i, -20) MOD 2048)
-    ELSIF SIZE(LONGINT) = 4 THEN
-      S.GET(S.ADR(x)+4, l); (* Fetch top 32 bits *)
-      RETURN SHORT(ASH(l, -20) MOD 2048)
-    ELSE HALT(98)
-    END
-  END ExpoL;
-  
 
-  (* Convert LONGREAL: Write positive integer value of x into array d. 
+
+  (* Real number format (IEEE 754)
+
+    TYPE REAL - Single precision / binary32:
+      1/sign, 8/exponent, 23/significand
+
+    TYPE LONGREAL - Double precision / binary64:
+      1/sign, 11/exponent, 52/significand
+
+    exponent:
+      stored as exponent value + 127.
+
+    significand (fraction):
+      excludes leading (most significant) bit which is assumed to be 1.
+  *)
+
+
+  PROCEDURE Expo*(x: REAL): INTEGER;
+    VAR i: INTEGER;
+  BEGIN
+    SYSTEM.GET(SYSTEM.ADR(x)+2, i);
+    RETURN (i DIV 128) MOD 256
+  END Expo;
+
+  PROCEDURE SetExpo*(VAR x: REAL; ex: INTEGER);
+  VAR c: CHAR;
+  BEGIN
+    (* Replace exponent bits within top byte of REAL *)
+    SYSTEM.GET(SYSTEM.ADR(x)+3, c);
+    SYSTEM.PUT(SYSTEM.ADR(x)+3, CHR(((ORD(c) DIV 128) * 128) + ((ex DIV 2) MOD 128)));
+    (* Replace exponent bits within 2nd byte of REAL *)
+    SYSTEM.GET(SYSTEM.ADR(x)+2, c);
+    SYSTEM.PUT(SYSTEM.ADR(x)+2, CHR((ORD(c) MOD 128) + ((ex MOD 2) * 128)))
+  END SetExpo;
+
+  PROCEDURE ExpoL*(x: LONGREAL): INTEGER;
+    VAR i: INTEGER;
+  BEGIN
+    SYSTEM.GET(SYSTEM.ADR(x)+6, i);
+    RETURN (i DIV 16) MOD 2048
+  END ExpoL;
+
+  (* Convert LONGREAL: Write positive integer value of x into array d.
      The value is stored backwards, i.e. least significant digit
-     first. n digits are written, with trailing zeros fill. 
+     first. n digits are written, with trailing zeros fill.
      On entry x has been scaled to the number of digits required. *)
   PROCEDURE ConvertL*(x: LONGREAL; n: INTEGER; VAR d: ARRAY OF CHAR);
     VAR i, j, k: LONGINT;
@@ -64,15 +86,15 @@ MODULE Reals;
       j := ENTIER(x - (i * 1000000000.0D0)); (* The low 9 digits *)
       (* First generate the low 9 digits. *)
       IF j < 0 THEN j := 0 END;
-      WHILE k < 9 DO 
+      WHILE k < 9 DO
         d[k] := CHR(j MOD 10 + 48); j := j DIV 10; INC(k)
       END;
       (* Fall through to generate the upper digits *)
     ELSE
       (* We can generate all the digits in one go. *)
-      i := ENTIER(x); 
+      i := ENTIER(x);
     END;
-  
+
     WHILE k < n DO
       d[k] := CHR(i MOD 10 + 48); i := i DIV 10; INC(k)
     END
@@ -89,28 +111,26 @@ MODULE Reals;
     ELSE           RETURN CHR(i+55) END
   END ToHex;
 
+  PROCEDURE BytesToHex(VAR b, d: ARRAY OF SYSTEM.BYTE);
+    VAR i: INTEGER; l: LONGINT; by: CHAR;
+  BEGIN
+    i := 0; l := LEN(b);
+    WHILE i < l DO
+      by := SYSTEM.VAL(CHAR, b[i]);
+      d[i*2]   := ToHex(ORD(by) DIV 16);
+      d[i*2+1] := ToHex(ORD(by) MOD 16);
+      INC(i)
+    END
+  END BytesToHex;
+
   (* Convert Hex *)
   PROCEDURE ConvertH*(y: REAL; VAR d: ARRAY OF CHAR);
-  TYPE pc4 = POINTER TO ARRAY 4 OF CHAR;
-  VAR p: pc4;  i: INTEGER;
-  BEGIN 
-    p := S.VAL(pc4, S.ADR(y)); i := 0; 
-    WHILE i<4 DO 
-      d[i*2]   := ToHex(ORD(p[i]) DIV 16);
-      d[i*2+1] := ToHex(ORD(p[i]) MOD 16)
-    END
+  BEGIN BytesToHex(y, d)
   END ConvertH;
-  
+
   (* Convert Hex Long *)
-  PROCEDURE ConvertHL*(y: LONGREAL; VAR d: ARRAY OF CHAR);
-  TYPE pc8 = POINTER TO ARRAY 8 OF CHAR;
-  VAR p: pc8;  i: INTEGER;
-  BEGIN 
-    p := S.VAL(pc8, S.ADR(y)); i := 0; 
-    WHILE i<8 DO 
-      d[i*2]   := ToHex(ORD(p[i]) DIV 16);
-      d[i*2+1] := ToHex(ORD(p[i]) MOD 16)
-    END
+  PROCEDURE ConvertHL*(x: LONGREAL; VAR d: ARRAY OF CHAR);
+  BEGIN BytesToHex(x, d)
   END ConvertHL;
-  
+
 END Reals.
