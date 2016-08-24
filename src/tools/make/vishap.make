@@ -385,6 +385,7 @@ confidence:
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/intsyntax;       $(RUNTEST)
 	cd src/test/confidence/language;        $(RUNTEST)
+	cd src/test/confidence/texts;           $(RUNTEST)
 	cd src/test/confidence/library;         $(RUNTEST)
 	cd src/test/confidence/lola;            $(RUNTEST)
 	cd src/test/confidence/arrayassignment; $(RUNTEST)
