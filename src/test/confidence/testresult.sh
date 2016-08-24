@@ -7,7 +7,8 @@ fi
 
 # Compare generated code
 if [ -f new.asm ]
-then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -c 11- >new.$FLAVOUR.$BRANCH.s
+#then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -c 11- >new.$FLAVOUR.$BRANCH.s
+then sed -n '/^ *[0-9]\+ \([0-9a-f]\{4\}\|    \) [0-9A-F]\{2\}[0-9A-F ]\{6\}/s/^ *[0-9]\+ ....//p' new.asm>new.$FLAVOUR.$BRANCH.s
 
   if [ -f old.$FLAVOUR.$BRANCH.s -a old.$FLAVOUR.$BRANCH.s -nt ../planned-binary-change ]
   then
