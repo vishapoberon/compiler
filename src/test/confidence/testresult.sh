@@ -9,7 +9,7 @@ fi
 if [ -f new.asm ]
 then egrep '^[0-9 ]{4} ([0-9a-f]{4}|    ) [0-9A-F]{2}[0-9A-F ]{6}' new.asm|cut -c 11- >new.$FLAVOUR.$BRANCH.s
 
-  if [ -f old.$FLAVOUR.$BRANCH.s -a old.$FLAVOUR.$BRANCH -nt ../planned-binary-change ]
+  if [ -f old.$FLAVOUR.$BRANCH.s -a old.$FLAVOUR.$BRANCH.s -nt ../planned-binary-change ]
   then
     if diff -b old.$FLAVOUR.$BRANCH.s new.$FLAVOUR.$BRANCH.s
     then echo "--- Generated code unchanged ---"

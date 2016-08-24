@@ -14,7 +14,7 @@ my %machines = (
   "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
                                                                        . "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd vishaps/voc && git checkout $branch && git pull;"
+                                                                       . "sh start64.sh \\\"cd vishaps/voc && git pull && git checkout $branch && git pull;"
                                                                                          . "export CC=gcc && make full;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
@@ -55,7 +55,7 @@ unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && $sudo git checkout $branch && $sudo git pull && $sudo $mkcmd\" ";
+  my $cmd = "ssh $login \"cd $dir && $sudo git pull && $sudo git checkout -f $branch && $sudo git pull && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 
