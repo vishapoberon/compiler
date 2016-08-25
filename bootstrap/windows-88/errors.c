@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -26,7 +26,7 @@ export void *errors__init(void)
 	errors_errors[6][0] = 0x00;
 	errors_errors[7][0] = 0x00;
 	errors_errors[8][0] = 0x00;
-	__MOVE("\'=\' expected", errors_errors[9], 13);
+	__MOVE("'=' expected", errors_errors[9], 13);
 	errors_errors[10][0] = 0x00;
 	errors_errors[11][0] = 0x00;
 	__MOVE("type definition starts with incorrect symbol", errors_errors[12], 45);
@@ -35,28 +35,28 @@ export void *errors__init(void)
 	__MOVE("declaration followed by incorrect symbol", errors_errors[15], 41);
 	__MOVE("MODULE expected", errors_errors[16], 16);
 	errors_errors[17][0] = 0x00;
-	__MOVE("\'.\' missing", errors_errors[18], 12);
-	__MOVE("\',\' missing", errors_errors[19], 12);
-	__MOVE("\':\' missing", errors_errors[20], 12);
+	__MOVE("'.' missing", errors_errors[18], 12);
+	__MOVE("',' missing", errors_errors[19], 12);
+	__MOVE("':' missing", errors_errors[20], 12);
 	errors_errors[21][0] = 0x00;
-	__MOVE("\')\' missing", errors_errors[22], 12);
-	__MOVE("\']\' missing", errors_errors[23], 12);
-	__MOVE("\'}\' missing", errors_errors[24], 12);
+	__MOVE("')' missing", errors_errors[22], 12);
+	__MOVE("']' missing", errors_errors[23], 12);
+	__MOVE("'}' missing", errors_errors[24], 12);
 	__MOVE("OF missing", errors_errors[25], 11);
 	__MOVE("THEN missing", errors_errors[26], 13);
 	__MOVE("DO missing", errors_errors[27], 11);
 	__MOVE("TO missing", errors_errors[28], 11);
 	errors_errors[29][0] = 0x00;
-	__MOVE("\'(\' missing", errors_errors[30], 12);
+	__MOVE("'(' missing", errors_errors[30], 12);
 	errors_errors[31][0] = 0x00;
 	errors_errors[32][0] = 0x00;
 	errors_errors[33][0] = 0x00;
-	__MOVE("\':=\' missing", errors_errors[34], 13);
-	__MOVE("\',\' or OF expected", errors_errors[35], 19);
+	__MOVE("':=' missing", errors_errors[34], 13);
+	__MOVE("',' or OF expected", errors_errors[35], 19);
 	errors_errors[36][0] = 0x00;
 	errors_errors[37][0] = 0x00;
 	__MOVE("identifier expected", errors_errors[38], 20);
-	__MOVE("\';\' missing", errors_errors[39], 12);
+	__MOVE("';' missing", errors_errors[39], 12);
 	errors_errors[40][0] = 0x00;
 	__MOVE("END missing", errors_errors[41], 12);
 	errors_errors[42][0] = 0x00;
@@ -132,10 +132,10 @@ export void *errors__init(void)
 	__MOVE("operand is not a variable", errors_errors[112], 26);
 	__MOVE("incompatible assignment", errors_errors[113], 24);
 	__MOVE("string too long to be assigned", errors_errors[114], 31);
-	__MOVE("parameter doesn\'t match", errors_errors[115], 24);
-	__MOVE("number of parameters doesn\'t match", errors_errors[116], 35);
-	__MOVE("result type doesn\'t match", errors_errors[117], 26);
-	__MOVE("export mark doesn\'t match with forward declaration", errors_errors[118], 51);
+	__MOVE("parameter doesn't match", errors_errors[115], 24);
+	__MOVE("number of parameters doesn't match", errors_errors[116], 35);
+	__MOVE("result type doesn't match", errors_errors[117], 26);
+	__MOVE("export mark doesn't match with forward declaration", errors_errors[118], 51);
 	__MOVE("redefinition textually precedes procedure bound to base type", errors_errors[119], 61);
 	__MOVE("type of expression following IF, WHILE, UNTIL or ASSERT is not BOOLEAN", errors_errors[120], 71);
 	__MOVE("called object is not a procedure (or is an interrupt procedure)", errors_errors[121], 64);
@@ -195,5 +195,6 @@ export void *errors__init(void)
 	__MOVE("implicit type cast", errors_errors[301], 19);
 	__MOVE("inappropriate symbol file ignored", errors_errors[306], 34);
 	__MOVE("no ELSE symbol after CASE statement sequence may lead to trap", errors_errors[307], 62);
+	__MOVE("SYSTEM.VAL result includes memory past end of source variable", errors_errors[308], 62);
 	__ENDMOD;
 }

@@ -79,6 +79,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     HFext = ".h";   (* header file extension *)
     SFtag = 0F7X;   (* symbol file tag *)
 
+
+
+
   TYPE
     FileName = ARRAY 32 OF CHAR;
 
@@ -89,11 +92,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     ByteSize*, CharSize*, BoolSize*, SIntSize*, IntSize*,
     LIntSize*, SetSize*, RealSize*, LRealSize*, PointerSize*, ProcSize*, RecSize*,
-    CharAlign*, BoolAlign*, SIntAlign*, IntAlign*,
-    LIntAlign*, SetAlign*, RealAlign*, LRealAlign*, PointerAlign*, ProcAlign*, RecAlign*,
     MaxSet*: INTEGER;
 
-    MinSInt*, MinInt*, MinLInt*, MaxSInt*, MaxInt*, MaxLInt*, MaxIndex*: LONGINT;
+    MaxIndex*: LONGINT;
 
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;
 
@@ -142,27 +143,30 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   i := 1; (* skip - *)
     WHILE s[i] # 0X DO
       CASE s[i] OF
-      | "e": opt := opt / {extsf}
-      | "s": opt := opt / {newsf}
-      | "m": opt := opt / {mainprog}
-      | "x": opt := opt / {inxchk}
-      | "r": opt := opt / {ranchk}
-      | "t": opt := opt / {typchk}
+
       | "a": opt := opt / {assert}
-      | "k": opt := opt / {ansi}      (* undocumented *)
-      | "p": opt := opt / {ptrinit}
-      | "S": opt := opt / {dontasm}
       | "c": opt := opt / {dontlink}
-      | "M": opt := opt / {mainlinkstat}
+      | "e": opt := opt / {extsf}
       | "f": opt := opt / {notcoloroutput}
-      | "F": opt := opt / {forcenewsym}
-      | "V": opt := opt / {verbose}
+      | "k": opt := opt / {ansi}             (* undocumented *)
+      | "m": opt := opt / {mainprog}
+      | "p": opt := opt / {ptrinit}
+      | "r": opt := opt / {ranchk}
+      | "s": opt := opt / {newsf}
+      | "t": opt := opt / {typchk}
+      | "x": opt := opt / {inxchk}
+
       | "B": IF s[i+1] # 0X THEN INC(i); IntSize     := ORD(s[i]) - ORD('0') END;
              IF s[i+1] # 0X THEN INC(i); PointerSize := ORD(s[i]) - ORD('0') END;
              IF s[i+1] # 0X THEN INC(i); Alignment   := ORD(s[i]) - ORD('0') END;
              ASSERT((IntSize     = 2) OR (IntSize     = 4));
              ASSERT((PointerSize = 4) OR (PointerSize = 8));
-             ASSERT((Alignment   = 4) OR (Alignment   = 8))
+             ASSERT((Alignment   = 4) OR (Alignment   = 8));
+             Files.SetSearchPath("")
+      | "F": opt := opt / {forcenewsym}
+      | "M": opt := opt / {mainlinkstat}
+      | "S": opt := opt / {dontasm}
+      | "V": opt := opt / {verbose}
       ELSE
         LogWStr("  warning: option ");
         LogW(OptionChar);
@@ -458,15 +462,28 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
   PROCEDURE FPrintReal*(VAR fp: LONGINT; real: REAL);
-  BEGIN FPrint(fp, SYSTEM.VAL(LONGINT, real))
+    VAR i: INTEGER; l: LONGINT;
+  BEGIN
+    IF SIZE(REAL) = SIZE(INTEGER) THEN
+      SYSTEM.GET(SYSTEM.ADR(real), i); l := i;
+    ELSE
+      SYSTEM.GET(SYSTEM.ADR(real), l);
+    END;
+    FPrint(fp, l)
   END FPrintReal;
 
 
   PROCEDURE FPrintLReal*(VAR fp: LONGINT; lr: LONGREAL);
   VAR l, h: LONGINT;
   BEGIN
-    SYSTEM.GET(SYSTEM.ADR(lr), l); SYSTEM.GET(SYSTEM.ADR(lr)+4, h);
-    FPrint(fp, l); FPrint(fp, h)
+    IF SIZE(LONGREAL) = SIZE(LONGINT) THEN
+      (* 64 bit LONGINT *)
+      FPrint(fp, SYSTEM.VAL(LONGINT, lr))
+    ELSE
+      (* 32 bit LONGINT *)
+      SYSTEM.GET(SYSTEM.ADR(lr), l); SYSTEM.GET(SYSTEM.ADR(lr)+4, h);
+      FPrint(fp, l); FPrint(fp, h)
+    END
   END FPrintLReal;
 
 
@@ -484,10 +501,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END GetProperty;
 
 
-  PROCEDURE minus(i: LONGINT): LONGINT;
+  PROCEDURE minusop(i: LONGINT): LONGINT;
   BEGIN
     RETURN -i;
-  END minus;
+  END minusop;
 
 
   PROCEDURE power0(i, j : LONGINT) : LONGINT; (* we would like to calculate exact Min Max values in GetProperties, not hardcode em, noch *)
@@ -508,34 +525,63 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     LogWLn;
     LogWStr("Type        Size  Alignement"); LogWLn;
-    LogWStr("CHAR         "); LogWNum(CharSize,    4); LogWNum(CharAlign,    5); LogWLn;
-    LogWStr("BOOLEAN      "); LogWNum(BoolSize,    4); LogWNum(BoolAlign,    5); LogWLn;
-    LogWStr("SHORTINT     "); LogWNum(SIntSize,    4); LogWNum(SIntAlign,    5); LogWLn;
-    LogWStr("INTEGER      "); LogWNum(IntSize,     4); LogWNum(IntAlign,     5); LogWLn;
-    LogWStr("LONGINT      "); LogWNum(LIntSize,    4); LogWNum(LIntAlign,    5); LogWLn;
-    LogWStr("SET          "); LogWNum(SetSize,     4); LogWNum(SetAlign,     5); LogWLn;
-    LogWStr("REAL         "); LogWNum(RealSize,    4); LogWNum(RealAlign,    5); LogWLn;
-    LogWStr("LONGREAL     "); LogWNum(LRealSize,   4); LogWNum(LRealAlign,   5); LogWLn;
-    LogWStr("PTR          "); LogWNum(PointerSize, 4); LogWNum(PointerAlign, 5); LogWLn;
-    LogWStr("PROC         "); LogWNum(ProcSize,    4); LogWNum(ProcAlign,    5); LogWLn;
-    LogWStr("RECORD       "); LogWNum(RecSize,     4); LogWNum(RecAlign,     5); LogWLn;
+    LogWStr("CHAR         "); LogWNum(CharSize,    4); (* LogWNum(CharAlign,    5); *) LogWLn;
+    LogWStr("BOOLEAN      "); LogWNum(BoolSize,    4); (* LogWNum(BoolAlign,    5); *) LogWLn;
+    LogWStr("SHORTINT     "); LogWNum(SIntSize,    4); (* LogWNum(SIntAlign,    5); *) LogWLn;
+    LogWStr("INTEGER      "); LogWNum(IntSize,     4); (* LogWNum(IntAlign,     5); *) LogWLn;
+    LogWStr("LONGINT      "); LogWNum(LIntSize,    4); (* LogWNum(LIntAlign,    5); *) LogWLn;
+    LogWStr("SET          "); LogWNum(SetSize,     4); (* LogWNum(SetAlign,     5); *) LogWLn;
+    LogWStr("REAL         "); LogWNum(RealSize,    4); (* LogWNum(RealAlign,    5); *) LogWLn;
+    LogWStr("LONGREAL     "); LogWNum(LRealSize,   4); (* LogWNum(LRealAlign,   5); *) LogWLn;
+    LogWStr("PTR          "); LogWNum(PointerSize, 4); (* LogWNum(PointerAlign, 5); *) LogWLn;
+    LogWStr("PROC         "); LogWNum(ProcSize,    4); (* LogWNum(ProcAlign,    5); *) LogWLn;
+    LogWStr("RECORD       "); LogWNum(RecSize,     4); (* LogWNum(RecAlign,     5); *) LogWLn;
   (*LogWStr("ENDIAN       "); LogWNum(ByteOrder,   4); LogWNum(BitOrder,     5); LogWLn;*)
     LogWLn;
+    (*
     LogWStr("Min shortint "); LogWNum(MinSInt,     4); LogWLn;
     LogWStr("Max shortint "); LogWNum(MaxSInt,     4); LogWLn;
     LogWStr("Min integer  "); LogWNum(MinInt,      4); LogWLn;
     LogWStr("Max integer  "); LogWNum(MaxInt,      4); LogWLn;
     LogWStr("Min longint  "); LogWNum(MinLInt,     4); LogWLn;
+    *)
   END VerboseListSizes;
 
 
-  PROCEDURE Min(a,b: INTEGER): INTEGER;
-  BEGIN IF a<b THEN RETURN a ELSE RETURN b END
-  END Min;
+  (*
+  PROCEDURE AlignSize*(size: LONGINT): INTEGER;
+    VAR align: INTEGER;
+  BEGIN
+    IF size < Alignment THEN
+      IF    size > 8 THEN align := 16
+      ELSIF size > 4 THEN align := 8
+      ELSIF size > 2 THEN align := 4
+      ELSE                align := SHORT(size)
+      END
+    ELSE
+      align := Alignment
+    END;
+    RETURN align
+  END AlignSize;
+  *)
+
+  PROCEDURE SignedMaximum*(bytecount: LONGINT): LONGINT;
+  VAR result: LONGINT;
+  BEGIN
+    result := 1;
+    result := SYSTEM.LSH(result, bytecount*8-1);
+    RETURN result - 1;
+  END SignedMaximum;
+
+  PROCEDURE SignedMinimum*(bytecount: LONGINT): LONGINT;
+  BEGIN RETURN -SignedMaximum(bytecount) - 1
+  END SignedMinimum;
+
+
+
 
   PROCEDURE GetProperties();
-    VAR
-      base:        LONGINT;
+    (* VAR base: LONGINT; *)
   BEGIN
     (* Fixed and Configuration.Mod based sizes have been initialised in
        the module startup code, and maybe overridden by the -Bnnn bootstrap
@@ -545,30 +591,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     ProcSize := PointerSize;
     LIntSize := IntSize * 2;
     SetSize  := LIntSize;
-
-    (* Calculate all type alignments *)
-    CharAlign    := Min(Alignment, CharSize);
-    BoolAlign    := Min(Alignment, BoolSize);
-    SIntAlign    := Min(Alignment, SIntSize);
-    RecAlign     := Min(Alignment, RecSize);
-    RealAlign    := Min(Alignment, RealSize);
-    LRealAlign   := Min(Alignment, LRealSize);
-    PointerAlign := Min(Alignment, PointerSize);
-    ProcAlign    := Min(Alignment, ProcSize);
-    IntAlign     := Min(Alignment, IntSize);
-    LIntAlign    := Min(Alignment, LIntSize);
-    SetAlign     := Min(Alignment, SetSize);
-
-    (* and I'd like to calculate it, not hardcode constants *)
-    base := -2;
-    MinSInt := ASH(base, SIntSize*8-2);
-    MaxSInt := minus(MinSInt + 1);
-
-    MinInt := ASH(base, IntSize*8-2);
-    MaxInt := minus(MinInt + 1);
-
-    MinLInt := ASH(base, LIntSize*8-2);
-    MaxLInt := minus(MinLInt +1);
 
     IF RealSize = 4 THEN MaxReal := 3.40282346D38
     ELSIF RealSize = 8 THEN MaxReal := 1.7976931348623157D307 * 9.999999
@@ -580,19 +602,16 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       (*should be 1.7976931348623157D308 *)
     END ;
 
-    MinReal := -MaxReal;
+    MinReal  := -MaxReal;
     MinLReal := -MaxLReal;
-
-    MaxSet := SetSize * 8 - 1;
-    MaxIndex := MaxLInt; (* shouldn't it be like max(int)? so that for loop will be safe, noch *)
+    MaxSet   := SetSize * 8 - 1;
+    MaxIndex := SignedMaximum(PointerSize);
 
     IF Verbose THEN VerboseListSizes END;
   END GetProperties;
 
-
-
-
   (* ------------------------- Read Symbol File ------------------------- *)
+
 
   PROCEDURE SymRCh*(VAR ch: CHAR);
   BEGIN Files.Read(oldSF, ch)
@@ -715,7 +734,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE WriteInt* (i: LONGINT);
     VAR s: ARRAY 20 OF CHAR; i1, k: LONGINT;
   BEGIN
-    IF (i = MinInt) OR (i = MinLInt) THEN
+    IF (i = SignedMinimum(IntSize)) OR (i = SignedMinimum(LIntSize)) THEN
       (* abs(minint) is one more than maxint, causing problems representing the value as a minus sign
          followed by absoute value. Therefore represent as -maxint - 1. For INTEGER this avoids a
          compiler warning 'this decimal constant is unsigned only in ISO C90', for LONGINT it is the
@@ -733,7 +752,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     VAR W: Texts.Writer; T: Texts.Text; R: Texts.Reader; s: ARRAY 32 OF CHAR; ch: CHAR; i: INTEGER;
   BEGIN
 (*should be improved *)
-    IF (r < MaxLInt) & (r > MinLInt) & (r = ENTIER(r)) THEN
+    IF (r < SignedMaximum(LIntSize)) & (r > SignedMinimum(LIntSize)) & (r = ENTIER(r)) THEN
       IF suffx = "f" THEN WriteString("(REAL)") ELSE WriteString("(LONGREAL)") END ;
       WriteInt(ENTIER(r))
     ELSE

@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -6,8 +6,8 @@
 #include "SYSTEM.h"
 
 
-import INTEGER OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_CharAlign, OPM_BoolAlign, OPM_SIntAlign, OPM_IntAlign, OPM_LIntAlign, OPM_SetAlign, OPM_RealAlign, OPM_LRealAlign, OPM_PointerAlign, OPM_ProcAlign, OPM_RecAlign, OPM_MaxSet;
-import LONGINT OPM_MinSInt, OPM_MinInt, OPM_MinLInt, OPM_MaxSInt, OPM_MaxInt, OPM_MaxLInt, OPM_MaxIndex;
+import INTEGER OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
+import LONGINT OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;
 import LONGINT OPM_curpos, OPM_errpos, OPM_breakpc;
@@ -38,6 +38,8 @@ import void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 import void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
 import BOOLEAN OPM_OpenPar (void);
 import void OPM_RegisterNewSym (void);
+import LONGINT OPM_SignedMaximum (LONGINT bytecount);
+import LONGINT OPM_SignedMinimum (LONGINT bytecount);
 import void OPM_SymRCh (CHAR *ch);
 import LONGINT OPM_SymRInt (void);
 import void OPM_SymRLReal (LONGREAL *lr);

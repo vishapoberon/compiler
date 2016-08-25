@@ -188,6 +188,7 @@ errors[245] := "guarded pointer variable may be manipulated by non-local operati
 errors[301] := "implicit type cast";
 errors[306] := "inappropriate symbol file ignored";
 errors[307] := "no ELSE symbol after CASE statement sequence may lead to trap"; (* new warning,  -- noch *)
+errors[308] := "SYSTEM.VAL result includes memory past end of source variable"; (* DCWB *)
 
 END errors.
 (*
@@ -196,8 +197,8 @@ Run-time Error Messages
 	0 silent HALT(0)
 	1..255  HALT(n), cf. SYSTEM_halt
 	-1 assertion failed, cf. SYSTEM_assert
-	-2 invalid array index  
-	-3 function procedure without RETURN statement  
+	-2 invalid array index
+	-3 function procedure without RETURN statement
 	-4 invalid case in CASE statement
 	-5 type guard failed
 	-6 implicit type guard in record assignment failed

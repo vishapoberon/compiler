@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin tspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Console.h"
@@ -257,7 +257,7 @@ static void Files_Flush (Files_Buffer buf)
 		if (buf->org != f->pos) {
 			error = Platform_Seek(f->fd, buf->org, Platform_SeekSet);
 		}
-		error = Platform_Write(f->fd, (LONGINT)(uintptr_t)buf->data, buf->size);
+		error = Platform_Write(f->fd, (LONGINT)(SYSTEM_ADDRESS)buf->data, buf->size);
 		if (error != 0) {
 			Files_Err((CHAR*)"error writing file", (LONGINT)19, f, error);
 		}
@@ -656,7 +656,7 @@ void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x
 		} else {
 			min = n;
 		}
-		__MOVE((LONGINT)(uintptr_t)buf->data + offset, (LONGINT)(uintptr_t)x + xpos, min);
+		__MOVE((LONGINT)(SYSTEM_ADDRESS)buf->data + offset, (LONGINT)(SYSTEM_ADDRESS)x + xpos, min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -721,7 +721,7 @@ void Files_WriteBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT 
 		} else {
 			min = n;
 		}
-		__MOVE((LONGINT)(uintptr_t)x + xpos, (LONGINT)(uintptr_t)buf->data + offset, min);
+		__MOVE((LONGINT)(SYSTEM_ADDRESS)x + xpos, (LONGINT)(SYSTEM_ADDRESS)buf->data + offset, min);
 		offset += min;
 		(*r).offset = offset;
 		if (offset > buf->size) {
@@ -772,15 +772,15 @@ void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT
 				*res = 3;
 				return;
 			}
-			error = Platform_Read(fdold, (LONGINT)(uintptr_t)buf, ((LONGINT)(4096)), &n);
+			error = Platform_Read(fdold, (LONGINT)(SYSTEM_ADDRESS)buf, ((LONGINT)(4096)), &n);
 			while (n > 0) {
-				error = Platform_Write(fdnew, (LONGINT)(uintptr_t)buf, n);
+				error = Platform_Write(fdnew, (LONGINT)(SYSTEM_ADDRESS)buf, n);
 				if (error != 0) {
 					ignore = Platform_Close(fdold);
 					ignore = Platform_Close(fdnew);
 					Files_Err((CHAR*)"cannot move file", (LONGINT)17, NIL, error);
 				}
-				error = Platform_Read(fdold, (LONGINT)(uintptr_t)buf, ((LONGINT)(4096)), &n);
+				error = Platform_Read(fdold, (LONGINT)(SYSTEM_ADDRESS)buf, ((LONGINT)(4096)), &n);
 			}
 			ignore = Platform_Close(fdold);
 			ignore = Platform_Close(fdnew);
@@ -838,7 +838,7 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *de
 			j += 1;
 		}
 	} else {
-		__MOVE((LONGINT)(uintptr_t)src, (LONGINT)(uintptr_t)dest, src__len);
+		__MOVE((LONGINT)(SYSTEM_ADDRESS)src, (LONGINT)(SYSTEM_ADDRESS)dest, src__len);
 	}
 }
 
@@ -858,14 +858,16 @@ void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 {
 	CHAR b[4];
 	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	*x = ((LONGINT)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((LONGINT)b[2], 16)) + __ASHL((LONGINT)b[3], 24);
+	*x = ((int)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
 }
 
 void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
 {
 	CHAR b[4];
+	LONGINT l;
 	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	*x = (SET)(((LONGINT)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((LONGINT)b[2], 16)) + __ASHL((LONGINT)b[3], 24));
+	l = ((int)((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
+	*x = (SET)l;
 }
 
 void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x)
@@ -921,11 +923,11 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 	n = 0;
 	Files_Read(&*R, R__typ, (void*)&ch);
 	while ((int)ch >= 128) {
-		n += __ASH((LONGINT)((int)ch - 128), s);
+		n += __ASH((int)((int)ch - 128), s);
 		s += 7;
 		Files_Read(&*R, R__typ, (void*)&ch);
 	}
-	n += __ASH((LONGINT)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
+	n += __ASH((int)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
 	*x = n;
 }
 
@@ -1006,7 +1008,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 {
 	Files_File f = NIL;
 	LONGINT res;
-	f = (Files_File)(uintptr_t)o;
+	f = (Files_File)(SYSTEM_ADDRESS)o;
 	if (f->fd >= 0) {
 		Files_CloseOSFile(f);
 		if (f->tempFile) {

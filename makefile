@@ -106,6 +106,7 @@ configuration: FORCE
 	@./a.o
 	@rm a.o
 	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
+	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
 
 
 
@@ -133,6 +134,7 @@ clean: configuration
 # full: Full build of compiler and libarary.
 full: configuration
 	@make -f src/tools/make/vishap.make -s installable
+	@-make -f src/tools/make/vishap.make -s uninstall
 	@make -f src/tools/make/vishap.make -s clean
 # Make bootstrap compiler from source suitable for current data model
 	@printf "\n\n--- Compiler build started ---\n\n"
@@ -164,6 +166,10 @@ compiler: configuration
 
 
 
+# Report changes to compiler source relative to bootstrap compiler
+sourcechanges:
+	@make -f src/tools/make/vishap.make -s sourcechanges
+
 
 # browsercmd: build the 'showdef' command
 browsercmd: configuration
@@ -176,6 +182,27 @@ browsercmd: configuration
 library: configuration
 	@make -f src/tools/make/vishap.make -s library
 
+# Individual library components
+v4: configuration
+	@make -f src/tools/make/vishap.make -s v4
+
+ooc2: configuration
+	@make -f src/tools/make/vishap.make -s ooc2
+
+ooc: configuration
+	@make -f src/tools/make/vishap.make -s ooc
+
+ulm: configuration
+	@make -f src/tools/make/vishap.make -s ulm
+
+pow32: configuration
+	@make -f src/tools/make/vishap.make -s pow32
+
+misc: configuration
+	@make -f src/tools/make/vishap.make -s misc
+
+s3: configuration
+	@make -f src/tools/make/vishap.make -s s3
 
 
 
@@ -227,6 +254,8 @@ revertbootstrap:
 
 
 # --- multi-machine multi-platform build management ---
+
+# NOTE: No longer used. Obsoleted by postpush.pl and buildall.pl.
 
 
 

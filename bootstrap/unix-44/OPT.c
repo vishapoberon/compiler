@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
@@ -849,7 +849,7 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 			conval->intval = 0;
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPT.InConstant(), f = ", (LONGINT)41);
+			OPM_LogWStr((CHAR*)"unhandled case in InConstant(), f = ", (LONGINT)37);
 			OPM_LogWNum(f, ((LONGINT)(0)));
 			OPM_LogWLn();
 			break;
@@ -1072,7 +1072,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				OPT_InSign(mno, &(*typ)->BaseTyp, &(*typ)->link);
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case at OPT.InStruct, tag = ", (LONGINT)39);
+				OPM_LogWStr((CHAR*)"unhandled case at InStruct, tag = ", (LONGINT)35);
 				OPM_LogWNum(tag, ((LONGINT)(0)));
 				OPM_LogWLn();
 				break;
@@ -1175,7 +1175,7 @@ static OPT_Object OPT_InObj (SHORTINT mno)
 					}
 					break;
 				default: 
-					OPM_LogWStr((CHAR*)"unhandled case at OPT.InObj, tag = ", (LONGINT)36);
+					OPM_LogWStr((CHAR*)"unhandled case at InObj, tag = ", (LONGINT)32);
 					OPM_LogWNum(tag, ((LONGINT)(0)));
 					OPM_LogWLn();
 					break;
@@ -1464,14 +1464,14 @@ static void OPT_OutStr (OPT_Struct typ)
 						OPM_SymWInt(((LONGINT)(18)));
 						break;
 					default: 
-						OPM_LogWStr((CHAR*)"unhandled case at OPT.OutStr, typ^.comp = ", (LONGINT)43);
+						OPM_LogWStr((CHAR*)"unhandled case at OutStr, typ^.comp = ", (LONGINT)39);
 						OPM_LogWNum(typ->comp, ((LONGINT)(0)));
 						OPM_LogWLn();
 						break;
 				}
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case at OPT.OutStr, typ^.form = ", (LONGINT)43);
+				OPM_LogWStr((CHAR*)"unhandled case at OutStr, typ^.form = ", (LONGINT)39);
 				OPM_LogWNum(typ->form, ((LONGINT)(0)));
 				OPM_LogWLn();
 				break;
@@ -1536,7 +1536,7 @@ static void OPT_OutObj (OPT_Object obj)
 						OPT_FPrintErr(obj, 251);
 						break;
 					default: 
-						OPM_LogWStr((CHAR*)"unhandled case at OPT.OutObj, obj^.history = ", (LONGINT)46);
+						OPM_LogWStr((CHAR*)"unhandled case at OutObj, obj^.history = ", (LONGINT)42);
 						OPM_LogWNum(obj->history, ((LONGINT)(0)));
 						OPM_LogWLn();
 						break;
@@ -1592,7 +1592,7 @@ static void OPT_OutObj (OPT_Object obj)
 						OPT_OutName((void*)obj->name, ((LONGINT)(256)));
 						break;
 					default: 
-						OPM_LogWStr((CHAR*)"unhandled case at OPT.OutObj, obj.mode = ", (LONGINT)42);
+						OPM_LogWStr((CHAR*)"unhandled case at OutObj, obj.mode = ", (LONGINT)38);
 						OPM_LogWNum(obj->mode, ((LONGINT)(0)));
 						OPM_LogWLn();
 						break;
@@ -1809,6 +1809,7 @@ export void *OPT__init(void)
 	OPT_syslink = OPT_topScope->right;
 	OPT_universe = OPT_topScope;
 	OPT_topScope->right = NIL;
+	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, OPM_BoolSize, &OPT_booltyp);
 	OPT_EnterTyp((CHAR*)"CHAR", 3, OPM_CharSize, &OPT_chartyp);
 	OPT_EnterTyp((CHAR*)"SET", 9, OPM_SetSize, &OPT_settyp);
 	OPT_EnterTyp((CHAR*)"REAL", 7, OPM_RealSize, &OPT_realtyp);
@@ -1816,7 +1817,6 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"LONGINT", 6, OPM_LIntSize, &OPT_linttyp);
 	OPT_EnterTyp((CHAR*)"LONGREAL", 8, OPM_LRealSize, &OPT_lrltyp);
 	OPT_EnterTyp((CHAR*)"SHORTINT", 4, OPM_SIntSize, &OPT_sinttyp);
-	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, OPM_BoolSize, &OPT_booltyp);
 	OPT_EnterBoolConst((CHAR*)"FALSE", ((LONGINT)(0)));
 	OPT_EnterBoolConst((CHAR*)"TRUE", ((LONGINT)(1)));
 	OPT_EnterProc((CHAR*)"HALT", 0);

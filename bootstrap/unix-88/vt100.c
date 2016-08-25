@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Console.h"
@@ -253,7 +253,7 @@ export void *vt100__init(void)
 	__REGCMD("RCP", vt100_RCP);
 	__REGCMD("SCP", vt100_SCP);
 /* BEGIN */
-	__COPY("", vt100_CSI, ((LONGINT)(5)));
+	__COPY("\033", vt100_CSI, ((LONGINT)(5)));
 	Strings_Append((CHAR*)"[", (LONGINT)2, (void*)vt100_CSI, ((LONGINT)(5)));
 	__ENDMOD;
 }

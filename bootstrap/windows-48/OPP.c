@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPB.h"
 #include "OPM.h"
@@ -438,10 +438,10 @@ static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned)
 	if (OPP_sym == 38) {
 		OPP_qualident(&id);
 		if (id->mode == 5) {
-			if (id->typ != *banned) {
-				*typ = id->typ;
-			} else {
+			if (id->typ == *banned) {
 				OPP_err(58);
+			} else {
+				*typ = id->typ;
 			}
 		} else {
 			OPP_err(52);
@@ -1783,6 +1783,24 @@ void OPP_Module (OPT_Node *prog, SET opt)
 	if (OPP_sym == 63) {
 		OPS_Get(&OPP_sym);
 	} else {
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"Unexpected symbol found when MODULE expected:", (LONGINT)46);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  sym:        ", (LONGINT)15);
+		OPM_LogWNum(OPP_sym, ((LONGINT)(1)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.name:   ", (LONGINT)15);
+		OPM_LogWStr(OPS_name, ((LONGINT)(256)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.str:    ", (LONGINT)15);
+		OPM_LogWStr(OPS_str, ((LONGINT)(256)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.numtyp: ", (LONGINT)15);
+		OPM_LogWNum(OPS_numtyp, ((LONGINT)(1)));
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  OPS.intval: ", (LONGINT)15);
+		OPM_LogWNum(OPS_intval, ((LONGINT)(1)));
+		OPM_LogWLn();
 		OPP_err(16);
 	}
 	if (OPP_sym == 38) {

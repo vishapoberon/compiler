@@ -1,4 +1,4 @@
-/* voc  1.95 [2016/08/24] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Platform.h"
 
@@ -21,7 +21,7 @@ export void Console_String (CHAR *s, LONGINT s__len);
 void Console_Flush (void)
 {
 	INTEGER error;
-	error = Platform_Write(Platform_StdOut, (LONGINT)(uintptr_t)Console_line, Console_pos);
+	error = Platform_Write(Platform_StdOut, (LONGINT)(SYSTEM_ADDRESS)Console_line, Console_pos);
 	Console_pos = 0;
 }
 

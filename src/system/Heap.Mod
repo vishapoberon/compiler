@@ -186,7 +186,7 @@ MODULE Heap;
      correctly regardless of the size of an address. Specifically on 32 bit address
      architectures with 64 bit LONGINT, it loads 32 bits and extends it to LONGINT
      rather than loading 64 bits. *)
-  PROCEDURE -FetchAddress(pointer: LONGINT): LONGINT "(LONGINT)(uintptr_t)(*((void**)((uintptr_t)pointer)))";
+  PROCEDURE -FetchAddress(pointer: LONGINT): LONGINT "(LONGINT)(SYSTEM_ADDRESS)(*((void**)((SYSTEM_ADDRESS)pointer)))";
 
   PROCEDURE ExtendHeap(blksz: LONGINT);
     VAR size, chnk, j, next: LONGINT;
