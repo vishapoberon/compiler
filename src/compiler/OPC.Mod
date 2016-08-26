@@ -127,6 +127,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         END ;
         OPM.Write('_')
       ELSIF (obj = OPT.sysptrtyp^.strobj)
+         OR (obj = OPT.ainttyp^.strobj)
          OR (obj = OPT.bytetyp^.strobj) THEN
         OPM.WriteString("SYSTEM_")
       END;

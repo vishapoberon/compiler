@@ -58,6 +58,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
     OPT.realtyp.size   := OPM.RealSize;
     OPT.inttyp.size    := OPM.IntSize;
     OPT.linttyp.size   := OPM.LIntSize;
+    OPT.ainttyp.size   := OPM.LIntSize;
     OPT.lrltyp.size    := OPM.LRealSize;
     OPT.sinttyp.size   := OPM.SIntSize;
     OPT.booltyp.size   := OPM.BoolSize;

@@ -106,10 +106,10 @@ BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
 
 (* OS memory allocaton *)
 
-PROCEDURE -allocate(size: LONGINT): LONGINT "(LONGINT)(SYSTEM_ADDRESS)((void*)malloc((size_t)size))";
+PROCEDURE -allocate(size: LONGINT): LONGINT "(LONGINT)(SYSTEM_ADRINT)((void*)malloc((size_t)size))";
 PROCEDURE OSAllocate*(size: LONGINT): LONGINT; BEGIN RETURN allocate(size) END OSAllocate;
 
-PROCEDURE -free(address: LONGINT) "free((void*)(SYSTEM_ADDRESS)address)";
+PROCEDURE -free(address: LONGINT) "free((void*)(SYSTEM_ADRINT)address)";
 PROCEDURE OSFree*(address: LONGINT); BEGIN free(address) END OSFree;
 
 
@@ -189,7 +189,7 @@ END ArgPos;
 
 (* Signals and traps *)
 
-PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (SYSTEM_ADDRESS)h)";
+PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (SYSTEM_ADRINT)h)";
 
 PROCEDURE SetInterruptHandler*(handler: SignalHandler);
 BEGIN sethandler(2, handler); END SetInterruptHandler;
@@ -369,7 +369,7 @@ END Size;
 
 
 PROCEDURE -readfile (fd: LONGINT; p: LONGINT; l: LONGINT): LONGINT
-"read(fd, (void*)(SYSTEM_ADDRESS)(p), l)";
+"read(fd, (void*)(SYSTEM_ADRINT)(p), l)";
 
 PROCEDURE Read*(h: FileHandle; p: LONGINT; l: LONGINT; VAR n: LONGINT): ErrorCode;
 BEGIN
@@ -386,7 +386,7 @@ END ReadBuf;
 
 
 PROCEDURE -writefile(fd: LONGINT; p: LONGINT; l: LONGINT): LONGINT
-"write(fd, (void*)(SYSTEM_ADDRESS)(p), l)";
+"write(fd, (void*)(SYSTEM_ADRINT)(p), l)";
 
 PROCEDURE Write*(h: FileHandle; p: LONGINT; l: LONGINT): ErrorCode;
   VAR written: LONGINT;

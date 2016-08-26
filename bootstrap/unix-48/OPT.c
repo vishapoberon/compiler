@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/26] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
@@ -83,7 +83,7 @@ typedef
 
 export void (*OPT_typSize)(OPT_Struct);
 export OPT_Object OPT_topScope;
-export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
+export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_ainttyp, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
 export SHORTINT OPT_nofGmod;
 export OPT_Object OPT_GlbMod[64];
 export OPS_Name OPT_SelfName;
@@ -1718,6 +1718,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPT_sinttyp);
 	P(OPT_inttyp);
 	P(OPT_linttyp);
+	P(OPT_ainttyp);
 	P(OPT_realtyp);
 	P(OPT_lrltyp);
 	P(OPT_settyp);
@@ -1794,6 +1795,7 @@ export void *OPT__init(void)
 	OPT_undftyp->BaseTyp = OPT_undftyp;
 	OPT_EnterTyp((CHAR*)"BYTE", 1, OPM_ByteSize, &OPT_bytetyp);
 	OPT_EnterTyp((CHAR*)"PTR", 13, OPM_PointerSize, &OPT_sysptrtyp);
+	OPT_EnterTyp((CHAR*)"ADRINT", 5, OPM_LIntSize, &OPT_ainttyp);
 	OPT_EnterProc((CHAR*)"ADR", 20);
 	OPT_EnterProc((CHAR*)"CC", 21);
 	OPT_EnterProc((CHAR*)"LSH", 22);

@@ -205,6 +205,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
     OPT.inttyp^.strobj^.linkadr    := PredefinedType;
     OPT.linttyp^.strobj^.linkadr   := PredefinedType;
+    OPT.ainttyp^.strobj^.linkadr   := PredefinedType;
     OPT.lrltyp^.strobj^.linkadr    := PredefinedType;
     OPT.sinttyp^.strobj^.linkadr   := PredefinedType;
     OPT.booltyp^.strobj^.linkadr   := PredefinedType;
@@ -555,7 +556,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.cap:   OPM.WriteString("__CAP("); expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.odd:   OPM.WriteString("__ODD("); expr(l, MinPrec); OPM.Write(CloseParen)
-                  | OPT.adr:   OPM.WriteString("(LONGINT)(SYSTEM_ADDRESS)");                             (*SYSTEM*)
+                  | OPT.adr:   OPM.WriteString("(LONGINT)(SYSTEM_ADRINT)");                             (*SYSTEM*)
                                IF l^.class = OPT.Nvarpar THEN OPC.CompleteIdent(l^.obj)
                                ELSE
                                  IF (l^.typ^.form # OPT.String) & ~(l^.typ^.comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write("&") END ;
@@ -568,7 +569,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                THEN
                                  OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen);
                                  IF (n^.typ^.form IN {OPT.Pointer, OPT.ProcTyp}) OR (l^.typ^.form IN {OPT.Pointer, OPT.ProcTyp}) THEN
-                                   OPM.WriteString("(SYSTEM_ADDRESS)")
+                                   OPM.WriteString("(SYSTEM_ADRINT)")
                                  END;
                                  expr(l, exprPrec)
                                ELSE

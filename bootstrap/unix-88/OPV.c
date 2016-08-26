@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/26] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPC.h"
@@ -285,6 +285,7 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_realtyp->strobj->linkadr = 2;
 	OPT_inttyp->strobj->linkadr = 2;
 	OPT_linttyp->strobj->linkadr = 2;
+	OPT_ainttyp->strobj->linkadr = 2;
 	OPT_lrltyp->strobj->linkadr = 2;
 	OPT_sinttyp->strobj->linkadr = 2;
 	OPT_booltyp->strobj->linkadr = 2;
@@ -932,7 +933,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 					OPM_Write(')');
 					break;
 				case 24: 
-					OPM_WriteString((CHAR*)"(LONGINT)(SYSTEM_ADDRESS)", (LONGINT)26);
+					OPM_WriteString((CHAR*)"(LONGINT)(SYSTEM_ADRINT)", (LONGINT)25);
 					if (l->class == 1) {
 						OPC_CompleteIdent(l->obj);
 					} else {
@@ -948,7 +949,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');
 						if (__IN(n->typ->form, 0x6000) || __IN(l->typ->form, 0x6000)) {
-							OPM_WriteString((CHAR*)"(SYSTEM_ADDRESS)", (LONGINT)17);
+							OPM_WriteString((CHAR*)"(SYSTEM_ADRINT)", (LONGINT)16);
 						}
 						OPV_expr(l, exprPrec);
 					} else {

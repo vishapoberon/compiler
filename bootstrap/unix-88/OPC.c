@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/26] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -212,7 +212,7 @@ void OPC_Ident (OPT_Object obj)
 				OPM_WriteStringVar((void*)OPM_modName, ((LONGINT)(32)));
 			}
 			OPM_Write('_');
-		} else if (obj == OPT_sysptrtyp->strobj || obj == OPT_bytetyp->strobj) {
+		} else if ((obj == OPT_sysptrtyp->strobj || obj == OPT_ainttyp->strobj) || obj == OPT_bytetyp->strobj) {
 			OPM_WriteString((CHAR*)"SYSTEM_", (LONGINT)8);
 		}
 		OPM_WriteStringVar((void*)obj->name, ((LONGINT)(256)));

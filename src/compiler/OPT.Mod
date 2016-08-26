@@ -155,6 +155,7 @@ VAR
   undftyp*,
   bytetyp*, booltyp*, chartyp*,
   sinttyp*, inttyp*, linttyp*,
+  ainttyp*,
   realtyp*, lrltyp*, settyp*, stringtyp*,
   niltyp*,  notyp*,  sysptrtyp*:            Struct;
 
@@ -1148,6 +1149,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   (*initialization of module SYSTEM*)
   EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp);
   EnterTyp("PTR", Pointer, OPM.PointerSize, sysptrtyp);
+  EnterTyp("ADRINT", Int, OPM.LIntSize, ainttyp);
   EnterProc("ADR", adrfn);
   EnterProc("CC", ccfn);
   EnterProc("LSH", lshfn);
