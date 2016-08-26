@@ -83,7 +83,8 @@ typedef
 
 export void (*OPT_typSize)(OPT_Struct);
 export OPT_Object OPT_topScope;
-export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_ainttyp, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
+export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_ainttyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
+static OPT_Object OPT_LIntObj;
 export SHORTINT OPT_nofGmod;
 export OPT_Object OPT_GlbMod[64];
 export OPS_Name OPT_SelfName;
@@ -105,6 +106,7 @@ export void OPT_Close (void);
 export void OPT_CloseScope (void);
 static void OPT_DebugStruct (OPT_Struct btyp);
 static void OPT_EnterBoolConst (OPS_Name name, LONGINT value);
+static void OPT_EnterDerivedType (OPS_Name name, OPT_Struct typ, OPT_Object *obj);
 static void OPT_EnterProc (OPS_Name name, INTEGER num);
 static void OPT_EnterTyp (OPS_Name name, SHORTINT form, INTEGER size, OPT_Struct *res);
 export void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
@@ -465,21 +467,21 @@ void OPT_IdFPrint (OPT_Struct typ)
 	}
 }
 
-static struct FPrintStr__12 {
+static struct FPrintStr__13 {
 	LONGINT *pbfp, *pvfp;
-	struct FPrintStr__12 *lnk;
-} *FPrintStr__12_s;
+	struct FPrintStr__13 *lnk;
+} *FPrintStr__13_s;
 
-static void FPrintFlds__13 (OPT_Object fld, LONGINT adr, BOOLEAN visible);
-static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr);
-static void FPrintTProcs__17 (OPT_Object obj);
+static void FPrintFlds__14 (OPT_Object fld, LONGINT adr, BOOLEAN visible);
+static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, LONGINT adr);
+static void FPrintTProcs__18 (OPT_Object obj);
 
-static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
+static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 {
 	LONGINT i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
-		FPrintFlds__13(typ->link, adr, 0);
+		FPrintFlds__14(typ->link, adr, 0);
 	} else if (typ->comp == 2) {
 		btyp = typ->BaseTyp;
 		n = typ->n;
@@ -489,53 +491,53 @@ static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 		}
 		if (btyp->form == 13 || btyp->comp == 4) {
 			j = OPT_nofhdfld;
-			FPrintHdFld__15(btyp, fld, adr);
+			FPrintHdFld__16(btyp, fld, adr);
 			if (j != OPT_nofhdfld) {
 				i = 1;
 				while ((i < n && OPT_nofhdfld <= 2048)) {
 					adr += btyp->size;
-					FPrintHdFld__15(btyp, fld, adr);
+					FPrintHdFld__16(btyp, fld, adr);
 					i += 1;
 				}
 			}
 		}
 	} else if (typ->form == 13 || __STRCMP(fld->name, "@ptr") == 0) {
-		OPM_FPrint(&*FPrintStr__12_s->pvfp, ((LONGINT)(13)));
-		OPM_FPrint(&*FPrintStr__12_s->pvfp, adr);
+		OPM_FPrint(&*FPrintStr__13_s->pvfp, ((LONGINT)(13)));
+		OPM_FPrint(&*FPrintStr__13_s->pvfp, adr);
 		OPT_nofhdfld += 1;
 	}
 }
 
-static void FPrintFlds__13 (OPT_Object fld, LONGINT adr, BOOLEAN visible)
+static void FPrintFlds__14 (OPT_Object fld, LONGINT adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
-			OPM_FPrint(&*FPrintStr__12_s->pbfp, fld->vis);
-			OPT_FPrintName(&*FPrintStr__12_s->pbfp, (void*)fld->name, ((LONGINT)(256)));
-			OPM_FPrint(&*FPrintStr__12_s->pbfp, fld->adr);
+			OPM_FPrint(&*FPrintStr__13_s->pbfp, fld->vis);
+			OPT_FPrintName(&*FPrintStr__13_s->pbfp, (void*)fld->name, ((LONGINT)(256)));
+			OPM_FPrint(&*FPrintStr__13_s->pbfp, fld->adr);
 			OPT_FPrintStr(fld->typ);
-			OPM_FPrint(&*FPrintStr__12_s->pbfp, fld->typ->pbfp);
-			OPM_FPrint(&*FPrintStr__12_s->pvfp, fld->typ->pvfp);
+			OPM_FPrint(&*FPrintStr__13_s->pbfp, fld->typ->pbfp);
+			OPM_FPrint(&*FPrintStr__13_s->pvfp, fld->typ->pvfp);
 		} else {
-			FPrintHdFld__15(fld->typ, fld, fld->adr + adr);
+			FPrintHdFld__16(fld->typ, fld, fld->adr + adr);
 		}
 		fld = fld->link;
 	}
 }
 
-static void FPrintTProcs__17 (OPT_Object obj)
+static void FPrintTProcs__18 (OPT_Object obj)
 {
 	if (obj != NIL) {
-		FPrintTProcs__17(obj->left);
+		FPrintTProcs__18(obj->left);
 		if (obj->mode == 13) {
 			if (obj->vis != 0) {
-				OPM_FPrint(&*FPrintStr__12_s->pbfp, ((LONGINT)(13)));
-				OPM_FPrint(&*FPrintStr__12_s->pbfp, __ASHR(obj->adr, 16));
-				OPT_FPrintSign(&*FPrintStr__12_s->pbfp, obj->typ, obj->link);
-				OPT_FPrintName(&*FPrintStr__12_s->pbfp, (void*)obj->name, ((LONGINT)(256)));
+				OPM_FPrint(&*FPrintStr__13_s->pbfp, ((LONGINT)(13)));
+				OPM_FPrint(&*FPrintStr__13_s->pbfp, __ASHR(obj->adr, 16));
+				OPT_FPrintSign(&*FPrintStr__13_s->pbfp, obj->typ, obj->link);
+				OPT_FPrintName(&*FPrintStr__13_s->pbfp, (void*)obj->name, ((LONGINT)(256)));
 			}
 		}
-		FPrintTProcs__17(obj->right);
+		FPrintTProcs__18(obj->right);
 	}
 }
 
@@ -545,11 +547,11 @@ void OPT_FPrintStr (OPT_Struct typ)
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL, bstrobj = NIL;
 	LONGINT pbfp, pvfp;
-	struct FPrintStr__12 _s;
+	struct FPrintStr__13 _s;
 	_s.pbfp = &pbfp;
 	_s.pvfp = &pvfp;
-	_s.lnk = FPrintStr__12_s;
-	FPrintStr__12_s = &_s;
+	_s.lnk = FPrintStr__13_s;
+	FPrintStr__13_s = &_s;
 	if (!typ->fpdone) {
 		OPT_IdFPrint(typ);
 		pbfp = typ->idfp;
@@ -586,11 +588,11 @@ void OPT_FPrintStr (OPT_Struct typ)
 			OPM_FPrint(&pvfp, typ->align);
 			OPM_FPrint(&pvfp, typ->n);
 			OPT_nofhdfld = 0;
-			FPrintFlds__13(typ->link, ((LONGINT)(0)), 1);
+			FPrintFlds__14(typ->link, ((LONGINT)(0)), 1);
 			if (OPT_nofhdfld > 2048) {
 				OPM_Mark(225, typ->txtpos);
 			}
-			FPrintTProcs__17(typ->link);
+			FPrintTProcs__18(typ->link);
 			OPM_FPrint(&pvfp, pbfp);
 			strobj = typ->strobj;
 			if (strobj == NIL || strobj->name[0] == 0x00) {
@@ -600,7 +602,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 		typ->pbfp = pbfp;
 		typ->pvfp = pvfp;
 	}
-	FPrintStr__12_s = _s.lnk;
+	FPrintStr__13_s = _s.lnk;
 }
 
 void OPT_FPrintObj (OPT_Object obj)
@@ -1697,6 +1699,15 @@ static void OPT_EnterTyp (OPS_Name name, SHORTINT form, INTEGER size, OPT_Struct
 	*res = typ;
 }
 
+static void OPT_EnterDerivedType (OPS_Name name, OPT_Struct typ, OPT_Object *obj)
+{
+	OPS_Name name__copy;
+	__DUPARR(name, OPS_Name);
+	OPT_Insert(name, &*obj);
+	(*obj)->mode = 5;
+	(*obj)->typ = typ;
+}
+
 static void OPT_EnterProc (OPS_Name name, INTEGER num)
 {
 	OPT_Object obj = NIL;
@@ -1719,6 +1730,10 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPT_inttyp);
 	P(OPT_linttyp);
 	P(OPT_ainttyp);
+	P(OPT_int8typ);
+	P(OPT_int16typ);
+	P(OPT_int32typ);
+	P(OPT_int64typ);
 	P(OPT_realtyp);
 	P(OPT_lrltyp);
 	P(OPT_settyp);
@@ -1726,6 +1741,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPT_niltyp);
 	P(OPT_notyp);
 	P(OPT_sysptrtyp);
+	P(OPT_LIntObj);
 	__ENUMP(OPT_GlbMod, 64, P);
 	P(OPT_universe);
 	P(OPT_syslink);
@@ -1789,13 +1805,17 @@ export void *OPT__init(void)
 	OPT_OpenScope(0, NIL);
 	OPM_errpos = 0;
 	OPT_InitStruct(&OPT_undftyp, 0);
+	OPT_undftyp->BaseTyp = OPT_undftyp;
 	OPT_InitStruct(&OPT_notyp, 12);
 	OPT_InitStruct(&OPT_stringtyp, 10);
 	OPT_InitStruct(&OPT_niltyp, 11);
-	OPT_undftyp->BaseTyp = OPT_undftyp;
 	OPT_EnterTyp((CHAR*)"BYTE", 1, OPM_ByteSize, &OPT_bytetyp);
 	OPT_EnterTyp((CHAR*)"PTR", 13, OPM_PointerSize, &OPT_sysptrtyp);
 	OPT_EnterTyp((CHAR*)"ADRINT", 5, OPM_LIntSize, &OPT_ainttyp);
+	OPT_EnterTyp((CHAR*)"INT8", 5, 1, &OPT_int8typ);
+	OPT_EnterTyp((CHAR*)"INT16", 5, 2, &OPT_int16typ);
+	OPT_EnterTyp((CHAR*)"INT32", 5, 4, &OPT_int32typ);
+	OPT_EnterTyp((CHAR*)"INT64", 5, 8, &OPT_int64typ);
 	OPT_EnterProc((CHAR*)"ADR", 20);
 	OPT_EnterProc((CHAR*)"CC", 21);
 	OPT_EnterProc((CHAR*)"LSH", 22);
@@ -1819,6 +1839,7 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"LONGINT", 6, OPM_LIntSize, &OPT_linttyp);
 	OPT_EnterTyp((CHAR*)"LONGREAL", 8, OPM_LRealSize, &OPT_lrltyp);
 	OPT_EnterTyp((CHAR*)"SHORTINT", 4, OPM_SIntSize, &OPT_sinttyp);
+	OPT_EnterDerivedType((CHAR*)"LINT", OPT_int64typ, &OPT_LIntObj);
 	OPT_EnterBoolConst((CHAR*)"FALSE", ((LONGINT)(0)));
 	OPT_EnterBoolConst((CHAR*)"TRUE", ((LONGINT)(1)));
 	OPT_EnterProc((CHAR*)"HALT", 0);

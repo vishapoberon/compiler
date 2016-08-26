@@ -285,6 +285,10 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_inttyp->strobj->linkadr = 2;
 	OPT_linttyp->strobj->linkadr = 2;
 	OPT_ainttyp->strobj->linkadr = 2;
+	OPT_int8typ->strobj->linkadr = 2;
+	OPT_int16typ->strobj->linkadr = 2;
+	OPT_int32typ->strobj->linkadr = 2;
+	OPT_int64typ->strobj->linkadr = 2;
 	OPT_lrltyp->strobj->linkadr = 2;
 	OPT_sinttyp->strobj->linkadr = 2;
 	OPT_booltyp->strobj->linkadr = 2;

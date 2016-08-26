@@ -156,8 +156,11 @@ VAR
   bytetyp*, booltyp*, chartyp*,
   sinttyp*, inttyp*, linttyp*,
   ainttyp*,
+  int8typ*, int16typ*, int32typ*, int64typ*,
   realtyp*, lrltyp*, settyp*, stringtyp*,
   niltyp*,  notyp*,  sysptrtyp*:            Struct;
+
+  LIntObj: Object;
 
   nofGmod*: SHORTINT;  (*nof imports*)
   GlbMod*:  ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
@@ -1135,6 +1138,13 @@ END Import;
     typ^.idfp := form; typ^.idfpdone := TRUE; res := typ
   END EnterTyp;
 
+  PROCEDURE EnterDerivedType(name: OPS.Name; typ: Struct; VAR obj: Object);
+  BEGIN
+    Insert(name, obj);
+    obj.mode := Typ;
+    obj.typ  := typ;
+  END EnterDerivedType;
+
   PROCEDURE EnterProc(name: OPS.Name; num: INTEGER);
     VAR obj: Object;
   BEGIN Insert(name, obj);
@@ -1142,14 +1152,19 @@ END Import;
   END EnterProc;
 
 BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
-  InitStruct(undftyp, Undef); InitStruct(notyp, NoTyp);
-  InitStruct(stringtyp, String); InitStruct(niltyp, NilTyp);
-  undftyp^.BaseTyp := undftyp;
+  InitStruct(undftyp,   Undef);  undftyp^.BaseTyp := undftyp;
+  InitStruct(notyp,     NoTyp);
+  InitStruct(stringtyp, String);
+  InitStruct(niltyp,    NilTyp);
 
   (*initialization of module SYSTEM*)
-  EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp);
-  EnterTyp("PTR", Pointer, OPM.PointerSize, sysptrtyp);
-  EnterTyp("ADRINT", Int, OPM.LIntSize, ainttyp);
+  EnterTyp("BYTE",   Byte,    OPM.ByteSize,    bytetyp);
+  EnterTyp("PTR",    Pointer, OPM.PointerSize, sysptrtyp);
+  EnterTyp("ADRINT", Int,     OPM.LIntSize,    ainttyp);
+  EnterTyp("INT8",   Int,     1,               int8typ);
+  EnterTyp("INT16",  Int,     2,               int16typ);
+  EnterTyp("INT32",  Int,     4,               int32typ);
+  EnterTyp("INT64",  Int,     8,               int64typ);
   EnterProc("ADR", adrfn);
   EnterProc("CC", ccfn);
   EnterProc("LSH", lshfn);
@@ -1173,6 +1188,10 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);
   EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
   EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);
+
+  (* Create LINT type as TYPE LINT = SYSTEM.INT64 *)
+  EnterDerivedType("LINT", int64typ, LIntObj);
+
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
   EnterBoolConst("TRUE",  1);

@@ -212,7 +212,7 @@ void OPC_Ident (OPT_Object obj)
 				OPM_WriteStringVar((void*)OPM_modName, ((LONGINT)(32)));
 			}
 			OPM_Write('_');
-		} else if ((obj == OPT_sysptrtyp->strobj || obj == OPT_ainttyp->strobj) || obj == OPT_bytetyp->strobj) {
+		} else if ((((((obj == OPT_sysptrtyp->strobj || obj == OPT_ainttyp->strobj) || obj == OPT_int8typ->strobj) || obj == OPT_int16typ->strobj) || obj == OPT_int32typ->strobj) || obj == OPT_int64typ->strobj) || obj == OPT_bytetyp->strobj) {
 			OPM_WriteString((CHAR*)"SYSTEM_", (LONGINT)8);
 		}
 		OPM_WriteStringVar((void*)obj->name, ((LONGINT)(256)));
