@@ -160,13 +160,13 @@ VAR
   realtyp*, lrltyp*, settyp*, stringtyp*,
   niltyp*,  notyp*,  sysptrtyp*:            Struct;
 
-  LIntObj: Object;
-
   nofGmod*: SHORTINT;  (*nof imports*)
   GlbMod*:  ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
 
   SelfName*:    OPS.Name;  (* name of module being compiled *)
   SYSimported*: BOOLEAN;
+
+  NextSize: ARRAY 20 OF Struct;  (* Lists integer types in SHORT/LONG ordering *)
 
 CONST
 
@@ -206,9 +206,36 @@ VAR
   extsf, sfpresent:    BOOLEAN;
   symExtended, symNew: BOOLEAN;
 
+
+
+
 PROCEDURE err(n: INTEGER);
 BEGIN OPM.err(n)
 END err;
+
+PROCEDURE IntType*(size: LONGINT): Struct;
+(* Selects smallest standard integer type for given size in bytes *)
+  VAR i: INTEGER;
+BEGIN
+  i := 1; WHILE (NextSize[i].size < size) & (NextSize[i+1] # NIL) DO INC(i) END;
+  RETURN NextSize[i];
+END IntType;
+
+PROCEDURE NextType*(x: Struct; dir: INTEGER): Struct;
+  VAR i: INTEGER;
+BEGIN
+  ASSERT(x.form IN intSet);
+  ASSERT((dir = 1) OR (dir = -1));
+  (* Not sure if StPar0 (which calls this) always gets the baseiest type. This
+     ASSERT will tell me. *)
+  ASSERT(x.BaseTyp = undftyp);
+  WHILE x.BaseTyp # undftyp DO ASSERT(x # x.BaseTyp); ASSERT(x.BaseTyp # NIL); x := x.BaseTyp END;
+  i := 0; WHILE (NextSize[i] # x) & (i < LEN(NextSize)) DO INC(i) END;
+  ASSERT(i < LEN(NextSize)-1);
+  RETURN NextSize[i+dir]
+END NextType;
+
+
 
 PROCEDURE NewConst*(): Const;
   VAR const: Const;
@@ -812,7 +839,12 @@ BEGIN
   ELSE
     obj := NewObj(); obj^.mnolev := -mno; obj^.vis := external;
     IF tag <= Pointer THEN  (* Constant *)
-      obj^.mode := Con; obj^.typ := impCtxt.ref[tag]; obj^.conval := NewConst(); InConstant(tag, obj^.conval)
+      obj^.mode := Con; obj^.conval := NewConst(); InConstant(tag, obj^.conval);
+      IF tag IN intSet THEN
+        obj.typ := IntType(OPM.SymRInt())
+      ELSE
+        obj^.typ := impCtxt.ref[tag];
+      END
     ELSIF tag >= Sxpro THEN
       obj^.conval := NewConst();
       obj^.conval^.intval := -1;
@@ -1033,7 +1065,7 @@ END Import;
       Char:   OPM.SymWCh(CHR(obj^.conval^.intval))
     | SInt,
       Int,
-      LInt:   OPM.SymWInt(obj^.conval^.intval)
+      LInt:   OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
     | Set:    OPM.SymWSet(obj^.conval^.setval)
     | Real:   rval := SHORT(obj^.conval^.realval); OPM.SymWReal(rval)
     | LReal:  OPM.SymWLReal(obj^.conval^.realval)
@@ -1138,13 +1170,6 @@ END Import;
     typ^.idfp := form; typ^.idfpdone := TRUE; res := typ
   END EnterTyp;
 
-  PROCEDURE EnterDerivedType(name: OPS.Name; typ: Struct; VAR obj: Object);
-  BEGIN
-    Insert(name, obj);
-    obj.mode := Typ;
-    obj.typ  := typ;
-  END EnterDerivedType;
-
   PROCEDURE EnterProc(name: OPS.Name; num: INTEGER);
     VAR obj: Object;
   BEGIN Insert(name, obj);
@@ -1160,7 +1185,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   (*initialization of module SYSTEM*)
   EnterTyp("BYTE",   Byte,    OPM.ByteSize,    bytetyp);
   EnterTyp("PTR",    Pointer, OPM.PointerSize, sysptrtyp);
-  EnterTyp("ADRINT", Int,     OPM.LIntSize,    ainttyp);
+  EnterTyp("ADRINT", Int,     OPM.PointerSize, ainttyp);
   EnterTyp("INT8",   Int,     1,               int8typ);
   EnterTyp("INT16",  Int,     2,               int16typ);
   EnterTyp("INT32",  Int,     4,               int32typ);
@@ -1188,10 +1213,6 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);
   EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
   EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);
-
-  (* Create LINT type as TYPE LINT = SYSTEM.INT64 *)
-  EnterDerivedType("LINT", int64typ, LIntObj);
-
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
   EnterBoolConst("TRUE",  1);
@@ -1231,7 +1252,17 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[String]  := stringtyp;
   impCtxt.ref[NilTyp]  := niltyp;
   impCtxt.ref[NoTyp]   := notyp;
-  impCtxt.ref[Pointer] := sysptrtyp
+  impCtxt.ref[Pointer] := sysptrtyp;
+
+  NextSize[1] := sinttyp;
+  NextSize[2] := inttyp;
+  NextSize[3] := linttyp;
+
+  NextSize[5] := int8typ;
+  NextSize[6] := int16typ;
+  NextSize[7] := int32typ;
+  NextSize[8] := int64typ
+
 END OPT.
 
 Objects:

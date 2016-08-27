@@ -105,41 +105,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     x^.conval := OPT.NewConst(); x^.conval^.setval := {}; RETURN x
   END EmptySet;
 
-
-  (* Integer size support *)
-
-  PROCEDURE SignedByteSize(n: LONGINT): INTEGER;
-  (* Returns number of bytes required to represent signed value n *)
-    VAR b: INTEGER;
-  BEGIN
-    IF n < 0 THEN n := -(n+1) END; (* Positive value in the range 0 - 7F.. *)
-    b := 1; WHILE (b < 8) & (ASH(n, -(8*b-1)) # 0) DO INC(b) END;
-    RETURN b
-  END SignedByteSize;
-
-  PROCEDURE ShorterSize(i: LONGINT): LONGINT;
-  BEGIN IF i >= OPM.LIntSize THEN RETURN OPM.IntSize ELSE RETURN OPM.SIntSize END
-  END ShorterSize;
-
-  PROCEDURE LongerSize(i: LONGINT): LONGINT;
-  BEGIN IF i <= OPM.SIntSize THEN RETURN OPM.IntSize ELSE RETURN OPM.LIntSize END
-  END LongerSize;
-
-  PROCEDURE IntType(size: LONGINT): OPT.Struct;
-  (* Selects smallest standard integer type for given size in bytes *)
-    VAR result: OPT.Struct;
-  BEGIN
-    IF    size <= OPT.sinttyp.size THEN result := OPT.sinttyp
-    ELSIF size <= OPT.inttyp.size  THEN result := OPT.inttyp
-    ELSE
-      result := OPT.linttyp
-    END;
-    IF size > OPT.linttyp.size THEN err(203) END; (* Number too large *)
-    RETURN result
-  END IntType;
-
   PROCEDURE SetIntType(node: OPT.Node);
-  BEGIN node.typ := IntType(SignedByteSize(node.conval.intval))
+    VAR b: INTEGER; n: LONGINT;
+  BEGIN
+    (* Determine number of bytes required to represent constant value *)
+    IF node.conval.intval >= 0 THEN n := node.conval.intval ELSE n := -(node.conval.intval+1) END;
+    b := 1; WHILE (b < 8) & (ASH(n, -(8*b-1)) # 0) DO INC(b) END;
+    node.typ := OPT.IntType(b)
   END SetIntType;
 
   PROCEDURE NewIntConst*(intval: LONGINT): OPT.Node;
@@ -494,7 +466,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPT.SInt,
        OPT.Int,
        OPT.LInt:    IF g IN OPT.intSet THEN
-                      IF x.typ.size <= y.typ.size THEN x.typ := y.typ ELSE x.typ := IntType(x.typ.size) END
+                      IF x.typ.size <= y.typ.size THEN x.typ := y.typ ELSE x.typ := OPT.IntType(x.typ.size) END
                     ELSIF g = OPT.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
                     ELSIF g = OPT.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
@@ -633,7 +605,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       IF f IN OPT.intSet THEN
         IF g IN OPT.intSet THEN
           IF f > g THEN SetIntType(x);
-            IF x^.typ^.form > g THEN err(203); x^.conval^.intval := 1 END
+            IF x.typ.size > typ.size THEN err(203); x^.conval^.intval := 1 END
           END
         ELSIF g IN OPT.realSet THEN x^.conval^.realval := x^.conval^.intval; x^.conval^.intval := OPM.ConstNotAlloc
         ELSE (*g = OPT.Char*) k := x^.conval^.intval;
@@ -1034,13 +1006,17 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END
     |OPT.shortfn:  (*SHORT*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF (f IN OPT.intSet) & (x.typ.size > OPM.SIntSize) THEN Convert(x, IntType(ShorterSize(x.typ.size)))
+                   ELSIF f IN OPT.intSet THEN
+                     typ := OPT.NextType(x.typ, -1);
+                     IF typ = NIL THEN err(111) ELSE Convert(x, typ) END
                    ELSIF f = OPT.LReal THEN Convert(x, OPT.realtyp)
                    ELSE err(111)
                    END
     |OPT.longfn:   (*LONG*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF (f IN OPT.intSet) & (x.typ.size < OPM.LIntSize) THEN Convert(x, IntType(LongerSize(x.typ.size)))
+                   ELSIF f IN OPT.intSet THEN
+                     typ := OPT.NextType(x.typ, 1);
+                     IF typ = NIL THEN err(111) ELSE Convert(x, typ) END
                    ELSIF f = OPT.Real THEN Convert(x, OPT.lrltyp)
                    ELSIF f = OPT.Char THEN Convert(x, OPT.linttyp)
                    ELSE err(111)

@@ -60,12 +60,6 @@ typedef float         REAL;
 typedef double        LONGREAL;
 typedef void*         SYSTEM_PTR;
 
-// Unsigned variants are for use by shift and rotate macros.
-
-typedef unsigned char U_SYSTEM_BYTE;
-typedef unsigned char U_CHAR;
-typedef unsigned char U_SHORTINT;
-
 // For 32 bit builds, the size of LONGINT depends on a make option:
 
 #if (__SIZEOF_POINTER__ == 8) || defined(LARGE) || defined(_WIN64)
@@ -80,8 +74,19 @@ typedef unsigned char U_SHORTINT;
   typedef unsigned long      U_LONGINT;
 #endif
 
+// Unsigned variants are for use by shift and rotate macros.
+
+typedef unsigned char U_SYSTEM_BYTE;
+typedef unsigned char U_CHAR;
+typedef unsigned char U_SHORTINT;
+
 typedef U_LONGINT SET;
 typedef U_LONGINT U_SET;
+
+typedef SYSTEM_CARD8  U_SYSTEM_INT8;
+typedef SYSTEM_CARD16 U_SYSTEM_INT16;
+typedef SYSTEM_CARD32 U_SYSTEM_INT32;
+typedef SYSTEM_CARD64 U_SYSTEM_INT64;
 
 
 // OS Memory allocation interfaces are in PlatformXXX.Mod

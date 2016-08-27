@@ -6,7 +6,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
     OPV, OPC, OPM,
     extTools, Strings, vt100;
 
-  VAR mname :  ARRAY 256 OF CHAR; (* noch *)
+  VAR mname: ARRAY 256 OF CHAR; (* noch *)
 
 
   PROCEDURE Module*(VAR done: BOOLEAN);
@@ -61,7 +61,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
     OPT.ainttyp.size   := OPM.PointerSize;
     OPT.lrltyp.size    := OPM.LRealSize;
     OPT.sinttyp.size   := OPM.SIntSize;
-    OPT.booltyp.size   := OPM.BoolSize;
+    OPT.booltyp.size   := OPM.BoolSize
   END PropagateElementaryTypeSizes;
 
 
@@ -129,5 +129,7 @@ BEGIN
   Platform.SetInterruptHandler(Trap);
   Platform.SetQuitHandler(Trap);
   Platform.SetBadInstructionHandler(Trap);
-  OPB.typSize := OPV.TypSize; OPT.typSize := OPV.TypSize; Translate
+  OPB.typSize := OPV.TypSize;
+  OPT.typSize := OPV.TypSize;
+  Translate
 END Vishap.

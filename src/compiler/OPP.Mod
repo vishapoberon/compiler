@@ -665,16 +665,16 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     END
   END ProcedureDeclaration;
 
-  PROCEDURE CaseLabelList(VAR lab: OPT.Node; LabelForm: INTEGER; VAR n: INTEGER; VAR tab: CaseTable);
+  PROCEDURE CaseLabelList(VAR lab: OPT.Node; LabelTyp: OPT.Struct; VAR n: INTEGER; VAR tab: CaseTable);
     VAR x, y, lastlab: OPT.Node; i, f: INTEGER; xval, yval: LONGINT;
   BEGIN lab := NIL; lastlab := NIL;
     LOOP ConstExpression(x); f := x^.typ^.form;
       IF f IN OPT.intSet + {OPT.Char} THEN  xval := x^.conval^.intval
       ELSE err(61); xval := 1
-      END ;
+      END;
       IF f IN OPT.intSet THEN
-        IF LabelForm < f THEN err(60) END
-      ELSIF LabelForm # f THEN err(60)
+        IF ~(LabelTyp.form IN OPT.intSet) OR (LabelTyp.size < x.typ.size) THEN err(60) END
+      ELSIF LabelTyp.form # f THEN err(60)
       END ;
       IF sym = OPS.upto THEN
         OPS.Get(sym); ConstExpression(y); yval := y^.conval^.intval;
@@ -719,7 +719,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       CheckSym(OPS.of); cases := NIL; lastcase := NIL; n := 0;
       LOOP
         IF sym < OPS.bar THEN
-          CaseLabelList(lab, x^.typ^.form, n, tab);
+          CaseLabelList(lab, x^.typ, n, tab);
           CheckSym(OPS.colon); StatSeq(y);
           OPB.Construct(OPT.Ncasedo, lab, y); OPB.Link(cases, lastcase, lab)
         END ;
@@ -817,7 +817,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
             END ;
             z := OPB.NewLeaf(t); OPB.Assign(z, y); SetPos(z); OPB.Link(stat, last, z);
             y := OPB.NewLeaf(t)
-          ELSIF (y^.typ^.form < OPT.SInt) OR (y^.typ^.form > x^.left^.typ^.form) THEN err(113)
+          ELSIF ~(y^.typ^.form IN OPT.intSet) OR (y.typ.size > x.left.typ.size) THEN err(113)
           END ;
           OPB.Link(stat, last, x);
           IF sym = OPS.by THEN OPS.Get(sym); ConstExpression(z) ELSE z := OPB.NewIntConst(1) END ;

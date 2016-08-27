@@ -565,6 +565,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END AlignSize;
   *)
 
+
+
+
+  (* Integer size support *)
+
   PROCEDURE SignedMaximum*(bytecount: LONGINT): LONGINT;
   VAR result: LONGINT;
   BEGIN
@@ -576,6 +581,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE SignedMinimum*(bytecount: LONGINT): LONGINT;
   BEGIN RETURN -SignedMaximum(bytecount) - 1
   END SignedMinimum;
+
+
+
 
 
 
