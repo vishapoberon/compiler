@@ -96,6 +96,7 @@ translate:
 	@printf "  ADRSIZE:   %s\n" $(ADRSIZE)
 	@printf "  ALIGNMENT: %s\n" $(ALIGNMENT)
 	@mkdir -p $(BUILDDIR)
+	@rm -f $(BUILDDIR)/*.sym
 
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -SsfF    -B$(INTSIZE)$(ADRSIZE)$(ALIGNMENT) ../../Configuration.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -SsfF    -B$(INTSIZE)$(ADRSIZE)$(ALIGNMENT) ../../src/system/Platform$(PLATFORM).Mod

@@ -548,24 +548,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END VerboseListSizes;
 
 
-  (*
-  PROCEDURE AlignSize*(size: LONGINT): INTEGER;
-    VAR align: INTEGER;
-  BEGIN
-    IF size < Alignment THEN
-      IF    size > 8 THEN align := 16
-      ELSIF size > 4 THEN align := 8
-      ELSIF size > 2 THEN align := 4
-      ELSE                align := SHORT(size)
-      END
-    ELSE
-      align := Alignment
-    END;
-    RETURN align
-  END AlignSize;
-  *)
-
-
 
 
   (* Integer size support *)
