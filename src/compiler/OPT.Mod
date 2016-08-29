@@ -229,7 +229,9 @@ BEGIN
   (* Not sure if StPar0 (which calls this) always gets the baseiest type. This
      ASSERT will tell me. *)
   ASSERT(x.BaseTyp = undftyp);
+  (*
   WHILE x.BaseTyp # undftyp DO ASSERT(x # x.BaseTyp); ASSERT(x.BaseTyp # NIL); x := x.BaseTyp END;
+  *)
   i := 0; WHILE (NextSize[i] # x) & (i < LEN(NextSize)) DO INC(i) END;
   ASSERT(i < LEN(NextSize)-1);
   RETURN NextSize[i+dir]
@@ -701,6 +703,26 @@ BEGIN
   RETURN obj
 END InTProc;
 
+
+PROCEDURE InTyp(tag: LONGINT): Struct;
+  VAR size: LONGINT;
+BEGIN
+  IF tag IN intSet THEN
+    size := OPM.SymRInt();
+    (*
+    IF size = 123456789 THEN (* Expected magic number while testing *)
+      size := OPM.SymRInt();
+    ELSE
+      OPM.LogWLn; OPM.LogWStr("Missing constant magic number. size = "); OPM.LogWNum(size,1);
+    END;
+    *)
+    RETURN IntType(size)
+  ELSE
+    RETURN impCtxt.ref[tag]
+  END
+END InTyp;
+
+
 PROCEDURE InStruct(VAR typ: Struct);
   VAR mno: SHORTINT; ref: INTEGER; tag: LONGINT; name: OPS.Name;
       t: Struct; obj, last, fld, old, dummy: Object;
@@ -781,7 +803,7 @@ BEGIN
     ELSE     OPM.LogWStr("unhandled case at InStruct, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
     END;
     IF ref = impCtxt.minr THEN
-      WHILE (ref < impCtxt.nofr) (*OR ((ref >= Int8) & (ref <= Int64))*) DO
+      WHILE (ref < impCtxt.nofr) DO
         t := impCtxt.ref[ref]; FPrintStr(t);
         obj := t^.strobj;  (* obj^.typ^.strobj = obj, else obj^.fprint differs (alias) *)
         IF obj^.name # "" THEN FPrintObj(obj) END;
@@ -840,11 +862,7 @@ BEGIN
     obj := NewObj(); obj^.mnolev := -mno; obj^.vis := external;
     IF tag <= Pointer THEN  (* Constant *)
       obj^.mode := Con; obj^.conval := NewConst(); InConstant(tag, obj^.conval);
-      IF tag IN intSet THEN
-        obj.typ := IntType(OPM.SymRInt())
-      ELSE
-        obj^.typ := impCtxt.ref[tag];
-      END
+      obj^.typ := InTyp(tag)
     ELSIF tag >= Sxpro THEN
       obj^.conval := NewConst();
       obj^.conval^.intval := -1;
@@ -1015,10 +1033,18 @@ END Import;
     END
   END OutTProcs;
 
+
+  PROCEDURE OutSize(size: LONGINT);
+  BEGIN
+    (* OPM.SymWInt(123456789); *)
+    OPM.SymWInt(size)
+  END OutSize;
+
+
   PROCEDURE OutStr(typ: Struct);  (* OPV.TypeAlloc already applied *)
     VAR strobj: Object;
   BEGIN
-    IF (typ^.ref < expCtxt.ref) (*OR (typ^.ref >= Int8) & (typ^.ref <= Int64)*) THEN OPM.SymWInt(-typ^.ref)
+    IF (typ^.ref < expCtxt.ref) THEN OPM.SymWInt(-typ^.ref);
     ELSE
       OPM.SymWInt(Sstruct);
       typ^.ref := expCtxt.ref; INC(expCtxt.ref);
@@ -1065,7 +1091,7 @@ END Import;
       Char:   OPM.SymWCh(CHR(obj^.conval^.intval))
     | SInt,
       Int,
-      LInt:   OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
+      LInt:   OPM.SymWInt(obj^.conval^.intval); OutSize(obj.typ.size)
     | Set:    OPM.SymWSet(obj^.conval^.setval)
     | Real:   rval := SHORT(obj^.conval^.realval); OPM.SymWReal(rval)
     | LReal:  OPM.SymWLReal(obj^.conval^.realval)
