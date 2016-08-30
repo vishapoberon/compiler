@@ -624,7 +624,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                           IF SideEffects(n) THEN OPM.WriteString("__MODF(")
                                           ELSE OPM.WriteString("__MOD(")
                                           END;
-	                           ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
+	                            ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
                               END ;
                               expr(l, MinPrec);
                               OPM.WriteString(Comma);

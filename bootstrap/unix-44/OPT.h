@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/26] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -92,12 +92,14 @@ import void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
 import void OPT_Init (OPS_Name name, SET opt);
 import void OPT_Insert (OPS_Name name, OPT_Object *obj);
 import void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
+import OPT_Struct OPT_IntType (LONGINT size);
 import OPT_Const OPT_NewConst (void);
 import OPT_ConstExt OPT_NewExt (void);
 import OPT_Node OPT_NewNode (SHORTINT class);
 import OPT_Object OPT_NewObj (void);
 import OPT_Struct OPT_NewStr (SHORTINT form, SHORTINT comp);
 import void OPT_OpenScope (SHORTINT level, OPT_Object owner);
+import OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INTEGER dir);
 import void *OPT__init(void);
 
 

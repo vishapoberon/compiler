@@ -1007,7 +1007,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.shortfn:  (*SHORT*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f IN OPT.intSet THEN
-                     typ := OPT.NextType(x.typ, -1);
+                     typ := OPT.ShorterOrLongerType(x.typ, -1);
                      IF typ = NIL THEN err(111) ELSE Convert(x, typ) END
                    ELSIF f = OPT.LReal THEN Convert(x, OPT.realtyp)
                    ELSE err(111)
@@ -1015,7 +1015,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.longfn:   (*LONG*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f IN OPT.intSet THEN
-                     typ := OPT.NextType(x.typ, 1);
+                     typ := OPT.ShorterOrLongerType(x.typ, 1);
                      IF typ = NIL THEN err(111) ELSE Convert(x, typ) END
                    ELSIF f = OPT.Real THEN Convert(x, OPT.lrltyp)
                    ELSIF f = OPT.Char THEN Convert(x, OPT.linttyp)

@@ -166,7 +166,7 @@ VAR
   SelfName*:    OPS.Name;  (* name of module being compiled *)
   SYSimported*: BOOLEAN;
 
-  NextSize: ARRAY 20 OF Struct;  (* Lists integer types in SHORT/LONG ordering *)
+  IntTypes: ARRAY 20 OF Struct;  (* Lists integer types in SHORT/LONG ordering *)
 
 CONST
 
@@ -217,11 +217,11 @@ PROCEDURE IntType*(size: LONGINT): Struct;
 (* Selects smallest standard integer type for given size in bytes *)
   VAR i: INTEGER;
 BEGIN
-  i := 1; WHILE (NextSize[i].size < size) & (NextSize[i+1] # NIL) DO INC(i) END;
-  RETURN NextSize[i];
+  i := 1; WHILE (IntTypes[i].size < size) & (IntTypes[i+1] # NIL) DO INC(i) END;
+  RETURN IntTypes[i];
 END IntType;
 
-PROCEDURE NextType*(x: Struct; dir: INTEGER): Struct;
+PROCEDURE ShorterOrLongerType*(x: Struct; dir: INTEGER): Struct;
   VAR i: INTEGER;
 BEGIN
   ASSERT(x.form IN intSet);
@@ -232,10 +232,10 @@ BEGIN
   (*
   WHILE x.BaseTyp # undftyp DO ASSERT(x # x.BaseTyp); ASSERT(x.BaseTyp # NIL); x := x.BaseTyp END;
   *)
-  i := 0; WHILE (NextSize[i] # x) & (i < LEN(NextSize)) DO INC(i) END;
-  ASSERT(i < LEN(NextSize)-1);
-  RETURN NextSize[i+dir]
-END NextType;
+  i := 0; WHILE (IntTypes[i] # x) & (i < LEN(IntTypes)) DO INC(i) END;
+  ASSERT(i < LEN(IntTypes)-1);
+  RETURN IntTypes[i+dir]
+END ShorterOrLongerType;
 
 
 
@@ -705,18 +705,9 @@ END InTProc;
 
 
 PROCEDURE InTyp(tag: LONGINT): Struct;
-  VAR size: LONGINT;
 BEGIN
   IF tag IN intSet THEN
-    size := OPM.SymRInt();
-    (*
-    IF size = 123456789 THEN (* Expected magic number while testing *)
-      size := OPM.SymRInt();
-    ELSE
-      OPM.LogWLn; OPM.LogWStr("Missing constant magic number. size = "); OPM.LogWNum(size,1);
-    END;
-    *)
-    RETURN IntType(size)
+    RETURN IntType(OPM.SymRInt())
   ELSE
     RETURN impCtxt.ref[tag]
   END
@@ -728,8 +719,7 @@ PROCEDURE InStruct(VAR typ: Struct);
       t: Struct; obj, last, fld, old, dummy: Object;
 BEGIN
   tag := OPM.SymRInt();
-  IF tag # Sstruct THEN
-    typ := impCtxt.ref[-tag]
+  IF tag # Sstruct THEN typ := InTyp(-tag)
   ELSE
     ref := impCtxt.nofr; INC(impCtxt.nofr);
     IF ref < impCtxt.minr THEN impCtxt.minr := ref END;
@@ -804,7 +794,7 @@ BEGIN
     END;
     IF ref = impCtxt.minr THEN
       WHILE (ref < impCtxt.nofr) DO
-        t := impCtxt.ref[ref]; FPrintStr(t);
+        t := InTyp(ref); FPrintStr(t);
         obj := t^.strobj;  (* obj^.typ^.strobj = obj, else obj^.fprint differs (alias) *)
         IF obj^.name # "" THEN FPrintObj(obj) END;
         old := impCtxt.old[ref];
@@ -998,7 +988,7 @@ END Import;
     END
   END OutFlds;
 
-  PROCEDURE OutSign(result: Struct; par: Object);
+  PROCEDURE OutSign(result: Struct; par: Object);  (* Procedure signature *)
   BEGIN
     OutStr(result);
     WHILE par # NIL DO
@@ -1010,7 +1000,7 @@ END Import;
     OPM.SymWInt(Send)
   END OutSign;
 
-  PROCEDURE OutTProcs(typ: Struct; obj: Object);
+  PROCEDURE OutTProcs(typ: Struct; obj: Object); (* Type bound procedures *)
   BEGIN
     IF obj # NIL THEN
       OutTProcs(typ, obj^.left);
@@ -1033,18 +1023,11 @@ END Import;
     END
   END OutTProcs;
 
-
-  PROCEDURE OutSize(size: LONGINT);
-  BEGIN
-    (* OPM.SymWInt(123456789); *)
-    OPM.SymWInt(size)
-  END OutSize;
-
-
   PROCEDURE OutStr(typ: Struct);  (* OPV.TypeAlloc already applied *)
     VAR strobj: Object;
   BEGIN
     IF (typ^.ref < expCtxt.ref) THEN OPM.SymWInt(-typ^.ref);
+      IF typ.ref IN intSet THEN OPM.SymWInt(typ.size) END
     ELSE
       OPM.SymWInt(Sstruct);
       typ^.ref := expCtxt.ref; INC(expCtxt.ref);
@@ -1091,7 +1074,7 @@ END Import;
       Char:   OPM.SymWCh(CHR(obj^.conval^.intval))
     | SInt,
       Int,
-      LInt:   OPM.SymWInt(obj^.conval^.intval); OutSize(obj.typ.size)
+      LInt:   OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
     | Set:    OPM.SymWSet(obj^.conval^.setval)
     | Real:   rval := SHORT(obj^.conval^.realval); OPM.SymWReal(rval)
     | LReal:  OPM.SymWLReal(obj^.conval^.realval)
@@ -1280,14 +1263,14 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[NoTyp]   := notyp;
   impCtxt.ref[Pointer] := sysptrtyp;
 
-  NextSize[1] := sinttyp;
-  NextSize[2] := inttyp;
-  NextSize[3] := linttyp;
+  IntTypes[1] := sinttyp;
+  IntTypes[2] := inttyp;
+  IntTypes[3] := linttyp;
 
-  NextSize[5] := int8typ;
-  NextSize[6] := int16typ;
-  NextSize[7] := int32typ;
-  NextSize[8] := int64typ
+  IntTypes[5] := int8typ;
+  IntTypes[6] := int16typ;
+  IntTypes[7] := int32typ;
+  IntTypes[8] := int64typ
 
 END OPT.
 

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/26] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPB.h"
@@ -25,7 +25,7 @@ export LONGINT *OPP__1__typ;
 static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq);
-static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP_CaseTable tab);
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, OPP_CaseTable tab);
 static void OPP_CheckMark (SHORTINT *vis);
 static void OPP_CheckSym (INTEGER s);
 static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_);
@@ -1164,7 +1164,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 	ProcedureDeclaration__16_s = _s.lnk;
 }
 
-static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP_CaseTable tab)
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, OPP_CaseTable tab)
 {
 	OPT_Node x = NIL, y = NIL, lastlab = NIL;
 	INTEGER i, f;
@@ -1181,10 +1181,10 @@ static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP
 			xval = 1;
 		}
 		if (__IN(f, 0x70)) {
-			if (LabelForm < f) {
+			if (!__IN(LabelTyp->form, 0x70) || LabelTyp->size < x->typ->size) {
 				OPP_err(60);
 			}
-		} else if (LabelForm != f) {
+		} else if ((int)LabelTyp->form != f) {
 			OPP_err(60);
 		}
 		if (OPP_sym == 21) {
@@ -1263,7 +1263,7 @@ static void CasePart__31 (OPT_Node *x)
 	n = 0;
 	for (;;) {
 		if (OPP_sym < 40) {
-			OPP_CaseLabelList(&lab, (*x)->typ->form, &n, tab);
+			OPP_CaseLabelList(&lab, (*x)->typ, &n, tab);
 			OPP_CheckSym(20);
 			OPP_StatSeq(&y);
 			OPB_Construct(17, &lab, y);
@@ -1472,7 +1472,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					SetPos__35(z);
 					OPB_Link(&*stat, &last, z);
 					y = OPB_NewLeaf(t);
-				} else if (y->typ->form < 4 || y->typ->form > x->left->typ->form) {
+				} else if (!__IN(y->typ->form, 0x70) || y->typ->size > x->left->typ->size) {
 					OPP_err(113);
 				}
 				OPB_Link(&*stat, &last, x);

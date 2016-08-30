@@ -183,7 +183,7 @@ static int __str_cmp(CHAR *x, CHAR *y){
 #define __ABSFD(x)      SYSTEM_ABSD((double)(x))
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
-#define __IN(x, s)      (((s)>>(x))&1)
+#define __IN(x, s)      ((x)>=0 && (x)<(8*sizeof(SET)) && ((((U_SET)(s))>>(x))&1))
 #define __SETOF(x)      ((SET)1<<(x))
 #define __SETRNG(l, h)  ((~(SET)0<<(l))&~(SET)0>>(8*sizeof(SET)-1-(h)))
 #define __MASK(x, m)    ((x)&~(m))
