@@ -154,15 +154,15 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 			case 'B': 
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_IntSize = s[__X(i, s__len)] - 48;
+					OPM_IntSize = (SYSTEM_INT16)s[__X(i, s__len)] - 48;
 				}
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_PointerSize = s[__X(i, s__len)] - 48;
+					OPM_PointerSize = (SYSTEM_INT16)s[__X(i, s__len)] - 48;
 				}
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_Alignment = s[__X(i, s__len)] - 48;
+					OPM_Alignment = (SYSTEM_INT16)s[__X(i, s__len)] - 48;
 				}
 				__ASSERT(OPM_IntSize == 2 || OPM_IntSize == 4, 0);
 				__ASSERT(OPM_PointerSize == 4 || OPM_PointerSize == 8, 0);
@@ -458,7 +458,7 @@ static void OPM_ShowLine (LONGINT pos)
 	if (pos >= OPM_ErrorLineLimitPos) {
 		pos = OPM_ErrorLineLimitPos - 1;
 	}
-	i = (pos - OPM_ErrorLineStartPos);
+	i = (SYSTEM_INT16)(pos - OPM_ErrorLineStartPos);
 	while (i > 0) {
 		OPM_LogW(' ');
 		i -= 1;
@@ -532,12 +532,12 @@ void OPM_err (INTEGER n)
 
 void OPM_FPrint (LONGINT *fp, LONGINT val)
 {
-	*fp = __ROTL((LONGINT)(__VAL(SET, *fp) ^ __VAL(SET, val)), 1, LONGINT);
+	*fp = __ROTL((LONGINT)((SET)*fp ^ (SET)val), 1, LONGINT);
 }
 
 void OPM_FPrintSet (LONGINT *fp, SET set)
 {
-	OPM_FPrint(&*fp, __VAL(LONGINT, set));
+	OPM_FPrint(&*fp, (LONGINT)set);
 }
 
 void OPM_FPrintReal (LONGINT *fp, REAL real)
@@ -563,13 +563,13 @@ static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONG
 	if (((*S).class == 1 && __STRCMP((*S).s, name) == 0)) {
 		Texts_Scan(&*S, S__typ);
 		if ((*S).class == 3) {
-			*size = (*S).i;
+			*size = (SYSTEM_INT16)(*S).i;
 			Texts_Scan(&*S, S__typ);
 		} else {
 			OPM_Mark(-157, -1);
 		}
 		if ((*S).class == 3) {
-			*align = (*S).i;
+			*align = (SYSTEM_INT16)(*S).i;
 			Texts_Scan(&*S, S__typ);
 		} else {
 			OPM_Mark(-157, -1);
@@ -753,7 +753,7 @@ void OPM_SymWInt (LONGINT i)
 
 void OPM_SymWSet (SET s)
 {
-	Files_WriteNum(&OPM_newSF, Files_Rider__typ, __VAL(LONGINT, s));
+	Files_WriteNum(&OPM_newSF, Files_Rider__typ, (LONGINT)s);
 }
 
 void OPM_SymWReal (REAL r)
@@ -819,13 +819,13 @@ void OPM_WriteHex (LONGINT i)
 {
 	CHAR s[3];
 	INTEGER digit;
-	digit = __ASHR(i, 4);
+	digit = __ASHR((SYSTEM_INT16)i, 4);
 	if (digit < 10) {
 		s[0] = (CHAR)(48 + digit);
 	} else {
 		s[0] = (CHAR)(87 + digit);
 	}
-	digit = __MASK(i, -16);
+	digit = __MASK((SYSTEM_INT16)i, -16);
 	if (digit < 10) {
 		s[1] = (CHAR)(48 + digit);
 	} else {

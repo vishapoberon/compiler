@@ -112,7 +112,7 @@ void Strings_Extract (CHAR *source, LONGINT source__len, INTEGER pos, INTEGER n,
 	INTEGER len, destLen, i;
 	__DUP(source, source__len, CHAR);
 	len = Strings_Length(source, source__len);
-	destLen = dest__len - 1;
+	destLen = (SYSTEM_INT16)dest__len - 1;
 	if (pos < 0) {
 		pos = 0;
 	}

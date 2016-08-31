@@ -67,9 +67,9 @@ void Reals_SetExpo (REAL *x, INTEGER ex)
 {
 	CHAR c;
 	__GET((SYSTEM_ADRINT)x + 3, c, CHAR);
-	__PUT((SYSTEM_ADRINT)x + 3, (CHAR)(__ASHL(__ASHR(c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
+	__PUT((SYSTEM_ADRINT)x + 3, (CHAR)(__ASHL(__ASHR((SYSTEM_INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
 	__GET((SYSTEM_ADRINT)x + 2, c, CHAR);
-	__PUT((SYSTEM_ADRINT)x + 2, (CHAR)(__MASK(c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
+	__PUT((SYSTEM_ADRINT)x + 2, (CHAR)(__MASK((SYSTEM_INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
 }
 
 INTEGER Reals_ExpoL (LONGREAL x)
@@ -136,8 +136,8 @@ static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LO
 	l = b__len;
 	while (i < l) {
 		by = __VAL(CHAR, b[__X(i, b__len)]);
-		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR(by, 4));
-		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK(by, -16));
+		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((SYSTEM_INT16)by, 4));
+		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((SYSTEM_INT16)by, -16));
 		i += 1;
 	}
 }

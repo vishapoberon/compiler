@@ -174,7 +174,7 @@ OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INTEGER dir)
 {
 	OPT_Struct _o_result;
 	INTEGER i;
-	__ASSERT(__IN(x->form, 0x70), 0);
+	__ASSERT(x->form == 5, 0);
 	__ASSERT(dir == 1 || dir == -1, 0);
 	__ASSERT(x->BaseTyp == OPT_undftyp, 0);
 	i = 0;
@@ -650,7 +650,7 @@ void OPT_FPrintObj (OPT_Object obj)
 			f = obj->typ->form;
 			OPM_FPrint(&fprint, f);
 			switch (f) {
-				case 2: case 3: case 4: case 5: case 6: 
+				case 2: case 3: case 5: 
 					OPM_FPrint(&fprint, obj->conval->intval);
 					break;
 				case 9: 
@@ -851,7 +851,7 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 			OPM_SymRCh(&ch);
 			conval->intval = ch;
 			break;
-		case 4: case 5: case 6: 
+		case 5: 
 			conval->intval = OPM_SymRInt();
 			break;
 		case 9: 
@@ -980,7 +980,7 @@ static OPT_Object OPT_InTProc (SHORTINT mno)
 static OPT_Struct OPT_InTyp (LONGINT tag)
 {
 	OPT_Struct _o_result;
-	if (__IN(tag, 0x70)) {
+	if (tag == 5) {
 		_o_result = OPT_IntType(OPM_SymRInt());
 		return _o_result;
 	} else {
@@ -1440,7 +1440,7 @@ static void OPT_OutStr (OPT_Struct typ)
 	OPT_Object strobj = NIL;
 	if (typ->ref < OPT_expCtxt.ref) {
 		OPM_SymWInt(-typ->ref);
-		if (__IN(typ->ref, 0x70)) {
+		if (typ->ref == 5) {
 			OPM_SymWInt(typ->size);
 		}
 	} else {
@@ -1538,7 +1538,7 @@ static void OPT_OutConstant (OPT_Object obj)
 		case 2: case 3: 
 			OPM_SymWCh((CHAR)obj->conval->intval);
 			break;
-		case 4: case 5: case 6: 
+		case 5: 
 			OPM_SymWInt(obj->conval->intval);
 			OPM_SymWInt(obj->typ->size);
 			break;
@@ -1877,7 +1877,7 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"INTEGER", 5, OPM_IntSize, &OPT_inttyp);
 	OPT_EnterTyp((CHAR*)"LONGINT", 5, OPM_LIntSize, &OPT_linttyp);
 	OPT_EnterTyp((CHAR*)"LONGREAL", 8, OPM_LRealSize, &OPT_lrltyp);
-	OPT_EnterTyp((CHAR*)"SHORTINT", 4, OPM_SIntSize, &OPT_sinttyp);
+	OPT_EnterTyp((CHAR*)"SHORTINT", 5, OPM_SIntSize, &OPT_sinttyp);
 	OPT_EnterBoolConst((CHAR*)"FALSE", 0);
 	OPT_EnterBoolConst((CHAR*)"TRUE", 1);
 	OPT_EnterProc((CHAR*)"HALT", 0);
@@ -1905,9 +1905,7 @@ export void *OPT__init(void)
 	OPT_impCtxt.ref[1] = OPT_bytetyp;
 	OPT_impCtxt.ref[2] = OPT_booltyp;
 	OPT_impCtxt.ref[3] = OPT_chartyp;
-	OPT_impCtxt.ref[4] = OPT_sinttyp;
 	OPT_impCtxt.ref[5] = OPT_inttyp;
-	OPT_impCtxt.ref[6] = OPT_linttyp;
 	OPT_impCtxt.ref[7] = OPT_realtyp;
 	OPT_impCtxt.ref[8] = OPT_lrltyp;
 	OPT_impCtxt.ref[9] = OPT_settyp;

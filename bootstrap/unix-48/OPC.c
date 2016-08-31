@@ -179,7 +179,7 @@ static INTEGER OPC_PerfectHash (CHAR *s, LONGINT s__len)
 	i = 0;
 	h = 0;
 	while ((s[__X(i, s__len)] != 0x00 && i < 5)) {
-		h = 3 * h + s[__X(i, s__len)];
+		h = 3 * h + (SYSTEM_INT16)s[__X(i, s__len)];
 		i += 1;
 	}
 	_o_result = (int)__MOD(h, 105);
@@ -759,7 +759,7 @@ static void OPC_CProcDefs (OPT_Object obj, INTEGER vis)
 	INTEGER _for__9;
 	if (obj != NIL) {
 		OPC_CProcDefs(obj->left, vis);
-		if ((((obj->mode == 9 && obj->vis >= vis)) && obj->adr == 1)) {
+		if ((((obj->mode == 9 && (SYSTEM_INT16)obj->vis >= vis)) && obj->adr == 1)) {
 			ext = obj->conval->ext;
 			i = 1;
 			if (((*ext)[1] != '#' && !(OPC_Prefixed(ext, (CHAR*)"extern ", 8) || OPC_Prefixed(ext, (CHAR*)"import ", 8)))) {
@@ -768,7 +768,7 @@ static void OPC_CProcDefs (OPT_Object obj, INTEGER vis)
 				OPC_DeclareParams(obj->link, 1);
 				OPM_Write(0x09);
 			}
-			_for__9 = (*obj->conval->ext)[0];
+			_for__9 = (SYSTEM_INT16)(*obj->conval->ext)[0];
 			i = i;
 			while (i <= _for__9) {
 				OPM_Write((*obj->conval->ext)[__X(i, 256)]);
@@ -1000,7 +1000,7 @@ static void OPC_IdentList (OPT_Object obj, INTEGER vis)
 	first = 1;
 	while ((obj != NIL && obj->mode != 13)) {
 		if ((__IN(vis, 0x05) || (vis == 1 && obj->vis != 0)) || (vis == 3 && !obj->leaf)) {
-			if (obj->typ != base || obj->vis != lastvis) {
+			if (obj->typ != base || (SYSTEM_INT16)obj->vis != lastvis) {
 				if (!first) {
 					OPC_EndStat();
 				}
@@ -1154,7 +1154,7 @@ static void OPC_IncludeImports (OPT_Object obj, INTEGER vis)
 {
 	if (obj != NIL) {
 		OPC_IncludeImports(obj->left, vis);
-		if ((((obj->mode == 11 && obj->mnolev != 0)) && OPT_GlbMod[__X(-obj->mnolev, 64)]->vis >= vis)) {
+		if ((((obj->mode == 11 && obj->mnolev != 0)) && (SYSTEM_INT16)OPT_GlbMod[__X(-obj->mnolev, 64)]->vis >= vis)) {
 			OPC_Include(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, 256);
 		}
 		OPC_IncludeImports(obj->right, vis);
@@ -1782,7 +1782,7 @@ void OPC_TypeOf (OPT_Object ap)
 	INTEGER i;
 	__ASSERT(ap->typ->comp == 4, 0);
 	if (ap->mode == 2) {
-		if (ap->mnolev != OPM_level) {
+		if ((SYSTEM_INT16)ap->mnolev != OPM_level) {
 			OPM_WriteStringVar((void*)ap->scope->name, 256);
 			OPM_WriteString((CHAR*)"_s->", 5);
 			OPC_Ident(ap);
@@ -1850,7 +1850,7 @@ static void OPC_StringLiteral (CHAR *s, LONGINT s__len, LONGINT l)
 	OPM_Write('"');
 	i = 0;
 	while (i < l) {
-		c = s[__X(i, s__len)];
+		c = (SYSTEM_INT16)s[__X(i, s__len)];
 		if (c < 32 || c > 126) {
 			OPM_Write('\\');
 			OPM_Write((CHAR)(48 + __ASHR(c, 6)));
@@ -1878,7 +1878,7 @@ void OPC_Case (LONGINT caseVal, INTEGER form)
 		case 3: 
 			OPC_CharacterLiteral(caseVal);
 			break;
-		case 4: case 5: case 6: 
+		case 5: 
 			OPM_WriteInt(caseVal);
 			break;
 		default: 
@@ -1976,7 +1976,7 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 		case 3: 
 			OPC_CharacterLiteral(con->intval);
 			break;
-		case 4: case 5: case 6: 
+		case 5: 
 			OPM_WriteInt(con->intval);
 			break;
 		case 7: 

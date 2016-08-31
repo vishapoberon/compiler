@@ -1879,7 +1879,7 @@ void OPC_Case (LONGINT caseVal, INTEGER form)
 		case 3: 
 			OPC_CharacterLiteral(caseVal);
 			break;
-		case 4: case 5: case 6: 
+		case 5: 
 			OPM_WriteInt(caseVal);
 			break;
 		default: 
@@ -1977,7 +1977,7 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 		case 3: 
 			OPC_CharacterLiteral(con->intval);
 			break;
-		case 4: case 5: case 6: 
+		case 5: 
 			OPM_WriteInt(con->intval);
 			break;
 		case 7: 

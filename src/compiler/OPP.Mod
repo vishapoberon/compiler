@@ -74,7 +74,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     IF sym = OPS.lbrak THEN OPS.Get(sym);
 	  IF ~OPT.SYSimported THEN err(135) END;
 	  ConstExpression(x);
-      IF x^.typ^.form IN OPT.intSet THEN sf := x^.conval^.intval;
+      IF x^.typ^.form = OPT.Int THEN sf := x^.conval^.intval;
         IF (sf < 0) OR (sf > OPM.MaxSysFlag) THEN err(220); sf := 0 END
       ELSE err(51); sf := 0
       END ;
@@ -152,7 +152,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       END
     ELSE
       typ := OPT.NewStr(OPT.Comp, OPT.Array); typ^.sysflag := sysflag; ConstExpression(x);
-      IF x^.typ^.form IN OPT.intSet THEN n := x^.conval^.intval;
+      IF x^.typ^.form = OPT.Int THEN n := x^.conval^.intval;
         IF (n <= 0) OR (n > OPM.MaxIndex) THEN err(63); n := 1 END
       ELSE err(51); n := 1
       END ;
@@ -669,16 +669,16 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     VAR x, y, lastlab: OPT.Node; i, f: INTEGER; xval, yval: LONGINT;
   BEGIN lab := NIL; lastlab := NIL;
     LOOP ConstExpression(x); f := x^.typ^.form;
-      IF f IN OPT.intSet + {OPT.Char} THEN  xval := x^.conval^.intval
+      IF f IN {OPT.Int, OPT.Char} THEN  xval := x^.conval^.intval
       ELSE err(61); xval := 1
       END;
-      IF f IN OPT.intSet THEN
-        IF ~(LabelTyp.form IN OPT.intSet) OR (LabelTyp.size < x.typ.size) THEN err(60) END
+      IF f = OPT.Int THEN
+        IF ~(LabelTyp.form = OPT.Int) OR (LabelTyp.size < x.typ.size) THEN err(60) END
       ELSIF LabelTyp.form # f THEN err(60)
       END ;
       IF sym = OPS.upto THEN
         OPS.Get(sym); ConstExpression(y); yval := y^.conval^.intval;
-        IF (y^.typ^.form # f) & ~((f IN OPT.intSet) & (y^.typ^.form IN OPT.intSet)) THEN err(60) END ;
+        IF (y^.typ^.form # f) & ~((f = OPT.Int) & (y^.typ^.form = OPT.Int)) THEN err(60) END ;
         IF yval < xval THEN err(63); yval := xval END
       ELSE yval := xval
       END ;
@@ -714,7 +714,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     BEGIN
       Expression(x); pos := OPM.errpos;
       IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-      ELSIF ~(x^.typ^.form IN {OPT.Char..OPT.LInt}) THEN err(125)
+      ELSIF ~(x^.typ^.form IN {OPT.Char..OPT.Int}) THEN err(125)
       END ;
       CheckSym(OPS.of); cases := NIL; lastcase := NIL; n := 0;
       LOOP
@@ -802,7 +802,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ELSIF sym = OPS.for THEN
         OPS.Get(sym);
         IF sym = OPS.ident THEN qualident(id);
-          IF ~(id^.typ^.form IN OPT.intSet) THEN err(68) END ;
+          IF ~(id^.typ^.form = OPT.Int) THEN err(68) END ;
           CheckSym(OPS.becomes); Expression(y); pos := OPM.errpos;
           x := OPB.NewLeaf(id); OPB.Assign(x, y); SetPos(x);
           CheckSym(OPS.to); Expression(y); pos := OPM.errpos;
@@ -817,7 +817,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
             END ;
             z := OPB.NewLeaf(t); OPB.Assign(z, y); SetPos(z); OPB.Link(stat, last, z);
             y := OPB.NewLeaf(t)
-          ELSIF ~(y^.typ^.form IN OPT.intSet) OR (y.typ.size > x.left.typ.size) THEN err(113)
+          ELSIF ~(y^.typ^.form = OPT.Int) OR (y.typ.size > x.left.typ.size) THEN err(113)
           END ;
           OPB.Link(stat, last, x);
           IF sym = OPS.by THEN OPS.Get(sym); ConstExpression(z) ELSE z := OPB.NewIntConst(1) END ;

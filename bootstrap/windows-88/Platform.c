@@ -242,7 +242,7 @@ void Platform_Init (INTEGER argc, LONGINT argvadr)
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = argc;
-	av = __VAL(Platform_ArgVecPtr, argvadr);
+	av = (Platform_ArgVecPtr)(SYSTEM_ADRINT)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -281,7 +281,7 @@ void Platform_GetArg (INTEGER n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = __VAL(Platform_ArgVec, Platform_ArgVector);
+		av = (Platform_ArgVec)(SYSTEM_ADRINT)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }

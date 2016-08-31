@@ -91,12 +91,12 @@ TYPE
 CONST
   (* Struct.form values *)
   Undef*   = 0;  Byte*    = 1;  Bool*    = 2;  Char*    = 3;
-  SInt*    = 4;  Int*     = 5;  LInt*    = 6;
+  Int*     = 5;
   Real*    = 7;  LReal*   = 8;  Set*     = 9;  String*  = 10;
   NilTyp*  = 11; NoTyp*   = 12; Pointer* = 13; ProcTyp* = 14;
   Comp*    = 15;
 
-  intSet* = {SInt..LInt}; realSet* = {Real, LReal};
+  realSet* = {Real, LReal};
 
   (* Struct.comp - Composite structure forms *)
   Basic* = 1; Array* = 2; DynArr* = 3; Record* = 4;
@@ -224,7 +224,7 @@ END IntType;
 PROCEDURE ShorterOrLongerType*(x: Struct; dir: INTEGER): Struct;
   VAR i: INTEGER;
 BEGIN
-  ASSERT(x.form IN intSet);
+  ASSERT(x.form = Int);
   ASSERT((dir = 1) OR (dir = -1));
   (* Not sure if StPar0 (which calls this) always gets the baseiest type. This
      ASSERT will tell me. *)
@@ -517,9 +517,7 @@ BEGIN
       CASE f OF
       | Bool,
         Char,
-        SInt,
-        Int,
-        LInt:   OPM.FPrint(fprint, obj^.conval^.intval)
+        Int:    OPM.FPrint(fprint, obj^.conval^.intval)
       | Set:    OPM.FPrintSet(fprint, obj^.conval^.setval)
       | Real:   rval := SHORT(obj^.conval^.realval); OPM.FPrintReal(fprint, rval)
       | LReal:  OPM.FPrintLReal(fprint, obj^.conval^.realval)
@@ -632,9 +630,7 @@ BEGIN
   | Byte,
     Char,
     Bool:   OPM.SymRCh(ch); conval^.intval := ORD(ch)
-  | SInt,
-    Int,
-    LInt:   conval^.intval := OPM.SymRInt()
+  | Int:    conval^.intval := OPM.SymRInt()
   | Set:    OPM.SymRSet(conval^.setval)
   | Real:   OPM.SymRReal(rval); conval^.realval := rval;
             conval^.intval := OPM.ConstNotAlloc
@@ -706,7 +702,7 @@ END InTProc;
 
 PROCEDURE InTyp(tag: LONGINT): Struct;
 BEGIN
-  IF tag IN intSet THEN
+  IF tag = Int THEN
     RETURN IntType(OPM.SymRInt())
   ELSE
     RETURN impCtxt.ref[tag]
@@ -1027,7 +1023,7 @@ END Import;
     VAR strobj: Object;
   BEGIN
     IF (typ^.ref < expCtxt.ref) THEN OPM.SymWInt(-typ^.ref);
-      IF typ.ref IN intSet THEN OPM.SymWInt(typ.size) END
+      IF typ.ref = Int THEN OPM.SymWInt(typ.size) END
     ELSE
       OPM.SymWInt(Sstruct);
       typ^.ref := expCtxt.ref; INC(expCtxt.ref);
@@ -1072,9 +1068,7 @@ END Import;
     CASE f OF
     | Bool,
       Char:   OPM.SymWCh(CHR(obj^.conval^.intval))
-    | SInt,
-      Int,
-      LInt:   OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
+    | Int:    OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
     | Set:    OPM.SymWSet(obj^.conval^.setval)
     | Real:   rval := SHORT(obj^.conval^.realval); OPM.SymWReal(rval)
     | LReal:  OPM.SymWLReal(obj^.conval^.realval)
@@ -1222,7 +1216,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 (*EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);*)
   EnterTyp("LONGINT",  Int,   OPM.LIntSize,  linttyp);
   EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
-  EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);
+(*EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);*)
+  EnterTyp("SHORTINT", Int,   OPM.SIntSize,  sinttyp);
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
   EnterBoolConst("TRUE",  1);
@@ -1253,9 +1248,9 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[Byte]    := bytetyp;
   impCtxt.ref[Bool]    := booltyp;
   impCtxt.ref[Char]    := chartyp;
-  impCtxt.ref[SInt]    := sinttyp;
+(*impCtxt.ref[SInt]    := sinttyp;*)
   impCtxt.ref[Int]     := inttyp;
-  impCtxt.ref[LInt]    := linttyp;
+(*impCtxt.ref[LInt]    := linttyp;*)
   impCtxt.ref[Real]    := realtyp;
   impCtxt.ref[LReal]   := lrltyp;
   impCtxt.ref[Set]     := settyp;

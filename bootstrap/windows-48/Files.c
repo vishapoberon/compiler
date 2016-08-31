@@ -851,14 +851,14 @@ void Files_ReadInt (Files_Rider *R, LONGINT *R__typ, INTEGER *x)
 {
 	CHAR b[2];
 	Files_ReadBytes(&*R, R__typ, (void*)b, 2, 2);
-	*x = b[0] + __ASHL(b[1], 8);
+	*x = (SYSTEM_INT16)b[0] + __ASHL((SYSTEM_INT16)b[1], 8);
 }
 
 void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 {
 	CHAR b[4];
 	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
-	*x = ((b[0] + __ASHL(b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
+	*x = (((SYSTEM_INT16)b[0] + __ASHL((SYSTEM_INT16)b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
 }
 
 void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
@@ -866,8 +866,8 @@ void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
 	CHAR b[4];
 	LONGINT l;
 	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
-	l = ((b[0] + __ASHL(b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
-	*x = __VAL(SET, l);
+	l = (((SYSTEM_INT16)b[0] + __ASHL((SYSTEM_INT16)b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
+	*x = (SET)l;
 }
 
 void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x)
@@ -922,12 +922,12 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 	s = 0;
 	n = 0;
 	Files_Read(&*R, R__typ, (void*)&ch);
-	while (ch >= 128) {
-		n += __ASH((ch - 128), s);
+	while ((SYSTEM_INT16)ch >= 128) {
+		n += __ASH(((SYSTEM_INT16)ch - 128), s);
 		s += 7;
 		Files_Read(&*R, R__typ, (void*)&ch);
 	}
-	n += __ASH((__MASK(ch, -64) - __ASHL(__ASHR(ch, 6), 6)), s);
+	n += __ASH((__MASK((SYSTEM_INT16)ch, -64) - __ASHL(__ASHR((SYSTEM_INT16)ch, 6), 6)), s);
 	*x = n;
 }
 
@@ -958,7 +958,7 @@ void Files_WriteSet (Files_Rider *R, LONGINT *R__typ, SET x)
 {
 	CHAR b[4];
 	LONGINT i;
-	i = __VAL(LONGINT, x);
+	i = (LONGINT)x;
 	b[0] = (CHAR)i;
 	b[1] = (CHAR)__ASHR(i, 8);
 	b[2] = (CHAR)__ASHR(i, 16);

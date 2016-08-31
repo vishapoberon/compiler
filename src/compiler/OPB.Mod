@@ -178,7 +178,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN
     f := y^.typ^.form;
     IF x^.class >= OPT.Nconst THEN err(79)
-    ELSIF ~(f IN OPT.intSet) OR (y^.class IN {OPT.Nproc, OPT.Ntype}) THEN err(80); y^.typ := OPT.inttyp END ;
+    ELSIF (f # OPT.Int) OR (y^.class IN {OPT.Nproc, OPT.Ntype}) THEN err(80); y^.typ := OPT.inttyp END ;
     IF x^.typ^.comp = OPT.Array THEN typ := x^.typ^.BaseTyp;
       IF (y^.class = OPT.Nconst) & ((y^.conval^.intval < 0) OR (y^.conval^.intval >= x^.typ^.n)) THEN err(81) END
     ELSIF x^.typ^.comp = OPT.DynArr THEN typ := x^.typ^.BaseTyp;
@@ -241,7 +241,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     VAR f: INTEGER; k: LONGINT;
   BEGIN f := x^.typ^.form;
     IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) OR (y^.class = OPT.Ntype) OR (y^.class = OPT.Nproc) THEN err(126)
-    ELSIF (f IN OPT.intSet) & (y^.typ^.form = OPT.Set) THEN
+    ELSIF (f = OPT.Int) & (y^.typ^.form = OPT.Set) THEN
       IF x^.class = OPT.Nconst THEN
         k := x^.conval^.intval;
         IF (k < 0) OR (k > OPM.MaxSet) THEN err(202)
@@ -298,10 +298,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     END
                   ELSE err(98)
                   END
-      |OPS.plus:  IF ~(f IN OPT.intSet + OPT.realSet) THEN err(96) END
-      |OPS.minus: IF f IN OPT.intSet + OPT.realSet +{OPT.Set}THEN
+      |OPS.plus:  IF ~(f IN {OPT.Int} + OPT.realSet) THEN err(96) END
+      |OPS.minus: IF f IN {OPT.Int, OPT.Set} + OPT.realSet THEN
                     IF z^.class = OPT.Nconst THEN
-                      IF f IN OPT.intSet THEN
+                      IF f = OPT.Int THEN
                         IF z^.conval^.intval = MIN(LONGINT) THEN err(203)
                         ELSE z^.conval^.intval := -z^.conval^.intval; SetIntType(z)
                         END
@@ -313,9 +313,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     END
                   ELSE err(97)
                   END
-      |OPT.abs:   IF f IN OPT.intSet + OPT.realSet THEN
+      |OPT.abs:   IF f IN {OPT.Int} + OPT.realSet THEN
                     IF z^.class = OPT.Nconst THEN
-                      IF f IN OPT.intSet THEN
+                      IF f = OPT.Int THEN
                         IF z^.conval^.intval = MIN(LONGINT) THEN err(203)
                         ELSE z^.conval^.intval := ABS(z^.conval^.intval); SetIntType(z)
                         END
@@ -333,7 +333,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     END
                   ELSE err(111); z^.typ := OPT.chartyp
                   END
-      |OPT.odd:   IF f IN OPT.intSet THEN
+      |OPT.odd:   IF f = OPT.Int THEN
                     IF z^.class = OPT.Nconst THEN
                       z^.conval^.intval := BoolToInt(ODD(z^.conval^.intval)); z^.obj := NIL
                     ELSE z := NewOp(op, typ, z)
@@ -348,7 +348,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSE err(127)
                   END ;
                   z^.typ := OPT.linttyp
-      |OPT.cc:    IF (f IN OPT.intSet) & (z^.class = OPT.Nconst) THEN                              (*SYSTEM.CC*)
+      |OPT.cc:    IF (f = OPT.Int) & (z^.class = OPT.Nconst) THEN                              (*SYSTEM.CC*)
                     IF (0 <= z^.conval^.intval) & (z^.conval^.intval <= OPM.MaxCC) THEN z := NewOp(op, typ, z) ELSE err(219) END
                   ELSE err(69)
                   END ;
@@ -426,7 +426,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPT.Undef:   res := OPS.eql
       |OPT.Byte,
        OPT.Char
-       ..OPT.LInt:  IF xval^.intval < yval^.intval THEN res := OPS.lss
+       ..OPT.Int:  IF xval^.intval < yval^.intval THEN res := OPS.lss
                     ELSIF xval^.intval > yval^.intval THEN res := OPS.gtr
                     ELSE res := OPS.eql
                     END
@@ -463,19 +463,17 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPT.Char:    IF g = OPT.String THEN CharToString(x)
                     ELSE err(100); y^.typ := x^.typ; yval^ := xval^
                     END ;
-      |OPT.SInt,
-       OPT.Int,
-       OPT.LInt:    IF g IN OPT.intSet THEN
+      |OPT.Int:     IF g = OPT.Int THEN
                       IF x.typ.size <= y.typ.size THEN x.typ := y.typ ELSE x.typ := OPT.IntType(x.typ.size) END
                     ELSIF g = OPT.Real THEN x^.typ := OPT.realtyp; xval^.realval := xval^.intval
                     ELSIF g = OPT.LReal THEN x^.typ := OPT.lrltyp; xval^.realval := xval^.intval
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
                     END
-      |OPT.Real:    IF g IN OPT.intSet THEN y^.typ := x^.typ; yval^.realval := yval^.intval
+      |OPT.Real:    IF g = OPT.Int THEN y^.typ := x^.typ; yval^.realval := yval^.intval
                     ELSIF g = OPT.LReal THEN x^.typ := OPT.lrltyp
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
                     END
-      |OPT.LReal:   IF g IN OPT.intSet THEN y^.typ := x^.typ; yval^.realval := yval^.intval
+      |OPT.LReal:   IF g = OPT.Int THEN y^.typ := x^.typ; yval^.realval := yval^.intval
                     ELSIF g = OPT.Real THEN y^.typ := OPT.lrltyp
                     ELSE  err(100); y^.typ := x^.typ; yval^ := xval^
                     END
@@ -490,7 +488,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       f := x^.typ^.form
     END ;  (* {x^.typ = y^.typ} *)
     CASE op OF
-    |OPS.times: IF f IN OPT.intSet THEN xv := xval^.intval; yv := yval^.intval;
+    |OPS.times: IF f = OPT.Int THEN xv := xval^.intval; yv := yval^.intval;
                   IF (xv = 0) OR (yv = 0) OR  (* division with negative numbers is not defined *)
                     (xv > 0) & (yv > 0) & (yv <= MAX(LONGINT) DIV xv) OR
                     (xv > 0) & (yv < 0) & (yv >= MIN(LONGINT) DIV xv) OR
@@ -509,7 +507,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   xval^.setval := xval^.setval * yval^.setval
                 ELSIF f # OPT.Undef THEN err(101)
                 END
-    |OPS.slash: IF f IN OPT.intSet THEN
+    |OPS.slash: IF f = OPT.Int THEN
                   IF yval^.intval # 0 THEN
                     xval^.realval := xval^.intval / yval^.intval; CheckRealType(OPT.Real, 205, xval)
                   ELSE err(205); xval^.realval := 1.0
@@ -525,14 +523,14 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   xval^.setval := xval^.setval / yval^.setval
                 ELSIF f # OPT.Undef THEN err(102)
                 END
-    |OPS.div:   IF f IN OPT.intSet THEN
+    |OPS.div:   IF f = OPT.Int THEN
                   IF yval^.intval # 0 THEN
                     xval^.intval := xval^.intval DIV yval^.intval; SetIntType(x)
                   ELSE err(205)
                   END
                 ELSIF f # OPT.Undef THEN err(103)
                 END
-    |OPS.mod:   IF f IN OPT.intSet THEN
+    |OPS.mod:   IF f = OPT.Int THEN
                   IF yval^.intval # 0 THEN
                     xval^.intval := xval^.intval MOD yval^.intval; SetIntType(x)
                   ELSE err(205)
@@ -543,7 +541,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   xval^.intval := BoolToInt(IntToBool(xval^.intval) & IntToBool(yval^.intval))
                 ELSE err(94)
                 END
-    |OPS.plus:  IF f IN OPT.intSet THEN
+    |OPS.plus:  IF f = OPT.Int THEN
                   temp := (yval^.intval >= 0) & (xval^.intval <= MAX(LONGINT) - yval^.intval);
                   IF temp OR (yval^.intval < 0) & (xval^.intval >= MIN(LONGINT) - yval^.intval) THEN
                       INC(xval^.intval, yval^.intval); SetIntType(x)
@@ -559,7 +557,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   xval^.setval := xval^.setval + yval^.setval
                 ELSIF f # OPT.Undef THEN err(105)
                 END
-    |OPS.minus: IF f IN OPT.intSet THEN
+    |OPS.minus: IF f = OPT.Int THEN
                   IF (yval^.intval >= 0) & (xval^.intval >= MIN(LONGINT) + yval^.intval) OR
                     (yval^.intval < 0) & (xval^.intval  <= MAX(LONGINT) + yval^.intval) THEN
                       DEC(xval^.intval, yval^.intval); SetIntType(x)
@@ -598,12 +596,12 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     END
   END ConstOp;
 
-  PROCEDURE Convert(VAR x: OPT.Node; typ: OPT.Struct);
+  PROCEDURE Convert(VAR x: OPT.Node; typ: OPT.Struct); (* Convert node x to new type typ *)
     VAR node: OPT.Node; f, g: INTEGER; k: LONGINT; r: LONGREAL;
   BEGIN f := x^.typ^.form; g := typ^.form;
     IF x^.class = OPT.Nconst THEN
-      IF f IN OPT.intSet THEN
-        IF g IN OPT.intSet THEN
+      IF f = OPT.Int THEN
+        IF g = OPT.Int THEN
           IF f > g THEN SetIntType(x);
             IF x.typ.size > typ.size THEN err(203); x^.conval^.intval := 1 END
           END
@@ -668,17 +666,15 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         g := y^.typ^.form;
         CASE z^.typ^.form OF
         |OPT.Char:    IF z^.class = OPT.Nconst THEN CharToString(z) ELSE err(100) END
-        |OPT.SInt,
-         OPT.Int,
-         OPT.LInt:    IF (g IN OPT.intSet) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
-                      ELSIF g IN OPT.intSet + OPT.realSet              THEN Convert(z, y.typ)
+        |OPT.Int:     IF (g = OPT.Int) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
+                      ELSIF g IN {OPT.Int} + OPT.realSet           THEN Convert(z, y.typ)
                       ELSE err(100)
                       END
-        |OPT.Real:    IF g IN OPT.intSet THEN Convert(y, z^.typ)
+        |OPT.Real:    IF g = OPT.Int THEN Convert(y, z^.typ)
                       ELSIF g IN OPT.realSet THEN Convert(z, y^.typ)
                       ELSE  err(100)
                       END
-        |OPT.LReal:   IF g IN OPT.intSet + OPT.realSet THEN Convert(y, z^.typ)
+        |OPT.LReal:   IF g IN {OPT.Int} + OPT.realSet THEN Convert(y, z^.typ)
                       ELSIF g IN OPT.realSet THEN Convert(y, z^.typ)          (* DCWB: Surely this line does nothing. *)
                       ELSE  err(100)
                       END
@@ -693,7 +689,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       typ := z^.typ; f := typ^.form; g := y^.typ^.form;
       CASE op OF
       |OPS.times: do := TRUE;
-                  IF f IN OPT.intSet THEN
+                  IF f = OPT.Int THEN
                     IF z^.class = OPT.Nconst THEN val := z^.conval^.intval;
                       IF val = 1 THEN do := FALSE; z := y
                       ELSIF val = 0 THEN do := FALSE
@@ -711,7 +707,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSIF ~(f IN {OPT.Undef, OPT.Real..OPT.Set}) THEN err(105); typ := OPT.undftyp
                   END ;
                   IF do THEN NewOp(op, typ, z, y) END
-      |OPS.slash: IF f IN OPT.intSet THEN
+      |OPS.slash: IF f = OPT.Int THEN
                     IF (y^.class = OPT.Nconst) & (y^.conval^.intval = 0) THEN err(205) END ;
                     Convert(z, OPT.realtyp); Convert(y, OPT.realtyp);
                     typ := OPT.realtyp
@@ -721,7 +717,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   END ;
                   NewOp(op, typ, z, y)
       |OPS.div:   do := TRUE;
-                  IF f IN OPT.intSet THEN
+                  IF f = OPT.Int THEN
                     IF y^.class = OPT.Nconst THEN val := y^.conval^.intval;
                       IF val = 0 THEN err(205)
                       ELSIF val = 1 THEN do := FALSE
@@ -732,7 +728,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSIF f # OPT.Undef THEN err(103); typ := OPT.undftyp
                   END ;
                   IF do THEN NewOp(op, typ, z, y) END
-      |OPS.mod:   IF f IN OPT.intSet THEN
+      |OPS.mod:   IF f = OPT.Int THEN
                     IF y^.class = OPT.Nconst THEN
                       IF y^.conval^.intval = 0 THEN err(205)
                       ELSIF log(y^.conval^.intval) = 1 THEN
@@ -752,15 +748,15 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     END
                   ELSIF f # OPT.Undef THEN err(94); z^.typ := OPT.undftyp
                   END
-      |OPS.plus:  IF ~(f IN {OPT.Undef, OPT.SInt..OPT.Set}) THEN err(105); typ := OPT.undftyp END ;
+      |OPS.plus:  IF ~(f IN {OPT.Undef, OPT.Int..OPT.Set}) THEN err(105); typ := OPT.undftyp END ;
                   do := TRUE;
-                  IF f IN OPT.intSet THEN
+                  IF f = OPT.Int THEN
                     IF (z^.class = OPT.Nconst) & (z^.conval^.intval = 0) THEN do := FALSE; z := y END ;
                     IF (y^.class = OPT.Nconst) & (y^.conval^.intval = 0) THEN do := FALSE END
                   END ;
                   IF do THEN NewOp(op, typ, z, y) END
-      |OPS.minus: IF ~(f IN {OPT.Undef, OPT.SInt..OPT.Set}) THEN err(106); typ := OPT.undftyp END ;
-                  IF ~(f IN OPT.intSet) OR (y^.class # OPT.Nconst) OR (y^.conval^.intval # 0) THEN NewOp(op, typ, z, y) END
+      |OPS.minus: IF ~(f IN {OPT.Undef, OPT.Int..OPT.Set}) THEN err(106); typ := OPT.undftyp END ;
+                  IF (f # OPT.Int) OR (y^.class # OPT.Nconst) OR (y^.conval^.intval # 0) THEN NewOp(op, typ, z, y) END
       |OPS.or:    IF f = OPT.Bool THEN
                     IF z^.class = OPT.Nconst THEN
                       IF ~IntToBool(z^.conval^.intval) THEN z := y END
@@ -795,7 +791,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     VAR k, l: LONGINT;
   BEGIN
     IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) OR (y^.class = OPT.Ntype) OR (y^.class = OPT.Nproc) THEN err(126)
-    ELSIF (x^.typ^.form IN OPT.intSet) & (y^.typ^.form IN OPT.intSet) THEN
+    ELSIF (x^.typ^.form = OPT.Int) & (y^.typ^.form = OPT.Int) THEN
       IF x^.class = OPT.Nconst THEN
         k := x^.conval^.intval;
         IF (0 > k) OR (k > OPM.MaxSet) THEN err(202) END
@@ -821,7 +817,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     VAR k: LONGINT;
   BEGIN
     IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-    ELSIF ~(x^.typ^.form IN OPT.intSet) THEN err(93)
+    ELSIF x^.typ^.form # OPT.Int THEN err(93)
     ELSIF x^.class = OPT.Nconst THEN
       k := x^.conval^.intval;
       IF (0 <= k) & (k <= OPM.MaxSet) THEN x^.conval^.setval := {k}
@@ -854,15 +850,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     CASE f OF
       OPT.Undef,
       OPT.String:
-    | OPT.Byte:     IF ~((g IN ({OPT.Byte, OPT.Char} + OPT.intSet)) & (y.size = 1)) THEN err(113) END
+    | OPT.Byte:     IF ~((g IN {OPT.Byte, OPT.Char, OPT.Int}) & (y.size = 1)) THEN err(113) END
     | OPT.Bool,
       OPT.Char,
       OPT.Set:      IF g # f THEN err(113) END
-    | OPT.SInt,
-      OPT.Int,
-      OPT.LInt:     IF ~(g IN OPT.intSet) OR (x.size < y.size) THEN err(113) END
-    | OPT.Real:     IF ~(g IN {OPT.SInt..OPT.Real})  THEN err(113) END
-    | OPT.LReal:    IF ~(g IN {OPT.SInt..OPT.LReal}) THEN err(113) END
+    | OPT.Int:      IF (g # OPT.Int) OR (x.size < y.size) THEN err(113) END
+    | OPT.Real:     IF ~(g IN {OPT.Int..OPT.Real})  THEN err(113) END
+    | OPT.LReal:    IF ~(g IN {OPT.Int..OPT.LReal}) THEN err(113) END
     | OPT.Pointer:  IF (x = y) OR (g = OPT.NilTyp) OR (x = OPT.sysptrtyp) & (g = OPT.Pointer) THEN (* ok *)
                     ELSIF g = OPT.Pointer THEN
                       p := x^.BaseTyp; q := y^.BaseTyp;
@@ -909,7 +903,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     END
     ELSE            OPM.LogWStr("unhandled case in OPB.CheckAssign, f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
     END ;
-    IF (ynode^.class = OPT.Nconst) & (g < f) & (g IN {OPT.SInt..OPT.Real}) & (f IN {OPT.Int..OPT.LReal}) THEN
+    IF (ynode^.class = OPT.Nconst) & (g < f) & (g IN {OPT.Int..OPT.Real}) & (f IN {OPT.Int..OPT.LReal}) THEN
       Convert(ynode, x)
     END
   END CheckAssign;
@@ -928,7 +922,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN x := par0; f := x^.typ^.form;
     CASE fctno OF
     |OPT.haltfn:   (*HALT*)
-                   IF (f IN OPT.intSet) & (x^.class = OPT.Nconst) THEN
+                   IF (f = OPT.Int) & (x^.class = OPT.Nconst) THEN
                      IF (OPM.MinHaltNr <= x^.conval^.intval) & (x^.conval^.intval <= OPM.MaxHaltNr) THEN
                        BindNodes(OPT.Ntrap, OPT.notyp, x, x)
                      ELSE err(218)
@@ -974,9 +968,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      CASE f OF
                        OPT.Bool:  x := NewBoolConst(FALSE)
                      | OPT.Char:  x := NewIntConst(0); x^.typ := OPT.chartyp
-                     | OPT.SInt,
-                       OPT.Int,
-                       OPT.LInt:  x := NewIntConst(OPM.SignedMinimum(x.typ.size))
+                     | OPT.Int:   x := NewIntConst(OPM.SignedMinimum(x.typ.size))
                      | OPT.Set:   x := NewIntConst(0); x^.typ := OPT.inttyp
                      | OPT.Real:  x := NewRealConst(OPM.MinReal, OPT.realtyp)
                      | OPT.LReal: x := NewRealConst(OPM.MinLReal, OPT.lrltyp)
@@ -989,9 +981,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      CASE f OF
                        OPT.Bool:  x := NewBoolConst(TRUE)
                      | OPT.Char:  x := NewIntConst(0FFH); x^.typ := OPT.chartyp
-                     | OPT.SInt,
-                       OPT.Int,
-                       OPT.LInt:  x := NewIntConst(OPM.SignedMaximum(x.typ.size))
+                     | OPT.Int:   x := NewIntConst(OPM.SignedMaximum(x.typ.size))
                      | OPT.Set:   x := NewIntConst(OPM.MaxSet); x^.typ := OPT.inttyp
                      | OPT.Real:  x := NewRealConst(OPM.MaxReal, OPT.realtyp)
                      | OPT.LReal: x := NewRealConst(OPM.MaxLReal, OPT.lrltyp)
@@ -1001,12 +991,12 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END
     |OPT.chrfn:    (*CHR*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN {OPT.Undef} + OPT.intSet THEN Convert(x, OPT.chartyp)
+                   ELSIF f IN {OPT.Undef, OPT.Int} THEN Convert(x, OPT.chartyp)
                    ELSE err(111); x^.typ := OPT.chartyp
                    END
     |OPT.shortfn:  (*SHORT*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      typ := OPT.ShorterOrLongerType(x.typ, -1);
                      IF typ = NIL THEN err(111) ELSE Convert(x, typ) END
                    ELSIF f = OPT.LReal THEN Convert(x, OPT.realtyp)
@@ -1014,7 +1004,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END
     |OPT.longfn:   (*LONG*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      typ := OPT.ShorterOrLongerType(x.typ, 1);
                      IF typ = NIL THEN err(111) ELSE Convert(x, typ) END
                    ELSIF f = OPT.Real THEN Convert(x, OPT.lrltyp)
@@ -1024,7 +1014,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.incfn,
      OPT.decfn:    (*INC, DEC*)
                    IF NotVar(x) THEN err(112)
-                   ELSIF ~(f IN OPT.intSet) THEN err(111)
+                   ELSIF f # OPT.Int THEN err(111)
                    ELSIF x^.readonly THEN err(76)
                    END
     |OPT.inclfn,
@@ -1043,7 +1033,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END
     |OPT.ashfn:    (*ASH*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      IF x.typ.size # OPM.LIntSize THEN Convert(x, OPT.linttyp) END
                    ELSE err(111); x^.typ := OPT.linttyp
                    END
@@ -1061,19 +1051,19 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.lshfn,
      OPT.rotfn:    (*SYSTEM.LSH, SYSTEM.ROT*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF ~(f IN OPT.intSet + {OPT.Byte, OPT.Char, OPT.Set}) THEN err(111)
+                   ELSIF ~(f IN {OPT.Int, OPT.Byte, OPT.Char, OPT.Set}) THEN err(111)
                    END
     |OPT.getfn,
      OPT.putfn,
      OPT.bitfn,
      OPT.movefn:   (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF (x^.class = OPT.Nconst) & (f IN OPT.intSet) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~((x.typ.form IN {OPT.Pointer} + OPT.intSet) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
+                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
                    END
     |OPT.getrfn,
      OPT.putrfn:   (*SYSTEM.GETREG, SYSTEM.PUTREG*)
-                   IF (f IN OPT.intSet) & (x^.class = OPT.Nconst) THEN
+                   IF (f = OPT.Int) & (x^.class = OPT.Nconst) THEN
                      IF (x^.conval^.intval < OPM.MinRegNr) OR (x^.conval^.intval > OPM.MaxRegNr) THEN err(220) END
                    ELSE err(69)
                    END
@@ -1114,7 +1104,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126); p^.typ := OPT.notyp
                    ELSE
                      IF x^.typ # p^.typ THEN
-                       IF (x^.class = OPT.Nconst) & (f IN OPT.intSet) THEN Convert(x, p^.typ)
+                       IF (x^.class = OPT.Nconst) & (f = OPT.Int) THEN Convert(x, p^.typ)
                        ELSE err(111)
                        END
                      END ;
@@ -1124,7 +1114,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.inclfn,
      OPT.exclfn:   (*INCL, EXCL*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      IF (x^.class = OPT.Nconst) & ((0 > x^.conval^.intval) OR (x^.conval^.intval > OPM.MaxSet)) THEN err(202)
                      END ;
                      p := NewOp(OPT.Nassign, fctno, p, x)
@@ -1132,7 +1122,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END ;
                    p^.typ := OPT.notyp
     |OPT.lenfn:    (*LEN*)
-                   IF ~(f IN OPT.intSet) OR (x^.class # OPT.Nconst) THEN err(69)
+                   IF ~(f = OPT.Int) OR (x^.class # OPT.Nconst) THEN err(69)
                    ELSIF x.typ.size = 1 THEN (* Hard limit of 127 dimensions *)
                      L := SHORT(x^.conval^.intval); typ := p^.typ;
                      WHILE (L > 0) & (typ^.comp IN {OPT.DynArr, OPT.Array}) DO typ := typ^.BaseTyp; DEC(L) END ;
@@ -1156,7 +1146,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    p^.typ := OPT.notyp
     |OPT.ashfn:    (*ASH*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      IF (p^.class = OPT.Nconst) & (x^.class = OPT.Nconst) THEN
                        IF (-maxExp > x^.conval^.intval) OR (x^.conval^.intval > maxExp) THEN err(208); p^.conval^.intval := 1
                        ELSIF x^.conval^.intval >= 0 THEN
@@ -1174,7 +1164,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.newfn:    (*NEW(p, x...)*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF p^.typ^.comp = OPT.DynArr THEN
-                     IF f IN OPT.intSet THEN
+                     IF f = OPT.Int THEN
                        IF (x^.class = OPT.Nconst) & ((x^.conval^.intval <= 0) OR (x^.conval^.intval > OPM.MaxIndex)) THEN err(63) END
                      ELSE err(111)
                      END ;
@@ -1184,7 +1174,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.lshfn,
      OPT.rotfn:    (*SYSTEM.LSH, SYSTEM.ROT*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF ~(f IN OPT.intSet) THEN err(111)
+                   ELSIF f # OPT.Int THEN err(111)
                    ELSE
                      IF fctno = OPT.lshfn THEN p := NewOp(OPT.Ndop, OPT.lsh, p, x) ELSE p := NewOp(OPT.Ndop, OPT.rot, p, x) END ;
                      p^.typ := p^.left^.typ
@@ -1205,7 +1195,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    p^.typ := OPT.notyp
     |OPT.bitfn:    (*SYSTEM.BIT*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      p := NewOp(OPT.Ndop, OPT.bit, p, x)
                    ELSE err(111)
                    END ;
@@ -1229,19 +1219,19 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    x^.typ := p^.typ; p := x
     |OPT.sysnewfn: (*SYSTEM.NEW*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF f IN OPT.intSet THEN
+                   ELSIF f = OPT.Int THEN
                      p := NewOp(OPT.Nassign, OPT.sysnewfn, p, x)
                    ELSE err(111)
                    END ;
                    p^.typ := OPT.notyp
     |OPT.movefn:   (*SYSTEM.MOVE*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF (x^.class = OPT.Nconst) & (f IN OPT.intSet) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~((x.typ.form IN {OPT.Pointer} + OPT.intSet) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
+                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
                    END;
                    p^.link := x
     |OPT.assertfn: (*ASSERT*)
-                   IF (f IN OPT.intSet) & (x^.class = OPT.Nconst) THEN
+                   IF (f = OPT.Int) & (x^.class = OPT.Nconst) THEN
                      IF (OPM.MinHaltNr <= x^.conval^.intval) & (x^.conval^.intval <= OPM.MaxHaltNr) THEN
                        BindNodes(OPT.Ntrap, OPT.notyp, x, x);
                        x^.conval := OPT.NewConst(); x^.conval^.intval := OPM.errpos;
@@ -1266,7 +1256,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     IF fctno = OPT.newfn THEN (*NEW(p, ..., x...*)
       IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
       ELSIF p^.typ^.comp # OPT.DynArr THEN err(64)
-      ELSIF f IN OPT.intSet THEN
+      ELSIF f = OPT.Int THEN
         IF (x^.class = OPT.Nconst) & ((x^.conval^.intval <= 0) OR (x^.conval^.intval > OPM.MaxIndex)) THEN err(63) END ;
         node := p^.right; WHILE node^.link # NIL DO node := node^.link END;
         node^.link := x; p^.typ := p^.typ^.BaseTyp
@@ -1274,7 +1264,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       END
     ELSIF (fctno = OPT.movefn) & (n = 2) THEN (*SYSTEM.MOVE*)
       IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-      ELSIF f IN OPT.intSet THEN
+      ELSIF f = OPT.Int THEN
         node := OPT.NewNode(OPT.Nassign); node^.subcl := OPT.movefn; node^.right := p;
         node^.left := p^.link; p^.link := x; p := node
       ELSE err(111)
@@ -1333,7 +1323,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN (* ftyp^.comp = OPT.DynArr *)
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
     IF fvarpar & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
-      IF ~(f IN {OPT.Array, OPT.DynArr}) OR ~((atyp.form IN {OPT.Byte..OPT.Char} + OPT.intSet) & (atyp.size = 1)) THEN
+      IF ~(f IN {OPT.Array, OPT.DynArr}) OR ~((atyp.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (atyp.size = 1)) THEN
         IF OPM.verbose IN OPM.opt THEN err(-301) END
       END
     ELSIF f IN {OPT.Array, OPT.DynArr} THEN
@@ -1386,7 +1376,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           WHILE (q # fp^.typ) & (q # NIL) & (q # OPT.undftyp) DO q := q^.BaseTyp END ;
           IF q = NIL THEN err(111) END
         ELSIF (fp^.typ = OPT.sysptrtyp) & (ap^.typ^.form = OPT.Pointer) THEN (* ok *)
-        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPT.Byte) & ((ap.typ.form IN {OPT.Byte..OPT.Char} + OPT.intSet) & (ap.typ.size = 1))) THEN err(123)
+        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPT.Byte) & ((ap.typ.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (ap.typ.size = 1))) THEN err(123)
         ELSIF (fp^.typ^.form = OPT.Pointer) & (ap^.class = OPT.Nguard) THEN err(123)
         END
       ELSIF fp^.typ^.comp = OPT.DynArr THEN

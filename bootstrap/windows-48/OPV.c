@@ -118,7 +118,7 @@ void OPV_TypSize (OPT_Struct typ)
 			}
 			typ->size = offset;
 			typ->align = base;
-			typ->sysflag = __MASK(typ->sysflag, -256) + __ASHL(offset - off0, 8);
+			typ->sysflag = __MASK(typ->sysflag, -256) + (SYSTEM_INT16)__ASHL(offset - off0, 8);
 		} else if (c == 2) {
 			OPV_TypSize(typ->BaseTyp);
 			typ->size = typ->n * typ->BaseTyp->size;
@@ -474,7 +474,7 @@ static void OPV_Entier (OPT_Node n, INTEGER prec)
 
 static void OPV_SizeCast (LONGINT from, LONGINT to)
 {
-	if ((from != to && (from > 4 || to > 4))) {
+	if ((from != to && (from > 4 || to != 4))) {
 		switch (to) {
 			case 1: 
 				OPM_WriteString((CHAR*)"(SYSTEM_INT8)", 14);
@@ -506,7 +506,7 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INTEGER prec)
 		OPM_WriteString((CHAR*)"__SETOF(", 9);
 		OPV_Entier(n, -1);
 		OPM_Write(')');
-	} else if (__IN(to, 0x70)) {
+	} else if (to == 5) {
 		if ((newtype->size < n->typ->size && __IN(2, OPM_opt))) {
 			OPM_WriteString((CHAR*)"__SHORT", 8);
 			if (OPV_SideEffects(n)) {
@@ -589,7 +589,7 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 	obj = n->obj;
 	class = n->class;
 	designPrec = OPV_Precedence(class, n->subcl, n->typ->form, comp);
-	if ((((((class == 0 && obj->mnolev > 0)) && obj->mnolev != OPM_level)) && prec == 10)) {
+	if ((((((class == 0 && obj->mnolev > 0)) && (SYSTEM_INT16)obj->mnolev != OPM_level)) && prec == 10)) {
 		designPrec = 9;
 	}
 	if (prec > designPrec) {
@@ -688,7 +688,7 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 			if (__IN(3, OPM_opt)) {
 				if (typ->comp == 4) {
 					OPM_WriteString((CHAR*)"__GUARDR(", 10);
-					if (obj->mnolev != OPM_level) {
+					if ((SYSTEM_INT16)obj->mnolev != OPM_level) {
 						OPM_WriteStringVar((void*)obj->scope->name, 256);
 						OPM_WriteString((CHAR*)"__curr->", 9);
 						OPC_Ident(obj);
@@ -797,10 +797,10 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 					OPM_WriteString((CHAR*)"(void*)", 8);
 				}
 			} else {
-				if ((__IN(form, 0x0180) && __IN(n->typ->form, 0x70))) {
+				if ((__IN(form, 0x0180) && n->typ->form == 5)) {
 					OPM_WriteString((CHAR*)"(double)", 9);
 					prec = 9;
-				} else if (__IN(form, 0x70)) {
+				} else if (form == 5) {
 					OPV_SizeCast(n->typ->size, typ->size);
 				}
 			}
@@ -811,7 +811,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 		}
 		if ((((mode == 2 && n->class == 11)) && n->subcl == 29)) {
 			OPV_expr(n->left, prec);
-		} else if ((__IN(form, 0x70) && n->class == 7)) {
+		} else if ((form == 5 && n->class == 7)) {
 			OPV_ParIntLiteral(n->conval->intval, n->typ->size);
 		} else {
 			OPV_expr(n, prec);
@@ -965,7 +965,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 					}
 					break;
 				case 29: 
-					if (!__IN(l->class, 0x17) || (((__IN(n->typ->form, 0x6240) && __IN(l->typ->form, 0x6240))) && n->typ->size == l->typ->size)) {
+					if (!__IN(l->class, 0x17) || (((__IN(n->typ->form, 0x6220) && __IN(l->typ->form, 0x6220))) && n->typ->size == l->typ->size)) {
 						OPM_Write('(');
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');
@@ -1115,7 +1115,7 @@ static void OPV_expr (OPT_Node n, INTEGER prec)
 								OPM_WriteString((CHAR*)" ^ ", 4);
 							} else {
 								OPM_WriteString((CHAR*)" / ", 4);
-								if (r->obj == NIL || __IN(r->obj->typ->form, 0x70)) {
+								if (r->obj == NIL || r->obj->typ->form == 5) {
 									OPM_Write('(');
 									OPC_Ident(n->typ->strobj);
 									OPM_Write(')');

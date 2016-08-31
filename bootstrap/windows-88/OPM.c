@@ -533,12 +533,12 @@ void OPM_err (INTEGER n)
 
 void OPM_FPrint (LONGINT *fp, LONGINT val)
 {
-	*fp = __ROTL((LONGINT)(__VAL(SET, *fp) ^ __VAL(SET, val)), 1, LONGINT);
+	*fp = __ROTL((LONGINT)((SET)*fp ^ (SET)val), 1, LONGINT);
 }
 
 void OPM_FPrintSet (LONGINT *fp, SET set)
 {
-	OPM_FPrint(&*fp, __VAL(LONGINT, set));
+	OPM_FPrint(&*fp, (LONGINT)set);
 }
 
 void OPM_FPrintReal (LONGINT *fp, REAL real)
@@ -752,7 +752,7 @@ void OPM_SymWInt (LONGINT i)
 
 void OPM_SymWSet (SET s)
 {
-	Files_WriteNum(&OPM_newSF, Files_Rider__typ, __VAL(LONGINT, s));
+	Files_WriteNum(&OPM_newSF, Files_Rider__typ, (LONGINT)s);
 }
 
 void OPM_SymWReal (REAL r)

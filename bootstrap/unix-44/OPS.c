@@ -59,7 +59,7 @@ static void OPS_Str (SHORTINT *sym)
 	if (OPS_intval == 2) {
 		*sym = 35;
 		OPS_numtyp = 1;
-		OPS_intval = OPS_str[0];
+		OPS_intval = (SYSTEM_INT16)OPS_str[0];
 	} else {
 		*sym = 37;
 	}
@@ -112,10 +112,10 @@ static INTEGER Ord__7 (CHAR ch, BOOLEAN hex)
 {
 	INTEGER _o_result;
 	if (ch <= '9') {
-		_o_result = ch - 48;
+		_o_result = (SYSTEM_INT16)ch - 48;
 		return _o_result;
 	} else if (hex) {
-		_o_result = (ch - 65) + 10;
+		_o_result = ((SYSTEM_INT16)ch - 65) + 10;
 		return _o_result;
 	} else {
 		OPS_err(2);

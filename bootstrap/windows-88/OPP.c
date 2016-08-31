@@ -137,7 +137,7 @@ static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_)
 			OPP_err(135);
 		}
 		OPP_ConstExpression(&x);
-		if (__IN(x->typ->form, 0x70)) {
+		if (x->typ->form == 5) {
 			sf = x->conval->intval;
 			if (sf < 0 || sf > 1) {
 				OPP_err(220);
@@ -269,7 +269,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 		*typ = OPT_NewStr(15, 2);
 		(*typ)->sysflag = sysflag;
 		OPP_ConstExpression(&x);
-		if (__IN(x->typ->form, 0x70)) {
+		if (x->typ->form == 5) {
 			n = x->conval->intval;
 			if (n <= 0 || n > OPM_MaxIndex) {
 				OPP_err(63);
@@ -626,7 +626,7 @@ static void OPP_StandProcCall (OPT_Node *x)
 	OPT_Node y = NIL;
 	SHORTINT m;
 	INTEGER n;
-	m = (SYSTEM_INT8)(*x)->obj->adr;
+	m = (SYSTEM_INT8)((SYSTEM_INT32)(*x)->obj->adr);
 	n = 0;
 	if (OPP_sym == 30) {
 		OPS_Get(&OPP_sym);
@@ -1174,14 +1174,14 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, O
 	for (;;) {
 		OPP_ConstExpression(&x);
 		f = x->typ->form;
-		if (__IN(f, 0x78)) {
+		if (__IN(f, 0x28)) {
 			xval = x->conval->intval;
 		} else {
 			OPP_err(61);
 			xval = 1;
 		}
-		if (__IN(f, 0x70)) {
-			if (!__IN(LabelTyp->form, 0x70) || LabelTyp->size < x->typ->size) {
+		if (f == 5) {
+			if (!(LabelTyp->form == 5) || LabelTyp->size < x->typ->size) {
 				OPP_err(60);
 			}
 		} else if (LabelTyp->form != f) {
@@ -1191,7 +1191,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, O
 			OPS_Get(&OPP_sym);
 			OPP_ConstExpression(&y);
 			yval = y->conval->intval;
-			if ((y->typ->form != f && !((__IN(f, 0x70) && __IN(y->typ->form, 0x70))))) {
+			if ((y->typ->form != f && !((f == 5 && y->typ->form == 5)))) {
 				OPP_err(60);
 			}
 			if (yval < xval) {
@@ -1254,7 +1254,7 @@ static void CasePart__31 (OPT_Node *x)
 	*StatSeq__30_s->pos = OPM_errpos;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
-	} else if (!__IN((*x)->typ->form, 0x78)) {
+	} else if (!__IN((*x)->typ->form, 0x38)) {
 		OPP_err(125);
 	}
 	OPP_CheckSym(25);
@@ -1440,7 +1440,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
 				OPP_qualident(&id);
-				if (!__IN(id->typ->form, 0x70)) {
+				if (!(id->typ->form == 5)) {
 					OPP_err(68);
 				}
 				OPP_CheckSym(34);
@@ -1472,7 +1472,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					SetPos__35(z);
 					OPB_Link(&*stat, &last, z);
 					y = OPB_NewLeaf(t);
-				} else if (!__IN(y->typ->form, 0x70) || y->typ->size > x->left->typ->size) {
+				} else if (!(y->typ->form == 5) || y->typ->size > x->left->typ->size) {
 					OPP_err(113);
 				}
 				OPB_Link(&*stat, &last, x);

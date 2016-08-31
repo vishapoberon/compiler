@@ -297,7 +297,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE SizeCast(from, to: LONGINT);
   BEGIN
-    IF (from # to) & ((from > OPM.CIntSize) OR (to > OPM.CIntSize)) THEN
+    IF (from # to) & ((from > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
       CASE to OF
       |1: OPM.WriteString("(SYSTEM_INT8)");
       |2: OPM.WriteString("(SYSTEM_INT16)");
@@ -312,7 +312,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     VAR from, to: INTEGER;
   BEGIN from := n^.typ^.form; to := newtype.form;
     IF to = OPT.Set THEN OPM.WriteString(SetOfFunc); Entier(n, MinPrec); OPM.Write(CloseParen)
-    ELSIF to IN OPT.intSet THEN
+    ELSIF to = OPT.Int THEN
       IF (newtype.size < n.typ.size) & (OPM.ranchk IN OPM.opt) THEN
         OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
         OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
@@ -474,13 +474,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             OPM.WriteString("(void*)")  (* type extension *)
           END
         ELSE
-          IF (form IN {OPT.Real, OPT.LReal}) & (n^.typ^.form IN OPT.intSet) THEN (* real promotion *)
+          IF (form IN {OPT.Real, OPT.LReal}) & (n^.typ^.form = OPT.Int) THEN (* real promotion *)
             OPM.WriteString("(double)"); prec := 9
-          (*
-          ELSIF (form IN OPT.intSet) & (typ.size = OPM.LIntSize) & (n.typ.form <= OPT.LInt) & (n.typ.size < OPM.LIntSize) THEN (* integral promotion *)
-            OPM.WriteString("(LONGINT)"); prec := 9
-          *)
-          ELSIF form IN OPT.intSet THEN
+          ELSIF form = OPT.Int THEN
             SizeCast(n.typ.size, typ.size)
           END
         END
@@ -490,7 +486,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       END;
       IF (mode = OPT.VarPar) & (n^.class = OPT.Nmop) & (n^.subcl = OPT.val) THEN
         expr(n^.left, prec)  (* avoid cast in lvalue *)
-      ELSIF (form IN OPT.intSet) & (n^.class = OPT.Nconst) THEN
+      ELSIF (form = OPT.Int) & (n^.class = OPT.Nconst) THEN
         ParIntLiteral(n.conval.intval, n.typ.size)
       ELSE
         expr(n, prec)
@@ -582,8 +578,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                  expr(l, exprPrec)
                                END
                   | OPT.val:   IF ~(l^.class IN {OPT.Nvar, OPT.Nvarpar, OPT.Nfield, OPT.Nindex})    (*SYSTEM*)
-                               OR   (n^.typ^.form IN {OPT.LInt, OPT.Pointer, OPT.Set, OPT.ProcTyp})
-                                  & (l^.typ^.form IN {OPT.LInt, OPT.Pointer, OPT.Set, OPT.ProcTyp})
+                               OR   (n^.typ^.form IN {OPT.Int, OPT.Pointer, OPT.Set, OPT.ProcTyp})
+                                  & (l^.typ^.form IN {OPT.Int, OPT.Pointer, OPT.Set, OPT.ProcTyp})
                                   & (n^.typ^.size = l^.typ^.size)
                                THEN
                                  OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen);
@@ -670,7 +666,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                            END
                               | OPS.slash: IF form = OPT.Set THEN OPM.WriteString(" ^ ")
                                            ELSE OPM.WriteString(" / ");
-                                             IF (r^.obj = NIL) OR (r^.obj^.typ^.form IN OPT.intSet) THEN
+                                             IF (r^.obj = NIL) OR (r^.obj^.typ^.form = OPT.Int) THEN
                                                OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen)
                                              END
                                            END

@@ -746,7 +746,7 @@ static void ReadScaleFactor__32 (void)
 		}
 	}
 	while (('0' <= *Scan__31_s->ch && *Scan__31_s->ch <= '9')) {
-		*Scan__31_s->e = (*Scan__31_s->e * 10 + *Scan__31_s->ch) - 48;
+		*Scan__31_s->e = (*Scan__31_s->e * 10 + (SYSTEM_INT16)*Scan__31_s->ch) - 48;
 		Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
 	}
 }
@@ -818,10 +818,10 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 				if ('9' < ch) {
 					if (('A' <= ch && ch <= 'F')) {
 						hex = 1;
-						ch = (CHAR)(ch - 7);
+						ch = (CHAR)((SYSTEM_INT16)ch - 7);
 					} else if (('a' <= ch && ch <= 'f')) {
 						hex = 1;
-						ch = (CHAR)(ch - 39);
+						ch = (CHAR)((SYSTEM_INT16)ch - 39);
 					} else {
 						break;
 					}
@@ -833,13 +833,13 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 				if (i - j > 8) {
 					j = i - 8;
 				}
-				k = d[__X(j, 32)] - 48;
+				k = (SYSTEM_INT16)d[__X(j, 32)] - 48;
 				j += 1;
 				if ((i - j == 7 && k >= 8)) {
 					k -= 16;
 				}
 				while (j < i) {
-					k = __ASHL(k, 4) + (d[__X(j, 32)] - 48);
+					k = __ASHL(k, 4) + ((SYSTEM_INT16)d[__X(j, 32)] - 48);
 					j += 1;
 				}
 				if (neg) {
@@ -860,12 +860,12 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 					y = (LONGREAL)0;
 					g = (LONGREAL)1;
 					do {
-						y = y * (LONGREAL)10 + (d[__X(j, 32)] - 48);
+						y = y * (LONGREAL)10 + ((SYSTEM_INT16)d[__X(j, 32)] - 48);
 						j += 1;
 					} while (!(j == h));
 					while (j < i) {
 						g = g / (LONGREAL)(LONGREAL)10;
-						y = (d[__X(j, 32)] - 48) * g + y;
+						y = ((SYSTEM_INT16)d[__X(j, 32)] - 48) * g + y;
 						j += 1;
 					}
 					ReadScaleFactor__32();
@@ -892,12 +892,12 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 					x = (REAL)0;
 					f = (REAL)1;
 					do {
-						x = x * (REAL)10 + (d[__X(j, 32)] - 48);
+						x = x * (REAL)10 + ((SYSTEM_INT16)d[__X(j, 32)] - 48);
 						j += 1;
 					} while (!(j == h));
 					while (j < i) {
 						f = f / (REAL)(REAL)10;
-						x = (d[__X(j, 32)] - 48) * f + x;
+						x = ((SYSTEM_INT16)d[__X(j, 32)] - 48) * f + x;
 						j += 1;
 					}
 					if (ch == 'E') {
@@ -929,7 +929,7 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 				(*S).class = 3;
 				k = 0;
 				do {
-					k = k * 10 + (d[__X(j, 32)] - 48);
+					k = k * 10 + ((SYSTEM_INT16)d[__X(j, 32)] - 48);
 					j += 1;
 				} while (!(j == i));
 				if (neg) {
@@ -1319,7 +1319,7 @@ void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, INTEGER 
 		} else {
 			Texts_Write(&*W, W__typ, ' ');
 		}
-		e = __ASHR((e - 1023) * 77, 8);
+		e = (SYSTEM_INT16)__ASHR((e - 1023) * 77, 8);
 		if (e >= 0) {
 			x = x / (LONGREAL)Reals_TenL(e);
 		} else {

@@ -327,11 +327,11 @@ SYSTEM_PTR Heap_NEWBLK (LONGINT size)
 	Heap_Lock();
 	blksz = __ASHL(__ASHR(size + 31, 4), 4);
 	new = Heap_NEWREC((SYSTEM_ADRINT)&blksz);
-	tag = (__VAL(LONGINT, new) + blksz) - 12;
+	tag = ((LONGINT)(SYSTEM_ADRINT)new + blksz) - 12;
 	__PUT(tag - 4, 0, LONGINT);
 	__PUT(tag, blksz, LONGINT);
 	__PUT(tag + 4, -4, LONGINT);
-	__PUT(__VAL(LONGINT, new) - 4, tag, LONGINT);
+	__PUT((LONGINT)(SYSTEM_ADRINT)new - 4, tag, LONGINT);
 	Heap_Unlock();
 	_o_result = new;
 	return _o_result;
@@ -360,7 +360,7 @@ static void Heap_Mark (LONGINT q)
 					__GET(tag, offset, LONGINT);
 					fld = q + offset;
 					p = Heap_FetchAddress(fld);
-					__PUT(fld, __VAL(SYSTEM_PTR, n), SYSTEM_PTR);
+					__PUT(fld, (SYSTEM_PTR)(SYSTEM_ADRINT)n, SYSTEM_PTR);
 				} else {
 					fld = q + offset;
 					n = Heap_FetchAddress(fld);
@@ -369,7 +369,7 @@ static void Heap_Mark (LONGINT q)
 						if (!__ODD(tagbits)) {
 							__PUT(n - 4, tagbits + 1, LONGINT);
 							__PUT(q - 4, tag + 1, LONGINT);
-							__PUT(fld, __VAL(SYSTEM_PTR, p), SYSTEM_PTR);
+							__PUT(fld, (SYSTEM_PTR)(SYSTEM_ADRINT)p, SYSTEM_PTR);
 							p = q;
 							q = n;
 							tag = tagbits;
@@ -384,7 +384,7 @@ static void Heap_Mark (LONGINT q)
 
 static void Heap_MarkP (SYSTEM_PTR p)
 {
-	Heap_Mark(__VAL(LONGINT, p));
+	Heap_Mark((LONGINT)(SYSTEM_ADRINT)p);
 }
 
 static void Heap_Scan (void)
@@ -553,7 +553,7 @@ static void Heap_Finalize (void)
 			} else {
 				prev->next = n->next;
 			}
-			(*n->finalize)(__VAL(SYSTEM_PTR, n->obj));
+			(*n->finalize)((SYSTEM_PTR)(SYSTEM_ADRINT)n->obj);
 			if (prev == NIL) {
 				n = Heap_fin;
 			} else {
@@ -572,7 +572,7 @@ void Heap_FINALL (void)
 	while (Heap_fin != NIL) {
 		n = Heap_fin;
 		Heap_fin = Heap_fin->next;
-		(*n->finalize)(__VAL(SYSTEM_PTR, n->obj));
+		(*n->finalize)((SYSTEM_PTR)(SYSTEM_ADRINT)n->obj);
 	}
 }
 
@@ -699,7 +699,7 @@ void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
 {
 	Heap_FinNode f;
 	__NEW(f, Heap_FinDesc);
-	f->obj = __VAL(LONGINT, obj);
+	f->obj = (LONGINT)(SYSTEM_ADRINT)obj;
 	f->finalize = finalize;
 	f->marked = 1;
 	f->next = Heap_fin;

@@ -1237,9 +1237,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString('case ');
     CASE form OF
     | OPT.Char: CharacterLiteral(caseVal)
-    | OPT.SInt,
-      OPT.Int,
-      OPT.LInt: OPM.WriteInt(caseVal);
+    | OPT.Int:  OPM.WriteInt(caseVal);
     ELSE OPM.LogWStr("unhandled case in OPC.Case, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
     END;
     OPM.WriteString(': ');
@@ -1295,9 +1293,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     | OPT.Byte:   OPM.WriteInt(con^.intval)
     | OPT.Bool:   OPM.WriteInt(con^.intval)
     | OPT.Char:   CharacterLiteral(con.intval)
-    | OPT.SInt,
-      OPT.Int,
-      OPT.LInt:   OPM.WriteInt(con^.intval)
+    | OPT.Int:    OPM.WriteInt(con^.intval)
     | OPT.Real:   OPM.WriteReal(con^.realval, "f")
     | OPT.LReal:  OPM.WriteReal(con^.realval, 0X)
     | OPT.Set:    OPM.WriteString("0x");
