@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Console.h"
@@ -84,10 +84,10 @@ Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len)
 		Modules_resMsg[0] = 0x00;
 	} else {
 		Modules_res = 1;
-		__COPY(name, Modules_importing, ((LONGINT)(20)));
+		__COPY(name, Modules_importing, 20);
 		__MOVE(" module \"", Modules_resMsg, 10);
-		Modules_Append((void*)Modules_resMsg, ((LONGINT)(256)), name, name__len);
-		Modules_Append((void*)Modules_resMsg, ((LONGINT)(256)), (CHAR*)"\" not found", (LONGINT)12);
+		Modules_Append((void*)Modules_resMsg, 256, name, name__len);
+		Modules_Append((void*)Modules_resMsg, 256, (CHAR*)"\" not found", 12);
 	}
 	_o_result = m;
 	__DEL(name);
@@ -112,11 +112,11 @@ Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT nam
 	} else {
 		Modules_res = 2;
 		__MOVE(" command \"", Modules_resMsg, 11);
-		__COPY(name, Modules_importing, ((LONGINT)(20)));
-		Modules_Append((void*)Modules_resMsg, ((LONGINT)(256)), mod->name, ((LONGINT)(20)));
-		Modules_Append((void*)Modules_resMsg, ((LONGINT)(256)), (CHAR*)".", (LONGINT)2);
-		Modules_Append((void*)Modules_resMsg, ((LONGINT)(256)), name, name__len);
-		Modules_Append((void*)Modules_resMsg, ((LONGINT)(256)), (CHAR*)"\" not found", (LONGINT)12);
+		__COPY(name, Modules_importing, 20);
+		Modules_Append((void*)Modules_resMsg, 256, mod->name, 20);
+		Modules_Append((void*)Modules_resMsg, 256, (CHAR*)".", 2);
+		Modules_Append((void*)Modules_resMsg, 256, name, name__len);
+		Modules_Append((void*)Modules_resMsg, 256, (CHAR*)"\" not found", 12);
 		_o_result = NIL;
 		__DEL(name);
 		return _o_result;

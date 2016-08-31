@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin tskSfF */
 #include "SYSTEM.h"
 
 struct Heap__1 {
@@ -116,7 +116,7 @@ void Heap_Unlock (void)
 {
 	Heap_lockdepth -= 1;
 	if ((Heap_interrupted && Heap_lockdepth == 0)) {
-		Heap_PlatformHalt(((LONGINT)(-9)));
+		Heap_PlatformHalt(-9);
 	}
 }
 
@@ -131,7 +131,7 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 	}
 	m->types = 0;
 	m->cmds = NIL;
-	__COPY(name, m->name, ((LONGINT)(20)));
+	__COPY(name, m->name, 20);
 	m->refcnt = 0;
 	m->enumPtrs = enumPtrs;
 	m->next = (Heap_Module)(SYSTEM_ADRINT)Heap_modules;
@@ -148,7 +148,7 @@ void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd)
 	} else {
 		__NEW(c, Heap_CmdDesc);
 	}
-	__COPY(name, c->name, ((LONGINT)(24)));
+	__COPY(name, c->name, 24);
 	c->cmd = cmd;
 	c->next = m->cmds;
 	m->cmds = c;
@@ -326,12 +326,12 @@ SYSTEM_PTR Heap_NEWBLK (LONGINT size)
 	SYSTEM_PTR new;
 	Heap_Lock();
 	blksz = __ASHL(__ASHR(size + 31, 4), 4);
-	new = Heap_NEWREC((LONGINT)(SYSTEM_ADRINT)&blksz);
-	tag = ((LONGINT)(SYSTEM_ADRINT)new + blksz) - 12;
+	new = Heap_NEWREC((SYSTEM_ADRINT)&blksz);
+	tag = (__VAL(LONGINT, new) + blksz) - 12;
 	__PUT(tag - 4, 0, LONGINT);
 	__PUT(tag, blksz, LONGINT);
 	__PUT(tag + 4, -4, LONGINT);
-	__PUT((LONGINT)(SYSTEM_ADRINT)new - 4, tag, LONGINT);
+	__PUT(__VAL(LONGINT, new) - 4, tag, LONGINT);
 	Heap_Unlock();
 	_o_result = new;
 	return _o_result;
@@ -360,7 +360,7 @@ static void Heap_Mark (LONGINT q)
 					__GET(tag, offset, LONGINT);
 					fld = q + offset;
 					p = Heap_FetchAddress(fld);
-					__PUT(fld, (SYSTEM_PTR)(SYSTEM_ADRINT)n, SYSTEM_PTR);
+					__PUT(fld, __VAL(SYSTEM_PTR, n), SYSTEM_PTR);
 				} else {
 					fld = q + offset;
 					n = Heap_FetchAddress(fld);
@@ -369,7 +369,7 @@ static void Heap_Mark (LONGINT q)
 						if (!__ODD(tagbits)) {
 							__PUT(n - 4, tagbits + 1, LONGINT);
 							__PUT(q - 4, tag + 1, LONGINT);
-							__PUT(fld, (SYSTEM_PTR)(SYSTEM_ADRINT)p, SYSTEM_PTR);
+							__PUT(fld, __VAL(SYSTEM_PTR, p), SYSTEM_PTR);
 							p = q;
 							q = n;
 							tag = tagbits;
@@ -384,7 +384,7 @@ static void Heap_Mark (LONGINT q)
 
 static void Heap_MarkP (SYSTEM_PTR p)
 {
-	Heap_Mark((LONGINT)(SYSTEM_ADRINT)p);
+	Heap_Mark(__VAL(LONGINT, p));
 }
 
 static void Heap_Scan (void)
@@ -553,7 +553,7 @@ static void Heap_Finalize (void)
 			} else {
 				prev->next = n->next;
 			}
-			(*n->finalize)((SYSTEM_PTR)(SYSTEM_ADRINT)n->obj);
+			(*n->finalize)(__VAL(SYSTEM_PTR, n->obj));
 			if (prev == NIL) {
 				n = Heap_fin;
 			} else {
@@ -572,7 +572,7 @@ void Heap_FINALL (void)
 	while (Heap_fin != NIL) {
 		n = Heap_fin;
 		Heap_fin = Heap_fin->next;
-		(*n->finalize)((SYSTEM_PTR)(SYSTEM_ADRINT)n->obj);
+		(*n->finalize)(__VAL(SYSTEM_PTR, n->obj));
 	}
 }
 
@@ -589,9 +589,9 @@ static void Heap_MarkStack (LONGINT n, LONGINT *cand, LONGINT cand__len)
 	}
 	if (n == 0) {
 		nofcand = 0;
-		sp = (LONGINT)(SYSTEM_ADRINT)&frame;
+		sp = (SYSTEM_ADRINT)&frame;
 		stack0 = Heap_PlatformMainStackFrame();
-		inc = (LONGINT)(SYSTEM_ADRINT)&align.p - (LONGINT)(SYSTEM_ADRINT)&align;
+		inc = (SYSTEM_ADRINT)&align.p - (SYSTEM_ADRINT)&align;
 		if (sp > stack0) {
 			inc = -inc;
 		}
@@ -680,7 +680,7 @@ void Heap_GC (BOOLEAN markStack)
 				i22 += 23;
 				i23 += 24;
 				if ((i0 == -99 && i15 == 24)) {
-					Heap_MarkStack(((LONGINT)(32)), (void*)cand, ((LONGINT)(10000)));
+					Heap_MarkStack(32, (void*)cand, 10000);
 					break;
 				}
 			}
@@ -699,7 +699,7 @@ void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
 {
 	Heap_FinNode f;
 	__NEW(f, Heap_FinDesc);
-	f->obj = (LONGINT)(SYSTEM_ADRINT)obj;
+	f->obj = __VAL(LONGINT, obj);
 	f->finalize = finalize;
 	f->marked = 1;
 	f->next = Heap_fin;

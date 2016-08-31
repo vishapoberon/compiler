@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin tspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -111,23 +111,23 @@ static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, INTEGER errcode)
 {
 	__DUP(s, s__len, CHAR);
 	Console_Ln();
-	Console_String((CHAR*)"-- ", (LONGINT)4);
+	Console_String((CHAR*)"-- ", 4);
 	Console_String(s, s__len);
-	Console_String((CHAR*)": ", (LONGINT)3);
+	Console_String((CHAR*)": ", 3);
 	if (f != NIL) {
 		if (f->registerName[0] != 0x00) {
-			Console_String(f->registerName, ((LONGINT)(101)));
+			Console_String(f->registerName, 101);
 		} else {
-			Console_String(f->workName, ((LONGINT)(101)));
+			Console_String(f->workName, 101);
 		}
 		if (f->fd != 0) {
-			Console_String((CHAR*)"f.fd = ", (LONGINT)8);
-			Console_Int(f->fd, ((LONGINT)(1)));
+			Console_String((CHAR*)"f.fd = ", 8);
+			Console_Int(f->fd, 1);
 		}
 	}
 	if (errcode != 0) {
-		Console_String((CHAR*)" errcode = ", (LONGINT)12);
-		Console_Int(errcode, ((LONGINT)(1)));
+		Console_String((CHAR*)" errcode = ", 12);
+		Console_Int(errcode, 1);
 	}
 	Console_Ln();
 	__HALT(99);
@@ -217,15 +217,15 @@ static void Files_Create (Files_File f)
 	CHAR err[32];
 	if (f->fd == -1) {
 		if (f->state == 1) {
-			Files_GetTempName(f->registerName, ((LONGINT)(101)), (void*)f->workName, ((LONGINT)(101)));
+			Files_GetTempName(f->registerName, 101, (void*)f->workName, 101);
 			f->tempFile = 1;
 		} else if (f->state == 2) {
-			__COPY(f->registerName, f->workName, ((LONGINT)(101)));
+			__COPY(f->registerName, f->workName, 101);
 			f->registerName[0] = 0x00;
 			f->tempFile = 0;
 		}
-		error = Platform_Unlink((void*)f->workName, ((LONGINT)(101)));
-		error = Platform_New((void*)f->workName, ((LONGINT)(101)), &f->fd);
+		error = Platform_Unlink((void*)f->workName, 101);
+		error = Platform_New((void*)f->workName, 101, &f->fd);
 		done = error == 0;
 		if (done) {
 			f->next = Files_files;
@@ -243,7 +243,7 @@ static void Files_Create (Files_File f)
 			} else {
 				__MOVE("file not created", err, 17);
 			}
-			Files_Err(err, ((LONGINT)(32)), f, error);
+			Files_Err(err, 32, f, error);
 		}
 	}
 }
@@ -258,15 +258,15 @@ static void Files_Flush (Files_Buffer buf)
 		if (buf->org != f->pos) {
 			error = Platform_Seek(f->fd, buf->org, Platform_SeekSet);
 		}
-		error = Platform_Write(f->fd, (LONGINT)(SYSTEM_ADRINT)buf->data, buf->size);
+		error = Platform_Write(f->fd, (SYSTEM_ADRINT)buf->data, buf->size);
 		if (error != 0) {
-			Files_Err((CHAR*)"error writing file", (LONGINT)19, f, error);
+			Files_Err((CHAR*)"error writing file", 19, f, error);
 		}
 		f->pos = buf->org + buf->size;
 		buf->chg = 0;
 		error = Platform_Identify(f->fd, &f->identity, Platform_FileIdentity__typ);
 		if (error != 0) {
-			Files_Err((CHAR*)"error identifying file", (LONGINT)23, f, error);
+			Files_Err((CHAR*)"error identifying file", 23, f, error);
 		}
 	}
 }
@@ -305,7 +305,7 @@ void Files_Close (Files_File f)
 		}
 		error = Platform_Sync(f->fd);
 		if (error != 0) {
-			Files_Err((CHAR*)"error writing file", (LONGINT)19, f, error);
+			Files_Err((CHAR*)"error writing file", 19, f, error);
 		}
 		Files_CloseOSFile(f);
 	}
@@ -325,7 +325,7 @@ Files_File Files_New (CHAR *name, LONGINT name__len)
 	__DUP(name, name__len, CHAR);
 	__NEW(f, Files_FileDesc);
 	f->workName[0] = 0x00;
-	__COPY(name, f->registerName, ((LONGINT)(101)));
+	__COPY(name, f->registerName, 101);
 	f->fd = -1;
 	f->state = 1;
 	f->len = 0;
@@ -438,28 +438,28 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 	if (name[0] != 0x00) {
 		if (Files_HasDir((void*)name, name__len)) {
 			dir[0] = 0x00;
-			__COPY(name, path, ((LONGINT)(256)));
+			__COPY(name, path, 256);
 		} else {
 			pos = 0;
-			Files_ScanPath(&pos, (void*)dir, ((LONGINT)(256)));
-			Files_MakeFileName(dir, ((LONGINT)(256)), name, name__len, (void*)path, ((LONGINT)(256)));
-			Files_ScanPath(&pos, (void*)dir, ((LONGINT)(256)));
+			Files_ScanPath(&pos, (void*)dir, 256);
+			Files_MakeFileName(dir, 256, name, name__len, (void*)path, 256);
+			Files_ScanPath(&pos, (void*)dir, 256);
 		}
 		for (;;) {
-			error = Platform_OldRW((void*)path, ((LONGINT)(256)), &fd);
+			error = Platform_OldRW((void*)path, 256, &fd);
 			done = error == 0;
 			if ((!done && Platform_TooManyFiles(error))) {
-				Files_Err((CHAR*)"too many files open", (LONGINT)20, f, error);
+				Files_Err((CHAR*)"too many files open", 20, f, error);
 			}
 			if ((!done && Platform_Inaccessible(error))) {
-				error = Platform_OldRO((void*)path, ((LONGINT)(256)), &fd);
+				error = Platform_OldRO((void*)path, 256, &fd);
 				done = error == 0;
 			}
 			if ((!done && !Platform_Absent(error))) {
-				Console_String((CHAR*)"Warning: Files.Old ", (LONGINT)20);
+				Console_String((CHAR*)"Warning: Files.Old ", 20);
 				Console_String(name, name__len);
-				Console_String((CHAR*)" error = ", (LONGINT)10);
-				Console_Int(error, ((LONGINT)(0)));
+				Console_String((CHAR*)" error = ", 10);
+				Console_Int(error, 0);
 				Console_Ln();
 			}
 			if (done) {
@@ -477,7 +477,7 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 					f->pos = 0;
 					f->swapper = -1;
 					error = Platform_Size(fd, &f->len);
-					__COPY(name, f->workName, ((LONGINT)(101)));
+					__COPY(name, f->workName, 101);
 					f->registerName[0] = 0x00;
 					f->tempFile = 0;
 					f->identity = identity;
@@ -493,8 +493,8 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 				__DEL(name);
 				return _o_result;
 			} else {
-				Files_MakeFileName(dir, ((LONGINT)(256)), name, name__len, (void*)path, ((LONGINT)(256)));
-				Files_ScanPath(&pos, (void*)dir, ((LONGINT)(256)));
+				Files_MakeFileName(dir, 256, name, name__len, (void*)path, 256);
+				Files_ScanPath(&pos, (void*)dir, 256);
 			}
 		}
 	} else {
@@ -519,8 +519,8 @@ void Files_Purge (Files_File f)
 		i += 1;
 	}
 	if (f->fd != -1) {
-		error = Platform_Truncate(f->fd, ((LONGINT)(0)));
-		error = Platform_Seek(f->fd, ((LONGINT)(0)), Platform_SeekSet);
+		error = Platform_Truncate(f->fd, 0);
+		error = Platform_Seek(f->fd, 0, Platform_SeekSet);
 	}
 	f->pos = 0;
 	f->len = 0;
@@ -585,9 +585,9 @@ void Files_Set (Files_Rider *r, LONGINT *r__typ, Files_File f, LONGINT pos)
 				if (f->pos != org) {
 					error = Platform_Seek(f->fd, org, Platform_SeekSet);
 				}
-				error = Platform_ReadBuf(f->fd, (void*)buf->data, ((LONGINT)(4096)), &n);
+				error = Platform_ReadBuf(f->fd, (void*)buf->data, 4096, &n);
 				if (error != 0) {
-					Files_Err((CHAR*)"read from file not done", (LONGINT)24, f, error);
+					Files_Err((CHAR*)"read from file not done", 24, f, error);
 				}
 				f->pos = org + n;
 				buf->size = n;
@@ -657,7 +657,7 @@ void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x
 		} else {
 			min = n;
 		}
-		__MOVE((LONGINT)(SYSTEM_ADRINT)buf->data + offset, (LONGINT)(SYSTEM_ADRINT)x + xpos, min);
+		__MOVE((SYSTEM_ADRINT)buf->data + offset, (SYSTEM_ADRINT)x + xpos, min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -669,7 +669,7 @@ void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x
 
 void Files_ReadByte (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len)
 {
-	Files_ReadBytes(&*r, r__typ, (void*)x, x__len * ((LONGINT)(1)), ((LONGINT)(1)));
+	Files_ReadBytes(&*r, r__typ, (void*)x, x__len * 1, 1);
 }
 
 Files_File Files_Base (Files_Rider *r, LONGINT *r__typ)
@@ -722,7 +722,7 @@ void Files_WriteBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT 
 		} else {
 			min = n;
 		}
-		__MOVE((LONGINT)(SYSTEM_ADRINT)x + xpos, (LONGINT)(SYSTEM_ADRINT)buf->data + offset, min);
+		__MOVE((SYSTEM_ADRINT)x + xpos, (SYSTEM_ADRINT)buf->data + offset, min);
 		offset += min;
 		(*r).offset = offset;
 		if (offset > buf->size) {
@@ -773,15 +773,15 @@ void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT
 				*res = 3;
 				return;
 			}
-			error = Platform_Read(fdold, (LONGINT)(SYSTEM_ADRINT)buf, ((LONGINT)(4096)), &n);
+			error = Platform_Read(fdold, (SYSTEM_ADRINT)buf, 4096, &n);
 			while (n > 0) {
-				error = Platform_Write(fdnew, (LONGINT)(SYSTEM_ADRINT)buf, n);
+				error = Platform_Write(fdnew, (SYSTEM_ADRINT)buf, n);
 				if (error != 0) {
 					ignore = Platform_Close(fdold);
 					ignore = Platform_Close(fdnew);
-					Files_Err((CHAR*)"cannot move file", (LONGINT)17, NIL, error);
+					Files_Err((CHAR*)"cannot move file", 17, NIL, error);
 				}
-				error = Platform_Read(fdold, (LONGINT)(SYSTEM_ADRINT)buf, ((LONGINT)(4096)), &n);
+				error = Platform_Read(fdold, (SYSTEM_ADRINT)buf, 4096, &n);
 			}
 			ignore = Platform_Close(fdold);
 			ignore = Platform_Close(fdnew);
@@ -789,7 +789,7 @@ void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT
 				error = Platform_Unlink((void*)old, old__len);
 				*res = 0;
 			} else {
-				Files_Err((CHAR*)"cannot move file", (LONGINT)17, NIL, error);
+				Files_Err((CHAR*)"cannot move file", 17, NIL, error);
 			}
 		}
 	} else {
@@ -809,12 +809,12 @@ void Files_Register (Files_File f)
 	}
 	Files_Close(f);
 	if (f->registerName[0] != 0x00) {
-		Files_Rename(f->workName, ((LONGINT)(101)), f->registerName, ((LONGINT)(101)), &errcode);
+		Files_Rename(f->workName, 101, f->registerName, 101, &errcode);
 		if (errcode != 0) {
-			__COPY(f->registerName, file, ((LONGINT)(104)));
+			__COPY(f->registerName, file, 104);
 			__HALT(99);
 		}
-		__COPY(f->registerName, f->workName, ((LONGINT)(101)));
+		__COPY(f->registerName, f->workName, 101);
 		f->registerName[0] = 0x00;
 		f->tempFile = 0;
 	}
@@ -839,7 +839,7 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *de
 			j += 1;
 		}
 	} else {
-		__MOVE((LONGINT)(SYSTEM_ADRINT)src, (LONGINT)(SYSTEM_ADRINT)dest, src__len);
+		__MOVE((SYSTEM_ADRINT)src, (SYSTEM_ADRINT)dest, src__len);
 	}
 }
 
@@ -851,38 +851,38 @@ void Files_ReadBool (Files_Rider *R, LONGINT *R__typ, BOOLEAN *x)
 void Files_ReadInt (Files_Rider *R, LONGINT *R__typ, INTEGER *x)
 {
 	CHAR b[2];
-	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(2)), ((LONGINT)(2)));
-	*x = (int)b[0] + __ASHL((int)b[1], 8);
+	Files_ReadBytes(&*R, R__typ, (void*)b, 2, 2);
+	*x = b[0] + __ASHL(b[1], 8);
 }
 
 void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 {
 	CHAR b[4];
-	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	*x = (((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
+	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
+	*x = ((b[0] + __ASHL(b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
 }
 
 void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
 {
 	CHAR b[4];
 	LONGINT l;
-	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	l = (((int)b[0] + __ASHL((int)b[1], 8)) + __ASHL((int)b[2], 16)) + __ASHL((int)b[3], 24);
-	*x = (SET)l;
+	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
+	l = ((b[0] + __ASHL(b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
+	*x = __VAL(SET, l);
 }
 
 void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x)
 {
 	CHAR b[4];
-	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
-	Files_FlipBytes((void*)b, ((LONGINT)(4)), (void*)&*x, ((LONGINT)(4)));
+	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
+	Files_FlipBytes((void*)b, 4, (void*)&*x, 4);
 }
 
 void Files_ReadLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL *x)
 {
 	CHAR b[8];
-	Files_ReadBytes(&*R, R__typ, (void*)b, ((LONGINT)(8)), ((LONGINT)(8)));
-	Files_FlipBytes((void*)b, ((LONGINT)(8)), (void*)&*x, ((LONGINT)(8)));
+	Files_ReadBytes(&*R, R__typ, (void*)b, 8, 8);
+	Files_FlipBytes((void*)b, 8, (void*)&*x, 8);
 }
 
 void Files_ReadString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
@@ -923,12 +923,12 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, LONGINT *x)
 	s = 0;
 	n = 0;
 	Files_Read(&*R, R__typ, (void*)&ch);
-	while ((int)ch >= 128) {
-		n += __ASH((SYSTEM_INT64)((int)ch - 128), s);
+	while (ch >= 128) {
+		n += __ASH((SYSTEM_INT64)(ch - 128), s);
 		s += 7;
 		Files_Read(&*R, R__typ, (void*)&ch);
 	}
-	n += __ASH((SYSTEM_INT64)(__MASK((int)ch, -64) - __ASHL(__ASHR((int)ch, 6), 6)), s);
+	n += __ASH((SYSTEM_INT64)(__MASK(ch, -64) - __ASHL(__ASHR(ch, 6), 6)), s);
 	*x = n;
 }
 
@@ -942,7 +942,7 @@ void Files_WriteInt (Files_Rider *R, LONGINT *R__typ, INTEGER x)
 	CHAR b[2];
 	b[0] = (CHAR)x;
 	b[1] = (CHAR)__ASHR(x, 8);
-	Files_WriteBytes(&*R, R__typ, (void*)b, ((LONGINT)(2)), ((LONGINT)(2)));
+	Files_WriteBytes(&*R, R__typ, (void*)b, 2, 2);
 }
 
 void Files_WriteLInt (Files_Rider *R, LONGINT *R__typ, LONGINT x)
@@ -952,33 +952,33 @@ void Files_WriteLInt (Files_Rider *R, LONGINT *R__typ, LONGINT x)
 	b[1] = (CHAR)__ASHR(x, 8);
 	b[2] = (CHAR)__ASHR(x, 16);
 	b[3] = (CHAR)__ASHR(x, 24);
-	Files_WriteBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
+	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
 void Files_WriteSet (Files_Rider *R, LONGINT *R__typ, SET x)
 {
 	CHAR b[4];
 	LONGINT i;
-	i = (LONGINT)x;
+	i = __VAL(LONGINT, x);
 	b[0] = (CHAR)i;
 	b[1] = (CHAR)__ASHR(i, 8);
 	b[2] = (CHAR)__ASHR(i, 16);
 	b[3] = (CHAR)__ASHR(i, 24);
-	Files_WriteBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
+	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
 void Files_WriteReal (Files_Rider *R, LONGINT *R__typ, REAL x)
 {
 	CHAR b[4];
-	Files_FlipBytes((void*)&x, ((LONGINT)(4)), (void*)b, ((LONGINT)(4)));
-	Files_WriteBytes(&*R, R__typ, (void*)b, ((LONGINT)(4)), ((LONGINT)(4)));
+	Files_FlipBytes((void*)&x, 4, (void*)b, 4);
+	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
 void Files_WriteLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL x)
 {
 	CHAR b[8];
-	Files_FlipBytes((void*)&x, ((LONGINT)(8)), (void*)b, ((LONGINT)(8)));
-	Files_WriteBytes(&*R, R__typ, (void*)b, ((LONGINT)(8)), ((LONGINT)(8)));
+	Files_FlipBytes((void*)&x, 8, (void*)b, 8);
+	Files_WriteBytes(&*R, R__typ, (void*)b, 8, 8);
 }
 
 void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
@@ -988,7 +988,7 @@ void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len
 	while (x[i] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&*R, R__typ, (void*)x, x__len * ((LONGINT)(1)), i + 1);
+	Files_WriteBytes(&*R, R__typ, (void*)x, x__len * 1, i + 1);
 }
 
 void Files_WriteNum (Files_Rider *R, LONGINT *R__typ, LONGINT x)
@@ -1013,7 +1013,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 	if (f->fd >= 0) {
 		Files_CloseOSFile(f);
 		if (f->tempFile) {
-			res = Platform_Unlink((void*)f->workName, ((LONGINT)(101)));
+			res = Platform_Unlink((void*)f->workName, 101);
 		}
 	}
 }
@@ -1022,7 +1022,7 @@ void Files_SetSearchPath (CHAR *path, LONGINT path__len)
 {
 	__DUP(path, path__len, CHAR);
 	if (Strings_Length(path, path__len) != 0) {
-		Files_SearchPath = __NEWARR(NIL, ((LONGINT)(1)), 1, 1, 1, (LONGINT)(Strings_Length(path, path__len) + 1));
+		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((SYSTEM_ADRINT)((Strings_Length(path, path__len) + 1))));
 		__COPY(path, Files_SearchPath->data, Files_SearchPath->len[0]);
 	} else {
 		Files_SearchPath = NIL;
@@ -1056,6 +1056,6 @@ export void *Files__init(void)
 	Files_tempno = -1;
 	Heap_FileCount = 0;
 	Files_HOME[0] = 0x00;
-	Platform_GetEnv((CHAR*)"HOME", (LONGINT)5, (void*)Files_HOME, ((LONGINT)(1024)));
+	Platform_GetEnv((CHAR*)"HOME", 5, (void*)Files_HOME, 1024);
 	__ENDMOD;
 }

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin tspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -60,7 +60,7 @@ static void OPS_Str (SHORTINT *sym)
 	if (OPS_intval == 2) {
 		*sym = 35;
 		OPS_numtyp = 1;
-		OPS_intval = (int)OPS_str[0];
+		OPS_intval = OPS_str[0];
 	} else {
 		*sym = 37;
 	}
@@ -113,10 +113,10 @@ static INTEGER Ord__7 (CHAR ch, BOOLEAN hex)
 {
 	INTEGER _o_result;
 	if (ch <= '9') {
-		_o_result = (int)ch - 48;
+		_o_result = ch - 48;
 		return _o_result;
 	} else if (hex) {
-		_o_result = ((int)ch - 65) + 10;
+		_o_result = (ch - 65) + 10;
 		return _o_result;
 	} else {
 		OPS_err(2);

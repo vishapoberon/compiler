@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -155,20 +155,20 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 			case 'B': 
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_IntSize = (int)s[__X(i, s__len)] - 48;
+					OPM_IntSize = s[__X(i, s__len)] - 48;
 				}
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_PointerSize = (int)s[__X(i, s__len)] - 48;
+					OPM_PointerSize = s[__X(i, s__len)] - 48;
 				}
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_Alignment = (int)s[__X(i, s__len)] - 48;
+					OPM_Alignment = s[__X(i, s__len)] - 48;
 				}
 				__ASSERT(OPM_IntSize == 2 || OPM_IntSize == 4, 0);
 				__ASSERT(OPM_PointerSize == 4 || OPM_PointerSize == 8, 0);
 				__ASSERT(OPM_Alignment == 4 || OPM_Alignment == 8, 0);
-				Files_SetSearchPath((CHAR*)"", (LONGINT)1);
+				Files_SetSearchPath((CHAR*)"", 1);
 				break;
 			case 'F': 
 				*opt = *opt ^ 0x020000;
@@ -183,10 +183,10 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 				*opt = *opt ^ 0x040000;
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"  warning: option ", (LONGINT)19);
+				OPM_LogWStr((CHAR*)"  warning: option ", 19);
 				OPM_LogW('-');
 				OPM_LogW(s[__X(i, s__len)]);
-				OPM_LogWStr((CHAR*)" ignored", (LONGINT)9);
+				OPM_LogWStr((CHAR*)" ignored", 9);
 				OPM_LogWLn();
 				break;
 		}
@@ -200,71 +200,71 @@ BOOLEAN OPM_OpenPar (void)
 	CHAR s[256];
 	if (Platform_ArgCount == 1) {
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Vishap Oberon-2 compiler v", (LONGINT)27);
-		OPM_LogWStr(Configuration_versionLong, ((LONGINT)(41)));
+		OPM_LogWStr((CHAR*)"Vishap Oberon-2 compiler v", 27);
+		OPM_LogWStr(Configuration_versionLong, 41);
 		OPM_LogW('.');
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG, continued by Norayr Chilingarian and others.", (LONGINT)84);
+		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG, continued by Norayr Chilingarian and others.", 84);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Usage:", (LONGINT)7);
+		OPM_LogWStr((CHAR*)"Usage:", 7);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  ", (LONGINT)3);
-		OPM_LogWStr((CHAR*)"voc", (LONGINT)4);
-		OPM_LogWStr((CHAR*)" options {files {options}}.", (LONGINT)28);
+		OPM_LogWStr((CHAR*)"  ", 3);
+		OPM_LogWStr((CHAR*)"voc", 4);
+		OPM_LogWStr((CHAR*)" options {files {options}}.", 28);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Where options = [\"-\" {option} ].", (LONGINT)33);
+		OPM_LogWStr((CHAR*)"Where options = [\"-\" {option} ].", 33);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  m - generate code for main module", (LONGINT)36);
+		OPM_LogWStr((CHAR*)"  m - generate code for main module", 36);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  M - generate code for main module and link object statically", (LONGINT)63);
+		OPM_LogWStr((CHAR*)"  M - generate code for main module and link object statically", 63);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  s - generate new symbol file", (LONGINT)31);
+		OPM_LogWStr((CHAR*)"  s - generate new symbol file", 31);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  e - allow extending the module interface", (LONGINT)43);
+		OPM_LogWStr((CHAR*)"  e - allow extending the module interface", 43);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  r - check value ranges", (LONGINT)25);
+		OPM_LogWStr((CHAR*)"  r - check value ranges", 25);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  x - turn off array indices check", (LONGINT)35);
+		OPM_LogWStr((CHAR*)"  x - turn off array indices check", 35);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  a - don't check ASSERTs at runtime, use this option in tested production code", (LONGINT)80);
+		OPM_LogWStr((CHAR*)"  a - don't check ASSERTs at runtime, use this option in tested production code", 80);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  p - turn off automatic pointer initialization", (LONGINT)48);
+		OPM_LogWStr((CHAR*)"  p - turn off automatic pointer initialization", 48);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  t - don't check type guards (use in rare cases such as low-level modules where every cycle counts)", (LONGINT)101);
+		OPM_LogWStr((CHAR*)"  t - don't check type guards (use in rare cases such as low-level modules where every cycle counts)", 101);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  S - don't call external assembler/compiler, only generate C code", (LONGINT)67);
+		OPM_LogWStr((CHAR*)"  S - don't call external assembler/compiler, only generate C code", 67);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  c - don't call linker", (LONGINT)24);
+		OPM_LogWStr((CHAR*)"  c - don't call linker", 24);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  f - don't use color output", (LONGINT)29);
+		OPM_LogWStr((CHAR*)"  f - don't use color output", 29);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  F - force writing new symbol file in current directory", (LONGINT)57);
+		OPM_LogWStr((CHAR*)"  F - force writing new symbol file in current directory", 57);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  V - verbose output", (LONGINT)21);
+		OPM_LogWStr((CHAR*)"  V - verbose output", 21);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Initial options specify defaults for all files.", (LONGINT)48);
+		OPM_LogWStr((CHAR*)"Initial options specify defaults for all files.", 48);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Options following a filename are specific to that file.", (LONGINT)56);
+		OPM_LogWStr((CHAR*)"Options following a filename are specific to that file.", 56);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Repeating an option toggles its value.", (LONGINT)39);
+		OPM_LogWStr((CHAR*)"Repeating an option toggles its value.", 39);
 		OPM_LogWLn();
 		_o_result = 0;
 		return _o_result;
 	} else {
 		OPM_S = 1;
 		s[0] = 0x00;
-		Platform_GetArg(OPM_S, (void*)s, ((LONGINT)(256)));
+		Platform_GetArg(OPM_S, (void*)s, 256);
 		OPM_glbopt = 0xe9;
 		while (s[0] == '-') {
-			OPM_ScanOptions((void*)s, ((LONGINT)(256)), &OPM_glbopt);
+			OPM_ScanOptions((void*)s, 256, &OPM_glbopt);
 			OPM_S += 1;
 			s[0] = 0x00;
-			Platform_GetArg(OPM_S, (void*)s, ((LONGINT)(256)));
+			Platform_GetArg(OPM_S, (void*)s, 256);
 		}
 		_o_result = 1;
 		return _o_result;
@@ -277,12 +277,12 @@ void OPM_InitOptions (void)
 	CHAR s[256];
 	OPM_opt = OPM_glbopt;
 	s[0] = 0x00;
-	Platform_GetArg(OPM_S, (void*)s, ((LONGINT)(256)));
+	Platform_GetArg(OPM_S, (void*)s, 256);
 	while (s[0] == '-') {
-		OPM_ScanOptions((void*)s, ((LONGINT)(256)), &OPM_opt);
+		OPM_ScanOptions((void*)s, 256, &OPM_opt);
 		OPM_S += 1;
 		s[0] = 0x00;
-		Platform_GetArg(OPM_S, (void*)s, ((LONGINT)(256)));
+		Platform_GetArg(OPM_S, (void*)s, 256);
 	}
 	OPM_dontAsm = __IN(13, OPM_opt);
 	OPM_dontLink = __IN(14, OPM_opt);
@@ -308,19 +308,19 @@ void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len)
 		return;
 	}
 	s[0] = 0x00;
-	Platform_GetArg(OPM_S, (void*)s, ((LONGINT)(256)));
+	Platform_GetArg(OPM_S, (void*)s, 256);
 	__NEW(T, Texts_TextDesc);
-	Texts_Open(T, s, ((LONGINT)(256)));
-	OPM_LogWStr(s, ((LONGINT)(256)));
-	OPM_LogWStr((CHAR*)"  ", (LONGINT)3);
+	Texts_Open(T, s, 256);
+	OPM_LogWStr(s, 256);
+	OPM_LogWStr((CHAR*)"  ", 3);
 	__COPY(s, mname, mname__len);
-	__COPY(s, OPM_SourceFileName, ((LONGINT)(256)));
+	__COPY(s, OPM_SourceFileName, 256);
 	if (T->len == 0) {
-		OPM_LogWStr(s, ((LONGINT)(256)));
-		OPM_LogWStr((CHAR*)" not found.", (LONGINT)12);
+		OPM_LogWStr(s, 256);
+		OPM_LogWStr((CHAR*)" not found.", 12);
 		OPM_LogWLn();
 	} else {
-		Texts_OpenReader(&OPM_inR, Texts_Reader__typ, T, ((LONGINT)(0)));
+		Texts_OpenReader(&OPM_inR, Texts_Reader__typ, T, 0);
 		*done = 1;
 	}
 	OPM_S += 1;
@@ -379,25 +379,25 @@ static void OPM_LogErrMsg (INTEGER n)
 	CHAR buf[1024];
 	if (n >= 0) {
 		if (!OPM_notColorOutput) {
-			vt100_SetAttr((CHAR*)"31m", (LONGINT)4);
+			vt100_SetAttr((CHAR*)"31m", 4);
 		}
-		OPM_LogWStr((CHAR*)"  err ", (LONGINT)7);
+		OPM_LogWStr((CHAR*)"  err ", 7);
 		if (!OPM_notColorOutput) {
-			vt100_SetAttr((CHAR*)"0m", (LONGINT)3);
+			vt100_SetAttr((CHAR*)"0m", 3);
 		}
 	} else {
 		if (!OPM_notColorOutput) {
-			vt100_SetAttr((CHAR*)"35m", (LONGINT)4);
+			vt100_SetAttr((CHAR*)"35m", 4);
 		}
-		OPM_LogWStr((CHAR*)"  warning ", (LONGINT)11);
+		OPM_LogWStr((CHAR*)"  warning ", 11);
 		n = -n;
 		if (!OPM_notColorOutput) {
-			vt100_SetAttr((CHAR*)"0m", (LONGINT)3);
+			vt100_SetAttr((CHAR*)"0m", 3);
 		}
 	}
-	OPM_LogWNum(n, ((LONGINT)(1)));
-	OPM_LogWStr((CHAR*)"  ", (LONGINT)3);
-	OPM_LogWStr(errors_errors[__X(n, ((LONGINT)(350)))], ((LONGINT)(128)));
+	OPM_LogWNum(n, 1);
+	OPM_LogWStr((CHAR*)"  ", 3);
+	OPM_LogWStr(errors_errors[__X(n, 350)], 128);
 }
 
 static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, LONGINT pos)
@@ -439,37 +439,37 @@ static void OPM_ShowLine (LONGINT pos)
 	CHAR line[1023];
 	INTEGER i;
 	CHAR ch;
-	f = Files_Old(OPM_SourceFileName, ((LONGINT)(256)));
+	f = Files_Old(OPM_SourceFileName, 256);
 	OPM_FindLine(f, &r, Files_Rider__typ, pos);
 	i = 0;
 	Files_Read(&r, Files_Rider__typ, (void*)&ch);
 	while ((((((ch != 0x00 && ch != 0x0d)) && ch != 0x0a)) && i < 1022)) {
-		line[__X(i, ((LONGINT)(1023)))] = ch;
+		line[__X(i, 1023)] = ch;
 		i += 1;
 		Files_Read(&r, Files_Rider__typ, (void*)&ch);
 	}
-	line[__X(i, ((LONGINT)(1023)))] = 0x00;
+	line[__X(i, 1023)] = 0x00;
 	OPM_LogWLn();
 	OPM_LogWLn();
-	OPM_LogWNum(OPM_ErrorLineNumber, ((LONGINT)(4)));
-	OPM_LogWStr((CHAR*)": ", (LONGINT)3);
-	OPM_LogWStr(line, ((LONGINT)(1023)));
+	OPM_LogWNum(OPM_ErrorLineNumber, 4);
+	OPM_LogWStr((CHAR*)": ", 3);
+	OPM_LogWStr(line, 1023);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"      ", (LONGINT)7);
+	OPM_LogWStr((CHAR*)"      ", 7);
 	if (pos >= OPM_ErrorLineLimitPos) {
 		pos = OPM_ErrorLineLimitPos - 1;
 	}
-	i = (int)(pos - OPM_ErrorLineStartPos);
+	i = (SYSTEM_INT32)(pos - OPM_ErrorLineStartPos);
 	while (i > 0) {
 		OPM_LogW(' ');
 		i -= 1;
 	}
 	if (!OPM_notColorOutput) {
-		vt100_SetAttr((CHAR*)"32m", (LONGINT)4);
+		vt100_SetAttr((CHAR*)"32m", 4);
 	}
 	OPM_LogW('^');
 	if (!OPM_notColorOutput) {
-		vt100_SetAttr((CHAR*)"0m", (LONGINT)3);
+		vt100_SetAttr((CHAR*)"0m", 3);
 	}
 	Files_Close(f);
 }
@@ -485,30 +485,30 @@ void OPM_Mark (INTEGER n, LONGINT pos)
 			OPM_lasterrpos = pos;
 			OPM_ShowLine(pos);
 			OPM_LogWLn();
-			OPM_LogWStr((CHAR*)"  ", (LONGINT)3);
+			OPM_LogWStr((CHAR*)"  ", 3);
 			if (n < 249) {
-				OPM_LogWStr((CHAR*)"  pos", (LONGINT)6);
-				OPM_LogWNum(pos, ((LONGINT)(6)));
+				OPM_LogWStr((CHAR*)"  pos", 6);
+				OPM_LogWNum(pos, 6);
 				OPM_LogErrMsg(n);
 			} else if (n == 255) {
-				OPM_LogWStr((CHAR*)"pos", (LONGINT)4);
-				OPM_LogWNum(pos, ((LONGINT)(6)));
-				OPM_LogWStr((CHAR*)"  pc ", (LONGINT)6);
-				OPM_LogWNum(OPM_breakpc, ((LONGINT)(1)));
+				OPM_LogWStr((CHAR*)"pos", 4);
+				OPM_LogWNum(pos, 6);
+				OPM_LogWStr((CHAR*)"  pc ", 6);
+				OPM_LogWNum(OPM_breakpc, 1);
 			} else if (n == 254) {
-				OPM_LogWStr((CHAR*)"pc not found", (LONGINT)13);
+				OPM_LogWStr((CHAR*)"pc not found", 13);
 			} else {
-				OPM_LogWStr(OPM_objname, ((LONGINT)(64)));
+				OPM_LogWStr(OPM_objname, 64);
 				if (n == 253) {
-					OPM_LogWStr((CHAR*)" is new, compile with option e", (LONGINT)31);
+					OPM_LogWStr((CHAR*)" is new, compile with option e", 31);
 				} else if (n == 252) {
-					OPM_LogWStr((CHAR*)" is redefined, compile with option s", (LONGINT)37);
+					OPM_LogWStr((CHAR*)" is redefined, compile with option s", 37);
 				} else if (n == 251) {
-					OPM_LogWStr((CHAR*)" is redefined (private part only), compile with option s", (LONGINT)57);
+					OPM_LogWStr((CHAR*)" is redefined (private part only), compile with option s", 57);
 				} else if (n == 250) {
-					OPM_LogWStr((CHAR*)" is no longer visible, compile with option s", (LONGINT)45);
+					OPM_LogWStr((CHAR*)" is no longer visible, compile with option s", 45);
 				} else if (n == 249) {
-					OPM_LogWStr((CHAR*)" is not consistently imported, recompile imports", (LONGINT)49);
+					OPM_LogWStr((CHAR*)" is not consistently imported, recompile imports", 49);
 				}
 			}
 		}
@@ -516,8 +516,8 @@ void OPM_Mark (INTEGER n, LONGINT pos)
 		if (pos >= 0) {
 			OPM_ShowLine(pos);
 			OPM_LogWLn();
-			OPM_LogWStr((CHAR*)"  pos", (LONGINT)6);
-			OPM_LogWNum(pos, ((LONGINT)(6)));
+			OPM_LogWStr((CHAR*)"  pos", 6);
+			OPM_LogWNum(pos, 6);
 		}
 		OPM_LogErrMsg(n);
 		if (pos < 0) {
@@ -533,19 +533,19 @@ void OPM_err (INTEGER n)
 
 void OPM_FPrint (LONGINT *fp, LONGINT val)
 {
-	*fp = __ROTL((LONGINT)((SET)*fp ^ (SET)val), 1, LONGINT);
+	*fp = __ROTL((LONGINT)(__VAL(SET, *fp) ^ __VAL(SET, val)), 1, LONGINT);
 }
 
 void OPM_FPrintSet (LONGINT *fp, SET set)
 {
-	OPM_FPrint(&*fp, (LONGINT)set);
+	OPM_FPrint(&*fp, __VAL(LONGINT, set));
 }
 
 void OPM_FPrintReal (LONGINT *fp, REAL real)
 {
 	INTEGER i;
 	LONGINT l;
-	__GET((LONGINT)(SYSTEM_ADRINT)&real, i, INTEGER);
+	__GET((SYSTEM_ADRINT)&real, i, INTEGER);
 	l = i;
 	OPM_FPrint(&*fp, l);
 }
@@ -562,19 +562,19 @@ static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONG
 	if (((*S).class == 1 && __STRCMP((*S).s, name) == 0)) {
 		Texts_Scan(&*S, S__typ);
 		if ((*S).class == 3) {
-			*size = (int)(*S).i;
+			*size = (SYSTEM_INT32)(*S).i;
 			Texts_Scan(&*S, S__typ);
 		} else {
-			OPM_Mark(-157, ((LONGINT)(-1)));
+			OPM_Mark(-157, -1);
 		}
 		if ((*S).class == 3) {
-			*align = (int)(*S).i;
+			*align = (SYSTEM_INT32)(*S).i;
 			Texts_Scan(&*S, S__typ);
 		} else {
-			OPM_Mark(-157, ((LONGINT)(-1)));
+			OPM_Mark(-157, -1);
 		}
 	} else {
-		OPM_Mark(-157, ((LONGINT)(-1)));
+		OPM_Mark(-157, -1);
 	}
 	__DEL(name);
 }
@@ -603,40 +603,40 @@ static LONGINT OPM_power0 (LONGINT i, LONGINT j)
 static void OPM_VerboseListSizes (void)
 {
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Type        Size  Alignement", (LONGINT)29);
+	OPM_LogWStr((CHAR*)"Type        Size  Alignement", 29);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"CHAR         ", (LONGINT)14);
-	OPM_LogWNum(OPM_CharSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"CHAR         ", 14);
+	OPM_LogWNum(OPM_CharSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"BOOLEAN      ", (LONGINT)14);
-	OPM_LogWNum(OPM_BoolSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"BOOLEAN      ", 14);
+	OPM_LogWNum(OPM_BoolSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"SHORTINT     ", (LONGINT)14);
-	OPM_LogWNum(OPM_SIntSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"SHORTINT     ", 14);
+	OPM_LogWNum(OPM_SIntSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"INTEGER      ", (LONGINT)14);
-	OPM_LogWNum(OPM_IntSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"INTEGER      ", 14);
+	OPM_LogWNum(OPM_IntSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"LONGINT      ", (LONGINT)14);
-	OPM_LogWNum(OPM_LIntSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"LONGINT      ", 14);
+	OPM_LogWNum(OPM_LIntSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"SET          ", (LONGINT)14);
-	OPM_LogWNum(OPM_SetSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"SET          ", 14);
+	OPM_LogWNum(OPM_SetSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"REAL         ", (LONGINT)14);
-	OPM_LogWNum(OPM_RealSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"REAL         ", 14);
+	OPM_LogWNum(OPM_RealSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"LONGREAL     ", (LONGINT)14);
-	OPM_LogWNum(OPM_LRealSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"LONGREAL     ", 14);
+	OPM_LogWNum(OPM_LRealSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"PTR          ", (LONGINT)14);
-	OPM_LogWNum(OPM_PointerSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"PTR          ", 14);
+	OPM_LogWNum(OPM_PointerSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"PROC         ", (LONGINT)14);
-	OPM_LogWNum(OPM_ProcSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"PROC         ", 14);
+	OPM_LogWNum(OPM_ProcSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"RECORD       ", (LONGINT)14);
-	OPM_LogWNum(OPM_RecSize, ((LONGINT)(4)));
+	OPM_LogWStr((CHAR*)"RECORD       ", 14);
+	OPM_LogWNum(OPM_RecSize, 4);
 	OPM_LogWLn();
 	OPM_LogWLn();
 }
@@ -719,11 +719,11 @@ void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done)
 {
 	CHAR ch;
 	OPM_FileName fileName;
-	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, ((LONGINT)(32)), (CHAR*)".sym", (LONGINT)5);
-	OPM_oldSFile = Files_Old(fileName, ((LONGINT)(32)));
+	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
+	OPM_oldSFile = Files_Old(fileName, 32);
 	*done = OPM_oldSFile != NIL;
 	if (*done) {
-		Files_Set(&OPM_oldSF, Files_Rider__typ, OPM_oldSFile, ((LONGINT)(0)));
+		Files_Set(&OPM_oldSF, Files_Rider__typ, OPM_oldSFile, 0);
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&ch);
 		if (ch != 0xf7) {
 			OPM_err(-306);
@@ -752,7 +752,7 @@ void OPM_SymWInt (LONGINT i)
 
 void OPM_SymWSet (SET s)
 {
-	Files_WriteNum(&OPM_newSF, Files_Rider__typ, (LONGINT)s);
+	Files_WriteNum(&OPM_newSF, Files_Rider__typ, __VAL(LONGINT, s));
 }
 
 void OPM_SymWReal (REAL r)
@@ -779,10 +779,10 @@ void OPM_DeleteNewSym (void)
 void OPM_NewSym (CHAR *modName, LONGINT modName__len)
 {
 	OPM_FileName fileName;
-	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, ((LONGINT)(32)), (CHAR*)".sym", (LONGINT)5);
-	OPM_newSFile = Files_New(fileName, ((LONGINT)(32)));
+	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
+	OPM_newSFile = Files_New(fileName, 32);
 	if (OPM_newSFile != NIL) {
-		Files_Set(&OPM_newSF, Files_Rider__typ, OPM_newSFile, ((LONGINT)(0)));
+		Files_Set(&OPM_newSF, Files_Rider__typ, OPM_newSFile, 0);
 		Files_Write(&OPM_newSF, Files_Rider__typ, 0xf7);
 	} else {
 		OPM_err(153);
@@ -791,7 +791,7 @@ void OPM_NewSym (CHAR *modName, LONGINT modName__len)
 
 void OPM_Write (CHAR ch)
 {
-	Files_Write(&OPM_R[__X(OPM_currFile, ((LONGINT)(3)))], Files_Rider__typ, ch);
+	Files_Write(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, ch);
 }
 
 void OPM_WriteString (CHAR *s, LONGINT s__len)
@@ -801,7 +801,7 @@ void OPM_WriteString (CHAR *s, LONGINT s__len)
 	while (s[__X(i, s__len)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&OPM_R[__X(OPM_currFile, ((LONGINT)(3)))], Files_Rider__typ, (void*)s, s__len * ((LONGINT)(1)), i);
+	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
 }
 
 void OPM_WriteStringVar (CHAR *s, LONGINT s__len)
@@ -811,27 +811,27 @@ void OPM_WriteStringVar (CHAR *s, LONGINT s__len)
 	while (s[__X(i, s__len)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&OPM_R[__X(OPM_currFile, ((LONGINT)(3)))], Files_Rider__typ, (void*)s, s__len * ((LONGINT)(1)), i);
+	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
 }
 
 void OPM_WriteHex (LONGINT i)
 {
 	CHAR s[3];
 	INTEGER digit;
-	digit = __ASHR((int)i, 4);
+	digit = __ASHR((SYSTEM_INT32)i, 4);
 	if (digit < 10) {
 		s[0] = (CHAR)(48 + digit);
 	} else {
 		s[0] = (CHAR)(87 + digit);
 	}
-	digit = __MASK((int)i, -16);
+	digit = __MASK((SYSTEM_INT32)i, -16);
 	if (digit < 10) {
 		s[1] = (CHAR)(48 + digit);
 	} else {
 		s[1] = (CHAR)(87 + digit);
 	}
 	s[2] = 0x00;
-	OPM_WriteString(s, ((LONGINT)(3)));
+	OPM_WriteString(s, 3);
 }
 
 void OPM_WriteInt (LONGINT i)
@@ -841,24 +841,24 @@ void OPM_WriteInt (LONGINT i)
 	if (i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) {
 		OPM_Write('(');
 		OPM_WriteInt(i + 1);
-		OPM_WriteString((CHAR*)"-1)", (LONGINT)4);
+		OPM_WriteString((CHAR*)"-1)", 4);
 	} else {
 		i1 = __ABS(i);
 		s[0] = (CHAR)(__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k = 1;
 		while (i1 > 0) {
-			s[__X(k, ((LONGINT)(20)))] = (CHAR)(__MOD(i1, 10) + 48);
+			s[__X(k, 20)] = (CHAR)(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
 		if (i < 0) {
-			s[__X(k, ((LONGINT)(20)))] = '-';
+			s[__X(k, 20)] = '-';
 			k += 1;
 		}
 		while (k > 0) {
 			k -= 1;
-			OPM_Write(s[__X(k, ((LONGINT)(20)))]);
+			OPM_Write(s[__X(k, 20)]);
 		}
 	}
 }
@@ -873,9 +873,9 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 	INTEGER i;
 	if ((((r < OPM_SignedMaximum(OPM_LIntSize) && r > OPM_SignedMinimum(OPM_LIntSize))) && r == (__ENTIER(r)))) {
 		if (suffx == 'f') {
-			OPM_WriteString((CHAR*)"(REAL)", (LONGINT)7);
+			OPM_WriteString((CHAR*)"(REAL)", 7);
 		} else {
-			OPM_WriteString((CHAR*)"(LONGREAL)", (LONGINT)11);
+			OPM_WriteString((CHAR*)"(LONGREAL)", 11);
 		}
 		OPM_WriteInt(__ENTIER(r));
 	} else {
@@ -886,33 +886,33 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 			Texts_WriteLongReal(&W, Texts_Writer__typ, r, 23);
 		}
 		__NEW(T, Texts_TextDesc);
-		Texts_Open(T, (CHAR*)"", (LONGINT)1);
+		Texts_Open(T, (CHAR*)"", 1);
 		Texts_Append(T, W.buf);
-		Texts_OpenReader(&R, Texts_Reader__typ, T, ((LONGINT)(0)));
+		Texts_OpenReader(&R, Texts_Reader__typ, T, 0);
 		i = 0;
 		Texts_Read(&R, Texts_Reader__typ, &ch);
 		while (ch != 0x00) {
-			s[__X(i, ((LONGINT)(32)))] = ch;
+			s[__X(i, 32)] = ch;
 			i += 1;
 			Texts_Read(&R, Texts_Reader__typ, &ch);
 		}
-		s[__X(i, ((LONGINT)(32)))] = 0x00;
+		s[__X(i, 32)] = 0x00;
 		i = 0;
 		ch = s[0];
 		while ((ch != 'D' && ch != 0x00)) {
 			i += 1;
-			ch = s[__X(i, ((LONGINT)(32)))];
+			ch = s[__X(i, 32)];
 		}
 		if (ch == 'D') {
-			s[__X(i, ((LONGINT)(32)))] = 'e';
+			s[__X(i, 32)] = 'e';
 		}
-		OPM_WriteString(s, ((LONGINT)(32)));
+		OPM_WriteString(s, 32);
 	}
 }
 
 void OPM_WriteLn (void)
 {
-	Files_Write(&OPM_R[__X(OPM_currFile, ((LONGINT)(3)))], Files_Rider__typ, 0x0a);
+	Files_Write(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, 0x0a);
 }
 
 static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F)
@@ -920,11 +920,11 @@ static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F)
 	Files_Rider R1;
 	CHAR buffer[4096];
 	if (F != NIL) {
-		Files_Set(&R1, Files_Rider__typ, F, ((LONGINT)(0)));
-		Files_ReadBytes(&R1, Files_Rider__typ, (void*)buffer, ((LONGINT)(4096)), ((LONGINT)(4096)));
+		Files_Set(&R1, Files_Rider__typ, F, 0);
+		Files_ReadBytes(&R1, Files_Rider__typ, (void*)buffer, 4096, 4096);
 		while (4096 - R1.res > 0) {
-			Files_WriteBytes(&*R, R__typ, (void*)buffer, ((LONGINT)(4096)), 4096 - R1.res);
-			Files_ReadBytes(&R1, Files_Rider__typ, (void*)buffer, ((LONGINT)(4096)), ((LONGINT)(4096)));
+			Files_WriteBytes(&*R, R__typ, (void*)buffer, 4096, 4096 - R1.res);
+			Files_ReadBytes(&R1, Files_Rider__typ, (void*)buffer, 4096, 4096);
 		}
 	}
 }
@@ -932,24 +932,24 @@ static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F)
 void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len)
 {
 	CHAR FName[32];
-	__COPY(moduleName, OPM_modName, ((LONGINT)(32)));
-	OPM_HFile = Files_New((CHAR*)"", (LONGINT)1);
+	__COPY(moduleName, OPM_modName, 32);
+	OPM_HFile = Files_New((CHAR*)"", 1);
 	if (OPM_HFile != NIL) {
-		Files_Set(&OPM_R[0], Files_Rider__typ, OPM_HFile, ((LONGINT)(0)));
+		Files_Set(&OPM_R[0], Files_Rider__typ, OPM_HFile, 0);
 	} else {
 		OPM_err(153);
 	}
-	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, ((LONGINT)(32)), (CHAR*)".c", (LONGINT)3);
-	OPM_BFile = Files_New(FName, ((LONGINT)(32)));
+	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, 32, (CHAR*)".c", 3);
+	OPM_BFile = Files_New(FName, 32);
 	if (OPM_BFile != NIL) {
-		Files_Set(&OPM_R[1], Files_Rider__typ, OPM_BFile, ((LONGINT)(0)));
+		Files_Set(&OPM_R[1], Files_Rider__typ, OPM_BFile, 0);
 	} else {
 		OPM_err(153);
 	}
-	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, ((LONGINT)(32)), (CHAR*)".h", (LONGINT)3);
-	OPM_HIFile = Files_New(FName, ((LONGINT)(32)));
+	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, 32, (CHAR*)".h", 3);
+	OPM_HIFile = Files_New(FName, 32);
 	if (OPM_HIFile != NIL) {
-		Files_Set(&OPM_R[2], Files_Rider__typ, OPM_HIFile, ((LONGINT)(0)));
+		Files_Set(&OPM_R[2], Files_Rider__typ, OPM_HIFile, 0);
 	} else {
 		OPM_err(153);
 	}
@@ -960,9 +960,9 @@ void OPM_CloseFiles (void)
 	CHAR FName[32];
 	INTEGER res;
 	if (OPM_noerr) {
-		OPM_LogWStr((CHAR*)"  ", (LONGINT)3);
-		OPM_LogWNum(Files_Pos(&OPM_R[1], Files_Rider__typ), ((LONGINT)(0)));
-		OPM_LogWStr((CHAR*)" chars.", (LONGINT)8);
+		OPM_LogWStr((CHAR*)"  ", 3);
+		OPM_LogWNum(Files_Pos(&OPM_R[1], Files_Rider__typ), 0);
+		OPM_LogWStr((CHAR*)" chars.", 8);
 	}
 	if (OPM_noerr) {
 		if (__STRCMP(OPM_modName, "SYSTEM") == 0) {
@@ -974,10 +974,10 @@ void OPM_CloseFiles (void)
 			Files_Register(OPM_HIFile);
 			Files_Register(OPM_BFile);
 		} else {
-			OPM_MakeFileName((void*)OPM_modName, ((LONGINT)(32)), (void*)FName, ((LONGINT)(32)), (CHAR*)".h", (LONGINT)3);
-			Files_Delete(FName, ((LONGINT)(32)), &res);
-			OPM_MakeFileName((void*)OPM_modName, ((LONGINT)(32)), (void*)FName, ((LONGINT)(32)), (CHAR*)".sym", (LONGINT)5);
-			Files_Delete(FName, ((LONGINT)(32)), &res);
+			OPM_MakeFileName((void*)OPM_modName, 32, (void*)FName, 32, (CHAR*)".h", 3);
+			Files_Delete(FName, 32, &res);
+			OPM_MakeFileName((void*)OPM_modName, 32, (void*)FName, 32, (CHAR*)".sym", 5);
+			Files_Delete(FName, 32, &res);
 			Files_Register(OPM_BFile);
 		}
 	}
@@ -986,11 +986,11 @@ void OPM_CloseFiles (void)
 	OPM_HIFile = NIL;
 	OPM_newSFile = NIL;
 	OPM_oldSFile = NIL;
-	Files_Set(&OPM_R[0], Files_Rider__typ, NIL, ((LONGINT)(0)));
-	Files_Set(&OPM_R[1], Files_Rider__typ, NIL, ((LONGINT)(0)));
-	Files_Set(&OPM_R[2], Files_Rider__typ, NIL, ((LONGINT)(0)));
-	Files_Set(&OPM_newSF, Files_Rider__typ, NIL, ((LONGINT)(0)));
-	Files_Set(&OPM_oldSF, Files_Rider__typ, NIL, ((LONGINT)(0)));
+	Files_Set(&OPM_R[0], Files_Rider__typ, NIL, 0);
+	Files_Set(&OPM_R[1], Files_Rider__typ, NIL, 0);
+	Files_Set(&OPM_R[2], Files_Rider__typ, NIL, 0);
+	Files_Set(&OPM_newSF, Files_Rider__typ, NIL, 0);
+	Files_Set(&OPM_oldSF, Files_Rider__typ, NIL, 0);
 }
 
 static void EnumPtrs(void (*P)(void*))
@@ -1031,15 +1031,15 @@ export void *OPM__init(void)
 /* BEGIN */
 	Texts_OpenWriter(&OPM_W, Texts_Writer__typ);
 	OPM_MODULES[0] = 0x00;
-	Platform_GetEnv((CHAR*)"MODULES", (LONGINT)8, (void*)OPM_MODULES, ((LONGINT)(1024)));
+	Platform_GetEnv((CHAR*)"MODULES", 8, (void*)OPM_MODULES, 1024);
 	__MOVE(".", OPM_OBERON, 2);
-	Platform_GetEnv((CHAR*)"OBERON", (LONGINT)7, (void*)OPM_OBERON, ((LONGINT)(1024)));
-	Strings_Append((CHAR*)";.;", (LONGINT)4, (void*)OPM_OBERON, ((LONGINT)(1024)));
-	Strings_Append(OPM_MODULES, ((LONGINT)(1024)), (void*)OPM_OBERON, ((LONGINT)(1024)));
-	Strings_Append((CHAR*)";", (LONGINT)2, (void*)OPM_OBERON, ((LONGINT)(1024)));
-	Strings_Append((CHAR*)"/opt/voc", (LONGINT)9, (void*)OPM_OBERON, ((LONGINT)(1024)));
-	Strings_Append((CHAR*)"/sym;", (LONGINT)6, (void*)OPM_OBERON, ((LONGINT)(1024)));
-	Files_SetSearchPath(OPM_OBERON, ((LONGINT)(1024)));
+	Platform_GetEnv((CHAR*)"OBERON", 7, (void*)OPM_OBERON, 1024);
+	Strings_Append((CHAR*)";.;", 4, (void*)OPM_OBERON, 1024);
+	Strings_Append(OPM_MODULES, 1024, (void*)OPM_OBERON, 1024);
+	Strings_Append((CHAR*)";", 2, (void*)OPM_OBERON, 1024);
+	Strings_Append((CHAR*)"/opt/voc", 9, (void*)OPM_OBERON, 1024);
+	Strings_Append((CHAR*)"/sym;", 6, (void*)OPM_OBERON, 1024);
+	Files_SetSearchPath(OPM_OBERON, 1024);
 	OPM_CharSize = 1;
 	OPM_BoolSize = 1;
 	OPM_SIntSize = 1;

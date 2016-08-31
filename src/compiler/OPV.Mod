@@ -295,10 +295,16 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END
   END Entier;
 
-  PROCEDURE SizeCast(size: LONGINT);
+  PROCEDURE SizeCast(from, to: LONGINT);
   BEGIN
-    IF size <= 4 THEN OPM.WriteString("(int)")
-    ELSE              OPM.WriteString("(SYSTEM_INT64)")
+    IF (from # to) & ((from > OPM.CIntSize) OR (to > OPM.CIntSize)) THEN
+      CASE to OF
+      |1: OPM.WriteString("(SYSTEM_INT8)");
+      |2: OPM.WriteString("(SYSTEM_INT16)");
+      |4: OPM.WriteString("(SYSTEM_INT32)");
+      |8: OPM.WriteString("(SYSTEM_INT64)");
+      ELSE OPM.LogWStr("Unhandled case in OPC.SizeCast, to = "); OPM.LogWNum(to,1); OPM.LogWLn;
+      END
     END
   END SizeCast;
 
@@ -312,8 +318,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
         OPM.WriteInt(OPM.SignedMaximum(newtype.size) + 1); OPM.Write(CloseParen)
       ELSE
-        IF newtype.size # n.typ.size THEN SizeCast(newtype.size) END;
-        Entier(n, 9)
+        SizeCast(n.typ.size, newtype.size); Entier(n, 9)
       END
     ELSIF to = OPT.Char THEN
       IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__CHR");
@@ -443,6 +448,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     IF prec > designPrec THEN OPM.Write(CloseParen) END
   END design;
 
+  PROCEDURE ParIntLiteral(n, size: LONGINT);
+  BEGIN
+    (* Literal parameters (other than varargs) do not need an explicit size cast on ansi C compilers. *)
+    IF ansi THEN OPM.WriteInt(n) ELSE OPC.IntLiteral(n, size) END
+  END ParIntLiteral;
+
   PROCEDURE ActualPar(n: OPT.Node; fp: OPT.Object);
     VAR typ, aptyp: OPT.Struct; comp, form, mode, prec, dim: INTEGER;
   BEGIN
@@ -465,8 +476,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         ELSE
           IF (form IN {OPT.Real, OPT.LReal}) & (n^.typ^.form IN OPT.intSet) THEN (* real promotion *)
             OPM.WriteString("(double)"); prec := 9
-          ELSIF (form = OPT.LInt) & (n^.typ^.form < OPT.LInt) THEN (* integral promotion *)
+          (*
+          ELSIF (form IN OPT.intSet) & (typ.size = OPM.LIntSize) & (n.typ.form <= OPT.LInt) & (n.typ.size < OPM.LIntSize) THEN (* integral promotion *)
             OPM.WriteString("(LONGINT)"); prec := 9
+          *)
+          ELSIF form IN OPT.intSet THEN
+            SizeCast(n.typ.size, typ.size)
           END
         END
       ELSIF ansi THEN
@@ -475,9 +490,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       END;
       IF (mode = OPT.VarPar) & (n^.class = OPT.Nmop) & (n^.subcl = OPT.val) THEN
         expr(n^.left, prec)  (* avoid cast in lvalue *)
-      ELSIF (form = OPT.LInt) & (n^.class = OPT.Nconst)
-          & (n^.conval^.intval <= OPM.SignedMaximum(OPM.IntSize)) & (n^.conval^.intval >= OPM.SignedMinimum(OPM.IntSize)) THEN
-        OPM.WriteString("((LONGINT)("); expr(n, prec); OPM.WriteString("))");
+      ELSIF (form IN OPT.intSet) & (n^.class = OPT.Nconst) THEN
+        ParIntLiteral(n.conval.intval, n.typ.size)
       ELSE
         expr(n, prec)
       END;
@@ -485,7 +499,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         OPM.WriteString(", "); TypeOf(n)
       ELSIF comp = OPT.DynArr THEN
         IF n^.class = OPT.Nconst THEN (* ap is string constant *)
-          OPM.WriteString(Comma); OPM.WriteString("(LONGINT)"); OPM.WriteInt(n^.conval^.intval2)
+          OPM.WriteString(Comma); ParIntLiteral(n.conval.intval2, OPM.PointerSize)
         ELSE
           aptyp := n^.typ; dim := 0;
           WHILE (typ^.comp = OPT.DynArr) & (typ^.BaseTyp^.form # OPT.Byte) DO
@@ -497,7 +511,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
             WHILE aptyp^.comp = OPT.DynArr DO
               Len(n, dim); OPM.WriteString(" * "); INC(dim); aptyp := aptyp^.BaseTyp
             END ;
-            OPM.WriteString("((LONGINT)("); OPM.WriteInt(aptyp^.size); OPM.WriteString("))");
+            (*OPM.WriteString("((LONGINT)("); OPM.WriteInt(aptyp^.size); OPM.WriteString("))");*)
+            ParIntLiteral(aptyp.size, OPM.PointerSize)
           END
         END
       END ;
@@ -551,7 +566,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                   | OPT.conv:  Convert(l, n.typ, exprPrec)
                   | OPT.abs:   IF SideEffects(l) THEN
                                  IF l^.typ^.form < OPT.Real THEN
-                                   IF l^.typ^.form < OPT.LInt THEN OPM.WriteString("(int)") END ;
+                                   IF l.typ.size <= OPM.CIntSize THEN OPM.WriteString("(int)") END ;
                                    OPM.WriteString("__ABSF(")
                                  ELSE OPM.WriteString("__ABSFD(")
                                  END
@@ -560,7 +575,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.cap:   OPM.WriteString("__CAP("); expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.odd:   OPM.WriteString("__ODD("); expr(l, MinPrec); OPM.Write(CloseParen)
-                  | OPT.adr:   OPM.WriteString("(LONGINT)(SYSTEM_ADRINT)");                             (*SYSTEM*)
+                  | OPT.adr:   OPM.WriteString("(SYSTEM_ADRINT)");                             (*SYSTEM*)
                                IF l^.class = OPT.Nvarpar THEN OPC.CompleteIdent(l^.obj)
                                ELSE
                                  IF (l^.typ^.form # OPT.String) & ~(l^.typ^.comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write("&") END ;
@@ -616,11 +631,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                           ELSE OPM.WriteString("__ROT(")
                                           END
                               | OPS.div:  IF SideEffects(n) THEN
-                                            IF form < OPT.LInt THEN OPM.WriteString("(int)") END ;
+                                            IF n.typ.size <= OPM.CIntSize THEN OPM.WriteString("(int)") END;
                                             OPM.WriteString("__DIVF(")
                                           ELSE OPM.WriteString("__DIV(")
                                           END
-                              | OPS.mod:  IF form < OPT.LInt THEN OPM.WriteString("(int)") END ;
+                              | OPS.mod:  IF n.typ.size <= OPM.CIntSize THEN OPM.WriteString("(int)") END;
                                           IF SideEffects(n) THEN OPM.WriteString("__MODF(")
                                           ELSE OPM.WriteString("__MOD(")
                                           END;
@@ -782,18 +797,20 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSIF base^.form = OPT.Pointer THEN OPM.WriteString("POINTER__typ")
     ELSE OPM.WriteString("NIL")
     END ;
-    OPM.WriteString(", "); OPM.WriteString("((LONGINT)("); OPM.WriteInt(base^.size); OPM.WriteString("))");
+    OPM.WriteString(", "); OPM.WriteInt(base.size);
     OPM.WriteString(", "); OPM.WriteInt(OPC.BaseAlignment(base));  (* element alignment *)
     OPM.WriteString(", "); OPM.WriteInt(nofdim);  (* total number of dimensions = number of additional parameters *)
     OPM.WriteString(", "); OPM.WriteInt(nofdyn);  (* number of dynamic dimensions *)
     WHILE typ # base DO
       OPM.WriteString(", ");
       IF typ^.comp = OPT.DynArr THEN
-        IF x^.class = OPT.Nconst THEN OPM.WriteString("(LONGINT)("); expr(x, MinPrec); OPM.WriteString(")")
-        ELSE OPM.WriteString("(LONGINT)"); expr(x, 10)
+        IF x^.class = OPT.Nconst THEN
+          OPC.IntLiteral(x.conval.intval, OPM.PointerSize)
+        ELSE OPM.WriteString("((SYSTEM_ADRINT)("); expr(x, 10); OPM.WriteString("))")
         END ;
         x := x^.link
-      ELSE OPM.WriteString("(LONGINT)"); OPM.WriteInt(typ^.n)
+      ELSE
+        OPC.IntLiteral(typ.n, OPM.PointerSize)
       END ;
       typ := typ^.BaseTyp
     END ;

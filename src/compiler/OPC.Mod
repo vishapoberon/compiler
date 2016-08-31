@@ -1260,14 +1260,30 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Str1("__HALT(#)", n)
   END Halt;
 
+  PROCEDURE IntLiteral*(n, size: LONGINT);
+  BEGIN
+    IF (size > OPM.CIntSize) & (n <= OPM.CIntMax) & (n > OPM.CIntMin) THEN
+      CASE size OF
+      |2: OPM.WriteString("((SYSTEM_INT16)(");
+      |4: OPM.WriteString("((SYSTEM_INT32)(");
+      |8: OPM.WriteString("((SYSTEM_INT64)(");
+      ELSE OPM.LogWStr("Unhandled case in OPC.IntLiteral, size = "); OPM.LogWNum(size,1); OPM.LogWLn;
+      END;
+      OPM.WriteInt(n);
+      OPM.WriteString("))")
+    ELSE
+      OPM.WriteInt(n)
+    END
+  END IntLiteral;
+
   PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: LONGINT);
   BEGIN
     IF array^.comp = OPT.DynArr THEN
       CompleteIdent(obj); OPM.WriteString(LenExt);
       IF dim # 0 THEN OPM.WriteInt(dim) END
     ELSE (* array *)
-      WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END ;
-      OPM.WriteString("((LONGINT)("); OPM.WriteInt(array^.n); OPM.WriteString("))");
+      WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END;
+      IF ansi THEN OPM.WriteInt(array.n) ELSE IntLiteral(array.n, OPM.PointerSize) END
     END
   END Len;
 

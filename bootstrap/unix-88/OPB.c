@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -272,7 +272,7 @@ OPT_Node OPB_NewString (OPS_String str, LONGINT len)
 	x->conval->intval = -1;
 	x->conval->intval2 = len;
 	x->conval->ext = OPT_NewExt();
-	__COPY(str, *x->conval->ext, ((LONGINT)(256)));
+	__COPY(str, *x->conval->ext, 256);
 	_o_result = x;
 	return _o_result;
 }
@@ -619,7 +619,7 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 			case 22: 
 				if (f == 3) {
 					if (z->class == 7) {
-						z->conval->intval = (int)__CAP((CHAR)z->conval->intval);
+						z->conval->intval = __CAP((CHAR)z->conval->intval);
 						z->obj = NIL;
 					} else {
 						z = NewOp__29(op, typ, z);
@@ -667,8 +667,8 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 				z->typ = OPT_booltyp;
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case in OPB.MOp, op = ", (LONGINT)33);
-				OPM_LogWNum(op, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case in OPB.MOp, op = ", 33);
+				OPM_LogWNum(op, 0);
 				OPM_LogWLn();
 				break;
 		}
@@ -827,8 +827,8 @@ static INTEGER ConstCmp__14 (void)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstCmp, f = ", (LONGINT)37);
-			OPM_LogWNum(*ConstOp__13_s->f, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstCmp, f = ", 37);
+			OPM_LogWNum(*ConstOp__13_s->f, 0);
 			OPM_LogWLn();
 			break;
 	}
@@ -1106,8 +1106,8 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstOp, op = ", (LONGINT)37);
-			OPM_LogWNum(op, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstOp, op = ", 37);
+			OPM_LogWNum(op, 0);
 			OPM_LogWLn();
 			break;
 	}
@@ -1155,7 +1155,7 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 			}
 		}
 		(*x)->obj = NIL;
-	} else if (((((*x)->class == 11 && (*x)->subcl == 20)) && ((int)(*x)->left->typ->form < f || f > g))) {
+	} else if (((((*x)->class == 11 && (*x)->subcl == 20)) && ((*x)->left->typ->form < f || f > g))) {
 		if ((*x)->left->typ == typ) {
 			*x = (*x)->left;
 		}
@@ -1208,11 +1208,11 @@ static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y)
 		if ((*Op__38_s->f == 10 && (*x)->conval->intval2 == 1)) {
 			(*x)->typ = OPT_chartyp;
 			(*x)->conval->intval = 0;
-			OPB_Index(&*y, OPB_NewIntConst(((LONGINT)(0))));
+			OPB_Index(&*y, OPB_NewIntConst(0));
 		} else if ((*Op__38_s->g == 10 && (*y)->conval->intval2 == 1)) {
 			(*y)->typ = OPT_chartyp;
 			(*y)->conval->intval = 0;
-			OPB_Index(&*x, OPB_NewIntConst(((LONGINT)(0))));
+			OPB_Index(&*x, OPB_NewIntConst(0));
 		}
 	}
 	_o_result = ok;
@@ -1476,7 +1476,7 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 					typ = OPT_booltyp;
 				} else {
 					OPM_LogWLn();
-					OPM_LogWStr((CHAR*)"ELSE in Op()", (LONGINT)13);
+					OPM_LogWStr((CHAR*)"ELSE in Op()", 13);
 					OPM_LogWLn();
 					OPB_err(108);
 					typ = OPT_undftyp;
@@ -1484,8 +1484,8 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 				NewOp__39(op, typ, &z, y);
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case in OPB.Op, op = ", (LONGINT)32);
-				OPM_LogWNum(op, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case in OPB.Op, op = ", 32);
+				OPM_LogWNum(op, 0);
 				OPM_LogWLn();
 				break;
 		}
@@ -1557,24 +1557,24 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 	OPT_Struct p = NIL, q = NIL;
 	if (OPM_Verbose) {
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"PROCEDURE CheckAssign", (LONGINT)22);
+		OPM_LogWStr((CHAR*)"PROCEDURE CheckAssign", 22);
 		OPM_LogWLn();
 	}
 	y = ynode->typ;
 	f = x->form;
 	g = y->form;
 	if (OPM_Verbose) {
-		OPM_LogWStr((CHAR*)"y.form = ", (LONGINT)10);
-		OPM_LogWNum(y->form, ((LONGINT)(0)));
+		OPM_LogWStr((CHAR*)"y.form = ", 10);
+		OPM_LogWNum(y->form, 0);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"f = ", (LONGINT)5);
-		OPM_LogWNum(f, ((LONGINT)(0)));
+		OPM_LogWStr((CHAR*)"f = ", 5);
+		OPM_LogWNum(f, 0);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"g = ", (LONGINT)5);
-		OPM_LogWNum(g, ((LONGINT)(0)));
+		OPM_LogWStr((CHAR*)"g = ", 5);
+		OPM_LogWNum(g, 0);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"ynode.typ.syze = ", (LONGINT)18);
-		OPM_LogWNum(ynode->typ->size, ((LONGINT)(0)));
+		OPM_LogWStr((CHAR*)"ynode.typ.syze = ", 18);
+		OPM_LogWNum(ynode->typ->size, 0);
 		OPM_LogWLn();
 	}
 	if (ynode->class == 8 || (ynode->class == 9 && f != 14)) {
@@ -1682,8 +1682,8 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.CheckAssign, f = ", (LONGINT)40);
-			OPM_LogWNum(f, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.CheckAssign, f = ", 40);
+			OPM_LogWNum(f, 0);
 			OPM_LogWLn();
 			break;
 	}
@@ -1775,14 +1775,14 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 						x = OPB_NewBoolConst(0);
 						break;
 					case 3: 
-						x = OPB_NewIntConst(((LONGINT)(0)));
+						x = OPB_NewIntConst(0);
 						x->typ = OPT_chartyp;
 						break;
 					case 4: case 5: case 6: 
 						x = OPB_NewIntConst(OPM_SignedMinimum(x->typ->size));
 						break;
 					case 9: 
-						x = OPB_NewIntConst(((LONGINT)(0)));
+						x = OPB_NewIntConst(0);
 						x->typ = OPT_inttyp;
 						break;
 					case 7: 
@@ -1806,7 +1806,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 						x = OPB_NewBoolConst(1);
 						break;
 					case 3: 
-						x = OPB_NewIntConst(((LONGINT)(255)));
+						x = OPB_NewIntConst(255);
 						x->typ = OPT_chartyp;
 						break;
 					case 4: case 5: case 6: 
@@ -1928,14 +1928,14 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 12: 
 			if (x->class != 8) {
 				OPB_err(110);
-				x = OPB_NewIntConst(((LONGINT)(1)));
+				x = OPB_NewIntConst(1);
 			} else if (__IN(f, 0x63fe) || __IN(x->typ->comp, 0x14)) {
 				(*OPB_typSize)(x->typ);
 				x->typ->pvused = 1;
 				x = OPB_NewIntConst(x->typ->size);
 			} else {
 				OPB_err(111);
-				x = OPB_NewIntConst(((LONGINT)(1)));
+				x = OPB_NewIntConst(1);
 			}
 			break;
 		case 21: 
@@ -1994,8 +1994,8 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.StPar0, fctno = ", (LONGINT)39);
-			OPM_LogWNum(fctno, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.StPar0, fctno = ", 39);
+			OPM_LogWNum(fctno, 0);
 			OPM_LogWLn();
 			break;
 	}
@@ -2064,7 +2064,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (!__IN(f, 0x70) || x->class != 7) {
 				OPB_err(69);
 			} else if (x->typ->size == 1) {
-				L = (int)x->conval->intval;
+				L = (SYSTEM_INT32)x->conval->intval;
 				typ = p->typ;
 				while ((L > 0 && __IN(typ->comp, 0x0c))) {
 					typ = typ->BaseTyp;
@@ -2322,7 +2322,7 @@ void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
 			}
 		} else {
 			if (((fctno == 13 || fctno == 14) && parno == 1)) {
-				OPB_BindNodes(19, OPT_notyp, &p, OPB_NewIntConst(((LONGINT)(1))));
+				OPB_BindNodes(19, OPT_notyp, &p, OPB_NewIntConst(1));
 				p->subcl = fctno;
 				p->right->typ = p->left->typ;
 			} else if ((fctno == 17 && parno == 1)) {
@@ -2344,7 +2344,7 @@ void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
 	} else if (fctno == 32) {
 		if (parno == 1) {
 			x = NIL;
-			OPB_BindNodes(28, OPT_notyp, &x, OPB_NewIntConst(((LONGINT)(0))));
+			OPB_BindNodes(28, OPT_notyp, &x, OPB_NewIntConst(0));
 			x->conval = OPT_NewConst();
 			x->conval->intval = OPM_errpos;
 			OPB_Construct(15, &p, x);
@@ -2579,7 +2579,7 @@ void OPB_Assign (OPT_Node *x, OPT_Node y)
 	} else if (((((((*x)->typ->comp == 2 && (*x)->typ->BaseTyp == OPT_chartyp)) && y->typ->form == 10)) && y->conval->intval2 == 1)) {
 		y->typ = OPT_chartyp;
 		y->conval->intval = 0;
-		OPB_Index(&*x, OPB_NewIntConst(((LONGINT)(0))));
+		OPB_Index(&*x, OPB_NewIntConst(0));
 	}
 	if ((((((__IN((*x)->typ->comp, 0x0c) && (*x)->typ->BaseTyp == OPT_chartyp)) && __IN(y->typ->comp, 0x0c))) && y->typ->BaseTyp == OPT_chartyp)) {
 		subcl = 18;

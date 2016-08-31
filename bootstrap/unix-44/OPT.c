@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
@@ -162,10 +162,10 @@ OPT_Struct OPT_IntType (LONGINT size)
 	OPT_Struct _o_result;
 	INTEGER i;
 	i = 1;
-	while ((OPT_IntTypes[__X(i, ((LONGINT)(20)))]->size < size && OPT_IntTypes[__X(i + 1, ((LONGINT)(20)))] != NIL)) {
+	while ((OPT_IntTypes[__X(i, 20)]->size < size && OPT_IntTypes[__X(i + 1, 20)] != NIL)) {
 		i += 1;
 	}
-	_o_result = OPT_IntTypes[__X(i, ((LONGINT)(20)))];
+	_o_result = OPT_IntTypes[__X(i, 20)];
 	return _o_result;
 }
 
@@ -177,11 +177,11 @@ OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INTEGER dir)
 	__ASSERT(dir == 1 || dir == -1, 0);
 	__ASSERT(x->BaseTyp == OPT_undftyp, 0);
 	i = 0;
-	while ((OPT_IntTypes[__X(i, ((LONGINT)(20)))] != x && i < 20)) {
+	while ((OPT_IntTypes[__X(i, 20)] != x && i < 20)) {
 		i += 1;
 	}
 	__ASSERT(i < 19, 0);
-	_o_result = OPT_IntTypes[__X(i + dir, ((LONGINT)(20)))];
+	_o_result = OPT_IntTypes[__X(i + dir, 20)];
 	return _o_result;
 }
 
@@ -234,7 +234,7 @@ OPT_ConstExt OPT_NewExt (void)
 {
 	OPT_ConstExt _o_result;
 	OPT_ConstExt ext = NIL;
-	ext = __NEWARR(NIL, ((LONGINT)(1)), 1, 1, 0, (LONGINT)256);
+	ext = __NEWARR(NIL, 1, 1, 1, 0, 256);
 	_o_result = ext;
 	return _o_result;
 }
@@ -265,8 +265,8 @@ void OPT_Init (OPS_Name name, SET opt)
 	OPT_topScope = OPT_universe;
 	OPT_OpenScope(0, NIL);
 	OPT_SYSimported = 0;
-	__COPY(name, OPT_SelfName, ((LONGINT)(256)));
-	__COPY(name, OPT_topScope->name, ((LONGINT)(256)));
+	__COPY(name, OPT_SelfName, 256);
+	__COPY(name, OPT_topScope->name, 256);
 	OPT_GlbMod[0] = OPT_topScope;
 	OPT_nofGmod = 1;
 	OPT_newsf = __IN(4, opt);
@@ -281,13 +281,13 @@ void OPT_Close (void)
 	OPT_CloseScope();
 	i = 0;
 	while (i < 64) {
-		OPT_GlbMod[__X(i, ((LONGINT)(64)))] = NIL;
+		OPT_GlbMod[__X(i, 64)] = NIL;
 		i += 1;
 	}
 	i = 16;
 	while (i < 255) {
-		OPT_impCtxt.ref[__X(i, ((LONGINT)(255)))] = NIL;
-		OPT_impCtxt.old[__X(i, ((LONGINT)(255)))] = NIL;
+		OPT_impCtxt.ref[__X(i, 255)] = NIL;
+		OPT_impCtxt.old[__X(i, 255)] = NIL;
 		i += 1;
 	}
 }
@@ -398,7 +398,7 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 			}
 			ob1->left = NIL;
 			ob1->right = NIL;
-			__COPY(name, ob1->name, ((LONGINT)(256)));
+			__COPY(name, ob1->name, 256);
 			mnolev = OPT_topScope->mnolev;
 			ob1->mnolev = mnolev;
 			break;
@@ -414,7 +414,7 @@ static void OPT_FPrintName (LONGINT *fp, CHAR *name, LONGINT name__len)
 	i = 0;
 	do {
 		ch = name[__X(i, name__len)];
-		OPM_FPrint(&*fp, (int)ch);
+		OPM_FPrint(&*fp, ch);
 		i += 1;
 	} while (!(ch == 0x00));
 }
@@ -423,32 +423,32 @@ static void OPT_DebugStruct (OPT_Struct btyp)
 {
 	OPM_LogWLn();
 	if (btyp == NIL) {
-		OPM_LogWStr((CHAR*)"btyp is nil", (LONGINT)12);
+		OPM_LogWStr((CHAR*)"btyp is nil", 12);
 		OPM_LogWLn();
 	}
-	OPM_LogWStr((CHAR*)"btyp^.strobji^.name = ", (LONGINT)23);
-	OPM_LogWStr(btyp->strobj->name, ((LONGINT)(256)));
+	OPM_LogWStr((CHAR*)"btyp^.strobji^.name = ", 23);
+	OPM_LogWStr(btyp->strobj->name, 256);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.form = ", (LONGINT)14);
-	OPM_LogWNum(btyp->form, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.form = ", 14);
+	OPM_LogWNum(btyp->form, 0);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.comp = ", (LONGINT)14);
-	OPM_LogWNum(btyp->comp, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.comp = ", 14);
+	OPM_LogWNum(btyp->comp, 0);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.mno = ", (LONGINT)13);
-	OPM_LogWNum(btyp->mno, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.mno = ", 13);
+	OPM_LogWNum(btyp->mno, 0);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.extlev = ", (LONGINT)16);
-	OPM_LogWNum(btyp->extlev, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.extlev = ", 16);
+	OPM_LogWNum(btyp->extlev, 0);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.size = ", (LONGINT)14);
-	OPM_LogWNum(btyp->size, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.size = ", 14);
+	OPM_LogWNum(btyp->size, 0);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.align = ", (LONGINT)15);
-	OPM_LogWNum(btyp->align, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.align = ", 15);
+	OPM_LogWNum(btyp->align, 0);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"btyp^.txtpos = ", (LONGINT)16);
-	OPM_LogWNum(btyp->txtpos, ((LONGINT)(0)));
+	OPM_LogWStr((CHAR*)"btyp^.txtpos = ", 16);
+	OPM_LogWNum(btyp->txtpos, 0);
 	OPM_LogWLn();
 }
 
@@ -480,8 +480,8 @@ void OPT_IdFPrint (OPT_Struct typ)
 		btyp = typ->BaseTyp;
 		strobj = typ->strobj;
 		if ((strobj != NIL && strobj->name[0] != 0x00)) {
-			OPT_FPrintName(&idfp, (void*)OPT_GlbMod[__X(typ->mno, ((LONGINT)(64)))]->name, ((LONGINT)(256)));
-			OPT_FPrintName(&idfp, (void*)strobj->name, ((LONGINT)(256)));
+			OPT_FPrintName(&idfp, (void*)OPT_GlbMod[__X(typ->mno, 64)]->name, 256);
+			OPT_FPrintName(&idfp, (void*)strobj->name, 256);
 		}
 		if ((f == 13 || (c == 4 && btyp != NIL)) || c == 3) {
 			OPT_IdFPrint(btyp);
@@ -532,7 +532,7 @@ static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 			}
 		}
 	} else if (typ->form == 13 || __STRCMP(fld->name, "@ptr") == 0) {
-		OPM_FPrint(&*FPrintStr__12_s->pvfp, ((LONGINT)(13)));
+		OPM_FPrint(&*FPrintStr__12_s->pvfp, 13);
 		OPM_FPrint(&*FPrintStr__12_s->pvfp, adr);
 		OPT_nofhdfld += 1;
 	}
@@ -543,7 +543,7 @@ static void FPrintFlds__13 (OPT_Object fld, LONGINT adr, BOOLEAN visible)
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
 			OPM_FPrint(&*FPrintStr__12_s->pbfp, fld->vis);
-			OPT_FPrintName(&*FPrintStr__12_s->pbfp, (void*)fld->name, ((LONGINT)(256)));
+			OPT_FPrintName(&*FPrintStr__12_s->pbfp, (void*)fld->name, 256);
 			OPM_FPrint(&*FPrintStr__12_s->pbfp, fld->adr);
 			OPT_FPrintStr(fld->typ);
 			OPM_FPrint(&*FPrintStr__12_s->pbfp, fld->typ->pbfp);
@@ -561,10 +561,10 @@ static void FPrintTProcs__17 (OPT_Object obj)
 		FPrintTProcs__17(obj->left);
 		if (obj->mode == 13) {
 			if (obj->vis != 0) {
-				OPM_FPrint(&*FPrintStr__12_s->pbfp, ((LONGINT)(13)));
+				OPM_FPrint(&*FPrintStr__12_s->pbfp, 13);
 				OPM_FPrint(&*FPrintStr__12_s->pbfp, __ASHR(obj->adr, 16));
 				OPT_FPrintSign(&*FPrintStr__12_s->pbfp, obj->typ, obj->link);
-				OPT_FPrintName(&*FPrintStr__12_s->pbfp, (void*)obj->name, ((LONGINT)(256)));
+				OPT_FPrintName(&*FPrintStr__12_s->pbfp, (void*)obj->name, 256);
 			}
 		}
 		FPrintTProcs__17(obj->right);
@@ -618,7 +618,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 			OPM_FPrint(&pvfp, typ->align);
 			OPM_FPrint(&pvfp, typ->n);
 			OPT_nofhdfld = 0;
-			FPrintFlds__13(typ->link, ((LONGINT)(0)), 1);
+			FPrintFlds__13(typ->link, 0, 1);
 			if (OPT_nofhdfld > 2048) {
 				OPM_Mark(225, typ->txtpos);
 			}
@@ -663,7 +663,7 @@ void OPT_FPrintObj (OPT_Object obj)
 					OPM_FPrintLReal(&fprint, obj->conval->realval);
 					break;
 				case 10: 
-					OPT_FPrintName(&fprint, (void*)*obj->conval->ext, ((LONGINT)(256)));
+					OPT_FPrintName(&fprint, (void*)*obj->conval->ext, 256);
 					break;
 				case 11: 
 					break;
@@ -680,11 +680,11 @@ void OPT_FPrintObj (OPT_Object obj)
 		} else if (obj->mode == 9) {
 			OPT_FPrintSign(&fprint, obj->typ, obj->link);
 			ext = obj->conval->ext;
-			m = (int)(*ext)[0];
+			m = (*ext)[0];
 			f = 1;
 			OPM_FPrint(&fprint, m);
 			while (f <= m) {
-				OPM_FPrint(&fprint, (int)(*ext)[__X(f, ((LONGINT)(256)))]);
+				OPM_FPrint(&fprint, (*ext)[__X(f, 256)]);
 				f += 1;
 			}
 		} else if (obj->mode == 5) {
@@ -700,22 +700,22 @@ void OPT_FPrintErr (OPT_Object obj, INTEGER errcode)
 	INTEGER i, j;
 	CHAR ch;
 	if (obj->mnolev != 0) {
-		__COPY(OPT_GlbMod[__X(-obj->mnolev, ((LONGINT)(64)))]->name, OPM_objname, ((LONGINT)(64)));
+		__COPY(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, OPM_objname, 64);
 		i = 0;
-		while (OPM_objname[__X(i, ((LONGINT)(64)))] != 0x00) {
+		while (OPM_objname[__X(i, 64)] != 0x00) {
 			i += 1;
 		}
-		OPM_objname[__X(i, ((LONGINT)(64)))] = '.';
+		OPM_objname[__X(i, 64)] = '.';
 		j = 0;
 		i += 1;
 		do {
-			ch = obj->name[__X(j, ((LONGINT)(256)))];
-			OPM_objname[__X(i, ((LONGINT)(64)))] = ch;
+			ch = obj->name[__X(j, 256)];
+			OPM_objname[__X(i, 64)] = ch;
 			j += 1;
 			i += 1;
 		} while (!(ch == 0x00));
 	} else {
-		__COPY(obj->name, OPM_objname, ((LONGINT)(64)));
+		__COPY(obj->name, OPM_objname, 64);
 	}
 	if (errcode == 249) {
 		if (OPM_noerr) {
@@ -808,12 +808,12 @@ static void OPT_InMod (SHORTINT *mno)
 		*mno = OPT_impCtxt.glbmno[0];
 	} else {
 		if (mn == 16) {
-			OPT_InName((void*)name, ((LONGINT)(256)));
+			OPT_InName((void*)name, 256);
 			if ((__STRCMP(name, OPT_SelfName) == 0 && !OPT_impCtxt.self)) {
 				OPT_err(154);
 			}
 			i = 0;
-			while ((i < OPT_nofGmod && __STRCMP(name, OPT_GlbMod[__X(i, ((LONGINT)(64)))]->name) != 0)) {
+			while ((i < OPT_nofGmod && __STRCMP(name, OPT_GlbMod[__X(i, 64)]->name) != 0)) {
 				i += 1;
 			}
 			if (i < OPT_nofGmod) {
@@ -821,20 +821,20 @@ static void OPT_InMod (SHORTINT *mno)
 			} else {
 				head = OPT_NewObj();
 				head->mode = 12;
-				__COPY(name, head->name, ((LONGINT)(256)));
+				__COPY(name, head->name, 256);
 				*mno = OPT_nofGmod;
 				head->mnolev = -*mno;
 				if (OPT_nofGmod < 64) {
-					OPT_GlbMod[__X(*mno, ((LONGINT)(64)))] = head;
+					OPT_GlbMod[__X(*mno, 64)] = head;
 					OPT_nofGmod += 1;
 				} else {
 					OPT_err(227);
 				}
 			}
-			OPT_impCtxt.glbmno[__X(OPT_impCtxt.nofm, ((LONGINT)(64)))] = *mno;
+			OPT_impCtxt.glbmno[__X(OPT_impCtxt.nofm, 64)] = *mno;
 			OPT_impCtxt.nofm += 1;
 		} else {
-			*mno = OPT_impCtxt.glbmno[__X(-mn, ((LONGINT)(64)))];
+			*mno = OPT_impCtxt.glbmno[__X(-mn, 64)];
 		}
 	}
 }
@@ -848,7 +848,7 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 	switch (f) {
 		case 1: case 3: case 2: 
 			OPM_SymRCh(&ch);
-			conval->intval = (int)ch;
+			conval->intval = ch;
 			break;
 		case 4: case 5: case 6: 
 			conval->intval = OPM_SymRInt();
@@ -871,7 +871,7 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 			i = 0;
 			do {
 				OPM_SymRCh(&ch);
-				(*ext)[__X(i, ((LONGINT)(256)))] = ch;
+				(*ext)[__X(i, 256)] = ch;
 				i += 1;
 			} while (!(ch == 0x00));
 			conval->intval2 = i;
@@ -881,8 +881,8 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 			conval->intval = 0;
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in InConstant(), f = ", (LONGINT)37);
-			OPM_LogWNum(f, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in InConstant(), f = ", 37);
+			OPM_LogWNum(f, 0);
 			OPM_LogWLn();
 			break;
 	}
@@ -910,7 +910,7 @@ static void OPT_InSign (SHORTINT mno, OPT_Struct *res, OPT_Object *par)
 		}
 		OPT_InStruct(&new->typ);
 		new->adr = OPM_SymRInt();
-		OPT_InName((void*)new->name, ((LONGINT)(256)));
+		OPT_InName((void*)new->name, 256);
 		last = new;
 		tag = OPM_SymRInt();
 	}
@@ -931,7 +931,7 @@ static OPT_Object OPT_InFld (void)
 			obj->vis = 1;
 		}
 		OPT_InStruct(&obj->typ);
-		OPT_InName((void*)obj->name, ((LONGINT)(256)));
+		OPT_InName((void*)obj->name, 256);
 		obj->adr = OPM_SymRInt();
 	} else {
 		obj->mode = 4;
@@ -962,7 +962,7 @@ static OPT_Object OPT_InTProc (SHORTINT mno)
 		obj->conval->intval = -1;
 		OPT_InSign(mno, &obj->typ, &obj->link);
 		obj->vis = 1;
-		OPT_InName((void*)obj->name, ((LONGINT)(256)));
+		OPT_InName((void*)obj->name, 256);
 		obj->adr = __ASHL(OPM_SymRInt(), 16);
 	} else {
 		obj->mode = 13;
@@ -983,7 +983,7 @@ static OPT_Struct OPT_InTyp (LONGINT tag)
 		_o_result = OPT_IntType(OPM_SymRInt());
 		return _o_result;
 	} else {
-		_o_result = OPT_impCtxt.ref[__X(tag, ((LONGINT)(255)))];
+		_o_result = OPT_impCtxt.ref[__X(tag, 255)];
 		return _o_result;
 	}
 	__RETCHK;
@@ -1007,23 +1007,23 @@ static void OPT_InStruct (OPT_Struct *typ)
 			OPT_impCtxt.minr = ref;
 		}
 		OPT_InMod(&mno);
-		OPT_InName((void*)name, ((LONGINT)(256)));
+		OPT_InName((void*)name, 256);
 		obj = OPT_NewObj();
 		if (name[0] == 0x00) {
 			if (OPT_impCtxt.self) {
 				old = NIL;
 			} else {
 				__MOVE("@", obj->name, 2);
-				OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, ((LONGINT)(64)))]->right, &old);
+				OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, 64)]->right, &old);
 				obj->name[0] = 0x00;
 			}
 			*typ = OPT_NewStr(0, 1);
 		} else {
-			__COPY(name, obj->name, ((LONGINT)(256)));
-			OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, ((LONGINT)(64)))]->right, &old);
+			__COPY(name, obj->name, 256);
+			OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, 64)]->right, &old);
 			if (old != NIL) {
 				OPT_FPrintObj(old);
-				OPT_impCtxt.pvfp[__X(ref, ((LONGINT)(255)))] = old->typ->pvfp;
+				OPT_impCtxt.pvfp[__X(ref, 255)] = old->typ->pvfp;
 				if (OPT_impCtxt.self) {
 					*typ = OPT_NewStr(0, 1);
 				} else {
@@ -1037,8 +1037,8 @@ static void OPT_InStruct (OPT_Struct *typ)
 				*typ = OPT_NewStr(0, 1);
 			}
 		}
-		OPT_impCtxt.ref[__X(ref, ((LONGINT)(255)))] = *typ;
-		OPT_impCtxt.old[__X(ref, ((LONGINT)(255)))] = old;
+		OPT_impCtxt.ref[__X(ref, 255)] = *typ;
+		OPT_impCtxt.old[__X(ref, 255)] = old;
 		(*typ)->ref = ref + 255;
 		(*typ)->mno = mno;
 		(*typ)->allocated = 1;
@@ -1049,7 +1049,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 		obj->vis = 0;
 		tag = OPM_SymRInt();
 		if (tag == 35) {
-			(*typ)->sysflag = (int)OPM_SymRInt();
+			(*typ)->sysflag = OPM_SymRInt();
 			tag = OPM_SymRInt();
 		}
 		switch (tag) {
@@ -1117,8 +1117,8 @@ static void OPT_InStruct (OPT_Struct *typ)
 				OPT_InSign(mno, &(*typ)->BaseTyp, &(*typ)->link);
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case at InStruct, tag = ", (LONGINT)35);
-				OPM_LogWNum(tag, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case at InStruct, tag = ", 35);
+				OPM_LogWNum(tag, 0);
 				OPM_LogWLn();
 				break;
 		}
@@ -1130,7 +1130,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				if (obj->name[0] != 0x00) {
 					OPT_FPrintObj(obj);
 				}
-				old = OPT_impCtxt.old[__X(ref, ((LONGINT)(255)))];
+				old = OPT_impCtxt.old[__X(ref, 255)];
 				if (old != NIL) {
 					t->strobj = old;
 					if (OPT_impCtxt.self) {
@@ -1138,13 +1138,13 @@ static void OPT_InStruct (OPT_Struct *typ)
 							if (old->history != 5) {
 								if (old->fprint != obj->fprint) {
 									old->history = 2;
-								} else if (OPT_impCtxt.pvfp[__X(ref, ((LONGINT)(255)))] != t->pvfp) {
+								} else if (OPT_impCtxt.pvfp[__X(ref, 255)] != t->pvfp) {
 									old->history = 3;
 								}
 							}
 						} else if (old->fprint != obj->fprint) {
 							old->history = 2;
-						} else if (OPT_impCtxt.pvfp[__X(ref, ((LONGINT)(255)))] != t->pvfp) {
+						} else if (OPT_impCtxt.pvfp[__X(ref, 255)] != t->pvfp) {
 							old->history = 3;
 						} else if (old->vis == 0) {
 							old->history = 1;
@@ -1152,7 +1152,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 							old->history = 0;
 						}
 					} else {
-						if (OPT_impCtxt.pvfp[__X(ref, ((LONGINT)(255)))] != t->pvfp) {
+						if (OPT_impCtxt.pvfp[__X(ref, 255)] != t->pvfp) {
 							old->history = 5;
 						}
 						if (old->fprint != obj->fprint) {
@@ -1211,17 +1211,17 @@ static OPT_Object OPT_InObj (SHORTINT mno)
 					obj->mode = 9;
 					ext = OPT_NewExt();
 					obj->conval->ext = ext;
-					s = (int)OPM_SymRInt();
+					s = OPM_SymRInt();
 					(*ext)[0] = (CHAR)s;
 					i = 1;
 					while (i <= s) {
-						OPM_SymRCh(&(*ext)[__X(i, ((LONGINT)(256)))]);
+						OPM_SymRCh(&(*ext)[__X(i, 256)]);
 						i += 1;
 					}
 					break;
 				default: 
-					OPM_LogWStr((CHAR*)"unhandled case at InObj, tag = ", (LONGINT)32);
-					OPM_LogWNum(tag, ((LONGINT)(0)));
+					OPM_LogWStr((CHAR*)"unhandled case at InObj, tag = ", 32);
+					OPM_LogWNum(tag, 0);
 					OPM_LogWLn();
 					break;
 			}
@@ -1235,14 +1235,14 @@ static OPT_Object OPT_InObj (SHORTINT mno)
 			}
 			OPT_InStruct(&obj->typ);
 		}
-		OPT_InName((void*)obj->name, ((LONGINT)(256)));
+		OPT_InName((void*)obj->name, 256);
 	}
 	OPT_FPrintObj(obj);
 	if ((obj->mode == 1 && (obj->typ->strobj == NIL || obj->typ->strobj->name[0] == 0x00))) {
 		OPM_FPrint(&OPT_impCtxt.reffp, obj->typ->ref - 255);
 	}
 	if (tag != 19) {
-		OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, ((LONGINT)(64)))]->right, &old);
+		OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, 64)]->right, &old);
 		if (OPT_impCtxt.self) {
 			if (old != NIL) {
 				if (old->vis == 0) {
@@ -1293,7 +1293,7 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 		OPT_impCtxt.nofm = 0;
 		OPT_impCtxt.self = __STRCMP(aliasName, "@self") == 0;
 		OPT_impCtxt.reffp = 0;
-		OPM_OldSym((void*)name, ((LONGINT)(256)), &*done);
+		OPM_OldSym((void*)name, 256, &*done);
 		if (*done) {
 			OPT_InMod(&mno);
 			OPT_impCtxt.nextTag = OPM_SymRInt();
@@ -1303,8 +1303,8 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 			}
 			OPT_Insert(aliasName, &obj);
 			obj->mode = 11;
-			obj->scope = OPT_GlbMod[__X(mno, ((LONGINT)(64)))]->right;
-			OPT_GlbMod[__X(mno, ((LONGINT)(64)))]->link = obj;
+			obj->scope = OPT_GlbMod[__X(mno, 64)]->right;
+			OPT_GlbMod[__X(mno, 64)]->link = obj;
 			obj->mnolev = -mno;
 			obj->typ = OPT_notyp;
 			OPM_CloseOldSym();
@@ -1332,13 +1332,13 @@ static void OPT_OutName (CHAR *name, LONGINT name__len)
 
 static void OPT_OutMod (INTEGER mno)
 {
-	if (OPT_expCtxt.locmno[__X(mno, ((LONGINT)(64)))] < 0) {
-		OPM_SymWInt(((LONGINT)(16)));
-		OPT_expCtxt.locmno[__X(mno, ((LONGINT)(64)))] = OPT_expCtxt.nofm;
+	if (OPT_expCtxt.locmno[__X(mno, 64)] < 0) {
+		OPM_SymWInt(16);
+		OPT_expCtxt.locmno[__X(mno, 64)] = OPT_expCtxt.nofm;
 		OPT_expCtxt.nofm += 1;
-		OPT_OutName((void*)OPT_GlbMod[__X(mno, ((LONGINT)(64)))]->name, ((LONGINT)(256)));
+		OPT_OutName((void*)OPT_GlbMod[__X(mno, 64)]->name, 256);
 	} else {
-		OPM_SymWInt(-OPT_expCtxt.locmno[__X(mno, ((LONGINT)(64)))]);
+		OPM_SymWInt(-OPT_expCtxt.locmno[__X(mno, 64)]);
 	}
 }
 
@@ -1368,7 +1368,7 @@ static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 			}
 		}
 	} else if (typ->form == 13 || __STRCMP(fld->name, "@ptr") == 0) {
-		OPM_SymWInt(((LONGINT)(27)));
+		OPM_SymWInt(27);
 		OPM_SymWInt(adr);
 		OPT_nofhdfld += 1;
 	}
@@ -1379,12 +1379,12 @@ static void OPT_OutFlds (OPT_Object fld, LONGINT adr, BOOLEAN visible)
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
 			if (fld->vis == 2) {
-				OPM_SymWInt(((LONGINT)(26)));
+				OPM_SymWInt(26);
 			} else {
-				OPM_SymWInt(((LONGINT)(25)));
+				OPM_SymWInt(25);
 			}
 			OPT_OutStr(fld->typ);
-			OPT_OutName((void*)fld->name, ((LONGINT)(256)));
+			OPT_OutName((void*)fld->name, 256);
 			OPM_SymWInt(fld->adr);
 		} else {
 			OPT_OutHdFld(fld->typ, fld, fld->adr + adr);
@@ -1398,16 +1398,16 @@ static void OPT_OutSign (OPT_Struct result, OPT_Object par)
 	OPT_OutStr(result);
 	while (par != NIL) {
 		if (par->mode == 1) {
-			OPM_SymWInt(((LONGINT)(23)));
+			OPM_SymWInt(23);
 		} else {
-			OPM_SymWInt(((LONGINT)(24)));
+			OPM_SymWInt(24);
 		}
 		OPT_OutStr(par->typ);
 		OPM_SymWInt(par->adr);
-		OPT_OutName((void*)par->name, ((LONGINT)(256)));
+		OPT_OutName((void*)par->name, 256);
 		par = par->link;
 	}
-	OPM_SymWInt(((LONGINT)(18)));
+	OPM_SymWInt(18);
 }
 
 static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj)
@@ -1420,12 +1420,12 @@ static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj)
 			}
 			if (obj->vis != 0) {
 				if (obj->vis != 0) {
-					OPM_SymWInt(((LONGINT)(29)));
+					OPM_SymWInt(29);
 					OPT_OutSign(obj->typ, obj->link);
-					OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+					OPT_OutName((void*)obj->name, 256);
 					OPM_SymWInt(__ASHR(obj->adr, 16));
 				} else {
-					OPM_SymWInt(((LONGINT)(30)));
+					OPM_SymWInt(30);
 					OPM_SymWInt(__ASHR(obj->adr, 16));
 				}
 			}
@@ -1443,7 +1443,7 @@ static void OPT_OutStr (OPT_Struct typ)
 			OPM_SymWInt(typ->size);
 		}
 	} else {
-		OPM_SymWInt(((LONGINT)(34)));
+		OPM_SymWInt(34);
 		typ->ref = OPT_expCtxt.ref;
 		OPT_expCtxt.ref += 1;
 		if (OPT_expCtxt.ref >= 255) {
@@ -1452,7 +1452,7 @@ static void OPT_OutStr (OPT_Struct typ)
 		OPT_OutMod(typ->mno);
 		strobj = typ->strobj;
 		if ((strobj != NIL && strobj->name[0] != 0x00)) {
-			OPT_OutName((void*)strobj->name, ((LONGINT)(256)));
+			OPT_OutName((void*)strobj->name, 256);
 			switch (strobj->history) {
 				case 2: 
 					OPT_FPrintErr(strobj, 252);
@@ -1470,31 +1470,31 @@ static void OPT_OutStr (OPT_Struct typ)
 			OPM_SymWCh(0x00);
 		}
 		if (typ->sysflag != 0) {
-			OPM_SymWInt(((LONGINT)(35)));
+			OPM_SymWInt(35);
 			OPM_SymWInt(typ->sysflag);
 		}
 		switch (typ->form) {
 			case 13: 
-				OPM_SymWInt(((LONGINT)(36)));
+				OPM_SymWInt(36);
 				OPT_OutStr(typ->BaseTyp);
 				break;
 			case 14: 
-				OPM_SymWInt(((LONGINT)(40)));
+				OPM_SymWInt(40);
 				OPT_OutSign(typ->BaseTyp, typ->link);
 				break;
 			case 15: 
 				switch (typ->comp) {
 					case 2: 
-						OPM_SymWInt(((LONGINT)(37)));
+						OPM_SymWInt(37);
 						OPT_OutStr(typ->BaseTyp);
 						OPM_SymWInt(typ->n);
 						break;
 					case 3: 
-						OPM_SymWInt(((LONGINT)(38)));
+						OPM_SymWInt(38);
 						OPT_OutStr(typ->BaseTyp);
 						break;
 					case 4: 
-						OPM_SymWInt(((LONGINT)(39)));
+						OPM_SymWInt(39);
 						if (typ->BaseTyp == NIL) {
 							OPT_OutStr(OPT_notyp);
 						} else {
@@ -1504,23 +1504,23 @@ static void OPT_OutStr (OPT_Struct typ)
 						OPM_SymWInt(typ->align);
 						OPM_SymWInt(typ->n);
 						OPT_nofhdfld = 0;
-						OPT_OutFlds(typ->link, ((LONGINT)(0)), 1);
+						OPT_OutFlds(typ->link, 0, 1);
 						if (OPT_nofhdfld > 2048) {
 							OPM_Mark(223, typ->txtpos);
 						}
 						OPT_OutTProcs(typ, typ->link);
-						OPM_SymWInt(((LONGINT)(18)));
+						OPM_SymWInt(18);
 						break;
 					default: 
-						OPM_LogWStr((CHAR*)"unhandled case at OutStr, typ^.comp = ", (LONGINT)39);
-						OPM_LogWNum(typ->comp, ((LONGINT)(0)));
+						OPM_LogWStr((CHAR*)"unhandled case at OutStr, typ^.comp = ", 39);
+						OPM_LogWNum(typ->comp, 0);
 						OPM_LogWLn();
 						break;
 				}
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case at OutStr, typ^.form = ", (LONGINT)39);
-				OPM_LogWNum(typ->form, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case at OutStr, typ^.form = ", 39);
+				OPM_LogWNum(typ->form, 0);
 				OPM_LogWLn();
 				break;
 		}
@@ -1552,7 +1552,7 @@ static void OPT_OutConstant (OPT_Object obj)
 			OPM_SymWLReal(obj->conval->realval);
 			break;
 		case 10: 
-			OPT_OutName((void*)*obj->conval->ext, ((LONGINT)(256)));
+			OPT_OutName((void*)*obj->conval->ext, 256);
 			break;
 		case 11: 
 			break;
@@ -1585,64 +1585,64 @@ static void OPT_OutObj (OPT_Object obj)
 						OPT_FPrintErr(obj, 251);
 						break;
 					default: 
-						OPM_LogWStr((CHAR*)"unhandled case at OutObj, obj^.history = ", (LONGINT)42);
-						OPM_LogWNum(obj->history, ((LONGINT)(0)));
+						OPM_LogWStr((CHAR*)"unhandled case at OutObj, obj^.history = ", 42);
+						OPM_LogWNum(obj->history, 0);
 						OPM_LogWLn();
 						break;
 				}
 				switch (obj->mode) {
 					case 3: 
 						OPT_OutConstant(obj);
-						OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+						OPT_OutName((void*)obj->name, 256);
 						break;
 					case 5: 
 						if (obj->typ->strobj == obj) {
-							OPM_SymWInt(((LONGINT)(19)));
+							OPM_SymWInt(19);
 							OPT_OutStr(obj->typ);
 						} else {
-							OPM_SymWInt(((LONGINT)(20)));
+							OPM_SymWInt(20);
 							OPT_OutStr(obj->typ);
-							OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+							OPT_OutName((void*)obj->name, 256);
 						}
 						break;
 					case 1: 
 						if (obj->vis == 2) {
-							OPM_SymWInt(((LONGINT)(22)));
+							OPM_SymWInt(22);
 						} else {
-							OPM_SymWInt(((LONGINT)(21)));
+							OPM_SymWInt(21);
 						}
 						OPT_OutStr(obj->typ);
-						OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+						OPT_OutName((void*)obj->name, 256);
 						if (obj->typ->strobj == NIL || obj->typ->strobj->name[0] == 0x00) {
 							OPM_FPrint(&OPT_expCtxt.reffp, obj->typ->ref);
 						}
 						break;
 					case 7: 
-						OPM_SymWInt(((LONGINT)(31)));
+						OPM_SymWInt(31);
 						OPT_OutSign(obj->typ, obj->link);
-						OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+						OPT_OutName((void*)obj->name, 256);
 						break;
 					case 10: 
-						OPM_SymWInt(((LONGINT)(32)));
+						OPM_SymWInt(32);
 						OPT_OutSign(obj->typ, obj->link);
-						OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+						OPT_OutName((void*)obj->name, 256);
 						break;
 					case 9: 
-						OPM_SymWInt(((LONGINT)(33)));
+						OPM_SymWInt(33);
 						OPT_OutSign(obj->typ, obj->link);
 						ext = obj->conval->ext;
-						j = (int)(*ext)[0];
+						j = (*ext)[0];
 						i = 1;
 						OPM_SymWInt(j);
 						while (i <= j) {
-							OPM_SymWCh((*ext)[__X(i, ((LONGINT)(256)))]);
+							OPM_SymWCh((*ext)[__X(i, 256)]);
 							i += 1;
 						}
-						OPT_OutName((void*)obj->name, ((LONGINT)(256)));
+						OPT_OutName((void*)obj->name, 256);
 						break;
 					default: 
-						OPM_LogWStr((CHAR*)"unhandled case at OutObj, obj.mode = ", (LONGINT)38);
-						OPM_LogWNum(obj->mode, ((LONGINT)(0)));
+						OPM_LogWStr((CHAR*)"unhandled case at OutObj, obj.mode = ", 38);
+						OPM_LogWNum(obj->mode, 0);
 						OPM_LogWLn();
 						break;
 				}
@@ -1663,17 +1663,17 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 	OPT_Import((CHAR*)"@self", OPT_SelfName, &done);
 	OPT_nofGmod = nofmod;
 	if (OPM_noerr) {
-		OPM_NewSym((void*)OPT_SelfName, ((LONGINT)(256)));
+		OPM_NewSym((void*)OPT_SelfName, 256);
 		if (OPM_noerr) {
-			OPM_SymWInt(((LONGINT)(16)));
-			OPT_OutName((void*)OPT_SelfName, ((LONGINT)(256)));
+			OPM_SymWInt(16);
+			OPT_OutName((void*)OPT_SelfName, 256);
 			OPT_expCtxt.reffp = 0;
 			OPT_expCtxt.ref = 16;
 			OPT_expCtxt.nofm = 1;
 			OPT_expCtxt.locmno[0] = 0;
 			i = 1;
 			while (i < 64) {
-				OPT_expCtxt.locmno[__X(i, ((LONGINT)(64)))] = -1;
+				OPT_expCtxt.locmno[__X(i, 64)] = -1;
 				i += 1;
 			}
 			OPT_OutObj(OPT_topScope->right);
@@ -1874,11 +1874,11 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"SET", 9, OPM_SetSize, &OPT_settyp);
 	OPT_EnterTyp((CHAR*)"REAL", 7, OPM_RealSize, &OPT_realtyp);
 	OPT_EnterTyp((CHAR*)"INTEGER", 5, OPM_IntSize, &OPT_inttyp);
-	OPT_EnterTyp((CHAR*)"LONGINT", 6, OPM_LIntSize, &OPT_linttyp);
+	OPT_EnterTyp((CHAR*)"LONGINT", 5, OPM_LIntSize, &OPT_linttyp);
 	OPT_EnterTyp((CHAR*)"LONGREAL", 8, OPM_LRealSize, &OPT_lrltyp);
 	OPT_EnterTyp((CHAR*)"SHORTINT", 4, OPM_SIntSize, &OPT_sinttyp);
-	OPT_EnterBoolConst((CHAR*)"FALSE", ((LONGINT)(0)));
-	OPT_EnterBoolConst((CHAR*)"TRUE", ((LONGINT)(1)));
+	OPT_EnterBoolConst((CHAR*)"FALSE", 0);
+	OPT_EnterBoolConst((CHAR*)"TRUE", 1);
 	OPT_EnterProc((CHAR*)"HALT", 0);
 	OPT_EnterProc((CHAR*)"NEW", 1);
 	OPT_EnterProc((CHAR*)"ABS", 2);

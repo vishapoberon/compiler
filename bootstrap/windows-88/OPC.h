@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPC__h
 #define OPC__h
@@ -38,6 +38,7 @@ import void OPC_Increment (BOOLEAN decrement);
 import void OPC_Indent (INTEGER count);
 import void OPC_Init (void);
 import void OPC_InitTDesc (OPT_Struct typ);
+import void OPC_IntLiteral (LONGINT n, LONGINT size);
 import void OPC_Len (OPT_Object obj, OPT_Struct array, LONGINT dim);
 import LONGINT OPC_NofPtrs (OPT_Struct typ);
 import void OPC_SetInclude (BOOLEAN exclude);

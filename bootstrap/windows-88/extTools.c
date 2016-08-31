@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -36,14 +36,14 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 		Console_String(title, title__len);
 		Console_String(cmd, cmd__len);
 		Console_Ln();
-		Console_String((CHAR*)"-- failed: status ", (LONGINT)19);
-		Console_Int(status, ((LONGINT)(1)));
-		Console_String((CHAR*)", exitcode ", (LONGINT)12);
-		Console_Int(exitcode, ((LONGINT)(1)));
-		Console_String((CHAR*)".", (LONGINT)2);
+		Console_String((CHAR*)"-- failed: status ", 19);
+		Console_Int(status, 1);
+		Console_String((CHAR*)", exitcode ", 12);
+		Console_Int(exitcode, 1);
+		Console_String((CHAR*)".", 2);
 		Console_Ln();
 		if ((status == 0 && exitcode == 127)) {
-			Console_String((CHAR*)"Is the C compiler in the current command path\?", (LONGINT)47);
+			Console_String((CHAR*)"Is the C compiler in the current command path\?", 47);
 			Console_Ln();
 		}
 		if (status != 0) {
@@ -61,11 +61,11 @@ void extTools_Assemble (CHAR *moduleName, LONGINT moduleName__len)
 	CHAR cmd[1023];
 	__DUP(moduleName, moduleName__len, CHAR);
 	__MOVE("gcc -g", cmd, 7);
-	Strings_Append(extTools_compilationOptions, ((LONGINT)(1023)), (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)"-c ", (LONGINT)4, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append(moduleName, moduleName__len, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)".c", (LONGINT)3, (void*)cmd, ((LONGINT)(1023)));
-	extTools_execute((CHAR*)"Assemble: ", (LONGINT)11, cmd, ((LONGINT)(1023)));
+	Strings_Append(extTools_compilationOptions, 1023, (void*)cmd, 1023);
+	Strings_Append((CHAR*)"-c ", 4, (void*)cmd, 1023);
+	Strings_Append(moduleName, moduleName__len, (void*)cmd, 1023);
+	Strings_Append((CHAR*)".c", 3, (void*)cmd, 1023);
+	extTools_execute((CHAR*)"Assemble: ", 11, cmd, 1023);
 	__DEL(moduleName);
 }
 
@@ -74,21 +74,21 @@ void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN stati
 	CHAR cmd[1023];
 	__DUP(additionalopts, additionalopts__len, CHAR);
 	__MOVE("gcc -g", cmd, 7);
-	Strings_Append((CHAR*)" ", (LONGINT)2, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append(extTools_compilationOptions, ((LONGINT)(1023)), (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append(moduleName, moduleName__len, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)".c ", (LONGINT)4, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append(additionalopts, additionalopts__len, (void*)cmd, ((LONGINT)(1023)));
+	Strings_Append((CHAR*)" ", 2, (void*)cmd, 1023);
+	Strings_Append(extTools_compilationOptions, 1023, (void*)cmd, 1023);
+	Strings_Append(moduleName, moduleName__len, (void*)cmd, 1023);
+	Strings_Append((CHAR*)".c ", 4, (void*)cmd, 1023);
+	Strings_Append(additionalopts, additionalopts__len, (void*)cmd, 1023);
 	if (statically) {
-		Strings_Append((CHAR*)"-static", (LONGINT)8, (void*)cmd, ((LONGINT)(1023)));
+		Strings_Append((CHAR*)"-static", 8, (void*)cmd, 1023);
 	}
-	Strings_Append((CHAR*)" -o ", (LONGINT)5, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append(moduleName, moduleName__len, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)" -L\"", (LONGINT)5, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)"/opt/voc", (LONGINT)9, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)"/lib\"", (LONGINT)6, (void*)cmd, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)" -l voc", (LONGINT)8, (void*)cmd, ((LONGINT)(1023)));
-	extTools_execute((CHAR*)"Assemble and link: ", (LONGINT)20, cmd, ((LONGINT)(1023)));
+	Strings_Append((CHAR*)" -o ", 5, (void*)cmd, 1023);
+	Strings_Append(moduleName, moduleName__len, (void*)cmd, 1023);
+	Strings_Append((CHAR*)" -L\"", 5, (void*)cmd, 1023);
+	Strings_Append((CHAR*)"/opt/voc", 9, (void*)cmd, 1023);
+	Strings_Append((CHAR*)"/lib\"", 6, (void*)cmd, 1023);
+	Strings_Append((CHAR*)" -l voc", 8, (void*)cmd, 1023);
+	extTools_execute((CHAR*)"Assemble and link: ", 20, cmd, 1023);
 	__DEL(additionalopts);
 }
 
@@ -103,11 +103,11 @@ export void *extTools__init(void)
 	__MODULE_IMPORT(Strings);
 	__REGMOD("extTools", 0);
 /* BEGIN */
-	Strings_Append((CHAR*)" -I \"", (LONGINT)6, (void*)extTools_compilationOptions, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)"/opt/voc", (LONGINT)9, (void*)extTools_compilationOptions, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)"/include\" ", (LONGINT)11, (void*)extTools_compilationOptions, ((LONGINT)(1023)));
-	Platform_GetEnv((CHAR*)"CFLAGS", (LONGINT)7, (void*)extTools_CFLAGS, ((LONGINT)(1023)));
-	Strings_Append(extTools_CFLAGS, ((LONGINT)(1023)), (void*)extTools_compilationOptions, ((LONGINT)(1023)));
-	Strings_Append((CHAR*)" ", (LONGINT)2, (void*)extTools_compilationOptions, ((LONGINT)(1023)));
+	Strings_Append((CHAR*)" -I \"", 6, (void*)extTools_compilationOptions, 1023);
+	Strings_Append((CHAR*)"/opt/voc", 9, (void*)extTools_compilationOptions, 1023);
+	Strings_Append((CHAR*)"/include\" ", 11, (void*)extTools_compilationOptions, 1023);
+	Platform_GetEnv((CHAR*)"CFLAGS", 7, (void*)extTools_CFLAGS, 1023);
+	Strings_Append(extTools_CFLAGS, 1023, (void*)extTools_compilationOptions, 1023);
+	Strings_Append((CHAR*)" ", 2, (void*)extTools_compilationOptions, 1023);
 	__ENDMOD;
 }

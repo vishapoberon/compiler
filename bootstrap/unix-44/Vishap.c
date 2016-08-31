@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkamSf */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkamSf */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Heap.h"
@@ -33,31 +33,31 @@ void Vishap_Module (BOOLEAN *done)
 		OPV_AdrAndSize(OPT_topScope);
 		OPT_Export(&ext, &new);
 		if (OPM_noerr) {
-			OPM_OpenFiles((void*)OPT_SelfName, ((LONGINT)(256)));
+			OPM_OpenFiles((void*)OPT_SelfName, 256);
 			OPC_Init();
 			OPV_Module(p);
 			if (OPM_noerr) {
 				if (((OPM_mainProg || OPM_mainLinkStat) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
 					OPM_DeleteNewSym();
 					if (!OPM_notColorOutput) {
-						vt100_SetAttr((CHAR*)"32m", (LONGINT)4);
+						vt100_SetAttr((CHAR*)"32m", 4);
 					}
-					OPM_LogWStr((CHAR*)"  Main program.", (LONGINT)16);
+					OPM_LogWStr((CHAR*)"  Main program.", 16);
 					if (!OPM_notColorOutput) {
-						vt100_SetAttr((CHAR*)"0m", (LONGINT)3);
+						vt100_SetAttr((CHAR*)"0m", 3);
 					}
 				} else {
 					if (new) {
 						if (!OPM_notColorOutput) {
-							vt100_SetAttr((CHAR*)"32m", (LONGINT)4);
+							vt100_SetAttr((CHAR*)"32m", 4);
 						}
-						OPM_LogWStr((CHAR*)"  New symbol file.", (LONGINT)19);
+						OPM_LogWStr((CHAR*)"  New symbol file.", 19);
 						if (!OPM_notColorOutput) {
-							vt100_SetAttr((CHAR*)"0m", (LONGINT)3);
+							vt100_SetAttr((CHAR*)"0m", 3);
 						}
 						OPM_RegisterNewSym();
 					} else if (ext) {
-						OPM_LogWStr((CHAR*)"  Extended symbol file.", (LONGINT)24);
+						OPM_LogWStr((CHAR*)"  Extended symbol file.", 24);
 						OPM_RegisterNewSym();
 					}
 				}
@@ -94,7 +94,7 @@ void Vishap_Translate (void)
 	modulesobj[0] = 0x00;
 	if (OPM_OpenPar()) {
 		for (;;) {
-			OPM_Init(&done, (void*)Vishap_mname, ((LONGINT)(256)));
+			OPM_Init(&done, (void*)Vishap_mname, 256);
 			if (!done) {
 				return;
 			}
@@ -104,21 +104,21 @@ void Vishap_Translate (void)
 			Vishap_Module(&done);
 			if (!done) {
 				OPM_LogWLn();
-				OPM_LogWStr((CHAR*)"Module compilation failed.", (LONGINT)27);
+				OPM_LogWStr((CHAR*)"Module compilation failed.", 27);
 				OPM_LogWLn();
 				Platform_Exit(1);
 			}
 			if (!OPM_dontAsm) {
 				if (OPM_dontLink) {
-					extTools_Assemble(OPM_modName, ((LONGINT)(32)));
+					extTools_Assemble(OPM_modName, 32);
 				} else {
 					if (!(OPM_mainProg || OPM_mainLinkStat)) {
-						extTools_Assemble(OPM_modName, ((LONGINT)(32)));
-						Strings_Append((CHAR*)" ", (LONGINT)2, (void*)modulesobj, ((LONGINT)(2048)));
-						Strings_Append(OPM_modName, ((LONGINT)(32)), (void*)modulesobj, ((LONGINT)(2048)));
-						Strings_Append((CHAR*)".o", (LONGINT)3, (void*)modulesobj, ((LONGINT)(2048)));
+						extTools_Assemble(OPM_modName, 32);
+						Strings_Append((CHAR*)" ", 2, (void*)modulesobj, 2048);
+						Strings_Append(OPM_modName, 32, (void*)modulesobj, 2048);
+						Strings_Append((CHAR*)".o", 3, (void*)modulesobj, 2048);
 					} else {
-						extTools_LinkMain((void*)OPM_modName, ((LONGINT)(32)), OPM_mainLinkStat, modulesobj, ((LONGINT)(2048)));
+						extTools_LinkMain((void*)OPM_modName, 32, OPM_mainLinkStat, modulesobj, 2048);
 					}
 				}
 			}
@@ -133,7 +133,7 @@ static void Vishap_Trap (INTEGER sig)
 		Platform_Exit(0);
 	} else {
 		if ((sig == 4 && Platform_HaltCode == -15)) {
-			OPM_LogWStr((CHAR*)" --- Vishap Oberon: internal error", (LONGINT)35);
+			OPM_LogWStr((CHAR*)" --- Vishap Oberon: internal error", 35);
 			OPM_LogWLn();
 		}
 		Platform_Exit(2);

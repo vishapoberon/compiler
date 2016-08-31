@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Platform.h"
@@ -22,7 +22,7 @@ export void Console_String (CHAR *s, LONGINT s__len);
 void Console_Flush (void)
 {
 	INTEGER error;
-	error = Platform_Write(Platform_StdOut, (LONGINT)(SYSTEM_ADRINT)Console_line, Console_pos);
+	error = Platform_Write(Platform_StdOut, (SYSTEM_ADRINT)Console_line, Console_pos);
 	Console_pos = 0;
 }
 
@@ -31,7 +31,7 @@ void Console_Char (CHAR ch)
 	if (Console_pos == 128) {
 		Console_Flush();
 	}
-	Console_line[__X(Console_pos, ((LONGINT)(128)))] = ch;
+	Console_line[__X(Console_pos, 128)] = ch;
 	Console_pos += 1;
 	if (ch == 0x0a) {
 		Console_Flush();
@@ -63,13 +63,13 @@ void Console_Int (LONGINT i, LONGINT n)
 		i1 = __DIV(i1, 10);
 		k = 1;
 		while (i1 > 0) {
-			s[__X(k, ((LONGINT)(32)))] = (CHAR)(__MOD(i1, 10) + 48);
+			s[__X(k, 32)] = (CHAR)(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
 	}
 	if (i < 0) {
-		s[__X(k, ((LONGINT)(32)))] = '-';
+		s[__X(k, 32)] = '-';
 		k += 1;
 	}
 	while (n > k) {
@@ -78,7 +78,7 @@ void Console_Int (LONGINT i, LONGINT n)
 	}
 	while (k > 0) {
 		k -= 1;
-		Console_Char(s[__X(k, ((LONGINT)(32)))]);
+		Console_Char(s[__X(k, 32)]);
 	}
 }
 
@@ -90,9 +90,9 @@ void Console_Ln (void)
 void Console_Bool (BOOLEAN b)
 {
 	if (b) {
-		Console_String((CHAR*)"TRUE", (LONGINT)5);
+		Console_String((CHAR*)"TRUE", 5);
 	} else {
-		Console_String((CHAR*)"FALSE", (LONGINT)6);
+		Console_String((CHAR*)"FALSE", 6);
 	}
 }
 
@@ -116,7 +116,7 @@ void Console_Read (CHAR *ch)
 	LONGINT n;
 	INTEGER error;
 	Console_Flush();
-	error = Platform_ReadBuf(Platform_StdIn, (void*)&*ch, ((LONGINT)(1)), &n);
+	error = Platform_ReadBuf(Platform_StdIn, (void*)&*ch, 1, &n);
 	if (n != 1) {
 		*ch = 0x00;
 	}

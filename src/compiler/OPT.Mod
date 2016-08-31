@@ -1219,7 +1219,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("SET",      Set,   OPM.SetSize,   settyp);
   EnterTyp("REAL",     Real,  OPM.RealSize,  realtyp);
   EnterTyp("INTEGER",  Int,   OPM.IntSize,   inttyp);
-  EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);
+(*EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);*)
+  EnterTyp("LONGINT",  Int,   OPM.LIntSize,  linttyp);
   EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
   EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);
 

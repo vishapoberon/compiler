@@ -74,6 +74,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     BodyFile*       = 1;
     HeaderInclude*  = 2;
 
+    (* C default expression integral size details. Const for now, will be var with avr_gcc/sdcc support *)
+    CIntSize*       = 4;
+    CIntMax*        = 7FFFFFFFH;
+    CIntMin*        = -CIntMax - 1;
+
+
     SFext = ".sym"; (* symbol file extension *)
     BFext = ".c";   (* body file extension *)
     HFext = ".h";   (* header file extension *)

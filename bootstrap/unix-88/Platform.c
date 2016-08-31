@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/30] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -230,7 +230,7 @@ void Platform_Init (INTEGER argc, LONGINT argvadr)
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = argc;
-	av = (Platform_ArgVecPtr)(SYSTEM_ADRINT)argvadr;
+	av = __VAL(Platform_ArgVecPtr, argvadr);
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -263,8 +263,8 @@ void Platform_GetArg (INTEGER n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(SYSTEM_ADRINT)Platform_ArgVector;
-		__COPY(*(*av)[__X(n, ((LONGINT)(1024)))], val, val__len);
+		av = __VAL(Platform_ArgVec, Platform_ArgVector);
+		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
 
@@ -273,17 +273,17 @@ void Platform_GetIntArg (INTEGER n, LONGINT *val)
 	CHAR s[64];
 	LONGINT k, d, i;
 	s[0] = 0x00;
-	Platform_GetArg(n, (void*)s, ((LONGINT)(64)));
+	Platform_GetArg(n, (void*)s, 64);
 	i = 0;
 	if (s[0] == '-') {
 		i = 1;
 	}
 	k = 0;
-	d = (int)s[__X(i, ((LONGINT)(64)))] - 48;
+	d = s[__X(i, 64)] - 48;
 	while ((d >= 0 && d <= 9)) {
 		k = k * 10 + d;
 		i += 1;
-		d = (int)s[__X(i, ((LONGINT)(64)))] - 48;
+		d = s[__X(i, 64)] - 48;
 	}
 	if (s[0] == '-') {
 		k = -k;
@@ -301,10 +301,10 @@ INTEGER Platform_ArgPos (CHAR *s, LONGINT s__len)
 	CHAR arg[256];
 	__DUP(s, s__len, CHAR);
 	i = 0;
-	Platform_GetArg(i, (void*)arg, ((LONGINT)(256)));
+	Platform_GetArg(i, (void*)arg, 256);
 	while ((i < Platform_ArgCount && __STRCMP(s, arg) != 0)) {
 		i += 1;
-		Platform_GetArg(i, (void*)arg, ((LONGINT)(256)));
+		Platform_GetArg(i, (void*)arg, 256);
 	}
 	_o_result = i;
 	__DEL(s);
@@ -530,7 +530,7 @@ INTEGER Platform_Read (LONGINT h, LONGINT p, LONGINT l, LONGINT *n)
 INTEGER Platform_ReadBuf (LONGINT h, SYSTEM_BYTE *b, LONGINT b__len, LONGINT *n)
 {
 	INTEGER _o_result;
-	*n = Platform_readfile(h, (LONGINT)(SYSTEM_ADRINT)b, b__len);
+	*n = Platform_readfile(h, (SYSTEM_ADRINT)b, b__len);
 	if (*n < 0) {
 		*n = 0;
 		_o_result = Platform_err();
@@ -614,7 +614,7 @@ INTEGER Platform_Chdir (CHAR *n, LONGINT n__len)
 	INTEGER _o_result;
 	INTEGER r;
 	r = Platform_chdir(n, n__len);
-	Platform_getcwd((void*)Platform_CWD, ((LONGINT)(256)));
+	Platform_getcwd((void*)Platform_CWD, 256);
 	if (r < 0) {
 		_o_result = Platform_err();
 		return _o_result;
@@ -675,52 +675,52 @@ static void Platform_DisplayHaltCode (LONGINT code)
 {
 	switch (code) {
 		case -1: 
-			Platform_errstring((CHAR*)"Assertion failure.", (LONGINT)19);
+			Platform_errstring((CHAR*)"Assertion failure.", 19);
 			break;
 		case -2: 
-			Platform_errstring((CHAR*)"Index out of range.", (LONGINT)20);
+			Platform_errstring((CHAR*)"Index out of range.", 20);
 			break;
 		case -3: 
-			Platform_errstring((CHAR*)"Reached end of function without reaching RETURN.", (LONGINT)49);
+			Platform_errstring((CHAR*)"Reached end of function without reaching RETURN.", 49);
 			break;
 		case -4: 
-			Platform_errstring((CHAR*)"CASE statement: no matching label and no ELSE.", (LONGINT)47);
+			Platform_errstring((CHAR*)"CASE statement: no matching label and no ELSE.", 47);
 			break;
 		case -5: 
-			Platform_errstring((CHAR*)"Type guard failed.", (LONGINT)19);
+			Platform_errstring((CHAR*)"Type guard failed.", 19);
 			break;
 		case -6: 
-			Platform_errstring((CHAR*)"Implicit type guard in record assignment failed.", (LONGINT)49);
+			Platform_errstring((CHAR*)"Implicit type guard in record assignment failed.", 49);
 			break;
 		case -7: 
-			Platform_errstring((CHAR*)"Invalid case in WITH statement.", (LONGINT)32);
+			Platform_errstring((CHAR*)"Invalid case in WITH statement.", 32);
 			break;
 		case -8: 
-			Platform_errstring((CHAR*)"Value out of range.", (LONGINT)20);
+			Platform_errstring((CHAR*)"Value out of range.", 20);
 			break;
 		case -9: 
-			Platform_errstring((CHAR*)"Heap interrupted while locked, but lockdepth = 0 at unlock.", (LONGINT)60);
+			Platform_errstring((CHAR*)"Heap interrupted while locked, but lockdepth = 0 at unlock.", 60);
 			break;
 		case -10: 
-			Platform_errstring((CHAR*)"NIL access.", (LONGINT)12);
+			Platform_errstring((CHAR*)"NIL access.", 12);
 			break;
 		case -11: 
-			Platform_errstring((CHAR*)"Alignment error.", (LONGINT)17);
+			Platform_errstring((CHAR*)"Alignment error.", 17);
 			break;
 		case -12: 
-			Platform_errstring((CHAR*)"Divide by zero.", (LONGINT)16);
+			Platform_errstring((CHAR*)"Divide by zero.", 16);
 			break;
 		case -13: 
-			Platform_errstring((CHAR*)"Arithmetic overflow/underflow.", (LONGINT)31);
+			Platform_errstring((CHAR*)"Arithmetic overflow/underflow.", 31);
 			break;
 		case -14: 
-			Platform_errstring((CHAR*)"Invalid function argument.", (LONGINT)27);
+			Platform_errstring((CHAR*)"Invalid function argument.", 27);
 			break;
 		case -15: 
-			Platform_errstring((CHAR*)"Internal error, e.g. Type descriptor size mismatch.", (LONGINT)52);
+			Platform_errstring((CHAR*)"Internal error, e.g. Type descriptor size mismatch.", 52);
 			break;
 		case -20: 
-			Platform_errstring((CHAR*)"Too many, or negative number of, elements in dynamic array.", (LONGINT)60);
+			Platform_errstring((CHAR*)"Too many, or negative number of, elements in dynamic array.", 60);
 			break;
 		default: 
 			break;
@@ -734,9 +734,9 @@ void Platform_Halt (LONGINT code)
 	if (Platform_HaltHandler != NIL) {
 		(*Platform_HaltHandler)(code);
 	}
-	Platform_errstring((CHAR*)"Terminated by Halt(", (LONGINT)20);
+	Platform_errstring((CHAR*)"Terminated by Halt(", 20);
 	Platform_errint(code);
-	Platform_errstring((CHAR*)"). ", (LONGINT)4);
+	Platform_errstring((CHAR*)"). ", 4);
 	if (code < 0) {
 		Platform_DisplayHaltCode(code);
 	}
@@ -747,11 +747,11 @@ void Platform_Halt (LONGINT code)
 void Platform_AssertFail (LONGINT code)
 {
 	INTEGER e;
-	Platform_errstring((CHAR*)"Assertion failure.", (LONGINT)19);
+	Platform_errstring((CHAR*)"Assertion failure.", 19);
 	if (code != 0) {
-		Platform_errstring((CHAR*)" ASSERT code ", (LONGINT)14);
+		Platform_errstring((CHAR*)" ASSERT code ", 14);
 		Platform_errint(code);
-		Platform_errstring((CHAR*)".", (LONGINT)2);
+		Platform_errstring((CHAR*)".", 2);
 	}
 	Platform_errln();
 	Platform_exit(__VAL(INTEGER, code));
@@ -766,7 +766,7 @@ static void Platform_TestLittleEndian (void)
 {
 	INTEGER i;
 	i = 1;
-	__GET((LONGINT)(SYSTEM_ADRINT)&i, Platform_LittleEndian, BOOLEAN);
+	__GET((SYSTEM_ADRINT)&i, Platform_LittleEndian, BOOLEAN);
 }
 
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 24), {-8}};
@@ -783,7 +783,7 @@ export void *Platform__init(void)
 	Platform_TimeStart = 0;
 	Platform_TimeStart = Platform_Time();
 	Platform_CWD[0] = 0x00;
-	Platform_getcwd((void*)Platform_CWD, ((LONGINT)(256)));
+	Platform_getcwd((void*)Platform_CWD, 256);
 	Platform_PID = Platform_getpid();
 	Platform_SeekSet = Platform_seekset();
 	Platform_SeekCur = Platform_seekcur();
