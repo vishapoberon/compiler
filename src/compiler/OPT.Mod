@@ -91,10 +91,10 @@ TYPE
 CONST
   (* Struct.form values *)
   Undef*   = 0;  Byte*    = 1;  Bool*    = 2;  Char*    = 3;
-  Int*     = 5;
-  Real*    = 7;  LReal*   = 8;  Set*     = 9;  String*  = 10;
-  NilTyp*  = 11; NoTyp*   = 12; Pointer* = 13; ProcTyp* = 14;
-  Comp*    = 15;
+  Int*     = 4;
+  Real*    = 5;  LReal*   = 6;  Set*     = 7;  String*  = 8;
+  NilTyp*  = 9;  NoTyp*   = 10; Pointer* = 11; ProcTyp* = 12;
+  Comp*    = 13;
 
   realSet* = {Real, LReal};
 
@@ -1213,10 +1213,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("SET",      Set,   OPM.SetSize,   settyp);
   EnterTyp("REAL",     Real,  OPM.RealSize,  realtyp);
   EnterTyp("INTEGER",  Int,   OPM.IntSize,   inttyp);
-(*EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);*)
   EnterTyp("LONGINT",  Int,   OPM.LIntSize,  linttyp);
   EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
-(*EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);*)
   EnterTyp("SHORTINT", Int,   OPM.SIntSize,  sinttyp);
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
@@ -1248,9 +1246,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[Byte]    := bytetyp;
   impCtxt.ref[Bool]    := booltyp;
   impCtxt.ref[Char]    := chartyp;
-(*impCtxt.ref[SInt]    := sinttyp;*)
   impCtxt.ref[Int]     := inttyp;
-(*impCtxt.ref[LInt]    := linttyp;*)
   impCtxt.ref[Real]    := realtyp;
   impCtxt.ref[LReal]   := lrltyp;
   impCtxt.ref[Set]     := settyp;
@@ -1297,9 +1293,7 @@ Objects:
     Byte    Basic |
     Bool    Basic |
     Char    Basic |
-    SInt    Basic |
-    Int     Basic |
-    LInt    Basic |
+    Int     Basic |                                                                   size determine SHORT vs LONG
     XInt    Basic | bits
     Real    Basic |
     LReal   Basic |
