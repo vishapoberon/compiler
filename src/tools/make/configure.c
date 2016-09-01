@@ -212,7 +212,7 @@ void determineBuildDate() {
 
 struct {char ch; CHAR      x;}    c;
 struct {char ch; BOOLEAN   x;}    b;
-struct {char ch; SHORTINT  x;}    si;
+//struct {char ch; SHORTINT  x;}    si;
 struct {char ch; INTEGER   x;}    i;
 struct {char ch; LONGINT   x;}    li;
 struct {char ch; SET       x;}    s;
@@ -246,7 +246,7 @@ void ReportSizesAndAlignments() {
   printf("Type      Size   Align\n");
   printf("CHAR      %4zd    %4td\n", sizeof(CHAR),      (char*)&c.x  - (char*)&c);
   printf("BOOLEAN   %4zd    %4td\n", sizeof(BOOLEAN),   (char*)&b.x  - (char*)&b);
-  printf("SHORTINT  %4zd    %4td\n", sizeof(SHORTINT),  (char*)&si.x - (char*)&si);
+//printf("SHORTINT  %4zd    %4td\n", sizeof(SHORTINT),  (char*)&si.x - (char*)&si);
   printf("INTEGER   %4zd    %4td\n", sizeof(INTEGER),   (char*)&i.x  - (char*)&i);
   printf("LONGINT   %4zd    %4td\n", sizeof(LONGINT),   (char*)&li.x - (char*)&li);
   printf("SET       %4zd    %4td\n", sizeof(SET),       (char*)&s.x  - (char*)&s);
@@ -326,7 +326,7 @@ void testSystemDotH() {
 
   assert(sizeof(CHAR)     == 1, "Size of CHAR not 1.");
   assert(sizeof(BOOLEAN)  == 1, "Size of BOOLEAN not 1.");
-  assert(sizeof(SHORTINT) == 1, "Size of SHORTINT not 1.");
+//assert(sizeof(SHORTINT) == 1, "Size of SHORTINT not 1.");
   assert(sizeof(INTEGER)  == 2
       || sizeof(INTEGER)  == 4, "Size of INTEGER neither 2 nor 4 bytes.");
   assert(sizeof(LONGINT)  == 4
@@ -340,7 +340,7 @@ void testSystemDotH() {
 
   assert(((char*)&c.x  - (char*)&c)  == 1, "Alignment of CHAR not 1.");
   assert(((char*)&b.x  - (char*)&b)  == 1, "Alignment of BOOLEAN not 1.");
-  assert(((char*)&si.x - (char*)&si) == 1, "Alignment of SHORTINT not 1.");
+//assert(((char*)&si.x - (char*)&si) == 1, "Alignment of SHORTINT not 1.");
   //assert(((char*)&i.x  - (char*)&i)  == 4, "Alignment of INTEGER not 4 bytes.");
   assert(((char*)&r.x  - (char*)&r)  == 4, "Alignment of REAL not 4 bytes.");
   assert(((char*)&lr.x - (char*)&lr) >= 4, "Alignment of LONGREAL less than 4 bytes.");

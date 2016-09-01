@@ -34,27 +34,6 @@ typedef unsigned char        uint8;
 void *memcpy(void *dest, const void *source, size_t size);
 
 
-// Temporary while bootstrapping:
-
-#define SYSTEM_INT8     int8
-#define SYSTEM_INT16    int16
-#define SYSTEM_INT32    int32
-#define SYSTEM_INT64    int64
-#define SYSTEM_ADDRESS  size_t
-
-#define U_SYSTEM_INT8   uint8
-#define U_SYSTEM_INT16  uint16
-#define U_SYSTEM_INT32  uint32
-#define U_SYSTEM_INT64  uint64
-
-#define U_int8          uint8
-#define U_int16         uint16
-#define U_int32         uint32
-#define U_int64         uint64
-
-
-
-
 // The compiler uses 'import' and 'export' which translate to 'extern' and
 // nothing respectively.
 
@@ -72,21 +51,11 @@ void *memcpy(void *dest, const void *source, size_t size);
 
 // Oberon types
 
-// typedef char          BOOLEAN;
-// typedef unsigned char SYSTEM_BYTE;
-// typedef unsigned char CHAR;
-// typedef signed char   SHORTINT;
-// typedef float         REAL;
-// typedef double        LONGREAL;
-// typedef void*         SYSTEM_PTR;
-
 typedef int8   BOOLEAN;
 typedef int8   SYSTEM_BYTE;
-typedef uint8  U_SYSTEM_BYTE;
+typedef uint8  uSYSTEM_BYTE;
 typedef uint8  CHAR;
-typedef uint8  U_CHAR;
-typedef int8   SHORTINT;
-typedef uint8  U_SHORTINT;
+typedef uint8  uCHAR;
 typedef float  REAL;
 typedef double LONGREAL;
 typedef void*  SYSTEM_PTR;
@@ -99,19 +68,17 @@ typedef size_t SYSTEM_ADRINT;
 #if (__SIZEOF_POINTER__ == 8) || defined(LARGE) || defined(_WIN64)
   typedef int32  INTEGER;
   typedef int64  LONGINT;
-  typedef uint32 U_INTEGER;
-  typedef uint64 U_LONGINT;
+  typedef uint64 uLONGINT;
 #else
   typedef int16  INTEGER;
   typedef int32  LONGINT;
-  typedef uint16 U_INTEGER;
-  typedef uint32 U_LONGINT;
+  typedef uint32 uLONGINT;
 #endif
 
 // Unsigned variants are for use by shift and rotate macros.
 
-typedef U_LONGINT SET;
-typedef U_LONGINT U_SET;
+typedef uLONGINT SET;
+typedef uLONGINT uSET;
 
 
 
@@ -137,8 +104,8 @@ extern double  SYSTEM_ABSD   (double i);
 extern void    SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
 extern void    SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
 extern void    SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
-extern LONGINT SYSTEM_DIV    (U_LONGINT x, U_LONGINT y);
-extern LONGINT SYSTEM_MOD    (U_LONGINT x, U_LONGINT y);
+extern LONGINT SYSTEM_DIV    (uLONGINT x, uLONGINT y);
+extern LONGINT SYSTEM_MOD    (uLONGINT x, uLONGINT y);
 extern LONGINT SYSTEM_ENTIER (double x);
 
 
@@ -186,22 +153,22 @@ static int __str_cmp(CHAR *x, CHAR *y){
 #define __GET(a, x, t)  x= *(t*)(SYSTEM_ADRINT)(a)
 #define __PUT(a, x, t)  *(t*)(SYSTEM_ADRINT)(a)=x
 
-#define __LSHL(x, n, t) ((t)((U_##t)(x)<<(n)))
-#define __LSHR(x, n, t) ((t)((U_##t)(x)>>(n)))
+#define __LSHL(x, n, t) ((t)((u##t)(x)<<(n)))
+#define __LSHR(x, n, t) ((t)((u##t)(x)>>(n)))
 #define __LSH(x, n, t)  ((n)>=0? __LSHL(x, n, t): __LSHR(x, -(n), t))
 
 #define __ASHL(x, n)    ((LONGINT)(x)<<(n))
 #define __ASHR(x, n)    ((LONGINT)(x)>>(n))
 #define __ASH(x, n)     ((n)>=0?__ASHL(x,n):__ASHR(x,-(n)))
 
-#define __ROTL(x, n, t) ((t)((U_##t)(x)<<(n)|(U_##t)(x)>>(8*sizeof(t)-(n))))
-#define __ROTR(x, n, t) ((t)((U_##t)(x)>>(n)|(U_##t)(x)<<(8*sizeof(t)-(n))))
+#define __ROTL(x, n, t) ((t)((u##t)(x)<<(n)|(u##t)(x)>>(8*sizeof(t)-(n))))
+#define __ROTR(x, n, t) ((t)((u##t)(x)>>(n)|(u##t)(x)<<(8*sizeof(t)-(n))))
 #define __ROT(x, n, t)  ((n)>=0? __ROTL(x, n, t): __ROTR(x, -(n), t))
 
-#define __BIT(x, n)     (*(U_LONGINT*)(x)>>(n)&1)
+#define __BIT(x, n)     (*(uLONGINT*)(x)>>(n)&1)
 #define __MOVE(s, d, n) memcpy((char*)(SYSTEM_ADRINT)(d),(char*)(SYSTEM_ADRINT)(s),n)
 #define __ASHF(x, n)    SYSTEM_ASH((LONGINT)(x), (LONGINT)(n))
-#define __SHORT(x, y)   ((int)((U_LONGINT)(x)+(y)<(y)+(y)?(x):(__HALT(-8),0)))
+#define __SHORT(x, y)   ((int)((uLONGINT)(x)+(y)<(y)+(y)?(x):(__HALT(-8),0)))
 #define __SHORTF(x, y)  ((int)(__RF((x)+(y),(y)+(y))-(y)))
 #define __CHR(x)        ((CHAR)__R(x, 256))
 #define __CHRF(x)       ((CHAR)__RF(x, 256))
@@ -215,7 +182,7 @@ static int __str_cmp(CHAR *x, CHAR *y){
 #define __ABSFD(x)      SYSTEM_ABSD((double)(x))
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
-#define __IN(x, s)      ((x)>=0 && (x)<(8*sizeof(SET)) && ((((U_SET)(s))>>(x))&1))
+#define __IN(x, s)      ((x)>=0 && (x)<(8*sizeof(SET)) && ((((uSET)(s))>>(x))&1))
 #define __SETOF(x)      ((SET)1<<(x))
 #define __SETRNG(l, h)  ((~(SET)0<<(l))&~(SET)0>>(8*sizeof(SET)-1-(h)))
 #define __MASK(x, m)    ((x)&~(m))
@@ -224,9 +191,9 @@ static int __str_cmp(CHAR *x, CHAR *y){
 
 // Runtime checks
 
-#define __X(i, ub)   (((U_LONGINT)(i)<(U_LONGINT)(ub))?i:(__HALT(-2),0))
+#define __X(i, ub)   (((uLONGINT)(i)<(uLONGINT)(ub))?i:(__HALT(-2),0))
 #define __XF(i, ub)  SYSTEM_XCHK((LONGINT)(i), (LONGINT)(ub))
-#define __R(i, ub)   (((U_LONGINT)(i)<(U_LONGINT)(ub))?i:(__HALT(-8),0))
+#define __R(i, ub)   (((uLONGINT)(i)<(uLONGINT)(ub))?i:(__HALT(-8),0))
 #define __RF(i, ub)  SYSTEM_RCHK((LONGINT)(i),(LONGINT)(ub))
 #define __RETCHK     __retchk: __HALT(-3); return 0;
 #define __CASECHK    __HALT(-4)

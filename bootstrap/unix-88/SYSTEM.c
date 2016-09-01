@@ -54,13 +54,13 @@ void SYSTEM_ENUMR(void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)())
     }
 }
 
-LONGINT SYSTEM_DIV(U_LONGINT x, U_LONGINT y)
+LONGINT SYSTEM_DIV(uLONGINT x, uLONGINT y)
 {   if ((LONGINT) x >= 0) return (x / y);
     else return -((y - 1 - x) / y);
 }
 
-LONGINT SYSTEM_MOD(U_LONGINT x, U_LONGINT y)
-{   U_LONGINT m;
+LONGINT SYSTEM_MOD(uLONGINT x, uLONGINT y)
+{   uLONGINT m;
     if ((LONGINT) x >= 0) return (x % y);
     else { m = (-x) % y;
         if (m != 0) return (y - m); else return 0;
