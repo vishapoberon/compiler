@@ -109,7 +109,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 #define Platform_ERRORWRITEPROTECT()	ERROR_WRITE_PROTECT
 #define Platform_ETIMEDOUT()	WSAETIMEDOUT
 extern void Heap_InitHeap();
-#define Platform_GetTickCount()	(LONGINT)(SYSTEM_CARD32)GetTickCount()
+#define Platform_GetTickCount()	(LONGINT)(uint32)GetTickCount()
 #define Platform_HeapInitHeap()	Heap_InitHeap()
 #define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((SYSTEM_ADRINT)h)
 #define Platform_SetQuitHandler(h)	SystemSetQuitHandler((SYSTEM_ADRINT)h)
