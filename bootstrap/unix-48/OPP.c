@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPB.h"
 #include "OPM.h"
@@ -136,7 +136,7 @@ static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_)
 			OPP_err(135);
 		}
 		OPP_ConstExpression(&x);
-		if (x->typ->form == 5) {
+		if (x->typ->form == 4) {
 			sf = x->conval->intval;
 			if (sf < 0 || sf > 1) {
 				OPP_err(220);
@@ -158,7 +158,7 @@ static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned)
 	OPT_Object fld = NIL, first = NIL, last = NIL, base = NIL;
 	OPT_Struct ftyp = NIL;
 	INTEGER sysflag;
-	*typ = OPT_NewStr(15, 4);
+	*typ = OPT_NewStr(13, 4);
 	(*typ)->BaseTyp = NIL;
 	OPP_CheckSysFlag(&sysflag, -1);
 	if (OPP_sym == 30) {
@@ -253,7 +253,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 	INTEGER sysflag;
 	OPP_CheckSysFlag(&sysflag, 0);
 	if (OPP_sym == 25) {
-		*typ = OPT_NewStr(15, 3);
+		*typ = OPT_NewStr(13, 3);
 		(*typ)->mno = 0;
 		(*typ)->sysflag = sysflag;
 		OPS_Get(&OPP_sym);
@@ -265,10 +265,10 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 			(*typ)->n = 0;
 		}
 	} else {
-		*typ = OPT_NewStr(15, 2);
+		*typ = OPT_NewStr(13, 2);
 		(*typ)->sysflag = sysflag;
 		OPP_ConstExpression(&x);
-		if (x->typ->form == 5) {
+		if (x->typ->form == 4) {
 			n = x->conval->intval;
 			if (n <= 0 || n > OPM_MaxIndex) {
 				OPP_err(63);
@@ -301,7 +301,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_PointerType (OPT_Struct *typ)
 {
 	OPT_Object id = NIL;
-	*typ = OPT_NewStr(13, 1);
+	*typ = OPT_NewStr(11, 1);
 	OPP_CheckSysFlag(&(*typ)->sysflag, 0);
 	OPP_CheckSym(28);
 	if (OPP_sym == 38) {
@@ -409,7 +409,7 @@ static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp)
 		if (OPP_sym == 38) {
 			OPP_qualident(&res);
 			if (res->mode == 5) {
-				if (res->typ->form < 15) {
+				if (res->typ->form < 13) {
 					*resTyp = res->typ;
 				} else {
 					OPP_err(54);
@@ -459,7 +459,7 @@ static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned)
 		OPP_PointerType(&*typ);
 	} else if (OPP_sym == 61) {
 		OPS_Get(&OPP_sym);
-		*typ = OPT_NewStr(14, 1);
+		*typ = OPT_NewStr(12, 1);
 		OPP_CheckSysFlag(&(*typ)->sysflag, 0);
 		if (OPP_sym == 30) {
 			OPS_Get(&OPP_sym);
@@ -488,7 +488,7 @@ static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_Type (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPP_TypeDecl(&*typ, &*banned);
-	if (((((*typ)->form == 13 && (*typ)->BaseTyp == OPT_undftyp)) && (*typ)->strobj == NIL)) {
+	if (((((*typ)->form == 11 && (*typ)->BaseTyp == OPT_undftyp)) && (*typ)->strobj == NIL)) {
 		OPP_err(0);
 	}
 }
@@ -503,7 +503,7 @@ static void OPP_selector (OPT_Node *x)
 		if (OPP_sym == 31) {
 			OPS_Get(&OPP_sym);
 			for (;;) {
-				if (((*x)->typ != NIL && (*x)->typ->form == 13)) {
+				if (((*x)->typ != NIL && (*x)->typ->form == 11)) {
 					OPB_DeRef(&*x);
 				}
 				OPP_Expression(&y);
@@ -521,7 +521,7 @@ static void OPP_selector (OPT_Node *x)
 				__COPY(OPS_name, name, 256);
 				OPS_Get(&OPP_sym);
 				if ((*x)->typ != NIL) {
-					if ((*x)->typ->form == 13) {
+					if ((*x)->typ->form == 11) {
 						OPB_DeRef(&*x);
 					}
 					if ((*x)->typ->comp == 4) {
@@ -543,7 +543,7 @@ static void OPP_selector (OPT_Node *x)
 										OPP_err(75);
 									}
 									typ = y->obj->typ;
-									if (typ->form == 13) {
+									if (typ->form == 11) {
 										typ = typ->BaseTyp;
 									}
 									OPT_FindField((*x)->obj->name, typ->BaseTyp, &proc);
@@ -572,7 +572,7 @@ static void OPP_selector (OPT_Node *x)
 		} else if (OPP_sym == 17) {
 			OPS_Get(&OPP_sym);
 			OPB_DeRef(&*x);
-		} else if ((((((OPP_sym == 30 && (*x)->class < 7)) && (*x)->typ->form != 14)) && ((*x)->obj == NIL || (*x)->obj->mode != 13))) {
+		} else if ((((((OPP_sym == 30 && (*x)->class < 7)) && (*x)->typ->form != 12)) && ((*x)->obj == NIL || (*x)->obj->mode != 13))) {
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
 				OPP_qualident(&obj);
@@ -871,10 +871,10 @@ static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_St
 		} else {
 			*typ = obj->typ;
 			*rec = *typ;
-			if ((*rec)->form == 13) {
+			if ((*rec)->form == 11) {
 				*rec = (*rec)->BaseTyp;
 			}
-			if (!((((*mode == 1 && (*typ)->form == 13)) && (*rec)->comp == 4) || (*mode == 2 && (*typ)->comp == 4))) {
+			if (!((((*mode == 1 && (*typ)->form == 11)) && (*rec)->comp == 4) || (*mode == 2 && (*typ)->comp == 4))) {
 				OPP_err(70);
 				*rec = NIL;
 			}
@@ -888,7 +888,7 @@ static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_St
 	}
 	OPP_CheckSym(22);
 	if (*rec == NIL) {
-		*rec = OPT_NewStr(15, 4);
+		*rec = OPT_NewStr(13, 4);
 		(*rec)->BaseTyp = NIL;
 	}
 }
@@ -896,7 +896,7 @@ static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_St
 static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b)
 {
 	BOOLEAN _o_result;
-	if ((b->form == 13 && x->form == 13)) {
+	if ((b->form == 11 && x->form == 11)) {
 		b = b->BaseTyp;
 		x = x->BaseTyp;
 	}
@@ -1173,14 +1173,14 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, O
 	for (;;) {
 		OPP_ConstExpression(&x);
 		f = x->typ->form;
-		if (__IN(f, 0x28)) {
+		if (__IN(f, 0x18)) {
 			xval = x->conval->intval;
 		} else {
 			OPP_err(61);
 			xval = 1;
 		}
-		if (f == 5) {
-			if (!(LabelTyp->form == 5) || LabelTyp->size < x->typ->size) {
+		if (f == 4) {
+			if (!(LabelTyp->form == 4) || LabelTyp->size < x->typ->size) {
 				OPP_err(60);
 			}
 		} else if ((SYSTEM_INT16)LabelTyp->form != f) {
@@ -1190,7 +1190,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, O
 			OPS_Get(&OPP_sym);
 			OPP_ConstExpression(&y);
 			yval = y->conval->intval;
-			if (((SYSTEM_INT16)y->typ->form != f && !((f == 5 && y->typ->form == 5)))) {
+			if (((SYSTEM_INT16)y->typ->form != f && !((f == 4 && y->typ->form == 4)))) {
 				OPP_err(60);
 			}
 			if (yval < xval) {
@@ -1253,7 +1253,7 @@ static void CasePart__31 (OPT_Node *x)
 	*StatSeq__30_s->pos = OPM_errpos;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
-	} else if (!__IN((*x)->typ->form, 0x38)) {
+	} else if (!__IN((*x)->typ->form, 0x18)) {
 		OPP_err(125);
 	}
 	OPP_CheckSym(25);
@@ -1439,7 +1439,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
 				OPP_qualident(&id);
-				if (!(id->typ->form == 5)) {
+				if (!(id->typ->form == 4)) {
 					OPP_err(68);
 				}
 				OPP_CheckSym(34);
@@ -1471,7 +1471,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					SetPos__35(z);
 					OPB_Link(&*stat, &last, z);
 					y = OPB_NewLeaf(t);
-				} else if (!(y->typ->form == 5) || y->typ->size > x->left->typ->size) {
+				} else if (!(y->typ->form == 4) || y->typ->size > x->left->typ->size) {
 					OPP_err(113);
 				}
 				OPB_Link(&*stat, &last, x);
@@ -1526,7 +1526,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				if (OPP_sym == 38) {
 					OPP_qualident(&id);
 					y = OPB_NewLeaf(id);
-					if ((((id != NIL && id->typ->form == 13)) && (id->mode == 2 || !id->leaf))) {
+					if ((((id != NIL && id->typ->form == 11)) && (id->mode == 2 || !id->leaf))) {
 						OPP_err(245);
 					}
 					OPP_CheckSym(20);

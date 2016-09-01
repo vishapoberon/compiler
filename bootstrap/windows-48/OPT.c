@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
@@ -173,7 +173,7 @@ OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INTEGER dir)
 {
 	OPT_Struct _o_result;
 	INTEGER i;
-	__ASSERT(x->form == 5, 0);
+	__ASSERT(x->form == 4, 0);
 	__ASSERT(dir == 1 || dir == -1, 0);
 	__ASSERT(x->BaseTyp == OPT_undftyp, 0);
 	i = 0;
@@ -284,7 +284,7 @@ void OPT_Close (void)
 		OPT_GlbMod[__X(i, 64)] = NIL;
 		i += 1;
 	}
-	i = 16;
+	i = 14;
 	while (i < 255) {
 		OPT_impCtxt.ref[__X(i, 255)] = NIL;
 		OPT_impCtxt.old[__X(i, 255)] = NIL;
@@ -483,14 +483,14 @@ void OPT_IdFPrint (OPT_Struct typ)
 			OPT_FPrintName(&idfp, (void*)OPT_GlbMod[__X(typ->mno, 64)]->name, 256);
 			OPT_FPrintName(&idfp, (void*)strobj->name, 256);
 		}
-		if ((f == 13 || (c == 4 && btyp != NIL)) || c == 3) {
+		if ((f == 11 || (c == 4 && btyp != NIL)) || c == 3) {
 			OPT_IdFPrint(btyp);
 			OPM_FPrint(&idfp, btyp->idfp);
 		} else if (c == 2) {
 			OPT_IdFPrint(btyp);
 			OPM_FPrint(&idfp, btyp->idfp);
 			OPM_FPrint(&idfp, typ->n);
-		} else if (f == 14) {
+		} else if (f == 12) {
 			OPT_FPrintSign(&idfp, btyp, typ->link);
 		}
 		typ->idfp = idfp;
@@ -519,7 +519,7 @@ static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 			n = btyp->n * n;
 			btyp = btyp->BaseTyp;
 		}
-		if (btyp->form == 13 || btyp->comp == 4) {
+		if (btyp->form == 11 || btyp->comp == 4) {
 			j = OPT_nofhdfld;
 			FPrintHdFld__15(btyp, fld, adr);
 			if (j != OPT_nofhdfld) {
@@ -531,8 +531,8 @@ static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 				}
 			}
 		}
-	} else if (typ->form == 13 || __STRCMP(fld->name, "@ptr") == 0) {
-		OPM_FPrint(&*FPrintStr__12_s->pvfp, 13);
+	} else if (typ->form == 11 || __STRCMP(fld->name, "@ptr") == 0) {
+		OPM_FPrint(&*FPrintStr__12_s->pvfp, 11);
 		OPM_FPrint(&*FPrintStr__12_s->pvfp, adr);
 		OPT_nofhdfld += 1;
 	}
@@ -595,7 +595,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 		f = typ->form;
 		c = typ->comp;
 		btyp = typ->BaseTyp;
-		if (f == 13) {
+		if (f == 11) {
 			strobj = typ->strobj;
 			bstrobj = btyp->strobj;
 			if (((strobj == NIL || strobj->name[0] == 0x00) || bstrobj == NIL) || bstrobj->name[0] == 0x00) {
@@ -603,7 +603,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 				OPM_FPrint(&pbfp, btyp->pbfp);
 				pvfp = pbfp;
 			}
-		} else if (f == 14) {
+		} else if (f == 12) {
 		} else if (__IN(c, 0x0c)) {
 			OPT_FPrintStr(btyp);
 			OPM_FPrint(&pbfp, btyp->pvfp);
@@ -649,23 +649,23 @@ void OPT_FPrintObj (OPT_Object obj)
 			f = obj->typ->form;
 			OPM_FPrint(&fprint, f);
 			switch (f) {
-				case 2: case 3: case 5: 
+				case 2: case 3: case 4: 
 					OPM_FPrint(&fprint, obj->conval->intval);
 					break;
-				case 9: 
+				case 7: 
 					OPM_FPrintSet(&fprint, obj->conval->setval);
 					break;
-				case 7: 
+				case 5: 
 					rval = obj->conval->realval;
 					OPM_FPrintReal(&fprint, rval);
 					break;
-				case 8: 
+				case 6: 
 					OPM_FPrintLReal(&fprint, obj->conval->realval);
 					break;
-				case 10: 
+				case 8: 
 					OPT_FPrintName(&fprint, (void*)*obj->conval->ext, 256);
 					break;
-				case 11: 
+				case 9: 
 					break;
 				default: 
 					OPT_err(127);
@@ -850,22 +850,22 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 			OPM_SymRCh(&ch);
 			conval->intval = (SYSTEM_INT16)ch;
 			break;
-		case 5: 
+		case 4: 
 			conval->intval = OPM_SymRInt();
 			break;
-		case 9: 
+		case 7: 
 			OPM_SymRSet(&conval->setval);
 			break;
-		case 7: 
+		case 5: 
 			OPM_SymRReal(&rval);
 			conval->realval = rval;
 			conval->intval = -1;
 			break;
-		case 8: 
+		case 6: 
 			OPM_SymRLReal(&conval->realval);
 			conval->intval = -1;
 			break;
-		case 10: 
+		case 8: 
 			ext = OPT_NewExt();
 			conval->ext = ext;
 			i = 0;
@@ -877,7 +877,7 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 			conval->intval2 = i;
 			conval->intval = -1;
 			break;
-		case 11: 
+		case 9: 
 			conval->intval = 0;
 			break;
 		default: 
@@ -979,7 +979,7 @@ static OPT_Object OPT_InTProc (SHORTINT mno)
 static OPT_Struct OPT_InTyp (LONGINT tag)
 {
 	OPT_Struct _o_result;
-	if (tag == 5) {
+	if (tag == 4) {
 		_o_result = OPT_IntType(OPM_SymRInt());
 		return _o_result;
 	} else {
@@ -1054,20 +1054,20 @@ static void OPT_InStruct (OPT_Struct *typ)
 		}
 		switch (tag) {
 			case 36: 
-				(*typ)->form = 13;
+				(*typ)->form = 11;
 				(*typ)->size = OPM_PointerSize;
 				(*typ)->n = 0;
 				OPT_InStruct(&(*typ)->BaseTyp);
 				break;
 			case 37: 
-				(*typ)->form = 15;
+				(*typ)->form = 13;
 				(*typ)->comp = 2;
 				OPT_InStruct(&(*typ)->BaseTyp);
 				(*typ)->n = OPM_SymRInt();
 				(*OPT_typSize)(*typ);
 				break;
 			case 38: 
-				(*typ)->form = 15;
+				(*typ)->form = 13;
 				(*typ)->comp = 3;
 				OPT_InStruct(&(*typ)->BaseTyp);
 				if ((*typ)->BaseTyp->comp == 3) {
@@ -1078,7 +1078,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				(*OPT_typSize)(*typ);
 				break;
 			case 39: 
-				(*typ)->form = 15;
+				(*typ)->form = 13;
 				(*typ)->comp = 4;
 				OPT_InStruct(&(*typ)->BaseTyp);
 				if ((*typ)->BaseTyp == OPT_notyp) {
@@ -1112,7 +1112,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				}
 				break;
 			case 40: 
-				(*typ)->form = 14;
+				(*typ)->form = 12;
 				(*typ)->size = OPM_ProcSize;
 				OPT_InSign(mno, &(*typ)->BaseTyp, &(*typ)->link);
 				break;
@@ -1191,7 +1191,7 @@ static OPT_Object OPT_InObj (SHORTINT mno)
 		obj = OPT_NewObj();
 		obj->mnolev = -mno;
 		obj->vis = 1;
-		if (tag <= 13) {
+		if (tag <= 11) {
 			obj->mode = 3;
 			obj->conval = OPT_NewConst();
 			OPT_InConstant(tag, obj->conval);
@@ -1288,7 +1288,7 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 		obj->scope = OPT_syslink;
 		obj->typ = OPT_notyp;
 	} else {
-		OPT_impCtxt.nofr = 16;
+		OPT_impCtxt.nofr = 14;
 		OPT_impCtxt.minr = 255;
 		OPT_impCtxt.nofm = 0;
 		OPT_impCtxt.self = __STRCMP(aliasName, "@self") == 0;
@@ -1355,7 +1355,7 @@ static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 			n = btyp->n * n;
 			btyp = btyp->BaseTyp;
 		}
-		if (btyp->form == 13 || btyp->comp == 4) {
+		if (btyp->form == 11 || btyp->comp == 4) {
 			j = OPT_nofhdfld;
 			OPT_OutHdFld(btyp, fld, adr);
 			if (j != OPT_nofhdfld) {
@@ -1367,7 +1367,7 @@ static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 				}
 			}
 		}
-	} else if (typ->form == 13 || __STRCMP(fld->name, "@ptr") == 0) {
+	} else if (typ->form == 11 || __STRCMP(fld->name, "@ptr") == 0) {
 		OPM_SymWInt(27);
 		OPM_SymWInt(adr);
 		OPT_nofhdfld += 1;
@@ -1439,7 +1439,7 @@ static void OPT_OutStr (OPT_Struct typ)
 	OPT_Object strobj = NIL;
 	if (typ->ref < OPT_expCtxt.ref) {
 		OPM_SymWInt(-typ->ref);
-		if (typ->ref == 5) {
+		if (typ->ref == 4) {
 			OPM_SymWInt(typ->size);
 		}
 	} else {
@@ -1474,15 +1474,15 @@ static void OPT_OutStr (OPT_Struct typ)
 			OPM_SymWInt(typ->sysflag);
 		}
 		switch (typ->form) {
-			case 13: 
+			case 11: 
 				OPM_SymWInt(36);
 				OPT_OutStr(typ->BaseTyp);
 				break;
-			case 14: 
+			case 12: 
 				OPM_SymWInt(40);
 				OPT_OutSign(typ->BaseTyp, typ->link);
 				break;
-			case 15: 
+			case 13: 
 				switch (typ->comp) {
 					case 2: 
 						OPM_SymWInt(37);
@@ -1537,24 +1537,24 @@ static void OPT_OutConstant (OPT_Object obj)
 		case 2: case 3: 
 			OPM_SymWCh((CHAR)obj->conval->intval);
 			break;
-		case 5: 
+		case 4: 
 			OPM_SymWInt(obj->conval->intval);
 			OPM_SymWInt(obj->typ->size);
 			break;
-		case 9: 
+		case 7: 
 			OPM_SymWSet(obj->conval->setval);
 			break;
-		case 7: 
+		case 5: 
 			rval = obj->conval->realval;
 			OPM_SymWReal(rval);
 			break;
-		case 8: 
+		case 6: 
 			OPM_SymWLReal(obj->conval->realval);
 			break;
-		case 10: 
+		case 8: 
 			OPT_OutName((void*)*obj->conval->ext, 256);
 			break;
-		case 11: 
+		case 9: 
 			break;
 		default: 
 			OPT_err(127);
@@ -1668,7 +1668,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 			OPM_SymWInt(16);
 			OPT_OutName((void*)OPT_SelfName, 256);
 			OPT_expCtxt.reffp = 0;
-			OPT_expCtxt.ref = 16;
+			OPT_expCtxt.ref = 14;
 			OPT_expCtxt.nofm = 1;
 			OPT_expCtxt.locmno[0] = 0;
 			i = 1;
@@ -1844,16 +1844,16 @@ export void *OPT__init(void)
 	OPM_errpos = 0;
 	OPT_InitStruct(&OPT_undftyp, 0);
 	OPT_undftyp->BaseTyp = OPT_undftyp;
-	OPT_InitStruct(&OPT_notyp, 12);
-	OPT_InitStruct(&OPT_stringtyp, 10);
-	OPT_InitStruct(&OPT_niltyp, 11);
+	OPT_InitStruct(&OPT_notyp, 10);
+	OPT_InitStruct(&OPT_stringtyp, 8);
+	OPT_InitStruct(&OPT_niltyp, 9);
 	OPT_EnterTyp((CHAR*)"BYTE", 1, OPM_ByteSize, &OPT_bytetyp);
-	OPT_EnterTyp((CHAR*)"PTR", 13, OPM_PointerSize, &OPT_sysptrtyp);
-	OPT_EnterTyp((CHAR*)"ADRINT", 5, OPM_PointerSize, &OPT_ainttyp);
-	OPT_EnterTyp((CHAR*)"INT8", 5, 1, &OPT_int8typ);
-	OPT_EnterTyp((CHAR*)"INT16", 5, 2, &OPT_int16typ);
-	OPT_EnterTyp((CHAR*)"INT32", 5, 4, &OPT_int32typ);
-	OPT_EnterTyp((CHAR*)"INT64", 5, 8, &OPT_int64typ);
+	OPT_EnterTyp((CHAR*)"PTR", 11, OPM_PointerSize, &OPT_sysptrtyp);
+	OPT_EnterTyp((CHAR*)"ADRINT", 4, OPM_PointerSize, &OPT_ainttyp);
+	OPT_EnterTyp((CHAR*)"INT8", 4, 1, &OPT_int8typ);
+	OPT_EnterTyp((CHAR*)"INT16", 4, 2, &OPT_int16typ);
+	OPT_EnterTyp((CHAR*)"INT32", 4, 4, &OPT_int32typ);
+	OPT_EnterTyp((CHAR*)"INT64", 4, 8, &OPT_int64typ);
 	OPT_EnterProc((CHAR*)"ADR", 20);
 	OPT_EnterProc((CHAR*)"CC", 21);
 	OPT_EnterProc((CHAR*)"LSH", 22);
@@ -1871,12 +1871,12 @@ export void *OPT__init(void)
 	OPT_topScope->right = NIL;
 	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, OPM_BoolSize, &OPT_booltyp);
 	OPT_EnterTyp((CHAR*)"CHAR", 3, OPM_CharSize, &OPT_chartyp);
-	OPT_EnterTyp((CHAR*)"SET", 9, OPM_SetSize, &OPT_settyp);
-	OPT_EnterTyp((CHAR*)"REAL", 7, OPM_RealSize, &OPT_realtyp);
-	OPT_EnterTyp((CHAR*)"INTEGER", 5, OPM_IntSize, &OPT_inttyp);
-	OPT_EnterTyp((CHAR*)"LONGINT", 5, OPM_LIntSize, &OPT_linttyp);
-	OPT_EnterTyp((CHAR*)"LONGREAL", 8, OPM_LRealSize, &OPT_lrltyp);
-	OPT_EnterTyp((CHAR*)"SHORTINT", 5, OPM_SIntSize, &OPT_sinttyp);
+	OPT_EnterTyp((CHAR*)"SET", 7, OPM_SetSize, &OPT_settyp);
+	OPT_EnterTyp((CHAR*)"REAL", 5, OPM_RealSize, &OPT_realtyp);
+	OPT_EnterTyp((CHAR*)"INTEGER", 4, OPM_IntSize, &OPT_inttyp);
+	OPT_EnterTyp((CHAR*)"LONGINT", 4, OPM_LIntSize, &OPT_linttyp);
+	OPT_EnterTyp((CHAR*)"LONGREAL", 6, OPM_LRealSize, &OPT_lrltyp);
+	OPT_EnterTyp((CHAR*)"SHORTINT", 4, OPM_SIntSize, &OPT_sinttyp);
 	OPT_EnterBoolConst((CHAR*)"FALSE", 0);
 	OPT_EnterBoolConst((CHAR*)"TRUE", 1);
 	OPT_EnterProc((CHAR*)"HALT", 0);
@@ -1904,14 +1904,14 @@ export void *OPT__init(void)
 	OPT_impCtxt.ref[1] = OPT_bytetyp;
 	OPT_impCtxt.ref[2] = OPT_booltyp;
 	OPT_impCtxt.ref[3] = OPT_chartyp;
-	OPT_impCtxt.ref[5] = OPT_inttyp;
-	OPT_impCtxt.ref[7] = OPT_realtyp;
-	OPT_impCtxt.ref[8] = OPT_lrltyp;
-	OPT_impCtxt.ref[9] = OPT_settyp;
-	OPT_impCtxt.ref[10] = OPT_stringtyp;
-	OPT_impCtxt.ref[11] = OPT_niltyp;
-	OPT_impCtxt.ref[12] = OPT_notyp;
-	OPT_impCtxt.ref[13] = OPT_sysptrtyp;
+	OPT_impCtxt.ref[4] = OPT_inttyp;
+	OPT_impCtxt.ref[5] = OPT_realtyp;
+	OPT_impCtxt.ref[6] = OPT_lrltyp;
+	OPT_impCtxt.ref[7] = OPT_settyp;
+	OPT_impCtxt.ref[8] = OPT_stringtyp;
+	OPT_impCtxt.ref[9] = OPT_niltyp;
+	OPT_impCtxt.ref[10] = OPT_notyp;
+	OPT_impCtxt.ref[11] = OPT_sysptrtyp;
 	OPT_IntTypes[1] = OPT_sinttyp;
 	OPT_IntTypes[2] = OPT_inttyp;
 	OPT_IntTypes[3] = OPT_linttyp;

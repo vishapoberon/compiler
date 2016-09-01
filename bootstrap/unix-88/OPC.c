@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/08/31] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -228,12 +228,12 @@ static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause)
 		if (__IN(typ->comp, 0x0c)) {
 			OPC_Stars(typ->BaseTyp, &*openClause);
 			*openClause = typ->comp == 2;
-		} else if (typ->form == 14) {
+		} else if (typ->form == 12) {
 			OPM_Write('(');
 			OPM_Write('*');
 		} else {
 			pointers = 0;
-			while (((typ->strobj == NIL || typ->strobj->name[0] == 0x00) && typ->form == 13)) {
+			while (((typ->strobj == NIL || typ->strobj->name[0] == 0x00) && typ->form == 11)) {
 				pointers += 1;
 				typ = typ->BaseTyp;
 			}
@@ -278,16 +278,16 @@ static void OPC_DeclareObj (OPT_Object dcl, BOOLEAN scopeDef)
 	for (;;) {
 		form = typ->form;
 		comp = typ->comp;
-		if (((typ->strobj != NIL && typ->strobj->name[0] != 0x00) || form == 12) || comp == 4) {
+		if (((typ->strobj != NIL && typ->strobj->name[0] != 0x00) || form == 10) || comp == 4) {
 			break;
-		} else if ((form == 13 && typ->BaseTyp->comp != 3)) {
+		} else if ((form == 11 && typ->BaseTyp->comp != 3)) {
 			openClause = 1;
-		} else if (form == 14 || __IN(comp, 0x0c)) {
+		} else if (form == 12 || __IN(comp, 0x0c)) {
 			if (openClause) {
 				OPM_Write(')');
 				openClause = 0;
 			}
-			if (form == 14) {
+			if (form == 12) {
 				if (OPC_ansi) {
 					OPM_Write(')');
 					OPC_AnsiParamList(typ->link, 0);
@@ -332,19 +332,19 @@ static void OPC_DeclareBase (OPT_Object dcl)
 	LONGINT off, n, dummy;
 	typ = dcl->typ;
 	prev = typ;
-	while ((((((((typ->strobj == NIL || typ->comp == 3) || OPC_Undefined(typ->strobj)) && typ->comp != 4)) && typ->form != 12)) && !((typ->form == 13 && typ->BaseTyp->comp == 3)))) {
+	while ((((((((typ->strobj == NIL || typ->comp == 3) || OPC_Undefined(typ->strobj)) && typ->comp != 4)) && typ->form != 10)) && !((typ->form == 11 && typ->BaseTyp->comp == 3)))) {
 		prev = typ;
 		typ = typ->BaseTyp;
 	}
 	obj = typ->strobj;
-	if (typ->form == 12) {
+	if (typ->form == 10) {
 		OPM_WriteString((CHAR*)"void", 5);
 	} else if ((obj != NIL && !OPC_Undefined(obj))) {
 		OPC_Ident(obj);
 	} else if (typ->comp == 4) {
 		OPM_WriteString((CHAR*)"struct ", 8);
 		OPC_Andent(typ);
-		if ((prev->form != 13 && (obj != NIL || dcl->name[0] == 0x00))) {
+		if ((prev->form != 11 && (obj != NIL || dcl->name[0] == 0x00))) {
 			if ((typ->BaseTyp != NIL && typ->BaseTyp->strobj->vis != 0)) {
 				OPM_WriteString((CHAR*)" { /* ", 7);
 				OPC_Ident(typ->BaseTyp->strobj);
@@ -358,7 +358,7 @@ static void OPC_DeclareBase (OPT_Object dcl)
 			OPC_FieldList(typ, 1, &off, &n, &dummy);
 			OPC_EndBlk0();
 		}
-	} else if ((typ->form == 13 && typ->BaseTyp->comp == 3)) {
+	} else if ((typ->form == 11 && typ->BaseTyp->comp == 3)) {
 		typ = typ->BaseTyp->BaseTyp;
 		nofdims = 1;
 		while (typ->comp == 3) {
@@ -373,7 +373,7 @@ static void OPC_DeclareBase (OPT_Object dcl)
 		OPC_BegStat();
 		__NEW(obj, OPT_ObjDesc);
 		__NEW(obj->typ, OPT_StrDesc);
-		obj->typ->form = 15;
+		obj->typ->form = 13;
 		obj->typ->comp = 2;
 		obj->typ->n = 1;
 		obj->typ->BaseTyp = typ;
@@ -394,7 +394,7 @@ LONGINT OPC_NofPtrs (OPT_Struct typ)
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
 	LONGINT n;
-	if ((typ->form == 13 && typ->sysflag == 0)) {
+	if ((typ->form == 11 && typ->sysflag == 0)) {
 		_o_result = 1;
 		return _o_result;
 	} else if ((typ->comp == 4 && __MASK(typ->sysflag, -256) == 0)) {
@@ -436,7 +436,7 @@ static void OPC_PutPtrOffsets (OPT_Struct typ, LONGINT adr, LONGINT *cnt)
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
 	LONGINT n, i;
-	if ((typ->form == 13 && typ->sysflag == 0)) {
+	if ((typ->form == 11 && typ->sysflag == 0)) {
 		OPM_WriteInt(adr);
 		OPM_WriteString((CHAR*)", ", 3);
 		*cnt += 1;
@@ -541,7 +541,7 @@ static void OPC_DeclareParams (OPT_Object par, BOOLEAN macro)
 		if (macro) {
 			OPM_WriteStringVar((void*)par->name, 256);
 		} else {
-			if ((par->mode == 1 && par->typ->form == 7)) {
+			if ((par->mode == 1 && par->typ->form == 5)) {
 				OPM_Write('_');
 			}
 			OPC_Ident(par);
@@ -613,7 +613,7 @@ OPT_Object OPC_BaseTProc (OPT_Object obj)
 	OPT_Struct typ = NIL, base = NIL;
 	LONGINT mno;
 	typ = obj->link->typ;
-	if (typ->form == 13) {
+	if (typ->form == 11) {
 		typ = typ->BaseTyp;
 	}
 	base = typ->BaseTyp;
@@ -636,7 +636,7 @@ static void OPC_DefineTProcMacros (OPT_Object obj, BOOLEAN *empty)
 			OPC_Ident(obj);
 			OPC_DeclareParams(obj->link, 1);
 			OPM_WriteString((CHAR*)" __SEND(", 9);
-			if (obj->link->typ->form == 13) {
+			if (obj->link->typ->form == 11) {
 				OPM_WriteString((CHAR*)"__TYPEOF(", 10);
 				OPC_Ident(obj->link);
 				OPM_Write(')');
@@ -674,7 +674,7 @@ static void OPC_DefineType (OPT_Struct str)
 		if (obj == NIL || OPC_Undefined(obj)) {
 			if (obj != NIL) {
 				if (obj->linkadr == 1) {
-					if (str->form != 13) {
+					if (str->form != 11) {
 						OPM_Mark(244, str->txtpos);
 						obj->linkadr = 2;
 					}
@@ -693,13 +693,13 @@ static void OPC_DefineType (OPT_Struct str)
 					}
 					field = field->link;
 				}
-			} else if (str->form == 13) {
+			} else if (str->form == 11) {
 				if (str->BaseTyp->comp != 4) {
 					OPC_DefineType(str->BaseTyp);
 				}
 			} else if (__IN(str->comp, 0x0c)) {
 				OPC_DefineType(str->BaseTyp);
-			} else if (str->form == 14) {
+			} else if (str->form == 12) {
 				if (str->BaseTyp != OPT_notyp) {
 					OPC_DefineType(str->BaseTyp);
 				}
@@ -890,7 +890,7 @@ LONGINT OPC_BaseAlignment (OPT_Struct typ)
 {
 	LONGINT _o_result;
 	LONGINT alignment;
-	if (typ->form == 15) {
+	if (typ->form == 13) {
 		if (typ->comp == 4) {
 			alignment = __MASK(typ->align, -65536);
 		} else {
@@ -1018,7 +1018,7 @@ static void OPC_IdentList (OPT_Object obj, INTEGER vis)
 						OPM_WriteString((CHAR*)"export ", 8);
 					}
 				}
-				if ((((vis == 2 && obj->mode == 1)) && base->form == 7)) {
+				if ((((vis == 2 && obj->mode == 1)) && base->form == 5)) {
 					OPM_WriteString((CHAR*)"double", 7);
 				} else {
 					OPC_DeclareBase(obj);
@@ -1027,7 +1027,7 @@ static void OPC_IdentList (OPT_Object obj, INTEGER vis)
 				OPM_Write(',');
 			}
 			OPM_Write(' ');
-			if ((((vis == 2 && obj->mode == 1)) && base->form == 7)) {
+			if ((((vis == 2 && obj->mode == 1)) && base->form == 5)) {
 				OPM_Write('_');
 			}
 			OPC_DeclareObj(obj, vis == 3);
@@ -1044,7 +1044,7 @@ static void OPC_IdentList (OPT_Object obj, INTEGER vis)
 				OPC_Ident(obj);
 				OPM_WriteString((CHAR*)"__typ", 6);
 				base = NIL;
-			} else if ((((((OPC_ptrinit && vis == 0)) && obj->mnolev > 0)) && obj->typ->form == 13)) {
+			} else if ((((((OPC_ptrinit && vis == 0)) && obj->mnolev > 0)) && obj->typ->form == 11)) {
 				OPM_WriteString((CHAR*)" = NIL", 7);
 			}
 		}
@@ -1381,7 +1381,7 @@ void OPC_GenEnumPtrs (OPT_Object var)
 				OPC_BegBlk();
 			}
 			OPC_BegStat();
-			if (typ->form == 13) {
+			if (typ->form == 11) {
 				OPM_WriteString((CHAR*)"P(", 3);
 				OPC_Ident(var);
 				OPM_Write(')');
@@ -1400,7 +1400,7 @@ void OPC_GenEnumPtrs (OPT_Object var)
 					n = n * typ->n;
 					typ = typ->BaseTyp;
 				}
-				if (typ->form == 13) {
+				if (typ->form == 11) {
 					OPM_WriteString((CHAR*)"__ENUMP(", 9);
 					OPC_Ident(var);
 					OPC_Str1((CHAR*)", #, P)", 8, n);
@@ -1563,7 +1563,7 @@ void OPC_EnterProc (OPT_Object proc)
 	if (!OPC_ansi) {
 		var = proc->link;
 		while (var != NIL) {
-			if ((var->typ->form == 7 && var->mode == 1)) {
+			if ((var->typ->form == 5 && var->mode == 1)) {
 				OPC_BegStat();
 				OPC_Ident(var->typ->strobj);
 				OPM_Write(' ');
@@ -1879,7 +1879,7 @@ void OPC_Case (LONGINT caseVal, INTEGER form)
 		case 3: 
 			OPC_CharacterLiteral(caseVal);
 			break;
-		case 5: 
+		case 4: 
 			OPM_WriteInt(caseVal);
 			break;
 		default: 
@@ -1977,16 +1977,16 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 		case 3: 
 			OPC_CharacterLiteral(con->intval);
 			break;
-		case 5: 
+		case 4: 
 			OPM_WriteInt(con->intval);
 			break;
-		case 7: 
+		case 5: 
 			OPM_WriteReal(con->realval, 'f');
 			break;
-		case 8: 
+		case 6: 
 			OPM_WriteReal(con->realval, 0x00);
 			break;
-		case 9: 
+		case 7: 
 			OPM_WriteString((CHAR*)"0x", 3);
 			skipLeading = 1;
 			s = con->setval;
@@ -2009,10 +2009,10 @@ void OPC_Constant (OPT_Const con, INTEGER form)
 				OPM_Write('0');
 			}
 			break;
-		case 10: 
+		case 8: 
 			OPC_StringLiteral(*con->ext, 256, con->intval2 - 1);
 			break;
-		case 11: 
+		case 9: 
 			OPM_WriteString((CHAR*)"NIL", 4);
 			break;
 		default: 
