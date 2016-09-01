@@ -29,15 +29,15 @@ typedef
 	struct Modules_ModuleDesc {
 		Modules_Module next;
 		Modules_ModuleName name;
-		LONGINT refcnt;
+		int64 refcnt;
 		Modules_Cmd cmds;
-		LONGINT types;
-		void (*enumPtrs)(void(*)(LONGINT));
+		int64 types;
+		void (*enumPtrs)(void(*)(int64));
 		char _prvt0[16];
 	} Modules_ModuleDesc;
 
 
-import INTEGER Modules_res;
+import int32 Modules_res;
 import CHAR Modules_resMsg[256];
 import Modules_ModuleName Modules_imported, Modules_importing;
 

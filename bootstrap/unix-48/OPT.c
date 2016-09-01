@@ -12,17 +12,17 @@ typedef
 typedef
 	struct OPT_ConstDesc {
 		OPT_ConstExt ext;
-		LONGINT intval, intval2;
+		int32 intval, intval2;
 		SET setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
 
 typedef
 	struct OPT_ExpCtxt {
-		LONGINT reffp;
-		INTEGER ref;
-		SHORTINT nofm;
-		SHORTINT locmno[64];
+		int32 reffp;
+		int16 ref;
+		int8 nofm;
+		int8 locmno[64];
 	} OPT_ExpCtxt;
 
 typedef
@@ -33,13 +33,13 @@ typedef
 
 typedef
 	struct OPT_ImpCtxt {
-		LONGINT nextTag, reffp;
-		INTEGER nofr, minr, nofm;
+		int32 nextTag, reffp;
+		int16 nofr, minr, nofm;
 		BOOLEAN self;
 		OPT_Struct ref[255];
 		OPT_Object old[255];
-		LONGINT pvfp[255];
-		SHORTINT glbmno[64];
+		int32 pvfp[255];
+		int8 glbmno[64];
 	} OPT_ImpCtxt;
 
 typedef
@@ -48,7 +48,7 @@ typedef
 typedef
 	struct OPT_NodeDesc {
 		OPT_Node left, right, link;
-		SHORTINT class, subcl;
+		int8 class, subcl;
 		BOOLEAN readonly;
 		OPT_Struct typ;
 		OPT_Object obj;
@@ -60,22 +60,22 @@ typedef
 		OPT_Object left, right, link, scope;
 		OPS_Name name;
 		BOOLEAN leaf;
-		SHORTINT mode, mnolev, vis, history;
+		int8 mode, mnolev, vis, history;
 		BOOLEAN used, fpdone;
-		LONGINT fprint;
+		int32 fprint;
 		OPT_Struct typ;
 		OPT_Const conval;
-		LONGINT adr, linkadr;
-		INTEGER x;
+		int32 adr, linkadr;
+		int16 x;
 	} OPT_ObjDesc;
 
 typedef
 	struct OPT_StrDesc {
-		SHORTINT form, comp, mno, extlev;
-		INTEGER ref, sysflag;
-		LONGINT n, size, align, txtpos;
+		int8 form, comp, mno, extlev;
+		int16 ref, sysflag;
+		int32 n, size, align, txtpos;
 		BOOLEAN allocated, pbused, pvused, fpdone, idfpdone;
-		LONGINT idfp, pbfp, pvfp;
+		int32 idfp, pbfp, pvfp;
 		OPT_Struct BaseTyp;
 		OPT_Object link, strobj;
 	} OPT_StrDesc;
@@ -84,7 +84,7 @@ typedef
 export void (*OPT_typSize)(OPT_Struct);
 export OPT_Object OPT_topScope;
 export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_ainttyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
-export SHORTINT OPT_nofGmod;
+export int8 OPT_nofGmod;
 export OPT_Object OPT_GlbMod[64];
 export OPS_Name OPT_SelfName;
 export BOOLEAN OPT_SYSimported;
@@ -92,7 +92,7 @@ static OPT_Struct OPT_IntTypes[20];
 static OPT_Object OPT_universe, OPT_syslink;
 static OPT_ImpCtxt OPT_impCtxt;
 static OPT_ExpCtxt OPT_expCtxt;
-static LONGINT OPT_nofhdfld;
+static int32 OPT_nofhdfld;
 static BOOLEAN OPT_newsf, OPT_findpc, OPT_extsf, OPT_sfpresent, OPT_symExtended, OPT_symNew;
 
 export LONGINT *OPT_ConstDesc__typ;
@@ -105,62 +105,62 @@ export LONGINT *OPT_ExpCtxt__typ;
 export void OPT_Close (void);
 export void OPT_CloseScope (void);
 static void OPT_DebugStruct (OPT_Struct btyp);
-static void OPT_EnterBoolConst (OPS_Name name, LONGINT value);
-static void OPT_EnterProc (OPS_Name name, INTEGER num);
-static void OPT_EnterTyp (OPS_Name name, SHORTINT form, INTEGER size, OPT_Struct *res);
+static void OPT_EnterBoolConst (OPS_Name name, int32 value);
+static void OPT_EnterProc (OPS_Name name, int16 num);
+static void OPT_EnterTyp (OPS_Name name, int8 form, int16 size, OPT_Struct *res);
 export void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
-export void OPT_FPrintErr (OPT_Object obj, INTEGER errcode);
-static void OPT_FPrintName (LONGINT *fp, CHAR *name, LONGINT name__len);
+export void OPT_FPrintErr (OPT_Object obj, int16 errcode);
+static void OPT_FPrintName (int32 *fp, CHAR *name, LONGINT name__len);
 export void OPT_FPrintObj (OPT_Object obj);
-static void OPT_FPrintSign (LONGINT *fp, OPT_Struct result, OPT_Object par);
+static void OPT_FPrintSign (int32 *fp, OPT_Struct result, OPT_Object par);
 export void OPT_FPrintStr (OPT_Struct typ);
 export void OPT_Find (OPT_Object *res);
 export void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res);
 export void OPT_FindImport (OPT_Object mod, OPT_Object *res);
 export void OPT_IdFPrint (OPT_Struct typ);
 export void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
-static void OPT_InConstant (LONGINT f, OPT_Const conval);
+static void OPT_InConstant (int32 f, OPT_Const conval);
 static OPT_Object OPT_InFld (void);
-static void OPT_InMod (SHORTINT *mno);
+static void OPT_InMod (int8 *mno);
 static void OPT_InName (CHAR *name, LONGINT name__len);
-static OPT_Object OPT_InObj (SHORTINT mno);
-static void OPT_InSign (SHORTINT mno, OPT_Struct *res, OPT_Object *par);
+static OPT_Object OPT_InObj (int8 mno);
+static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par);
 static void OPT_InStruct (OPT_Struct *typ);
-static OPT_Object OPT_InTProc (SHORTINT mno);
-static OPT_Struct OPT_InTyp (LONGINT tag);
+static OPT_Object OPT_InTProc (int8 mno);
+static OPT_Struct OPT_InTyp (int32 tag);
 export void OPT_Init (OPS_Name name, SET opt);
-static void OPT_InitStruct (OPT_Struct *typ, SHORTINT form);
+static void OPT_InitStruct (OPT_Struct *typ, int8 form);
 export void OPT_Insert (OPS_Name name, OPT_Object *obj);
 export void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
-export OPT_Struct OPT_IntType (LONGINT size);
+export OPT_Struct OPT_IntType (int32 size);
 export OPT_Const OPT_NewConst (void);
 export OPT_ConstExt OPT_NewExt (void);
-export OPT_Node OPT_NewNode (SHORTINT class);
+export OPT_Node OPT_NewNode (int8 class);
 export OPT_Object OPT_NewObj (void);
-export OPT_Struct OPT_NewStr (SHORTINT form, SHORTINT comp);
-export void OPT_OpenScope (SHORTINT level, OPT_Object owner);
+export OPT_Struct OPT_NewStr (int8 form, int8 comp);
+export void OPT_OpenScope (int8 level, OPT_Object owner);
 static void OPT_OutConstant (OPT_Object obj);
-static void OPT_OutFlds (OPT_Object fld, LONGINT adr, BOOLEAN visible);
-static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, LONGINT adr);
-static void OPT_OutMod (INTEGER mno);
+static void OPT_OutFlds (OPT_Object fld, int32 adr, BOOLEAN visible);
+static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int32 adr);
+static void OPT_OutMod (int16 mno);
 static void OPT_OutName (CHAR *name, LONGINT name__len);
 static void OPT_OutObj (OPT_Object obj);
 static void OPT_OutSign (OPT_Struct result, OPT_Object par);
 static void OPT_OutStr (OPT_Struct typ);
 static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj);
-export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INTEGER dir);
-static void OPT_err (INTEGER n);
+export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
+static void OPT_err (int16 n);
 
 
-static void OPT_err (INTEGER n)
+static void OPT_err (int16 n)
 {
 	OPM_err(n);
 }
 
-OPT_Struct OPT_IntType (LONGINT size)
+OPT_Struct OPT_IntType (int32 size)
 {
 	OPT_Struct _o_result;
-	INTEGER i;
+	int16 i;
 	i = 1;
 	while ((OPT_IntTypes[__X(i, 20)]->size < size && OPT_IntTypes[__X(i + 1, 20)] != NIL)) {
 		i += 1;
@@ -169,10 +169,10 @@ OPT_Struct OPT_IntType (LONGINT size)
 	return _o_result;
 }
 
-OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INTEGER dir)
+OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir)
 {
 	OPT_Struct _o_result;
-	INTEGER i;
+	int16 i;
 	__ASSERT(x->form == 4, 0);
 	__ASSERT(dir == 1 || dir == -1, 0);
 	__ASSERT(x->BaseTyp == OPT_undftyp, 0);
@@ -203,7 +203,7 @@ OPT_Object OPT_NewObj (void)
 	return _o_result;
 }
 
-OPT_Struct OPT_NewStr (SHORTINT form, SHORTINT comp)
+OPT_Struct OPT_NewStr (int8 form, int8 comp)
 {
 	OPT_Struct _o_result;
 	OPT_Struct typ = NIL;
@@ -220,7 +220,7 @@ OPT_Struct OPT_NewStr (SHORTINT form, SHORTINT comp)
 	return _o_result;
 }
 
-OPT_Node OPT_NewNode (SHORTINT class)
+OPT_Node OPT_NewNode (int8 class)
 {
 	OPT_Node _o_result;
 	OPT_Node node = NIL;
@@ -239,7 +239,7 @@ OPT_ConstExt OPT_NewExt (void)
 	return _o_result;
 }
 
-void OPT_OpenScope (SHORTINT level, OPT_Object owner)
+void OPT_OpenScope (int8 level, OPT_Object owner)
 {
 	OPT_Object head = NIL;
 	head = OPT_NewObj();
@@ -277,7 +277,7 @@ void OPT_Init (OPS_Name name, SET opt)
 
 void OPT_Close (void)
 {
-	INTEGER i;
+	int16 i;
 	OPT_CloseScope();
 	i = 0;
 	while (i < 64) {
@@ -369,7 +369,7 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 {
 	OPT_Object ob0 = NIL, ob1 = NIL;
 	BOOLEAN left;
-	SHORTINT mnolev;
+	int8 mnolev;
 	ob0 = OPT_topScope;
 	ob1 = ob0->right;
 	left = 0;
@@ -407,14 +407,14 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 	*obj = ob1;
 }
 
-static void OPT_FPrintName (LONGINT *fp, CHAR *name, LONGINT name__len)
+static void OPT_FPrintName (int32 *fp, CHAR *name, LONGINT name__len)
 {
-	INTEGER i;
+	int16 i;
 	CHAR ch;
 	i = 0;
 	do {
 		ch = name[__X(i, name__len)];
-		OPM_FPrint(&*fp, (SYSTEM_INT16)ch);
+		OPM_FPrint(&*fp, (int16)ch);
 		i += 1;
 	} while (!(ch == 0x00));
 }
@@ -452,7 +452,7 @@ static void OPT_DebugStruct (OPT_Struct btyp)
 	OPM_LogWLn();
 }
 
-static void OPT_FPrintSign (LONGINT *fp, OPT_Struct result, OPT_Object par)
+static void OPT_FPrintSign (int32 *fp, OPT_Struct result, OPT_Object par)
 {
 	OPT_IdFPrint(result);
 	OPM_FPrint(&*fp, result->idfp);
@@ -468,8 +468,8 @@ void OPT_IdFPrint (OPT_Struct typ)
 {
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL;
-	LONGINT idfp;
-	INTEGER f, c;
+	int32 idfp;
+	int16 f, c;
 	if (!typ->idfpdone) {
 		typ->idfpdone = 1;
 		idfp = 0;
@@ -498,17 +498,17 @@ void OPT_IdFPrint (OPT_Struct typ)
 }
 
 static struct FPrintStr__12 {
-	LONGINT *pbfp, *pvfp;
+	int32 *pbfp, *pvfp;
 	struct FPrintStr__12 *lnk;
 } *FPrintStr__12_s;
 
-static void FPrintFlds__13 (OPT_Object fld, LONGINT adr, BOOLEAN visible);
-static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr);
+static void FPrintFlds__13 (OPT_Object fld, int32 adr, BOOLEAN visible);
+static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, int32 adr);
 static void FPrintTProcs__17 (OPT_Object obj);
 
-static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
+static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, int32 adr)
 {
-	LONGINT i, j, n;
+	int32 i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
 		FPrintFlds__13(typ->link, adr, 0);
@@ -538,7 +538,7 @@ static void FPrintHdFld__15 (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 	}
 }
 
-static void FPrintFlds__13 (OPT_Object fld, LONGINT adr, BOOLEAN visible)
+static void FPrintFlds__13 (OPT_Object fld, int32 adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
@@ -573,10 +573,10 @@ static void FPrintTProcs__17 (OPT_Object obj)
 
 void OPT_FPrintStr (OPT_Struct typ)
 {
-	INTEGER f, c;
+	int16 f, c;
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL, bstrobj = NIL;
-	LONGINT pbfp, pvfp;
+	int32 pbfp, pvfp;
 	struct FPrintStr__12 _s;
 	_s.pbfp = &pbfp;
 	_s.pvfp = &pvfp;
@@ -637,8 +637,8 @@ void OPT_FPrintStr (OPT_Struct typ)
 
 void OPT_FPrintObj (OPT_Object obj)
 {
-	LONGINT fprint;
-	INTEGER f, m;
+	int32 fprint;
+	int16 f, m;
 	REAL rval;
 	OPT_ConstExt ext = NIL;
 	if (!obj->fpdone) {
@@ -680,11 +680,11 @@ void OPT_FPrintObj (OPT_Object obj)
 		} else if (obj->mode == 9) {
 			OPT_FPrintSign(&fprint, obj->typ, obj->link);
 			ext = obj->conval->ext;
-			m = (SYSTEM_INT16)(*ext)[0];
+			m = (int16)(*ext)[0];
 			f = 1;
 			OPM_FPrint(&fprint, m);
 			while (f <= m) {
-				OPM_FPrint(&fprint, (SYSTEM_INT16)(*ext)[__X(f, 256)]);
+				OPM_FPrint(&fprint, (int16)(*ext)[__X(f, 256)]);
 				f += 1;
 			}
 		} else if (obj->mode == 5) {
@@ -695,9 +695,9 @@ void OPT_FPrintObj (OPT_Object obj)
 	}
 }
 
-void OPT_FPrintErr (OPT_Object obj, INTEGER errcode)
+void OPT_FPrintErr (OPT_Object obj, int16 errcode)
 {
-	INTEGER i, j;
+	int16 i, j;
 	CHAR ch;
 	if (obj->mnolev != 0) {
 		__COPY(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, OPM_objname, 64);
@@ -787,7 +787,7 @@ void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old)
 
 static void OPT_InName (CHAR *name, LONGINT name__len)
 {
-	INTEGER i;
+	int16 i;
 	CHAR ch;
 	i = 0;
 	do {
@@ -797,12 +797,12 @@ static void OPT_InName (CHAR *name, LONGINT name__len)
 	} while (!(ch == 0x00));
 }
 
-static void OPT_InMod (SHORTINT *mno)
+static void OPT_InMod (int8 *mno)
 {
 	OPT_Object head = NIL;
 	OPS_Name name;
-	LONGINT mn;
-	SHORTINT i;
+	int32 mn;
+	int8 i;
 	mn = OPM_SymRInt();
 	if (mn == 0) {
 		*mno = OPT_impCtxt.glbmno[0];
@@ -839,16 +839,16 @@ static void OPT_InMod (SHORTINT *mno)
 	}
 }
 
-static void OPT_InConstant (LONGINT f, OPT_Const conval)
+static void OPT_InConstant (int32 f, OPT_Const conval)
 {
 	CHAR ch;
-	INTEGER i;
+	int16 i;
 	OPT_ConstExt ext = NIL;
 	REAL rval;
 	switch (f) {
 		case 1: case 3: case 2: 
 			OPM_SymRCh(&ch);
-			conval->intval = (SYSTEM_INT16)ch;
+			conval->intval = (int16)ch;
 			break;
 		case 4: 
 			conval->intval = OPM_SymRInt();
@@ -888,10 +888,10 @@ static void OPT_InConstant (LONGINT f, OPT_Const conval)
 	}
 }
 
-static void OPT_InSign (SHORTINT mno, OPT_Struct *res, OPT_Object *par)
+static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par)
 {
 	OPT_Object last = NIL, new = NIL;
-	LONGINT tag;
+	int32 tag;
 	OPT_InStruct(&*res);
 	tag = OPM_SymRInt();
 	last = NIL;
@@ -919,7 +919,7 @@ static void OPT_InSign (SHORTINT mno, OPT_Struct *res, OPT_Object *par)
 static OPT_Object OPT_InFld (void)
 {
 	OPT_Object _o_result;
-	LONGINT tag;
+	int32 tag;
 	OPT_Object obj = NIL;
 	tag = OPT_impCtxt.nextTag;
 	obj = OPT_NewObj();
@@ -948,10 +948,10 @@ static OPT_Object OPT_InFld (void)
 	return _o_result;
 }
 
-static OPT_Object OPT_InTProc (SHORTINT mno)
+static OPT_Object OPT_InTProc (int8 mno)
 {
 	OPT_Object _o_result;
-	LONGINT tag;
+	int32 tag;
 	OPT_Object obj = NIL;
 	tag = OPT_impCtxt.nextTag;
 	obj = OPT_NewObj();
@@ -976,7 +976,7 @@ static OPT_Object OPT_InTProc (SHORTINT mno)
 	return _o_result;
 }
 
-static OPT_Struct OPT_InTyp (LONGINT tag)
+static OPT_Struct OPT_InTyp (int32 tag)
 {
 	OPT_Struct _o_result;
 	if (tag == 4) {
@@ -991,9 +991,9 @@ static OPT_Struct OPT_InTyp (LONGINT tag)
 
 static void OPT_InStruct (OPT_Struct *typ)
 {
-	SHORTINT mno;
-	INTEGER ref;
-	LONGINT tag;
+	int8 mno;
+	int16 ref;
+	int32 tag;
 	OPS_Name name;
 	OPT_Struct t = NIL;
 	OPT_Object obj = NIL, last = NIL, fld = NIL, old = NIL, dummy = NIL;
@@ -1049,7 +1049,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 		obj->vis = 0;
 		tag = OPM_SymRInt();
 		if (tag == 35) {
-			(*typ)->sysflag = (SYSTEM_INT16)OPM_SymRInt();
+			(*typ)->sysflag = (int16)OPM_SymRInt();
 			tag = OPM_SymRInt();
 		}
 		switch (tag) {
@@ -1171,14 +1171,14 @@ static void OPT_InStruct (OPT_Struct *typ)
 	}
 }
 
-static OPT_Object OPT_InObj (SHORTINT mno)
+static OPT_Object OPT_InObj (int8 mno)
 {
 	OPT_Object _o_result;
-	INTEGER i, s;
+	int16 i, s;
 	CHAR ch;
 	OPT_Object obj = NIL, old = NIL;
 	OPT_Struct typ = NIL;
-	LONGINT tag;
+	int32 tag;
 	OPT_ConstExt ext = NIL;
 	tag = OPT_impCtxt.nextTag;
 	if (tag == 19) {
@@ -1211,7 +1211,7 @@ static OPT_Object OPT_InObj (SHORTINT mno)
 					obj->mode = 9;
 					ext = OPT_NewExt();
 					obj->conval->ext = ext;
-					s = (SYSTEM_INT16)OPM_SymRInt();
+					s = (int16)OPM_SymRInt();
 					(*ext)[0] = (CHAR)s;
 					i = 1;
 					while (i <= s) {
@@ -1277,7 +1277,7 @@ static OPT_Object OPT_InObj (SHORTINT mno)
 void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 {
 	OPT_Object obj = NIL;
-	SHORTINT mno;
+	int8 mno;
 	OPS_Name aliasName__copy;
 	__DUPARR(aliasName, OPS_Name);
 	if (__STRCMP(name, "SYSTEM") == 0) {
@@ -1320,7 +1320,7 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 
 static void OPT_OutName (CHAR *name, LONGINT name__len)
 {
-	INTEGER i;
+	int16 i;
 	CHAR ch;
 	i = 0;
 	do {
@@ -1330,7 +1330,7 @@ static void OPT_OutName (CHAR *name, LONGINT name__len)
 	} while (!(ch == 0x00));
 }
 
-static void OPT_OutMod (INTEGER mno)
+static void OPT_OutMod (int16 mno)
 {
 	if (OPT_expCtxt.locmno[__X(mno, 64)] < 0) {
 		OPM_SymWInt(16);
@@ -1342,9 +1342,9 @@ static void OPT_OutMod (INTEGER mno)
 	}
 }
 
-static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, LONGINT adr)
+static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int32 adr)
 {
-	LONGINT i, j, n;
+	int32 i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
 		OPT_OutFlds(typ->link, adr, 0);
@@ -1374,7 +1374,7 @@ static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, LONGINT adr)
 	}
 }
 
-static void OPT_OutFlds (OPT_Object fld, LONGINT adr, BOOLEAN visible)
+static void OPT_OutFlds (OPT_Object fld, int32 adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
@@ -1529,7 +1529,7 @@ static void OPT_OutStr (OPT_Struct typ)
 
 static void OPT_OutConstant (OPT_Object obj)
 {
-	INTEGER f;
+	int16 f;
 	REAL rval;
 	f = obj->typ->form;
 	OPM_SymWInt(f);
@@ -1564,7 +1564,7 @@ static void OPT_OutConstant (OPT_Object obj)
 
 static void OPT_OutObj (OPT_Object obj)
 {
-	INTEGER i, j;
+	int16 i, j;
 	OPT_ConstExt ext = NIL;
 	if (obj != NIL) {
 		OPT_OutObj(obj->left);
@@ -1631,7 +1631,7 @@ static void OPT_OutObj (OPT_Object obj)
 						OPM_SymWInt(33);
 						OPT_OutSign(obj->typ, obj->link);
 						ext = obj->conval->ext;
-						j = (SYSTEM_INT16)(*ext)[0];
+						j = (int16)(*ext)[0];
 						i = 1;
 						OPM_SymWInt(j);
 						while (i <= j) {
@@ -1654,8 +1654,8 @@ static void OPT_OutObj (OPT_Object obj)
 
 void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 {
-	INTEGER i;
-	SHORTINT nofmod;
+	int16 i;
+	int8 nofmod;
 	BOOLEAN done;
 	OPT_symExtended = 0;
 	OPT_symNew = 0;
@@ -1697,7 +1697,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 	}
 }
 
-static void OPT_InitStruct (OPT_Struct *typ, SHORTINT form)
+static void OPT_InitStruct (OPT_Struct *typ, int8 form)
 {
 	*typ = OPT_NewStr(form, 1);
 	(*typ)->ref = form;
@@ -1711,7 +1711,7 @@ static void OPT_InitStruct (OPT_Struct *typ, SHORTINT form)
 	(*typ)->idfpdone = 1;
 }
 
-static void OPT_EnterBoolConst (OPS_Name name, LONGINT value)
+static void OPT_EnterBoolConst (OPS_Name name, int32 value)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;
@@ -1723,7 +1723,7 @@ static void OPT_EnterBoolConst (OPS_Name name, LONGINT value)
 	obj->conval->intval = value;
 }
 
-static void OPT_EnterTyp (OPS_Name name, SHORTINT form, INTEGER size, OPT_Struct *res)
+static void OPT_EnterTyp (OPS_Name name, int8 form, int16 size, OPT_Struct *res)
 {
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
@@ -1746,7 +1746,7 @@ static void OPT_EnterTyp (OPS_Name name, SHORTINT form, INTEGER size, OPT_Struct
 	*res = typ;
 }
 
-static void OPT_EnterProc (OPS_Name name, INTEGER num)
+static void OPT_EnterProc (OPS_Name name, int16 num)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;

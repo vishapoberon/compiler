@@ -20,7 +20,7 @@ static CHAR Vishap_mname[256];
 export void Vishap_Module (BOOLEAN *done);
 static void Vishap_PropagateElementaryTypeSizes (void);
 export void Vishap_Translate (void);
-static void Vishap_Trap (INTEGER sig);
+static void Vishap_Trap (int16 sig);
 
 
 void Vishap_Module (BOOLEAN *done)
@@ -126,7 +126,7 @@ void Vishap_Translate (void)
 	}
 }
 
-static void Vishap_Trap (INTEGER sig)
+static void Vishap_Trap (int16 sig)
 {
 	Heap_FINALL();
 	if (sig == 3) {

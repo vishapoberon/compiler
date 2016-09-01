@@ -27,15 +27,15 @@ typedef
 	struct Modules_ModuleDesc {
 		Modules_Module next;
 		Modules_ModuleName name;
-		LONGINT refcnt;
+		int64 refcnt;
 		Modules_Cmd cmds;
-		LONGINT types;
-		void (*enumPtrs)(void(*)(LONGINT));
-		LONGINT reserved1, reserved2;
+		int64 types;
+		void (*enumPtrs)(void(*)(int64));
+		int64 reserved1, reserved2;
 	} Modules_ModuleDesc;
 
 
-export INTEGER Modules_res;
+export int32 Modules_res;
 export CHAR Modules_resMsg[256];
 export Modules_ModuleName Modules_imported, Modules_importing;
 
@@ -52,7 +52,7 @@ export Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
 
 static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len)
 {
-	INTEGER i, j;
+	int32 i, j;
 	__DUP(b, b__len, CHAR);
 	i = 0;
 	while (a[__X(i, a__len)] != 0x00) {

@@ -8,15 +8,15 @@
 
 typedef
 	struct OPV_ExitInfo {
-		INTEGER level, label;
+		int32 level, label;
 	} OPV_ExitInfo;
 
 
 static BOOLEAN OPV_assert, OPV_inxchk, OPV_mainprog, OPV_ansi;
-static INTEGER OPV_stamp;
-static LONGINT OPV_recno;
+static int32 OPV_stamp;
+static int64 OPV_recno;
 static OPV_ExitInfo OPV_exit;
-static INTEGER OPV_nofExitLabels;
+static int32 OPV_nofExitLabels;
 static BOOLEAN OPV_naturalAlignment;
 
 export LONGINT *OPV_ExitInfo__typ;
@@ -24,38 +24,38 @@ export LONGINT *OPV_ExitInfo__typ;
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp);
 export void OPV_AdrAndSize (OPT_Object topScope);
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc);
-static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INTEGER prec);
+static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int32 prec);
 static void OPV_DefineTDescs (OPT_Node n);
-static void OPV_Entier (OPT_Node n, INTEGER prec);
+static void OPV_Entier (OPT_Node n, int32 prec);
 static void OPV_GetTProcNum (OPT_Object obj);
 static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc);
 static BOOLEAN OPV_ImplicitReturn (OPT_Node n);
-static void OPV_Index (OPT_Node n, OPT_Node d, INTEGER prec, INTEGER dim);
+static void OPV_Index (OPT_Node n, OPT_Node d, int32 prec, int32 dim);
 export void OPV_Init (void);
 static void OPV_InitTDescs (OPT_Node n);
-static void OPV_Len (OPT_Node n, LONGINT dim);
+static void OPV_Len (OPT_Node n, int64 dim);
 export void OPV_Module (OPT_Node prog);
-static LONGINT OPV_NaturalAlignment (LONGINT size, LONGINT max);
+static int64 OPV_NaturalAlignment (int64 size, int64 max);
 static void OPV_NewArr (OPT_Node d, OPT_Node x);
-static void OPV_ParIntLiteral (LONGINT n, LONGINT size);
-static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, INTEGER comp);
+static void OPV_ParIntLiteral (int64 n, int64 size);
+static int32 OPV_Precedence (int32 class, int32 subclass, int32 form, int32 comp);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
-static void OPV_SizeCast (LONGINT from, LONGINT to);
+static void OPV_SizeCast (int64 from, int64 to);
 static void OPV_Stamp (OPS_Name s);
 static OPT_Object OPV_SuperProc (OPT_Node n);
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported);
 static void OPV_TraverseRecord (OPT_Struct typ);
 export void OPV_TypSize (OPT_Struct typ);
 static void OPV_TypeOf (OPT_Node n);
-static void OPV_design (OPT_Node n, INTEGER prec);
-static void OPV_expr (OPT_Node n, INTEGER prec);
+static void OPV_design (OPT_Node n, int32 prec);
+static void OPV_expr (OPT_Node n, int32 prec);
 static void OPV_stat (OPT_Node n, OPT_Object outerProc);
 
 
-static LONGINT OPV_NaturalAlignment (LONGINT size, LONGINT max)
+static int64 OPV_NaturalAlignment (int64 size, int64 max)
 {
-	LONGINT _o_result;
-	LONGINT i;
+	int64 _o_result;
+	int64 i;
 	if (size >= max) {
 		_o_result = max;
 		return _o_result;
@@ -72,8 +72,8 @@ static LONGINT OPV_NaturalAlignment (LONGINT size, LONGINT max)
 
 void OPV_TypSize (OPT_Struct typ)
 {
-	INTEGER f, c;
-	LONGINT offset, size, base, fbase, off0;
+	int32 f, c;
+	int64 offset, size, base, fbase, off0;
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
 	if (typ == OPT_undftyp) {
@@ -88,7 +88,7 @@ void OPV_TypSize (OPT_Struct typ)
 				base = OPC_SizeAlignment(OPM_RecSize);
 			} else {
 				OPV_TypSize(btyp);
-				offset = btyp->size - (SYSTEM_INT64)__ASHR(btyp->sysflag, 8);
+				offset = btyp->size - (int64)__ASHR(btyp->sysflag, 8);
 				base = btyp->align;
 			}
 			fld = typ->link;
@@ -119,7 +119,7 @@ void OPV_TypSize (OPT_Struct typ)
 			}
 			typ->size = offset;
 			typ->align = base;
-			typ->sysflag = __MASK(typ->sysflag, -256) + (SYSTEM_INT32)__ASHL(offset - off0, 8);
+			typ->sysflag = __MASK(typ->sysflag, -256) + (int32)__ASHL(offset - off0, 8);
 		} else if (c == 2) {
 			OPV_TypSize(typ->BaseTyp);
 			typ->size = typ->n * typ->BaseTyp->size;
@@ -157,7 +157,7 @@ void OPV_Init (void)
 
 static void OPV_GetTProcNum (OPT_Object obj)
 {
-	LONGINT oldPos;
+	int64 oldPos;
 	OPT_Struct typ = NIL;
 	OPT_Object redef = NIL;
 	oldPos = OPM_errpos;
@@ -193,7 +193,7 @@ static void OPV_TraverseRecord (OPT_Struct typ)
 
 static void OPV_Stamp (OPS_Name s)
 {
-	INTEGER i, j, k;
+	int32 i, j, k;
 	CHAR n[10];
 	OPV_stamp += 1;
 	i = 0;
@@ -223,7 +223,7 @@ static void OPV_Stamp (OPS_Name s)
 
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported)
 {
-	INTEGER mode;
+	int32 mode;
 	OPT_Object scope = NIL;
 	OPT_Struct typ = NIL;
 	if (obj != NIL) {
@@ -298,9 +298,9 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_sysptrtyp->strobj->linkadr = 2;
 }
 
-static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, INTEGER comp)
+static int32 OPV_Precedence (int32 class, int32 subclass, int32 form, int32 comp)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	switch (class) {
 		case 7: case 0: case 2: case 4: case 9: 
 		case 13: 
@@ -433,7 +433,7 @@ static INTEGER OPV_Precedence (INTEGER class, INTEGER subclass, INTEGER form, IN
 	__RETCHK;
 }
 
-static void OPV_Len (OPT_Node n, LONGINT dim)
+static void OPV_Len (OPT_Node n, int64 dim)
 {
 	while ((n->class == 4 && n->typ->comp == 3)) {
 		dim += 1;
@@ -462,7 +462,7 @@ static BOOLEAN OPV_SideEffects (OPT_Node n)
 	__RETCHK;
 }
 
-static void OPV_Entier (OPT_Node n, INTEGER prec)
+static void OPV_Entier (OPT_Node n, int32 prec)
 {
 	if (__IN(n->typ->form, 0x60)) {
 		OPM_WriteString((CHAR*)"__ENTIER(", 10);
@@ -473,34 +473,18 @@ static void OPV_Entier (OPT_Node n, INTEGER prec)
 	}
 }
 
-static void OPV_SizeCast (LONGINT from, LONGINT to)
+static void OPV_SizeCast (int64 from, int64 to)
 {
 	if ((from != to && (from > 4 || to != 4))) {
-		switch (to) {
-			case 1: 
-				OPM_WriteString((CHAR*)"(SYSTEM_INT8)", 14);
-				break;
-			case 2: 
-				OPM_WriteString((CHAR*)"(SYSTEM_INT16)", 15);
-				break;
-			case 4: 
-				OPM_WriteString((CHAR*)"(SYSTEM_INT32)", 15);
-				break;
-			case 8: 
-				OPM_WriteString((CHAR*)"(SYSTEM_INT64)", 15);
-				break;
-			default: 
-				OPM_LogWStr((CHAR*)"Unhandled case in OPC.SizeCast, to = ", 38);
-				OPM_LogWNum(to, 1);
-				OPM_LogWLn();
-				break;
-		}
+		OPM_WriteString((CHAR*)"(int", 5);
+		OPM_WriteInt(__ASHL(to, 3));
+		OPM_WriteString((CHAR*)")", 2);
 	}
 }
 
-static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INTEGER prec)
+static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int32 prec)
 {
-	INTEGER from, to;
+	int32 from, to;
 	from = n->typ->form;
 	to = newtype->form;
 	if (to == 7) {
@@ -562,7 +546,7 @@ static void OPV_TypeOf (OPT_Node n)
 	}
 }
 
-static void OPV_Index (OPT_Node n, OPT_Node d, INTEGER prec, INTEGER dim)
+static void OPV_Index (OPT_Node n, OPT_Node d, int32 prec, int32 dim)
 {
 	if (!OPV_inxchk || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
 		OPV_expr(n->right, prec);
@@ -579,13 +563,13 @@ static void OPV_Index (OPT_Node n, OPT_Node d, INTEGER prec, INTEGER dim)
 	}
 }
 
-static void OPV_design (OPT_Node n, INTEGER prec)
+static void OPV_design (OPT_Node n, int32 prec)
 {
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
-	INTEGER class, designPrec, comp;
+	int32 class, designPrec, comp;
 	OPT_Node d = NIL, x = NIL;
-	INTEGER dims, i, _for__28;
+	int32 dims, i, _for__28;
 	comp = n->typ->comp;
 	obj = n->obj;
 	class = n->class;
@@ -669,7 +653,7 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 				}
 				if (n->typ->comp == 3) {
 					OPM_Write(')');
-					while ((SYSTEM_INT64)i < __ASHR(d->typ->size - 4, 2)) {
+					while ((int64)i < __ASHR(d->typ->size - 4, 2)) {
 						OPM_WriteString((CHAR*)" * ", 4);
 						OPV_Len(d, i);
 						i += 1;
@@ -758,7 +742,7 @@ static void OPV_design (OPT_Node n, INTEGER prec)
 	}
 }
 
-static void OPV_ParIntLiteral (LONGINT n, LONGINT size)
+static void OPV_ParIntLiteral (int64 n, int64 size)
 {
 	if (OPV_ansi) {
 		OPM_WriteInt(n);
@@ -770,7 +754,7 @@ static void OPV_ParIntLiteral (LONGINT n, LONGINT size)
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 {
 	OPT_Struct typ = NIL, aptyp = NIL;
-	INTEGER comp, form, mode, prec, dim;
+	int32 comp, form, mode, prec, dim;
 	OPM_Write('(');
 	while (n != NIL) {
 		typ = fp->typ;
@@ -869,9 +853,9 @@ static OPT_Object OPV_SuperProc (OPT_Node n)
 	return _o_result;
 }
 
-static void OPV_expr (OPT_Node n, INTEGER prec)
+static void OPV_expr (OPT_Node n, int32 prec)
 {
-	INTEGER class, subclass, form, exprPrec;
+	int32 class, subclass, form, exprPrec;
 	OPT_Struct typ = NIL;
 	OPT_Node l = NIL, r = NIL;
 	OPT_Object proc = NIL;
@@ -1187,7 +1171,7 @@ static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc)
 	OPT_Node if_ = NIL;
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
-	LONGINT adr;
+	int64 adr;
 	if_ = n->left;
 	while (if_ != NIL) {
 		OPM_WriteString((CHAR*)"if ", 4);
@@ -1237,8 +1221,8 @@ static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc)
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc)
 {
 	OPT_Node switchCase = NIL, label = NIL;
-	LONGINT low, high;
-	INTEGER form, i;
+	int64 low, high;
+	int32 form, i;
 	OPM_WriteString((CHAR*)"switch ", 8);
 	OPV_expr(n->left, 12);
 	OPM_Write(' ');
@@ -1305,7 +1289,7 @@ static BOOLEAN OPV_ImplicitReturn (OPT_Node n)
 static void OPV_NewArr (OPT_Node d, OPT_Node x)
 {
 	OPT_Struct typ = NIL, base = NIL;
-	INTEGER nofdim, nofdyn;
+	int32 nofdim, nofdyn;
 	typ = d->typ->BaseTyp;
 	base = typ;
 	nofdim = 0;

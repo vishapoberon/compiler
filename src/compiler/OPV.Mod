@@ -298,13 +298,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE SizeCast(from, to: LONGINT);
   BEGIN
     IF (from # to) & ((from > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
-      CASE to OF
-      |1: OPM.WriteString("(SYSTEM_INT8)");
-      |2: OPM.WriteString("(SYSTEM_INT16)");
-      |4: OPM.WriteString("(SYSTEM_INT32)");
-      |8: OPM.WriteString("(SYSTEM_INT64)");
-      ELSE OPM.LogWStr("Unhandled case in OPC.SizeCast, to = "); OPM.LogWNum(to,1); OPM.LogWLn;
-      END
+      OPM.WriteString("(int"); OPM.WriteInt(to*8); OPM.WriteString(")")
     END
   END SizeCast;
 

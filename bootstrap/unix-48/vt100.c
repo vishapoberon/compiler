@@ -8,36 +8,36 @@ export CHAR vt100_CSI[5];
 static CHAR vt100_tmpstr[32];
 
 
-export void vt100_CHA (INTEGER n);
-export void vt100_CNL (INTEGER n);
-export void vt100_CPL (INTEGER n);
-export void vt100_CUB (INTEGER n);
-export void vt100_CUD (INTEGER n);
-export void vt100_CUF (INTEGER n);
-export void vt100_CUP (INTEGER n, INTEGER m);
-export void vt100_CUU (INTEGER n);
+export void vt100_CHA (int16 n);
+export void vt100_CNL (int16 n);
+export void vt100_CPL (int16 n);
+export void vt100_CUB (int16 n);
+export void vt100_CUD (int16 n);
+export void vt100_CUF (int16 n);
+export void vt100_CUP (int16 n, int16 m);
+export void vt100_CUU (int16 n);
 export void vt100_DECTCEMh (void);
 export void vt100_DECTCEMl (void);
-export void vt100_DSR (INTEGER n);
-export void vt100_ED (INTEGER n);
-export void vt100_EL (INTEGER n);
-static void vt100_EscSeq (INTEGER n, CHAR *letter, LONGINT letter__len);
+export void vt100_DSR (int16 n);
+export void vt100_ED (int16 n);
+export void vt100_EL (int16 n);
+static void vt100_EscSeq (int16 n, CHAR *letter, LONGINT letter__len);
 static void vt100_EscSeq0 (CHAR *letter, LONGINT letter__len);
-static void vt100_EscSeq2 (INTEGER n, INTEGER m, CHAR *letter, LONGINT letter__len);
-static void vt100_EscSeqSwapped (INTEGER n, CHAR *letter, LONGINT letter__len);
-export void vt100_HVP (INTEGER n, INTEGER m);
-export void vt100_IntToStr (LONGINT int_, CHAR *str, LONGINT str__len);
+static void vt100_EscSeq2 (int16 n, int16 m, CHAR *letter, LONGINT letter__len);
+static void vt100_EscSeqSwapped (int16 n, CHAR *letter, LONGINT letter__len);
+export void vt100_HVP (int16 n, int16 m);
+export void vt100_IntToStr (int32 int_, CHAR *str, LONGINT str__len);
 export void vt100_RCP (void);
-static void vt100_Reverse0 (CHAR *str, LONGINT str__len, INTEGER start, INTEGER end);
+static void vt100_Reverse0 (CHAR *str, LONGINT str__len, int16 start, int16 end);
 export void vt100_SCP (void);
-export void vt100_SD (INTEGER n);
-export void vt100_SGR (INTEGER n);
-export void vt100_SGR2 (INTEGER n, INTEGER m);
-export void vt100_SU (INTEGER n);
+export void vt100_SD (int16 n);
+export void vt100_SGR (int16 n);
+export void vt100_SGR2 (int16 n, int16 m);
+export void vt100_SU (int16 n);
 export void vt100_SetAttr (CHAR *attr, LONGINT attr__len);
 
 
-static void vt100_Reverse0 (CHAR *str, LONGINT str__len, INTEGER start, INTEGER end)
+static void vt100_Reverse0 (CHAR *str, LONGINT str__len, int16 start, int16 end)
 {
 	CHAR h;
 	while (start < end) {
@@ -49,11 +49,11 @@ static void vt100_Reverse0 (CHAR *str, LONGINT str__len, INTEGER start, INTEGER 
 	}
 }
 
-void vt100_IntToStr (LONGINT int_, CHAR *str, LONGINT str__len)
+void vt100_IntToStr (int32 int_, CHAR *str, LONGINT str__len)
 {
 	CHAR b[21];
-	INTEGER s, e;
-	SHORTINT maxLength;
+	int16 s, e;
+	int8 maxLength;
 	maxLength = 11;
 	if (int_ == (-2147483647-1)) {
 		__MOVE("-2147483648", b, 12);
@@ -88,7 +88,7 @@ static void vt100_EscSeq0 (CHAR *letter, LONGINT letter__len)
 	__DEL(letter);
 }
 
-static void vt100_EscSeq (INTEGER n, CHAR *letter, LONGINT letter__len)
+static void vt100_EscSeq (int16 n, CHAR *letter, LONGINT letter__len)
 {
 	CHAR nstr[2];
 	CHAR cmd[7];
@@ -101,7 +101,7 @@ static void vt100_EscSeq (INTEGER n, CHAR *letter, LONGINT letter__len)
 	__DEL(letter);
 }
 
-static void vt100_EscSeqSwapped (INTEGER n, CHAR *letter, LONGINT letter__len)
+static void vt100_EscSeqSwapped (int16 n, CHAR *letter, LONGINT letter__len)
 {
 	CHAR nstr[2];
 	CHAR cmd[7];
@@ -114,7 +114,7 @@ static void vt100_EscSeqSwapped (INTEGER n, CHAR *letter, LONGINT letter__len)
 	__DEL(letter);
 }
 
-static void vt100_EscSeq2 (INTEGER n, INTEGER m, CHAR *letter, LONGINT letter__len)
+static void vt100_EscSeq2 (int16 n, int16 m, CHAR *letter, LONGINT letter__len)
 {
 	CHAR nstr[5], mstr[5];
 	CHAR cmd[12];
@@ -130,82 +130,82 @@ static void vt100_EscSeq2 (INTEGER n, INTEGER m, CHAR *letter, LONGINT letter__l
 	__DEL(letter);
 }
 
-void vt100_CUU (INTEGER n)
+void vt100_CUU (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"A", 2);
 }
 
-void vt100_CUD (INTEGER n)
+void vt100_CUD (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"B", 2);
 }
 
-void vt100_CUF (INTEGER n)
+void vt100_CUF (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"C", 2);
 }
 
-void vt100_CUB (INTEGER n)
+void vt100_CUB (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"D", 2);
 }
 
-void vt100_CNL (INTEGER n)
+void vt100_CNL (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"E", 2);
 }
 
-void vt100_CPL (INTEGER n)
+void vt100_CPL (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"F", 2);
 }
 
-void vt100_CHA (INTEGER n)
+void vt100_CHA (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"G", 2);
 }
 
-void vt100_CUP (INTEGER n, INTEGER m)
+void vt100_CUP (int16 n, int16 m)
 {
 	vt100_EscSeq2(n, m, (CHAR*)"H", 2);
 }
 
-void vt100_ED (INTEGER n)
+void vt100_ED (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"J", 2);
 }
 
-void vt100_EL (INTEGER n)
+void vt100_EL (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"K", 2);
 }
 
-void vt100_SU (INTEGER n)
+void vt100_SU (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"S", 2);
 }
 
-void vt100_SD (INTEGER n)
+void vt100_SD (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"T", 2);
 }
 
-void vt100_HVP (INTEGER n, INTEGER m)
+void vt100_HVP (int16 n, int16 m)
 {
 	vt100_EscSeq2(n, m, (CHAR*)"f", 2);
 }
 
-void vt100_SGR (INTEGER n)
+void vt100_SGR (int16 n)
 {
 	vt100_EscSeq(n, (CHAR*)"m", 2);
 }
 
-void vt100_SGR2 (INTEGER n, INTEGER m)
+void vt100_SGR2 (int16 n, int16 m)
 {
 	vt100_EscSeq2(n, m, (CHAR*)"m", 2);
 }
 
-void vt100_DSR (INTEGER n)
+void vt100_DSR (int16 n)
 {
 	vt100_EscSeq(6, (CHAR*)"n", 2);
 }

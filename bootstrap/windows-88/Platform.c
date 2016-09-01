@@ -9,90 +9,90 @@ typedef
 	Platform_ArgPtr (*Platform_ArgVec)[1024];
 
 typedef
-	LONGINT (*Platform_ArgVecPtr)[1];
+	int64 (*Platform_ArgVecPtr)[1];
 
 typedef
 	CHAR (*Platform_EnvPtr)[1024];
 
 typedef
 	struct Platform_FileIdentity {
-		LONGINT volume, indexhigh, indexlow, mtimehigh, mtimelow;
+		int64 volume, indexhigh, indexlow, mtimehigh, mtimelow;
 	} Platform_FileIdentity;
 
 typedef
-	void (*Platform_HaltProcedure)(LONGINT);
+	void (*Platform_HaltProcedure)(int64);
 
 typedef
-	void (*Platform_SignalHandler)(INTEGER);
+	void (*Platform_SignalHandler)(int32);
 
 
 export BOOLEAN Platform_LittleEndian;
-export LONGINT Platform_MainStackFrame, Platform_HaltCode;
-export INTEGER Platform_PID;
+export int64 Platform_MainStackFrame, Platform_HaltCode;
+export int32 Platform_PID;
 export CHAR Platform_CWD[4096];
-export INTEGER Platform_ArgCount;
-export LONGINT Platform_ArgVector;
+export int32 Platform_ArgCount;
+export int64 Platform_ArgVector;
 static Platform_HaltProcedure Platform_HaltHandler;
-static LONGINT Platform_TimeStart;
-export INTEGER Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
-export LONGINT Platform_StdIn, Platform_StdOut, Platform_StdErr;
+static int64 Platform_TimeStart;
+export int32 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
+export int64 Platform_StdIn, Platform_StdOut, Platform_StdErr;
 static Platform_SignalHandler Platform_InterruptHandler;
 export CHAR Platform_nl[3];
 
 export LONGINT *Platform_FileIdentity__typ;
 
-export BOOLEAN Platform_Absent (INTEGER e);
-export INTEGER Platform_ArgPos (CHAR *s, LONGINT s__len);
-export void Platform_AssertFail (LONGINT code);
-export INTEGER Platform_Chdir (CHAR *n, LONGINT n__len);
-export INTEGER Platform_Close (LONGINT h);
-export BOOLEAN Platform_ConnectionFailed (INTEGER e);
-export void Platform_Delay (LONGINT ms);
-export BOOLEAN Platform_DifferentFilesystems (INTEGER e);
-static void Platform_DisplayHaltCode (LONGINT code);
-export INTEGER Platform_Error (void);
-export void Platform_Exit (INTEGER code);
-export void Platform_GetArg (INTEGER n, CHAR *val, LONGINT val__len);
-export void Platform_GetClock (LONGINT *t, LONGINT *d);
+export BOOLEAN Platform_Absent (int32 e);
+export int32 Platform_ArgPos (CHAR *s, LONGINT s__len);
+export void Platform_AssertFail (int64 code);
+export int32 Platform_Chdir (CHAR *n, LONGINT n__len);
+export int32 Platform_Close (int64 h);
+export BOOLEAN Platform_ConnectionFailed (int32 e);
+export void Platform_Delay (int64 ms);
+export BOOLEAN Platform_DifferentFilesystems (int32 e);
+static void Platform_DisplayHaltCode (int64 code);
+export int32 Platform_Error (void);
+export void Platform_Exit (int32 code);
+export void Platform_GetArg (int32 n, CHAR *val, LONGINT val__len);
+export void Platform_GetClock (int64 *t, int64 *d);
 export void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
-export void Platform_GetIntArg (INTEGER n, LONGINT *val);
-export void Platform_GetTimeOfDay (LONGINT *sec, LONGINT *usec);
-export void Platform_Halt (LONGINT code);
-export INTEGER Platform_Identify (LONGINT h, Platform_FileIdentity *identity, LONGINT *identity__typ);
-export INTEGER Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
-export BOOLEAN Platform_Inaccessible (INTEGER e);
-export void Platform_Init (INTEGER argc, LONGINT argvadr);
-export void Platform_MTimeAsClock (Platform_FileIdentity i, LONGINT *t, LONGINT *d);
-export INTEGER Platform_New (CHAR *n, LONGINT n__len, LONGINT *h);
-export BOOLEAN Platform_NoSuchDirectory (INTEGER e);
-export LONGINT Platform_OSAllocate (LONGINT size);
-export void Platform_OSFree (LONGINT address);
-export INTEGER Platform_OldRO (CHAR *n, LONGINT n__len, LONGINT *h);
-export INTEGER Platform_OldRW (CHAR *n, LONGINT n__len, LONGINT *h);
-export INTEGER Platform_Read (LONGINT h, LONGINT p, LONGINT l, LONGINT *n);
-export INTEGER Platform_ReadBuf (LONGINT h, SYSTEM_BYTE *b, LONGINT b__len, LONGINT *n);
-export INTEGER Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
+export void Platform_GetIntArg (int32 n, int64 *val);
+export void Platform_GetTimeOfDay (int64 *sec, int64 *usec);
+export void Platform_Halt (int64 code);
+export int32 Platform_Identify (int64 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
+export int32 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
+export BOOLEAN Platform_Inaccessible (int32 e);
+export void Platform_Init (int32 argc, int64 argvadr);
+export void Platform_MTimeAsClock (Platform_FileIdentity i, int64 *t, int64 *d);
+export int32 Platform_New (CHAR *n, LONGINT n__len, int64 *h);
+export BOOLEAN Platform_NoSuchDirectory (int32 e);
+export int64 Platform_OSAllocate (int64 size);
+export void Platform_OSFree (int64 address);
+export int32 Platform_OldRO (CHAR *n, LONGINT n__len, int64 *h);
+export int32 Platform_OldRW (CHAR *n, LONGINT n__len, int64 *h);
+export int32 Platform_Read (int64 h, int64 p, int64 l, int64 *n);
+export int32 Platform_ReadBuf (int64 h, SYSTEM_BYTE *b, LONGINT b__len, int64 *n);
+export int32 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
-export INTEGER Platform_Seek (LONGINT h, LONGINT o, INTEGER r);
+export int32 Platform_Seek (int64 h, int64 o, int32 r);
 export void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 export void Platform_SetHalt (Platform_HaltProcedure p);
 export void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
-export INTEGER Platform_Size (LONGINT h, LONGINT *l);
-export INTEGER Platform_Sync (LONGINT h);
-export INTEGER Platform_System (CHAR *cmd, LONGINT cmd__len);
+export int32 Platform_Size (int64 h, int64 *l);
+export int32 Platform_Sync (int64 h);
+export int32 Platform_System (CHAR *cmd, LONGINT cmd__len);
 static void Platform_TestLittleEndian (void);
-export LONGINT Platform_Time (void);
-export BOOLEAN Platform_TimedOut (INTEGER e);
-export BOOLEAN Platform_TooManyFiles (INTEGER e);
-export INTEGER Platform_Truncate (LONGINT h, LONGINT limit);
-export INTEGER Platform_Unlink (CHAR *n, LONGINT n__len);
-export INTEGER Platform_Write (LONGINT h, LONGINT p, LONGINT l);
-static void Platform_YMDHMStoClock (INTEGER ye, INTEGER mo, INTEGER da, INTEGER ho, INTEGER mi, INTEGER se, LONGINT *t, LONGINT *d);
+export int64 Platform_Time (void);
+export BOOLEAN Platform_TimedOut (int32 e);
+export BOOLEAN Platform_TooManyFiles (int32 e);
+export int32 Platform_Truncate (int64 h, int64 limit);
+export int32 Platform_Unlink (CHAR *n, LONGINT n__len);
+export int32 Platform_Write (int64 h, int64 p, int64 l);
+static void Platform_YMDHMStoClock (int32 ye, int32 mo, int32 da, int32 ho, int32 mi, int32 se, int64 *t, int64 *d);
 static void Platform_errch (CHAR c);
-static void Platform_errint (LONGINT l);
+static void Platform_errint (int64 l);
 static void Platform_errln (void);
-static void Platform_errposint (LONGINT l);
+static void Platform_errposint (int64 l);
 export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 
 #include "WindowsWrapper.h"
@@ -176,68 +176,68 @@ extern void Heap_InitHeap();
 #define Platform_waitForProcess()	(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)
 #define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((HANDLE)(SYSTEM_ADRINT)fd, (void*)(SYSTEM_ADRINT)(p), (DWORD)l, 0,0)
 
-BOOLEAN Platform_TooManyFiles (INTEGER e)
+BOOLEAN Platform_TooManyFiles (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = e == Platform_ERRORTOOMANYOPENFILES();
 	return _o_result;
 }
 
-BOOLEAN Platform_NoSuchDirectory (INTEGER e)
+BOOLEAN Platform_NoSuchDirectory (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = e == Platform_ERRORPATHNOTFOUND();
 	return _o_result;
 }
 
-BOOLEAN Platform_DifferentFilesystems (INTEGER e)
+BOOLEAN Platform_DifferentFilesystems (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = e == Platform_ERRORNOTSAMEDEVICE();
 	return _o_result;
 }
 
-BOOLEAN Platform_Inaccessible (INTEGER e)
+BOOLEAN Platform_Inaccessible (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = ((e == Platform_ERRORACCESSDENIED() || e == Platform_ERRORWRITEPROTECT()) || e == Platform_ERRORNOTREADY()) || e == Platform_ERRORSHARINGVIOLATION();
 	return _o_result;
 }
 
-BOOLEAN Platform_Absent (INTEGER e)
+BOOLEAN Platform_Absent (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = e == Platform_ERRORFILENOTFOUND() || e == Platform_ERRORPATHNOTFOUND();
 	return _o_result;
 }
 
-BOOLEAN Platform_TimedOut (INTEGER e)
+BOOLEAN Platform_TimedOut (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = e == Platform_ETIMEDOUT();
 	return _o_result;
 }
 
-BOOLEAN Platform_ConnectionFailed (INTEGER e)
+BOOLEAN Platform_ConnectionFailed (int32 e)
 {
 	BOOLEAN _o_result;
 	_o_result = ((e == Platform_ECONNREFUSED() || e == Platform_ECONNABORTED()) || e == Platform_ENETUNREACH()) || e == Platform_EHOSTUNREACH();
 	return _o_result;
 }
 
-LONGINT Platform_OSAllocate (LONGINT size)
+int64 Platform_OSAllocate (int64 size)
 {
-	LONGINT _o_result;
+	int64 _o_result;
 	_o_result = Platform_allocate(size);
 	return _o_result;
 }
 
-void Platform_OSFree (LONGINT address)
+void Platform_OSFree (int64 address)
 {
 	Platform_free(address);
 }
 
-void Platform_Init (INTEGER argc, LONGINT argvadr)
+void Platform_Init (int32 argc, int64 argvadr)
 {
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
@@ -252,7 +252,7 @@ BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__le
 {
 	BOOLEAN _o_result;
 	CHAR buf[4096];
-	INTEGER res;
+	int32 res;
 	__DUP(var, var__len, CHAR);
 	res = Platform_getenv(var, var__len, (void*)buf, 4096);
 	if ((res > 0 && res < 4096)) {
@@ -277,7 +277,7 @@ void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len)
 	__DEL(var);
 }
 
-void Platform_GetArg (INTEGER n, CHAR *val, LONGINT val__len)
+void Platform_GetArg (int32 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
@@ -286,10 +286,10 @@ void Platform_GetArg (INTEGER n, CHAR *val, LONGINT val__len)
 	}
 }
 
-void Platform_GetIntArg (INTEGER n, LONGINT *val)
+void Platform_GetIntArg (int32 n, int64 *val)
 {
 	CHAR s[64];
-	LONGINT k, d, i;
+	int64 k, d, i;
 	s[0] = 0x00;
 	Platform_GetArg(n, (void*)s, 64);
 	i = 0;
@@ -312,10 +312,10 @@ void Platform_GetIntArg (INTEGER n, LONGINT *val)
 	}
 }
 
-INTEGER Platform_ArgPos (CHAR *s, LONGINT s__len)
+int32 Platform_ArgPos (CHAR *s, LONGINT s__len)
 {
-	INTEGER _o_result;
-	INTEGER i;
+	int32 _o_result;
+	int32 i;
 	CHAR arg[256];
 	__DUP(s, s__len, CHAR);
 	i = 0;
@@ -333,28 +333,28 @@ void Platform_SetBadInstructionHandler (Platform_SignalHandler handler)
 {
 }
 
-static void Platform_YMDHMStoClock (INTEGER ye, INTEGER mo, INTEGER da, INTEGER ho, INTEGER mi, INTEGER se, LONGINT *t, LONGINT *d)
+static void Platform_YMDHMStoClock (int32 ye, int32 mo, int32 da, int32 ho, int32 mi, int32 se, int64 *t, int64 *d)
 {
-	*d = (__ASHL((SYSTEM_INT64)(int)__MOD(ye, 100), 9) + __ASHL((SYSTEM_INT64)(mo + 1), 5)) + (SYSTEM_INT64)da;
-	*t = (__ASHL((SYSTEM_INT64)ho, 12) + __ASHL((SYSTEM_INT64)mi, 6)) + (SYSTEM_INT64)se;
+	*d = (__ASHL((int64)(int)__MOD(ye, 100), 9) + __ASHL((int64)(mo + 1), 5)) + (int64)da;
+	*t = (__ASHL((int64)ho, 12) + __ASHL((int64)mi, 6)) + (int64)se;
 }
 
-void Platform_GetClock (LONGINT *t, LONGINT *d)
+void Platform_GetClock (int64 *t, int64 *d)
 {
 	Platform_getLocalTime();
 	Platform_YMDHMStoClock(Platform_styear(), Platform_stmon(), Platform_stmday(), Platform_sthour(), Platform_stmin(), Platform_stsec(), &*t, &*d);
 }
 
-LONGINT Platform_Time (void)
+int64 Platform_Time (void)
 {
-	LONGINT _o_result;
-	LONGINT ms;
+	int64 _o_result;
+	int64 ms;
 	ms = Platform_GetTickCount();
 	_o_result = __MOD(ms - Platform_TimeStart, 2147483647);
 	return _o_result;
 }
 
-void Platform_Delay (LONGINT ms)
+void Platform_Delay (int64 ms)
 {
 	while (ms > 30000) {
 		Platform_sleep(30000);
@@ -365,7 +365,7 @@ void Platform_Delay (LONGINT ms)
 	}
 }
 
-void Platform_GetTimeOfDay (LONGINT *sec, LONGINT *usec)
+void Platform_GetTimeOfDay (int64 *sec, int64 *usec)
 {
 	Platform_getLocalTime();
 	Platform_stToFt();
@@ -375,10 +375,10 @@ void Platform_GetTimeOfDay (LONGINT *sec, LONGINT *usec)
 	*usec = Platform_uluSec();
 }
 
-INTEGER Platform_System (CHAR *cmd, LONGINT cmd__len)
+int32 Platform_System (CHAR *cmd, LONGINT cmd__len)
 {
-	INTEGER _o_result;
-	INTEGER result;
+	int32 _o_result;
+	int32 result;
 	__DUP(cmd, cmd__len, CHAR);
 	result = 127;
 	Platform_startupInfo();
@@ -394,17 +394,17 @@ INTEGER Platform_System (CHAR *cmd, LONGINT cmd__len)
 	return _o_result;
 }
 
-INTEGER Platform_Error (void)
+int32 Platform_Error (void)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	_o_result = Platform_err();
 	return _o_result;
 }
 
-INTEGER Platform_OldRO (CHAR *n, LONGINT n__len, LONGINT *h)
+int32 Platform_OldRO (CHAR *n, LONGINT n__len, int64 *h)
 {
-	INTEGER _o_result;
-	LONGINT fd;
+	int32 _o_result;
+	int64 fd;
 	fd = Platform_openro(n, n__len);
 	if (fd == Platform_invalidHandleValue()) {
 		_o_result = Platform_err();
@@ -417,10 +417,10 @@ INTEGER Platform_OldRO (CHAR *n, LONGINT n__len, LONGINT *h)
 	__RETCHK;
 }
 
-INTEGER Platform_OldRW (CHAR *n, LONGINT n__len, LONGINT *h)
+int32 Platform_OldRW (CHAR *n, LONGINT n__len, int64 *h)
 {
-	INTEGER _o_result;
-	LONGINT fd;
+	int32 _o_result;
+	int64 fd;
 	fd = Platform_openrw(n, n__len);
 	if (fd == Platform_invalidHandleValue()) {
 		_o_result = Platform_err();
@@ -433,10 +433,10 @@ INTEGER Platform_OldRW (CHAR *n, LONGINT n__len, LONGINT *h)
 	__RETCHK;
 }
 
-INTEGER Platform_New (CHAR *n, LONGINT n__len, LONGINT *h)
+int32 Platform_New (CHAR *n, LONGINT n__len, int64 *h)
 {
-	INTEGER _o_result;
-	LONGINT fd;
+	int32 _o_result;
+	int64 fd;
 	fd = Platform_opennew(n, n__len);
 	if (fd == Platform_invalidHandleValue()) {
 		_o_result = Platform_err();
@@ -449,9 +449,9 @@ INTEGER Platform_New (CHAR *n, LONGINT n__len, LONGINT *h)
 	__RETCHK;
 }
 
-INTEGER Platform_Close (LONGINT h)
+int32 Platform_Close (int64 h)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	if (Platform_closeHandle(h) == 0) {
 		_o_result = Platform_err();
 		return _o_result;
@@ -462,9 +462,9 @@ INTEGER Platform_Close (LONGINT h)
 	__RETCHK;
 }
 
-INTEGER Platform_Identify (LONGINT h, Platform_FileIdentity *identity, LONGINT *identity__typ)
+int32 Platform_Identify (int64 h, Platform_FileIdentity *identity, LONGINT *identity__typ)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	Platform_byHandleFileInformation();
 	if (Platform_getFileInformationByHandle(h) == 0) {
 		_o_result = Platform_err();
@@ -479,11 +479,11 @@ INTEGER Platform_Identify (LONGINT h, Platform_FileIdentity *identity, LONGINT *
 	return _o_result;
 }
 
-INTEGER Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ)
+int32 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ)
 {
-	INTEGER _o_result;
-	LONGINT h;
-	INTEGER e, i;
+	int32 _o_result;
+	int64 h;
+	int32 e, i;
 	__DUP(n, n__len, CHAR);
 	e = Platform_OldRO((void*)n, n__len, &h);
 	if (e != 0) {
@@ -518,16 +518,16 @@ void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Pla
 	(*target).mtimelow = source.mtimelow;
 }
 
-void Platform_MTimeAsClock (Platform_FileIdentity i, LONGINT *t, LONGINT *d)
+void Platform_MTimeAsClock (Platform_FileIdentity i, int64 *t, int64 *d)
 {
 	Platform_identityToFileTime(i);
 	Platform_fileTimeToSysTime();
 	Platform_YMDHMStoClock(Platform_styear(), Platform_stmon(), Platform_stmday(), Platform_sthour(), Platform_stmin(), Platform_stsec(), &*t, &*d);
 }
 
-INTEGER Platform_Size (LONGINT h, LONGINT *l)
+int32 Platform_Size (int64 h, int64 *l)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	Platform_largeInteger();
 	if (Platform_getFileSize(h) == 0) {
 		_o_result = Platform_err();
@@ -538,10 +538,10 @@ INTEGER Platform_Size (LONGINT h, LONGINT *l)
 	return _o_result;
 }
 
-INTEGER Platform_Read (LONGINT h, LONGINT p, LONGINT l, LONGINT *n)
+int32 Platform_Read (int64 h, int64 p, int64 l, int64 *n)
 {
-	INTEGER _o_result;
-	INTEGER result;
+	int32 _o_result;
+	int32 result;
 	*n = 0;
 	result = Platform_readfile(h, p, l, &*n);
 	if (result == 0) {
@@ -555,10 +555,10 @@ INTEGER Platform_Read (LONGINT h, LONGINT p, LONGINT l, LONGINT *n)
 	__RETCHK;
 }
 
-INTEGER Platform_ReadBuf (LONGINT h, SYSTEM_BYTE *b, LONGINT b__len, LONGINT *n)
+int32 Platform_ReadBuf (int64 h, SYSTEM_BYTE *b, LONGINT b__len, int64 *n)
 {
-	INTEGER _o_result;
-	INTEGER result;
+	int32 _o_result;
+	int32 result;
 	*n = 0;
 	result = Platform_readfile(h, (SYSTEM_ADRINT)b, b__len, &*n);
 	if (result == 0) {
@@ -572,9 +572,9 @@ INTEGER Platform_ReadBuf (LONGINT h, SYSTEM_BYTE *b, LONGINT b__len, LONGINT *n)
 	__RETCHK;
 }
 
-INTEGER Platform_Write (LONGINT h, LONGINT p, LONGINT l)
+int32 Platform_Write (int64 h, int64 p, int64 l)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	if (Platform_writefile(h, p, l) == 0) {
 		_o_result = Platform_err();
 		return _o_result;
@@ -585,9 +585,9 @@ INTEGER Platform_Write (LONGINT h, LONGINT p, LONGINT l)
 	__RETCHK;
 }
 
-INTEGER Platform_Sync (LONGINT h)
+int32 Platform_Sync (int64 h)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	if (Platform_flushFileBuffers(h) == 0) {
 		_o_result = Platform_err();
 		return _o_result;
@@ -598,10 +598,10 @@ INTEGER Platform_Sync (LONGINT h)
 	__RETCHK;
 }
 
-INTEGER Platform_Seek (LONGINT h, LONGINT o, INTEGER r)
+int32 Platform_Seek (int64 h, int64 o, int32 r)
 {
-	INTEGER _o_result;
-	INTEGER rc;
+	int32 _o_result;
+	int32 rc;
 	Platform_largeInteger();
 	Platform_setFilePointerEx(h, o, r, &rc);
 	if (rc == 0) {
@@ -614,11 +614,11 @@ INTEGER Platform_Seek (LONGINT h, LONGINT o, INTEGER r)
 	__RETCHK;
 }
 
-INTEGER Platform_Truncate (LONGINT h, LONGINT limit)
+int32 Platform_Truncate (int64 h, int64 limit)
 {
-	INTEGER _o_result;
-	INTEGER rc;
-	LONGINT oldpos;
+	int32 _o_result;
+	int32 rc;
+	int64 oldpos;
 	Platform_largeInteger();
 	Platform_getFilePos(h, &oldpos, &rc);
 	if (rc == 0) {
@@ -643,9 +643,9 @@ INTEGER Platform_Truncate (LONGINT h, LONGINT limit)
 	return _o_result;
 }
 
-INTEGER Platform_Unlink (CHAR *n, LONGINT n__len)
+int32 Platform_Unlink (CHAR *n, LONGINT n__len)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	if (Platform_deleteFile(n, n__len) == 0) {
 		_o_result = Platform_err();
 		return _o_result;
@@ -656,10 +656,10 @@ INTEGER Platform_Unlink (CHAR *n, LONGINT n__len)
 	__RETCHK;
 }
 
-INTEGER Platform_Chdir (CHAR *n, LONGINT n__len)
+int32 Platform_Chdir (CHAR *n, LONGINT n__len)
 {
-	INTEGER _o_result;
-	INTEGER r;
+	int32 _o_result;
+	int32 r;
 	r = Platform_setCurrentDirectory(n, n__len);
 	if (r == 0) {
 		_o_result = Platform_err();
@@ -670,9 +670,9 @@ INTEGER Platform_Chdir (CHAR *n, LONGINT n__len)
 	return _o_result;
 }
 
-INTEGER Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len)
+int32 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len)
 {
-	INTEGER _o_result;
+	int32 _o_result;
 	if (Platform_moveFile(o, o__len, n, n__len) == 0) {
 		_o_result = Platform_err();
 		return _o_result;
@@ -683,7 +683,7 @@ INTEGER Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len)
 	__RETCHK;
 }
 
-void Platform_Exit (INTEGER code)
+void Platform_Exit (int32 code)
 {
 	Platform_exit(code);
 }
@@ -699,7 +699,7 @@ static void Platform_errln (void)
 	Platform_errch(0x0a);
 }
 
-static void Platform_errposint (LONGINT l)
+static void Platform_errposint (int64 l)
 {
 	if (l > 10) {
 		Platform_errposint(__DIV(l, 10));
@@ -707,7 +707,7 @@ static void Platform_errposint (LONGINT l)
 	Platform_errch((CHAR)(48 + __MOD(l, 10)));
 }
 
-static void Platform_errint (LONGINT l)
+static void Platform_errint (int64 l)
 {
 	if (l < 0) {
 		Platform_errch('-');
@@ -716,7 +716,7 @@ static void Platform_errint (LONGINT l)
 	Platform_errposint(l);
 }
 
-static void Platform_DisplayHaltCode (LONGINT code)
+static void Platform_DisplayHaltCode (int64 code)
 {
 	switch (code) {
 		case -1: 
@@ -757,9 +757,9 @@ static void Platform_DisplayHaltCode (LONGINT code)
 	}
 }
 
-void Platform_Halt (LONGINT code)
+void Platform_Halt (int64 code)
 {
-	INTEGER e;
+	int32 e;
 	Platform_HaltCode = code;
 	if (Platform_HaltHandler != NIL) {
 		(*Platform_HaltHandler)(code);
@@ -771,12 +771,12 @@ void Platform_Halt (LONGINT code)
 		Platform_DisplayHaltCode(code);
 	}
 	Platform_errln();
-	Platform_exit(__VAL(INTEGER, code));
+	Platform_exit(__VAL(int32, code));
 }
 
-void Platform_AssertFail (LONGINT code)
+void Platform_AssertFail (int64 code)
 {
-	INTEGER e;
+	int32 e;
 	Platform_errstring((CHAR*)"Assertion failure.", 19);
 	if (code != 0) {
 		Platform_errstring((CHAR*)" ASSERT code ", 14);
@@ -784,7 +784,7 @@ void Platform_AssertFail (LONGINT code)
 		Platform_errstring((CHAR*)".", 2);
 	}
 	Platform_errln();
-	Platform_exit(__VAL(INTEGER, code));
+	Platform_exit(__VAL(int32, code));
 }
 
 void Platform_SetHalt (Platform_HaltProcedure p)
@@ -794,7 +794,7 @@ void Platform_SetHalt (Platform_HaltProcedure p)
 
 static void Platform_TestLittleEndian (void)
 {
-	INTEGER i;
+	int32 i;
 	i = 1;
 	__GET((SYSTEM_ADRINT)&i, Platform_LittleEndian, BOOLEAN);
 }

@@ -7,17 +7,17 @@
 #include "OPT.h"
 
 struct OPP__1 {
-	LONGINT low, high;
+	int64 low, high;
 };
 
 typedef
 	struct OPP__1 OPP_CaseTable[128];
 
 
-static SHORTINT OPP_sym, OPP_level;
-static INTEGER OPP_LoopLevel;
+static int8 OPP_sym, OPP_level;
+static int32 OPP_LoopLevel;
 static OPT_Node OPP_TDinit, OPP_lastTDinit;
-static INTEGER OPP_nofFwdPtr;
+static int32 OPP_nofFwdPtr;
 static OPT_Struct OPP_FwdPtr[64];
 
 export LONGINT *OPP__1__typ;
@@ -25,10 +25,10 @@ export LONGINT *OPP__1__typ;
 static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq);
-static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, OPP_CaseTable tab);
-static void OPP_CheckMark (SHORTINT *vis);
-static void OPP_CheckSym (INTEGER s);
-static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_);
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int32 *n, OPP_CaseTable tab);
+static void OPP_CheckMark (int8 *vis);
+static void OPP_CheckSym (int32 s);
+static void OPP_CheckSysFlag (int32 *sysflag, int32 default_);
 static void OPP_ConstExpression (OPT_Node *x);
 static void OPP_Element (OPT_Node *x);
 static void OPP_Expression (OPT_Node *x);
@@ -38,7 +38,7 @@ static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp);
 export void OPP_Module (OPT_Node *prog, SET opt);
 static void OPP_PointerType (OPT_Struct *typ);
 static void OPP_ProcedureDeclaration (OPT_Node *x);
-static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec);
+static void OPP_Receiver (int8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec);
 static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Sets (OPT_Node *x);
 static void OPP_SimpleExpression (OPT_Node *x);
@@ -47,17 +47,17 @@ static void OPP_StatSeq (OPT_Node *stat);
 static void OPP_Term (OPT_Node *x);
 static void OPP_Type (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned);
-static void OPP_err (INTEGER n);
+static void OPP_err (int32 n);
 static void OPP_qualident (OPT_Object *id);
 static void OPP_selector (OPT_Node *x);
 
 
-static void OPP_err (INTEGER n)
+static void OPP_err (int32 n)
 {
 	OPM_err(n);
 }
 
-static void OPP_CheckSym (INTEGER s)
+static void OPP_CheckSym (int32 s)
 {
 	if (OPP_sym == s) {
 		OPS_Get(&OPP_sym);
@@ -69,7 +69,7 @@ static void OPP_CheckSym (INTEGER s)
 static void OPP_qualident (OPT_Object *id)
 {
 	OPT_Object obj = NIL;
-	SHORTINT lev;
+	int8 lev;
 	OPT_Find(&obj);
 	OPS_Get(&OPP_sym);
 	if ((((OPP_sym == 18 && obj != NIL)) && obj->mode == 11)) {
@@ -109,7 +109,7 @@ static void OPP_ConstExpression (OPT_Node *x)
 	}
 }
 
-static void OPP_CheckMark (SHORTINT *vis)
+static void OPP_CheckMark (int8 *vis)
 {
 	OPS_Get(&OPP_sym);
 	if (OPP_sym == 1 || OPP_sym == 7) {
@@ -127,10 +127,10 @@ static void OPP_CheckMark (SHORTINT *vis)
 	}
 }
 
-static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_)
+static void OPP_CheckSysFlag (int32 *sysflag, int32 default_)
 {
 	OPT_Node x = NIL;
-	LONGINT sf;
+	int64 sf;
 	if (OPP_sym == 31) {
 		OPS_Get(&OPP_sym);
 		if (!OPT_SYSimported) {
@@ -147,7 +147,7 @@ static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_)
 			OPP_err(51);
 			sf = 0;
 		}
-		*sysflag = (SYSTEM_INT32)sf;
+		*sysflag = (int32)sf;
 		OPP_CheckSym(23);
 	} else {
 		*sysflag = default_;
@@ -158,7 +158,7 @@ static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPT_Object fld = NIL, first = NIL, last = NIL, base = NIL;
 	OPT_Struct ftyp = NIL;
-	INTEGER sysflag;
+	int32 sysflag;
 	*typ = OPT_NewStr(13, 4);
 	(*typ)->BaseTyp = NIL;
 	OPP_CheckSysFlag(&sysflag, -1);
@@ -250,8 +250,8 @@ static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPT_Node x = NIL;
-	LONGINT n;
-	INTEGER sysflag;
+	int64 n;
+	int32 sysflag;
 	OPP_CheckSysFlag(&sysflag, 0);
 	if (OPP_sym == 25) {
 		*typ = OPT_NewStr(13, 3);
@@ -343,7 +343,7 @@ static void OPP_PointerType (OPT_Struct *typ)
 
 static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp)
 {
-	SHORTINT mode;
+	int8 mode;
 	OPT_Object par = NIL, first = NIL, last = NIL, res = NIL;
 	OPT_Struct typ = NIL;
 	first = NIL;
@@ -624,9 +624,9 @@ static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar)
 static void OPP_StandProcCall (OPT_Node *x)
 {
 	OPT_Node y = NIL;
-	SHORTINT m;
-	INTEGER n;
-	m = (SYSTEM_INT8)((SYSTEM_INT32)(*x)->obj->adr);
+	int8 m;
+	int32 n;
+	m = (int8)((int32)(*x)->obj->adr);
 	n = 0;
 	if (OPP_sym == 30) {
 		OPS_Get(&OPP_sym);
@@ -785,7 +785,7 @@ static void OPP_Factor (OPT_Node *x)
 static void OPP_Term (OPT_Node *x)
 {
 	OPT_Node y = NIL;
-	SHORTINT mulop;
+	int8 mulop;
 	OPP_Factor(&*x);
 	while ((1 <= OPP_sym && OPP_sym <= 5)) {
 		mulop = OPP_sym;
@@ -798,7 +798,7 @@ static void OPP_Term (OPT_Node *x)
 static void OPP_SimpleExpression (OPT_Node *x)
 {
 	OPT_Node y = NIL;
-	SHORTINT addop;
+	int8 addop;
 	if (OPP_sym == 7) {
 		OPS_Get(&OPP_sym);
 		OPP_Term(&*x);
@@ -822,7 +822,7 @@ static void OPP_Expression (OPT_Node *x)
 {
 	OPT_Node y = NIL;
 	OPT_Object obj = NIL;
-	SHORTINT relation;
+	int8 relation;
 	OPP_SimpleExpression(&*x);
 	if ((9 <= OPP_sym && OPP_sym <= 14)) {
 		relation = OPP_sym;
@@ -848,7 +848,7 @@ static void OPP_Expression (OPT_Node *x)
 	}
 }
 
-static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec)
+static void OPP_Receiver (int8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec)
 {
 	OPT_Object obj = NIL;
 	*typ = OPT_undftyp;
@@ -914,7 +914,7 @@ static struct ProcedureDeclaration__16 {
 	OPT_Node *x;
 	OPT_Object *proc, *fwd;
 	OPS_Name *name;
-	SHORTINT *mode, *vis;
+	int8 *mode, *vis;
 	BOOLEAN *forward;
 	struct ProcedureDeclaration__16 *lnk;
 } *ProcedureDeclaration__16_s;
@@ -927,8 +927,8 @@ static void TProcDecl__23 (void);
 static void GetCode__19 (void)
 {
 	OPT_ConstExt ext = NIL;
-	INTEGER n;
-	LONGINT c;
+	int32 n;
+	int64 c;
 	ext = OPT_NewExt();
 	(*ProcedureDeclaration__16_s->proc)->conval->ext = ext;
 	n = 0;
@@ -992,7 +992,7 @@ static void GetParams__21 (void)
 static void Body__17 (void)
 {
 	OPT_Node procdec = NIL, statseq = NIL;
-	LONGINT c;
+	int64 c;
 	c = OPM_errpos;
 	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1);
 	OPP_CheckSym(39);
@@ -1015,7 +1015,7 @@ static void TProcDecl__23 (void)
 {
 	OPT_Object baseProc = NIL;
 	OPT_Struct objTyp = NIL, recTyp = NIL;
-	SHORTINT objMode;
+	int8 objMode;
 	OPS_Name objName;
 	OPS_Get(&OPP_sym);
 	*ProcedureDeclaration__16_s->mode = 13;
@@ -1087,7 +1087,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 {
 	OPT_Object proc = NIL, fwd = NIL;
 	OPS_Name name;
-	SHORTINT mode, vis;
+	int8 mode, vis;
 	BOOLEAN forward;
 	struct ProcedureDeclaration__16 _s;
 	_s.x = x;
@@ -1164,11 +1164,11 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 	ProcedureDeclaration__16_s = _s.lnk;
 }
 
-static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, OPP_CaseTable tab)
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int32 *n, OPP_CaseTable tab)
 {
 	OPT_Node x = NIL, y = NIL, lastlab = NIL;
-	INTEGER i, f;
-	LONGINT xval, yval;
+	int32 i, f;
+	int64 xval, yval;
 	*lab = NIL;
 	lastlab = NIL;
 	for (;;) {
@@ -1235,7 +1235,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INTEGER *n, O
 }
 
 static struct StatSeq__30 {
-	LONGINT *pos;
+	int64 *pos;
 	struct StatSeq__30 *lnk;
 } *StatSeq__30_s;
 
@@ -1245,8 +1245,8 @@ static void SetPos__35 (OPT_Node x);
 
 static void CasePart__31 (OPT_Node *x)
 {
-	INTEGER n;
-	LONGINT low, high;
+	int32 n;
+	int64 low, high;
 	BOOLEAN e;
 	OPP_CaseTable tab;
 	OPT_Node cases = NIL, lab = NIL, y = NIL, lastcase = NIL;
@@ -1329,7 +1329,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 	OPT_Struct idtyp = NIL;
 	BOOLEAN e;
 	OPT_Node s = NIL, x = NIL, y = NIL, z = NIL, apar = NIL, last = NIL, lastif = NIL;
-	LONGINT pos;
+	int64 pos;
 	OPS_Name name;
 	struct StatSeq__30 _s;
 	_s.pos = &pos;
@@ -1622,7 +1622,7 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 	OPT_Struct typ = NIL;
 	OPT_Object obj = NIL, first = NIL, last = NIL;
 	OPT_Node x = NIL, lastdec = NIL;
-	INTEGER i;
+	int32 i;
 	first = NIL;
 	last = NIL;
 	OPP_nofFwdPtr = 0;
@@ -1775,7 +1775,7 @@ void OPP_Module (OPT_Node *prog, SET opt)
 {
 	OPS_Name impName, aliasName;
 	OPT_Node procdec = NIL, statseq = NIL;
-	LONGINT c;
+	int64 c;
 	BOOLEAN done;
 	OPS_Init();
 	OPP_LoopLevel = 0;

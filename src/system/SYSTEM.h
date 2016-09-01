@@ -2,19 +2,21 @@
 #define SYSTEM__h
 
 #if defined(_WIN64)
-  typedef long long          SYSTEM_INT64;
-  typedef unsigned long long SYSTEM_CARD64;
+  typedef long long          int64;
+  typedef unsigned long long uint64;
 #else
-  typedef long               SYSTEM_INT64;
-  typedef unsigned long      SYSTEM_CARD64;
+  typedef long               int64;
+  typedef unsigned long      uint64;
 #endif
 
-typedef int                  SYSTEM_INT32;
-typedef unsigned int         SYSTEM_CARD32;
-typedef short int            SYSTEM_INT16;
-typedef unsigned short int   SYSTEM_CARD16;
-typedef signed char          SYSTEM_INT8;
-typedef unsigned char        SYSTEM_CARD8;
+typedef int                  int32;
+typedef unsigned int         uint32;
+
+typedef short int            int16;
+typedef unsigned short int   uint16;
+
+typedef signed char          int8;
+typedef unsigned char        uint8;
 
 #if (__SIZEOF_POINTER__ == 8) || defined(_WIN64) || defined(__LP64__)
   #if defined(_WIN64)
@@ -26,12 +28,30 @@ typedef unsigned char        SYSTEM_CARD8;
   typedef unsigned int         size_t;
 #endif
 
-#define SYSTEM_ADRINT size_t
-#define SYSTEM_ADDRESS size_t   // Temporarily for bootstrap
 #define _SIZE_T_DECLARED // For FreeBSD
 #define _SIZE_T_DEFINED_ // For OpenBSD
 
-void *memcpy(void *dest, const void *source, SYSTEM_ADRINT size);
+void *memcpy(void *dest, const void *source, size_t size);
+
+
+// Temporary while bootstrapping:
+
+#define SYSTEM_INT8     int8
+#define SYSTEM_INT16    int16
+#define SYSTEM_INT32    int32
+#define SYSTEM_INT64    int64
+#define SYSTEM_ADDRESS  size_t
+
+#define U_SYSTEM_INT8   uint8
+#define U_SYSTEM_INT16  uint16
+#define U_SYSTEM_INT32  uint32
+#define U_SYSTEM_INT64  uint64
+
+#define U_int8          uint8
+#define U_int16         uint16
+#define U_int32         uint32
+#define U_int64         uint64
+
 
 
 
@@ -52,41 +72,53 @@ void *memcpy(void *dest, const void *source, SYSTEM_ADRINT size);
 
 // Oberon types
 
-typedef char          BOOLEAN;
-typedef unsigned char SYSTEM_BYTE;
-typedef unsigned char CHAR;
-typedef signed char   SHORTINT;
-typedef float         REAL;
-typedef double        LONGREAL;
-typedef void*         SYSTEM_PTR;
+// typedef char          BOOLEAN;
+// typedef unsigned char SYSTEM_BYTE;
+// typedef unsigned char CHAR;
+// typedef signed char   SHORTINT;
+// typedef float         REAL;
+// typedef double        LONGREAL;
+// typedef void*         SYSTEM_PTR;
+
+typedef int8   BOOLEAN;
+typedef int8   SYSTEM_BYTE;
+typedef uint8  U_SYSTEM_BYTE;
+typedef uint8  CHAR;
+typedef uint8  U_CHAR;
+typedef int8   SHORTINT;
+typedef uint8  U_SHORTINT;
+typedef float  REAL;
+typedef double LONGREAL;
+typedef void*  SYSTEM_PTR;
+
+typedef size_t SYSTEM_ADRINT;
+
 
 // For 32 bit builds, the size of LONGINT depends on a make option:
 
 #if (__SIZEOF_POINTER__ == 8) || defined(LARGE) || defined(_WIN64)
-  typedef int                INTEGER;   // INTEGER is 32 bit.
-  typedef long long          LONGINT;   // LONGINT is 64 bit. (long long is always 64 bits, while long can be 32 bits e.g. under MSC/MingW)
-  typedef unsigned int       U_INTEGER;
-  typedef unsigned long long U_LONGINT;
+  typedef int32  INTEGER;
+  typedef int64  LONGINT;
+  typedef uint32 U_INTEGER;
+  typedef uint64 U_LONGINT;
 #else
-  typedef short int          INTEGER;   // INTEGER is 16 bit.
-  typedef long               LONGINT;   // LONGINT is 32 bit.
-  typedef unsigned short int U_INTEGER;
-  typedef unsigned long      U_LONGINT;
+  typedef int16  INTEGER;
+  typedef int32  LONGINT;
+  typedef uint16 U_INTEGER;
+  typedef uint32 U_LONGINT;
 #endif
 
 // Unsigned variants are for use by shift and rotate macros.
 
-typedef unsigned char U_SYSTEM_BYTE;
-typedef unsigned char U_CHAR;
-typedef unsigned char U_SHORTINT;
-
 typedef U_LONGINT SET;
 typedef U_LONGINT U_SET;
 
-typedef SYSTEM_CARD8  U_SYSTEM_INT8;
-typedef SYSTEM_CARD16 U_SYSTEM_INT16;
-typedef SYSTEM_CARD32 U_SYSTEM_INT32;
-typedef SYSTEM_CARD64 U_SYSTEM_INT64;
+
+
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
 
 
 // OS Memory allocation interfaces are in PlatformXXX.Mod

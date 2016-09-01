@@ -5,14 +5,14 @@
 
 
 static CHAR Console_line[128];
-static INTEGER Console_pos;
+static int32 Console_pos;
 
 
 export void Console_Bool (BOOLEAN b);
 export void Console_Char (CHAR ch);
 export void Console_Flush (void);
-export void Console_Hex (LONGINT i);
-export void Console_Int (LONGINT i, LONGINT n);
+export void Console_Hex (int64 i);
+export void Console_Int (int64 i, int64 n);
 export void Console_Ln (void);
 export void Console_Read (CHAR *ch);
 export void Console_ReadLine (CHAR *line, LONGINT line__len);
@@ -21,7 +21,7 @@ export void Console_String (CHAR *s, LONGINT s__len);
 
 void Console_Flush (void)
 {
-	INTEGER error;
+	int32 error;
 	error = Platform_Write(1, (SYSTEM_ADRINT)Console_line, Console_pos);
 	Console_pos = 0;
 }
@@ -40,7 +40,7 @@ void Console_Char (CHAR ch)
 
 void Console_String (CHAR *s, LONGINT s__len)
 {
-	INTEGER i;
+	int32 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	while (s[__X(i, s__len)] != 0x00) {
@@ -50,11 +50,11 @@ void Console_String (CHAR *s, LONGINT s__len)
 	__DEL(s);
 }
 
-void Console_Int (LONGINT i, LONGINT n)
+void Console_Int (int64 i, int64 n)
 {
 	CHAR s[32];
-	LONGINT i1, k;
-	if (i == __LSHL(1, 63, LONGINT)) {
+	int64 i1, k;
+	if (i == __LSHL(1, 63, int64)) {
 		__MOVE("8085774586302733229", s, 20);
 		k = 19;
 	} else {
@@ -96,9 +96,9 @@ void Console_Bool (BOOLEAN b)
 	}
 }
 
-void Console_Hex (LONGINT i)
+void Console_Hex (int64 i)
 {
-	LONGINT k, n;
+	int64 k, n;
 	k = -28;
 	while (k <= 0) {
 		n = __MASK(__ASH(i, k), -16);
@@ -113,8 +113,8 @@ void Console_Hex (LONGINT i)
 
 void Console_Read (CHAR *ch)
 {
-	LONGINT n;
-	INTEGER error;
+	int64 n;
+	int32 error;
 	Console_Flush();
 	error = Platform_ReadBuf(0, (void*)&*ch, 1, &n);
 	if (n != 1) {
@@ -124,7 +124,7 @@ void Console_Read (CHAR *ch)
 
 void Console_ReadLine (CHAR *line, LONGINT line__len)
 {
-	LONGINT i;
+	int64 i;
 	CHAR ch;
 	Console_Flush();
 	i = 0;

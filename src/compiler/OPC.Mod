@@ -41,7 +41,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     indentLevel: INTEGER;
     ptrinit, mainprog, ansi: BOOLEAN;
     hashtab:     ARRAY 105 OF SHORTINT;
-    keytab:      ARRAY 36, 9 OF CHAR;
+    keytab:      ARRAY 50, 9 OF CHAR;
     GlbPtrs:     BOOLEAN;
     BodyNameExt: ARRAY 13 OF CHAR;
 
@@ -117,6 +117,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       IF hashtab[h] >= 0 THEN
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
+    ELSIF (mode = OPT.Typ) & (obj.typ.form = OPT.Int) THEN
+      OPM.WriteString("int"); OPM.WriteInt(obj.typ.size*8)
     ELSE
       IF (mode # OPT.Typ) OR (obj^.linkadr # PredefinedType) THEN
         IF mode = OPT.TProc THEN Ident(obj^.link^.typ^.strobj)
@@ -128,10 +130,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         OPM.Write('_')
       ELSIF (obj = OPT.sysptrtyp^.strobj)
          OR (obj = OPT.ainttyp^.strobj)
-         OR (obj = OPT.int8typ^.strobj)
-         OR (obj = OPT.int16typ^.strobj)
-         OR (obj = OPT.int32typ^.strobj)
-         OR (obj = OPT.int64typ^.strobj)
          OR (obj = OPT.bytetyp^.strobj) THEN
         OPM.WriteString("SYSTEM_")
       END;
@@ -1261,14 +1259,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE IntLiteral*(n, size: LONGINT);
   BEGIN
     IF (size > OPM.CIntSize) & (n <= OPM.CIntMax) & (n > OPM.CIntMin) THEN
-      CASE size OF
-      |2: OPM.WriteString("((SYSTEM_INT16)(");
-      |4: OPM.WriteString("((SYSTEM_INT32)(");
-      |8: OPM.WriteString("((SYSTEM_INT64)(");
-      ELSE OPM.LogWStr("Unhandled case in OPC.IntLiteral, size = "); OPM.LogWNum(size,1); OPM.LogWLn;
-      END;
-      OPM.WriteInt(n);
-      OPM.WriteString("))")
+      OPM.WriteString("((int"); OPM.WriteInt(size*8); OPM.WriteString(")(");
+      OPM.WriteInt(n); OPM.WriteString("))")
     ELSE
       OPM.WriteInt(n)
     END
@@ -1328,6 +1320,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   BEGIN n := 0;
     FOR i := 0 TO 104 DO hashtab[i] := -1 END ;
+    Enter("adrint");   (* pseudo keyword used by voc *)
     Enter("asm");
     Enter("auto");
     Enter("break");
@@ -1341,24 +1334,33 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("else");
     Enter("enum");
     Enter("extern");
-    Enter("export");  (* pseudo keyword used by voc *)
+    Enter("export");   (* pseudo keyword used by voc *)
     Enter("float");
     Enter("for");
     Enter("fortran");
     Enter("goto");
     Enter("if");
-    Enter("import");  (* pseudo keyword used by voc *)
+    Enter("import");   (* pseudo keyword used by voc *)
     Enter("int");
+    Enter("int16");    (* pseudo keyword used by voc *)
+    Enter("int32");    (* pseudo keyword used by voc *)
+    Enter("int64");    (* pseudo keyword used by voc *)
+    Enter("int8");     (* pseudo keyword used by voc *)
     Enter("long");
     Enter("register");
     Enter("return");
     Enter("short");
     Enter("signed");
     Enter("sizeof");
+    Enter("size_t");
     Enter("static");
     Enter("struct");
     Enter("switch");
     Enter("typedef");
+    Enter("uint16");   (* pseudo keyword used by voc *)
+    Enter("uint32");   (* pseudo keyword used by voc *)
+    Enter("uint64");   (* pseudo keyword used by voc *)
+    Enter("uint8");    (* pseudo keyword used by voc *)
     Enter("union");
     Enter("unsigned");
     Enter("void");

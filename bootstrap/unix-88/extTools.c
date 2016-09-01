@@ -18,7 +18,7 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 
 static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGINT cmd__len)
 {
-	INTEGER r, status, exitcode;
+	int32 r, status, exitcode;
 	__DUP(title, title__len, CHAR);
 	__DUP(cmd, cmd__len, CHAR);
 	if (OPM_Verbose) {

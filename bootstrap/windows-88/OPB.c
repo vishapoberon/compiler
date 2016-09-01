@@ -7,13 +7,13 @@
 
 
 export void (*OPB_typSize)(OPT_Struct);
-static INTEGER OPB_exp;
-static LONGINT OPB_maxExp;
+static int32 OPB_exp;
+static int64 OPB_maxExp;
 
 
 export void OPB_Assign (OPT_Node *x, OPT_Node y);
-static void OPB_BindNodes (SHORTINT class, OPT_Struct typ, OPT_Node *x, OPT_Node y);
-static LONGINT OPB_BoolToInt (BOOLEAN b);
+static void OPB_BindNodes (int8 class, OPT_Struct typ, OPT_Node *x, OPT_Node y);
+static int64 OPB_BoolToInt (BOOLEAN b);
 export void OPB_Call (OPT_Node *x, OPT_Node apar, OPT_Object fp);
 static void OPB_CharToString (OPT_Node n);
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode);
@@ -21,10 +21,10 @@ static void OPB_CheckLeaf (OPT_Node x, BOOLEAN dynArrToo);
 export void OPB_CheckParameters (OPT_Object fp, OPT_Object ap, BOOLEAN checkNames);
 static void OPB_CheckProc (OPT_Struct x, OPT_Object y);
 static void OPB_CheckPtr (OPT_Node x, OPT_Node y);
-static void OPB_CheckRealType (INTEGER f, INTEGER nr, OPT_Const x);
+static void OPB_CheckRealType (int32 f, int32 nr, OPT_Const x);
 static void OPB_CheckReceiver (OPT_Node *x, OPT_Object fp);
-static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y);
-export void OPB_Construct (SHORTINT class, OPT_Node *x, OPT_Node y);
+static void OPB_ConstOp (int32 op, OPT_Node x, OPT_Node y);
+export void OPB_Construct (int8 class, OPT_Node *x, OPT_Node y);
 static void OPB_Convert (OPT_Node *x, OPT_Struct typ);
 export void OPB_DeRef (OPT_Node *x);
 static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpar);
@@ -34,17 +34,17 @@ export void OPB_Field (OPT_Node *x, OPT_Object y);
 export void OPB_In (OPT_Node *x, OPT_Node y);
 export void OPB_Index (OPT_Node *x, OPT_Node y);
 export void OPB_Inittd (OPT_Node *inittd, OPT_Node *last, OPT_Struct typ);
-static BOOLEAN OPB_IntToBool (LONGINT i);
+static BOOLEAN OPB_IntToBool (int64 i);
 export void OPB_Link (OPT_Node *x, OPT_Node *last, OPT_Node y);
-export void OPB_MOp (SHORTINT op, OPT_Node *x);
+export void OPB_MOp (int8 op, OPT_Node *x);
 export OPT_Node OPB_NewBoolConst (BOOLEAN boolval);
-export OPT_Node OPB_NewIntConst (LONGINT intval);
+export OPT_Node OPB_NewIntConst (int64 intval);
 export OPT_Node OPB_NewLeaf (OPT_Object obj);
 export OPT_Node OPB_NewRealConst (LONGREAL realval, OPT_Struct typ);
-export OPT_Node OPB_NewString (OPS_String str, LONGINT len);
+export OPT_Node OPB_NewString (OPS_String str, int64 len);
 export OPT_Node OPB_Nil (void);
 static BOOLEAN OPB_NotVar (OPT_Node x);
-export void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y);
+export void OPB_Op (int8 op, OPT_Node *x, OPT_Node y);
 export void OPB_OptIf (OPT_Node *x);
 export void OPB_Param (OPT_Node ap, OPT_Object fp);
 export void OPB_PrepCall (OPT_Node *x, OPT_Object *fpar);
@@ -52,17 +52,17 @@ export void OPB_Return (OPT_Node *x, OPT_Object proc);
 export void OPB_SetElem (OPT_Node *x);
 static void OPB_SetIntType (OPT_Node node);
 export void OPB_SetRange (OPT_Node *x, OPT_Node y);
-export void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno);
-export void OPB_StPar0 (OPT_Node *par0, INTEGER fctno);
-export void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno);
-export void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n);
-export void OPB_StaticLink (SHORTINT dlev);
+export void OPB_StFct (OPT_Node *par0, int8 fctno, int32 parno);
+export void OPB_StPar0 (OPT_Node *par0, int32 fctno);
+export void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno);
+export void OPB_StParN (OPT_Node *par0, OPT_Node x, int32 fctno, int32 n);
+export void OPB_StaticLink (int8 dlev);
 export void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard);
-static void OPB_err (INTEGER n);
-static LONGINT OPB_log (LONGINT x);
+static void OPB_err (int32 n);
+static int64 OPB_log (int64 x);
 
 
-static void OPB_err (INTEGER n)
+static void OPB_err (int32 n)
 {
 	OPM_err(n);
 }
@@ -101,7 +101,7 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 	return _o_result;
 }
 
-void OPB_Construct (SHORTINT class, OPT_Node *x, OPT_Node y)
+void OPB_Construct (int8 class, OPT_Node *x, OPT_Node y)
 {
 	OPT_Node node = NIL;
 	node = OPT_NewNode(class);
@@ -124,9 +124,9 @@ void OPB_Link (OPT_Node *x, OPT_Node *last, OPT_Node y)
 	*last = y;
 }
 
-static LONGINT OPB_BoolToInt (BOOLEAN b)
+static int64 OPB_BoolToInt (BOOLEAN b)
 {
-	LONGINT _o_result;
+	int64 _o_result;
 	if (b) {
 		_o_result = 1;
 		return _o_result;
@@ -137,7 +137,7 @@ static LONGINT OPB_BoolToInt (BOOLEAN b)
 	__RETCHK;
 }
 
-static BOOLEAN OPB_IntToBool (LONGINT i)
+static BOOLEAN OPB_IntToBool (int64 i)
 {
 	BOOLEAN _o_result;
 	if (i == 0) {
@@ -223,8 +223,8 @@ OPT_Node OPB_EmptySet (void)
 
 static void OPB_SetIntType (OPT_Node node)
 {
-	INTEGER b;
-	LONGINT n;
+	int32 b;
+	int64 n;
 	if (node->conval->intval >= 0) {
 		n = node->conval->intval;
 	} else {
@@ -237,7 +237,7 @@ static void OPB_SetIntType (OPT_Node node)
 	node->typ = OPT_IntType(b);
 }
 
-OPT_Node OPB_NewIntConst (LONGINT intval)
+OPT_Node OPB_NewIntConst (int64 intval)
 {
 	OPT_Node _o_result;
 	OPT_Node x = NIL;
@@ -262,7 +262,7 @@ OPT_Node OPB_NewRealConst (LONGREAL realval, OPT_Struct typ)
 	return _o_result;
 }
 
-OPT_Node OPB_NewString (OPS_String str, LONGINT len)
+OPT_Node OPB_NewString (OPS_String str, int64 len)
 {
 	OPT_Node _o_result;
 	OPT_Node x = NIL;
@@ -294,7 +294,7 @@ static void OPB_CharToString (OPT_Node n)
 	n->obj = NIL;
 }
 
-static void OPB_BindNodes (SHORTINT class, OPT_Struct typ, OPT_Node *x, OPT_Node y)
+static void OPB_BindNodes (int8 class, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 {
 	OPT_Node node = NIL;
 	node = OPT_NewNode(class);
@@ -336,7 +336,7 @@ void OPB_DeRef (OPT_Node *x)
 
 void OPB_Index (OPT_Node *x, OPT_Node y)
 {
-	INTEGER f;
+	int32 f;
 	OPT_Struct typ = NIL;
 	f = y->typ->form;
 	if ((*x)->class >= 7) {
@@ -461,15 +461,15 @@ void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard)
 
 void OPB_In (OPT_Node *x, OPT_Node y)
 {
-	INTEGER f;
-	LONGINT k;
+	int32 f;
+	int64 k;
 	f = (*x)->typ->form;
 	if ((((*x)->class == 8 || (*x)->class == 9) || y->class == 8) || y->class == 9) {
 		OPB_err(126);
 	} else if ((f == 4 && y->typ->form == 7)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (k < 0 || k > (SYSTEM_INT64)OPM_MaxSet) {
+			if (k < 0 || k > (int64)OPM_MaxSet) {
 				OPB_err(202);
 			} else if (y->class == 7) {
 				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval));
@@ -488,9 +488,9 @@ void OPB_In (OPT_Node *x, OPT_Node y)
 	(*x)->typ = OPT_booltyp;
 }
 
-static LONGINT OPB_log (LONGINT x)
+static int64 OPB_log (int64 x)
 {
-	LONGINT _o_result;
+	int64 _o_result;
 	OPB_exp = 0;
 	if (x > 0) {
 		while (!__ODD(x)) {
@@ -502,7 +502,7 @@ static LONGINT OPB_log (LONGINT x)
 	return _o_result;
 }
 
-static void OPB_CheckRealType (INTEGER f, INTEGER nr, OPT_Const x)
+static void OPB_CheckRealType (int32 f, int32 nr, OPT_Const x)
 {
 	LONGREAL min, max, r;
 	if (f == 5) {
@@ -526,9 +526,9 @@ static struct MOp__28 {
 	struct MOp__28 *lnk;
 } *MOp__28_s;
 
-static OPT_Node NewOp__29 (SHORTINT op, OPT_Struct typ, OPT_Node z);
+static OPT_Node NewOp__29 (int8 op, OPT_Struct typ, OPT_Node z);
 
-static OPT_Node NewOp__29 (SHORTINT op, OPT_Struct typ, OPT_Node z)
+static OPT_Node NewOp__29 (int8 op, OPT_Struct typ, OPT_Node z)
 {
 	OPT_Node _o_result;
 	OPT_Node node = NIL;
@@ -540,9 +540,9 @@ static OPT_Node NewOp__29 (SHORTINT op, OPT_Struct typ, OPT_Node z)
 	return _o_result;
 }
 
-void OPB_MOp (SHORTINT op, OPT_Node *x)
+void OPB_MOp (int8 op, OPT_Node *x)
 {
-	INTEGER f;
+	int32 f;
 	OPT_Struct typ = NIL;
 	OPT_Node z = NIL;
 	struct MOp__28 _s;
@@ -679,7 +679,7 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 
 static void OPB_CheckPtr (OPT_Node x, OPT_Node y)
 {
-	INTEGER g;
+	int32 g;
 	OPT_Struct p = NIL, q = NIL, t = NIL;
 	g = y->typ->form;
 	if (g == 11) {
@@ -763,17 +763,17 @@ static void OPB_CheckProc (OPT_Struct x, OPT_Object y)
 
 static struct ConstOp__13 {
 	OPT_Node *x;
-	INTEGER *f;
+	int32 *f;
 	OPT_Const *xval, *yval;
 	struct ConstOp__13 *lnk;
 } *ConstOp__13_s;
 
-static INTEGER ConstCmp__14 (void);
+static int32 ConstCmp__14 (void);
 
-static INTEGER ConstCmp__14 (void)
+static int32 ConstCmp__14 (void)
 {
-	INTEGER _o_result;
-	INTEGER res;
+	int32 _o_result;
+	int32 res;
 	switch (*ConstOp__13_s->f) {
 		case 0: 
 			res = 9;
@@ -837,11 +837,11 @@ static INTEGER ConstCmp__14 (void)
 	return _o_result;
 }
 
-static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
+static void OPB_ConstOp (int32 op, OPT_Node x, OPT_Node y)
 {
-	INTEGER f, g;
+	int32 f, g;
 	OPT_Const xval = NIL, yval = NIL;
-	LONGINT xv, yv;
+	int64 xv, yv;
 	BOOLEAN temp;
 	struct ConstOp__13 _s;
 	_s.x = &x;
@@ -1117,8 +1117,8 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 {
 	OPT_Node node = NIL;
-	INTEGER f, g;
-	LONGINT k;
+	int32 f, g;
+	int64 k;
 	LONGREAL r;
 	f = (*x)->typ->form;
 	g = typ->form;
@@ -1169,14 +1169,14 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 }
 
 static struct Op__38 {
-	INTEGER *f, *g;
+	int32 *f, *g;
 	struct Op__38 *lnk;
 } *Op__38_s;
 
-static void NewOp__39 (SHORTINT op, OPT_Struct typ, OPT_Node *x, OPT_Node y);
+static void NewOp__39 (int8 op, OPT_Struct typ, OPT_Node *x, OPT_Node y);
 static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y);
 
-static void NewOp__39 (SHORTINT op, OPT_Struct typ, OPT_Node *x, OPT_Node y)
+static void NewOp__39 (int8 op, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 {
 	OPT_Node node = NIL;
 	node = OPT_NewNode(12);
@@ -1219,13 +1219,13 @@ static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y)
 	return _o_result;
 }
 
-void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
+void OPB_Op (int8 op, OPT_Node *x, OPT_Node y)
 {
-	INTEGER f, g;
+	int32 f, g;
 	OPT_Node t = NIL, z = NIL;
 	OPT_Struct typ = NIL;
 	BOOLEAN do_;
-	LONGINT val;
+	int64 val;
 	struct Op__38 _s;
 	_s.f = &f;
 	_s.g = &g;
@@ -1496,19 +1496,19 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 
 void OPB_SetRange (OPT_Node *x, OPT_Node y)
 {
-	LONGINT k, l;
+	int64 k, l;
 	if ((((*x)->class == 8 || (*x)->class == 9) || y->class == 8) || y->class == 9) {
 		OPB_err(126);
 	} else if (((*x)->typ->form == 4 && y->typ->form == 4)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (0 > k || k > (SYSTEM_INT64)OPM_MaxSet) {
+			if (0 > k || k > (int64)OPM_MaxSet) {
 				OPB_err(202);
 			}
 		}
 		if (y->class == 7) {
 			l = y->conval->intval;
-			if (0 > l || l > (SYSTEM_INT64)OPM_MaxSet) {
+			if (0 > l || l > (int64)OPM_MaxSet) {
 				OPB_err(202);
 			}
 		}
@@ -1531,14 +1531,14 @@ void OPB_SetRange (OPT_Node *x, OPT_Node y)
 
 void OPB_SetElem (OPT_Node *x)
 {
-	LONGINT k;
+	int64 k;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPB_err(126);
 	} else if ((*x)->typ->form != 4) {
 		OPB_err(93);
 	} else if ((*x)->class == 7) {
 		k = (*x)->conval->intval;
-		if ((0 <= k && k <= (SYSTEM_INT64)OPM_MaxSet)) {
+		if ((0 <= k && k <= (int64)OPM_MaxSet)) {
 			(*x)->conval->setval = __SETOF(k);
 		} else {
 			OPB_err(202);
@@ -1553,7 +1553,7 @@ void OPB_SetElem (OPT_Node *x)
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 {
 	OPT_Struct y = NIL;
-	INTEGER f, g;
+	int32 f, g;
 	OPT_Struct p = NIL, q = NIL;
 	if (OPM_Verbose) {
 		OPM_LogWLn();
@@ -1696,9 +1696,9 @@ static void OPB_CheckLeaf (OPT_Node x, BOOLEAN dynArrToo)
 {
 }
 
-void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
+void OPB_StPar0 (OPT_Node *par0, int32 fctno)
 {
-	INTEGER f;
+	int32 f;
 	OPT_Struct typ = NIL;
 	OPT_Node x = NIL;
 	x = *par0;
@@ -1913,7 +1913,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (f == 4) {
-				if (x->typ->size != (SYSTEM_INT64)OPM_LIntSize) {
+				if (x->typ->size != (int64)OPM_LIntSize) {
 					OPB_Convert(&x, OPT_linttyp);
 				}
 			} else {
@@ -1953,7 +1953,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 				OPB_err(126);
 			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_linttyp->size)) {
 				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x0810) && x->typ->size == (SYSTEM_INT64)OPM_PointerSize))) {
+			} else if (!((__IN(x->typ->form, 0x0810) && x->typ->size == (int64)OPM_PointerSize))) {
 				OPB_err(111);
 				x->typ = OPT_linttyp;
 			}
@@ -2006,9 +2006,9 @@ static struct StPar1__52 {
 	struct StPar1__52 *lnk;
 } *StPar1__52_s;
 
-static OPT_Node NewOp__53 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right);
+static OPT_Node NewOp__53 (int8 class, int8 subcl, OPT_Node left, OPT_Node right);
 
-static OPT_Node NewOp__53 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right)
+static OPT_Node NewOp__53 (int8 class, int8 subcl, OPT_Node left, OPT_Node right)
 {
 	OPT_Node _o_result;
 	OPT_Node node = NIL;
@@ -2020,9 +2020,9 @@ static OPT_Node NewOp__53 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_No
 	return _o_result;
 }
 
-void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
+void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 {
-	INTEGER f, L;
+	int32 f, L;
 	OPT_Struct typ = NIL;
 	OPT_Node p = NIL, t = NIL;
 	struct StPar1__52 _s;
@@ -2051,7 +2051,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (f == 4) {
-				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (SYSTEM_INT64)OPM_MaxSet))) {
+				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (int64)OPM_MaxSet))) {
 					OPB_err(202);
 				}
 				p = NewOp__53(19, fctno, p, x);
@@ -2064,7 +2064,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (!(f == 4) || x->class != 7) {
 				OPB_err(69);
 			} else if (x->typ->size == 1) {
-				L = (SYSTEM_INT32)x->conval->intval;
+				L = (int32)x->conval->intval;
 				typ = p->typ;
 				while ((L > 0 && __IN(typ->comp, 0x0c))) {
 					typ = typ->BaseTyp;
@@ -2222,7 +2222,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 				OPB_err(126);
 			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_linttyp->size)) {
 				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x0810) && x->typ->size == (SYSTEM_INT64)OPM_PointerSize))) {
+			} else if (!((__IN(x->typ->form, 0x0810) && x->typ->size == (int64)OPM_PointerSize))) {
 				OPB_err(111);
 				x->typ = OPT_linttyp;
 			}
@@ -2260,10 +2260,10 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 	StPar1__52_s = _s.lnk;
 }
 
-void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)
+void OPB_StParN (OPT_Node *par0, OPT_Node x, int32 fctno, int32 n)
 {
 	OPT_Node node = NIL;
-	INTEGER f;
+	int32 f;
 	OPT_Node p = NIL;
 	p = *par0;
 	f = x->typ->form;
@@ -2305,9 +2305,9 @@ void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)
 	*par0 = p;
 }
 
-void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
+void OPB_StFct (OPT_Node *par0, int8 fctno, int32 parno)
 {
-	INTEGER dim;
+	int32 dim;
 	OPT_Node x = NIL, p = NIL;
 	p = *par0;
 	if (fctno <= 19) {
@@ -2371,7 +2371,7 @@ void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
 
 static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpar)
 {
-	INTEGER f;
+	int32 f;
 	f = atyp->comp;
 	ftyp = ftyp->BaseTyp;
 	atyp = atyp->BaseTyp;
@@ -2480,7 +2480,7 @@ void OPB_Param (OPT_Node ap, OPT_Object fp)
 	}
 }
 
-void OPB_StaticLink (SHORTINT dlev)
+void OPB_StaticLink (int8 dlev)
 {
 	OPT_Object scope = NIL;
 	scope = OPT_topScope;
@@ -2495,7 +2495,7 @@ void OPB_Call (OPT_Node *x, OPT_Node apar, OPT_Object fp)
 {
 	OPT_Struct typ = NIL;
 	OPT_Node p = NIL;
-	SHORTINT lev;
+	int8 lev;
 	if ((*x)->class == 9) {
 		typ = (*x)->typ;
 		lev = (*x)->obj->mnolev;
@@ -2555,7 +2555,7 @@ void OPB_Return (OPT_Node *x, OPT_Object proc)
 void OPB_Assign (OPT_Node *x, OPT_Node y)
 {
 	OPT_Node z = NIL;
-	SHORTINT subcl;
+	int8 subcl;
 	if ((*x)->class >= 7) {
 		OPB_err(56);
 	}
