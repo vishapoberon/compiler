@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -18,11 +18,12 @@ typedef
 
 
 import BOOLEAN Platform_LittleEndian;
-import int32 Platform_MainStackFrame, Platform_HaltCode;
+import uintptr Platform_MainStackFrame;
+import int32 Platform_HaltCode;
 import int16 Platform_PID;
 import CHAR Platform_CWD[256];
 import int16 Platform_ArgCount;
-import int32 Platform_ArgVector;
+import uintptr Platform_ArgVector;
 import int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 import CHAR Platform_nl[3];
 
@@ -51,8 +52,8 @@ import void Platform_Init (int16 argc, int32 argvadr);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 import int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
 import BOOLEAN Platform_NoSuchDirectory (int16 e);
-import int32 Platform_OSAllocate (int32 size);
-import void Platform_OSFree (int32 address);
+import uintptr Platform_OSAllocate (uintptr size);
+import void Platform_OSFree (uintptr address);
 import int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 import int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
 import int16 Platform_Read (int32 h, int32 p, int32 l, int32 *n);

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkamSf */
+/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkamSf */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Heap.h"
@@ -81,7 +81,7 @@ static void Vishap_PropagateElementaryTypeSizes (void)
 	OPT_realtyp->size = OPM_RealSize;
 	OPT_inttyp->size = OPM_IntSize;
 	OPT_linttyp->size = OPM_LIntSize;
-	OPT_ainttyp->size = OPM_PointerSize;
+	OPT_pinttyp->size = OPM_PointerSize;
 	OPT_lrltyp->size = OPM_LRealSize;
 	OPT_sinttyp->size = OPM_SIntSize;
 	OPT_booltyp->size = OPM_BoolSize;

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin tskSfF */
 #include "SYSTEM.h"
 
 struct Heap__1 {
@@ -100,7 +100,7 @@ export void Heap_Unlock (void);
 
 extern void *Heap__init();
 extern LONGINT Platform_MainStackFrame;
-extern LONGINT Platform_OSAllocate(LONGINT size);
+extern uintptr Platform_OSAllocate(uintptr size);
 #define Heap_FetchAddress(pointer)	(LONGINT)(SYSTEM_ADRINT)(*((void**)((SYSTEM_ADRINT)pointer)))
 #define Heap_HeapModuleInit()	Heap__init()
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)

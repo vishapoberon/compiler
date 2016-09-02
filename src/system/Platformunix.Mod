@@ -27,13 +27,13 @@ TYPE
 
 VAR
   LittleEndian-:   BOOLEAN;
-  MainStackFrame-: LONGINT;
+  MainStackFrame-: SYSTEM.ADRINT;
   HaltCode-:       LONGINT;
   PID-:            INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:            ARRAY 256 OF CHAR;
   ArgCount-:       INTEGER;
 
-  ArgVector-:      LONGINT;
+  ArgVector-:      SYSTEM.ADRINT;
   HaltHandler:     HaltProcedure;
   TimeStart:       LONGINT;
 
@@ -106,11 +106,11 @@ BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
 
 (* OS memory allocaton *)
 
-PROCEDURE -allocate(size: LONGINT): LONGINT "(LONGINT)(SYSTEM_ADRINT)((void*)malloc((size_t)size))";
-PROCEDURE OSAllocate*(size: LONGINT): LONGINT; BEGIN RETURN allocate(size) END OSAllocate;
+PROCEDURE -allocate  (size: SYSTEM.UINTPTR): SYSTEM.UINTPTR "(uintptr)((void*)malloc((size_t)size))";
+PROCEDURE OSAllocate*(size: SYSTEM.UINTPTR): SYSTEM.UINTPTR; BEGIN RETURN allocate(size) END OSAllocate;
 
-PROCEDURE -free(address: LONGINT) "free((void*)(SYSTEM_ADRINT)address)";
-PROCEDURE OSFree*(address: LONGINT); BEGIN free(address) END OSFree;
+PROCEDURE -free(address: SYSTEM.UINTPTR) "free((void*)address)";
+PROCEDURE OSFree*(address: SYSTEM.UINTPTR); BEGIN free(address) END OSFree;
 
 
 

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPC.h"
@@ -286,6 +286,7 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_realtyp->strobj->linkadr = 2;
 	OPT_inttyp->strobj->linkadr = 2;
 	OPT_linttyp->strobj->linkadr = 2;
+	OPT_pinttyp->strobj->linkadr = 2;
 	OPT_ainttyp->strobj->linkadr = 2;
 	OPT_int8typ->strobj->linkadr = 2;
 	OPT_int16typ->strobj->linkadr = 2;

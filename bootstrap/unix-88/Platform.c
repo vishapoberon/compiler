@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -27,11 +27,12 @@ typedef
 
 
 export BOOLEAN Platform_LittleEndian;
-export int64 Platform_MainStackFrame, Platform_HaltCode;
+export uintptr Platform_MainStackFrame;
+export int64 Platform_HaltCode;
 export int32 Platform_PID;
 export CHAR Platform_CWD[256];
 export int32 Platform_ArgCount;
-export int64 Platform_ArgVector;
+export uintptr Platform_ArgVector;
 static Platform_HaltProcedure Platform_HaltHandler;
 static int64 Platform_TimeStart;
 export int32 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
@@ -63,8 +64,8 @@ export void Platform_Init (int32 argc, int64 argvadr);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int64 *t, int64 *d);
 export int32 Platform_New (CHAR *n, LONGINT n__len, int64 *h);
 export BOOLEAN Platform_NoSuchDirectory (int32 e);
-export int64 Platform_OSAllocate (int64 size);
-export void Platform_OSFree (int64 address);
+export uintptr Platform_OSAllocate (uintptr size);
+export void Platform_OSFree (uintptr address);
 export int32 Platform_OldRO (CHAR *n, LONGINT n__len, int64 *h);
 export int32 Platform_OldRW (CHAR *n, LONGINT n__len, int64 *h);
 export int32 Platform_Read (int64 h, int64 p, int64 l, int64 *n);
@@ -119,14 +120,14 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 #define Platform_EXDEV()	EXDEV
 extern void Heap_InitHeap();
 #define Platform_HeapInitHeap()	Heap_InitHeap()
-#define Platform_allocate(size)	(LONGINT)(SYSTEM_ADRINT)((void*)malloc((size_t)size))
+#define Platform_allocate(size)	(uintptr)((void*)malloc((size_t)size))
 #define Platform_chdir(n, n__len)	chdir((char*)n)
 #define Platform_closefile(fd)	close(fd)
 #define Platform_err()	errno
 #define Platform_errc(c)	write(1, &c, 1)
 #define Platform_errstring(s, s__len)	write(1, s, s__len-1)
 #define Platform_exit(code)	exit(code)
-#define Platform_free(address)	free((void*)(SYSTEM_ADRINT)address)
+#define Platform_free(address)	free((void*)address)
 #define Platform_fstat(fd)	fstat(fd, &s)
 #define Platform_fsync(fd)	fsync(fd)
 #define Platform_ftruncate(fd, l)	ftruncate(fd, l)
@@ -213,14 +214,14 @@ BOOLEAN Platform_ConnectionFailed (int32 e)
 	return _o_result;
 }
 
-int64 Platform_OSAllocate (int64 size)
+uintptr Platform_OSAllocate (uintptr size)
 {
-	int64 _o_result;
+	uintptr _o_result;
 	_o_result = Platform_allocate(size);
 	return _o_result;
 }
 
-void Platform_OSFree (int64 address)
+void Platform_OSFree (uintptr address)
 {
 	Platform_free(address);
 }

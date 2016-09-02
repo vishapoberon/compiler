@@ -205,6 +205,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
     OPT.inttyp^.strobj^.linkadr    := PredefinedType;
     OPT.linttyp^.strobj^.linkadr   := PredefinedType;
+    OPT.pinttyp^.strobj^.linkadr   := PredefinedType;
     OPT.ainttyp^.strobj^.linkadr   := PredefinedType;
     OPT.int8typ^.strobj^.linkadr   := PredefinedType;
     OPT.int16typ^.strobj^.linkadr  := PredefinedType;

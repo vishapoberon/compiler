@@ -7,7 +7,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   IMPORT OPT, OPM, Configuration, SYSTEM;
 
-
   CONST demoVersion = FALSE;
 
 
@@ -118,7 +117,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
     ELSIF (mode = OPT.Typ) & (obj.typ.form = OPT.Int) THEN
-      OPM.WriteString("int"); OPM.WriteInt(obj.typ.size*8)
+      IF (obj.typ = OPT.pinttyp) OR (obj.typ = OPT.ainttyp) THEN
+        OPM.WriteString("uintptr")
+      ELSE
+        OPM.WriteString("int"); OPM.WriteInt(obj.typ.size*8)
+      END
     ELSE
       IF (mode # OPT.Typ) OR (obj^.linkadr # PredefinedType) THEN
         IF mode = OPT.TProc THEN Ident(obj^.link^.typ^.strobj)
@@ -129,7 +132,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         END ;
         OPM.Write('_')
       ELSIF (obj = OPT.sysptrtyp^.strobj)
-         OR (obj = OPT.ainttyp^.strobj)
          OR (obj = OPT.bytetyp^.strobj) THEN
         OPM.WriteString("SYSTEM_")
       END;
@@ -1357,6 +1359,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("struct");
     Enter("switch");
     Enter("typedef");
+    Enter("uintptr");  (* pseudo keyword used by voc *)
     Enter("uint16");   (* pseudo keyword used by voc *)
     Enter("uint32");   (* pseudo keyword used by voc *)
     Enter("uint64");   (* pseudo keyword used by voc *)

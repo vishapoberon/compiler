@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/01] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "OPM.h"
@@ -200,8 +200,12 @@ void OPC_Ident (OPT_Object obj)
 			}
 		}
 	} else if ((mode == 5 && obj->typ->form == 4)) {
-		OPM_WriteString((CHAR*)"int", 4);
-		OPM_WriteInt(__ASHL(obj->typ->size, 3));
+		if (obj->typ == OPT_pinttyp || obj->typ == OPT_ainttyp) {
+			OPM_WriteString((CHAR*)"uintptr", 8);
+		} else {
+			OPM_WriteString((CHAR*)"int", 4);
+			OPM_WriteInt(__ASHL(obj->typ->size, 3));
+		}
 	} else {
 		if (mode != 5 || obj->linkadr != 2) {
 			if (mode == 13) {
@@ -215,7 +219,7 @@ void OPC_Ident (OPT_Object obj)
 				OPM_WriteStringVar((void*)OPM_modName, 32);
 			}
 			OPM_Write('_');
-		} else if ((obj == OPT_sysptrtyp->strobj || obj == OPT_ainttyp->strobj) || obj == OPT_bytetyp->strobj) {
+		} else if (obj == OPT_sysptrtyp->strobj || obj == OPT_bytetyp->strobj) {
 			OPM_WriteString((CHAR*)"SYSTEM_", 8);
 		}
 		OPM_WriteStringVar((void*)obj->name, 256);
@@ -2080,6 +2084,7 @@ static void OPC_InitKeywords (void)
 	Enter__49((CHAR*)"struct", 7);
 	Enter__49((CHAR*)"switch", 7);
 	Enter__49((CHAR*)"typedef", 8);
+	Enter__49((CHAR*)"uintptr", 8);
 	Enter__49((CHAR*)"uint16", 7);
 	Enter__49((CHAR*)"uint32", 7);
 	Enter__49((CHAR*)"uint64", 7);

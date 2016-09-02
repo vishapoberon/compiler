@@ -162,8 +162,8 @@ MODULE Heap;
   END INCREF;
 
 
-  PROCEDURE -ExternPlatformOSAllocate           "extern LONGINT Platform_OSAllocate(LONGINT size);";
-  PROCEDURE -OSAllocate(size: LONGINT): LONGINT "Platform_OSAllocate(size)";
+  PROCEDURE -ExternPlatformOSAllocate "extern uintptr Platform_OSAllocate(uintptr size);";
+  PROCEDURE -OSAllocate(size: SYSTEM.UINTPTR): SYSTEM.UINTPTR "Platform_OSAllocate(size)";
 
   PROCEDURE NewChunk(blksz: LONGINT): LONGINT;
     VAR chnk: LONGINT;

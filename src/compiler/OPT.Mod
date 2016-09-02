@@ -155,7 +155,7 @@ VAR
   undftyp*,
   bytetyp*, booltyp*, chartyp*,
   sinttyp*, inttyp*, linttyp*,
-  ainttyp*,
+  pinttyp*, ainttyp*,
   int8typ*, int16typ*, int32typ*, int64typ*,
   realtyp*, lrltyp*, settyp*, stringtyp*,
   niltyp*,  notyp*,  sysptrtyp*:            Struct;
@@ -1186,13 +1186,14 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   InitStruct(niltyp,    NilTyp);
 
   (*initialization of module SYSTEM*)
-  EnterTyp("BYTE",   Byte,    OPM.ByteSize,    bytetyp);
-  EnterTyp("PTR",    Pointer, OPM.PointerSize, sysptrtyp);
-  EnterTyp("ADRINT", Int,     OPM.PointerSize, ainttyp);
-  EnterTyp("INT8",   Int,     1,               int8typ);
-  EnterTyp("INT16",  Int,     2,               int16typ);
-  EnterTyp("INT32",  Int,     4,               int32typ);
-  EnterTyp("INT64",  Int,     8,               int64typ);
+  EnterTyp("BYTE",    Byte,    OPM.ByteSize,    bytetyp);
+  EnterTyp("PTR",     Pointer, OPM.PointerSize, sysptrtyp);
+  EnterTyp("UINTPTR", Int,     OPM.PointerSize, pinttyp);
+  EnterTyp("ADRINT",  Int,     OPM.PointerSize, ainttyp);   (* Temporary for bootstrapping *)
+  EnterTyp("INT8",    Int,     1,               int8typ);
+  EnterTyp("INT16",   Int,     2,               int16typ);
+  EnterTyp("INT32",   Int,     4,               int32typ);
+  EnterTyp("INT64",   Int,     8,               int64typ);
   EnterProc("ADR", adrfn);
   EnterProc("CC", ccfn);
   EnterProc("LSH", lshfn);
