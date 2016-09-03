@@ -39,8 +39,8 @@ typedef unsigned short int   uint16;
 typedef signed char          int8;
 typedef unsigned char        uint8;
 
-#define uintptr size_t
-
+//#define uintptr size_t
+#define uintptr int64
 
 // The compiler uses 'import' and 'export' which translate to 'extern' and
 // nothing respectively.
@@ -255,8 +255,8 @@ extern void Platform_AssertFail(LONGINT x);
 
 // Memory allocation
 
-extern SYSTEM_PTR Heap_NEWBLK (LONGINT size);
-extern SYSTEM_PTR Heap_NEWREC (LONGINT tag);
+extern SYSTEM_PTR Heap_NEWBLK (uintptr size);
+extern SYSTEM_PTR Heap_NEWREC (uintptr tag);
 extern SYSTEM_PTR SYSTEM_NEWARR(LONGINT*, LONGINT, int, int, int, ...);
 
 #define __SYSNEW(p, len) p = Heap_NEWBLK((LONGINT)(len))

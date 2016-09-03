@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 
 typedef
@@ -241,7 +241,7 @@ void Platform_Init (int16 argc, int32 argvadr)
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = argc;
-	av = (Platform_ArgVecPtr)(SYSTEM_ADRINT)argvadr;
+	av = (Platform_ArgVecPtr)(uintptr)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -280,7 +280,7 @@ void Platform_GetArg (int16 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(SYSTEM_ADRINT)Platform_ArgVector;
+		av = (Platform_ArgVec)(uintptr)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
@@ -559,7 +559,7 @@ int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 	int16 _o_result;
 	int16 result;
 	*n = 0;
-	result = Platform_readfile(h, (SYSTEM_ADRINT)b, b__len, &*n);
+	result = Platform_readfile(h, (uintptr)b, b__len, &*n);
 	if (result == 0) {
 		*n = 0;
 		_o_result = Platform_err();
@@ -795,7 +795,7 @@ static void Platform_TestLittleEndian (void)
 {
 	int16 i;
 	i = 1;
-	__GET((SYSTEM_ADRINT)&i, Platform_LittleEndian, BOOLEAN);
+	__GET((uintptr)&i, Platform_LittleEndian, BOOLEAN);
 }
 
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 20), {-4}};

@@ -30,6 +30,7 @@ MODULE Heap;
     sntlOff   = LONG(LONG(2*SZL));    (* pointer offset table sentinel in free block relative to block start *)
     nextOff   = LONG(LONG(3*SZL));    (* next pointer in free block relative to block start *)
     NoPtrSntl = LONG(LONG(-SZL));
+  (*NoPtrSntl = SYSTEM.VAL(SYSTEM.UINTPTR, -SZL);*)
     LongZero  = LONG(LONG(0));
 
   TYPE
@@ -64,7 +65,7 @@ MODULE Heap;
     FinNode   = POINTER TO FinDesc;
     FinDesc   = RECORD
       next:     FinNode;
-      obj:      LONGINT;  (* weak pointer *)
+      obj:      SYSTEM.UINTPTR;  (* weak pointer *)
       marked:   BOOLEAN;
       finalize: Finalizer;
     END ;
@@ -75,13 +76,13 @@ MODULE Heap;
 
     freeList:   ARRAY nofLists + 1 OF LONGINT;  (* dummy, 16, 32, 48, 64, 80, 96, 112, 128, sentinel *)
     bigBlocks:  LONGINT;
-    allocated*: LONGINT;
+    allocated*: SYSTEM.UINTPTR;
     firstTry:   BOOLEAN;
 
     (* extensible heap *)
-    heap:      LONGINT;  (* the sorted list of heap chunks *)
-    heapend:   LONGINT;  (* max possible pointer value (used for stack collection) *)
-    heapsize*: LONGINT;  (* the sum of all heap chunk sizes *)
+    heap:      SYSTEM.UINTPTR;  (* the sorted list of heap chunks *)
+    heapend:   SYSTEM.UINTPTR;  (* max possible pointer value (used for stack collection) *)
+    heapsize*: SYSTEM.UINTPTR;  (* the sum of all heap chunk sizes *)
 
     (* finalization candidates *)
     fin: FinNode;
@@ -153,7 +154,7 @@ MODULE Heap;
     COPY(name, c.name); c.cmd := cmd; c.next := m.cmds; m.cmds := c
   END REGCMD;
 
-  PROCEDURE REGTYP*(m: Module; typ: LONGINT);
+  PROCEDURE REGTYP*(m: Module; typ: SYSTEM.UINTPTR);
   BEGIN SYSTEM.PUT(typ, m.types); m.types := typ
   END REGTYP;
 
@@ -165,8 +166,8 @@ MODULE Heap;
   PROCEDURE -ExternPlatformOSAllocate "extern uintptr Platform_OSAllocate(uintptr size);";
   PROCEDURE -OSAllocate(size: SYSTEM.UINTPTR): SYSTEM.UINTPTR "Platform_OSAllocate(size)";
 
-  PROCEDURE NewChunk(blksz: LONGINT): LONGINT;
-    VAR chnk: LONGINT;
+  PROCEDURE NewChunk(blksz: SYSTEM.UINTPTR): SYSTEM.UINTPTR;
+    VAR chnk: SYSTEM.UINTPTR;
   BEGIN
     chnk := OSAllocate(blksz + blkOff);
     IF chnk # 0 THEN
@@ -185,8 +186,13 @@ MODULE Heap;
   (* FetchAddress fetches a pointer from memory and returns it as a LONGINT. It works
      correctly regardless of the size of an address. Specifically on 32 bit address
      architectures with 64 bit LONGINT, it loads 32 bits and extends it to LONGINT
-     rather than loading 64 bits. *)
-  PROCEDURE -FetchAddress(pointer: LONGINT): LONGINT "(LONGINT)(SYSTEM_ADRINT)(*((void**)((SYSTEM_ADRINT)pointer)))";
+     rather than loading 64 bits.
+
+    NOTE - with uintpr work complete this function should be replaces withSYSTEM.GET
+    as there will be no need to extend addresses to larger types.
+
+  *)
+  PROCEDURE -FetchAddress(pointer: SYSTEM.UINTPTR): SYSTEM.UINTPTR "(uintptr)(*((void**)((uintptr)pointer)))";
 
   PROCEDURE ExtendHeap(blksz: LONGINT);
     VAR size, chnk, j, next: LONGINT;
@@ -213,16 +219,16 @@ MODULE Heap;
 
   PROCEDURE ^GC*(markStack: BOOLEAN);
 
-  PROCEDURE NEWREC*(tag: LONGINT): SYSTEM.PTR;
+  PROCEDURE NEWREC*(tag: SYSTEM.UINTPTR): SYSTEM.PTR;
     VAR
-      i, i0, di, blksz, restsize, t, adr, end, next, prev: LONGINT;
+      i, i0, di, blksz, restsize, t, adr, end, next, prev: SYSTEM.UINTPTR;
       new:   SYSTEM.PTR;
   BEGIN
     Lock();
     blksz := FetchAddress(tag);
 
     ASSERT((Unit = 16) OR (Unit = 32));
-    ASSERT(SIZE(SYSTEM.PTR) <= SIZE(LONGINT));
+    ASSERT(SIZE(SYSTEM.PTR) = SIZE(SYSTEM.UINTPTR));
     ASSERT(blksz MOD Unit = 0);
 
     i0 := blksz DIV Unit; i := i0;
@@ -305,8 +311,8 @@ MODULE Heap;
     RETURN SYSTEM.VAL(SYSTEM.PTR, adr + SZL)
   END NEWREC;
 
-  PROCEDURE NEWBLK*(size: LONGINT): SYSTEM.PTR;
-     VAR blksz, tag: LONGINT; new: SYSTEM.PTR;
+  PROCEDURE NEWBLK*(size: SYSTEM.UINTPTR): SYSTEM.PTR;
+     VAR blksz, tag: SYSTEM.UINTPTR; new: SYSTEM.PTR;
   BEGIN
     Lock();
     blksz := (size + (4*SZL + Unit - 1)) DIV Unit * Unit;  (*size + tag + meta + blksz + sntnl + UnitAlignment*)
@@ -364,7 +370,7 @@ MODULE Heap;
   END MarkP;
 
   PROCEDURE Scan;
-    VAR chnk, adr, end, start, tag, i, size, freesize: LONGINT;
+    VAR chnk, adr, end, start, tag, i, size, freesize: SYSTEM.UINTPTR;
   BEGIN bigBlocks := 0; i := 1;
     WHILE i < nofLists DO freeList[i] := 0; INC(i) END ;
     freesize := 0; allocated := 0; chnk := heap;

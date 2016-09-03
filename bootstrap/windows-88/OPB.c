@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -2197,7 +2197,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 			if (((x->class == 8 || x->class == 9) || __IN(f, 0x0501)) || x->typ->comp == 3) {
 				OPB_err(126);
 			}
-			if (x->typ->size < p->typ->size) {
+			if ((x->class != 7 && x->typ->size < p->typ->size)) {
 				OPB_err(-308);
 			}
 			t = OPT_NewNode(11);

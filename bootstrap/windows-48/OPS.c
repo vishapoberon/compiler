@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin tspkaSfF */
 #include "SYSTEM.h"
 #include "OPM.h"
 

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Reals__h
 #define Reals__h

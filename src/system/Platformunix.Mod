@@ -189,7 +189,7 @@ END ArgPos;
 
 (* Signals and traps *)
 
-PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (SYSTEM_ADRINT)h)";
+PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (uintptr)h)";
 
 PROCEDURE SetInterruptHandler*(handler: SignalHandler);
 BEGIN sethandler(2, handler); END SetInterruptHandler;
@@ -369,7 +369,7 @@ END Size;
 
 
 PROCEDURE -readfile (fd: LONGINT; p: LONGINT; l: LONGINT): LONGINT
-"read(fd, (void*)(SYSTEM_ADRINT)(p), l)";
+"read(fd, (void*)(uintptr)(p), l)";
 
 PROCEDURE Read*(h: FileHandle; p: LONGINT; l: LONGINT; VAR n: LONGINT): ErrorCode;
 BEGIN
@@ -386,7 +386,7 @@ END ReadBuf;
 
 
 PROCEDURE -writefile(fd: LONGINT; p: LONGINT; l: LONGINT): LONGINT
-"write(fd, (void*)(SYSTEM_ADRINT)(p), l)";
+"write(fd, (void*)(uintptr)(p), l)";
 
 PROCEDURE Write*(h: FileHandle; p: LONGINT; l: LONGINT): ErrorCode;
   VAR written: LONGINT;

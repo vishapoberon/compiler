@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPC.h"
@@ -940,7 +940,7 @@ static void OPV_expr (OPT_Node n, int32 prec)
 					OPM_Write(')');
 					break;
 				case 24: 
-					OPM_WriteString((CHAR*)"(SYSTEM_ADRINT)", 16);
+					OPM_WriteString((CHAR*)"(uintptr)", 10);
 					if (l->class == 1) {
 						OPC_CompleteIdent(l->obj);
 					} else {
@@ -956,7 +956,7 @@ static void OPV_expr (OPT_Node n, int32 prec)
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');
 						if (__IN(n->typ->form, 0x1800) || __IN(l->typ->form, 0x1800)) {
-							OPM_WriteString((CHAR*)"(SYSTEM_ADRINT)", 16);
+							OPM_WriteString((CHAR*)"(uintptr)", 10);
 						}
 						OPV_expr(l, exprPrec);
 					} else {
@@ -1328,7 +1328,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x)
 			if (x->class == 7) {
 				OPC_IntLiteral(x->conval->intval, OPM_PointerSize);
 			} else {
-				OPM_WriteString((CHAR*)"((SYSTEM_ADRINT)(", 18);
+				OPM_WriteString((CHAR*)"((uintptr)(", 12);
 				OPV_expr(x, 10);
 				OPM_WriteString((CHAR*)"))", 3);
 			}

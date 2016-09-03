@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/02] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -140,13 +140,13 @@ extern void Heap_InitHeap();
 #define Platform_opennew(n, n__len)	open((char*)n, O_CREAT | O_TRUNC | O_RDWR, 0664)
 #define Platform_openro(n, n__len)	open((char*)n, O_RDONLY)
 #define Platform_openrw(n, n__len)	open((char*)n, O_RDWR)
-#define Platform_readfile(fd, p, l)	read(fd, (void*)(SYSTEM_ADRINT)(p), l)
+#define Platform_readfile(fd, p, l)	read(fd, (void*)(uintptr)(p), l)
 #define Platform_rename(o, o__len, n, n__len)	rename((char*)o, (char*)n)
 #define Platform_sectotm(s)	struct tm *time = localtime((time_t*)&s)
 #define Platform_seekcur()	SEEK_CUR
 #define Platform_seekend()	SEEK_END
 #define Platform_seekset()	SEEK_SET
-#define Platform_sethandler(s, h)	SystemSetHandler(s, (SYSTEM_ADRINT)h)
+#define Platform_sethandler(s, h)	SystemSetHandler(s, (uintptr)h)
 #define Platform_stat(n, n__len)	stat((char*)n, &s)
 #define Platform_statdev()	(LONGINT)s.st_dev
 #define Platform_statino()	(LONGINT)s.st_ino
@@ -163,7 +163,7 @@ extern void Heap_InitHeap();
 #define Platform_tvsec()	tv.tv_sec
 #define Platform_tvusec()	tv.tv_usec
 #define Platform_unlink(n, n__len)	unlink((char*)n)
-#define Platform_writefile(fd, p, l)	write(fd, (void*)(SYSTEM_ADRINT)(p), l)
+#define Platform_writefile(fd, p, l)	write(fd, (void*)(uintptr)(p), l)
 
 BOOLEAN Platform_TooManyFiles (int32 e)
 {
@@ -231,7 +231,7 @@ void Platform_Init (int32 argc, int64 argvadr)
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = argc;
-	av = (Platform_ArgVecPtr)(SYSTEM_ADRINT)argvadr;
+	av = (Platform_ArgVecPtr)(uintptr)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -264,7 +264,7 @@ void Platform_GetArg (int32 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(SYSTEM_ADRINT)Platform_ArgVector;
+		av = (Platform_ArgVec)(uintptr)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
@@ -531,7 +531,7 @@ int32 Platform_Read (int64 h, int64 p, int64 l, int64 *n)
 int32 Platform_ReadBuf (int64 h, SYSTEM_BYTE *b, LONGINT b__len, int64 *n)
 {
 	int32 _o_result;
-	*n = Platform_readfile(h, (SYSTEM_ADRINT)b, b__len);
+	*n = Platform_readfile(h, (uintptr)b, b__len);
 	if (*n < 0) {
 		*n = 0;
 		_o_result = Platform_err();
@@ -767,7 +767,7 @@ static void Platform_TestLittleEndian (void)
 {
 	int32 i;
 	i = 1;
-	__GET((SYSTEM_ADRINT)&i, Platform_LittleEndian, BOOLEAN);
+	__GET((uintptr)&i, Platform_LittleEndian, BOOLEAN);
 }
 
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 24), {-8}};
