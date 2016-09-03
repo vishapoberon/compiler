@@ -20,18 +20,17 @@ MODULE Heap;
   *)
 
   (* heap chunks *)
-    nextChnkOff = LONG(LONG(0));      (* next heap chunk, sorted ascendingly! *)
-    endOff      = LONG(LONG(SZL));    (* end of heap chunk *)
-    blkOff      = LONG(LONG(3*SZL));  (* first block in a chunk *)
+    nextChnkOff = SYSTEM.VAL(SYSTEM.UINTPTR, 0);      (* next heap chunk, sorted ascendingly! *)
+    endOff      = SYSTEM.VAL(SYSTEM.UINTPTR, SZL);    (* end of heap chunk *)
+    blkOff      = SYSTEM.VAL(SYSTEM.UINTPTR, 3*SZL);  (* first block in a chunk *)
 
   (* heap blocks *)
-    tagOff    = LONG(LONG(0));        (* block starts with tag *)
-    sizeOff   = LONG(LONG(SZL));      (* block size in free block relative to block start *)
-    sntlOff   = LONG(LONG(2*SZL));    (* pointer offset table sentinel in free block relative to block start *)
-    nextOff   = LONG(LONG(3*SZL));    (* next pointer in free block relative to block start *)
-    NoPtrSntl = LONG(LONG(-SZL));
-  (*NoPtrSntl = SYSTEM.VAL(SYSTEM.UINTPTR, -SZL);*)
-    LongZero  = LONG(LONG(0));
+    tagOff      = SYSTEM.VAL(SYSTEM.UINTPTR, 0);      (* block starts with tag *)
+    sizeOff     = SYSTEM.VAL(SYSTEM.UINTPTR, SZL);    (* block size in free block relative to block start *)
+    sntlOff     = SYSTEM.VAL(SYSTEM.UINTPTR, 2*SZL);  (* pointer offset table sentinel in free block relative to block start *)
+    nextOff     = SYSTEM.VAL(SYSTEM.UINTPTR, 3*SZL);  (* next pointer in free block relative to block start *)
+    NoPtrSntl   = SYSTEM.VAL(SYSTEM.UINTPTR, -SZL);
+    AddressZero = SYSTEM.VAL(SYSTEM.UINTPTR, 0);
 
   TYPE
     ModuleName = ARRAY ModNameLen OF CHAR;
@@ -296,16 +295,16 @@ MODULE Heap;
     END ;
     i := adr + 4*SZL; end := adr + blksz;
     WHILE i < end DO  (*deliberately unrolled*)
-      SYSTEM.PUT(i,         LongZero);
-      SYSTEM.PUT(i + SZL,   LongZero);
-      SYSTEM.PUT(i + 2*SZL, LongZero);
-      SYSTEM.PUT(i + 3*SZL, LongZero);
+      SYSTEM.PUT(i,         AddressZero);
+      SYSTEM.PUT(i + SZL,   AddressZero);
+      SYSTEM.PUT(i + 2*SZL, AddressZero);
+      SYSTEM.PUT(i + 3*SZL, AddressZero);
       INC(i, 4*SZL)
     END ;
-    SYSTEM.PUT(adr + nextOff, LongZero);
+    SYSTEM.PUT(adr + nextOff, AddressZero);
     SYSTEM.PUT(adr,           tag);
-    SYSTEM.PUT(adr + sizeOff, LongZero);
-    SYSTEM.PUT(adr + sntlOff, LongZero);
+    SYSTEM.PUT(adr + sizeOff, AddressZero);
+    SYSTEM.PUT(adr + sntlOff, AddressZero);
     INC(allocated, blksz);
     Unlock();
     RETURN SYSTEM.VAL(SYSTEM.PTR, adr + SZL)
@@ -318,7 +317,7 @@ MODULE Heap;
     blksz := (size + (4*SZL + Unit - 1)) DIV Unit * Unit;  (*size + tag + meta + blksz + sntnl + UnitAlignment*)
     new := NEWREC(SYSTEM.ADR(blksz));
     tag := SYSTEM.VAL(LONGINT, new) + blksz - 3*SZL;
-    SYSTEM.PUT(tag - SZL,                      LongZero); (*reserved for meta info*)
+    SYSTEM.PUT(tag - SZL,                      AddressZero); (*reserved for meta info*)
     SYSTEM.PUT(tag,                            blksz);
     SYSTEM.PUT(tag + SZL,                      NoPtrSntl);
     SYSTEM.PUT(SYSTEM.VAL(LONGINT, new) - SZL, tag);
@@ -580,7 +579,7 @@ PROCEDURE -HeapModuleInit 'Heap__init()';
   BEGIN
     heap    := NewChunk(heapSize0);
     heapend := FetchAddress(heap + endOff);
-    SYSTEM.PUT(heap, LongZero);
+    SYSTEM.PUT(heap, AddressZero);
     allocated := 0; firstTry := TRUE; freeList[nofLists] := 1; lockdepth := 0;
     FileCount := 0; modules := NIL; heapsize := 0; bigBlocks := 0; fin := NIL;
     interrupted := FALSE;

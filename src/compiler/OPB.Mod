@@ -598,11 +598,11 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 
   PROCEDURE Convert(VAR x: OPT.Node; typ: OPT.Struct); (* Convert node x to new type typ *)
     VAR node: OPT.Node; f, g: INTEGER; k: LONGINT; r: LONGREAL;
-  BEGIN f := x^.typ^.form; g := typ^.form;
+  BEGIN f := x^.typ^.form; g := typ^.form;  (* f: old form, g: new form *)
     IF x^.class = OPT.Nconst THEN
       IF f = OPT.Int THEN
         IF g = OPT.Int THEN
-          IF f > g THEN SetIntType(x);
+          IF x.typ.size > typ.size THEN SetIntType(x);
             IF x.typ.size > typ.size THEN err(203); x^.conval^.intval := 1 END
           END
         ELSIF g IN OPT.realSet THEN x^.conval^.realval := x^.conval^.intval; x^.conval^.intval := OPM.ConstNotAlloc
@@ -1201,6 +1201,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END ;
                    p^.typ := OPT.booltyp
     |OPT.valfn:    (*SYSTEM.VAL*)  (* type is changed without considering the byte ordering on the target machine *)
+                   (* p (1st param): desired type *)
+                   (* x (2nd param): constant or value to be converted to p *)
                    IF (x^.class = OPT.Ntype)
                    OR (x^.class = OPT.Nproc)
                    OR (f IN {OPT.Undef, OPT.String, OPT.NoTyp})
@@ -1209,14 +1211,20 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    END;
                    (* Warn if the result type includes memory past the end of the source variable *)
                    IF (x.class # OPT.Nconst) & (x.typ.size < p.typ.size) THEN err(-308) END;
-                   t := OPT.NewNode(OPT.Nmop); t^.subcl := OPT.val; t^.left := x; x := t;
-                   (*
-                   IF (x^.class >= OPT.Nconst) OR ((f IN OPT.realSet) # (p^.typ^.form IN OPT.realSet)) THEN
-                     t := OPT.NewNode(OPT.Nmop); t^.subcl := val; t^.left := x; x := t
-                   ELSE x^.readonly := FALSE
-                   END ;
-                   *)
-                   x^.typ := p^.typ; p := x
+
+                   IF (x.class = OPT.Nconst) & (x.typ.form = OPT.Int) & (p.typ.form = OPT.Int) THEN
+                     Convert(x, p.typ)
+                   ELSE
+                     t := OPT.NewNode(OPT.Nmop); t^.subcl := OPT.val; t^.left := x; x := t;
+                     (*
+                     IF (x^.class >= OPT.Nconst) OR ((f IN OPT.realSet) # (p^.typ^.form IN OPT.realSet)) THEN
+                       t := OPT.NewNode(OPT.Nmop); t^.subcl := val; t^.left := x; x := t
+                     ELSE x^.readonly := FALSE
+                     END ;
+                     *)
+                     x^.typ := p^.typ;
+                   END;
+                   p := x
     |OPT.sysnewfn: (*SYSTEM.NEW*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f = OPT.Int THEN

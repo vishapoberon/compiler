@@ -1124,7 +1124,7 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 	if ((*x)->class == 7) {
 		if (f == 4) {
 			if (g == 4) {
-				if (f > g) {
+				if ((*x)->typ->size > typ->size) {
 					OPB_SetIntType(*x);
 					if ((*x)->typ->size > typ->size) {
 						OPB_err(203);
@@ -2199,11 +2199,15 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 			if ((x->class != 7 && x->typ->size < p->typ->size)) {
 				OPB_err(-308);
 			}
-			t = OPT_NewNode(11);
-			t->subcl = 29;
-			t->left = x;
-			x = t;
-			x->typ = p->typ;
+			if ((((x->class == 7 && x->typ->form == 4)) && p->typ->form == 4)) {
+				OPB_Convert(&x, p->typ);
+			} else {
+				t = OPT_NewNode(11);
+				t->subcl = 29;
+				t->left = x;
+				x = t;
+				x->typ = p->typ;
+			}
 			p = x;
 			break;
 		case 30: 
