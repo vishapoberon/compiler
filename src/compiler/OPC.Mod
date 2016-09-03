@@ -117,10 +117,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
     ELSIF (mode = OPT.Typ) & (obj.typ.form = OPT.Int) THEN
-      IF (obj.typ = OPT.pinttyp) OR (obj.typ = OPT.ainttyp) THEN
-        OPM.WriteString("uintptr")
-      ELSE
-        OPM.WriteString("int"); OPM.WriteInt(obj.typ.size*8)
+      IF obj.typ = OPT.pinttyp THEN OPM.WriteString("uintptr")
+      ELSE OPM.WriteString("int"); OPM.WriteInt(obj.typ.size*8)
       END
     ELSE
       IF (mode # OPT.Typ) OR (obj^.linkadr # PredefinedType) THEN

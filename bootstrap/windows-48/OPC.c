@@ -200,7 +200,7 @@ void OPC_Ident (OPT_Object obj)
 			}
 		}
 	} else if ((mode == 5 && obj->typ->form == 4)) {
-		if (obj->typ == OPT_pinttyp || obj->typ == OPT_ainttyp) {
+		if (obj->typ == OPT_pinttyp) {
 			OPM_WriteString((CHAR*)"uintptr", 8);
 		} else {
 			OPM_WriteString((CHAR*)"int", 4);

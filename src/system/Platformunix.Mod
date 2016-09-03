@@ -27,13 +27,13 @@ TYPE
 
 VAR
   LittleEndian-:   BOOLEAN;
-  MainStackFrame-: SYSTEM.ADRINT;
+  MainStackFrame-: SYSTEM.UINTPTR;
   HaltCode-:       LONGINT;
   PID-:            INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:            ARRAY 256 OF CHAR;
   ArgCount-:       INTEGER;
 
-  ArgVector-:      SYSTEM.ADRINT;
+  ArgVector-:      SYSTEM.UINTPTR;
   HaltHandler:     HaltProcedure;
   TimeStart:       LONGINT;
 

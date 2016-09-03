@@ -67,7 +67,7 @@ typedef float  REAL;
 typedef double LONGREAL;
 typedef void*  SYSTEM_PTR;
 
-typedef uintptr SYSTEM_ADRINT;
+
 
 
 // For 32 bit builds, the size of LONGINT depends on a make option:

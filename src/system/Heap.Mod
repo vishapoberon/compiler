@@ -187,10 +187,10 @@ MODULE Heap;
      architectures with 64 bit LONGINT, it loads 32 bits and extends it to LONGINT
      rather than loading 64 bits.
 
-    NOTE - with uintpr work complete this function should be replaces withSYSTEM.GET
+    NOTE - with uintpr work complete this function should be replaced with SYSTEM.GET
     as there will be no need to extend addresses to larger types.
-
   *)
+
   PROCEDURE -FetchAddress(pointer: SYSTEM.UINTPTR): SYSTEM.UINTPTR "(uintptr)(*((void**)((uintptr)pointer)))";
 
   PROCEDURE ExtendHeap(blksz: SYSTEM.UINTPTR);

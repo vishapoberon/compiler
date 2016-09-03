@@ -263,7 +263,7 @@ void Platform_GetArg (int16 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = __VAL(Platform_ArgVec, Platform_ArgVector);
+		av = (Platform_ArgVec)(uintptr)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
