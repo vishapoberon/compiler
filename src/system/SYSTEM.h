@@ -39,8 +39,7 @@ typedef unsigned short int   uint16;
 typedef signed char          int8;
 typedef unsigned char        uint8;
 
-//#define uintptr size_t
-#define uintptr int64
+#define uintptr size_t
 
 // The compiler uses 'import' and 'export' which translate to 'extern' and
 // nothing respectively.
