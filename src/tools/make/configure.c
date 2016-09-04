@@ -19,6 +19,7 @@
 
 #ifdef _WIN32
   #define strncasecmp _strnicmp
+  char* getcwd(char* buf, size_t size);
 #else
   #include <sys/types.h>
   #include <sys/stat.h>
