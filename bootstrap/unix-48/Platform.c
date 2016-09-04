@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 
 typedef
@@ -26,12 +26,12 @@ typedef
 
 
 export BOOLEAN Platform_LittleEndian;
-export uintptr Platform_MainStackFrame;
+export address Platform_MainStackFrame;
 export int32 Platform_HaltCode;
 export int16 Platform_PID;
 export CHAR Platform_CWD[256];
 export int16 Platform_ArgCount;
-export uintptr Platform_ArgVector;
+export address Platform_ArgVector;
 static Platform_HaltProcedure Platform_HaltHandler;
 static int32 Platform_TimeStart;
 export int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
@@ -59,16 +59,16 @@ export void Platform_Halt (int32 code);
 export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
 export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
-export void Platform_Init (int16 argc, int32 argvadr);
+export void Platform_Init (int16 argc, address argvadr);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 export int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
 export BOOLEAN Platform_NoSuchDirectory (int16 e);
-export uintptr Platform_OSAllocate (uintptr size);
-export void Platform_OSFree (uintptr address);
+export address Platform_OSAllocate (address size);
+export void Platform_OSFree (address address);
 export int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 export int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
-export int16 Platform_Read (int32 h, int32 p, int32 l, int32 *n);
-export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n);
+export int16 Platform_Read (int32 h, address p, address l, address *n);
+export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n);
 export int16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
@@ -87,7 +87,7 @@ export BOOLEAN Platform_TimedOut (int16 e);
 export BOOLEAN Platform_TooManyFiles (int16 e);
 export int16 Platform_Truncate (int32 h, int32 l);
 export int16 Platform_Unlink (CHAR *n, LONGINT n__len);
-export int16 Platform_Write (int32 h, int32 p, int32 l);
+export int16 Platform_Write (int32 h, address p, address l);
 static void Platform_YMDHMStoClock (int32 ye, int32 mo, int32 da, int32 ho, int32 mi, int32 se, int32 *t, int32 *d);
 static void Platform_errch (CHAR c);
 static void Platform_errint (int32 l);
@@ -119,7 +119,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 #define Platform_EXDEV()	EXDEV
 extern void Heap_InitHeap();
 #define Platform_HeapInitHeap()	Heap_InitHeap()
-#define Platform_allocate(size)	(uintptr)((void*)malloc((size_t)size))
+#define Platform_allocate(size)	(address)((void*)malloc((size_t)size))
 #define Platform_chdir(n, n__len)	chdir((char*)n)
 #define Platform_closefile(fd)	close(fd)
 #define Platform_err()	errno
@@ -139,13 +139,13 @@ extern void Heap_InitHeap();
 #define Platform_opennew(n, n__len)	open((char*)n, O_CREAT | O_TRUNC | O_RDWR, 0664)
 #define Platform_openro(n, n__len)	open((char*)n, O_RDONLY)
 #define Platform_openrw(n, n__len)	open((char*)n, O_RDWR)
-#define Platform_readfile(fd, p, l)	read(fd, (void*)(uintptr)(p), l)
+#define Platform_readfile(fd, p, l)	read(fd, (void*)(address)(p), l)
 #define Platform_rename(o, o__len, n, n__len)	rename((char*)o, (char*)n)
 #define Platform_sectotm(s)	struct tm *time = localtime((time_t*)&s)
 #define Platform_seekcur()	SEEK_CUR
 #define Platform_seekend()	SEEK_END
 #define Platform_seekset()	SEEK_SET
-#define Platform_sethandler(s, h)	SystemSetHandler(s, (uintptr)h)
+#define Platform_sethandler(s, h)	SystemSetHandler(s, (address)h)
 #define Platform_stat(n, n__len)	stat((char*)n, &s)
 #define Platform_statdev()	(LONGINT)s.st_dev
 #define Platform_statino()	(LONGINT)s.st_ino
@@ -162,7 +162,7 @@ extern void Heap_InitHeap();
 #define Platform_tvsec()	tv.tv_sec
 #define Platform_tvusec()	tv.tv_usec
 #define Platform_unlink(n, n__len)	unlink((char*)n)
-#define Platform_writefile(fd, p, l)	write(fd, (void*)(uintptr)(p), l)
+#define Platform_writefile(fd, p, l)	write(fd, (void*)(address)(p), l)
 
 BOOLEAN Platform_TooManyFiles (int16 e)
 {
@@ -213,24 +213,24 @@ BOOLEAN Platform_ConnectionFailed (int16 e)
 	return _o_result;
 }
 
-uintptr Platform_OSAllocate (uintptr size)
+address Platform_OSAllocate (address size)
 {
-	uintptr _o_result;
+	address _o_result;
 	_o_result = Platform_allocate(size);
 	return _o_result;
 }
 
-void Platform_OSFree (uintptr address)
+void Platform_OSFree (address address)
 {
 	Platform_free(address);
 }
 
-void Platform_Init (int16 argc, int32 argvadr)
+void Platform_Init (int16 argc, address argvadr)
 {
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = argc;
-	av = (Platform_ArgVecPtr)(uintptr)argvadr;
+	av = (Platform_ArgVecPtr)(address)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -263,7 +263,7 @@ void Platform_GetArg (int16 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(uintptr)Platform_ArgVector;
+		av = (Platform_ArgVec)(address)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
@@ -512,7 +512,7 @@ int16 Platform_Size (int32 h, int32 *l)
 	return _o_result;
 }
 
-int16 Platform_Read (int32 h, int32 p, int32 l, int32 *n)
+int16 Platform_Read (int32 h, address p, address l, address *n)
 {
 	int16 _o_result;
 	*n = Platform_readfile(h, p, l);
@@ -527,10 +527,10 @@ int16 Platform_Read (int32 h, int32 p, int32 l, int32 *n)
 	__RETCHK;
 }
 
-int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
+int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n)
 {
 	int16 _o_result;
-	*n = Platform_readfile(h, (uintptr)b, b__len);
+	*n = Platform_readfile(h, (address)b, b__len);
 	if (*n < 0) {
 		*n = 0;
 		_o_result = Platform_err();
@@ -542,10 +542,10 @@ int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 	__RETCHK;
 }
 
-int16 Platform_Write (int32 h, int32 p, int32 l)
+int16 Platform_Write (int32 h, address p, address l)
 {
 	int16 _o_result;
-	int32 written;
+	address written;
 	written = Platform_writefile(h, p, l);
 	if (written < 0) {
 		_o_result = Platform_err();
@@ -650,7 +650,6 @@ static void Platform_errch (CHAR c)
 
 static void Platform_errln (void)
 {
-	Platform_errch(0x0d);
 	Platform_errch(0x0a);
 }
 
@@ -766,7 +765,7 @@ static void Platform_TestLittleEndian (void)
 {
 	int16 i;
 	i = 1;
-	__GET((uintptr)&i, Platform_LittleEndian, BOOLEAN);
+	__GET((address)&i, Platform_LittleEndian, BOOLEAN);
 }
 
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 12), {-4}};

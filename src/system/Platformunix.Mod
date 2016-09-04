@@ -27,13 +27,13 @@ TYPE
 
 VAR
   LittleEndian-:   BOOLEAN;
-  MainStackFrame-: SYSTEM.UINTPTR;
+  MainStackFrame-: SYSTEM.ADDRESS;
   HaltCode-:       LONGINT;
   PID-:            INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:            ARRAY 256 OF CHAR;
   ArgCount-:       INTEGER;
 
-  ArgVector-:      SYSTEM.UINTPTR;
+  ArgVector-:      SYSTEM.ADDRESS;
   HaltHandler:     HaltProcedure;
   TimeStart:       LONGINT;
 
@@ -106,11 +106,11 @@ BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
 
 (* OS memory allocaton *)
 
-PROCEDURE -allocate  (size: SYSTEM.UINTPTR): SYSTEM.UINTPTR "(uintptr)((void*)malloc((size_t)size))";
-PROCEDURE OSAllocate*(size: SYSTEM.UINTPTR): SYSTEM.UINTPTR; BEGIN RETURN allocate(size) END OSAllocate;
+PROCEDURE -allocate  (size: SYSTEM.ADDRESS): SYSTEM.ADDRESS "(address)((void*)malloc((size_t)size))";
+PROCEDURE OSAllocate*(size: SYSTEM.ADDRESS): SYSTEM.ADDRESS; BEGIN RETURN allocate(size) END OSAllocate;
 
-PROCEDURE -free(address: SYSTEM.UINTPTR) "free((void*)address)";
-PROCEDURE OSFree*(address: SYSTEM.UINTPTR); BEGIN free(address) END OSFree;
+PROCEDURE -free(address: SYSTEM.ADDRESS) "free((void*)address)";
+PROCEDURE OSFree*(address: SYSTEM.ADDRESS); BEGIN free(address) END OSFree;
 
 
 
@@ -120,7 +120,7 @@ PROCEDURE OSFree*(address: SYSTEM.UINTPTR); BEGIN free(address) END OSFree;
 PROCEDURE -ExternInitHeap  "extern void Heap_InitHeap();";
 PROCEDURE -HeapInitHeap()  "Heap_InitHeap()";
 
-PROCEDURE Init*(argc: INTEGER; argvadr: LONGINT);
+PROCEDURE Init*(argc: INTEGER; argvadr: SYSTEM.ADDRESS);
 VAR av: ArgVecPtr;
 BEGIN
   MainStackFrame := argvadr;
@@ -189,7 +189,7 @@ END ArgPos;
 
 (* Signals and traps *)
 
-PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (uintptr)h)";
+PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (address)h)";
 
 PROCEDURE SetInterruptHandler*(handler: SignalHandler);
 BEGIN sethandler(2, handler); END SetInterruptHandler;
@@ -368,16 +368,16 @@ END Size;
 
 
 
-PROCEDURE -readfile (fd: LONGINT; p: LONGINT; l: LONGINT): LONGINT
-"read(fd, (void*)(uintptr)(p), l)";
+PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): SYSTEM.ADDRESS
+"read(fd, (void*)(address)(p), l)";
 
-PROCEDURE Read*(h: FileHandle; p: LONGINT; l: LONGINT; VAR n: LONGINT): ErrorCode;
+PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS; VAR n: SYSTEM.ADDRESS): ErrorCode;
 BEGIN
   n := readfile(h, p, l);
   IF n < 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
 END Read;
 
-PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: LONGINT): ErrorCode;
+PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: SYSTEM.ADDRESS): ErrorCode;
 BEGIN
   n := readfile(h, SYSTEM.ADR(b), LEN(b));
   IF n < 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
@@ -385,11 +385,11 @@ END ReadBuf;
 
 
 
-PROCEDURE -writefile(fd: LONGINT; p: LONGINT; l: LONGINT): LONGINT
-"write(fd, (void*)(uintptr)(p), l)";
+PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): SYSTEM.ADDRESS
+"write(fd, (void*)(address)(p), l)";
 
-PROCEDURE Write*(h: FileHandle; p: LONGINT; l: LONGINT): ErrorCode;
-  VAR written: LONGINT;
+PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): ErrorCode;
+  VAR written: SYSTEM.ADDRESS;
 BEGIN
   written := writefile(h, p, l);
   IF written < 0 THEN RETURN err() ELSE RETURN 0 END
@@ -467,7 +467,7 @@ BEGIN exit(code) END Exit;
 PROCEDURE -errstring(s: ARRAY OF CHAR) 'write(1, s, s__len-1)';
 PROCEDURE -errc     (c: CHAR)          'write(1, &c, 1)';
 PROCEDURE errch(c: CHAR); BEGIN errc(c) END errch;
-PROCEDURE errln; BEGIN errch(0DX); errch(0AX) END errln;
+PROCEDURE errln; BEGIN errch(0AX) END errln;
 
 PROCEDURE errposint(l: LONGINT);
 BEGIN IF l>10 THEN errposint(l DIV 10) END; errch(CHR(ORD('0') + (l MOD 10))) END errposint;

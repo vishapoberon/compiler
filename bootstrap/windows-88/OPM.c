@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -545,7 +545,7 @@ void OPM_FPrintReal (int64 *fp, REAL real)
 {
 	int32 i;
 	int64 l;
-	__GET((uintptr)&real, i, int32);
+	__GET((address)&real, i, int32);
 	l = i;
 	OPM_FPrint(&*fp, l);
 }

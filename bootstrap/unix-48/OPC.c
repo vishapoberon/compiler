@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "OPM.h"
@@ -200,8 +200,8 @@ void OPC_Ident (OPT_Object obj)
 			}
 		}
 	} else if ((mode == 5 && obj->typ->form == 4)) {
-		if (obj->typ == OPT_pinttyp) {
-			OPM_WriteString((CHAR*)"uintptr", 8);
+		if (obj->typ == OPT_adrtyp) {
+			OPM_WriteString((CHAR*)"address", 8);
 		} else {
 			OPM_WriteString((CHAR*)"int", 4);
 			OPM_WriteInt(__ASHL(obj->typ->size, 3));
@@ -2047,7 +2047,7 @@ static void OPC_InitKeywords (void)
 		OPC_hashtab[__X(i, 105)] = -1;
 		i += 1;
 	}
-	Enter__49((CHAR*)"adrint", 7);
+	Enter__49((CHAR*)"address", 8);
 	Enter__49((CHAR*)"asm", 4);
 	Enter__49((CHAR*)"auto", 5);
 	Enter__49((CHAR*)"break", 6);
@@ -2084,7 +2084,6 @@ static void OPC_InitKeywords (void)
 	Enter__49((CHAR*)"struct", 7);
 	Enter__49((CHAR*)"switch", 7);
 	Enter__49((CHAR*)"typedef", 8);
-	Enter__49((CHAR*)"uintptr", 8);
 	Enter__49((CHAR*)"uint16", 7);
 	Enter__49((CHAR*)"uint32", 7);
 	Enter__49((CHAR*)"uint64", 7);

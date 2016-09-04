@@ -117,7 +117,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
     ELSIF (mode = OPT.Typ) & (obj.typ.form = OPT.Int) THEN
-      IF obj.typ = OPT.pinttyp THEN OPM.WriteString("uintptr")
+      IF obj.typ = OPT.adrtyp THEN OPM.WriteString("address")
       ELSE OPM.WriteString("int"); OPM.WriteInt(obj.typ.size*8)
       END
     ELSE
@@ -1320,7 +1320,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   BEGIN n := 0;
     FOR i := 0 TO 104 DO hashtab[i] := -1 END ;
-    Enter("adrint");   (* pseudo keyword used by voc *)
+    Enter("address");  (* pseudo keyword used by voc *)
     Enter("asm");
     Enter("auto");
     Enter("break");
@@ -1357,7 +1357,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("struct");
     Enter("switch");
     Enter("typedef");
-    Enter("uintptr");  (* pseudo keyword used by voc *)
     Enter("uint16");   (* pseudo keyword used by voc *)
     Enter("uint32");   (* pseudo keyword used by voc *)
     Enter("uint64");   (* pseudo keyword used by voc *)

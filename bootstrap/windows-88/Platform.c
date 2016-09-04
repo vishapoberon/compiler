@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 
@@ -27,11 +27,12 @@ typedef
 
 
 export BOOLEAN Platform_LittleEndian;
-export int64 Platform_MainStackFrame, Platform_HaltCode;
+export address Platform_MainStackFrame;
+export int64 Platform_HaltCode;
 export int32 Platform_PID;
 export CHAR Platform_CWD[4096];
 export int32 Platform_ArgCount;
-export int64 Platform_ArgVector;
+export address Platform_ArgVector;
 static Platform_HaltProcedure Platform_HaltHandler;
 static int64 Platform_TimeStart;
 export int32 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
@@ -61,12 +62,12 @@ export void Platform_Halt (int64 code);
 export int32 Platform_Identify (int64 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
 export int32 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
 export BOOLEAN Platform_Inaccessible (int32 e);
-export void Platform_Init (int32 argc, int64 argvadr);
+export void Platform_Init (int32 argc, address argvadr);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int64 *t, int64 *d);
 export int32 Platform_New (CHAR *n, LONGINT n__len, int64 *h);
 export BOOLEAN Platform_NoSuchDirectory (int32 e);
-export int64 Platform_OSAllocate (int64 size);
-export void Platform_OSFree (int64 address);
+export address Platform_OSAllocate (address size);
+export void Platform_OSFree (address address);
 export int32 Platform_OldRO (CHAR *n, LONGINT n__len, int64 *h);
 export int32 Platform_OldRW (CHAR *n, LONGINT n__len, int64 *h);
 export int32 Platform_Read (int64 h, int64 p, int64 l, int64 *n);
@@ -112,9 +113,9 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 extern void Heap_InitHeap();
 #define Platform_GetTickCount()	(LONGINT)(uint32)GetTickCount()
 #define Platform_HeapInitHeap()	Heap_InitHeap()
-#define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((SYSTEM_ADRINT)h)
-#define Platform_SetQuitHandler(h)	SystemSetQuitHandler((SYSTEM_ADRINT)h)
-#define Platform_allocate(size)	(LONGINT)(SYSTEM_ADRINT)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))
+#define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((address)h)
+#define Platform_SetQuitHandler(h)	SystemSetQuitHandler((address)h)
+#define Platform_allocate(size)	(address)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))
 #define Platform_bhfiIndexHigh()	(LONGINT)bhfi.nFileIndexHigh
 #define Platform_bhfiIndexLow()	(LONGINT)bhfi.nFileIndexLow
 #define Platform_bhfiMtimeHigh()	(LONGINT)bhfi.ftLastWriteTime.dwHighDateTime
@@ -122,44 +123,44 @@ extern void Heap_InitHeap();
 #define Platform_bhfiVsn()	(LONGINT)bhfi.dwVolumeSerialNumber
 #define Platform_byHandleFileInformation()	BY_HANDLE_FILE_INFORMATION bhfi
 #define Platform_cleanupProcess()	CloseHandle(pi.hProcess); CloseHandle(pi.hThread);
-#define Platform_closeHandle(h)	(INTEGER)CloseHandle((HANDLE)(SYSTEM_ADRINT)h)
+#define Platform_closeHandle(h)	(INTEGER)CloseHandle((HANDLE)(address)h)
 #define Platform_createProcess(str, str__len)	(INTEGER)CreateProcess(0, (char*)str, 0,0,0,0,0,0,&si,&pi)
 #define Platform_deleteFile(n, n__len)	(INTEGER)DeleteFile((char*)n)
 #define Platform_err()	(INTEGER)GetLastError()
-#define Platform_errc(c)	WriteFile((HANDLE)(SYSTEM_ADRINT)Platform_StdOut, &c, 1, 0,0)
-#define Platform_errstring(s, s__len)	WriteFile((HANDLE)(SYSTEM_ADRINT)Platform_StdOut, s, s__len-1, 0,0)
+#define Platform_errc(c)	WriteFile((HANDLE)(address)Platform_StdOut, &c, 1, 0,0)
+#define Platform_errstring(s, s__len)	WriteFile((HANDLE)(address)Platform_StdOut, s, s__len-1, 0,0)
 #define Platform_exit(code)	ExitProcess((UINT)code)
 #define Platform_fileTimeToSysTime()	SYSTEMTIME st; FileTimeToSystemTime(&ft, &st)
-#define Platform_flushFileBuffers(h)	(INTEGER)FlushFileBuffers((HANDLE)(SYSTEM_ADRINT)h)
-#define Platform_free(address)	HeapFree(GetProcessHeap(), 0, (void*)(SYSTEM_ADRINT)address)
+#define Platform_flushFileBuffers(h)	(INTEGER)FlushFileBuffers((HANDLE)(address)h)
+#define Platform_free(address)	HeapFree(GetProcessHeap(), 0, (void*)address)
 #define Platform_ftToUli()	ULARGE_INTEGER ul; ul.LowPart=ft.dwLowDateTime; ul.HighPart=ft.dwHighDateTime
 #define Platform_getCurrentDirectory(n, n__len)	GetCurrentDirectory(n__len, (char*)n)
 #define Platform_getExitCodeProcess(exitcode)	GetExitCodeProcess(pi.hProcess, (DWORD*)exitcode);
-#define Platform_getFileInformationByHandle(h)	(INTEGER)GetFileInformationByHandle((HANDLE)(SYSTEM_ADRINT)h, &bhfi)
-#define Platform_getFilePos(h, r, rc)	LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((HANDLE)(SYSTEM_ADRINT)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart
-#define Platform_getFileSize(h)	(INTEGER)GetFileSizeEx((HANDLE)(SYSTEM_ADRINT)h, &li)
+#define Platform_getFileInformationByHandle(h)	(INTEGER)GetFileInformationByHandle((HANDLE)(address)h, &bhfi)
+#define Platform_getFilePos(h, r, rc)	LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((HANDLE)(address)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart
+#define Platform_getFileSize(h)	(INTEGER)GetFileSizeEx((HANDLE)(address)h, &li)
 #define Platform_getLocalTime()	SYSTEMTIME st; GetLocalTime(&st)
 #define Platform_getenv(name, name__len, buf, buf__len)	(INTEGER)GetEnvironmentVariable((char*)name, (char*)buf, buf__len)
 #define Platform_getpid()	(INTEGER)GetCurrentProcessId()
-#define Platform_getstderrhandle()	(SYSTEM_ADRINT)GetStdHandle(STD_ERROR_HANDLE)
-#define Platform_getstdinhandle()	(SYSTEM_ADRINT)GetStdHandle(STD_INPUT_HANDLE)
-#define Platform_getstdouthandle()	(SYSTEM_ADRINT)GetStdHandle(STD_OUTPUT_HANDLE)
+#define Platform_getstderrhandle()	(address)GetStdHandle(STD_ERROR_HANDLE)
+#define Platform_getstdinhandle()	(address)GetStdHandle(STD_INPUT_HANDLE)
+#define Platform_getstdouthandle()	(address)GetStdHandle(STD_OUTPUT_HANDLE)
 #define Platform_identityToFileTime(i)	FILETIME ft; ft.dwHighDateTime = i.mtimehigh; ft.dwLowDateTime = i.mtimelow
-#define Platform_invalidHandleValue()	((LONGINT)(SYSTEM_ADRINT)INVALID_HANDLE_VALUE)
+#define Platform_invalidHandleValue()	((LONGINT)(address)INVALID_HANDLE_VALUE)
 #define Platform_largeInteger()	LARGE_INTEGER li
 #define Platform_liLongint()	(LONGINT)li.QuadPart
 #define Platform_moveFile(o, o__len, n, n__len)	(INTEGER)MoveFileEx((char*)o, (char*)n, MOVEFILE_REPLACE_EXISTING)
-#define Platform_opennew(n, n__len)	(LONGINT)(SYSTEM_ADRINT)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
-#define Platform_openro(n, n__len)	(LONGINT)(SYSTEM_ADRINT)CreateFile((char*)n, GENERIC_READ              , FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
-#define Platform_openrw(n, n__len)	(LONGINT)(SYSTEM_ADRINT)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+#define Platform_opennew(n, n__len)	(LONGINT)(address)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+#define Platform_openro(n, n__len)	(LONGINT)(address)CreateFile((char*)n, GENERIC_READ              , FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+#define Platform_openrw(n, n__len)	(LONGINT)(address)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 #define Platform_processInfo()	PROCESS_INFORMATION pi = {0};
-#define Platform_readfile(fd, p, l, n)	(INTEGER)ReadFile ((HANDLE)(SYSTEM_ADRINT)fd, (void*)(SYSTEM_ADRINT)(p), (DWORD)l, (DWORD*)n, 0)
+#define Platform_readfile(fd, p, l, n)	(INTEGER)ReadFile ((HANDLE)(address)fd, (void*)(address)(p), (DWORD)l, (DWORD*)n, 0)
 #define Platform_seekcur()	FILE_CURRENT
 #define Platform_seekend()	FILE_END
 #define Platform_seekset()	FILE_BEGIN
 #define Platform_setCurrentDirectory(n, n__len)	(INTEGER)SetCurrentDirectory((char*)n)
-#define Platform_setEndOfFile(h)	(INTEGER)SetEndOfFile((HANDLE)(SYSTEM_ADRINT)h)
-#define Platform_setFilePointerEx(h, o, r, rc)	li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)(SYSTEM_ADRINT)h, li, 0, (DWORD)r)
+#define Platform_setEndOfFile(h)	(INTEGER)SetEndOfFile((HANDLE)(address)h)
+#define Platform_setFilePointerEx(h, o, r, rc)	li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)(address)h, li, 0, (DWORD)r)
 #define Platform_sleep(ms)	Sleep((DWORD)ms)
 #define Platform_stToFt()	FILETIME ft; SystemTimeToFileTime(&st, &ft)
 #define Platform_startupInfo()	STARTUPINFO si = {0}; si.cb = sizeof(si);
@@ -174,7 +175,7 @@ extern void Heap_InitHeap();
 #define Platform_ulSec()	(LONGINT)(ul.QuadPart / 1000000LL)
 #define Platform_uluSec()	(LONGINT)(ul.QuadPart % 1000000LL)
 #define Platform_waitForProcess()	(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)
-#define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((HANDLE)(SYSTEM_ADRINT)fd, (void*)(SYSTEM_ADRINT)(p), (DWORD)l, 0,0)
+#define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((HANDLE)(address)fd, (void*)(address)(p), (DWORD)l, 0,0)
 
 BOOLEAN Platform_TooManyFiles (int32 e)
 {
@@ -225,24 +226,24 @@ BOOLEAN Platform_ConnectionFailed (int32 e)
 	return _o_result;
 }
 
-int64 Platform_OSAllocate (int64 size)
+address Platform_OSAllocate (address size)
 {
-	int64 _o_result;
+	address _o_result;
 	_o_result = Platform_allocate(size);
 	return _o_result;
 }
 
-void Platform_OSFree (int64 address)
+void Platform_OSFree (address address)
 {
 	Platform_free(address);
 }
 
-void Platform_Init (int32 argc, int64 argvadr)
+void Platform_Init (int32 argc, address argvadr)
 {
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = argc;
-	av = (Platform_ArgVecPtr)(uintptr)argvadr;
+	av = (Platform_ArgVecPtr)(address)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -281,7 +282,7 @@ void Platform_GetArg (int32 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(uintptr)Platform_ArgVector;
+		av = (Platform_ArgVec)(address)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
@@ -560,7 +561,7 @@ int32 Platform_ReadBuf (int64 h, SYSTEM_BYTE *b, LONGINT b__len, int64 *n)
 	int32 _o_result;
 	int32 result;
 	*n = 0;
-	result = Platform_readfile(h, (uintptr)b, b__len, &*n);
+	result = Platform_readfile(h, (address)b, b__len, &*n);
 	if (result == 0) {
 		*n = 0;
 		_o_result = Platform_err();
@@ -746,8 +747,23 @@ static void Platform_DisplayHaltCode (int64 code)
 		case -9: 
 			Platform_errstring((CHAR*)"Heap interrupted while locked, but lockdepth = 0 at unlock.", 60);
 			break;
+		case -10: 
+			Platform_errstring((CHAR*)"NIL access.", 12);
+			break;
+		case -11: 
+			Platform_errstring((CHAR*)"Alignment error.", 17);
+			break;
+		case -12: 
+			Platform_errstring((CHAR*)"Divide by zero.", 16);
+			break;
+		case -13: 
+			Platform_errstring((CHAR*)"Arithmetic overflow/underflow.", 31);
+			break;
+		case -14: 
+			Platform_errstring((CHAR*)"Invalid function argument.", 27);
+			break;
 		case -15: 
-			Platform_errstring((CHAR*)"Type descriptor size mismatch.", 31);
+			Platform_errstring((CHAR*)"Internal error, e.g. Type descriptor size mismatch.", 52);
 			break;
 		case -20: 
 			Platform_errstring((CHAR*)"Too many, or negative number of, elements in dynamic array.", 60);
@@ -796,7 +812,7 @@ static void Platform_TestLittleEndian (void)
 {
 	int32 i;
 	i = 1;
-	__GET((uintptr)&i, Platform_LittleEndian, BOOLEAN);
+	__GET((address)&i, Platform_LittleEndian, BOOLEAN);
 }
 
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 40), {-8}};

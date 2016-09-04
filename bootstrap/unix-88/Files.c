@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin tspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -258,7 +258,7 @@ static void Files_Flush (Files_Buffer buf)
 		if (buf->org != f->pos) {
 			error = Platform_Seek(f->fd, buf->org, Platform_SeekSet);
 		}
-		error = Platform_Write(f->fd, (uintptr)buf->data, buf->size);
+		error = Platform_Write(f->fd, (address)buf->data, buf->size);
 		if (error != 0) {
 			Files_Err((CHAR*)"error writing file", 19, f, error);
 		}
@@ -657,7 +657,7 @@ void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x
 		} else {
 			min = n;
 		}
-		__MOVE((uintptr)buf->data + offset, (uintptr)x + xpos, min);
+		__MOVE((address)buf->data + offset, (address)x + xpos, min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -722,7 +722,7 @@ void Files_WriteBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT 
 		} else {
 			min = n;
 		}
-		__MOVE((uintptr)x + xpos, (uintptr)buf->data + offset, min);
+		__MOVE((address)x + xpos, (address)buf->data + offset, min);
 		offset += min;
 		(*r).offset = offset;
 		if (offset > buf->size) {
@@ -773,15 +773,15 @@ void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, int
 				*res = 3;
 				return;
 			}
-			error = Platform_Read(fdold, (uintptr)buf, 4096, &n);
+			error = Platform_Read(fdold, (address)buf, 4096, &n);
 			while (n > 0) {
-				error = Platform_Write(fdnew, (uintptr)buf, n);
+				error = Platform_Write(fdnew, (address)buf, n);
 				if (error != 0) {
 					ignore = Platform_Close(fdold);
 					ignore = Platform_Close(fdnew);
 					Files_Err((CHAR*)"cannot move file", 17, NIL, error);
 				}
-				error = Platform_Read(fdold, (uintptr)buf, 4096, &n);
+				error = Platform_Read(fdold, (address)buf, 4096, &n);
 			}
 			ignore = Platform_Close(fdold);
 			ignore = Platform_Close(fdnew);
@@ -839,7 +839,7 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *de
 			j += 1;
 		}
 	} else {
-		__MOVE((uintptr)src, (uintptr)dest, src__len);
+		__MOVE((address)src, (address)dest, src__len);
 	}
 }
 
@@ -1009,7 +1009,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 {
 	Files_File f = NIL;
 	int64 res;
-	f = (Files_File)(uintptr)o;
+	f = (Files_File)(address)o;
 	if (f->fd >= 0) {
 		Files_CloseOSFile(f);
 		if (f->tempFile) {
@@ -1022,7 +1022,7 @@ void Files_SetSearchPath (CHAR *path, LONGINT path__len)
 {
 	__DUP(path, path__len, CHAR);
 	if (Strings_Length(path, path__len) != 0) {
-		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((uintptr)((Strings_Length(path, path__len) + 1))));
+		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((address)((Strings_Length(path, path__len) + 1))));
 		__COPY(path, Files_SearchPath->data, Files_SearchPath->len[0]);
 	} else {
 		Files_SearchPath = NIL;

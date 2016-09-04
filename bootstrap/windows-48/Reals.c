@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #include "SYSTEM.h"
 
 
@@ -58,7 +58,7 @@ int16 Reals_Expo (REAL x)
 {
 	int16 _o_result;
 	int16 i;
-	__GET((uintptr)&x + 2, i, int16);
+	__GET((address)&x + 2, i, int16);
 	_o_result = __MASK(__ASHR(i, 7), -256);
 	return _o_result;
 }
@@ -66,17 +66,17 @@ int16 Reals_Expo (REAL x)
 void Reals_SetExpo (REAL *x, int16 ex)
 {
 	CHAR c;
-	__GET((uintptr)x + 3, c, CHAR);
-	__PUT((uintptr)x + 3, (CHAR)(__ASHL(__ASHR((int16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
-	__GET((uintptr)x + 2, c, CHAR);
-	__PUT((uintptr)x + 2, (CHAR)(__MASK((int16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
+	__GET((address)x + 3, c, CHAR);
+	__PUT((address)x + 3, (CHAR)(__ASHL(__ASHR((int16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
+	__GET((address)x + 2, c, CHAR);
+	__PUT((address)x + 2, (CHAR)(__MASK((int16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
 }
 
 int16 Reals_ExpoL (LONGREAL x)
 {
 	int16 _o_result;
 	int16 i;
-	__GET((uintptr)&x + 6, i, int16);
+	__GET((address)&x + 6, i, int16);
 	_o_result = __MASK(__ASHR(i, 4), -2048);
 	return _o_result;
 }

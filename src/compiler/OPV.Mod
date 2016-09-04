@@ -205,7 +205,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
     OPT.inttyp^.strobj^.linkadr    := PredefinedType;
     OPT.linttyp^.strobj^.linkadr   := PredefinedType;
-    OPT.pinttyp^.strobj^.linkadr   := PredefinedType;
+    OPT.adrtyp^.strobj^.linkadr    := PredefinedType;
     OPT.int8typ^.strobj^.linkadr   := PredefinedType;
     OPT.int16typ^.strobj^.linkadr  := PredefinedType;
     OPT.int32typ^.strobj^.linkadr  := PredefinedType;
@@ -565,7 +565,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.cap:   OPM.WriteString("__CAP("); expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.odd:   OPM.WriteString("__ODD("); expr(l, MinPrec); OPM.Write(CloseParen)
-                  | OPT.adr:   OPM.WriteString("(uintptr)");                             (*SYSTEM*)
+                  | OPT.adr:   OPM.WriteString("(address)");                             (*SYSTEM*)
                                IF l^.class = OPT.Nvarpar THEN OPC.CompleteIdent(l^.obj)
                                ELSE
                                  IF (l^.typ^.form # OPT.String) & ~(l^.typ^.comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write("&") END ;
@@ -578,7 +578,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                THEN
                                  OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen);
                                  IF (n^.typ^.form IN {OPT.Pointer, OPT.ProcTyp}) OR (l^.typ^.form IN {OPT.Pointer, OPT.ProcTyp}) THEN
-                                   OPM.WriteString("(uintptr)")
+                                   OPM.WriteString("(address)")
                                  END;
                                  expr(l, exprPrec)
                                ELSE
@@ -796,7 +796,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       IF typ^.comp = OPT.DynArr THEN
         IF x^.class = OPT.Nconst THEN
           OPC.IntLiteral(x.conval.intval, OPM.PointerSize)
-        ELSE OPM.WriteString("((uintptr)("); expr(x, 10); OPM.WriteString("))")
+        ELSE OPM.WriteString("((address)("); expr(x, 10); OPM.WriteString("))")
         END ;
         x := x^.link
       ELSE

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "Platform.h"
@@ -22,7 +22,7 @@ export void Console_String (CHAR *s, LONGINT s__len);
 void Console_Flush (void)
 {
 	int32 error;
-	error = Platform_Write(1, (uintptr)Console_line, Console_pos);
+	error = Platform_Write(1, (address)Console_line, Console_pos);
 	Console_pos = 0;
 }
 

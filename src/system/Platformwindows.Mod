@@ -30,13 +30,13 @@ TYPE
 
 VAR
   LittleEndian-:    BOOLEAN;
-  MainStackFrame-:  LONGINT;
+  MainStackFrame-:  SYSTEM.ADDRESS;
   HaltCode-:        LONGINT;
   PID-:             INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:             ARRAY 4096 OF CHAR;
   ArgCount-:        INTEGER;
 
-  ArgVector-:       LONGINT;
+  ArgVector-:       SYSTEM.ADDRESS;
   HaltHandler:      HaltProcedure;
   TimeStart:        LONGINT;
 
@@ -104,11 +104,11 @@ BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
 
 (* OS memory allocaton *)
 
-PROCEDURE -allocate(size: LONGINT): LONGINT "(LONGINT)(SYSTEM_ADRINT)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))";
-PROCEDURE OSAllocate*(size: LONGINT): LONGINT; BEGIN RETURN allocate(size) END OSAllocate;
+PROCEDURE -allocate(size: SYSTEM.ADDRESS): SYSTEM.ADDRESS "(address)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))";
+PROCEDURE OSAllocate*(size: SYSTEM.ADDRESS): SYSTEM.ADDRESS; BEGIN RETURN allocate(size) END OSAllocate;
 
-PROCEDURE -free(address: LONGINT) "HeapFree(GetProcessHeap(), 0, (void*)(SYSTEM_ADRINT)address)";
-PROCEDURE OSFree*(address: LONGINT); BEGIN free(address) END OSFree;
+PROCEDURE -free(address: SYSTEM.ADDRESS) "HeapFree(GetProcessHeap(), 0, (void*)address)";
+PROCEDURE OSFree*(address: SYSTEM.ADDRESS); BEGIN free(address) END OSFree;
 
 
 
@@ -118,7 +118,7 @@ PROCEDURE OSFree*(address: LONGINT); BEGIN free(address) END OSFree;
 PROCEDURE -ExternInitHeap  "extern void Heap_InitHeap();";
 PROCEDURE -HeapInitHeap()  "Heap_InitHeap()";
 
-PROCEDURE Init*(argc: INTEGER; argvadr: LONGINT);
+PROCEDURE Init*(argc: INTEGER; argvadr: SYSTEM.ADDRESS);
 VAR  av: ArgVecPtr;
 BEGIN
   MainStackFrame := argvadr;
@@ -200,8 +200,8 @@ END ArgPos;
 
 (* Ctrl/c handling *)
 
-PROCEDURE -SetInterruptHandler*(h: SignalHandler) "SystemSetInterruptHandler((SYSTEM_ADRINT)h)";
-PROCEDURE -SetQuitHandler*     (h: SignalHandler) "SystemSetQuitHandler((SYSTEM_ADRINT)h)";
+PROCEDURE -SetInterruptHandler*(h: SignalHandler) "SystemSetInterruptHandler((address)h)";
+PROCEDURE -SetQuitHandler*     (h: SignalHandler) "SystemSetQuitHandler((address)h)";
 
 PROCEDURE SetBadInstructionHandler*(handler: SignalHandler);
 BEGIN (* TODO *) END SetBadInstructionHandler;
@@ -293,16 +293,16 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 
 (* File system *)
 
-PROCEDURE -invalidHandleValue(): LONGINT "((LONGINT)(SYSTEM_ADRINT)INVALID_HANDLE_VALUE)";
+PROCEDURE -invalidHandleValue(): LONGINT "((LONGINT)(address)INVALID_HANDLE_VALUE)";
 
 PROCEDURE -openrw (n: ARRAY OF CHAR): LONGINT
-"(LONGINT)(SYSTEM_ADRINT)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)";
+"(LONGINT)(address)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)";
 
 PROCEDURE -openro (n: ARRAY OF CHAR): LONGINT
-"(LONGINT)(SYSTEM_ADRINT)CreateFile((char*)n, GENERIC_READ              , FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)";
+"(LONGINT)(address)CreateFile((char*)n, GENERIC_READ              , FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)";
 
 PROCEDURE -opennew(n: ARRAY OF CHAR): LONGINT
-"(LONGINT)(SYSTEM_ADRINT)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)";
+"(LONGINT)(address)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)";
 
 
 
@@ -332,7 +332,7 @@ END New;
 
 
 
-PROCEDURE -closeHandle(h: FileHandle): INTEGER "(INTEGER)CloseHandle((HANDLE)(SYSTEM_ADRINT)h)";
+PROCEDURE -closeHandle(h: FileHandle): INTEGER "(INTEGER)CloseHandle((HANDLE)(address)h)";
 
 PROCEDURE Close*(h: FileHandle): ErrorCode;
 BEGIN
@@ -342,7 +342,7 @@ END Close;
 
 
 PROCEDURE -byHandleFileInformation "BY_HANDLE_FILE_INFORMATION bhfi";
-PROCEDURE -getFileInformationByHandle(h: FileHandle): INTEGER "(INTEGER)GetFileInformationByHandle((HANDLE)(SYSTEM_ADRINT)h, &bhfi)";
+PROCEDURE -getFileInformationByHandle(h: FileHandle): INTEGER "(INTEGER)GetFileInformationByHandle((HANDLE)(address)h, &bhfi)";
 PROCEDURE -bhfiMtimeHigh(): LONGINT "(LONGINT)bhfi.ftLastWriteTime.dwHighDateTime";
 PROCEDURE -bhfiMtimeLow():  LONGINT "(LONGINT)bhfi.ftLastWriteTime.dwLowDateTime";
 PROCEDURE -bhfiVsn():       LONGINT "(LONGINT)bhfi.dwVolumeSerialNumber";
@@ -401,7 +401,7 @@ END MTimeAsClock;
 
 PROCEDURE -largeInteger "LARGE_INTEGER li";
 PROCEDURE -liLongint(): LONGINT "(LONGINT)li.QuadPart";
-PROCEDURE -getFileSize(h: FileHandle): INTEGER "(INTEGER)GetFileSizeEx((HANDLE)(SYSTEM_ADRINT)h, &li)";
+PROCEDURE -getFileSize(h: FileHandle): INTEGER "(INTEGER)GetFileSizeEx((HANDLE)(address)h, &li)";
 
 PROCEDURE Size*(h: FileHandle; VAR l: LONGINT): ErrorCode;
 BEGIN
@@ -412,10 +412,10 @@ BEGIN
 END Size;
 
 
-PROCEDURE -readfile (fd: LONGINT; p: LONGINT; l: LONGINT; VAR n: LONGINT): INTEGER
-"(INTEGER)ReadFile ((HANDLE)(SYSTEM_ADRINT)fd, (void*)(SYSTEM_ADRINT)(p), (DWORD)l, (DWORD*)n, 0)";
+PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS; VAR n: SYSTEM.ADDRESS): SYSTEM.ADDRESS
+"(address)ReadFile((HANDLE)fd, (void*)p, (DWORD)l, (DWORD*)n, 0)";
 
-PROCEDURE Read*(h: FileHandle; p: LONGINT; l: LONGINT; VAR n: LONGINT): ErrorCode;
+PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS; VAR n: SYSTEM.ADDRESS): ErrorCode;
 VAR result: INTEGER;
 BEGIN
   n := 0;  (* Clear n because readfile takes a LONGINT but only updates the bottom 32 bits *)
@@ -423,18 +423,18 @@ BEGIN
   IF result = 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
 END Read;
 
-PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: LONGINT): ErrorCode;
+PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: SYSTEM.ADDRESS): ErrorCode;
 VAR result: INTEGER;
 BEGIN
-  n := 0;  (* Clear n because readfile takes a LONGINT but only updates the bottom 32 bits *)
+  n := 0;  (* Clear n because readfile takes a SYSTEM.ADDRESS but only updates the bottom 32 bits *)
   result := readfile(h, SYSTEM.ADR(b), LEN(b), n);
   IF result = 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
 END ReadBuf;
 
 
 
-PROCEDURE -writefile(fd: LONGINT; p: LONGINT; l: LONGINT): INTEGER
-"(INTEGER)WriteFile((HANDLE)(SYSTEM_ADRINT)fd, (void*)(SYSTEM_ADRINT)(p), (DWORD)l, 0,0)";
+PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): INTEGER
+"(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, 0,0)";
 
 PROCEDURE Write*(h: FileHandle; p: LONGINT; l: LONGINT): ErrorCode;
 BEGIN
@@ -443,7 +443,7 @@ END Write;
 
 
 
-PROCEDURE -flushFileBuffers(h: FileHandle): INTEGER "(INTEGER)FlushFileBuffers((HANDLE)(SYSTEM_ADRINT)h)";
+PROCEDURE -flushFileBuffers(h: FileHandle): INTEGER "(INTEGER)FlushFileBuffers((HANDLE)h)";
 
 PROCEDURE Sync*(h: FileHandle): ErrorCode;
 BEGIN
@@ -453,7 +453,7 @@ END Sync;
 
 
 PROCEDURE -setFilePointerEx(h: FileHandle; o: LONGINT; r: INTEGER; VAR rc: INTEGER)
-"li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)(SYSTEM_ADRINT)h, li, 0, (DWORD)r)";
+"li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)(address)h, li, 0, (DWORD)r)";
 
 PROCEDURE -seekset(): INTEGER "FILE_BEGIN";
 PROCEDURE -seekcur(): INTEGER "FILE_CURRENT";
@@ -469,9 +469,9 @@ END Seek;
 
 
 
-PROCEDURE -setEndOfFile(h: FileHandle): INTEGER "(INTEGER)SetEndOfFile((HANDLE)(SYSTEM_ADRINT)h)";
+PROCEDURE -setEndOfFile(h: FileHandle): INTEGER "(INTEGER)SetEndOfFile((HANDLE)(address)h)";
 PROCEDURE -getFilePos(h: FileHandle; VAR r: LONGINT; VAR rc: INTEGER)
-"LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((HANDLE)(SYSTEM_ADRINT)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart";
+"LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((HANDLE)(address)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart";
 
 PROCEDURE Truncate*(h: FileHandle; limit: LONGINT): ErrorCode;
 VAR rc: INTEGER; oldpos: LONGINT;
@@ -529,8 +529,8 @@ PROCEDURE Exit*(code: INTEGER);
 BEGIN exit(code) END Exit;
 
 
-PROCEDURE -errstring(s: ARRAY OF CHAR) 'WriteFile((HANDLE)(SYSTEM_ADRINT)Platform_StdOut, s, s__len-1, 0,0)';
-PROCEDURE -errc     (c: CHAR)          'WriteFile((HANDLE)(SYSTEM_ADRINT)Platform_StdOut, &c, 1, 0,0)';
+PROCEDURE -errstring(s: ARRAY OF CHAR) 'WriteFile((HANDLE)(address)Platform_StdOut, s, s__len-1, 0,0)';
+PROCEDURE -errc     (c: CHAR)          'WriteFile((HANDLE)(address)Platform_StdOut, &c, 1, 0,0)';
 PROCEDURE errch(c: CHAR); BEGIN errc(c) END errch;
 PROCEDURE errln; BEGIN errch(0DX); errch(0AX) END errln;
 
@@ -552,7 +552,12 @@ BEGIN
   | -7: errstring("WITH statement type guard failed.")
   | -8: errstring("SHORT: Value too large for shorter type.")
   | -9: errstring("Heap interrupted while locked, but lockdepth = 0 at unlock.")
-  |-15: errstring("Type descriptor size mismatch.")
+  |-10: errstring("NIL access.");
+  |-11: errstring("Alignment error.");
+  |-12: errstring("Divide by zero.");
+  |-13: errstring("Arithmetic overflow/underflow.");
+  |-14: errstring("Invalid function argument.");
+  |-15: errstring("Internal error, e.g. Type descriptor size mismatch.")
   |-20: errstring("Too many, or negative number of, elements in dynamic array.")
   ELSE
   END
@@ -589,9 +594,9 @@ PROCEDURE TestLittleEndian;
  BEGIN i := 1; SYSTEM.GET(SYSTEM.ADR(i), LittleEndian); END TestLittleEndian;
 
 
-PROCEDURE -getstdinhandle():  FileHandle "(SYSTEM_ADRINT)GetStdHandle(STD_INPUT_HANDLE)";
-PROCEDURE -getstdouthandle(): FileHandle "(SYSTEM_ADRINT)GetStdHandle(STD_OUTPUT_HANDLE)";
-PROCEDURE -getstderrhandle(): FileHandle "(SYSTEM_ADRINT)GetStdHandle(STD_ERROR_HANDLE)";
+PROCEDURE -getstdinhandle():  FileHandle "(address)GetStdHandle(STD_INPUT_HANDLE)";
+PROCEDURE -getstdouthandle(): FileHandle "(address)GetStdHandle(STD_OUTPUT_HANDLE)";
+PROCEDURE -getstderrhandle(): FileHandle "(address)GetStdHandle(STD_ERROR_HANDLE)";
 PROCEDURE -getpid():          INTEGER    "(INTEGER)GetCurrentProcessId()";
 
 BEGIN

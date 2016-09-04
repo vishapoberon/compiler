@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -19,11 +19,12 @@ typedef
 
 
 import BOOLEAN Platform_LittleEndian;
-import int32 Platform_MainStackFrame, Platform_HaltCode;
+import address Platform_MainStackFrame;
+import int32 Platform_HaltCode;
 import int16 Platform_PID;
 import CHAR Platform_CWD[4096];
 import int16 Platform_ArgCount;
-import int32 Platform_ArgVector;
+import address Platform_ArgVector;
 import int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 import int32 Platform_StdIn, Platform_StdOut, Platform_StdErr;
 import CHAR Platform_nl[3];
@@ -49,12 +50,12 @@ import void Platform_Halt (int32 code);
 import int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
 import int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
 import BOOLEAN Platform_Inaccessible (int16 e);
-import void Platform_Init (int16 argc, int32 argvadr);
+import void Platform_Init (int16 argc, address argvadr);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 import int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
 import BOOLEAN Platform_NoSuchDirectory (int16 e);
-import int32 Platform_OSAllocate (int32 size);
-import void Platform_OSFree (int32 address);
+import address Platform_OSAllocate (address size);
+import void Platform_OSFree (address address);
 import int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 import int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
 import int16 Platform_Read (int32 h, int32 p, int32 l, int32 *n);
@@ -78,7 +79,7 @@ import int16 Platform_Write (int32 h, int32 p, int32 l);
 import BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 import void *Platform__init(void);
 
-#define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((SYSTEM_ADRINT)h)
-#define Platform_SetQuitHandler(h)	SystemSetQuitHandler((SYSTEM_ADRINT)h)
+#define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((address)h)
+#define Platform_SetQuitHandler(h)	SystemSetQuitHandler((address)h)
 
 #endif

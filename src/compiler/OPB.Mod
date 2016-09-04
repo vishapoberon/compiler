@@ -1213,6 +1213,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    IF (x.class # OPT.Nconst) & (x.typ.size < p.typ.size) THEN err(-308) END;
 
                    IF (x.class = OPT.Nconst) & (x.typ.form = OPT.Int) & (p.typ.form = OPT.Int) THEN
+                     (* Convert integer constants in place allowing usage in CONST section. *)
                      Convert(x, p.typ)
                    ELSE
                      t := OPT.NewNode(OPT.Nmop); t^.subcl := OPT.val; t^.left := x; x := t;

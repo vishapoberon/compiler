@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin tskSfF */
 
 #ifndef Heap__h
 #define Heap__h
@@ -31,7 +31,7 @@ typedef
 
 
 import SYSTEM_PTR Heap_modules;
-import uintptr Heap_allocated, Heap_heapsize;
+import address Heap_allocated, Heap_heapsize;
 import int16 Heap_FileCount;
 
 import LONGINT *Heap_ModuleDesc__typ;
@@ -41,11 +41,11 @@ import void Heap_GC (BOOLEAN markStack);
 import void Heap_INCREF (Heap_Module m);
 import void Heap_InitHeap (void);
 import void Heap_Lock (void);
-import SYSTEM_PTR Heap_NEWBLK (uintptr size);
-import SYSTEM_PTR Heap_NEWREC (uintptr tag);
+import SYSTEM_PTR Heap_NEWBLK (address size);
+import SYSTEM_PTR Heap_NEWREC (address tag);
 import void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd);
 import SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs);
-import void Heap_REGTYP (Heap_Module m, uintptr typ);
+import void Heap_REGTYP (Heap_Module m, address typ);
 import void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize);
 import void Heap_Unlock (void);
 import void *Heap__init(void);

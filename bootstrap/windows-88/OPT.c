@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/03] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
 #define LARGE
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -84,7 +84,7 @@ typedef
 
 export void (*OPT_typSize)(OPT_Struct);
 export OPT_Object OPT_topScope;
-export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_pinttyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
+export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
 export int8 OPT_nofGmod;
 export OPT_Object OPT_GlbMod[64];
 export OPS_Name OPT_SelfName;
@@ -1768,7 +1768,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPT_sinttyp);
 	P(OPT_inttyp);
 	P(OPT_linttyp);
-	P(OPT_pinttyp);
+	P(OPT_adrtyp);
 	P(OPT_int8typ);
 	P(OPT_int16typ);
 	P(OPT_int32typ);
@@ -1850,7 +1850,7 @@ export void *OPT__init(void)
 	OPT_InitStruct(&OPT_niltyp, 9);
 	OPT_EnterTyp((CHAR*)"BYTE", 1, OPM_ByteSize, &OPT_bytetyp);
 	OPT_EnterTyp((CHAR*)"PTR", 11, OPM_PointerSize, &OPT_sysptrtyp);
-	OPT_EnterTyp((CHAR*)"UINTPTR", 4, OPM_PointerSize, &OPT_pinttyp);
+	OPT_EnterTyp((CHAR*)"ADDRESS", 4, OPM_PointerSize, &OPT_adrtyp);
 	OPT_EnterTyp((CHAR*)"INT8", 4, 1, &OPT_int8typ);
 	OPT_EnterTyp((CHAR*)"INT16", 4, 2, &OPT_int16typ);
 	OPT_EnterTyp((CHAR*)"INT32", 4, 4, &OPT_int32typ);
