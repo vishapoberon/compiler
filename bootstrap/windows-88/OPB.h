@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPB__h
 #define OPB__h
 
-#define LARGE
 #include "SYSTEM.h"
 #include "OPS.h"
 #include "OPT.h"
@@ -47,4 +46,4 @@ import void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard);
 import void *OPB__init(void);
 
 
-#endif
+#endif // OPB

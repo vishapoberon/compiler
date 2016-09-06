@@ -1,4 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkamSf */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkamSf */
+
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
+
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Heap.h"

@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin tspkaSfF */
 
 #ifndef Files__h
 #define Files__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 typedef
@@ -68,4 +67,4 @@ import void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT
 import void *Files__init(void);
 
 
-#endif
+#endif // Files

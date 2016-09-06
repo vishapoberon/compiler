@@ -9,7 +9,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   CONST
     OptionChar* = "-";
 
-    (* compiler options; don't change the encoding *)
+    (* compiler option flag bits; don't change the encoding *)
     inxchk*         = 0;  (* index check on *)
     ranchk*         = 2;  (* range check on *)
     typchk*         = 3;  (* type check on *)
@@ -48,12 +48,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     MaxCaseRange*   = 512;
 
     MaxStruct*      = 255;
-
-    (* maximal number of pointer fields in a record: *)
-    MaxPtr*         = MAX(LONGINT);
-
-    (* maximal number of global pointers per module: *)
-    MaxGPtr*        = MAX(LONGINT);
 
     (* maximal number of hidden fields in an exported record: *)
     MaxHdFld*       = 2048;

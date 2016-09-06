@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin tskSfF */
 
 #ifndef Heap__h
 #define Heap__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 typedef
@@ -23,7 +22,7 @@ typedef
 
 typedef
 	struct Heap_ModuleDesc {
-		LONGINT _prvt0;
+		int64 _prvt0;
 		char _prvt1[72];
 	} Heap_ModuleDesc;
 
@@ -52,4 +51,4 @@ import void Heap_Unlock (void);
 import void *Heap__init(void);
 
 
-#endif
+#endif // Heap

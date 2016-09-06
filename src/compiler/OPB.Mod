@@ -1034,7 +1034,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.ashfn:    (*ASH*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f = OPT.Int THEN
-                     IF x.typ.size # OPM.LIntSize THEN Convert(x, OPT.linttyp) END
+                     IF x.typ.size # OPT.linttyp.size THEN Convert(x, OPT.linttyp) END
                    ELSE err(111); x^.typ := OPT.linttyp
                    END
     |OPT.adrfn:    (*SYSTEM.ADR*)

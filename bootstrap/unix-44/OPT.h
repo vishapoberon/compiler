@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -103,4 +103,4 @@ import OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
 import void *OPT__init(void);
 
 
-#endif
+#endif // OPT

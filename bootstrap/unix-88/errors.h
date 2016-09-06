@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef errors__h
 #define errors__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 typedef
@@ -16,4 +15,4 @@ import errors_string errors_errors[350];
 import void *errors__init(void);
 
 
-#endif
+#endif // errors

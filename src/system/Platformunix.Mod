@@ -499,7 +499,6 @@ BEGIN
 END DisplayHaltCode;
 
 PROCEDURE Halt*(code: LONGINT);
-VAR e: ErrorCode;
 BEGIN
   HaltCode := code;
   IF HaltHandler # NIL THEN HaltHandler(code) END;
@@ -510,7 +509,6 @@ BEGIN
 END Halt;
 
 PROCEDURE AssertFail*(code: LONGINT);
-VAR e: ErrorCode;
 BEGIN
   errstring("Assertion failure.");
   IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;

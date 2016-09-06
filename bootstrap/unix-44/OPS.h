@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin tspkaSfF */
 
 #ifndef OPS__h
 #define OPS__h
@@ -25,4 +25,4 @@ import void OPS_Init (void);
 import void *OPS__init(void);
 
 
-#endif
+#endif // OPS

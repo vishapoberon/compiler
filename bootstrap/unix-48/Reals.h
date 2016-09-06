@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Reals__h
 #define Reals__h
@@ -20,4 +20,4 @@ import LONGREAL Reals_TenL (int16 e);
 import void *Reals__init(void);
 
 
-#endif
+#endif // Reals

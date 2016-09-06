@@ -1,5 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
-#define LARGE
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+
+#define INTEGER int32
+#define LONGINT int64
+#define SET     uint64
+
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
@@ -1913,7 +1917,7 @@ void OPB_StPar0 (OPT_Node *par0, int32 fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (f == 4) {
-				if (x->typ->size != (int64)OPM_LIntSize) {
+				if (x->typ->size != OPT_linttyp->size) {
 					OPB_Convert(&x, OPT_linttyp);
 				}
 			} else {

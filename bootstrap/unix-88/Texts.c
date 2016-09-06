@@ -1,5 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
-#define LARGE
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+
+#define INTEGER int32
+#define LONGINT int64
+#define SET     uint64
+
 #include "SYSTEM.h"
 #include "Files.h"
 #include "Modules.h"

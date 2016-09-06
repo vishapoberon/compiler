@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPC__h
 #define OPC__h
 
-#define LARGE
 #include "SYSTEM.h"
 #include "OPT.h"
 
@@ -49,4 +48,4 @@ import void OPC_TypeOf (OPT_Object ap);
 import void *OPC__init(void);
 
 
-#endif
+#endif // OPC

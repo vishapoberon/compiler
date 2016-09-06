@@ -1,5 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
-#define LARGE
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+
+#define INTEGER int32
+#define LONGINT int64
+#define SET     uint64
+
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "OPM.h"
@@ -835,7 +839,7 @@ void OPC_TDescDecl (OPT_Struct typ)
 	OPC_Str1((CHAR*)", #), {", 8, typ->size);
 	nofptrs = 0;
 	OPC_PutPtrOffsets(typ, 0, &nofptrs);
-	OPC_Str1((CHAR*)"#}}", 4, -((nofptrs + 1) * (int64)OPM_LIntSize));
+	OPC_Str1((CHAR*)"#}}", 4, -((nofptrs + 1) * (int64)OPM_PointerSize));
 	OPC_EndStat();
 }
 
@@ -918,12 +922,20 @@ static void OPC_FillGap (int64 gap, int64 off, int64 align, int64 *n, int64 *cur
 	if ((*curAlign < align && gap - (adr - off) >= align)) {
 		gap -= (adr - off) + align;
 		OPC_BegStat();
-		if (align == (int64)OPM_IntSize) {
-			OPM_WriteString((CHAR*)"INTEGER", 8);
-		} else if (align == (int64)OPM_LIntSize) {
-			OPM_WriteString((CHAR*)"LONGINT", 8);
-		} else if (align == (int64)OPM_LRealSize) {
-			OPM_WriteString((CHAR*)"LONGREAL", 9);
+		switch (align) {
+			case 2: 
+				OPM_WriteString((CHAR*)"int16", 6);
+				break;
+			case 4: 
+				OPM_WriteString((CHAR*)"int32", 6);
+				break;
+			case 8: 
+				OPM_WriteString((CHAR*)"int64", 6);
+				break;
+			default: 
+				OPM_LogWLn();
+				OPM_LogWStr((CHAR*)"Unexpected enclosing alignment in FillGap.", 43);
+				break;
 		}
 		OPC_Str1((CHAR*)" _prvt#", 8, *n);
 		*n += 1;
@@ -1211,7 +1223,8 @@ void OPC_GenHdr (OPT_Node n)
 	OPM_WriteLn();
 	OPC_CProcDefs(OPT_topScope->right, 1);
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#endif", 7);
+	OPM_WriteString((CHAR*)"#endif // ", 11);
+	OPM_WriteStringVar((void*)OPM_modName, 32);
 	OPM_WriteLn();
 }
 
@@ -1298,10 +1311,6 @@ void OPC_GenHdrIncludes (void)
 	OPM_WriteString((CHAR*)"__h", 4);
 	OPM_WriteLn();
 	OPM_WriteLn();
-	if (OPM_LIntSize == 8) {
-		OPM_WriteString((CHAR*)"#define LARGE", 14);
-		OPM_WriteLn();
-	}
 	OPC_Include((CHAR*)"SYSTEM", 7);
 	OPC_IncludeImports(OPT_topScope->right, 1);
 	OPM_WriteLn();
@@ -1311,10 +1320,17 @@ void OPC_GenBdy (OPT_Node n)
 {
 	OPM_currFile = 1;
 	OPC_GenHeaderMsg();
-	if (OPM_LIntSize == 8) {
-		OPM_WriteString((CHAR*)"#define LARGE", 14);
-		OPM_WriteLn();
-	}
+	OPM_WriteLn();
+	OPM_WriteString((CHAR*)"#define INTEGER int", 20);
+	OPM_WriteInt(__ASHL(OPT_inttyp->size, 3));
+	OPM_WriteLn();
+	OPM_WriteString((CHAR*)"#define LONGINT int", 20);
+	OPM_WriteInt(__ASHL(OPT_linttyp->size, 3));
+	OPM_WriteLn();
+	OPM_WriteString((CHAR*)"#define SET     uint", 21);
+	OPM_WriteInt(__ASHL(OPT_settyp->size, 3));
+	OPM_WriteLn();
+	OPM_WriteLn();
 	OPC_Include((CHAR*)"SYSTEM", 7);
 	OPC_IncludeImports(OPT_topScope->right, 0);
 	OPM_WriteLn();

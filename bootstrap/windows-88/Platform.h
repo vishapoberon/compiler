@@ -1,14 +1,13 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Platform__h
 #define Platform__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 typedef
 	struct Platform_FileIdentity {
-		LONGINT _prvt0;
+		int64 _prvt0;
 		char _prvt1[32];
 	} Platform_FileIdentity;
 
@@ -83,4 +82,4 @@ import void *Platform__init(void);
 #define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((address)h)
 #define Platform_SetQuitHandler(h)	SystemSetQuitHandler((address)h)
 
-#endif
+#endif // Platform

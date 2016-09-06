@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPV__h
 #define OPV__h
 
-#define LARGE
 #include "SYSTEM.h"
 #include "OPT.h"
 
@@ -17,4 +16,4 @@ import void OPV_TypSize (OPT_Struct typ);
 import void *OPV__init(void);
 
 
-#endif
+#endif // OPV

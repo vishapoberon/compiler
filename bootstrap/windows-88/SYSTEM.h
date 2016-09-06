@@ -1,6 +1,24 @@
 #ifndef SYSTEM__h
 #define SYSTEM__h
 
+
+
+#ifndef LONGINT
+  #if (__SIZEOF_POINTER__ == 8) || defined(_WIN64)
+    #define INTEGER int32
+    #define LONGINT int64
+    #define SET     uint64
+  #else
+    #define INTEGER int16
+    #define LONGINT int32
+    #define SET     uint32
+  #endif
+#endif
+
+
+
+
+
 // Declare memcpy in a way compatible with C compilers intrinsic
 // built in implementations.
 
@@ -22,10 +40,12 @@ void *memcpy(void *dest, const void *source, size_t size);
 
 // Declare fixed size versions of basic intger types
 
-#if defined(_WIN64)
+#if (__SIZEOF_POINTER__ < 8) || defined(_WIN64)
+  // ILP32 or LLP64
   typedef long long          int64;
   typedef unsigned long long uint64;
 #else
+  // LP64
   typedef long               int64;
   typedef unsigned long      uint64;
 #endif
@@ -67,27 +87,8 @@ typedef float  REAL;
 typedef double LONGREAL;
 typedef void*  SYSTEM_PTR;
 
+#define uSET SET
 
-
-
-// For 32 bit builds, the size of LONGINT depends on a make option:
-
-#if (__SIZEOF_POINTER__ == 8) || defined(LARGE) || defined(_WIN64)
-  typedef int32  INTEGER;
-  typedef int64  LONGINT;
-  typedef uint64 SET;
-  typedef uint64 uSET;
-#else
-  typedef int16  INTEGER;
-  typedef int32  LONGINT;
-  typedef uint32 SET;
-  typedef uint32 uSET;
-#endif
-
-
-// Temporary defs while bootstrapping
-
-#define uLONGINT uint64
 
 
 

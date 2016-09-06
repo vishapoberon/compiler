@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Console__h
 #define Console__h
@@ -20,4 +20,4 @@ import void Console_String (CHAR *s, LONGINT s__len);
 import void *Console__init(void);
 
 
-#endif
+#endif // Console

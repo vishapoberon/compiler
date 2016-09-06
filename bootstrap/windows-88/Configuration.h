@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Configuration__h
 #define Configuration__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 
@@ -13,4 +12,4 @@ import CHAR Configuration_versionLong[41];
 import void *Configuration__init(void);
 
 
-#endif
+#endif // Configuration

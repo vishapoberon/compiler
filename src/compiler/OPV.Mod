@@ -50,23 +50,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   VAR
     assert, inxchk, mainprog, ansi: BOOLEAN;
     stamp: INTEGER;  (* unique number for nested objects *)
-    (*recno: INTEGER;*)  (* number of anonymous record types *)
     recno: LONGINT;  (* number of anonymous record types *)
 
     exit: ExitInfo;  (* to check if EXIT is simply a break *)
     nofExitLabels: INTEGER;
-    naturalAlignment: BOOLEAN;
 
-
-  PROCEDURE NaturalAlignment(size, max: LONGINT): LONGINT;
-    VAR i: LONGINT;
-  BEGIN
-    IF size >= max THEN RETURN max
-    ELSE i := 1;
-      WHILE i < size DO INC(i, i) END ;
-      RETURN i
-    END
-  END NaturalAlignment;
 
   PROCEDURE TypSize*(typ: OPT.Struct);
     VAR f, c: INTEGER; offset, size, base, fbase, off0: LONGINT;
@@ -87,10 +75,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
           fld^.adr := offset; INC(offset, size);
           IF fbase > base THEN base := fbase END ;
           fld := fld^.link
-        END ;
+        END;
+        (* base is now the largest alignment of any field *)
         off0 := offset;
         IF offset = 0 THEN offset := 1 END ;  (* 1 byte filler to avoid empty struct *)
-        IF OPM.RecSize = 0 THEN base := NaturalAlignment(offset, (*OPM.RecAlign*)OPC.SizeAlignment(OPM.RecSize)) END ;
         OPC.Align(offset, base);
         IF (typ^.strobj = NIL) & (typ^.align MOD 10000H = 0) THEN INC(recno); INC(base, recno * 10000H) END ;
         typ^.size := offset; typ^.align := base;

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Texts__h
 #define Texts__h
@@ -30,7 +30,7 @@ typedef
 
 typedef
 	struct Texts_RunDesc {
-		LONGINT _prvt0;
+		int32 _prvt0;
 		char _prvt1[15];
 	} Texts_RunDesc;
 
@@ -169,4 +169,4 @@ import void Texts_WriteString (Texts_Writer *W, LONGINT *W__typ, CHAR *s, LONGIN
 import void *Texts__init(void);
 
 
-#endif
+#endif // Texts

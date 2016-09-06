@@ -1,4 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin tskSfF */
+
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
+
 #include "SYSTEM.h"
 
 struct Heap__1 {

@@ -1,4 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
+
 #include "SYSTEM.h"
 #include "OPC.h"
 #include "OPM.h"
@@ -16,7 +21,6 @@ static int16 OPV_stamp;
 static int32 OPV_recno;
 static OPV_ExitInfo OPV_exit;
 static int16 OPV_nofExitLabels;
-static BOOLEAN OPV_naturalAlignment;
 
 export LONGINT *OPV_ExitInfo__typ;
 
@@ -34,7 +38,6 @@ export void OPV_Init (void);
 static void OPV_InitTDescs (OPT_Node n);
 static void OPV_Len (OPT_Node n, int32 dim);
 export void OPV_Module (OPT_Node prog);
-static int32 OPV_NaturalAlignment (int32 size, int32 max);
 static void OPV_NewArr (OPT_Node d, OPT_Node x);
 static void OPV_ParIntLiteral (int32 n, int32 size);
 static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp);
@@ -50,24 +53,6 @@ static void OPV_design (OPT_Node n, int16 prec);
 static void OPV_expr (OPT_Node n, int16 prec);
 static void OPV_stat (OPT_Node n, OPT_Object outerProc);
 
-
-static int32 OPV_NaturalAlignment (int32 size, int32 max)
-{
-	int32 _o_result;
-	int32 i;
-	if (size >= max) {
-		_o_result = max;
-		return _o_result;
-	} else {
-		i = 1;
-		while (i < size) {
-			i += i;
-		}
-		_o_result = i;
-		return _o_result;
-	}
-	__RETCHK;
-}
 
 void OPV_TypSize (OPT_Struct typ)
 {
@@ -107,9 +92,6 @@ void OPV_TypSize (OPT_Struct typ)
 			off0 = offset;
 			if (offset == 0) {
 				offset = 1;
-			}
-			if (OPM_RecSize == 0) {
-				base = OPV_NaturalAlignment(offset, OPC_SizeAlignment(OPM_RecSize));
 			}
 			OPC_Align(&offset, base);
 			if ((typ->strobj == NIL && __MASK(typ->align, -65536) == 0)) {
@@ -568,7 +550,7 @@ static void OPV_design (OPT_Node n, int16 prec)
 	OPT_Struct typ = NIL;
 	int16 class, designPrec, comp;
 	OPT_Node d = NIL, x = NIL;
-	int16 dims, i, _for__28;
+	int16 dims, i, _for__27;
 	comp = n->typ->comp;
 	obj = n->obj;
 	class = n->class;
@@ -644,9 +626,9 @@ static void OPV_design (OPT_Node n, int16 prec)
 					}
 					x = x->left;
 				}
-				_for__28 = dims;
+				_for__27 = dims;
 				i = 1;
-				while (i <= _for__28) {
+				while (i <= _for__27) {
 					OPM_Write(')');
 					i += 1;
 				}

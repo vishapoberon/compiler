@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef extTools__h
 #define extTools__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 
@@ -14,4 +13,4 @@ import void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEA
 import void *extTools__init(void);
 
 
-#endif
+#endif // extTools

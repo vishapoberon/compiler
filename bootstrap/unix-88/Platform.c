@@ -1,5 +1,9 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
-#define LARGE
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+
+#define INTEGER int32
+#define LONGINT int64
+#define SET     uint64
+
 #include "SYSTEM.h"
 
 typedef
@@ -729,7 +733,6 @@ static void Platform_DisplayHaltCode (int64 code)
 
 void Platform_Halt (int64 code)
 {
-	int32 e;
 	Platform_HaltCode = code;
 	if (Platform_HaltHandler != NIL) {
 		(*Platform_HaltHandler)(code);
@@ -746,7 +749,6 @@ void Platform_Halt (int64 code)
 
 void Platform_AssertFail (int64 code)
 {
-	int32 e;
 	Platform_errstring((CHAR*)"Assertion failure.", 19);
 	if (code != 0) {
 		Platform_errstring((CHAR*)" ASSERT code ", 14);

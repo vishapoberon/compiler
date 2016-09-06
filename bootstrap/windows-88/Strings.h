@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Strings__h
 #define Strings__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 
@@ -21,4 +20,4 @@ import void Strings_Replace (CHAR *source, LONGINT source__len, int32 pos, CHAR 
 import void *Strings__init(void);
 
 
-#endif
+#endif // Strings

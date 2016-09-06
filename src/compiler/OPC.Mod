@@ -552,7 +552,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF typ^.strobj # NIL THEN OPM.WriteStringVar(typ^.strobj^.name) END ;
     OPM.Write(DoubleQuote);
     Str1(', #), {', typ^.size);
-    nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.LIntSize);
+    nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.PointerSize);
     EndStat
   END TDescDecl;
 
@@ -589,6 +589,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     RETURN alignment
   END SizeAlignment;
 
+
   PROCEDURE BaseAlignment*(typ: OPT.Struct): LONGINT;
     VAR alignment: LONGINT;
   BEGIN
@@ -606,16 +607,24 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
 
   PROCEDURE FillGap(gap, off, align: LONGINT; VAR n, curAlign: LONGINT);
+  (* gap:      Required gap - already calculated based on alignment requirements
+     off:      Current offset - where gap begins
+     align:    Containing record type alignment
+     n:        Next ordinal to use for private field names
+     curAlign: Largest alignment of any field so far
+  *)
     VAR adr: LONGINT;
   BEGIN
     adr := off; Align(adr, align);
     IF (curAlign < align) & (gap - (adr - off) >= align) THEN (* preserve alignment of the enclosing struct! *)
       DEC(gap, (adr - off) + align);
       BegStat;
-      IF    align = OPM.IntSize   THEN OPM.WriteString("INTEGER")
-      ELSIF align = OPM.LIntSize  THEN OPM.WriteString("LONGINT")
-      ELSIF align = OPM.LRealSize THEN OPM.WriteString("LONGREAL")
-      END ;
+      CASE align OF
+      |2: OPM.WriteString("int16")
+      |4: OPM.WriteString("int32")
+      |8: OPM.WriteString("int64")
+      ELSE OPM.LogWLn; OPM.LogWStr("Unexpected enclosing alignment in FillGap.")
+      END;
       Str1(" _prvt#", n); INC(n); EndStat;
       curAlign := align
     END ;
@@ -625,30 +634,44 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE FieldList (typ: OPT.Struct; last: BOOLEAN; VAR off, n, curAlign: LONGINT);
     VAR fld: OPT.Object; base: OPT.Struct; gap, adr, align, fldAlign: LONGINT;
   BEGIN
-    fld := typ.link; align := typ^.align MOD 10000H;
+    fld   := typ.link;
+    align := typ^.align MOD 10000H;
     IF typ.BaseTyp # NIL THEN FieldList(typ.BaseTyp, FALSE, off, n, curAlign)
     ELSE off := 0; n := 0; curAlign := 1
-    END ;
+    END;
+    (* off:      Current offset into record
+       align:    Overall (RECORD) alignment
+       curAlign: Current alignment - largest alignment of any field so far
+       n:        Next ordinal to use for private field names
+    *)
     WHILE (fld # NIL) & (fld.mode = OPT.Fld) DO
-      IF (OPM.currFile = OPM.HeaderFile) & (fld.vis = OPT.internal) OR
-        (OPM.currFile = OPM.BodyFile) & (fld.vis = OPT.internal) & (typ^.mno # 0) THEN
+      IF (OPM.currFile = OPM.HeaderFile) & (fld.vis = OPT.internal)
+      OR (OPM.currFile = OPM.BodyFile)   & (fld.vis = OPT.internal) & (typ^.mno # 0) THEN
+        (* Skip private fields *)
         fld := fld.link;
-        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.vis = OPT.internal) DO fld := fld.link END ;
+        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.vis = OPT.internal) DO fld := fld.link END;
       ELSE
         (* mimic OPV.TypSize to detect gaps caused by private fields *)
-        adr := off; fldAlign := BaseAlignment(fld^.typ); Align(adr, fldAlign);
+        adr := off;
+        fldAlign := BaseAlignment(fld^.typ);
+        Align(adr, fldAlign);
         gap := fld.adr - adr;
-        IF fldAlign > curAlign THEN curAlign := fldAlign END ;
-        IF gap > 0 THEN FillGap(gap, off, align, n, curAlign) END ;
+        IF fldAlign > curAlign THEN curAlign := fldAlign END;
+        IF gap > 0 THEN
+          FillGap(gap, off, align, n, curAlign)
+        END;
         BegStat; DeclareBase(fld); OPM.Write(' '); DeclareObj(fld, FALSE);
         off := fld.adr + fld.typ.size; base := fld.typ; fld := fld.link;
-        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.typ = base) & (fld.adr = off)
+        WHILE (fld # NIL)
+            & (fld.mode = OPT.Fld)
+            & (fld.typ  = base)
+            & (fld.adr  = off)
 (* ?? *)    & ((OPM.currFile = OPM.BodyFile) OR (fld.vis # OPT.internal) OR (fld.typ.strobj = NIL)) DO
           OPM.WriteString(", "); DeclareObj(fld, FALSE); off := fld.adr + fld.typ.size; fld := fld.link
-        END ;
+        END;
         EndStat
       END
-    END ;
+    END;
     IF last THEN
       adr := typ.size - typ^.sysflag DIV 100H;
       IF adr = 0 THEN gap := 1 (* avoid empty struct *) ELSE gap := adr - off END ;
@@ -807,7 +830,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteStringVar(OPM.modName); OPM.WriteString(BodyNameExt);
     EndStat; OPM.WriteLn;
     CProcDefs(OPT.topScope^.right, 1); OPM.WriteLn;
-    OPM.WriteString("#endif"); OPM.WriteLn
+    OPM.WriteString("#endif // "); OPM.WriteStringVar(OPM.modName); OPM.WriteLn
   END GenHdr;
 
   PROCEDURE GenHeaderMsg;
@@ -848,7 +871,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString("#ifndef "); OPM.WriteStringVar(OPM.modName); OPM.WriteString(FlagExt); OPM.WriteLn;
     OPM.WriteString("#define "); OPM.WriteStringVar(OPM.modName); OPM.WriteString(FlagExt); OPM.WriteLn;
     OPM.WriteLn;
-    IF OPM.LIntSize = 8 THEN OPM.WriteString("#define LARGE"); OPM.WriteLn END;
+
     Include(BasicIncludeFile);
     IncludeImports(OPT.topScope^.right, 1); OPM.WriteLn
   END GenHdrIncludes;
@@ -857,7 +880,14 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     OPM.currFile := OPM.BodyFile;
     GenHeaderMsg;
-    IF OPM.LIntSize = 8 THEN OPM.WriteString("#define LARGE"); OPM.WriteLn END;
+    OPM.WriteLn;
+
+    (* Define adjustable type sizes *)
+    OPM.WriteString("#define INTEGER int");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
+    OPM.WriteString("#define LONGINT int");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define SET     uint"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
+    OPM.WriteLn;
+
     Include(BasicIncludeFile);
     IncludeImports(OPT.topScope^.right, 0); OPM.WriteLn;
     DefAnonRecs(n);
@@ -1001,10 +1031,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     (* If there will be a result, provide a result variable. *)
     IF proc^.typ # OPT.notyp THEN
       BegStat;
-          Ident(proc^.typ^.strobj);
-          OPM.WriteString(" _o_result;");
-          OPM.WriteLn;
-        END;
+      Ident(proc^.typ^.strobj);
+      OPM.WriteString(" _o_result;");
+      OPM.WriteLn;
+    END;
 
     scope := proc^.scope;
     IdentList(scope^.scope, 0);

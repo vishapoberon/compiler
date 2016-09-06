@@ -1,9 +1,8 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef vt100__h
 #define vt100__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 
@@ -35,4 +34,4 @@ import void vt100_SetAttr (CHAR *attr, LONGINT attr__len);
 import void *vt100__init(void);
 
 
-#endif
+#endif // vt100

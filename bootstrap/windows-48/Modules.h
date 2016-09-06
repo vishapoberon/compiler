@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/04] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Modules__h
 #define Modules__h
@@ -51,4 +51,4 @@ import void *Modules__init(void);
 #define Modules_modules()	(Modules_Module)Heap_modules
 #define Modules_setmodules(m)	Heap_modules = m
 
-#endif
+#endif // Modules
