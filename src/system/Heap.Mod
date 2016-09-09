@@ -336,8 +336,7 @@ MODULE Heap;
         tag := tagbits + SZA;                       (* Tag addresses first offset *)
         LOOP
           SYSTEM.GET(tag, offset);                  (* Get next ptr field offset *)
-          IF SYSTEM.BIT(SYSTEM.ADR(offset), SIZE(SYSTEM.ADDRESS)*8 - 1) THEN
-            (* Sentinel reached: Value is -8*(#fields+1) *)
+          IF offset < 0 THEN                        (* Sentinel reached: Value is -8*(#fields+1) *)
             SYSTEM.PUT(q - SZA, tag + offset + 1);  (* Rotate base ptr into tag *)
             IF p = 0 THEN EXIT END ;
             n := q; q := p;

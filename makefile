@@ -226,6 +226,9 @@ uninstall: configuration
 confidence: configuration
 	@make -f src/tools/make/vishap.make -s confidence
 
+planned-binary-change:
+	@date >src/test/confidence/planned-binary-change
+
 
 
 

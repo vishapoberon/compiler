@@ -108,6 +108,59 @@ BEGIN
   END
 END TestValue;
 
+
+PROCEDURE side(i: INTEGER): INTEGER; BEGIN RETURN i END side;
+
+PROCEDURE DivMod;
+  VAR i,j: INTEGER;
+BEGIN
+  j := 2;
+  i :=  4;  TestValue(i DIV j, 2, "4 DIV 2");       TestValue(side(i) DIV side(j),  2, "side(4) DIV side(2)");
+  i :=  5;  TestValue(i DIV j, 2, "5 DIV 2");       TestValue(side(i) DIV side(j),  2, "side(5) DIV side(2)");
+  i :=  6;  TestValue(i DIV j, 3, "6 DIV 2");       TestValue(side(i) DIV side(j),  3, "side(6) DIV side(2)");
+  i :=  7;  TestValue(i DIV j, 3, "7 DIV 2");       TestValue(side(i) DIV side(j),  3, "side(7) DIV side(2)");
+  i := -4;  TestValue(i DIV j, -2, "(-4) DIV 2");   TestValue(side(i) DIV side(j), -2, "side(-4) DIV side(2)");
+  i := -5;  TestValue(i DIV j, -3, "(-5) DIV 2");   TestValue(side(i) DIV side(j), -3, "side(-5) DIV side(2)");
+  i := -6;  TestValue(i DIV j, -3, "(-6) DIV 2");   TestValue(side(i) DIV side(j), -3, "side(-6) DIV side(2)");
+  i := -7;  TestValue(i DIV j, -4, "(-7) DIV 2");   TestValue(side(i) DIV side(j), -4, "side(-7) DIV side(2)");
+
+  j := -2;
+  i :=  4;  TestValue(i DIV j, -2, "4 DIV (-2)");   TestValue(side(i) DIV side(j), -2, "side(4) DIV side(-2)");
+  i :=  5;  TestValue(i DIV j, -3, "5 DIV (-2)");   TestValue(side(i) DIV side(j), -3, "side(5) DIV side(-2)");
+  i :=  6;  TestValue(i DIV j, -3, "6 DIV (-2)");   TestValue(side(i) DIV side(j), -3, "side(6) DIV side(-2)");
+  i :=  7;  TestValue(i DIV j, -4, "7 DIV (-2)");   TestValue(side(i) DIV side(j), -4, "side(7) DIV side(-2)");
+  i := -4;  TestValue(i DIV j, 2, "(-4) DIV (-2)"); TestValue(side(i) DIV side(j),  2, "side(-4) DIV side(-2)");
+  i := -5;  TestValue(i DIV j, 2, "(-5) DIV (-2)"); TestValue(side(i) DIV side(j),  2, "side(-5) DIV side(-2)");
+  i := -6;  TestValue(i DIV j, 3, "(-6) DIV (-2)"); TestValue(side(i) DIV side(j),  3, "side(-6) DIV side(-2)");
+  i := -7;  TestValue(i DIV j, 3, "(-7) DIV (-2)"); TestValue(side(i) DIV side(j),  3, "side(-7) DIV side(-2)");
+
+  (*     x = (x DIV y) * y + (x MOD y)
+     =>  x MOd y = x - ((x DIV y) * y)
+  *)
+
+
+  i :=  4; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "4 MOD 3");
+  i :=  5; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "5 MOD 3");
+  i :=  6; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "6 MOD 3");
+  i :=  7; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "7 MOD 3");
+
+  i := -4; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-4 MOD 3");
+  i := -5; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-5 MOD 3");
+  i := -6; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-6 MOD 3");
+  i := -7; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-7 MOD 3");
+
+  i :=  4; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "4 MOD -3");
+  i :=  5; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "5 MOD -3");
+  i :=  6; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "6 MOD -3");
+  i :=  7; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "7 MOD -3");
+
+  i := -4; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-4 MOD -3");
+  i := -5; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-5 MOD -3");
+  i := -6; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-6 MOD -3");
+  i := -7; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-7 MOD -3");
+END DivMod;
+
+
 PROCEDURE IntSize;
   VAR l: LONGINT;
 BEGIN
@@ -136,6 +189,7 @@ END IntSize;
 
 BEGIN
   Shift;
+  DivMod;
   IntSize;
   Console.String("Language tests successful."); Console.Ln;
 END TestLanguage.

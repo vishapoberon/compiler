@@ -131,20 +131,20 @@ void determineCCompiler() {
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
-      cc = "i686-w64-mingw32-gcc -g";
+      cc = "i686-w64-mingw32-gcc -g -Og";
     } else {
-      cc = "x86_64-w64-mingw32-gcc -g";
+      cc = "x86_64-w64-mingw32-gcc -g -Og";
     }
   #elif defined(__clang__)
     compiler = "clang";
-    cc       = "clang -fPIC -g";
+    cc       = "clang -fPIC -g -O1";
   #elif defined(__GNUC__)
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g";
+      cc = "gcc -g -Og";
     } else {
-      cc = "gcc -fPIC -g";
+      cc = "gcc -fPIC -g -Og";
     }
   #elif defined(_MSC_VER)
     compiler  = "MSC";
