@@ -131,9 +131,9 @@ void determineCCompiler() {
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
-      cc = "i686-w64-mingw32-gcc -g -Og";
+      cc = "i686-w64-mingw32-gcc -g -O1";
     } else {
-      cc = "x86_64-w64-mingw32-gcc -g -Og";
+      cc = "x86_64-w64-mingw32-gcc -g -O1";
     }
   #elif defined(__clang__)
     compiler = "clang";
@@ -142,9 +142,9 @@ void determineCCompiler() {
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g -Og";
+      cc = "gcc -g -O1";
     } else {
-      cc = "gcc -fPIC -g -Og";
+      cc = "gcc -fPIC -g -O1";
     }
   #elif defined(_MSC_VER)
     compiler  = "MSC";

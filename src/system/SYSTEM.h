@@ -2,11 +2,17 @@
 #define SYSTEM__h
 
 
+// 64 bit system detection
+
+#if (__SIZEOF_POINTER__ == 8) || defined (_LP64) || defined(__LP64__) || defined(_WIN64)
+  #define __o_64
+#endif
+
 // Temporary while bootstrapping and clearing up SYSTEM.c.
 
 
 #ifndef LONGINT
-  #if (__SIZEOF_POINTER__ == 8) || defined(_WIN64)
+  #if defined (__o_64)
     #define INTEGER int32
     #define LONGINT int64
     #define SET     uint64
@@ -24,7 +30,7 @@
 // Declare memcpy in a way compatible with C compilers intrinsic
 // built in implementations.
 
-#if (__SIZEOF_POINTER__ == 8) || defined(_WIN64) || defined(__LP64__)
+#if defined (__o_64)
   #if defined(_WIN64)
     typedef unsigned long long size_t;
     typedef long long          address;
@@ -45,14 +51,14 @@ void *memcpy(void *dest, const void *source, size_t size);
 
 // Declare fixed size versions of basic intger types
 
-#if (__SIZEOF_POINTER__ < 8) || defined(_WIN64)
-  // ILP32 or LLP64
-  typedef long long          int64;
-  typedef unsigned long long uint64;
-#else
+#if defined (__o_64) && !defined(_WIN64)
   // LP64
   typedef long               int64;
   typedef unsigned long      uint64;
+#else
+  // ILP32 or LLP64
+  typedef long long          int64;
+  typedef unsigned long long uint64;
 #endif
 
 typedef int                  int32;
@@ -203,7 +209,6 @@ static inline int64 SYSTEM_ASH(int64 x, int64 n) {return __ASH(x,n);}
 
 #define __BIT(x, n)     (*(uint64*)(x)>>(n)&1)
 #define __MOVE(s, d, n) memcpy((char*)(address)(d),(char*)(address)(s),n)
-
 
 
 extern int64 SYSTEM_DIV(int64 x, int64 y);
