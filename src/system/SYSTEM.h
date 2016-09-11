@@ -33,14 +33,14 @@
 #if defined (__o_64)
   #if defined(_WIN64)
     typedef unsigned long long size_t;
-    typedef long long          address;
+//  typedef long long          address;
   #else
     typedef unsigned long      size_t;
-    typedef long               address;
+//  typedef long               address;
   #endif
 #else
   typedef unsigned int         size_t;
-  typedef int                  address;
+//typedef int                  address;
 #endif
 
 #define _SIZE_T_DECLARED // For FreeBSD
@@ -71,6 +71,13 @@ typedef signed char          int8;
 typedef unsigned char        uint8;
 
 
+// 'address' is a synonym for an int32 of pointer size
+
+#if defined (__o_64)
+  #define address int64
+#else
+  #define address int32
+#endif
 
 // The compiler uses 'import' and 'export' which translate to 'extern' and
 // nothing respectively.
