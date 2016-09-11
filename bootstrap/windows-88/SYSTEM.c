@@ -21,11 +21,34 @@
 // Procedure verions of SYSTEM.H versions used when a multiply accessed
 // parameter has side effects.
 
-int64 SYSTEM_XCHK(uint64 i, uint64 ub) {return __X(i, ub);}
-int64 SYSTEM_RCHK(uint64 i, uint64 ub) {return __R(i, ub);}
-LONGINT SYSTEM_ASH (LONGINT i, LONGINT n)  {return __ASH(i, n);}
-LONGINT SYSTEM_ABS (LONGINT i)             {return __ABS(i);}
-double  SYSTEM_ABSD(double i)              {return __ABS(i);}
+
+
+LONGINT SYSTEM_ABS (LONGINT i) {return __ABS(i);}
+double  SYSTEM_ABSD(double i)  {return __ABS(i);}
+
+
+int64 SYSTEM_DIV(int64 x, int64 y)
+{
+  if (x == 0) return 0;
+  if (x >= 0)
+    if (y >= 0) {return x/y;}
+    else        {return -((x-y-1)/(-y));}
+  else
+    if (y >= 0) {return -((y-x-1)/y);}
+    else        {return (-x)/(-y);}
+}
+
+int64 SYSTEM_MOD(int64 x, int64 y)
+{
+  if (x == 0) return 0;
+  if (x >= 0)
+    if (y >= 0) {return x % y;}
+    else        {return (y+1) + ((x-1) % (-y));}
+  else
+    if (y >= 0) {return (y-1) - ((-x-1) % y);}
+    else        {return -((-x) % (-y));}
+}
+
 
 void SYSTEM_INHERIT(LONGINT *t, LONGINT *t0)
 {
@@ -54,19 +77,6 @@ void SYSTEM_ENUMR(void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)())
         while (off >= 0) {P(*(address*)((char*)adr+off)); t++; off = *t;}
         adr = ((char*)adr) + size;
         n--;
-    }
-}
-
-LONGINT SYSTEM_DIV(uint64 x, uint64 y)
-{   if ((int64) x >= 0) return (x / y);
-    else return -((y - 1 - x) / y);
-}
-
-LONGINT SYSTEM_MOD(uint64 x, uint64 y)
-{   uint64 m;
-    if ((int64) x >= 0) return (x % y);
-    else { m = (-x) % y;
-        if (m != 0) return (y - m); else return 0;
     }
 }
 

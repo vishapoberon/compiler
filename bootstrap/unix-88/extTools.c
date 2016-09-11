@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -64,7 +64,7 @@ void extTools_Assemble (CHAR *moduleName, LONGINT moduleName__len)
 {
 	CHAR cmd[1023];
 	__DUP(moduleName, moduleName__len, CHAR);
-	__MOVE("gcc -g", cmd, 7);
+	__MOVE("gcc -g -O1", cmd, 11);
 	Strings_Append(extTools_compilationOptions, 1023, (void*)cmd, 1023);
 	Strings_Append((CHAR*)"-c ", 4, (void*)cmd, 1023);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 1023);
@@ -77,7 +77,7 @@ void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN stati
 {
 	CHAR cmd[1023];
 	__DUP(additionalopts, additionalopts__len, CHAR);
-	__MOVE("gcc -g", cmd, 7);
+	__MOVE("gcc -g -O1", cmd, 11);
 	Strings_Append((CHAR*)" ", 2, (void*)cmd, 1023);
 	Strings_Append(extTools_compilationOptions, 1023, (void*)cmd, 1023);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 1023);

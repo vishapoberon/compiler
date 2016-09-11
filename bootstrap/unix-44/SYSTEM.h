@@ -2,9 +2,17 @@
 #define SYSTEM__h
 
 
+// 64 bit system detection
+
+#if (__SIZEOF_POINTER__ == 8) || defined (_LP64) || defined(__LP64__) || defined(_WIN64)
+  #define __o_64
+#endif
+
+// Temporary while bootstrapping and clearing up SYSTEM.c.
+
 
 #ifndef LONGINT
-  #if (__SIZEOF_POINTER__ == 8) || defined(_WIN64)
+  #if defined (__o_64)
     #define INTEGER int32
     #define LONGINT int64
     #define SET     uint64
@@ -22,14 +30,17 @@
 // Declare memcpy in a way compatible with C compilers intrinsic
 // built in implementations.
 
-#if (__SIZEOF_POINTER__ == 8) || defined(_WIN64) || defined(__LP64__)
+#if defined (__o_64)
   #if defined(_WIN64)
     typedef unsigned long long size_t;
+//  typedef long long          address;
   #else
     typedef unsigned long      size_t;
+//  typedef long               address;
   #endif
 #else
   typedef unsigned int         size_t;
+//typedef int                  address;
 #endif
 
 #define _SIZE_T_DECLARED // For FreeBSD
@@ -40,14 +51,14 @@ void *memcpy(void *dest, const void *source, size_t size);
 
 // Declare fixed size versions of basic intger types
 
-#if (__SIZEOF_POINTER__ < 8) || defined(_WIN64)
-  // ILP32 or LLP64
-  typedef long long          int64;
-  typedef unsigned long long uint64;
-#else
+#if defined (__o_64) && !defined(_WIN64)
   // LP64
   typedef long               int64;
   typedef unsigned long      uint64;
+#else
+  // ILP32 or LLP64
+  typedef long long          int64;
+  typedef unsigned long long uint64;
 #endif
 
 typedef int                  int32;
@@ -59,7 +70,14 @@ typedef unsigned short int   uint16;
 typedef signed char          int8;
 typedef unsigned char        uint8;
 
-#define address size_t
+
+// 'address' is a synonym for an int32 of pointer size
+
+#if defined (__o_64)
+  #define address int64
+#else
+  #define address int32
+#endif
 
 // The compiler uses 'import' and 'export' which translate to 'extern' and
 // nothing respectively.
@@ -103,18 +121,40 @@ extern address Platform_OSAllocate (address size);
 extern void    Platform_OSFree     (address addr);
 
 
+// Assertions and Halts
+
+extern void Platform_Halt(LONGINT x);
+extern void Platform_AssertFail(LONGINT x);
+
+#define __HALT(x)         Platform_Halt(x)
+#define __ASSERT(cond, x) if (!(cond)) Platform_AssertFail((LONGINT)(x))
+
+
+// Index checking
+
+static inline int64 __XF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-2);} return i;}
+#define __X(i, ub) (((uint64)(i)<(uint64)(ub))?i:(__HALT(-2),0))
+
+
+// Range checking, and checked SHORT and CHR functions
+
+static inline int64 __RF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-8);} return i;}
+#define __R(i, ub)      (((uint64)(i)<(uint64)(ub))?i:(__HALT(-8),0))
+#define __SHORT(x, ub)  ((int)((uLONGINT)(x)+(ub)<(ub)+(ub)?(x):(__HALT(-8),0)))
+#define __SHORTF(x, ub) ((int)(__RF((x)+(ub),(ub)+(ub))-(ub)))
+#define __CHR(x)        ((CHAR)__R(x, 256))
+#define __CHRF(x)       ((CHAR)__RF(x, 256))
+
+
+
 // Run time system routines in SYSTEM.c
 
-extern int64   SYSTEM_XCHK   (uint64 i, uint64 ub);
-extern int64   SYSTEM_RCHK   (uint64 i, uint64 ub);
-extern LONGINT SYSTEM_ASH    (LONGINT i, LONGINT n);
+
 extern LONGINT SYSTEM_ABS    (LONGINT i);
 extern double  SYSTEM_ABSD   (double i);
 extern void    SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
 extern void    SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
 extern void    SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
-extern LONGINT SYSTEM_DIV    (uint64 x, uint64 y);
-extern LONGINT SYSTEM_MOD    (uint64 x, uint64 y);
 extern LONGINT SYSTEM_ENTIER (double x);
 
 
@@ -131,7 +171,7 @@ extern LONGINT SYSTEM_ENTIER (double x);
 
 // String comparison
 
-static int __str_cmp(CHAR *x, CHAR *y){
+static inline int __str_cmp(CHAR *x, CHAR *y){
   LONGINT i = 0;
   CHAR ch1, ch2;
   do {ch1 = x[i]; ch2 = y[i]; i++;
@@ -152,21 +192,12 @@ static int __str_cmp(CHAR *x, CHAR *y){
 #define __DEL(x)        Platform_OSFree((address)x)
 
 
-// Index and range checks
-
-#define __X(i, ub)   (((uint64)(i)<(uint64)(ub))?i:(__HALT(-2),0))
-#define __XF(i, ub)  SYSTEM_XCHK((uint64)(i), (uint64)(ub))
-
-#define __R(i, ub)   (((uint64)(i)<(uint64)(ub))?i:(__HALT(-8),0))
-#define __RF(i, ub)  SYSTEM_RCHK((uint64)(i),(uint64)(ub))
-
-
 /* SYSTEM ops */
 
 #define __VAL(t, x)     (*(t*)&(x))
 
 
-#define __GET(a, x, t)  x= *(t*)(address)(a)
+#define __GET(a, x, t)  x=*(t*)(address)(a)
 #define __PUT(a, x, t)  *(t*)(address)(a)=x
 
 #define __LSHL(x, n, t) ((t)((u##t)(x)<<(n)))
@@ -177,21 +208,27 @@ static int __str_cmp(CHAR *x, CHAR *y){
 #define __ROTR(x, n, t) ((t)((u##t)(x)>>(n)|(u##t)(x)<<(8*sizeof(t)-(n))))
 #define __ROT(x, n, t)  ((n)>=0? __ROTL(x, n, t): __ROTR(x, -(n), t))
 
-#define __ASHL(x, n)    ((LONGINT)(x)<<(n))
-#define __ASHR(x, n)    ((LONGINT)(x)>>(n))
+#define __ASHL(x, n)    ((int64)(x)<<(n))
+#define __ASHR(x, n)    ((int64)(x)>>(n))
 #define __ASH(x, n)     ((n)>=0?__ASHL(x,n):__ASHR(x,-(n)))
-#define __ASHF(x, n)    SYSTEM_ASH((LONGINT)(x), (LONGINT)(n))
+static inline int64 SYSTEM_ASH(int64 x, int64 n) {return __ASH(x,n);}
+#define __ASHF(x, n)    SYSTEM_ASH((int64)(x), (int64)(n))
 
 #define __BIT(x, n)     (*(uint64*)(x)>>(n)&1)
 #define __MOVE(s, d, n) memcpy((char*)(address)(d),(char*)(address)(s),n)
-#define __SHORT(x, y)   ((int)((uLONGINT)(x)+(y)<(y)+(y)?(x):(__HALT(-8),0)))
-#define __SHORTF(x, y)  ((int)(__RF((x)+(y),(y)+(y))-(y)))
-#define __CHR(x)        ((CHAR)__R(x, 256))
-#define __CHRF(x)       ((CHAR)__RF(x, 256))
-#define __DIV(x, y)     ((x)>=0?(x)/(y):-(((y)-1-(x))/(y)))
-#define __DIVF(x, y)    SYSTEM_DIV((LONGINT)(x),(LONGINT)(y))
-#define __MOD(x, y)     ((x)>=0?(x)%(y):__MODF(x,y))
-#define __MODF(x, y)    SYSTEM_MOD((LONGINT)(x),(LONGINT)(y))
+
+
+extern int64 SYSTEM_DIV(int64 x, int64 y);
+#define __DIVF(x, y) SYSTEM_DIV(x, y)
+#define __DIV(x, y) (((x)>0 && (y)>0) ? (x)/(y) : __DIVF(x, y))
+
+
+extern int64 SYSTEM_MOD(int64 x, int64 y);
+#define __MODF(x, y) SYSTEM_MOD(x, y)
+#define __MOD(x, y) (((x)>0 && (y)>0) ? (x)%(y) : __MODF(x, y))
+
+
+
 #define __ENTIER(x)     SYSTEM_ENTIER(x)
 #define __ABS(x)        (((x)<0)?-(x):(x))
 #define __ABSF(x)       SYSTEM_ABS((LONGINT)(x))
@@ -242,15 +279,6 @@ extern void Heap_FINALL();
 #define __INIT(argc, argv)    static void *m; Platform_Init((INTEGER)argc, (address)&argv);
 #define __REGMAIN(name, enum) m = Heap_REGMOD((CHAR*)name,enum)
 #define __FINI                Heap_FINALL(); return 0
-
-
-// Assertions and Halts
-
-extern void Platform_Halt(LONGINT x);
-extern void Platform_AssertFail(LONGINT x);
-
-#define __HALT(x)         Platform_Halt(x)
-#define __ASSERT(cond, x) if (!(cond)) Platform_AssertFail((LONGINT)(x))
 
 
 // Memory allocation

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkamSf */
+/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin xtspkamSf */
 
 #define INTEGER int32
 #define LONGINT int64

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Texts__h
 #define Texts__h

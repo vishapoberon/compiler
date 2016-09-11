@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/06] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin tskSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -353,7 +353,7 @@ static void Heap_Mark (address q)
 			tag = tagbits + 4;
 			for (;;) {
 				__GET(tag, offset, address);
-				if (__BIT((address)&offset, 31)) {
+				if (offset < 0) {
 					__PUT(q - 4, (tag + offset) + 1, address);
 					if (p == 0) {
 						break;
