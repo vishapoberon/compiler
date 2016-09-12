@@ -33,14 +33,11 @@
 #if defined (__o_64)
   #if defined(_WIN64)
     typedef unsigned long long size_t;
-//  typedef long long          address;
   #else
     typedef unsigned long      size_t;
-//  typedef long               address;
   #endif
 #else
   typedef unsigned int         size_t;
-//typedef int                  address;
 #endif
 
 #define _SIZE_T_DECLARED // For FreeBSD
@@ -71,14 +68,6 @@ typedef signed char          int8;
 typedef unsigned char        uint8;
 
 
-// 'address' is a synonym for an int32 of pointer size
-
-#if defined (__o_64)
-  #define address int64
-#else
-  #define address int32
-#endif
-
 // The compiler uses 'import' and 'export' which translate to 'extern' and
 // nothing respectively.
 
@@ -98,14 +87,22 @@ typedef unsigned char        uint8;
 
 typedef int8   BOOLEAN;
 typedef int8   SYSTEM_BYTE;
-typedef uint8  uSYSTEM_BYTE;
 typedef uint8  CHAR;
-typedef uint8  uCHAR;
 typedef float  REAL;
 typedef double LONGREAL;
 typedef void*  SYSTEM_PTR;
 
 #define uSET SET
+
+
+// 'address' is a synonym for an int of pointer size
+
+#if defined (__o_64)
+  #define address int64
+#else
+  #define address int32
+#endif
+
 
 
 
@@ -200,13 +197,13 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 #define __GET(a, x, t)  x=*(t*)(address)(a)
 #define __PUT(a, x, t)  *(t*)(address)(a)=x
 
-#define __LSHL(x, n, t) ((t)((u##t)(x)<<(n)))
-#define __LSHR(x, n, t) ((t)((u##t)(x)>>(n)))
-#define __LSH(x, n, t)  ((n)>=0? __LSHL(x, n, t): __LSHR(x, -(n), t))
+#define __LSHL(x, n, s) ((int##s)((uint##s)(x)<<(n)))
+#define __LSHR(x, n, s) ((int##s)((uint##s)(x)>>(n)))
+#define __LSH(x, n, s)  ((n)>=0? __LSHL(x, n, s): __LSHR(x, -(n), s))
 
-#define __ROTL(x, n, t) ((t)((u##t)(x)<<(n)|(u##t)(x)>>(8*sizeof(t)-(n))))
-#define __ROTR(x, n, t) ((t)((u##t)(x)>>(n)|(u##t)(x)<<(8*sizeof(t)-(n))))
-#define __ROT(x, n, t)  ((n)>=0? __ROTL(x, n, t): __ROTR(x, -(n), t))
+#define __ROTL(x, n, s) ((int##s)((uint##s)(x)<<(n)|(uint##s)(x)>>(s-(n))))
+#define __ROTR(x, n, s) ((int##s)((uint##s)(x)>>(n)|(uint##s)(x)<<(s-(n))))
+#define __ROT(x, n, s)  ((n)>=0? __ROTL(x, n, s): __ROTR(x, -(n), s))
 
 #define __ASHL(x, n)    ((int64)(x)<<(n))
 #define __ASHR(x, n)    ((int64)(x)>>(n))

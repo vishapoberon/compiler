@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -58,7 +58,7 @@ void Console_Int (int32 i, int32 n)
 {
 	CHAR s[32];
 	int32 i1, k;
-	if (i == __LSHL(1, 31, int32)) {
+	if (i == __LSHL(1, 31, 32)) {
 		__MOVE("8463847412", s, 11);
 		k = 10;
 	} else {

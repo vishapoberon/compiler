@@ -70,6 +70,8 @@ assemble:
 	SYSTEM.o  Configuration.o Platform.o Heap.o    Console.o Strings.o       Modules.o  Files.o \
 	Reals.o   Texts.o         vt100.o    errors.o  OPM.o     extTools.o      OPS.o      OPT.o \
 	OPC.o     OPV.o           OPB.o      OPP.o
+
+	cp src/system/*.[ch] $(BUILDDIR)
 	@printf "$(VISHAP) created.\n"
 
 
@@ -79,7 +81,9 @@ compilerfromsavedsource:
 	@echo Populating clean build directory from bootstrap C sources.
 	@mkdir -p $(BUILDDIR)
 	@cp bootstrap/$(PLATFORM)-$(ADRSIZE)$(ALIGNMENT)/* $(BUILDDIR)
+	@cp bootstrap/*.[ch] $(BUILDDIR)
 	@make -f src/tools/make/vishap.make -s assemble
+	@cp bootstrap/*.[ch] $(BUILDDIR)
 
 
 
@@ -118,8 +122,6 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -SsfF    -B$(INTSIZE)$(ADRSIZE)$(ALIGNMENT) ../../src/compiler/OPB.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -SsfF    -B$(INTSIZE)$(ADRSIZE)$(ALIGNMENT) ../../src/compiler/OPP.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ssfm    -B$(INTSIZE)$(ADRSIZE)$(ALIGNMENT) ../../src/compiler/Vishap.Mod
-
-	cp src/system/*.[ch] $(BUILDDIR)
 
 	@printf "$(BUILDDIR) filled with compiler C source.\n"
 

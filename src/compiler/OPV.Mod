@@ -625,7 +625,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                 OPM.WriteInt(-r^.conval^.intval)
                               ELSE expr(r, MinPrec)
                               END ;
-                              IF subclass IN {OPT.lsh, OPT.rot} THEN OPM.WriteString(Comma); OPC.Ident(l^.typ^.strobj) END ;
+                              IF subclass IN {OPT.lsh, OPT.rot} THEN OPM.WriteString(Comma); OPM.WriteInt(l.typ.size*8) END;
                               OPM.Write(CloseParen)
                   | OPS.eql
                   .. OPS.geq: IF l^.typ^.form IN {OPT.String, OPT.Comp} THEN

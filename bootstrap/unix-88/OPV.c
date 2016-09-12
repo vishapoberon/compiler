@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -1039,7 +1039,7 @@ static void OPV_expr (OPT_Node n, int32 prec)
 					}
 					if (__IN(subclass, 0x18000000)) {
 						OPM_WriteString((CHAR*)", ", 3);
-						OPC_Ident(l->typ->strobj);
+						OPM_WriteInt(__ASHL(l->typ->size, 3));
 					}
 					OPM_Write(')');
 					break;

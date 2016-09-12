@@ -2,8 +2,20 @@ MODULE TestLanguage;
 
 IMPORT SYSTEM, Console;
 
+PROCEDURE TestShiftResult(of, by, actual, expected: LONGINT; msg: ARRAY OF CHAR);
+BEGIN
+  IF actual # expected THEN
+    Console.String(msg);
+    Console.String(" of $"); Console.Hex(of);
+    Console.String(" by ");  Console.Int(by,1);
+    Console.String(" is $"); Console.Hex(actual);
+    Console.String(" but should be $"); Console.Hex(expected);
+    Console.Ln;
+  END
+END TestShiftResult;
+
 PROCEDURE Shift;
-VAR c: CHAR; b: SYSTEM.BYTE; s,t,u: SHORTINT; h,i,j,k: INTEGER; l,m,n: LONGINT;
+VAR c: CHAR; b: SYSTEM.BYTE; s,t,u: SHORTINT; h,i,j,k: INTEGER; l,m,n,r: LONGINT;
 (*
   Aritmetic shift always returns type LONGINT. Defined as x * 2**n.
   LSH and ROT produces results of the same type as the value being shifted.
@@ -13,8 +25,8 @@ BEGIN
 
   i := 0; m := 1;
   WHILE i < SIZE(LONGINT)*8 DO
-    l := 1; l := SYSTEM.LSH(l,i); ASSERT(l = m, 16);
-    l := 1; l := SYSTEM.ROT(l,i); ASSERT(l = m, 17);
+    l := 1; r := SYSTEM.LSH(l,i); TestShiftResult(l, i, r, m, "LSH");
+    l := 1; r := SYSTEM.ROT(l,i); TestShiftResult(l, i, r, m, "ROT(1)");
     m := m * 2; INC(i);
   END;
 
@@ -84,9 +96,55 @@ BEGIN
   END;
 
 
+  (* Positive LSH shifts and ROTs with overflow *)
 
-  (* Also need tests that bits that are shifted / rotated off the end
-     are zeroed or wrapped correctly. *)
+  i := 1; m := 1;
+  WHILE i < SIZE(LONGINT)*8 DO
+    l := MAX(LONGINT); INC(l); r := SYSTEM.LSH(l,i); TestShiftResult(l, i, r, 0, "LSH");
+    l := MAX(LONGINT); INC(l); r := SYSTEM.ROT(l,i); TestShiftResult(l, i, r, m, "ROT(2)");
+    m := m * 2; INC(i);
+  END;
+
+  i := 1; k := 1;
+  WHILE i < SIZE(INTEGER)*8 DO
+    j := MAX(INTEGER); INC(j); r := SYSTEM.LSH(j,i); TestShiftResult(j, i, r, 0, "LSH");
+    j := MAX(INTEGER); INC(j); r := SYSTEM.ROT(j,i); TestShiftResult(j, i, r, k, "ROT(3)");
+    k := k * 2; INC(i);
+  END;
+
+  i := 1; t := 1;
+  WHILE i < SIZE(SHORTINT)*8 DO
+    s := MAX(SHORTINT); INC(s); r := SYSTEM.LSH(s,i); TestShiftResult(s, i, r, 0, "LSH");
+    s := MAX(SHORTINT); INC(s); r := SYSTEM.ROT(s,i); TestShiftResult(s, i, r, t, "ROT(4)");
+    t := t * 2; INC(i);
+  END;
+
+  (* Negative LSH shifts and ROTs without overflow *)
+
+  i := -1; m := MAX(LONGINT); INC(m);
+  WHILE i > -SIZE(LONGINT)*8 DO
+    l := 1; r := SYSTEM.LSH(l,i); TestShiftResult(l, i, r, 0, "LSH");
+    l := 1; r := SYSTEM.ROT(l,i); TestShiftResult(l, i, r, m, "ROT");
+    m := SYSTEM.LSH(m,-1); (* m := m DIV 2; *)
+    DEC(i);
+  END;
+
+  i := -1; k := MAX(INTEGER); INC(k);
+  WHILE i > -SIZE(INTEGER)*8 DO
+    j := 1; r := SYSTEM.LSH(j,i); TestShiftResult(j, i, r, 0, "LSH");
+    j := 1; r := SYSTEM.ROT(j,i); TestShiftResult(j, i, r, k, "ROT");
+    k := SYSTEM.LSH(k,-1); (* k := k DIV 2; *)
+    DEC(i);
+  END;
+
+  i := -1; t := MAX(SHORTINT); INC(t);
+  WHILE i > -SIZE(SHORTINT)*8 DO
+    s := 1; r := SYSTEM.LSH(s,i); TestShiftResult(s, i, r, 0, "LSH");
+    s := 1; r := SYSTEM.ROT(s,i); TestShiftResult(s, i, r, t, "ROT");
+    t := SYSTEM.LSH(t,-1); (* t := t DIV 2; *)
+    DEC(i);
+  END;
+
 
   (* Also need full tests for CHAR, and poossibly SYSTEM.BYTE. Here's a simple one *)
 
@@ -138,7 +196,6 @@ BEGIN
      =>  x MOd y = x - ((x DIV y) * y)
   *)
 
-
   i :=  4; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "4 MOD 3");
   i :=  5; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "5 MOD 3");
   i :=  6; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "6 MOD 3");
@@ -159,6 +216,8 @@ BEGIN
   i := -6; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-6 MOD -3");
   i := -7; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-7 MOD -3");
 END DivMod;
+
+
 
 
 PROCEDURE IntSize;
@@ -186,6 +245,9 @@ BEGIN
     Console.Ln;
   END;
 END IntSize;
+
+
+
 
 BEGIN
   Shift;

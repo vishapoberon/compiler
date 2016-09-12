@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/11] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -537,7 +537,7 @@ void OPM_err (int16 n)
 
 void OPM_FPrint (int32 *fp, int32 val)
 {
-	*fp = __ROTL((int32)((SET)*fp ^ (SET)val), 1, int32);
+	*fp = __ROTL((int32)((SET)*fp ^ (SET)val), 1, 32);
 }
 
 void OPM_FPrintSet (int32 *fp, SET set)
@@ -652,7 +652,7 @@ int32 OPM_SignedMaximum (int32 bytecount)
 	int32 _o_result;
 	int32 result;
 	result = 1;
-	result = __LSH(result, __ASHL(bytecount, 3) - 1, int32);
+	result = __LSH(result, __ASHL(bytecount, 3) - 1, 32);
 	_o_result = result - 1;
 	return _o_result;
 }

@@ -4,9 +4,12 @@
 /build/*
 /*.exe
 /*.obj
-/*.o
+/*.[cho]
 /*.lib
 /*.map
+/*.sym
+/*.asm
+/*.mod
 /olang
 /src/test/**/*.exe
 /src/test/**/*.c
@@ -14,10 +17,11 @@
 /src/test/**/*.o
 /src/test/**/*.obj
 /src/test/**/*.sym
-/src/test/**/*.stackdump
+**/*.stackdump
 /src/test/confidence/**/result
 /src/test/confidence/**/*.asm
 /src/test/confidence/**/*.s
+/src/test/confidence/**/*.map
 /.DS_store
 **/.DS_store
 **/*.dSYM
