@@ -130,13 +130,13 @@ extern void Platform_AssertFail(LONGINT x);
 // Index checking
 
 static inline int64 __XF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-2);} return i;}
-#define __X(i, ub) (((uint64)(i)<(uint64)(ub))?i:(__HALT(-2),0))
+#define __X(i, ub) (((i)<(ub))?i:(__HALT(-2),0))
 
 
 // Range checking, and checked SHORT and CHR functions
 
 static inline int64 __RF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-8);} return i;}
-#define __R(i, ub)      (((uint64)(i)<(uint64)(ub))?i:(__HALT(-8),0))
+#define __R(i, ub)      (((i)<(ub))?i:(__HALT(-8),0))
 #define __SHORT(x, ub)  ((int)((uLONGINT)(x)+(ub)<(ub)+(ub)?(x):(__HALT(-8),0)))
 #define __SHORTF(x, ub) ((int)(__RF((x)+(ub),(ub)+(ub))-(ub)))
 #define __CHR(x)        ((CHAR)__R(x, 256))
@@ -147,8 +147,6 @@ static inline int64 __RF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-8);} return
 // Run time system routines in SYSTEM.c
 
 
-extern LONGINT SYSTEM_ABS    (LONGINT i);
-extern double  SYSTEM_ABSD   (double i);
 extern void    SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
 extern void    SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
 extern void    SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
@@ -227,9 +225,16 @@ extern int64 SYSTEM_MOD(int64 x, int64 y);
 
 
 #define __ENTIER(x)     SYSTEM_ENTIER(x)
-#define __ABS(x)        (((x)<0)?-(x):(x))
-#define __ABSF(x)       SYSTEM_ABS((LONGINT)(x))
-#define __ABSFD(x)      SYSTEM_ABSD((double)(x))
+
+#define __ABS(x) (((x)<0)?-(x):(x))
+
+static inline int32 SYSTEM_ABS64(int64 i) {return i >= 0 ? i : -i;}
+static inline int64 SYSTEM_ABS32(int32 i) {return i >= 0 ? i : -i;}
+#define __ABSF(x) ((sizeof(x) <= 4) ? SYSTEM_ABS32(i) : SYSTEM_ABS64(i))
+
+static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
+#define __ABSFD(x) SYSTEM_ABSD(x)
+
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
 #define __IN(x, s)      ((x)>=0 && (x)<(8*sizeof(SET)) && ((((uSET)(s))>>(x))&1))

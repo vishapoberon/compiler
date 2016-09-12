@@ -220,6 +220,23 @@ END DivMod;
 
 
 
+PROCEDURE Abs;
+  VAR
+    i: INTEGER;
+    l: LONGINT;
+    h: SYSTEM.INT64;
+BEGIN
+  i := 5;  TestValue(ABS(i), 5, "ABS(INTEGER 5)");
+  i := -5; TestValue(ABS(i), 5, "ABS(INTEGER -5)");
+  l := 5;  TestValue(ABS(l), 5, "ABS(LONGINT 5)");
+  l := -5; TestValue(ABS(l), 5, "ABS(LONGINT -5)");
+  h := 5;  TestValue(SYSTEM.VAL(LONGINT,ABS(h)), 5, "ABS(SYSTEM.INT64 5)");
+  h := -5; TestValue(SYSTEM.VAL(LONGINT,ABS(h)), 5, "ABS(SYSTEM.INT64 -5)");
+END Abs;
+
+
+
+
 PROCEDURE IntSize;
   VAR l: LONGINT;
 BEGIN
@@ -253,5 +270,6 @@ BEGIN
   Shift;
   DivMod;
   IntSize;
+  Abs;
   Console.String("Language tests successful."); Console.Ln;
 END TestLanguage.

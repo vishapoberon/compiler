@@ -23,9 +23,6 @@
 
 
 
-LONGINT SYSTEM_ABS (LONGINT i) {return __ABS(i);}
-double  SYSTEM_ABSD(double i)  {return __ABS(i);}
-
 
 int64 SYSTEM_DIV(int64 x, int64 y)
 {
