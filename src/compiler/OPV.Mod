@@ -624,8 +624,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                               IF (subclass IN {OPT.ash, OPT.lsh, OPT.rot}) & (r^.class = OPT.Nconst) & (r^.conval^.intval < 0) THEN
                                 OPM.WriteInt(-r^.conval^.intval)
                               ELSE expr(r, MinPrec)
-                              END ;
-                              IF subclass IN {OPT.lsh, OPT.rot} THEN OPM.WriteString(Comma); OPM.WriteInt(l.typ.size*8) END;
+                              END;
+                              IF subclass IN {OPS.in, OPT.lsh, OPT.rot} THEN
+                                OPM.WriteString(Comma);
+                                IF subclass = OPS.in THEN OPM.WriteInt(r.typ.size*8) ELSE OPM.WriteInt(l.typ.size*8) END
+                              END;
                               OPM.Write(CloseParen)
                   | OPS.eql
                   .. OPS.geq: IF l^.typ^.form IN {OPT.String, OPT.Comp} THEN

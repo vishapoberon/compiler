@@ -92,7 +92,6 @@ typedef float  REAL;
 typedef double LONGREAL;
 typedef void*  SYSTEM_PTR;
 
-#define uSET SET
 
 
 // 'address' is a synonym for an int of pointer size
@@ -200,7 +199,6 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 static inline int64 SYSTEM_ASH(int64 x, int64 n) {return __ASH(x,n);}
 #define __ASHF(x, n)    SYSTEM_ASH((int64)(x), (int64)(n))
 
-#define __BIT(x, n)     (*(uint64*)(x)>>(n)&1)
 #define __MOVE(s, d, n) memcpy((char*)(address)(d),(char*)(address)(s),n)
 
 
@@ -230,10 +228,13 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
 
-#define __IN(x, s)      ((x)>=0 && (x)<(8*sizeof(SET)) && ((((uSET)(s))>>(x))&1))
-#define __SETOF(x)      ((SET)1<<(x))
-#define __SETRNG(l, h)  ((~(SET)0<<(l))&~(SET)0>>(8*sizeof(SET)-1-(h)))
-#define __MASK(x, m)    ((x)&~(m))
+//#define __IN(x, s, size) ((x)>=0 && (x)<size && ((((uint##size)(s))>>(x))&1))
+
+#define __IN(x, s, size) (((unsigned int)(x))<size && ((((uint##size)(s))>>(x))&1))
+#define __SETOF(x)       ((SET)1<<(x))
+#define __SETRNG(l, h)   ((~(SET)0<<(l))&~(SET)0>>(8*sizeof(SET)-1-(h)))
+#define __MASK(x, m)     ((x)&~(m))
+#define __BIT(x, n)      (*(uint64*)(x)>>(n)&1)
 
 
 
