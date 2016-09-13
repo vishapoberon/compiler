@@ -313,7 +313,10 @@ void testSystemDotH() {
   /* test the __SETRNG macro */
   long x = 0;
   long y = sizeof(SET)*8 - 1;
-  assert(__SETRNG(x, y) == -1, "SETRNG(0, MAX(SET)) != -1.");
+  if (sizeof(SET) == 4)
+    assert(__SETRNG(x, y, 32) == -1, "SETRNG(0, MAX(SET)) != -1.");
+  else
+    assert(__SETRNG(x, y, 64) == -1, "SETRNG(0, MAX(SET)) != -1.");
 
   /* test string comparison for extended ascii */
   {char a[10], b[10];

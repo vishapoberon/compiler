@@ -228,13 +228,12 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
 
-//#define __IN(x, s, size) ((x)>=0 && (x)<size && ((((uint##size)(s))>>(x))&1))
+#define __IN(x, s, size)     (((unsigned int)(x))<size && ((((uint##size)(s))>>(x))&1))
+#define __SETOF(x, size)     ((uint##size)1<<(x))
+#define __SETRNG(l, h, size) ((~(uint##size)0<<(l))&~(uint##size)0>>(size-1-(h)))
 
-#define __IN(x, s, size) (((unsigned int)(x))<size && ((((uint##size)(s))>>(x))&1))
-#define __SETOF(x)       ((SET)1<<(x))
-#define __SETRNG(l, h)   ((~(SET)0<<(l))&~(SET)0>>(8*sizeof(SET)-1-(h)))
-#define __MASK(x, m)     ((x)&~(m))
-#define __BIT(x, n)      (*(uint64*)(x)>>(n)&1)
+#define __MASK(x, m) ((x)&~(m))
+#define __BIT(x, n)  (*(uint64*)(x)>>(n)&1)
 
 
 

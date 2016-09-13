@@ -27,8 +27,6 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     GuardPtrFunc = "__GUARDP(";
     GuardRecFunc = "__GUARDR(";
     TypeFunc     = "__TYPEOF(";
-    SetOfFunc    = "__SETOF(";
-    SetRangeFunc = "__SETRNG(";
     CopyFunc     = "__COPY(";
     MoveFunc     = "__MOVE(";
     GetFunc      = "__GET(";
@@ -293,7 +291,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE Convert(n: OPT.Node; newtype: OPT.Struct; prec: INTEGER);
     VAR from, to: INTEGER;
   BEGIN from := n^.typ^.form; to := newtype.form;
-    IF to = OPT.Set THEN OPM.WriteString(SetOfFunc); Entier(n, MinPrec); OPM.Write(CloseParen)
+    IF to = OPT.Set THEN
+      OPM.WriteString("__SETOF("); Entier(n, MinPrec);
+      OPM.WriteString(","); OPM.WriteInt(newtype.size*8); OPM.Write(CloseParen)
     ELSIF to = OPT.Int THEN
       IF (newtype.size < n.typ.size) & (OPM.ranchk IN OPM.opt) THEN
         OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
@@ -527,8 +527,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     CASE class OF
     | OPT.Nconst: OPC.Constant(n^.conval, form)
     | OPT.Nupto:  (* n^.typ = OPT.settyp *)
-                  OPM.WriteString(SetRangeFunc); expr(l, MinPrec); OPM.WriteString(Comma); expr (r, MinPrec);
-                  OPM.Write(CloseParen)
+                  OPM.WriteString("__SETRNG("); expr(l, MinPrec); OPM.WriteString(Comma); expr(r, MinPrec);
+                  OPM.WriteString(Comma); OPM.WriteInt(n.typ.size*8); OPM.Write(CloseParen)
     | OPT.Nmop:
                   CASE subclass OF
                   | OPS.not:   OPM.Write("!"); expr(l, exprPrec)
@@ -865,8 +865,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      | OPT.incfn,
                        OPT.decfn:     expr(n^.left, MinPrec); OPC.Increment(n^.subcl = OPT.decfn); expr(n^.right, MinPrec)
                      | OPT.inclfn,
-                       OPT.exclfn:    expr(n^.left, MinPrec); OPC.SetInclude(n^.subcl = OPT.exclfn); OPM.WriteString(SetOfFunc); expr(n^.right, MinPrec);
-                                      OPM.Write(CloseParen)
+                       OPT.exclfn:    expr(n^.left, MinPrec); OPC.SetInclude(n^.subcl = OPT.exclfn);
+                                      OPM.WriteString("__SETOF("); expr(n^.right, MinPrec);
+                                      OPM.WriteString(","); OPM.WriteInt(n.left.typ.size*8); OPM.Write(CloseParen)
                      | OPT.copyfn:    OPM.WriteString(CopyFunc);
                                       expr(n^.right, MinPrec); OPM.WriteString(Comma); expr(n^.left, MinPrec); OPM.WriteString(Comma);
                                       Len(n^.left, 0); OPM.Write(CloseParen)
