@@ -2,6 +2,8 @@ MODULE TestLanguage;
 
 IMPORT SYSTEM, Console;
 
+  VAR gz: LONGREAL;
+
 PROCEDURE TestShiftResult(of, by, actual, expected: LONGINT; msg: ARRAY OF CHAR);
 BEGIN
   IF actual # expected THEN
@@ -236,6 +238,26 @@ END Abs;
 
 
 
+(* LR does nothing numerically, but is enough to stop the C compiler
+   optimizing away the LR assignment and ENTIER implementation. *)
+PROCEDURE LR(lr: LONGREAL): LONGREAL; BEGIN RETURN lr + gz; END LR;
+
+PROCEDURE Entier;
+  VAR lr: LONGREAL;
+BEGIN
+  gz := 0.0;
+  lr := LR(-0.01); TestValue(ENTIER(lr), -1, "ENTIER(-0.01");
+  lr := LR( 0.00); TestValue(ENTIER(lr),  0, "ENTIER(0.00");
+  lr := LR( 5.00); TestValue(ENTIER(lr),  5, "ENTIER(5.00");
+  lr := LR( 5.50); TestValue(ENTIER(lr),  5, "ENTIER(5.50");
+  lr := LR( 5.99); TestValue(ENTIER(lr),  5, "ENTIER(5.99");
+  lr := LR(-5.00); TestValue(ENTIER(lr), -5, "ENTIER(-5.00");
+  lr := LR(-5.50); TestValue(ENTIER(lr), -6, "ENTIER(-5.50");
+  lr := LR(-5.99); TestValue(ENTIER(lr), -6, "ENTIER(-5.99");
+END Entier;
+
+
+
 
 PROCEDURE IntSize;
   VAR l: LONGINT;
@@ -271,5 +293,6 @@ BEGIN
   DivMod;
   IntSize;
   Abs;
+  Entier;
   Console.String("Language tests successful."); Console.Ln;
 END TestLanguage.

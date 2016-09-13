@@ -144,15 +144,6 @@ static inline int64 __RF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-8);} return
 
 
 
-// Run time system routines in SYSTEM.c
-
-
-extern void    SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
-extern void    SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
-extern void    SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
-extern LONGINT SYSTEM_ENTIER (double x);
-
-
 // Signal handling in SYSTEM.c
 
 #ifndef _WIN32
@@ -223,8 +214,9 @@ extern int64 SYSTEM_MOD(int64 x, int64 y);
 #define __MOD(x, y) (((x)>0 && (y)>0) ? (x)%(y) : __MODF(x, y))
 
 
+extern LONGINT SYSTEM_ENTIER (double x);
+#define __ENTIER(x) SYSTEM_ENTIER(x)
 
-#define __ENTIER(x)     SYSTEM_ENTIER(x)
 
 #define __ABS(x) (((x)<0)?-(x):(x))
 
@@ -237,6 +229,7 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
+
 #define __IN(x, s)      ((x)>=0 && (x)<(8*sizeof(SET)) && ((((uSET)(s))>>(x))&1))
 #define __SETOF(x)      ((SET)1<<(x))
 #define __SETRNG(l, h)  ((~(SET)0<<(l))&~(SET)0>>(8*sizeof(SET)-1-(h)))
@@ -296,6 +289,11 @@ extern SYSTEM_PTR SYSTEM_NEWARR(LONGINT*, LONGINT, int, int, int, ...);
 
 
 /* Type handling */
+
+extern void SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
+extern void SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
+extern void SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
+
 
 #define __TDESC(t, m, n)                                                \
   static struct t##__desc {                                             \
