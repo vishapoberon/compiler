@@ -1,17 +1,15 @@
 MODULE Heap;
 
-  IMPORT SYSTEM;  (* Cannot import anything else as heap initialization must complete
-                     before any other modules are initialized. *)
-
-  TYPE Address = SYSTEM.ADDRESS;
+  IMPORT S := SYSTEM;  (* Cannot import anything else as heap initialization must complete
+                          before any other modules are initialized. *)
 
   CONST
     ModNameLen = 20;
     CmdNameLen = 24;
-    SZA        = SIZE(Address);  (* Size of address *)
-    Unit       = 4*SZA;                 (* smallest possible heap block *)
-    nofLists   = 9;                     (* number of free_lists *)
-    heapSize0  = 8000*Unit;             (* startup heap size *)
+    SZA        = SIZE(S.ADDRESS);  (* Size of address *)
+    Unit       = 4*SZA;            (* smallest possible heap block *)
+    nofLists   = 9;                (* number of free_lists *)
+    heapSize0  = 8000*Unit;        (* startup heap size *)
 
   (* all blocks look the same:
     free blocks describe themselves: size = Unit
@@ -22,17 +20,17 @@ MODULE Heap;
   *)
 
   (* heap chunks *)
-    nextChnkOff = SYSTEM.VAL(Address, 0);      (* next heap chunk, sorted ascendingly! *)
-    endOff      = SYSTEM.VAL(Address, SZA);    (* end of heap chunk *)
-    blkOff      = SYSTEM.VAL(Address, 3*SZA);  (* first block in a chunk *)
+    nextChnkOff = S.VAL(S.ADDRESS, 0);      (* next heap chunk, sorted ascendingly! *)
+    endOff      = S.VAL(S.ADDRESS, SZA);    (* end of heap chunk *)
+    blkOff      = S.VAL(S.ADDRESS, 3*SZA);  (* first block in a chunk *)
 
   (* heap blocks *)
-    tagOff      = SYSTEM.VAL(Address, 0);      (* block starts with tag *)
-    sizeOff     = SYSTEM.VAL(Address, SZA);    (* block size in free block relative to block start *)
-    sntlOff     = SYSTEM.VAL(Address, 2*SZA);  (* pointer offset table sentinel in free block relative to block start *)
-    nextOff     = SYSTEM.VAL(Address, 3*SZA);  (* next pointer in free block relative to block start *)
-    NoPtrSntl   = SYSTEM.VAL(Address, -SZA);
-    AddressZero = SYSTEM.VAL(Address, 0);
+    tagOff      = S.VAL(S.ADDRESS, 0);      (* block starts with tag *)
+    sizeOff     = S.VAL(S.ADDRESS, SZA);    (* block size in free block relative to block start *)
+    sntlOff     = S.VAL(S.ADDRESS, 2*SZA);  (* pointer offset table sentinel in free block relative to block start *)
+    nextOff     = S.VAL(S.ADDRESS, 3*SZA);  (* next pointer in free block relative to block start *)
+    NoPtrSntl   = S.VAL(S.ADDRESS, -SZA);
+    AddressZero = S.VAL(S.ADDRESS, 0);
 
   TYPE
     ModuleName = ARRAY ModNameLen OF CHAR;
@@ -41,14 +39,14 @@ MODULE Heap;
     Module = POINTER TO ModuleDesc;
     Cmd    = POINTER TO CmdDesc;
 
-    EnumProc   = PROCEDURE(P: PROCEDURE(p: SYSTEM.PTR));
+    EnumProc   = PROCEDURE(P: PROCEDURE(p: S.PTR));
 
     ModuleDesc = RECORD
       next:     Module;
       name:     ModuleName;
       refcnt:   LONGINT;
       cmds:     Cmd;
-      types:    Address;
+      types:    S.ADDRESS;
       enumPtrs: EnumProc;
       reserved1, reserved2: LONGINT
     END ;
@@ -61,29 +59,29 @@ MODULE Heap;
       cmd:  Command
     END ;
 
-    Finalizer = PROCEDURE(obj: SYSTEM.PTR);
+    Finalizer = PROCEDURE(obj: S.PTR);
 
     FinNode   = POINTER TO FinDesc;
     FinDesc   = RECORD
       next:     FinNode;
-      obj:      Address;  (* weak pointer *)
+      obj:      S.ADDRESS;  (* weak pointer *)
       marked:   BOOLEAN;
       finalize: Finalizer;
     END ;
 
   VAR
     (* the list of loaded (=initialization started) modules *)
-    modules*: SYSTEM.PTR;
+    modules*: S.PTR;
 
-    freeList:   ARRAY nofLists + 1 OF Address;  (* dummy, 16, 32, 48, 64, 80, 96, 112, 128, sentinel *)
-    bigBlocks:  Address;
-    allocated*: Address;
+    freeList:   ARRAY nofLists + 1 OF S.ADDRESS;  (* dummy, 16, 32, 48, 64, 80, 96, 112, 128, sentinel *)
+    bigBlocks:  S.ADDRESS;
+    allocated*: S.ADDRESS;
     firstTry:   BOOLEAN;
 
     (* extensible heap *)
-    heap:      Address;  (* the sorted list of heap chunks *)
-    heapend:   Address;  (* max possible pointer value (used for stack collection) *)
-    heapsize*: Address;  (* the sum of all heap chunk sizes *)
+    heap:      S.ADDRESS;  (* the sorted list of heap chunks *)
+    heapend:   S.ADDRESS;  (* max possible pointer value (used for stack collection) *)
+    heapsize*: S.ADDRESS;  (* the sum of all heap chunk sizes *)
 
     (* finalization candidates *)
     fin: FinNode;
@@ -122,20 +120,20 @@ MODULE Heap;
     END TAS;
   *)
 
-  PROCEDURE REGMOD*(VAR name: ModuleName; enumPtrs: EnumProc): SYSTEM.PTR;
+  PROCEDURE REGMOD*(VAR name: ModuleName; enumPtrs: EnumProc): S.PTR;
     VAR m: Module;
   BEGIN
     (* REGMOD is called at the start of module initialisation code before that modules
        type descriptors have been set up. 'NEW' depends on the Heap modules type
        descriptors being ready for use, therefore, just for the Heap module itself, we
-       must use SYSTEM.NEW. *)
+       must use S.NEW. *)
     IF name = "Heap" THEN
-      SYSTEM.NEW(m, SIZE(ModuleDesc))
+      S.NEW(m, SIZE(ModuleDesc))
     ELSE
       NEW(m)
     END;
     m.types := 0; m.cmds := NIL;
-    COPY(name, m.name); m.refcnt := 0; m.enumPtrs := enumPtrs; m.next := SYSTEM.VAL(Module, modules);
+    COPY(name, m.name); m.refcnt := 0; m.enumPtrs := enumPtrs; m.next := S.VAL(Module, modules);
     modules := m;
     RETURN m
   END REGMOD;
@@ -146,17 +144,17 @@ MODULE Heap;
     (* REGCMD is called during module initialisation code before that modules
        type descriptors have been set up. 'NEW' depends on the Heap modules type
        descriptors being ready for use, therefore, just for the commands registered
-       by the Heap module itself, we must use SYSTEM.NEW. *)
+       by the Heap module itself, we must use S.NEW. *)
     IF m.name = "Heap" THEN
-      SYSTEM.NEW(c, SIZE(CmdDesc))
+      S.NEW(c, SIZE(CmdDesc))
     ELSE
       NEW(c)
     END;
     COPY(name, c.name); c.cmd := cmd; c.next := m.cmds; m.cmds := c
   END REGCMD;
 
-  PROCEDURE REGTYP*(m: Module; typ: Address);
-  BEGIN SYSTEM.PUT(typ, m.types); m.types := typ
+  PROCEDURE REGTYP*(m: Module; typ: S.ADDRESS);
+  BEGIN S.PUT(typ, m.types); m.types := typ
   END REGTYP;
 
   PROCEDURE INCREF*(m: Module);
@@ -165,26 +163,26 @@ MODULE Heap;
 
 
   PROCEDURE -ExternPlatformOSAllocate "extern address Platform_OSAllocate(address size);";
-  PROCEDURE -OSAllocate(size: Address): Address "Platform_OSAllocate(size)";
+  PROCEDURE -OSAllocate(size: S.ADDRESS): S.ADDRESS "Platform_OSAllocate(size)";
 
-  PROCEDURE NewChunk(blksz: Address): Address;
-    VAR chnk: Address;
+  PROCEDURE NewChunk(blksz: S.ADDRESS): S.ADDRESS;
+    VAR chnk: S.ADDRESS;
   BEGIN
     chnk := OSAllocate(blksz + blkOff);
     IF chnk # 0 THEN
-      SYSTEM.PUT(chnk + endOff,             chnk + (blkOff + blksz));
-      SYSTEM.PUT(chnk + blkOff,             chnk + (blkOff + sizeOff));
-      SYSTEM.PUT(chnk + (blkOff + sizeOff), blksz);
-      SYSTEM.PUT(chnk + (blkOff + sntlOff), NoPtrSntl);
-      SYSTEM.PUT(chnk + (blkOff + nextOff), bigBlocks);
+      S.PUT(chnk + endOff,             chnk + (blkOff + blksz));
+      S.PUT(chnk + blkOff,             chnk + (blkOff + sizeOff));
+      S.PUT(chnk + (blkOff + sizeOff), blksz);
+      S.PUT(chnk + (blkOff + sntlOff), NoPtrSntl);
+      S.PUT(chnk + (blkOff + nextOff), bigBlocks);
       bigBlocks := chnk + blkOff;
       INC(heapsize, blksz)
     END ;
     RETURN chnk
   END NewChunk;
 
-  PROCEDURE ExtendHeap(blksz: Address);
-    VAR size, chnk, j, next: Address;
+  PROCEDURE ExtendHeap(blksz: S.ADDRESS);
+    VAR size, chnk, j, next: S.ADDRESS;
   BEGIN
     IF blksz > 10000*Unit THEN size := blksz
     ELSE size := 10000*Unit  (* additional heuristics *)
@@ -193,31 +191,31 @@ MODULE Heap;
     IF chnk # 0 THEN
       (*sorted insertion*)
       IF chnk < heap THEN
-        SYSTEM.PUT(chnk, heap); heap := chnk
+        S.PUT(chnk, heap); heap := chnk
       ELSE
-        j := heap; SYSTEM.GET(j, next);
+        j := heap; S.GET(j, next);
         WHILE (next # 0) & (chnk > next) DO
           j := next;
-          SYSTEM.GET(j, next)
+          S.GET(j, next)
         END;
-        SYSTEM.PUT(chnk, next); SYSTEM.PUT(j, chnk)
+        S.PUT(chnk, next); S.PUT(j, chnk)
       END ;
-      IF next = 0 THEN SYSTEM.GET(chnk+endOff, heapend) END
+      IF next = 0 THEN S.GET(chnk+endOff, heapend) END
     END
   END ExtendHeap;
 
   PROCEDURE ^GC*(markStack: BOOLEAN);
 
-  PROCEDURE NEWREC*(tag: Address): SYSTEM.PTR;
+  PROCEDURE NEWREC*(tag: S.ADDRESS): S.PTR;
     VAR
-      i, i0, di, blksz, restsize, t, adr, end, next, prev: Address;
-      new:   SYSTEM.PTR;
+      i, i0, di, blksz, restsize, t, adr, end, next, prev: S.ADDRESS;
+      new:   S.PTR;
   BEGIN
     Lock();
-    SYSTEM.GET(tag, blksz);
+    S.GET(tag, blksz);
 
     ASSERT((Unit = 16) OR (Unit = 32));
-    ASSERT(SIZE(SYSTEM.PTR) = SIZE(Address));
+    ASSERT(SIZE(S.PTR) = SIZE(S.ADDRESS));
     ASSERT(blksz MOD Unit = 0);
 
     i0 := blksz DIV Unit; i := i0;
@@ -225,15 +223,15 @@ MODULE Heap;
       WHILE adr = 0 DO INC(i); adr := freeList[i] END
     END ;
     IF i < nofLists THEN (* unlink *)
-      SYSTEM.GET(adr + nextOff, next);
+      S.GET(adr + nextOff, next);
       freeList[i] := next;
       IF i # i0 THEN (* split *)
         di := i - i0; restsize := di * Unit; end := adr + restsize;
-        SYSTEM.PUT(end + sizeOff, blksz);
-        SYSTEM.PUT(end + sntlOff, NoPtrSntl);
-        SYSTEM.PUT(end,           end + sizeOff);
-        SYSTEM.PUT(adr + sizeOff, restsize);
-        SYSTEM.PUT(adr + nextOff, freeList[di]);
+        S.PUT(end + sizeOff, blksz);
+        S.PUT(end + sntlOff, NoPtrSntl);
+        S.PUT(end,           end + sizeOff);
+        S.PUT(adr + sizeOff, restsize);
+        S.PUT(adr + nextOff, freeList[di]);
         freeList[di] := adr;
         INC(adr, restsize)
       END
@@ -259,25 +257,25 @@ MODULE Heap;
             Unlock(); RETURN NIL
           END
         END ;
-        SYSTEM.GET(adr+sizeOff, t);
+        S.GET(adr+sizeOff, t);
         IF t >= blksz THEN EXIT END ;
-        prev := adr; SYSTEM.GET(adr + nextOff, adr)
+        prev := adr; S.GET(adr + nextOff, adr)
       END ;
       restsize := t - blksz; end := adr + restsize;
-      SYSTEM.PUT(end + sizeOff, blksz);
-      SYSTEM.PUT(end + sntlOff, NoPtrSntl);
-      SYSTEM.PUT(end,           end + sizeOff);
+      S.PUT(end + sizeOff, blksz);
+      S.PUT(end + sntlOff, NoPtrSntl);
+      S.PUT(end,           end + sizeOff);
       IF restsize > nofLists * Unit THEN (*resize*)
-        SYSTEM.PUT(adr + sizeOff, restsize)
+        S.PUT(adr + sizeOff, restsize)
       ELSE (*unlink*)
-        SYSTEM.GET(adr + nextOff, next);
+        S.GET(adr + nextOff, next);
         IF prev = 0 THEN bigBlocks := next
-        ELSE SYSTEM.PUT(prev + nextOff, next);
+        ELSE S.PUT(prev + nextOff, next);
         END ;
         IF restsize > 0 THEN (*move*)
           di := restsize DIV Unit;
-          SYSTEM.PUT(adr + sizeOff, restsize);
-          SYSTEM.PUT(adr + nextOff, freeList[di]);
+          S.PUT(adr + sizeOff, restsize);
+          S.PUT(adr + nextOff, freeList[di]);
           freeList[di] := adr
         END
       END ;
@@ -285,63 +283,63 @@ MODULE Heap;
     END ;
     i := adr + 4*SZA; end := adr + blksz;
     WHILE i < end DO  (*deliberately unrolled*)
-      SYSTEM.PUT(i,         AddressZero);
-      SYSTEM.PUT(i + SZA,   AddressZero);
-      SYSTEM.PUT(i + 2*SZA, AddressZero);
-      SYSTEM.PUT(i + 3*SZA, AddressZero);
+      S.PUT(i,         AddressZero);
+      S.PUT(i + SZA,   AddressZero);
+      S.PUT(i + 2*SZA, AddressZero);
+      S.PUT(i + 3*SZA, AddressZero);
       INC(i, 4*SZA)
     END ;
-    SYSTEM.PUT(adr + nextOff, AddressZero);
-    SYSTEM.PUT(adr,           tag);
-    SYSTEM.PUT(adr + sizeOff, AddressZero);
-    SYSTEM.PUT(adr + sntlOff, AddressZero);
+    S.PUT(adr + nextOff, AddressZero);
+    S.PUT(adr,           tag);
+    S.PUT(adr + sizeOff, AddressZero);
+    S.PUT(adr + sntlOff, AddressZero);
     INC(allocated, blksz);
     Unlock();
-    RETURN SYSTEM.VAL(SYSTEM.PTR, adr + SZA)
+    RETURN S.VAL(S.PTR, adr + SZA)
   END NEWREC;
 
-  PROCEDURE NEWBLK*(size: Address): SYSTEM.PTR;
-     VAR blksz, tag: Address; new: SYSTEM.PTR;
+  PROCEDURE NEWBLK*(size: S.ADDRESS): S.PTR;
+     VAR blksz, tag: S.ADDRESS; new: S.PTR;
   BEGIN
     Lock();
     blksz := (size + (4*SZA + Unit - 1)) DIV Unit * Unit;  (*size + tag + meta + blksz + sntnl + UnitAlignment*)
-    new := NEWREC(SYSTEM.ADR(blksz));
-    tag := SYSTEM.VAL(Address, new) + blksz - 3*SZA;
-    SYSTEM.PUT(tag - SZA,                      AddressZero); (*reserved for meta info*)
-    SYSTEM.PUT(tag,                            blksz);
-    SYSTEM.PUT(tag + SZA,                      NoPtrSntl);
-    SYSTEM.PUT(SYSTEM.VAL(Address, new) - SZA, tag);
+    new := NEWREC(S.ADR(blksz));
+    tag := S.VAL(S.ADDRESS, new) + blksz - 3*SZA;
+    S.PUT(tag - SZA,                      AddressZero); (*reserved for meta info*)
+    S.PUT(tag,                            blksz);
+    S.PUT(tag + SZA,                      NoPtrSntl);
+    S.PUT(S.VAL(S.ADDRESS, new) - SZA, tag);
     Unlock();
     RETURN new
   END NEWBLK;
 
-  PROCEDURE Mark(q: Address);
-    VAR p, tag, offset, fld, n, tagbits: Address;
+  PROCEDURE Mark(q: S.ADDRESS);
+    VAR p, tag, offset, fld, n, tagbits: S.ADDRESS;
   BEGIN
     IF q # 0 THEN
-      SYSTEM.GET(q - SZA, tagbits);             (* Load the tag for the record at q *)
+      S.GET(q - SZA, tagbits);             (* Load the tag for the record at q *)
       IF ~ODD(tagbits) THEN                         (* If it has not already been marked *)
-        SYSTEM.PUT(q - SZA, tagbits + 1);           (* Mark it *)
+        S.PUT(q - SZA, tagbits + 1);           (* Mark it *)
         p := 0;
         tag := tagbits + SZA;                       (* Tag addresses first offset *)
         LOOP
-          SYSTEM.GET(tag, offset);                  (* Get next ptr field offset *)
+          S.GET(tag, offset);                  (* Get next ptr field offset *)
           IF offset < 0 THEN                        (* Sentinel reached: Value is -8*(#fields+1) *)
-            SYSTEM.PUT(q - SZA, tag + offset + 1);  (* Rotate base ptr into tag *)
+            S.PUT(q - SZA, tag + offset + 1);  (* Rotate base ptr into tag *)
             IF p = 0 THEN EXIT END ;
             n := q; q := p;
-            SYSTEM.GET(q - SZA, tag); DEC(tag, 1);
-            SYSTEM.GET(tag, offset); fld := q + offset;
-            SYSTEM.GET(fld, p); SYSTEM.PUT(fld, SYSTEM.VAL(SYSTEM.PTR, n))
+            S.GET(q - SZA, tag); DEC(tag, 1);
+            S.GET(tag, offset); fld := q + offset;
+            S.GET(fld, p); S.PUT(fld, S.VAL(S.PTR, n))
           ELSE                                      (* offset references a ptr field *)
-            fld := q + offset;                      (* Address the pointer *)
-            SYSTEM.GET(fld, n);                 (* Load the pointer *)
+            fld := q + offset;                      (* S.ADDRESS the pointer *)
+            S.GET(fld, n);                 (* Load the pointer *)
             IF n # 0 THEN                           (* If pointer is not NIL *)
-              SYSTEM.GET(n - SZA, tagbits);     (* Consider record pointed to by this field *)
+              S.GET(n - SZA, tagbits);     (* Consider record pointed to by this field *)
               IF ~ODD(tagbits) THEN
-                SYSTEM.PUT(n - SZA, tagbits + 1);
-                SYSTEM.PUT(q - SZA, tag + 1);
-                SYSTEM.PUT(fld, SYSTEM.VAL(SYSTEM.PTR, p));
+                S.PUT(n - SZA, tagbits + 1);
+                S.PUT(q - SZA, tag + 1);
+                S.PUT(fld, S.VAL(S.PTR, p));
                 p := q; q := n;
                 tag := tagbits
               END
@@ -353,59 +351,59 @@ MODULE Heap;
     END
   END Mark;
 
-  PROCEDURE MarkP(p: SYSTEM.PTR);  (* for compatibility with EnumPtrs in ANSI mode *)
+  PROCEDURE MarkP(p: S.PTR);  (* for compatibility with EnumPtrs in ANSI mode *)
   BEGIN
-    Mark(SYSTEM.VAL(Address, p))
+    Mark(S.VAL(S.ADDRESS, p))
   END MarkP;
 
   PROCEDURE Scan;
-    VAR chnk, adr, end, start, tag, i, size, freesize: Address;
+    VAR chnk, adr, end, start, tag, i, size, freesize: S.ADDRESS;
   BEGIN bigBlocks := 0; i := 1;
     WHILE i < nofLists DO freeList[i] := 0; INC(i) END ;
     freesize := 0; allocated := 0; chnk := heap;
     WHILE chnk # 0 DO
       adr := chnk + blkOff;
-      SYSTEM.GET(chnk + endOff, end);
+      S.GET(chnk + endOff, end);
       WHILE adr < end DO
-        SYSTEM.GET(adr, tag);
+        S.GET(adr, tag);
         IF ODD(tag) THEN  (*marked*)
           IF freesize > 0 THEN
             start := adr - freesize;
-            SYSTEM.PUT(start,         start+SZA);
-            SYSTEM.PUT(start+sizeOff, freesize);
-            SYSTEM.PUT(start+sntlOff, NoPtrSntl);
+            S.PUT(start,         start+SZA);
+            S.PUT(start+sizeOff, freesize);
+            S.PUT(start+sntlOff, NoPtrSntl);
             i := freesize DIV Unit; freesize := 0;
-            IF i < nofLists THEN SYSTEM.PUT(start + nextOff, freeList[i]); freeList[i] := start
-            ELSE                 SYSTEM.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
+            IF i < nofLists THEN S.PUT(start + nextOff, freeList[i]); freeList[i] := start
+            ELSE                 S.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
             END
           END ;
           DEC(tag, 1);
-          SYSTEM.PUT(adr, tag);
-          SYSTEM.GET(tag, size);
+          S.PUT(adr, tag);
+          S.GET(tag, size);
           INC(allocated, size);
           INC(adr, size)
         ELSE  (*unmarked*)
-          SYSTEM.GET(tag, size);
+          S.GET(tag, size);
           INC(freesize, size);
           INC(adr, size)
         END
       END ;
       IF freesize > 0 THEN (*collect last block*)
         start := adr - freesize;
-        SYSTEM.PUT(start,         start+SZA);
-        SYSTEM.PUT(start+sizeOff, freesize);
-        SYSTEM.PUT(start+sntlOff, NoPtrSntl);
+        S.PUT(start,         start+SZA);
+        S.PUT(start+sizeOff, freesize);
+        S.PUT(start+sntlOff, NoPtrSntl);
         i := freesize DIV Unit; freesize := 0;
-        IF i < nofLists THEN SYSTEM.PUT(start + nextOff, freeList[i]); freeList[i] := start
-        ELSE                 SYSTEM.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
+        IF i < nofLists THEN S.PUT(start + nextOff, freeList[i]); freeList[i] := start
+        ELSE                 S.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
         END
       END ;
-      SYSTEM.GET(chnk, chnk)
+      S.GET(chnk, chnk)
     END
   END Scan;
 
-  PROCEDURE Sift (l, r: Address; VAR a: ARRAY OF Address);
-    VAR i, j, x: Address;
+  PROCEDURE Sift (l, r: S.ADDRESS; VAR a: ARRAY OF S.ADDRESS);
+    VAR i, j, x: S.ADDRESS;
   BEGIN j := l; x := a[j];
     LOOP i := j; j := 2*j + 1;
       IF (j < r) & (a[j] < a[j+1]) THEN INC(j) END;
@@ -415,27 +413,27 @@ MODULE Heap;
     a[i] := x
   END Sift;
 
-  PROCEDURE HeapSort (n: Address; VAR a: ARRAY OF Address);
-    VAR l, r, x: Address;
+  PROCEDURE HeapSort (n: S.ADDRESS; VAR a: ARRAY OF S.ADDRESS);
+    VAR l, r, x: S.ADDRESS;
   BEGIN l := n DIV 2; r := n - 1;
     WHILE l > 0 DO DEC(l); Sift(l, r, a) END;
     WHILE r > 0 DO x := a[0]; a[0] := a[r]; a[r] := x; DEC(r); Sift(l, r, a) END
   END HeapSort;
 
-  PROCEDURE MarkCandidates(n: Address; VAR cand: ARRAY OF Address);
-    VAR chnk, adr, tag, next, lim, lim1, i, ptr, size: Address;
+  PROCEDURE MarkCandidates(n: S.ADDRESS; VAR cand: ARRAY OF S.ADDRESS);
+    VAR chnk, adr, tag, next, lim, lim1, i, ptr, size: S.ADDRESS;
   BEGIN
     chnk := heap; i := 0; lim := cand[n-1];
     WHILE (chnk # 0 ) & (chnk < lim) DO
       adr := chnk + blkOff;
-      SYSTEM.GET(chnk + endOff, lim1);
+      S.GET(chnk + endOff, lim1);
       IF lim < lim1 THEN lim1 := lim END ;
       WHILE adr < lim1 DO
-        SYSTEM.GET(adr, tag);
+        S.GET(adr, tag);
         IF ODD(tag) THEN (*already marked*)
-          SYSTEM.GET(tag-1, size); INC(adr, size)
+          S.GET(tag-1, size); INC(adr, size)
         ELSE
-          SYSTEM.GET(tag, size);
+          S.GET(tag, size);
           ptr := adr + SZA;
           WHILE cand[i] < ptr DO INC(i) END ;
           IF i = n THEN RETURN END ;
@@ -444,16 +442,16 @@ MODULE Heap;
           adr := next
         END
       END ;
-      SYSTEM.GET(chnk, chnk)
+      S.GET(chnk, chnk)
     END
   END MarkCandidates;
 
   PROCEDURE CheckFin;
-    VAR n: FinNode; tag: Address;
+    VAR n: FinNode; tag: S.ADDRESS;
   BEGIN
     n := fin;
     WHILE n # NIL DO
-      SYSTEM.GET(n.obj - SZA, tag);
+      S.GET(n.obj - SZA, tag);
       IF ~ODD(tag) THEN n.marked := FALSE; Mark(n.obj)
       ELSE n.marked := TRUE
       END ;
@@ -467,7 +465,7 @@ MODULE Heap;
     WHILE n # NIL DO
       IF ~n.marked THEN
         IF n = fin THEN fin := fin.next ELSE prev.next := n.next END ;
-        n.finalize(SYSTEM.VAL(SYSTEM.PTR, n.obj));
+        n.finalize(S.VAL(S.PTR, n.obj));
         (* new nodes may have been pushed in n.finalize, therefore: *)
         IF prev = NIL THEN n := fin ELSE n := n.next END
       ELSE
@@ -481,31 +479,31 @@ MODULE Heap;
   BEGIN
     WHILE fin # NIL DO
       n := fin; fin := fin.next;
-      n.finalize(SYSTEM.VAL(SYSTEM.PTR, n.obj))
+      n.finalize(S.VAL(S.PTR, n.obj))
     END
   END FINALL;
 
   PROCEDURE -ExternMainStackFrame                     "extern address Platform_MainStackFrame;";
-  PROCEDURE -PlatformMainStackFrame(): Address "Platform_MainStackFrame";
+  PROCEDURE -PlatformMainStackFrame(): S.ADDRESS "Platform_MainStackFrame";
 
-  PROCEDURE MarkStack(n: Address; VAR cand: ARRAY OF Address);
+  PROCEDURE MarkStack(n: S.ADDRESS; VAR cand: ARRAY OF S.ADDRESS);
     VAR
-      frame: SYSTEM.PTR;
-      inc, nofcand: Address;
-      sp, p, stack0: Address;
-      align: RECORD ch: CHAR; p: SYSTEM.PTR END ;
+      frame: S.PTR;
+      inc, nofcand: S.ADDRESS;
+      sp, p, stack0: S.ADDRESS;
+      align: RECORD ch: CHAR; p: S.PTR END ;
   BEGIN
     IF n > 0 THEN MarkStack(n-1, cand);  (* flush register windows by means of recursive calls *)
       IF n > 100 THEN RETURN END   (* prevent tail recursion optimization *)
     END ;
     IF n = 0 THEN
-      nofcand := 0; sp := SYSTEM.ADR(frame);
+      nofcand := 0; sp := S.ADR(frame);
       stack0 := PlatformMainStackFrame();
       (* check for minimum alignment of pointers *)
-      inc := SYSTEM.ADR(align.p) - SYSTEM.ADR(align);
+      inc := S.ADR(align.p) - S.ADR(align);
       IF sp > stack0 THEN inc := -inc END ;
       WHILE sp # stack0 DO
-        SYSTEM.GET(sp, p);
+        S.GET(sp, p);
         IF (p > heap) & (p < heapend) THEN
           IF nofcand = LEN(cand) THEN HeapSort(nofcand, cand); MarkCandidates(nofcand, cand); nofcand := 0 END ;
           cand[nofcand] := p; INC(nofcand)
@@ -519,12 +517,12 @@ MODULE Heap;
   PROCEDURE GC*(markStack: BOOLEAN);
     VAR
       m: Module;
-      i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: Address;
-      cand: ARRAY 10000 OF Address;
+      i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: S.ADDRESS;
+      cand: ARRAY 10000 OF S.ADDRESS;
   BEGIN
     IF (lockdepth = 0) OR (lockdepth = 1) & ~markStack THEN
       Lock();
-      m := SYSTEM.VAL(Module, modules);
+      m := S.VAL(Module, modules);
       WHILE m # NIL DO
         IF m.enumPtrs # NIL THEN m.enumPtrs(MarkP) END ;
         m := m^.next
@@ -552,10 +550,10 @@ MODULE Heap;
     END
   END GC;
 
-  PROCEDURE RegisterFinalizer*(obj: SYSTEM.PTR; finalize: Finalizer);
+  PROCEDURE RegisterFinalizer*(obj: S.PTR; finalize: Finalizer);
     VAR f: FinNode;
   BEGIN NEW(f);
-    f.obj := SYSTEM.VAL(Address, obj); f.finalize := finalize; f.marked := TRUE;
+    f.obj := S.VAL(S.ADDRESS, obj); f.finalize := finalize; f.marked := TRUE;
     f.next := fin; fin := f;
   END RegisterFinalizer;
 
@@ -565,11 +563,11 @@ PROCEDURE -HeapModuleInit 'Heap__init()';
 
   PROCEDURE InitHeap*;
   (* InitHeap is called by Platform.init before any module bodies have been
-     initialised, to enable NEW, SYSTEM.NEW *)
+     initialised, to enable NEW, S.NEW *)
   BEGIN
     heap    := NewChunk(heapSize0);
-    SYSTEM.GET(heap + endOff, heapend);
-    SYSTEM.PUT(heap, AddressZero);
+    S.GET(heap + endOff, heapend);
+    S.PUT(heap, AddressZero);
     allocated := 0; firstTry := TRUE; freeList[nofLists] := 1; lockdepth := 0;
     FileCount := 0; modules := NIL; heapsize := 0; bigBlocks := 0; fin := NIL;
     interrupted := FALSE;
