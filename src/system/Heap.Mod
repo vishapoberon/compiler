@@ -183,12 +183,6 @@ MODULE Heap;
     RETURN chnk
   END NewChunk;
 
-
-  (*
-  PROCEDURE -FetchAddress(pointer: Address): Address "(address)(*((void**)((address)pointer)))";
-  *)
-  PROCEDURE FetchAddress(pointer: Address): Address; VAR r: Address; BEGIN SYSTEM.GET(pointer, r); RETURN r END FetchAddress;
-
   PROCEDURE ExtendHeap(blksz: Address);
     VAR size, chnk, j, next: Address;
   BEGIN
@@ -201,14 +195,14 @@ MODULE Heap;
       IF chnk < heap THEN
         SYSTEM.PUT(chnk, heap); heap := chnk
       ELSE
-        j := heap; next := FetchAddress(j);
+        j := heap; SYSTEM.GET(j, next);
         WHILE (next # 0) & (chnk > next) DO
           j := next;
-          next := FetchAddress(j)
+          SYSTEM.GET(j, next)
         END;
         SYSTEM.PUT(chnk, next); SYSTEM.PUT(j, chnk)
       END ;
-      IF next = 0 THEN heapend := FetchAddress(chnk+endOff) END
+      IF next = 0 THEN SYSTEM.GET(chnk+endOff, heapend) END
     END
   END ExtendHeap;
 
@@ -220,7 +214,7 @@ MODULE Heap;
       new:   SYSTEM.PTR;
   BEGIN
     Lock();
-    blksz := FetchAddress(tag);
+    SYSTEM.GET(tag, blksz);
 
     ASSERT((Unit = 16) OR (Unit = 32));
     ASSERT(SIZE(SYSTEM.PTR) = SIZE(Address));
@@ -231,7 +225,7 @@ MODULE Heap;
       WHILE adr = 0 DO INC(i); adr := freeList[i] END
     END ;
     IF i < nofLists THEN (* unlink *)
-      next := FetchAddress(adr + nextOff);
+      SYSTEM.GET(adr + nextOff, next);
       freeList[i] := next;
       IF i # i0 THEN (* split *)
         di := i - i0; restsize := di * Unit; end := adr + restsize;
@@ -265,9 +259,9 @@ MODULE Heap;
             Unlock(); RETURN NIL
           END
         END ;
-        t := FetchAddress(adr+sizeOff);
+        SYSTEM.GET(adr+sizeOff, t);
         IF t >= blksz THEN EXIT END ;
-        prev := adr; adr := FetchAddress(adr + nextOff)
+        prev := adr; SYSTEM.GET(adr + nextOff, adr)
       END ;
       restsize := t - blksz; end := adr + restsize;
       SYSTEM.PUT(end + sizeOff, blksz);
@@ -276,7 +270,7 @@ MODULE Heap;
       IF restsize > nofLists * Unit THEN (*resize*)
         SYSTEM.PUT(adr + sizeOff, restsize)
       ELSE (*unlink*)
-        next := FetchAddress(adr + nextOff);
+        SYSTEM.GET(adr + nextOff, next);
         IF prev = 0 THEN bigBlocks := next
         ELSE SYSTEM.PUT(prev + nextOff, next);
         END ;
@@ -325,7 +319,7 @@ MODULE Heap;
     VAR p, tag, offset, fld, n, tagbits: Address;
   BEGIN
     IF q # 0 THEN
-      tagbits := FetchAddress(q - SZA);             (* Load the tag for the record at q *)
+      SYSTEM.GET(q - SZA, tagbits);             (* Load the tag for the record at q *)
       IF ~ODD(tagbits) THEN                         (* If it has not already been marked *)
         SYSTEM.PUT(q - SZA, tagbits + 1);           (* Mark it *)
         p := 0;
@@ -336,14 +330,14 @@ MODULE Heap;
             SYSTEM.PUT(q - SZA, tag + offset + 1);  (* Rotate base ptr into tag *)
             IF p = 0 THEN EXIT END ;
             n := q; q := p;
-            tag := FetchAddress(q - SZA); DEC(tag, 1);
+            SYSTEM.GET(q - SZA, tag); DEC(tag, 1);
             SYSTEM.GET(tag, offset); fld := q + offset;
-            p := FetchAddress(fld); SYSTEM.PUT(fld, SYSTEM.VAL(SYSTEM.PTR, n))
+            SYSTEM.GET(fld, p); SYSTEM.PUT(fld, SYSTEM.VAL(SYSTEM.PTR, n))
           ELSE                                      (* offset references a ptr field *)
             fld := q + offset;                      (* Address the pointer *)
-            n := FetchAddress(fld);                 (* Load the pointer *)
+            SYSTEM.GET(fld, n);                 (* Load the pointer *)
             IF n # 0 THEN                           (* If pointer is not NIL *)
-              tagbits := FetchAddress(n - SZA);     (* Consider record pointed to by this field *)
+              SYSTEM.GET(n - SZA, tagbits);     (* Consider record pointed to by this field *)
               IF ~ODD(tagbits) THEN
                 SYSTEM.PUT(n - SZA, tagbits + 1);
                 SYSTEM.PUT(q - SZA, tag + 1);
@@ -371,9 +365,9 @@ MODULE Heap;
     freesize := 0; allocated := 0; chnk := heap;
     WHILE chnk # 0 DO
       adr := chnk + blkOff;
-      end := FetchAddress(chnk + endOff);
+      SYSTEM.GET(chnk + endOff, end);
       WHILE adr < end DO
-        tag := FetchAddress(adr);
+        SYSTEM.GET(adr, tag);
         IF ODD(tag) THEN  (*marked*)
           IF freesize > 0 THEN
             start := adr - freesize;
@@ -387,11 +381,11 @@ MODULE Heap;
           END ;
           DEC(tag, 1);
           SYSTEM.PUT(adr, tag);
-          size := FetchAddress(tag);
+          SYSTEM.GET(tag, size);
           INC(allocated, size);
           INC(adr, size)
         ELSE  (*unmarked*)
-          size := FetchAddress(tag);
+          SYSTEM.GET(tag, size);
           INC(freesize, size);
           INC(adr, size)
         END
@@ -406,7 +400,7 @@ MODULE Heap;
         ELSE                 SYSTEM.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
         END
       END ;
-      chnk := FetchAddress(chnk)
+      SYSTEM.GET(chnk, chnk)
     END
   END Scan;
 
@@ -434,14 +428,14 @@ MODULE Heap;
     chnk := heap; i := 0; lim := cand[n-1];
     WHILE (chnk # 0 ) & (chnk < lim) DO
       adr := chnk + blkOff;
-      lim1 := FetchAddress(chnk + endOff);
+      SYSTEM.GET(chnk + endOff, lim1);
       IF lim < lim1 THEN lim1 := lim END ;
       WHILE adr < lim1 DO
-        tag := FetchAddress(adr);
+        SYSTEM.GET(adr, tag);
         IF ODD(tag) THEN (*already marked*)
-          size := FetchAddress(tag-1); INC(adr, size)
+          SYSTEM.GET(tag-1, size); INC(adr, size)
         ELSE
-          size := FetchAddress(tag);
+          SYSTEM.GET(tag, size);
           ptr := adr + SZA;
           WHILE cand[i] < ptr DO INC(i) END ;
           IF i = n THEN RETURN END ;
@@ -450,7 +444,7 @@ MODULE Heap;
           adr := next
         END
       END ;
-      chnk := FetchAddress(chnk)
+      SYSTEM.GET(chnk, chnk)
     END
   END MarkCandidates;
 
@@ -459,7 +453,7 @@ MODULE Heap;
   BEGIN
     n := fin;
     WHILE n # NIL DO
-      tag := FetchAddress(n.obj - SZA);
+      SYSTEM.GET(n.obj - SZA, tag);
       IF ~ODD(tag) THEN n.marked := FALSE; Mark(n.obj)
       ELSE n.marked := TRUE
       END ;
@@ -574,7 +568,7 @@ PROCEDURE -HeapModuleInit 'Heap__init()';
      initialised, to enable NEW, SYSTEM.NEW *)
   BEGIN
     heap    := NewChunk(heapSize0);
-    heapend := FetchAddress(heap + endOff);
+    SYSTEM.GET(heap + endOff, heapend);
     SYSTEM.PUT(heap, AddressZero);
     allocated := 0; firstTry := TRUE; freeList[nofLists] := 1; lockdepth := 0;
     FileCount := 0; modules := NIL; heapsize := 0; bigBlocks := 0; fin := NIL;
