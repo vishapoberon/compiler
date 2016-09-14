@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -94,7 +94,7 @@ static void OPP_qualident (OPT_Object *id)
 		obj->adr = 0;
 	} else {
 		lev = obj->mnolev;
-		if ((__IN(obj->mode, 0x06) && lev != OPP_level)) {
+		if ((__IN(obj->mode, 0x06, 32) && lev != OPP_level)) {
 			obj->leaf = 0;
 			if (lev > 0) {
 				OPB_StaticLink(OPP_level - lev);
@@ -325,7 +325,7 @@ static void OPP_PointerType (OPT_Struct *typ)
 		} else {
 			OPP_qualident(&id);
 			if (id->mode == 5) {
-				if (__IN(id->typ->comp, 0x1c)) {
+				if (__IN(id->typ->comp, 0x1c, 32)) {
 					(*typ)->BaseTyp = id->typ;
 				} else {
 					(*typ)->BaseTyp = OPT_undftyp;
@@ -338,7 +338,7 @@ static void OPP_PointerType (OPT_Struct *typ)
 		}
 	} else {
 		OPP_Type(&(*typ)->BaseTyp, &OPT_notyp);
-		if (!__IN((*typ)->BaseTyp->comp, 0x1c)) {
+		if (!__IN((*typ)->BaseTyp->comp, 0x1c, 32)) {
 			(*typ)->BaseTyp = OPT_undftyp;
 			OPP_err(57);
 		}
@@ -966,7 +966,7 @@ static void GetCode__19 (void)
 			}
 		}
 	}
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1);
+	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,32);
 }
 
 static void GetParams__21 (void)
@@ -998,7 +998,7 @@ static void Body__17 (void)
 	OPT_Node procdec = NIL, statseq = NIL;
 	int32 c;
 	c = OPM_errpos;
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1);
+	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,32);
 	OPP_CheckSym(39);
 	OPP_Block(&procdec, &statseq);
 	OPB_Enter(&procdec, statseq, *ProcedureDeclaration__16_s->proc);
@@ -1041,7 +1041,7 @@ static void TProcDecl__23 (void)
 		if ((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mnolev != OPP_level)) {
 			*ProcedureDeclaration__16_s->fwd = NIL;
 		}
-		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval))) {
+		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval, 32))) {
 			*ProcedureDeclaration__16_s->proc = OPT_NewObj();
 			(*ProcedureDeclaration__16_s->proc)->leaf = 1;
 			if ((*ProcedureDeclaration__16_s->fwd)->vis != *ProcedureDeclaration__16_s->vis) {
@@ -1075,7 +1075,7 @@ static void TProcDecl__23 (void)
 			if ((((((baseProc->vis == 1 && (*ProcedureDeclaration__16_s->proc)->vis == 0)) && recTyp->strobj != NIL)) && recTyp->strobj->vis == 1)) {
 				OPP_err(109);
 			}
-			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2);
+			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2,32);
 		}
 		if (!*ProcedureDeclaration__16_s->forward) {
 			Body__17();
@@ -1118,7 +1118,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		} else {
 			OPP_err(38);
 		}
-		if ((__IN(mode, 0x0600) && !OPT_SYSimported)) {
+		if ((__IN(mode, 0x0600, 32) && !OPT_SYSimported)) {
 			OPP_err(135);
 		}
 		OPS_Get(&OPP_sym);
@@ -1135,7 +1135,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		if ((fwd != NIL && (fwd->mnolev != OPP_level || fwd->mode == 8))) {
 			fwd = NIL;
 		}
-		if ((((fwd != NIL && __IN(fwd->mode, 0xc0))) && !__IN(1, fwd->conval->setval))) {
+		if ((((fwd != NIL && __IN(fwd->mode, 0xc0, 32))) && !__IN(1, fwd->conval->setval, 32))) {
 			proc = OPT_NewObj();
 			proc->leaf = 1;
 			if (fwd->vis != vis) {
@@ -1178,7 +1178,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int16 *n, OPP
 	for (;;) {
 		OPP_ConstExpression(&x);
 		f = x->typ->form;
-		if (__IN(f, 0x18)) {
+		if (__IN(f, 0x18, 32)) {
 			xval = x->conval->intval;
 		} else {
 			OPP_err(61);
@@ -1258,7 +1258,7 @@ static void CasePart__31 (OPT_Node *x)
 	*StatSeq__30_s->pos = OPM_errpos;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
-	} else if (!__IN((*x)->typ->form, 0x18)) {
+	} else if (!__IN((*x)->typ->form, 0x18, 32)) {
 		OPP_err(125);
 	}
 	OPP_CheckSym(25);
@@ -1675,7 +1675,7 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 				if (obj->typ->strobj == NIL) {
 					obj->typ->strobj = obj;
 				}
-				if (__IN(obj->typ->comp, 0x1c)) {
+				if (__IN(obj->typ->comp, 0x1c, 32)) {
 					i = 0;
 					while (i < OPP_nofFwdPtr) {
 						typ = OPP_FwdPtr[__X(i, 64)];

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -93,9 +93,9 @@ static BOOLEAN OPC_Undefined (OPT_Object obj);
 void OPC_Init (void)
 {
 	OPC_indentLevel = 0;
-	OPC_ptrinit = __IN(5, OPM_opt);
+	OPC_ptrinit = __IN(5, OPM_opt, 32);
 	OPC_mainprog = OPM_mainProg || OPM_mainLinkStat;
-	OPC_ansi = __IN(6, OPM_opt);
+	OPC_ansi = __IN(6, OPM_opt, 32);
 	if (OPC_ansi) {
 		__MOVE("__init(void)", OPC_BodyNameExt, 13);
 	} else {
@@ -196,7 +196,7 @@ void OPC_Ident (OPT_Object obj)
 	int16 mode, level, h;
 	mode = obj->mode;
 	level = obj->mnolev;
-	if ((__IN(mode, 0x62) && level > 0) || __IN(mode, 0x14)) {
+	if ((__IN(mode, 0x62, 32) && level > 0) || __IN(mode, 0x14, 32)) {
 		OPM_WriteStringVar((void*)obj->name, 256);
 		h = OPC_PerfectHash((void*)obj->name, 256);
 		if (OPC_hashtab[__X(h, 105)] >= 0) {
@@ -236,7 +236,7 @@ static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause)
 	int16 pointers;
 	*openClause = 0;
 	if (((typ->strobj == NIL || typ->strobj->name[0] == 0x00) && typ->comp != 4)) {
-		if (__IN(typ->comp, 0x0c)) {
+		if (__IN(typ->comp, 0x0c, 32)) {
 			OPC_Stars(typ->BaseTyp, &*openClause);
 			*openClause = typ->comp == 2;
 		} else if (typ->form == 12) {
@@ -293,7 +293,7 @@ static void OPC_DeclareObj (OPT_Object dcl, BOOLEAN scopeDef)
 			break;
 		} else if ((form == 11 && typ->BaseTyp->comp != 3)) {
 			openClause = 1;
-		} else if (form == 12 || __IN(comp, 0x0c)) {
+		} else if (form == 12 || __IN(comp, 0x0c, 32)) {
 			if (openClause) {
 				OPM_Write(')');
 				openClause = 0;
@@ -708,7 +708,7 @@ static void OPC_DefineType (OPT_Struct str)
 				if (str->BaseTyp->comp != 4) {
 					OPC_DefineType(str->BaseTyp);
 				}
-			} else if (__IN(str->comp, 0x0c)) {
+			} else if (__IN(str->comp, 0x0c, 32)) {
 				OPC_DefineType(str->BaseTyp);
 			} else if (str->form == 12) {
 				if (str->BaseTyp != OPT_notyp) {
@@ -1019,7 +1019,7 @@ static void OPC_IdentList (OPT_Object obj, int16 vis)
 	base = NIL;
 	first = 1;
 	while ((obj != NIL && obj->mode != 13)) {
-		if ((__IN(vis, 0x05) || (vis == 1 && obj->vis != 0)) || (vis == 3 && !obj->leaf)) {
+		if ((__IN(vis, 0x05, 32) || (vis == 1 && obj->vis != 0)) || (vis == 3 && !obj->leaf)) {
 			if (obj->typ != base || (int16)obj->vis != lastvis) {
 				if (!first) {
 					OPC_EndStat();
@@ -1144,7 +1144,7 @@ static void OPC_ProcPredefs (OPT_Object obj, int8 vis)
 {
 	if (obj != NIL) {
 		OPC_ProcPredefs(obj->left, vis);
-		if ((((__IN(obj->mode, 0xc0) && obj->vis >= vis)) && (obj->history != 4 || obj->mode == 6))) {
+		if ((((__IN(obj->mode, 0xc0, 32) && obj->vis >= vis)) && (obj->history != 4 || obj->mode == 6))) {
 			if (vis == 1) {
 				OPM_WriteString((CHAR*)"import ", 8);
 			} else if (obj->vis == 0) {
@@ -1238,7 +1238,7 @@ static void OPC_GenHeaderMsg (void)
 	OPM_Write(' ');
 	i = 0;
 	while (i <= 31) {
-		if (__IN(i, OPM_glbopt)) {
+		if (__IN(i, OPM_glbopt, 32)) {
 			switch (i) {
 				case 0: 
 					OPM_Write('x');
@@ -1600,7 +1600,7 @@ void OPC_EnterProc (OPT_Object proc)
 	}
 	var = proc->link;
 	while (var != NIL) {
-		if ((((__IN(var->typ->comp, 0x0c) && var->mode == 1)) && var->typ->sysflag == 0)) {
+		if ((((__IN(var->typ->comp, 0x0c, 32) && var->mode == 1)) && var->typ->sysflag == 0)) {
 			OPC_BegStat();
 			if (var->typ->comp == 2) {
 				OPM_WriteString((CHAR*)"__DUPARR(", 10);
@@ -1648,7 +1648,7 @@ void OPC_EnterProc (OPT_Object proc)
 				OPM_Write('.');
 				OPC_Ident(var);
 				OPM_WriteString((CHAR*)" = ", 4);
-				if (__IN(var->typ->comp, 0x0c)) {
+				if (__IN(var->typ->comp, 0x0c, 32)) {
 					OPM_WriteString((CHAR*)"(void*)", 8);
 				} else if (var->mode != 2) {
 					OPM_Write('&');
@@ -2006,7 +2006,7 @@ void OPC_Constant (OPT_Const con, int16 form)
 				do {
 					i -= 1;
 					hex = __ASHL(hex, 1);
-					if (__IN(i, s)) {
+					if (__IN(i, s, 32)) {
 						hex += 1;
 					}
 				} while (!(__MASK(i, -8) == 0));

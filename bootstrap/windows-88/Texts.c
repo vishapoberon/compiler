@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -578,13 +578,13 @@ void Texts_ChangeLooks (Texts_Text T, int64 beg, int64 end, SET sel, Texts_Fonts
 	T->cache = c;
 	T->corg = co;
 	while (un != vn) {
-		if ((__IN(0, sel) && fnt != NIL)) {
+		if ((__IN(0, sel, 64) && fnt != NIL)) {
 			un->fnt = fnt;
 		}
-		if (__IN(1, sel)) {
+		if (__IN(1, sel, 64)) {
 			un->col = col;
 		}
-		if (__IN(2, sel)) {
+		if (__IN(2, sel, 64)) {
 			un->voff = voff;
 		}
 		Texts_Merge(T, u, &un);

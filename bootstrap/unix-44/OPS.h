@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin tspkaSfF */
 
 #ifndef OPS__h
 #define OPS__h

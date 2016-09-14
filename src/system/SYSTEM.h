@@ -243,6 +243,10 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __CASECHK    __HALT(-4)
 #define __WITHCHK    __HALT(-7)
 
+#define __IS(tag, typ, level) (*(tag-(__BASEOFF-level))==(LONGINT)(address)typ##__typ)
+#define __TYPEOF(p)           ((LONGINT*)(address)(*(((LONGINT*)(p))-1)))
+#define __ISP(p, typ, level)  __IS(__TYPEOF(p),typ,level)
+
 #define __GUARDP(p, typ, level)    ((typ*)(__ISP(p,typ,level)?p:(__HALT(-5),p)))
 #define __GUARDR(r, typ, level)    (*((typ*)(__IS(r##__typ,typ,level)?r:(__HALT(-5),r))))
 #define __GUARDA(p, typ, level)    ((struct typ*)(__IS(__TYPEOF(p),typ,level)?p:(__HALT(-5),p)))
@@ -282,56 +286,52 @@ extern SYSTEM_PTR Heap_NEWBLK (address size);
 extern SYSTEM_PTR Heap_NEWREC (address tag);
 extern SYSTEM_PTR SYSTEM_NEWARR(LONGINT*, LONGINT, int, int, int, ...);
 
-#define __SYSNEW(p, len) p = Heap_NEWBLK((LONGINT)(len))
-#define __NEW(p, t)      p = Heap_NEWREC((LONGINT)(address)t##__typ)
+#define __SYSNEW(p, len) p = Heap_NEWBLK((address)(len))
+#define __NEW(p, t)      p = Heap_NEWREC((address)t##__typ)
 #define __NEWARR         SYSTEM_NEWARR
 
 
 
 /* Type handling */
 
-extern void SYSTEM_INHERIT(LONGINT *t, LONGINT *t0);
-extern void SYSTEM_ENUMP  (void *adr, LONGINT n, void (*P)());
-extern void SYSTEM_ENUMR  (void *adr, LONGINT *typ, LONGINT size, LONGINT n, void (*P)());
+extern void SYSTEM_INHERIT(address *t, address *t0);
+extern void SYSTEM_ENUMP  (void *adr, address n, void (*P)());
+extern void SYSTEM_ENUMR  (void *adr, address *typ, address size, address n, void (*P)());
 
 
 #define __TDESC(t, m, n)                                                \
   static struct t##__desc {                                             \
-    LONGINT  tproc[m];         /* Proc for each ptr field            */ \
-    LONGINT  tag;                                                       \
-    LONGINT  next;             /* Module table type list points here */ \
-    LONGINT  level;                                                     \
-    LONGINT  module;                                                    \
+    address  tproc[m];         /* Proc for each ptr field            */ \
+    address  tag;                                                       \
+    address  next;             /* Module table type list points here */ \
+    address  level;                                                     \
+    address  module;                                                    \
     char     name[24];                                                  \
-    LONGINT  basep[__MAXEXT];  /* List of bases this extends         */ \
-    LONGINT  reserved;                                                  \
-    LONGINT  blksz;            /* xxx_typ points here                */ \
-    LONGINT  ptr[n+1];         /* Offsets of ptrs up to -ve sentinel */ \
+    address  basep[__MAXEXT];  /* List of bases this extends         */ \
+    address  reserved;                                                  \
+    address  blksz;            /* xxx_typ points here                */ \
+    address  ptr[n+1];         /* Offsets of ptrs up to -ve sentinel */ \
   } t##__desc
 
 #define __BASEOFF   (__MAXEXT+1)                           // blksz as index to base.
-#define __TPROC0OFF (__BASEOFF+24/sizeof(LONGINT)+5)       // blksz as index to tproc IFF m=1.
+#define __TPROC0OFF (__BASEOFF+24/sizeof(address)+5)       // blksz as index to tproc IFF m=1.
 #define __EOM 1
 #define __TDFLDS(name, size)          {__EOM}, 1, 0, 0, 0, name, {0}, 0, size
-#define __ENUMP(adr, n, P)            SYSTEM_ENUMP(adr, (LONGINT)(n), P)
-#define __ENUMR(adr, typ, size, n, P) SYSTEM_ENUMR(adr, typ, (LONGINT)(size), (LONGINT)(n), P)
+#define __ENUMP(adr, n, P)            SYSTEM_ENUMP(adr, (address)(n), P)
+#define __ENUMR(adr, typ, size, n, P) SYSTEM_ENUMR(adr, typ, (address)(size), (address)(n), P)
 
 #define __INITYP(t, t0, level) \
-  t##__typ               = (LONGINT*)&t##__desc.blksz;                                                    \
-  memcpy(t##__desc.basep, t0##__typ - __BASEOFF, level*sizeof(LONGINT));                                  \
-  t##__desc.basep[level] = (LONGINT)(address)t##__typ;                                                  \
-  t##__desc.module       = (LONGINT)(address)m;                                                         \
+  t##__typ               = (address*)&t##__desc.blksz;                                                    \
+  memcpy(t##__desc.basep, t0##__typ - __BASEOFF, level*sizeof(address));                                  \
+  t##__desc.basep[level] = (address)t##__typ;                                                             \
+  t##__desc.module       = (address)m;                                                                    \
   if(t##__desc.blksz!=sizeof(struct t)) __HALT(-15);                                                      \
-  t##__desc.blksz        = (t##__desc.blksz+5*sizeof(LONGINT)-1)/(4*sizeof(LONGINT))*(4*sizeof(LONGINT)); \
-  Heap_REGTYP(m, (LONGINT)(address)&t##__desc.next);                                                    \
+  t##__desc.blksz        = (t##__desc.blksz+5*sizeof(address)-1)/(4*sizeof(address))*(4*sizeof(address)); \
+  Heap_REGTYP(m, (address)&t##__desc.next);                                                               \
   SYSTEM_INHERIT(t##__typ, t0##__typ)
 
-#define __IS(tag, typ, level) (*(tag-(__BASEOFF-level))==(LONGINT)(address)typ##__typ)
-#define __TYPEOF(p)           ((LONGINT*)(address)(*(((LONGINT*)(p))-1)))
-#define __ISP(p, typ, level)  __IS(__TYPEOF(p),typ,level)
-
 // Oberon-2 type bound procedures support
-#define __INITBP(t, proc, num)            *(t##__typ-(__TPROC0OFF+num))=(LONGINT)(address)proc
+#define __INITBP(t, proc, num)            *(t##__typ-(__TPROC0OFF+num))=(address)proc
 #define __SEND(typ, num, funtyp, parlist) ((funtyp)((address)*(typ-(__TPROC0OFF+num))))parlist
 
 

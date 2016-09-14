@@ -3,10 +3,12 @@ MODULE Heap;
   IMPORT SYSTEM;  (* Cannot import anything else as heap initialization must complete
                      before any other modules are initialized. *)
 
+  TYPE Address = SYSTEM.ADDRESS;
+
   CONST
     ModNameLen = 20;
     CmdNameLen = 24;
-    SZA        = SIZE(SYSTEM.ADDRESS);  (* Size of address *)
+    SZA        = SIZE(Address);  (* Size of address *)
     Unit       = 4*SZA;                 (* smallest possible heap block *)
     nofLists   = 9;                     (* number of free_lists *)
     heapSize0  = 8000*Unit;             (* startup heap size *)
@@ -20,17 +22,17 @@ MODULE Heap;
   *)
 
   (* heap chunks *)
-    nextChnkOff = SYSTEM.VAL(SYSTEM.ADDRESS, 0);      (* next heap chunk, sorted ascendingly! *)
-    endOff      = SYSTEM.VAL(SYSTEM.ADDRESS, SZA);    (* end of heap chunk *)
-    blkOff      = SYSTEM.VAL(SYSTEM.ADDRESS, 3*SZA);  (* first block in a chunk *)
+    nextChnkOff = SYSTEM.VAL(Address, 0);      (* next heap chunk, sorted ascendingly! *)
+    endOff      = SYSTEM.VAL(Address, SZA);    (* end of heap chunk *)
+    blkOff      = SYSTEM.VAL(Address, 3*SZA);  (* first block in a chunk *)
 
   (* heap blocks *)
-    tagOff      = SYSTEM.VAL(SYSTEM.ADDRESS, 0);      (* block starts with tag *)
-    sizeOff     = SYSTEM.VAL(SYSTEM.ADDRESS, SZA);    (* block size in free block relative to block start *)
-    sntlOff     = SYSTEM.VAL(SYSTEM.ADDRESS, 2*SZA);  (* pointer offset table sentinel in free block relative to block start *)
-    nextOff     = SYSTEM.VAL(SYSTEM.ADDRESS, 3*SZA);  (* next pointer in free block relative to block start *)
-    NoPtrSntl   = SYSTEM.VAL(SYSTEM.ADDRESS, -SZA);
-    AddressZero = SYSTEM.VAL(SYSTEM.ADDRESS, 0);
+    tagOff      = SYSTEM.VAL(Address, 0);      (* block starts with tag *)
+    sizeOff     = SYSTEM.VAL(Address, SZA);    (* block size in free block relative to block start *)
+    sntlOff     = SYSTEM.VAL(Address, 2*SZA);  (* pointer offset table sentinel in free block relative to block start *)
+    nextOff     = SYSTEM.VAL(Address, 3*SZA);  (* next pointer in free block relative to block start *)
+    NoPtrSntl   = SYSTEM.VAL(Address, -SZA);
+    AddressZero = SYSTEM.VAL(Address, 0);
 
   TYPE
     ModuleName = ARRAY ModNameLen OF CHAR;
@@ -46,7 +48,7 @@ MODULE Heap;
       name:     ModuleName;
       refcnt:   LONGINT;
       cmds:     Cmd;
-      types:    SYSTEM.ADDRESS;
+      types:    Address;
       enumPtrs: EnumProc;
       reserved1, reserved2: LONGINT
     END ;
@@ -64,7 +66,7 @@ MODULE Heap;
     FinNode   = POINTER TO FinDesc;
     FinDesc   = RECORD
       next:     FinNode;
-      obj:      SYSTEM.ADDRESS;  (* weak pointer *)
+      obj:      Address;  (* weak pointer *)
       marked:   BOOLEAN;
       finalize: Finalizer;
     END ;
@@ -73,15 +75,15 @@ MODULE Heap;
     (* the list of loaded (=initialization started) modules *)
     modules*: SYSTEM.PTR;
 
-    freeList:   ARRAY nofLists + 1 OF SYSTEM.ADDRESS;  (* dummy, 16, 32, 48, 64, 80, 96, 112, 128, sentinel *)
-    bigBlocks:  SYSTEM.ADDRESS;
-    allocated*: SYSTEM.ADDRESS;
+    freeList:   ARRAY nofLists + 1 OF Address;  (* dummy, 16, 32, 48, 64, 80, 96, 112, 128, sentinel *)
+    bigBlocks:  Address;
+    allocated*: Address;
     firstTry:   BOOLEAN;
 
     (* extensible heap *)
-    heap:      SYSTEM.ADDRESS;  (* the sorted list of heap chunks *)
-    heapend:   SYSTEM.ADDRESS;  (* max possible pointer value (used for stack collection) *)
-    heapsize*: SYSTEM.ADDRESS;  (* the sum of all heap chunk sizes *)
+    heap:      Address;  (* the sorted list of heap chunks *)
+    heapend:   Address;  (* max possible pointer value (used for stack collection) *)
+    heapsize*: Address;  (* the sum of all heap chunk sizes *)
 
     (* finalization candidates *)
     fin: FinNode;
@@ -153,7 +155,7 @@ MODULE Heap;
     COPY(name, c.name); c.cmd := cmd; c.next := m.cmds; m.cmds := c
   END REGCMD;
 
-  PROCEDURE REGTYP*(m: Module; typ: SYSTEM.ADDRESS);
+  PROCEDURE REGTYP*(m: Module; typ: Address);
   BEGIN SYSTEM.PUT(typ, m.types); m.types := typ
   END REGTYP;
 
@@ -163,10 +165,10 @@ MODULE Heap;
 
 
   PROCEDURE -ExternPlatformOSAllocate "extern address Platform_OSAllocate(address size);";
-  PROCEDURE -OSAllocate(size: SYSTEM.ADDRESS): SYSTEM.ADDRESS "Platform_OSAllocate(size)";
+  PROCEDURE -OSAllocate(size: Address): Address "Platform_OSAllocate(size)";
 
-  PROCEDURE NewChunk(blksz: SYSTEM.ADDRESS): SYSTEM.ADDRESS;
-    VAR chnk: SYSTEM.ADDRESS;
+  PROCEDURE NewChunk(blksz: Address): Address;
+    VAR chnk: Address;
   BEGIN
     chnk := OSAllocate(blksz + blkOff);
     IF chnk # 0 THEN
@@ -182,19 +184,13 @@ MODULE Heap;
   END NewChunk;
 
 
-  (* FetchAddress fetches a pointer from memory and returns it as a LONGINT. It works
-     correctly regardless of the size of an address. Specifically on 32 bit address
-     architectures with 64 bit LONGINT, it loads 32 bits and extends it to LONGINT
-     rather than loading 64 bits.
-
-    NOTE - with uintpr work complete this function should be replaced with SYSTEM.GET
-    as there will be no need to extend addresses to larger types.
+  (*
+  PROCEDURE -FetchAddress(pointer: Address): Address "(address)(*((void**)((address)pointer)))";
   *)
+  PROCEDURE FetchAddress(pointer: Address): Address; VAR r: Address; BEGIN SYSTEM.GET(pointer, r); RETURN r END FetchAddress;
 
-  PROCEDURE -FetchAddress(pointer: SYSTEM.ADDRESS): SYSTEM.ADDRESS "(address)(*((void**)((address)pointer)))";
-
-  PROCEDURE ExtendHeap(blksz: SYSTEM.ADDRESS);
-    VAR size, chnk, j, next: SYSTEM.ADDRESS;
+  PROCEDURE ExtendHeap(blksz: Address);
+    VAR size, chnk, j, next: Address;
   BEGIN
     IF blksz > 10000*Unit THEN size := blksz
     ELSE size := 10000*Unit  (* additional heuristics *)
@@ -218,16 +214,16 @@ MODULE Heap;
 
   PROCEDURE ^GC*(markStack: BOOLEAN);
 
-  PROCEDURE NEWREC*(tag: SYSTEM.ADDRESS): SYSTEM.PTR;
+  PROCEDURE NEWREC*(tag: Address): SYSTEM.PTR;
     VAR
-      i, i0, di, blksz, restsize, t, adr, end, next, prev: SYSTEM.ADDRESS;
+      i, i0, di, blksz, restsize, t, adr, end, next, prev: Address;
       new:   SYSTEM.PTR;
   BEGIN
     Lock();
     blksz := FetchAddress(tag);
 
     ASSERT((Unit = 16) OR (Unit = 32));
-    ASSERT(SIZE(SYSTEM.PTR) = SIZE(SYSTEM.ADDRESS));
+    ASSERT(SIZE(SYSTEM.PTR) = SIZE(Address));
     ASSERT(blksz MOD Unit = 0);
 
     i0 := blksz DIV Unit; i := i0;
@@ -310,23 +306,23 @@ MODULE Heap;
     RETURN SYSTEM.VAL(SYSTEM.PTR, adr + SZA)
   END NEWREC;
 
-  PROCEDURE NEWBLK*(size: SYSTEM.ADDRESS): SYSTEM.PTR;
-     VAR blksz, tag: SYSTEM.ADDRESS; new: SYSTEM.PTR;
+  PROCEDURE NEWBLK*(size: Address): SYSTEM.PTR;
+     VAR blksz, tag: Address; new: SYSTEM.PTR;
   BEGIN
     Lock();
     blksz := (size + (4*SZA + Unit - 1)) DIV Unit * Unit;  (*size + tag + meta + blksz + sntnl + UnitAlignment*)
     new := NEWREC(SYSTEM.ADR(blksz));
-    tag := SYSTEM.VAL(SYSTEM.ADDRESS, new) + blksz - 3*SZA;
+    tag := SYSTEM.VAL(Address, new) + blksz - 3*SZA;
     SYSTEM.PUT(tag - SZA,                      AddressZero); (*reserved for meta info*)
     SYSTEM.PUT(tag,                            blksz);
     SYSTEM.PUT(tag + SZA,                      NoPtrSntl);
-    SYSTEM.PUT(SYSTEM.VAL(SYSTEM.ADDRESS, new) - SZA, tag);
+    SYSTEM.PUT(SYSTEM.VAL(Address, new) - SZA, tag);
     Unlock();
     RETURN new
   END NEWBLK;
 
-  PROCEDURE Mark(q: SYSTEM.ADDRESS);
-    VAR p, tag, offset, fld, n, tagbits: SYSTEM.ADDRESS;
+  PROCEDURE Mark(q: Address);
+    VAR p, tag, offset, fld, n, tagbits: Address;
   BEGIN
     IF q # 0 THEN
       tagbits := FetchAddress(q - SZA);             (* Load the tag for the record at q *)
@@ -365,11 +361,11 @@ MODULE Heap;
 
   PROCEDURE MarkP(p: SYSTEM.PTR);  (* for compatibility with EnumPtrs in ANSI mode *)
   BEGIN
-    Mark(SYSTEM.VAL(SYSTEM.ADDRESS, p))
+    Mark(SYSTEM.VAL(Address, p))
   END MarkP;
 
   PROCEDURE Scan;
-    VAR chnk, adr, end, start, tag, i, size, freesize: SYSTEM.ADDRESS;
+    VAR chnk, adr, end, start, tag, i, size, freesize: Address;
   BEGIN bigBlocks := 0; i := 1;
     WHILE i < nofLists DO freeList[i] := 0; INC(i) END ;
     freesize := 0; allocated := 0; chnk := heap;
@@ -414,8 +410,8 @@ MODULE Heap;
     END
   END Scan;
 
-  PROCEDURE Sift (l, r: SYSTEM.ADDRESS; VAR a: ARRAY OF SYSTEM.ADDRESS);
-    VAR i, j, x: SYSTEM.ADDRESS;
+  PROCEDURE Sift (l, r: Address; VAR a: ARRAY OF Address);
+    VAR i, j, x: Address;
   BEGIN j := l; x := a[j];
     LOOP i := j; j := 2*j + 1;
       IF (j < r) & (a[j] < a[j+1]) THEN INC(j) END;
@@ -425,15 +421,15 @@ MODULE Heap;
     a[i] := x
   END Sift;
 
-  PROCEDURE HeapSort (n: SYSTEM.ADDRESS; VAR a: ARRAY OF SYSTEM.ADDRESS);
-    VAR l, r, x: SYSTEM.ADDRESS;
+  PROCEDURE HeapSort (n: Address; VAR a: ARRAY OF Address);
+    VAR l, r, x: Address;
   BEGIN l := n DIV 2; r := n - 1;
     WHILE l > 0 DO DEC(l); Sift(l, r, a) END;
     WHILE r > 0 DO x := a[0]; a[0] := a[r]; a[r] := x; DEC(r); Sift(l, r, a) END
   END HeapSort;
 
-  PROCEDURE MarkCandidates(n: SYSTEM.ADDRESS; VAR cand: ARRAY OF SYSTEM.ADDRESS);
-    VAR chnk, adr, tag, next, lim, lim1, i, ptr, size: SYSTEM.ADDRESS;
+  PROCEDURE MarkCandidates(n: Address; VAR cand: ARRAY OF Address);
+    VAR chnk, adr, tag, next, lim, lim1, i, ptr, size: Address;
   BEGIN
     chnk := heap; i := 0; lim := cand[n-1];
     WHILE (chnk # 0 ) & (chnk < lim) DO
@@ -459,7 +455,7 @@ MODULE Heap;
   END MarkCandidates;
 
   PROCEDURE CheckFin;
-    VAR n: FinNode; tag: SYSTEM.ADDRESS;
+    VAR n: FinNode; tag: Address;
   BEGIN
     n := fin;
     WHILE n # NIL DO
@@ -496,13 +492,13 @@ MODULE Heap;
   END FINALL;
 
   PROCEDURE -ExternMainStackFrame                     "extern address Platform_MainStackFrame;";
-  PROCEDURE -PlatformMainStackFrame(): SYSTEM.ADDRESS "Platform_MainStackFrame";
+  PROCEDURE -PlatformMainStackFrame(): Address "Platform_MainStackFrame";
 
-  PROCEDURE MarkStack(n: SYSTEM.ADDRESS; VAR cand: ARRAY OF SYSTEM.ADDRESS);
+  PROCEDURE MarkStack(n: Address; VAR cand: ARRAY OF Address);
     VAR
       frame: SYSTEM.PTR;
-      inc, nofcand: SYSTEM.ADDRESS;
-      sp, p, stack0: SYSTEM.ADDRESS;
+      inc, nofcand: Address;
+      sp, p, stack0: Address;
       align: RECORD ch: CHAR; p: SYSTEM.PTR END ;
   BEGIN
     IF n > 0 THEN MarkStack(n-1, cand);  (* flush register windows by means of recursive calls *)
@@ -529,8 +525,8 @@ MODULE Heap;
   PROCEDURE GC*(markStack: BOOLEAN);
     VAR
       m: Module;
-      i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: SYSTEM.ADDRESS;
-      cand: ARRAY 10000 OF SYSTEM.ADDRESS;
+      i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: Address;
+      cand: ARRAY 10000 OF Address;
   BEGIN
     IF (lockdepth = 0) OR (lockdepth = 1) & ~markStack THEN
       Lock();
@@ -565,7 +561,7 @@ MODULE Heap;
   PROCEDURE RegisterFinalizer*(obj: SYSTEM.PTR; finalize: Finalizer);
     VAR f: FinNode;
   BEGIN NEW(f);
-    f.obj := SYSTEM.VAL(SYSTEM.ADDRESS, obj); f.finalize := finalize; f.marked := TRUE;
+    f.obj := SYSTEM.VAL(Address, obj); f.finalize := finalize; f.marked := TRUE;
     f.next := fin; fin := f;
   END RegisterFinalizer;
 

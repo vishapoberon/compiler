@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -288,15 +288,15 @@ void OPM_InitOptions (void)
 		s[0] = 0x00;
 		Platform_GetArg(OPM_S, (void*)s, 256);
 	}
-	OPM_dontAsm = __IN(13, OPM_opt);
-	OPM_dontLink = __IN(14, OPM_opt);
-	OPM_mainProg = __IN(10, OPM_opt);
-	OPM_mainLinkStat = __IN(15, OPM_opt);
-	OPM_notColorOutput = __IN(16, OPM_opt);
-	OPM_forceNewSym = __IN(17, OPM_opt);
-	OPM_Verbose = __IN(18, OPM_opt);
+	OPM_dontAsm = __IN(13, OPM_opt, 32);
+	OPM_dontLink = __IN(14, OPM_opt, 32);
+	OPM_mainProg = __IN(10, OPM_opt, 32);
+	OPM_mainLinkStat = __IN(15, OPM_opt, 32);
+	OPM_notColorOutput = __IN(16, OPM_opt, 32);
+	OPM_forceNewSym = __IN(17, OPM_opt, 32);
+	OPM_Verbose = __IN(18, OPM_opt, 32);
 	if (OPM_mainLinkStat) {
-		OPM_glbopt |= __SETOF(10);
+		OPM_glbopt |= __SETOF(10,32);
 	}
 	OPM_GetProperties();
 }
@@ -773,7 +773,7 @@ void OPM_SymWLReal (LONGREAL lr)
 
 void OPM_RegisterNewSym (void)
 {
-	if (__STRCMP(OPM_modName, "SYSTEM") != 0 || __IN(10, OPM_opt)) {
+	if (__STRCMP(OPM_modName, "SYSTEM") != 0 || __IN(10, OPM_opt, 32)) {
 		Files_Register(OPM_newSFile);
 	}
 }
@@ -972,10 +972,10 @@ void OPM_CloseFiles (void)
 	}
 	if (OPM_noerr) {
 		if (__STRCMP(OPM_modName, "SYSTEM") == 0) {
-			if (!__IN(10, OPM_opt)) {
+			if (!__IN(10, OPM_opt, 32)) {
 				Files_Register(OPM_BFile);
 			}
-		} else if (!__IN(10, OPM_opt)) {
+		} else if (!__IN(10, OPM_opt, 32)) {
 			OPM_Append(&OPM_R[2], Files_Rider__typ, OPM_HFile);
 			Files_Register(OPM_HIFile);
 			Files_Register(OPM_BFile);

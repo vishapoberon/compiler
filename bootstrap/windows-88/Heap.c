@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin tskSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin tskSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -82,6 +82,7 @@ export LONGINT *Heap__1__typ;
 static void Heap_CheckFin (void);
 static void Heap_ExtendHeap (address blksz);
 export void Heap_FINALL (void);
+static address Heap_FetchAddress (address pointer);
 static void Heap_Finalize (void);
 export void Heap_GC (BOOLEAN markStack);
 static void Heap_HeapSort (address n, address *a, LONGINT a__len);
@@ -106,7 +107,6 @@ export void Heap_Unlock (void);
 extern void *Heap__init();
 extern address Platform_MainStackFrame;
 extern address Platform_OSAllocate(address size);
-#define Heap_FetchAddress(pointer)	(address)(*((void**)((address)pointer)))
 #define Heap_HeapModuleInit()	Heap__init()
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)
 #define Heap_PlatformHalt(code)	Platform_Halt(code)
@@ -185,6 +185,15 @@ static address Heap_NewChunk (address blksz)
 		Heap_heapsize += blksz;
 	}
 	_o_result = chnk;
+	return _o_result;
+}
+
+static address Heap_FetchAddress (address pointer)
+{
+	address _o_result;
+	address r;
+	__GET(pointer, r, address);
+	_o_result = r;
 	return _o_result;
 }
 

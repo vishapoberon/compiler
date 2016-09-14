@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/12] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -274,9 +274,9 @@ void OPT_Init (OPS_Name name, SET opt)
 	__COPY(name, OPT_topScope->name, 256);
 	OPT_GlbMod[0] = OPT_topScope;
 	OPT_nofGmod = 1;
-	OPT_newsf = __IN(4, opt);
-	OPT_findpc = __IN(8, opt);
-	OPT_extsf = OPT_newsf || __IN(9, opt);
+	OPT_newsf = __IN(4, opt, 32);
+	OPT_findpc = __IN(8, opt, 32);
+	OPT_extsf = OPT_newsf || __IN(9, opt, 32);
 	OPT_sfpresent = 1;
 }
 
@@ -609,7 +609,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 				pvfp = pbfp;
 			}
 		} else if (f == 12) {
-		} else if (__IN(c, 0x0c)) {
+		} else if (__IN(c, 0x0c, 32)) {
 			OPT_FPrintStr(btyp);
 			OPM_FPrint(&pbfp, btyp->pvfp);
 			pvfp = pbfp;
@@ -680,7 +680,7 @@ void OPT_FPrintObj (OPT_Object obj)
 			OPM_FPrint(&fprint, obj->vis);
 			OPT_FPrintStr(obj->typ);
 			OPM_FPrint(&fprint, obj->typ->pbfp);
-		} else if (__IN(obj->mode, 0x0480)) {
+		} else if (__IN(obj->mode, 0x0480, 32)) {
 			OPT_FPrintSign(&fprint, obj->typ, obj->link);
 		} else if (obj->mode == 9) {
 			OPT_FPrintSign(&fprint, obj->typ, obj->link);
@@ -1573,7 +1573,7 @@ static void OPT_OutObj (OPT_Object obj)
 	OPT_ConstExt ext = NIL;
 	if (obj != NIL) {
 		OPT_OutObj(obj->left);
-		if (__IN(obj->mode, 0x06ea)) {
+		if (__IN(obj->mode, 0x06ea, 32)) {
 			if (obj->history == 4) {
 				OPT_FPrintErr(obj, 250);
 			} else if (obj->vis != 0) {
