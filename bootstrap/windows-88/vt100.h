@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/15] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef vt100__h
 #define vt100__h

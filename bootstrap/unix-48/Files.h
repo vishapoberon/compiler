@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/15] for gcc LP64 on cygwin tspkaSfF */
 
 #ifndef Files__h
 #define Files__h

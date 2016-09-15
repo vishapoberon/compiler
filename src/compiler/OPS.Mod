@@ -1,6 +1,6 @@
 MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
 
-  IMPORT OPM;
+  IMPORT OPM, SYSTEM;
 
   CONST
     MaxStrLen* = 256;
@@ -51,8 +51,8 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     (* name, str, numtyp, intval, realval, lrlval are implicit results of Get *)
     name*:    Name;
     str*:     String;
-    numtyp*:  INTEGER;  (* 1 = char, 2 = integer, 3 = real, 4 = longreal *)
-    intval*:  LONGINT;  (* integer value or string length *)
+    numtyp*:  INTEGER;       (* 1 = char, 2 = integer, 3 = real, 4 = longreal *)
+    intval*:  SYSTEM.INT64;  (* integer value or string length *)
     realval*: REAL;
     lrlval*:  LONGREAL;
 
@@ -89,7 +89,8 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   END Identifier;
 
   PROCEDURE Number;
-    VAR i, m, n, d, e, maxHdig: INTEGER; dig: ARRAY 24 OF CHAR; f: LONGREAL; expCh: CHAR; neg: BOOLEAN;
+    CONST maxhexdigits = 16;
+    VAR i, m, n, d, e: INTEGER; dig: ARRAY 24 OF CHAR; f: LONGREAL; expCh: CHAR; neg: BOOLEAN;
 
     PROCEDURE Ten(e: INTEGER): LONGREAL;
       VAR x, p: LONGREAL;
@@ -135,15 +136,14 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
           ELSE err(203)
           END
         ELSIF ch = "H" THEN (* hexadecimal *) OPM.Get(ch); numtyp := integer;
-          IF MAX(LONGINT) > 2147483647 THEN maxHdig := 16 ELSE maxHdig := 8 END;
-          IF n <= maxHdig THEN
-            IF (n = maxHdig) & (dig[0] > "7") THEN (* prevent overflow *) intval := -1 END;
+          IF n <= maxhexdigits THEN
+            IF (n = maxhexdigits) & (dig[0] > "7") THEN (* prevent overflow *) intval := -1 END;
             WHILE i < n DO intval := intval*10H + Ord(dig[i], TRUE); INC(i) END
           ELSE err(203)
           END
         ELSE (* decimal *) numtyp := integer;
           WHILE i < n DO d := Ord(dig[i], FALSE); INC(i);
-            IF intval <= (MAX(LONGINT) - d) DIV 10 THEN intval := intval*10 + d
+            IF intval <= (MAX(SYSTEM.INT64) - d) DIV 10 THEN intval := intval*10 + d
             ELSE err(203)
             END
           END

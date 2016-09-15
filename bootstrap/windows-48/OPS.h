@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/15] for gcc LP64 on cygwin tspkaSfF */
 
 #ifndef OPS__h
 #define OPS__h
@@ -15,7 +15,7 @@ typedef
 import OPS_Name OPS_name;
 import OPS_String OPS_str;
 import int16 OPS_numtyp;
-import int32 OPS_intval;
+import int64 OPS_intval;
 import REAL OPS_realval;
 import LONGREAL OPS_lrlval;
 

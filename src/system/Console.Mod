@@ -10,7 +10,7 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
   PROCEDURE Flush*;
   VAR error: Platform.ErrorCode;
   BEGIN
-    error := Platform.Write(Platform.StdOut, SYSTEM.ADR(line), pos); 
+    error := Platform.Write(Platform.StdOut, SYSTEM.ADR(line), pos);
     pos := 0;
   END Flush;
 
@@ -53,9 +53,9 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
   END Bool;
 
   PROCEDURE Hex*(i: LONGINT);
-    VAR k, n: LONGINT;
+    VAR k: INTEGER; n: SYSTEM.INT64;
   BEGIN
-    k := -28;
+    k := 4 - 8 * SIZE(LONGINT);
     WHILE k <= 0 DO
       n := ASH(i, k) MOD 16;
       IF n <= 9 THEN Char(CHR(ORD("0") + n)) ELSE Char(CHR(ORD("A") - 10 + n)) END ;

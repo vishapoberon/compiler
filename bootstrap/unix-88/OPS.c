@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin tspkaSfF */
+/* voc 1.95 [2016/09/15] for gcc LP64 on cygwin tspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -132,7 +132,7 @@ static int32 Ord__7 (CHAR ch, BOOLEAN hex)
 
 static void OPS_Number (void)
 {
-	int32 i, m, n, d, e, maxHdig;
+	int32 i, m, n, d, e;
 	CHAR dig[24];
 	LONGREAL f;
 	CHAR expCh;
@@ -187,9 +187,8 @@ static void OPS_Number (void)
 			} else if (OPS_ch == 'H') {
 				OPM_Get(&OPS_ch);
 				OPS_numtyp = 2;
-				maxHdig = 16;
-				if (n <= maxHdig) {
-					if ((n == maxHdig && dig[0] > '7')) {
+				if (n <= 16) {
+					if ((n == 16 && dig[0] > '7')) {
 						OPS_intval = -1;
 					}
 					while (i < n) {

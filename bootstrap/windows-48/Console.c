@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/14] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/15] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -102,7 +102,8 @@ void Console_Bool (BOOLEAN b)
 
 void Console_Hex (int32 i)
 {
-	int32 k, n;
+	int16 k;
+	int64 n;
 	k = -28;
 	while (k <= 0) {
 		n = __MASK(__ASH(i, k), -16);
