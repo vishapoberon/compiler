@@ -217,8 +217,10 @@ PROCEDURE IntType*(size: LONGINT): Struct;
 (* Selects smallest standard integer type for given size in bytes *)
   VAR i: INTEGER;
 BEGIN
-  i := 1; WHILE (IntTypes[i].size < size) & (IntTypes[i+1] # NIL) DO INC(i) END;
-  RETURN IntTypes[i];
+  i := 1; WHILE i < LEN(IntTypes) - 1 DO (* First and last entries are always NIL *)
+    IF (IntTypes[i] # NIL) & (IntTypes[i].size >= size) THEN RETURN IntTypes[i] END;
+    INC(i)
+  END;
 END IntType;
 
 PROCEDURE ShorterOrLongerType*(x: Struct; dir: INTEGER): Struct;

@@ -167,11 +167,14 @@ OPT_Struct OPT_IntType (int32 size)
 	OPT_Struct _o_result;
 	int16 i;
 	i = 1;
-	while ((OPT_IntTypes[__X(i, 20)]->size < size && OPT_IntTypes[__X(i + 1, 20)] != NIL)) {
+	while (i < 19) {
+		if ((OPT_IntTypes[__X(i, 20)] != NIL && OPT_IntTypes[__X(i, 20)]->size >= size)) {
+			_o_result = OPT_IntTypes[__X(i, 20)];
+			return _o_result;
+		}
 		i += 1;
 	}
-	_o_result = OPT_IntTypes[__X(i, 20)];
-	return _o_result;
+	__RETCHK;
 }
 
 OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir)

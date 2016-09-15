@@ -52,7 +52,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     name*:    Name;
     str*:     String;
     numtyp*:  INTEGER;       (* 1 = char, 2 = integer, 3 = real, 4 = longreal *)
-    intval*:  SYSTEM.INT64;  (* integer value or string length *)
+    intval*:  LONGINT (* todo SYSTEM.INT64 *);  (* integer value or string length *)
     realval*: REAL;
     lrlval*:  LONGREAL;
 
