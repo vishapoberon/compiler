@@ -110,7 +110,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber: LONGINT;  (* Limit = start of next line *)
 
-    lasterrpos:   LONGINT;
+    lasterrpos:   SYSTEM.INT64;
     inR:          Texts.Reader;
     Log:          Texts.Text;
     W:            Texts.Writer;
@@ -129,11 +129,16 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* ------------------------- Log Output ------------------------- *)
 
-  PROCEDURE LogW*(ch: CHAR);            BEGIN Console.Char(ch)    END LogW;
-  PROCEDURE LogWStr*(s: ARRAY OF CHAR); BEGIN Console.String(s)   END LogWStr;
-  PROCEDURE LogWNum*(i, len: LONGINT);  BEGIN Console.Int(i, len) END LogWNum;
-  PROCEDURE LogWLn*;                    BEGIN Console.Ln          END LogWLn;
+  PROCEDURE LogW*(ch: CHAR);                BEGIN Console.Char(ch)    END LogW;
+  PROCEDURE LogWStr*(s: ARRAY OF CHAR);     BEGIN Console.String(s)   END LogWStr;
+  PROCEDURE LogWNum*(i, len: SYSTEM.INT64); BEGIN Console.Int(i, len) END LogWNum;
+  PROCEDURE LogWLn*;                        BEGIN Console.Ln          END LogWLn;
 
+
+
+
+  PROCEDURE Longint* (n: SYSTEM.INT64): LONGINT; BEGIN RETURN SYSTEM.VAL(LONGINT, n) END Longint;
+  PROCEDURE Integer* (n: SYSTEM.INT64): INTEGER; BEGIN RETURN SYSTEM.VAL(INTEGER, n) END Integer;
 
   (* ------------------------- parameter handling -------------------------*)
 
@@ -354,7 +359,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END LogErrMsg;
 
 
-  PROCEDURE FindLine(f: Files.File; VAR r: Files.Rider; pos: LONGINT);
+  PROCEDURE FindLine(f: Files.File; VAR r: Files.Rider; pos: SYSTEM.INT64);
   (* Updates ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber to
      describe the line containing pos.
      Exits with the rider set to the start of the line conaining pos. *)
@@ -386,7 +391,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END FindLine;
 
 
-  PROCEDURE ShowLine(pos: LONGINT);
+  PROCEDURE ShowLine(pos: SYSTEM.INT64);
   VAR
     f:    Files.File;
     r:    Files.Rider;
@@ -408,7 +413,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     LogWStr("      ");
 
     IF pos >= ErrorLineLimitPos THEN pos := ErrorLineLimitPos-1 END;
-    i := SHORT(pos - ErrorLineStartPos);
+    i := SHORT(Longint(pos - ErrorLineStartPos));
     WHILE i > 0 DO LogW(" "); DEC(i) END;
 
     IF ~notColorOutput THEN vt100.SetAttr(vt100.Green) END;
@@ -419,7 +424,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END ShowLine;
 
 
-  PROCEDURE Mark*(n: INTEGER; pos: LONGINT);
+  PROCEDURE Mark*(n: INTEGER; pos: SYSTEM.INT64);
   BEGIN
     IF pos = -1 THEN pos := 0 END;
     IF n >= 0 THEN
@@ -450,7 +455,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END err;
 
 
-  PROCEDURE FPrint*(VAR fp: LONGINT; val: LONGINT);
+  PROCEDURE FPrint*(VAR fp: LONGINT; val: SYSTEM.INT64);
   BEGIN
     fp := SYSTEM.ROT(SYSTEM.VAL(LONGINT, SYSTEM.VAL(SET, fp) / SYSTEM.VAL(SET, val)), 1)
   END FPrint;
@@ -612,6 +617,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN Files.ReadNum(oldSF, k); RETURN k
   END SymRInt;
 
+  PROCEDURE SymRInt64*(): SYSTEM.INT64;
+    VAR k: SYSTEM.INT64;
+  BEGIN Files.ReadNum64(oldSF, k); RETURN k
+  END SymRInt64;
+
   PROCEDURE SymRSet*(VAR s: SET);
   BEGIN Files.ReadNum(oldSF, SYSTEM.VAL(LONGINT, s))
   END SymRSet;
@@ -653,8 +663,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN Files.Write(newSF, ch)
   END SymWCh;
 
-  PROCEDURE SymWInt*(i: LONGINT);
-  BEGIN Files.WriteNum(newSF, i)
+  PROCEDURE SymWInt*(i: SYSTEM.INT64);
+  BEGIN Files.WriteNum64(newSF, i)
   END SymWInt;
 
   PROCEDURE SymWSet*(s: SET);
@@ -709,9 +719,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     Files.WriteBytes(R[currFile], s, i)
   END WriteStringVar;
 
-  PROCEDURE WriteHex* (i: LONGINT);
+  PROCEDURE WriteHex* (i: SYSTEM.INT64);
     VAR s: ARRAY 3 OF CHAR;
-      digit : INTEGER;
+      digit : SYSTEM.INT32;
   BEGIN
     digit := SHORT(i) DIV 16;
     IF digit < 10 THEN s[0] := CHR (ORD ("0") + digit); ELSE s[0] := CHR (ORD ("a") - 10 + digit ); END;
@@ -721,10 +731,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     WriteString(s)
   END WriteHex;
 
-  PROCEDURE WriteInt* (i: LONGINT);
-    VAR s: ARRAY 20 OF CHAR; i1, k: LONGINT;
+  PROCEDURE WriteInt* (i: SYSTEM.INT64);
+    VAR s: ARRAY 24 OF CHAR; i1, k: SYSTEM.INT64;
   BEGIN
-    IF (i = SignedMinimum(IntSize)) OR (i = SignedMinimum(LIntSize)) THEN
+    IF (i = SignedMinimum(IntSize))
+    OR (i = SignedMinimum(LIntSize))
+    OR (i = SignedMinimum(8)) THEN
       (* abs(minint) is one more than maxint, causing problems representing the value as a minus sign
          followed by absoute value. Therefore represent as -maxint - 1. For INTEGER this avoids a
          compiler warning 'this decimal constant is unsigned only in ISO C90', for LONGINT it is the

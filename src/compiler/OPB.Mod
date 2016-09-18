@@ -10,8 +10,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 
   VAR
     typSize*: PROCEDURE(typ: OPT.Struct);
-    exp:      INTEGER;  (*side effect of log*)
-    maxExp:   LONGINT;  (* max n in ASH(1, n) on this machine *)
+    exp:      INTEGER;       (* side effect of log*)
+    maxExp:   SYSTEM.INT64;  (* max n in ASH(1, n) on this machine *)
 
 
   PROCEDURE err(n: INTEGER);
@@ -57,9 +57,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     IF b THEN RETURN 1 ELSE RETURN 0 END
   END BoolToInt;
 
-  PROCEDURE IntToBool(i: LONGINT): BOOLEAN;
-  BEGIN
-    IF i = 0 THEN RETURN FALSE ELSE RETURN TRUE END
+  PROCEDURE IntToBool(i: SYSTEM.INT64): BOOLEAN;
+  BEGIN RETURN i # 0
   END IntToBool;
 
   PROCEDURE NewBoolConst*(boolval: BOOLEAN): OPT.Node;
@@ -106,7 +105,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END EmptySet;
 
   PROCEDURE SetIntType(node: OPT.Node);
-    VAR b: INTEGER; n: LONGINT;
+    VAR b: INTEGER; n: SYSTEM.INT64;
   BEGIN
     (* Determine number of bytes required to represent constant value *)
     IF node.conval.intval >= 0 THEN n := node.conval.intval ELSE n := -(node.conval.intval+1) END;
@@ -114,7 +113,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     node.typ := OPT.IntType(b)
   END SetIntType;
 
-  PROCEDURE NewIntConst*(intval: LONGINT): OPT.Node;
+  PROCEDURE NewIntConst*(intval: SYSTEM.INT64): OPT.Node;
     VAR x: OPT.Node;
   BEGIN
     x := OPT.NewNode(OPT.Nconst);  x^.conval := OPT.NewConst();
@@ -129,11 +128,11 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     RETURN x
   END NewRealConst;
 
-  PROCEDURE NewString*(VAR str: OPS.String; len: LONGINT): OPT.Node;
+  PROCEDURE NewString*(VAR str: OPS.String; len: SYSTEM.INT64): OPT.Node;
     VAR x: OPT.Node;
   BEGIN
     x := OPT.NewNode(OPT.Nconst); x^.conval := OPT.NewConst(); x^.typ := OPT.stringtyp;
-    x^.conval^.intval := OPM.ConstNotAlloc; x^.conval^.intval2 := len;
+    x^.conval^.intval := OPM.ConstNotAlloc; x^.conval^.intval2 := OPM.Longint(len);
     x^.conval^.ext := OPT.NewExt(); x^.conval^.ext^ := str;
     RETURN x
   END NewString;
@@ -238,7 +237,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END TypTest;
 
   PROCEDURE In*(VAR x: OPT.Node; y: OPT.Node);
-    VAR f: INTEGER; k: LONGINT;
+    VAR f: INTEGER; k: SYSTEM.INT64;
   BEGIN f := x^.typ^.form;
     IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) OR (y^.class = OPT.Ntype) OR (y^.class = OPT.Nproc) THEN err(126)
     ELSIF (f = OPT.Int) & (y^.typ^.form = OPT.Set) THEN
@@ -255,7 +254,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     x^.typ := OPT.booltyp
   END In;
 
-  PROCEDURE log(x: LONGINT): LONGINT;
+  PROCEDURE log(x: SYSTEM.INT64): SYSTEM.INT64;
   BEGIN exp := 0;
     IF x > 0 THEN
       WHILE ~ODD(x) DO x := x DIV 2; INC(exp) END
@@ -302,7 +301,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPS.minus: IF f IN {OPT.Int, OPT.Set} + OPT.realSet THEN
                     IF z^.class = OPT.Nconst THEN
                       IF f = OPT.Int THEN
-                        IF z^.conval^.intval = MIN(LONGINT) THEN err(203)
+                        IF z^.conval^.intval = MIN(SYSTEM.INT64) THEN err(203)
                         ELSE z^.conval^.intval := -z^.conval^.intval; SetIntType(z)
                         END
                       ELSIF f IN OPT.realSet THEN z^.conval^.realval := -z^.conval^.realval
@@ -316,7 +315,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPT.abs:   IF f IN {OPT.Int} + OPT.realSet THEN
                     IF z^.class = OPT.Nconst THEN
                       IF f = OPT.Int THEN
-                        IF z^.conval^.intval = MIN(LONGINT) THEN err(203)
+                        IF z^.conval^.intval = MIN(SYSTEM.INT64) THEN err(203)
                         ELSE z^.conval^.intval := ABS(z^.conval^.intval); SetIntType(z)
                         END
                       ELSE z^.conval^.realval := ABS(z^.conval^.realval)
@@ -416,7 +415,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END CheckProc;
 
   PROCEDURE ConstOp(op: INTEGER; x, y: OPT.Node);
-    VAR f, g: INTEGER; xval, yval: OPT.Const; xv, yv: LONGINT;
+    VAR f, g: INTEGER; xval, yval: OPT.Const; xv, yv: SYSTEM.INT64;
         temp: BOOLEAN; (* temp avoids err 215 *)
 
     PROCEDURE ConstCmp(): INTEGER;
@@ -597,7 +596,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END ConstOp;
 
   PROCEDURE Convert(VAR x: OPT.Node; typ: OPT.Struct); (* Convert node x to new type typ *)
-    VAR node: OPT.Node; f, g: INTEGER; k: LONGINT; r: LONGREAL;
+    VAR node: OPT.Node; f, g: INTEGER; k: SYSTEM.INT64; r: LONGREAL;
   BEGIN f := x^.typ^.form; g := typ^.form;  (* f: old form, g: new form *)
     IF x^.class = OPT.Nconst THEN
       IF f = OPT.Int THEN
@@ -628,7 +627,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END Convert;
 
   PROCEDURE Op*(op: SHORTINT; VAR x: OPT.Node; y: OPT.Node);
-    VAR f, g: INTEGER; t, z: OPT.Node; typ: OPT.Struct; do: BOOLEAN; val: LONGINT;
+    VAR f, g: INTEGER; t, z: OPT.Node; typ: OPT.Struct; do: BOOLEAN; val: SYSTEM.INT64;
 
     PROCEDURE NewOp(op: SHORTINT; typ: OPT.Struct; VAR x: OPT.Node; y: OPT.Node);
       VAR node: OPT.Node;
@@ -788,7 +787,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END Op;
 
   PROCEDURE SetRange*(VAR x: OPT.Node; y: OPT.Node);
-    VAR k, l: LONGINT;
+    VAR k, l: SYSTEM.INT64;
   BEGIN
     IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) OR (y^.class = OPT.Ntype) OR (y^.class = OPT.Nproc) THEN err(126)
     ELSIF (x^.typ^.form = OPT.Int) & (y^.typ^.form = OPT.Int) THEN
@@ -814,7 +813,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END SetRange;
 
   PROCEDURE SetElem*(VAR x: OPT.Node);
-    VAR k: LONGINT;
+    VAR k: SYSTEM.INT64;
   BEGIN
     IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
     ELSIF x^.typ^.form # OPT.Int THEN err(93)
@@ -1034,7 +1033,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.ashfn:    (*ASH*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f = OPT.Int THEN
-                     IF x.typ.size # OPT.linttyp.size THEN Convert(x, OPT.linttyp) END
+                     IF x.typ.size < OPT.linttyp.size THEN Convert(x, OPT.linttyp) END
                    ELSE err(111); x^.typ := OPT.linttyp
                    END
     |OPT.adrfn:    (*SYSTEM.ADR*)
@@ -1124,7 +1123,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.lenfn:    (*LEN*)
                    IF ~(f = OPT.Int) OR (x^.class # OPT.Nconst) THEN err(69)
                    ELSIF x.typ.size = 1 THEN (* Hard limit of 127 dimensions *)
-                     L := SHORT(x^.conval^.intval); typ := p^.typ;
+                     L := OPM.Integer(x^.conval^.intval); typ := p^.typ;
                      WHILE (L > 0) & (typ^.comp IN {OPT.DynArr, OPT.Array}) DO typ := typ^.BaseTyp; DEC(L) END ;
                      IF (L # 0) OR ~(typ^.comp IN {OPT.DynArr, OPT.Array}) THEN err(132)
                      ELSE x^.obj := NIL;
@@ -1150,14 +1149,14 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      IF (p^.class = OPT.Nconst) & (x^.class = OPT.Nconst) THEN
                        IF (-maxExp > x^.conval^.intval) OR (x^.conval^.intval > maxExp) THEN err(208); p^.conval^.intval := 1
                        ELSIF x^.conval^.intval >= 0 THEN
-                         IF ABS(p^.conval^.intval) <= MAX(LONGINT) DIV ASH(1, x^.conval^.intval) THEN
+                         IF ABS(p^.conval^.intval) <= MAX(SYSTEM.INT64) DIV ASH(1, x^.conval^.intval) THEN
                            p^.conval^.intval := p^.conval^.intval * ASH(1, x^.conval^.intval)
                          ELSE err(208); p^.conval^.intval := 1
                          END
                        ELSE p^.conval^.intval := ASH(p^.conval^.intval, x^.conval^.intval)
                        END ;
                        p^.obj := NIL
-                     ELSE p := NewOp(OPT.Ndop, OPT.ash, p, x); p^.typ := OPT.linttyp
+                     ELSE p := NewOp(OPT.Ndop, OPT.ash, p, x); p^.typ := p.left.typ (* LONGINT, or INT64 if larger *)
                      END
                    ELSE err(111)
                    END
@@ -1482,5 +1481,5 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END Inittd;
 
 BEGIN
-  maxExp := log(MAX(LONGINT) DIV 2 + 1); maxExp := exp
+  maxExp := log(MAX(SYSTEM.INT64) DIV 2 + 1); maxExp := exp
 END OPB.

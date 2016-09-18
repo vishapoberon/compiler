@@ -5,7 +5,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     various promotion rules changed (long) => (LONGINT), xxxL avoided
 *)
 
-  IMPORT OPT, OPC, OPM, OPS;
+  IMPORT OPT, OPC, OPM, OPS, SYSTEM;
 
   CONST
     UndefinedType  = 0; (* named type not yet defined *)
@@ -181,6 +181,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE AdrAndSize* (topScope: OPT.Object);
   BEGIN
+    ASSERT(OPT.sinttyp # NIL); ASSERT(OPT.inttyp # NIL); ASSERT(OPT.linttyp # NIL);
+
     OPM.errpos := topScope^.adr;  (* text position of scope used if error *)
     topScope^.leaf := TRUE;
     Traverse(topScope^.right, topScope, TRUE);  (* first pass only on exported types and procedures  *)
@@ -189,15 +191,18 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.chartyp^.strobj^.linkadr   := PredefinedType;
     OPT.settyp^.strobj^.linkadr    := PredefinedType;
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
+
+    (* SHORTINT, INTEGER and LONGINT are alternate names for INT8, INT16, INT32 and INT64 and have not been set up yet.
+    OPT.sinttyp^.strobj^.linkadr   := PredefinedType;
     OPT.inttyp^.strobj^.linkadr    := PredefinedType;
     OPT.linttyp^.strobj^.linkadr   := PredefinedType;
+    *)
     OPT.adrtyp^.strobj^.linkadr    := PredefinedType;
     OPT.int8typ^.strobj^.linkadr   := PredefinedType;
     OPT.int16typ^.strobj^.linkadr  := PredefinedType;
     OPT.int32typ^.strobj^.linkadr  := PredefinedType;
     OPT.int64typ^.strobj^.linkadr  := PredefinedType;
     OPT.lrltyp^.strobj^.linkadr    := PredefinedType;
-    OPT.sinttyp^.strobj^.linkadr   := PredefinedType;
     OPT.booltyp^.strobj^.linkadr   := PredefinedType;
     OPT.bytetyp^.strobj^.linkadr   := PredefinedType;
     OPT.sysptrtyp^.strobj^.linkadr := PredefinedType;
@@ -256,7 +261,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE^ expr (n: OPT.Node; prec: INTEGER);
   PROCEDURE^ design(n: OPT.Node; prec: INTEGER);
 
-  PROCEDURE Len(n: OPT.Node; dim: LONGINT);
+  PROCEDURE Len(n: OPT.Node; dim: SYSTEM.INT64);
   BEGIN
     WHILE (n^.class = OPT.Nindex) & (n^.typ^.comp = OPT.DynArr(*26.7.2002*)) DO INC(dim); n := n^.left END ;
     IF (n^.class = OPT.Nderef) & (n^.typ^.comp = OPT.DynArr) THEN
@@ -430,7 +435,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     IF prec > designPrec THEN OPM.Write(CloseParen) END
   END design;
 
-  PROCEDURE ParIntLiteral(n, size: LONGINT);
+  PROCEDURE ParIntLiteral(n: SYSTEM.INT64; size: LONGINT);
   BEGIN
     (* Literal parameters (other than varargs) do not need an explicit size cast on ansi C compilers. *)
     IF ansi THEN OPM.WriteInt(n) ELSE OPC.IntLiteral(n, size) END
@@ -723,7 +728,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE CaseStat(n: OPT.Node; outerProc: OPT.Object);
     VAR switchCase, label: OPT.Node;
-      low, high: LONGINT; form, i: INTEGER;
+      low, high: SYSTEM.INT64; form, i: INTEGER;
   BEGIN
     OPM.WriteString("switch "); expr(n^.left, MaxPrec);
     OPM.Write(Blank); OPC.BegBlk;
@@ -812,7 +817,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     VAR proc: OPT.Object; saved: ExitInfo; l, r: OPT.Node;
   BEGIN
     WHILE (n # NIL) & OPM.noerr DO
-      OPM.errpos := n^.conval^.intval;
+      OPM.errpos := OPM.Longint(n^.conval^.intval);
       IF n^.class # OPT.Ninittd THEN OPC.BegStat END;
       CASE n^.class OF
       | OPT.Nenter:  IF n^.obj = NIL THEN (* enter module *)
@@ -942,7 +947,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        END
                      END
       | OPT.Nwith:   IfStat(n, n^.subcl = 0, outerProc)
-      | OPT.Ntrap:   OPC.Halt(n^.right^.conval^.intval)
+      | OPT.Ntrap:   OPC.Halt(OPM.Longint(n^.right^.conval^.intval))
       ELSE OPM.LogWStr("unhandled case in OPV.expr, n^.class = "); OPM.LogWNum(n^.class, 0); OPM.LogWLn;
       END;
       IF ~(n^.class IN {OPT.Nenter, OPT.Ninittd, OPT.Nifelse, OPT.Nwith, OPT.Ncase, OPT.Nwhile, OPT.Nloop}) THEN OPC.EndStat END ;

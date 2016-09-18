@@ -1,7 +1,7 @@
 MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 
   IMPORT
-    OPB, OPT, OPS, OPM;
+    OPB, OPT, OPS, OPM, SYSTEM;
 
   TYPE
     CaseTable = ARRAY OPM.MaxCases OF
@@ -69,7 +69,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   END CheckMark;
 
   PROCEDURE CheckSysFlag(VAR sysflag: INTEGER; default: INTEGER);
-    VAR x: OPT.Node; sf: LONGINT;
+    VAR x: OPT.Node; sf: SYSTEM.INT64;
   BEGIN
     IF sym = OPS.lbrak THEN OPS.Get(sym);
 	  IF ~OPT.SYSimported THEN err(135) END;
@@ -78,7 +78,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         IF (sf < 0) OR (sf > OPM.MaxSysFlag) THEN err(220); sf := 0 END
       ELSE err(51); sf := 0
       END ;
-      sysflag := SHORT(sf); CheckSym(OPS.rbrak)
+      sysflag := OPM.Integer(sf); CheckSym(OPS.rbrak)
     ELSE sysflag := default
     END
   END CheckSysFlag;
@@ -141,7 +141,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   END RecordType;
 
   PROCEDURE ArrayType(VAR typ, banned: OPT.Struct);
-    VAR x: OPT.Node; n: LONGINT; sysflag: INTEGER;
+    VAR x: OPT.Node; n: SYSTEM.INT64; sysflag: INTEGER;
   BEGIN CheckSysFlag(sysflag, 0);
     IF sym = OPS.of THEN  (*dynamic array*)
       typ := OPT.NewStr(OPT.Comp, OPT.DynArr); typ^.mno := 0; typ^.sysflag := sysflag;
@@ -156,7 +156,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         IF (n <= 0) OR (n > OPM.MaxIndex) THEN err(63); n := 1 END
       ELSE err(51); n := 1
       END ;
-      typ^.n := n;
+      typ^.n := OPM.Longint(n);
       IF sym = OPS.of THEN
         OPS.Get(sym); Type(typ^.BaseTyp, banned);
         typ^.BaseTyp^.pvused := TRUE
@@ -530,7 +530,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       forward: BOOLEAN;
 
     PROCEDURE GetCode;
-      VAR ext: OPT.ConstExt; n: INTEGER; c: LONGINT;
+      VAR ext: OPT.ConstExt; n: INTEGER; c: SYSTEM.INT64;
     BEGIN
       ext := OPT.NewExt(); proc^.conval^.ext := ext; n := 0;
       IF sym = OPS.string THEN
@@ -669,7 +669,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     VAR x, y, lastlab: OPT.Node; i, f: INTEGER; xval, yval: LONGINT;
   BEGIN lab := NIL; lastlab := NIL;
     LOOP ConstExpression(x); f := x^.typ^.form;
-      IF f IN {OPT.Int, OPT.Char} THEN  xval := x^.conval^.intval
+      IF f IN {OPT.Int, OPT.Char} THEN  xval := OPM.Longint(x^.conval^.intval)
       ELSE err(61); xval := 1
       END;
       IF f = OPT.Int THEN
@@ -677,7 +677,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ELSIF LabelTyp.form # f THEN err(60)
       END ;
       IF sym = OPS.upto THEN
-        OPS.Get(sym); ConstExpression(y); yval := y^.conval^.intval;
+        OPS.Get(sym); ConstExpression(y); yval := OPM.Longint(y^.conval^.intval);
         IF (y^.typ^.form # f) & ~((f = OPT.Int) & (y^.typ^.form = OPT.Int)) THEN err(60) END ;
         IF yval < xval THEN err(63); yval := xval END
       ELSE yval := xval

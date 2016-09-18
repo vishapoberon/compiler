@@ -663,6 +663,18 @@ Especially Length would become fairly complex.
     x := n
   END ReadNum;
 
+  PROCEDURE ReadNum64* (VAR R: Rider; VAR x: SYSTEM.INT64);
+  (* todo. use proper code when INC/ASH properly support INT64 on 32 bit platforms
+    VAR s: SHORTINT; ch: CHAR; n: SYSTEM.INT64;
+  BEGIN s := 0; n := 0; Read(R, ch);
+    WHILE ORD(ch) >= 128 DO INC(n, ASH(ORD(ch) - 128, s) ); INC(s, 7); Read(R, ch) END;
+    INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
+    x := n
+  *)
+    VAR n: LONGINT;
+  BEGIN ReadNum(R, n); x := n
+  END ReadNum64;
+
   PROCEDURE WriteBool* (VAR R: Rider; x: BOOLEAN);
   BEGIN Write(R, SYSTEM.VAL(CHAR, x))
   END WriteBool;
@@ -709,6 +721,12 @@ Especially Length would become fairly complex.
     WHILE (x < - 64) OR (x > 63) DO Write(R, CHR(x MOD 128 + 128)); x := x DIV 128 END;
     Write(R, CHR(x MOD 128))
   END WriteNum;
+
+  PROCEDURE WriteNum64* (VAR R: Rider; x: SYSTEM.INT64);
+  BEGIN
+    WHILE (x < - 64) OR (x > 63) DO Write(R, CHR(x MOD 128 + 128)); x := x DIV 128 END;
+    Write(R, CHR(x MOD 128))
+  END WriteNum64;
 
   PROCEDURE GetName*(f: File; VAR name: ARRAY OF CHAR);
   BEGIN

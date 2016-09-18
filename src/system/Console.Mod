@@ -27,7 +27,8 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
     WHILE s[i] # 0X DO Char(s[i]); INC(i) END
   END String;
 
-  PROCEDURE Int*(i, n: LONGINT);
+(* todo. support int64 properly *)
+  PROCEDURE Int*(i, n: SYSTEM.INT64);
     VAR s: ARRAY 32 OF CHAR; i1, k: LONGINT;
   BEGIN
     IF i = SYSTEM.LSH(LONG(LONG(1)), SIZE(LONGINT)*8 - 1) THEN
@@ -35,7 +36,7 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
       ELSE s := "8463847412"; k := 10
       END
     ELSE
-      i1 := ABS(i);
+      i1 := ABS(SYSTEM.VAL(LONGINT,i));
       s[0] := CHR(i1 MOD 10 + ORD("0")); i1 := i1 DIV 10; k := 1;
       WHILE i1 > 0 DO s[k] := CHR(i1 MOD 10 + ORD("0")); i1 := i1 DIV 10; INC(k) END
     END ;

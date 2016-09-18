@@ -1218,7 +1218,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END;
   END Cmp;
 
-  PROCEDURE CharacterLiteral(c: LONGINT);
+  PROCEDURE CharacterLiteral(c: SYSTEM.INT64);
   BEGIN
     IF (c < 32) OR (c > 126) THEN
       OPM.WriteString("0x"); OPM.WriteHex(c)
@@ -1258,7 +1258,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.Write(DoubleQuote)
   END StringLiteral;
 
-  PROCEDURE Case*(caseVal: LONGINT; form: INTEGER);
+  PROCEDURE Case*(caseVal: SYSTEM.INT64; form: INTEGER);
   VAR
     ch: CHAR;
   BEGIN
@@ -1286,7 +1286,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Str1("__HALT(#)", n)
   END Halt;
 
-  PROCEDURE IntLiteral*(n, size: LONGINT);
+  PROCEDURE IntLiteral*(n: SYSTEM.INT64; size: LONGINT);
   BEGIN
     IF (size > OPM.CIntSize) & (n <= OPM.CIntMax) & (n > OPM.CIntMin) THEN
       OPM.WriteString("((int"); OPM.WriteInt(size*8); OPM.WriteString(")(");
@@ -1296,7 +1296,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END
   END IntLiteral;
 
-  PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: LONGINT);
+  PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: SYSTEM.INT64);
   BEGIN
     IF array^.comp = OPT.DynArr THEN
       CompleteIdent(obj); OPM.WriteString(LenExt);
