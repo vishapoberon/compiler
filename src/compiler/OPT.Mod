@@ -209,9 +209,9 @@ VAR
 
 
 
-PROCEDURE err(n: INTEGER);
-BEGIN OPM.err(n)
-END err;
+PROCEDURE err(n: INTEGER); BEGIN OPM.err(n) END err;
+
+
 
 PROCEDURE IntType*(size: LONGINT): Struct;
 (* Selects smallest standard integer type for given size in bytes *)
@@ -1189,6 +1189,8 @@ END Import;
   BEGIN Insert(name, obj);
     obj^.mode := SProc; obj^.typ := notyp; obj^.adr := num
   END EnterProc;
+
+
 
 BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   InitStruct(undftyp,   Undef);  undftyp^.BaseTyp := undftyp;
