@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/15] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/18] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -258,6 +258,9 @@ static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exporte
 
 void OPV_AdrAndSize (OPT_Object topScope)
 {
+	__ASSERT(OPT_sinttyp != NIL, 0);
+	__ASSERT(OPT_inttyp != NIL, 0);
+	__ASSERT(OPT_linttyp != NIL, 0);
 	OPM_errpos = topScope->adr;
 	topScope->leaf = 1;
 	OPV_Traverse(topScope->right, topScope, 1);
@@ -265,15 +268,12 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_chartyp->strobj->linkadr = 2;
 	OPT_settyp->strobj->linkadr = 2;
 	OPT_realtyp->strobj->linkadr = 2;
-	OPT_inttyp->strobj->linkadr = 2;
-	OPT_linttyp->strobj->linkadr = 2;
 	OPT_adrtyp->strobj->linkadr = 2;
 	OPT_int8typ->strobj->linkadr = 2;
 	OPT_int16typ->strobj->linkadr = 2;
 	OPT_int32typ->strobj->linkadr = 2;
 	OPT_int64typ->strobj->linkadr = 2;
 	OPT_lrltyp->strobj->linkadr = 2;
-	OPT_sinttyp->strobj->linkadr = 2;
 	OPT_booltyp->strobj->linkadr = 2;
 	OPT_bytetyp->strobj->linkadr = 2;
 	OPT_sysptrtyp->strobj->linkadr = 2;

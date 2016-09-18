@@ -181,6 +181,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE AdrAndSize* (topScope: OPT.Object);
   BEGIN
+    ASSERT(OPT.sinttyp # NIL); ASSERT(OPT.inttyp # NIL); ASSERT(OPT.linttyp # NIL);
+
     OPM.errpos := topScope^.adr;  (* text position of scope used if error *)
     topScope^.leaf := TRUE;
     Traverse(topScope^.right, topScope, TRUE);  (* first pass only on exported types and procedures  *)
@@ -189,15 +191,18 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPT.chartyp^.strobj^.linkadr   := PredefinedType;
     OPT.settyp^.strobj^.linkadr    := PredefinedType;
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
+
+    (* SHORTINT, INTEGER and LONGINT are alternate names for INT8, INT16, INT32 and INT64 and have not been set up yet.
+    OPT.sinttyp^.strobj^.linkadr   := PredefinedType;
     OPT.inttyp^.strobj^.linkadr    := PredefinedType;
     OPT.linttyp^.strobj^.linkadr   := PredefinedType;
+    *)
     OPT.adrtyp^.strobj^.linkadr    := PredefinedType;
     OPT.int8typ^.strobj^.linkadr   := PredefinedType;
     OPT.int16typ^.strobj^.linkadr  := PredefinedType;
     OPT.int32typ^.strobj^.linkadr  := PredefinedType;
     OPT.int64typ^.strobj^.linkadr  := PredefinedType;
     OPT.lrltyp^.strobj^.linkadr    := PredefinedType;
-    OPT.sinttyp^.strobj^.linkadr   := PredefinedType;
     OPT.booltyp^.strobj^.linkadr   := PredefinedType;
     OPT.bytetyp^.strobj^.linkadr   := PredefinedType;
     OPT.sysptrtyp^.strobj^.linkadr := PredefinedType;

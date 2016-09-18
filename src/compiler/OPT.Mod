@@ -160,17 +160,17 @@ VAR
   realtyp*, lrltyp*, settyp*, stringtyp*,
   niltyp*,  notyp*,  sysptrtyp*:            Struct;
 
+  sintobj*, intobj*, lintobj*: Object;
+
   nofGmod*: SHORTINT;  (*nof imports*)
   GlbMod*:  ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
 
   SelfName*:    OPS.Name;  (* name of module being compiled *)
   SYSimported*: BOOLEAN;
 
-  IntTypes: ARRAY 20 OF Struct;  (* Lists integer types in SHORT/LONG ordering *)
+
 
 CONST
-
-
 
   (* Symbol file items *)
   Smname* = 16; Send*    = 18; Stype*   = 19; Salias*  = 20; Svar*  = 21;
@@ -209,34 +209,36 @@ VAR
 
 
 
-PROCEDURE err(n: INTEGER);
-BEGIN OPM.err(n)
-END err;
+PROCEDURE err(n: INTEGER); BEGIN OPM.err(n) END err;
+
+
 
 PROCEDURE IntType*(size: LONGINT): Struct;
 (* Selects smallest standard integer type for given size in bytes *)
-  VAR i: INTEGER;
 BEGIN
-  i := 1; WHILE i < LEN(IntTypes) - 1 DO (* First and last entries are always NIL *)
-    IF (IntTypes[i] # NIL) & (IntTypes[i].size >= size) THEN RETURN IntTypes[i] END;
-    INC(i)
-  END;
+  IF size <= int8typ.size  THEN RETURN int8typ  END;
+  IF size <= int16typ.size THEN RETURN int16typ END;
+  IF size <= int32typ.size THEN RETURN int32typ END;
+  RETURN int64typ
 END IntType;
 
 PROCEDURE ShorterOrLongerType*(x: Struct; dir: INTEGER): Struct;
   VAR i: INTEGER;
 BEGIN
   ASSERT(x.form = Int);
-  ASSERT((dir = 1) OR (dir = -1));
-  (* Not sure if StPar0 (which calls this) always gets the baseiest type. This
-     ASSERT will tell me. *)
   ASSERT(x.BaseTyp = undftyp);
-  (*
-  WHILE x.BaseTyp # undftyp DO ASSERT(x # x.BaseTyp); ASSERT(x.BaseTyp # NIL); x := x.BaseTyp END;
-  *)
-  i := 0; WHILE (IntTypes[i] # x) & (i < LEN(IntTypes)) DO INC(i) END;
-  ASSERT(i < LEN(IntTypes)-1);
-  RETURN IntTypes[i+dir]
+  ASSERT((dir = 1) OR (dir = -1));
+  IF dir > 0 THEN
+    IF x.size < sinttyp.size THEN RETURN sinttyp END;
+    IF x.size < inttyp.size  THEN RETURN inttyp  END;
+    IF x.size < linttyp.size THEN RETURN linttyp END;
+    RETURN int64typ
+  ELSE
+    IF x.size > linttyp.size THEN RETURN linttyp END;
+    IF x.size > inttyp.size  THEN RETURN inttyp  END;
+    IF x.size > sinttyp.size THEN RETURN sinttyp END;
+    RETURN int8typ
+  END
 END ShorterOrLongerType;
 
 
@@ -1175,11 +1177,20 @@ END Import;
     typ^.idfp := form; typ^.idfpdone := TRUE; res := typ
   END EnterTyp;
 
+  PROCEDURE EnterTypeAlias(name: OPS.Name; VAR res: Object);
+    VAR obj: Object;
+  BEGIN
+    Insert(name, obj); obj^.mode := Typ; obj^.typ := NIL; obj^.vis := external;
+    res := obj
+  END EnterTypeAlias;
+
   PROCEDURE EnterProc(name: OPS.Name; num: INTEGER);
     VAR obj: Object;
   BEGIN Insert(name, obj);
     obj^.mode := SProc; obj^.typ := notyp; obj^.adr := num
   END EnterProc;
+
+
 
 BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   InitStruct(undftyp,   Undef);  undftyp^.BaseTyp := undftyp;
@@ -1195,6 +1206,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("INT16",   Int,     2,               int16typ);
   EnterTyp("INT32",   Int,     4,               int32typ);
   EnterTyp("INT64",   Int,     8,               int64typ);
+
   EnterProc("ADR", adrfn);
   EnterProc("CC", ccfn);
   EnterProc("LSH", lshfn);
@@ -1207,17 +1219,20 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("VAL", valfn);
   EnterProc("NEW", sysnewfn);
   EnterProc("MOVE", movefn);
+
   syslink := topScope^.right;
   universe := topScope; topScope^.right := NIL;
+
 
   EnterTyp("BOOLEAN",  Bool,  OPM.BoolSize,  booltyp);
   EnterTyp("CHAR",     Char,  OPM.CharSize,  chartyp);
   EnterTyp("SET",      Set,   OPM.SetSize,   settyp);
   EnterTyp("REAL",     Real,  OPM.RealSize,  realtyp);
-  EnterTyp("INTEGER",  Int,   OPM.IntSize,   inttyp);
-  EnterTyp("LONGINT",  Int,   OPM.LIntSize,  linttyp);
   EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
-  EnterTyp("SHORTINT", Int,   OPM.SIntSize,  sinttyp);
+
+  EnterTypeAlias("SHORTINT", sintobj);
+  EnterTypeAlias("INTEGER",  intobj);
+  EnterTypeAlias("LONGINT",  lintobj);
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
   EnterBoolConst("TRUE",  1);
@@ -1248,7 +1263,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[Byte]    := bytetyp;
   impCtxt.ref[Bool]    := booltyp;
   impCtxt.ref[Char]    := chartyp;
-  impCtxt.ref[Int]     := inttyp;
+  impCtxt.ref[Int]     := int32typ;
   impCtxt.ref[Real]    := realtyp;
   impCtxt.ref[LReal]   := lrltyp;
   impCtxt.ref[Set]     := settyp;
@@ -1256,15 +1271,6 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[NilTyp]  := niltyp;
   impCtxt.ref[NoTyp]   := notyp;
   impCtxt.ref[Pointer] := sysptrtyp;
-
-  IntTypes[1] := sinttyp;
-  IntTypes[2] := inttyp;
-  IntTypes[3] := linttyp;
-
-  IntTypes[5] := int8typ;
-  IntTypes[6] := int16typ;
-  IntTypes[7] := int32typ;
-  IntTypes[8] := int64typ
 
 END OPT.
 
