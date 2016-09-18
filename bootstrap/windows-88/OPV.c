@@ -1351,7 +1351,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 	OPV_ExitInfo saved;
 	OPT_Node l = NIL, r = NIL;
 	while ((n != NIL && OPM_noerr)) {
-		OPM_errpos = n->conval->intval;
+		OPM_errpos = OPM_Longint(n->conval->intval);
 		if (n->class != 14) {
 			OPC_BegStat();
 		}
@@ -1625,7 +1625,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				OPV_IfStat(n, n->subcl == 0, outerProc);
 				break;
 			case 28: 
-				OPC_Halt(n->right->conval->intval);
+				OPC_Halt(OPM_Longint(n->right->conval->intval));
 				break;
 			default: 
 				OPM_LogWStr((CHAR*)"unhandled case in OPV.expr, n^.class = ", 40);

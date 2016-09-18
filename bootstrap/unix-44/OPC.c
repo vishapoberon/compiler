@@ -26,8 +26,8 @@ export OPT_Object OPC_BaseTProc (OPT_Object obj);
 export void OPC_BegBlk (void);
 export void OPC_BegStat (void);
 static void OPC_CProcDefs (OPT_Object obj, int16 vis);
-export void OPC_Case (int32 caseVal, int16 form);
-static void OPC_CharacterLiteral (int32 c);
+export void OPC_Case (int64 caseVal, int16 form);
+static void OPC_CharacterLiteral (int64 c);
 export void OPC_Cmp (int16 rel);
 export void OPC_CompleteIdent (OPT_Object obj);
 export void OPC_Constant (OPT_Const con, int16 form);
@@ -67,8 +67,8 @@ static void OPC_InitImports (OPT_Object obj);
 static void OPC_InitKeywords (void);
 export void OPC_InitTDesc (OPT_Struct typ);
 static void OPC_InitTProcs (OPT_Object typ, OPT_Object obj);
-export void OPC_IntLiteral (int32 n, int32 size);
-export void OPC_Len (OPT_Object obj, OPT_Struct array, int32 dim);
+export void OPC_IntLiteral (int64 n, int32 size);
+export void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim);
 static void OPC_LenList (OPT_Object par, BOOLEAN ansiDefine, BOOLEAN showParamName);
 static int16 OPC_Length (CHAR *s, LONGINT s__len);
 export int32 OPC_NofPtrs (OPT_Struct typ);
@@ -1851,7 +1851,7 @@ void OPC_Cmp (int16 rel)
 	}
 }
 
-static void OPC_CharacterLiteral (int32 c)
+static void OPC_CharacterLiteral (int64 c)
 {
 	if (c < 32 || c > 126) {
 		OPM_WriteString((CHAR*)"0x", 3);
@@ -1894,7 +1894,7 @@ static void OPC_StringLiteral (CHAR *s, LONGINT s__len, int32 l)
 	__DEL(s);
 }
 
-void OPC_Case (int32 caseVal, int16 form)
+void OPC_Case (int64 caseVal, int16 form)
 {
 	CHAR ch;
 	OPM_WriteString((CHAR*)"case ", 6);
@@ -1937,7 +1937,7 @@ void OPC_Halt (int32 n)
 	OPC_Str1((CHAR*)"__HALT(#)", 10, n);
 }
 
-void OPC_IntLiteral (int32 n, int32 size)
+void OPC_IntLiteral (int64 n, int32 size)
 {
 	if ((((size > 4 && n <= 2147483647)) && n > (-2147483647-1))) {
 		OPM_WriteString((CHAR*)"((int", 6);
@@ -1950,7 +1950,7 @@ void OPC_IntLiteral (int32 n, int32 size)
 	}
 }
 
-void OPC_Len (OPT_Object obj, OPT_Struct array, int32 dim)
+void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
 {
 	if (array->comp == 3) {
 		OPC_CompleteIdent(obj);

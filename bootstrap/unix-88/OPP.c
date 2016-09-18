@@ -151,7 +151,7 @@ static void OPP_CheckSysFlag (int32 *sysflag, int32 default_)
 			OPP_err(51);
 			sf = 0;
 		}
-		*sysflag = (int32)sf;
+		*sysflag = OPM_Integer(sf);
 		OPP_CheckSym(23);
 	} else {
 		*sysflag = default_;
@@ -283,7 +283,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 			OPP_err(51);
 			n = 1;
 		}
-		(*typ)->n = n;
+		(*typ)->n = OPM_Longint(n);
 		if (OPP_sym == 25) {
 			OPS_Get(&OPP_sym);
 			OPP_Type(&(*typ)->BaseTyp, &*banned);
@@ -1179,7 +1179,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int32 *n, OPP
 		OPP_ConstExpression(&x);
 		f = x->typ->form;
 		if (__IN(f, 0x18, 64)) {
-			xval = x->conval->intval;
+			xval = OPM_Longint(x->conval->intval);
 		} else {
 			OPP_err(61);
 			xval = 1;
@@ -1194,7 +1194,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int32 *n, OPP
 		if (OPP_sym == 21) {
 			OPS_Get(&OPP_sym);
 			OPP_ConstExpression(&y);
-			yval = y->conval->intval;
+			yval = OPM_Longint(y->conval->intval);
 			if ((y->typ->form != f && !((f == 4 && y->typ->form == 4)))) {
 				OPP_err(60);
 			}

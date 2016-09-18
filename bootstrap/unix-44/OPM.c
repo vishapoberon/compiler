@@ -28,7 +28,8 @@ export int16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 export CHAR OPM_modName[32];
 export CHAR OPM_objname[64];
 export SET OPM_opt, OPM_glbopt;
-static int32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
+static int32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber;
+static int64 OPM_lasterrpos;
 static Texts_Reader OPM_inR;
 static Texts_Text OPM_Log;
 static Texts_Writer OPM_W;
@@ -45,46 +46,49 @@ static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F);
 export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
 export void OPM_DeleteNewSym (void);
-export void OPM_FPrint (int32 *fp, int32 val);
+export void OPM_FPrint (int32 *fp, int64 val);
 export void OPM_FPrintLReal (int32 *fp, LONGREAL lr);
 export void OPM_FPrintReal (int32 *fp, REAL real);
 export void OPM_FPrintSet (int32 *fp, SET set);
-static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int32 pos);
+static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int64 pos);
 export void OPM_Get (CHAR *ch);
 static void OPM_GetProperties (void);
 static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONGINT name__len, int16 *size, int16 *align);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 export void OPM_InitOptions (void);
+export int16 OPM_Integer (int64 n);
 static void OPM_LogErrMsg (int16 n);
 export void OPM_LogW (CHAR ch);
 export void OPM_LogWLn (void);
-export void OPM_LogWNum (int32 i, int32 len);
+export void OPM_LogWNum (int64 i, int64 len);
 export void OPM_LogWStr (CHAR *s, LONGINT s__len);
+export int32 OPM_Longint (int64 n);
 static void OPM_MakeFileName (CHAR *name, LONGINT name__len, CHAR *FName, LONGINT FName__len, CHAR *ext, LONGINT ext__len);
-export void OPM_Mark (int16 n, int32 pos);
+export void OPM_Mark (int16 n, int64 pos);
 export void OPM_NewSym (CHAR *modName, LONGINT modName__len);
 export void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 export void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
 export BOOLEAN OPM_OpenPar (void);
 export void OPM_RegisterNewSym (void);
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt);
-static void OPM_ShowLine (int32 pos);
+static void OPM_ShowLine (int64 pos);
 export int32 OPM_SignedMaximum (int32 bytecount);
 export int32 OPM_SignedMinimum (int32 bytecount);
 export void OPM_SymRCh (CHAR *ch);
 export int32 OPM_SymRInt (void);
+export int64 OPM_SymRInt64 (void);
 export void OPM_SymRLReal (LONGREAL *lr);
 export void OPM_SymRReal (REAL *r);
 export void OPM_SymRSet (SET *s);
 export void OPM_SymWCh (CHAR ch);
-export void OPM_SymWInt (int32 i);
+export void OPM_SymWInt (int64 i);
 export void OPM_SymWLReal (LONGREAL lr);
 export void OPM_SymWReal (REAL r);
 export void OPM_SymWSet (SET s);
 static void OPM_VerboseListSizes (void);
 export void OPM_Write (CHAR ch);
-export void OPM_WriteHex (int32 i);
-export void OPM_WriteInt (int32 i);
+export void OPM_WriteHex (int64 i);
+export void OPM_WriteInt (int64 i);
 export void OPM_WriteLn (void);
 export void OPM_WriteReal (LONGREAL r, CHAR suffx);
 export void OPM_WriteString (CHAR *s, LONGINT s__len);
@@ -107,7 +111,7 @@ void OPM_LogWStr (CHAR *s, LONGINT s__len)
 	__DEL(s);
 }
 
-void OPM_LogWNum (int32 i, int32 len)
+void OPM_LogWNum (int64 i, int64 len)
 {
 	Console_Int(i, len);
 }
@@ -115,6 +119,20 @@ void OPM_LogWNum (int32 i, int32 len)
 void OPM_LogWLn (void)
 {
 	Console_Ln();
+}
+
+int32 OPM_Longint (int64 n)
+{
+	int32 _o_result;
+	_o_result = __VAL(int32, n);
+	return _o_result;
+}
+
+int16 OPM_Integer (int64 n)
+{
+	int16 _o_result;
+	_o_result = __VAL(int16, n);
+	return _o_result;
 }
 
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
@@ -404,21 +422,21 @@ static void OPM_LogErrMsg (int16 n)
 	OPM_LogWStr(errors_errors[__X(n, 350)], 128);
 }
 
-static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int32 pos)
+static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int64 pos)
 {
 	CHAR ch, cheol;
-	if (pos < OPM_ErrorLineStartPos) {
+	if (pos < (int64)OPM_ErrorLineStartPos) {
 		OPM_ErrorLineStartPos = 0;
 		OPM_ErrorLineLimitPos = 0;
 		OPM_ErrorLineNumber = 0;
 	}
-	if (pos < OPM_ErrorLineLimitPos) {
+	if (pos < (int64)OPM_ErrorLineLimitPos) {
 		Files_Set(&*r, r__typ, f, OPM_ErrorLineStartPos);
 		return;
 	}
 	Files_Set(&*r, r__typ, f, OPM_ErrorLineLimitPos);
 	Files_Read(&*r, r__typ, (void*)&ch);
-	while ((OPM_ErrorLineLimitPos < pos && !(*r).eof)) {
+	while (((int64)OPM_ErrorLineLimitPos < pos && !(*r).eof)) {
 		OPM_ErrorLineStartPos = OPM_ErrorLineLimitPos;
 		OPM_ErrorLineNumber += 1;
 		while ((((ch != 0x00 && ch != 0x0d)) && ch != 0x0a)) {
@@ -436,7 +454,7 @@ static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int32 p
 	Files_Set(&*r, r__typ, f, OPM_ErrorLineStartPos);
 }
 
-static void OPM_ShowLine (int32 pos)
+static void OPM_ShowLine (int64 pos)
 {
 	Files_File f = NIL;
 	Files_Rider r;
@@ -460,10 +478,10 @@ static void OPM_ShowLine (int32 pos)
 	OPM_LogWStr(line, 1023);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"      ", 7);
-	if (pos >= OPM_ErrorLineLimitPos) {
+	if (pos >= (int64)OPM_ErrorLineLimitPos) {
 		pos = OPM_ErrorLineLimitPos - 1;
 	}
-	i = (int16)(pos - OPM_ErrorLineStartPos);
+	i = (int16)OPM_Longint(pos - (int64)OPM_ErrorLineStartPos);
 	while (i > 0) {
 		OPM_LogW(' ');
 		i -= 1;
@@ -478,7 +496,7 @@ static void OPM_ShowLine (int32 pos)
 	Files_Close(f);
 }
 
-void OPM_Mark (int16 n, int32 pos)
+void OPM_Mark (int16 n, int64 pos)
 {
 	if (pos == -1) {
 		pos = 0;
@@ -535,9 +553,9 @@ void OPM_err (int16 n)
 	OPM_Mark(n, OPM_errpos);
 }
 
-void OPM_FPrint (int32 *fp, int32 val)
+void OPM_FPrint (int32 *fp, int64 val)
 {
-	*fp = __ROTL((int32)((SET)*fp ^ (SET)val), 1, 32);
+	*fp = __ROTL((int32)((SET)*fp ^ __VAL(SET, val)), 1, 32);
 }
 
 void OPM_FPrintSet (int32 *fp, SET set)
@@ -702,6 +720,15 @@ int32 OPM_SymRInt (void)
 	return _o_result;
 }
 
+int64 OPM_SymRInt64 (void)
+{
+	int64 _o_result;
+	int64 k;
+	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, &k);
+	_o_result = k;
+	return _o_result;
+}
+
 void OPM_SymRSet (SET *s)
 {
 	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (int32*)&*s);
@@ -751,9 +778,9 @@ void OPM_SymWCh (CHAR ch)
 	Files_Write(&OPM_newSF, Files_Rider__typ, ch);
 }
 
-void OPM_SymWInt (int32 i)
+void OPM_SymWInt (int64 i)
 {
-	Files_WriteNum(&OPM_newSF, Files_Rider__typ, i);
+	Files_WriteNum64(&OPM_newSF, Files_Rider__typ, i);
 }
 
 void OPM_SymWSet (SET s)
@@ -820,17 +847,17 @@ void OPM_WriteStringVar (CHAR *s, LONGINT s__len)
 	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
 }
 
-void OPM_WriteHex (int32 i)
+void OPM_WriteHex (int64 i)
 {
 	CHAR s[3];
-	int16 digit;
-	digit = __ASHR((int16)i, 4);
+	int32 digit;
+	digit = __ASHR((int32)i, 4);
 	if (digit < 10) {
 		s[0] = (CHAR)(48 + digit);
 	} else {
 		s[0] = (CHAR)(87 + digit);
 	}
-	digit = __MASK((int16)i, -16);
+	digit = __MASK((int32)i, -16);
 	if (digit < 10) {
 		s[1] = (CHAR)(48 + digit);
 	} else {
@@ -840,31 +867,31 @@ void OPM_WriteHex (int32 i)
 	OPM_WriteString(s, 3);
 }
 
-void OPM_WriteInt (int32 i)
+void OPM_WriteInt (int64 i)
 {
-	CHAR s[20];
-	int32 i1, k;
-	if (i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) {
+	CHAR s[24];
+	int64 i1, k;
+	if ((i == (int64)OPM_SignedMinimum(OPM_IntSize) || i == (int64)OPM_SignedMinimum(OPM_LIntSize)) || i == (int64)OPM_SignedMinimum(8)) {
 		OPM_Write('(');
 		OPM_WriteInt(i + 1);
 		OPM_WriteString((CHAR*)"-1)", 4);
 	} else {
 		i1 = __ABS(i);
-		s[0] = (CHAR)((int)__MOD(i1, 10) + 48);
+		s[0] = (CHAR)(__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k = 1;
 		while (i1 > 0) {
-			s[__X(k, 20)] = (CHAR)((int)__MOD(i1, 10) + 48);
+			s[__X(k, 24)] = (CHAR)(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
 		if (i < 0) {
-			s[__X(k, 20)] = '-';
+			s[__X(k, 24)] = '-';
 			k += 1;
 		}
 		while (k > 0) {
 			k -= 1;
-			OPM_Write(s[__X(k, 20)]);
+			OPM_Write(s[__X(k, 24)]);
 		}
 	}
 }

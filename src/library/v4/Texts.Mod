@@ -1,6 +1,6 @@
 MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**)  (* << RC, MB, JT *)
   IMPORT
-    Files, Modules, Reals;
+    Files, Modules, Reals, SYSTEM;
 
   (*--- insert field e: Elem into Texts.Scanner and change Texts.Scan to set it in case of class=6 *)
 
@@ -545,19 +545,13 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     WHILE s[i] >= " " DO Write(W, s[i]); INC(i) END
   END WriteString;
 
-  PROCEDURE WriteInt* (VAR W: Writer; x, n: LONGINT);
+  PROCEDURE WriteInt* (VAR W: Writer; x, n: SYSTEM.INT64);
   VAR
-    i: INTEGER; x0: LONGINT;
-    a: ARRAY 22 OF CHAR;
+    i: INTEGER; x0: SYSTEM.INT64;
+    a: ARRAY 24 OF CHAR;
   BEGIN i := 0;
     IF x < 0 THEN
-      IF x = MIN(LONGINT) THEN
-        IF SIZE(LONGINT) = 4 THEN
-          WriteString(W, " -2147483648")
-        ELSE
-          WriteString(W, " -9223372036854775808")
-        END;
-        RETURN
+      IF x = MIN(SYSTEM.INT64) THEN WriteString(W, " -9223372036854775808"); RETURN
       ELSE DEC(n); x0 := -x
       END
     ELSE x0 := x

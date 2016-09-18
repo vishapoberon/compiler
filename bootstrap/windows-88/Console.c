@@ -62,7 +62,7 @@ void Console_Int (int64 i, int64 n)
 		__MOVE("8085774586302733229", s, 20);
 		k = 19;
 	} else {
-		i1 = __ABS(i);
+		i1 = __ABS((int64)i);
 		s[0] = (CHAR)(__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k = 1;

@@ -17,7 +17,8 @@ typedef
 typedef
 	struct OPT_ConstDesc {
 		OPT_ConstExt ext;
-		int32 intval, intval2;
+		int64 intval;
+		int32 intval2;
 		SET setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
@@ -1838,7 +1839,7 @@ static void EnumPtrs(void (*P)(void*))
 	__ENUMR(&OPT_impCtxt, OPT_ImpCtxt__typ, 3140, 1, P);
 }
 
-__TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 24), {0, -8}};
+__TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 28), {0, -8}};
 __TDESC(OPT_ObjDesc, 1, 6) = {__TDFLDS("ObjDesc", 304), {0, 4, 8, 12, 284, 288, -28}};
 __TDESC(OPT_StrDesc, 1, 3) = {__TDFLDS("StrDesc", 56), {44, 48, 52, -16}};
 __TDESC(OPT_NodeDesc, 1, 6) = {__TDFLDS("NodeDesc", 28), {0, 4, 8, 16, 20, 24, -28}};

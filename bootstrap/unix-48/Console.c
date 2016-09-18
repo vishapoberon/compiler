@@ -16,7 +16,7 @@ export void Console_Bool (BOOLEAN b);
 export void Console_Char (CHAR ch);
 export void Console_Flush (void);
 export void Console_Hex (int32 i);
-export void Console_Int (int32 i, int32 n);
+export void Console_Int (int64 i, int64 n);
 export void Console_Ln (void);
 export void Console_Read (CHAR *ch);
 export void Console_ReadLine (CHAR *line, LONGINT line__len);
@@ -54,15 +54,15 @@ void Console_String (CHAR *s, LONGINT s__len)
 	__DEL(s);
 }
 
-void Console_Int (int32 i, int32 n)
+void Console_Int (int64 i, int64 n)
 {
 	CHAR s[32];
 	int32 i1, k;
-	if (i == __LSHL(1, 31, 32)) {
+	if (i == (int64)__LSHL(1, 31, 32)) {
 		__MOVE("8463847412", s, 11);
 		k = 10;
 	} else {
-		i1 = __ABS(i);
+		i1 = __ABS(__VAL(int32, i));
 		s[0] = (CHAR)((int)__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k = 1;
@@ -76,7 +76,7 @@ void Console_Int (int32 i, int32 n)
 		s[__X(k, 32)] = '-';
 		k += 1;
 	}
-	while (n > k) {
+	while (n > (int64)k) {
 		Console_Char(' ');
 		n -= 1;
 	}

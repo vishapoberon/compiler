@@ -335,7 +335,7 @@ misc:
 s3:
 	@printf "\nMaking s3 library\n"
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/s3/ethBTrees.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/s3/ethMD5.Mod
+#	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/s3/ethMD5.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/s3/ethSets.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/s3/ethZlib.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(VISHAP) -Ffs ../../src/library/s3/ethZlibBuffers.Mod

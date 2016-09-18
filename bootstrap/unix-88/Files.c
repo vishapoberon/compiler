@@ -90,6 +90,7 @@ export void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, int64 *x);
 export void Files_ReadLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL *x);
 export void Files_ReadLine (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len);
 export void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, int64 *x);
+export void Files_ReadNum64 (Files_Rider *R, LONGINT *R__typ, int64 *x);
 export void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x);
 export void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x);
 export void Files_ReadString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len);
@@ -105,6 +106,7 @@ export void Files_WriteInt (Files_Rider *R, LONGINT *R__typ, int32 x);
 export void Files_WriteLInt (Files_Rider *R, LONGINT *R__typ, int64 x);
 export void Files_WriteLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL x);
 export void Files_WriteNum (Files_Rider *R, LONGINT *R__typ, int64 x);
+export void Files_WriteNum64 (Files_Rider *R, LONGINT *R__typ, int64 x);
 export void Files_WriteReal (Files_Rider *R, LONGINT *R__typ, REAL x);
 export void Files_WriteSet (Files_Rider *R, LONGINT *R__typ, SET x);
 export void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len);
@@ -936,6 +938,13 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, int64 *x)
 	*x = n;
 }
 
+void Files_ReadNum64 (Files_Rider *R, LONGINT *R__typ, int64 *x)
+{
+	int64 n;
+	Files_ReadNum(&*R, R__typ, &n);
+	*x = n;
+}
+
 void Files_WriteBool (Files_Rider *R, LONGINT *R__typ, BOOLEAN x)
 {
 	Files_Write(&*R, R__typ, __VAL(CHAR, x));
@@ -996,6 +1005,15 @@ void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len
 }
 
 void Files_WriteNum (Files_Rider *R, LONGINT *R__typ, int64 x)
+{
+	while (x < -64 || x > 63) {
+		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));
+		x = __ASHR(x, 7);
+	}
+	Files_Write(&*R, R__typ, (CHAR)__MASK(x, -128));
+}
+
+void Files_WriteNum64 (Files_Rider *R, LONGINT *R__typ, int64 x)
 {
 	while (x < -64 || x > 63) {
 		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));

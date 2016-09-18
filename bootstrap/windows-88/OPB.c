@@ -144,14 +144,8 @@ static int64 OPB_BoolToInt (BOOLEAN b)
 static BOOLEAN OPB_IntToBool (int64 i)
 {
 	BOOLEAN _o_result;
-	if (i == 0) {
-		_o_result = 0;
-		return _o_result;
-	} else {
-		_o_result = 1;
-		return _o_result;
-	}
-	__RETCHK;
+	_o_result = i != 0;
+	return _o_result;
 }
 
 OPT_Node OPB_NewBoolConst (BOOLEAN boolval)
@@ -274,7 +268,7 @@ OPT_Node OPB_NewString (OPS_String str, int64 len)
 	x->conval = OPT_NewConst();
 	x->typ = OPT_stringtyp;
 	x->conval->intval = -1;
-	x->conval->intval2 = len;
+	x->conval->intval2 = OPM_Longint(len);
 	x->conval->ext = OPT_NewExt();
 	__COPY(str, *x->conval->ext, 256);
 	_o_result = x;
@@ -1917,7 +1911,7 @@ void OPB_StPar0 (OPT_Node *par0, int32 fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (f == 4) {
-				if (x->typ->size != OPT_linttyp->size) {
+				if (x->typ->size < OPT_linttyp->size) {
 					OPB_Convert(&x, OPT_linttyp);
 				}
 			} else {
@@ -2068,7 +2062,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 			if (!(f == 4) || x->class != 7) {
 				OPB_err(69);
 			} else if (x->typ->size == 1) {
-				L = (int32)x->conval->intval;
+				L = OPM_Integer(x->conval->intval);
 				typ = p->typ;
 				while ((L > 0 && __IN(typ->comp, 0x0c, 64))) {
 					typ = typ->BaseTyp;
@@ -2132,7 +2126,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 					p->obj = NIL;
 				} else {
 					p = NewOp__53(12, 17, p, x);
-					p->typ = OPT_linttyp;
+					p->typ = p->left->typ;
 				}
 			} else {
 				OPB_err(111);

@@ -231,7 +231,7 @@ under a public-key cryptosystem such as RSA. *)
       SYSTEM.MOVE(SYSTEM.ADR(buf[beg]), SYSTEM.ADR(context.in[0]), 64);
       ByteReverse(context.in, in, 16);
       Transform(context.buf, in);
-      INC(beg, 64); DEC(len, 64)  
+      INC(beg, 64); DEC(len, 64)
     END;
     IF len > 0 THEN
       SYSTEM.MOVE(SYSTEM.ADR(buf[beg]), SYSTEM.ADR(context.in[0]), len)

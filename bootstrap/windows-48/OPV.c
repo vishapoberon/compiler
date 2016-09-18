@@ -36,10 +36,10 @@ static BOOLEAN OPV_ImplicitReturn (OPT_Node n);
 static void OPV_Index (OPT_Node n, OPT_Node d, int16 prec, int16 dim);
 export void OPV_Init (void);
 static void OPV_InitTDescs (OPT_Node n);
-static void OPV_Len (OPT_Node n, int32 dim);
+static void OPV_Len (OPT_Node n, int64 dim);
 export void OPV_Module (OPT_Node prog);
 static void OPV_NewArr (OPT_Node d, OPT_Node x);
-static void OPV_ParIntLiteral (int32 n, int32 size);
+static void OPV_ParIntLiteral (int64 n, int32 size);
 static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
 static void OPV_SizeCast (int32 from, int32 to);
@@ -414,7 +414,7 @@ static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp
 	__RETCHK;
 }
 
-static void OPV_Len (OPT_Node n, int32 dim)
+static void OPV_Len (OPT_Node n, int64 dim)
 {
 	while ((n->class == 4 && n->typ->comp == 3)) {
 		dim += 1;
@@ -725,7 +725,7 @@ static void OPV_design (OPT_Node n, int16 prec)
 	}
 }
 
-static void OPV_ParIntLiteral (int32 n, int32 size)
+static void OPV_ParIntLiteral (int64 n, int32 size)
 {
 	if (OPV_ansi) {
 		OPM_WriteInt(n);
@@ -1210,7 +1210,7 @@ static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc)
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc)
 {
 	OPT_Node switchCase = NIL, label = NIL;
-	int32 low, high;
+	int64 low, high;
 	int16 form, i;
 	OPM_WriteString((CHAR*)"switch ", 8);
 	OPV_expr(n->left, 12);
@@ -1351,7 +1351,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 	OPV_ExitInfo saved;
 	OPT_Node l = NIL, r = NIL;
 	while ((n != NIL && OPM_noerr)) {
-		OPM_errpos = n->conval->intval;
+		OPM_errpos = OPM_Longint(n->conval->intval);
 		if (n->class != 14) {
 			OPC_BegStat();
 		}
@@ -1625,7 +1625,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				OPV_IfStat(n, n->subcl == 0, outerProc);
 				break;
 			case 28: 
-				OPC_Halt(n->right->conval->intval);
+				OPC_Halt(OPM_Longint(n->right->conval->intval));
 				break;
 			default: 
 				OPM_LogWStr((CHAR*)"unhandled case in OPV.expr, n^.class = ", 40);

@@ -55,11 +55,13 @@ static void OPM_GetProperties (void);
 static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONGINT name__len, int32 *size, int32 *align);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 export void OPM_InitOptions (void);
+export int32 OPM_Integer (int64 n);
 static void OPM_LogErrMsg (int32 n);
 export void OPM_LogW (CHAR ch);
 export void OPM_LogWLn (void);
 export void OPM_LogWNum (int64 i, int64 len);
 export void OPM_LogWStr (CHAR *s, LONGINT s__len);
+export int64 OPM_Longint (int64 n);
 static void OPM_MakeFileName (CHAR *name, LONGINT name__len, CHAR *FName, LONGINT FName__len, CHAR *ext, LONGINT ext__len);
 export void OPM_Mark (int32 n, int64 pos);
 export void OPM_NewSym (CHAR *modName, LONGINT modName__len);
@@ -73,6 +75,7 @@ export int64 OPM_SignedMaximum (int64 bytecount);
 export int64 OPM_SignedMinimum (int64 bytecount);
 export void OPM_SymRCh (CHAR *ch);
 export int64 OPM_SymRInt (void);
+export int64 OPM_SymRInt64 (void);
 export void OPM_SymRLReal (LONGREAL *lr);
 export void OPM_SymRReal (REAL *r);
 export void OPM_SymRSet (SET *s);
@@ -115,6 +118,20 @@ void OPM_LogWNum (int64 i, int64 len)
 void OPM_LogWLn (void)
 {
 	Console_Ln();
+}
+
+int64 OPM_Longint (int64 n)
+{
+	int64 _o_result;
+	_o_result = (int64)n;
+	return _o_result;
+}
+
+int32 OPM_Integer (int64 n)
+{
+	int32 _o_result;
+	_o_result = __VAL(int32, n);
+	return _o_result;
 }
 
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
@@ -463,7 +480,7 @@ static void OPM_ShowLine (int64 pos)
 	if (pos >= OPM_ErrorLineLimitPos) {
 		pos = OPM_ErrorLineLimitPos - 1;
 	}
-	i = (int32)(pos - OPM_ErrorLineStartPos);
+	i = (int32)OPM_Longint(pos - OPM_ErrorLineStartPos);
 	while (i > 0) {
 		OPM_LogW(' ');
 		i -= 1;
@@ -700,6 +717,15 @@ int64 OPM_SymRInt (void)
 	return _o_result;
 }
 
+int64 OPM_SymRInt64 (void)
+{
+	int64 _o_result;
+	int64 k;
+	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, &k);
+	_o_result = k;
+	return _o_result;
+}
+
 void OPM_SymRSet (SET *s)
 {
 	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (int64*)&*s);
@@ -751,7 +777,7 @@ void OPM_SymWCh (CHAR ch)
 
 void OPM_SymWInt (int64 i)
 {
-	Files_WriteNum(&OPM_newSF, Files_Rider__typ, i);
+	Files_WriteNum64(&OPM_newSF, Files_Rider__typ, i);
 }
 
 void OPM_SymWSet (SET s)
@@ -840,9 +866,9 @@ void OPM_WriteHex (int64 i)
 
 void OPM_WriteInt (int64 i)
 {
-	CHAR s[20];
+	CHAR s[24];
 	int64 i1, k;
-	if (i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) {
+	if ((i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) || i == OPM_SignedMinimum(8)) {
 		OPM_Write('(');
 		OPM_WriteInt(i + 1);
 		OPM_WriteString((CHAR*)"-1)", 4);
@@ -852,17 +878,17 @@ void OPM_WriteInt (int64 i)
 		i1 = __DIV(i1, 10);
 		k = 1;
 		while (i1 > 0) {
-			s[__X(k, 20)] = (CHAR)(__MOD(i1, 10) + 48);
+			s[__X(k, 24)] = (CHAR)(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
 		if (i < 0) {
-			s[__X(k, 20)] = '-';
+			s[__X(k, 24)] = '-';
 			k += 1;
 		}
 		while (k > 0) {
 			k -= 1;
-			OPM_Write(s[__X(k, 20)]);
+			OPM_Write(s[__X(k, 24)]);
 		}
 	}
 }

@@ -15,7 +15,8 @@ typedef
 typedef
 	struct OPT_ConstDesc {
 		OPT_ConstExt ext;
-		int32 intval, intval2;
+		int64 intval;
+		int32 intval2;
 		SET setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;

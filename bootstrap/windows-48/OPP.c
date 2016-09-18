@@ -134,7 +134,7 @@ static void OPP_CheckMark (int8 *vis)
 static void OPP_CheckSysFlag (int16 *sysflag, int16 default_)
 {
 	OPT_Node x = NIL;
-	int32 sf;
+	int64 sf;
 	if (OPP_sym == 31) {
 		OPS_Get(&OPP_sym);
 		if (!OPT_SYSimported) {
@@ -151,7 +151,7 @@ static void OPP_CheckSysFlag (int16 *sysflag, int16 default_)
 			OPP_err(51);
 			sf = 0;
 		}
-		*sysflag = (int16)sf;
+		*sysflag = OPM_Integer(sf);
 		OPP_CheckSym(23);
 	} else {
 		*sysflag = default_;
@@ -254,7 +254,7 @@ static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPT_Node x = NIL;
-	int32 n;
+	int64 n;
 	int16 sysflag;
 	OPP_CheckSysFlag(&sysflag, 0);
 	if (OPP_sym == 25) {
@@ -275,7 +275,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 		OPP_ConstExpression(&x);
 		if (x->typ->form == 4) {
 			n = x->conval->intval;
-			if (n <= 0 || n > OPM_MaxIndex) {
+			if (n <= 0 || n > (int64)OPM_MaxIndex) {
 				OPP_err(63);
 				n = 1;
 			}
@@ -283,7 +283,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 			OPP_err(51);
 			n = 1;
 		}
-		(*typ)->n = n;
+		(*typ)->n = OPM_Longint(n);
 		if (OPP_sym == 25) {
 			OPS_Get(&OPP_sym);
 			OPP_Type(&(*typ)->BaseTyp, &*banned);
@@ -932,7 +932,7 @@ static void GetCode__19 (void)
 {
 	OPT_ConstExt ext = NIL;
 	int16 n;
-	int32 c;
+	int64 c;
 	ext = OPT_NewExt();
 	(*ProcedureDeclaration__16_s->proc)->conval->ext = ext;
 	n = 0;
@@ -1179,7 +1179,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int16 *n, OPP
 		OPP_ConstExpression(&x);
 		f = x->typ->form;
 		if (__IN(f, 0x18, 32)) {
-			xval = x->conval->intval;
+			xval = OPM_Longint(x->conval->intval);
 		} else {
 			OPP_err(61);
 			xval = 1;
@@ -1194,7 +1194,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, int16 *n, OPP
 		if (OPP_sym == 21) {
 			OPS_Get(&OPP_sym);
 			OPP_ConstExpression(&y);
-			yval = y->conval->intval;
+			yval = OPM_Longint(y->conval->intval);
 			if (((int16)y->typ->form != f && !((f == 4 && y->typ->form == 4)))) {
 				OPP_err(60);
 			}
