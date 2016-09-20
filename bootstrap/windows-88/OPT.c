@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/18] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -138,6 +138,7 @@ export void OPT_Init (OPS_Name name, SET opt);
 static void OPT_InitStruct (OPT_Struct *typ, int8 form);
 export void OPT_Insert (OPS_Name name, OPT_Object *obj);
 export void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
+export int32 OPT_IntSize (int64 n);
 export OPT_Struct OPT_IntType (int64 size);
 export OPT_Const OPT_NewConst (void);
 export OPT_ConstExt OPT_NewExt (void);
@@ -161,6 +162,21 @@ static void OPT_err (int32 n);
 static void OPT_err (int32 n)
 {
 	OPM_err(n);
+}
+
+int32 OPT_IntSize (int64 n)
+{
+	int32 _o_result;
+	int32 bytes;
+	if (n < 0) {
+		n = -(n + 1);
+	}
+	bytes = 1;
+	while ((bytes < 8 && __ASH(n, -(__ASHL(bytes, 3) - 1)) != 0)) {
+		bytes += 1;
+	}
+	_o_result = bytes;
+	return _o_result;
 }
 
 OPT_Struct OPT_IntType (int64 size)

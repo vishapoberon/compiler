@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/18] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Texts__h
 #define Texts__h
@@ -159,7 +159,7 @@ import void Texts_Write (Texts_Writer *W, LONGINT *W__typ, CHAR ch);
 import void Texts_WriteDate (Texts_Writer *W, LONGINT *W__typ, int32 t, int32 d);
 import void Texts_WriteElem (Texts_Writer *W, LONGINT *W__typ, Texts_Elem e);
 import void Texts_WriteHex (Texts_Writer *W, LONGINT *W__typ, int32 x);
-import void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int32 x, int32 n);
+import void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n);
 import void Texts_WriteLn (Texts_Writer *W, LONGINT *W__typ);
 import void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, int16 n);
 import void Texts_WriteLongRealHex (Texts_Writer *W, LONGINT *W__typ, LONGREAL x);

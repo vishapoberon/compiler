@@ -4,6 +4,8 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 MODULE ethMD5;  (** portable *) (* ejz  *)
   IMPORT SYSTEM;
 
+(* todo. Use fixed size integers and sets. *)
+
 (** The MD5 Message-Digest Algorithm (RFC1321)
 
 The algorithm takes as input a message of arbitrary length and produces
@@ -29,10 +31,10 @@ under a public-key cryptosystem such as RSA. *)
     VAR cont: Context;
   BEGIN
     NEW(cont);
-    cont.buf[0] := 067452301H;
-    cont.buf[1] := 0EFCDAB89H;
-    cont.buf[2] := 098BADCFEH;
-    cont.buf[3] := 010325476H;
+    cont.buf[0] := 00000000067452301H;
+    cont.buf[1] := 0FFFFFFFFEFCDAB89H;
+    cont.buf[2] := 0FFFFFFFF98BADCFEH;
+    cont.buf[3] := 00000000010325476H;
     cont.bits := 0;
     RETURN cont
   END New;
@@ -107,73 +109,73 @@ under a public-key cryptosystem such as RSA. *)
   BEGIN
     a := buf[0]; b := buf[1]; c := buf[2]; d := buf[3];
 
-    STEP1(a, b, c, d, in[0]+0D76AA478H, 7);
-    STEP1(d, a, b, c, in[1]+0E8C7B756H, 12);
-    STEP1(c, d, a, b, in[2]+0242070DBH, 17);
-    STEP1(b, c, d, a, in[3]+0C1BDCEEEH, 22);
-    STEP1(a, b, c, d, in[4]+0F57C0FAFH, 7);
-    STEP1(d, a, b, c, in[5]+04787C62AH, 12);
-    STEP1(c, d, a, b, in[6]+0A8304613H, 17);
-    STEP1(b, c, d, a, in[7]+0FD469501H, 22);
-    STEP1(a, b, c, d, in[8]+0698098D8H, 7);
-    STEP1(d, a, b, c, in[9]+08B44F7AFH, 12);
-    STEP1(c, d, a, b, in[10]+0FFFF5BB1H, 17);
-    STEP1(b, c, d, a, in[11]+0895CD7BEH, 22);
-    STEP1(a, b, c, d, in[12]+06B901122H, 7);
-    STEP1(d, a, b, c, in[13]+0FD987193H, 12);
-    STEP1(c, d, a, b, in[14]+0A679438EH, 17);
-    STEP1(b, c, d, a, in[15]+049B40821H, 22);
+    STEP1(a, b, c, d, in[0]  + 0FFFFFFFFD76AA478H, 7);
+    STEP1(d, a, b, c, in[1]  + 0FFFFFFFFE8C7B756H, 12);
+    STEP1(c, d, a, b, in[2]  + 000000000242070DBH, 17);
+    STEP1(b, c, d, a, in[3]  + 0FFFFFFFFC1BDCEEEH, 22);
+    STEP1(a, b, c, d, in[4]  + 0FFFFFFFFF57C0FAFH, 7);
+    STEP1(d, a, b, c, in[5]  + 0000000004787C62AH, 12);
+    STEP1(c, d, a, b, in[6]  + 0FFFFFFFFA8304613H, 17);
+    STEP1(b, c, d, a, in[7]  + 0FFFFFFFFFD469501H, 22);
+    STEP1(a, b, c, d, in[8]  + 000000000698098D8H, 7);
+    STEP1(d, a, b, c, in[9]  + 0FFFFFFFF8B44F7AFH, 12);
+    STEP1(c, d, a, b, in[10] + 0FFFFFFFFFFFF5BB1H, 17);
+    STEP1(b, c, d, a, in[11] + 0FFFFFFFF895CD7BEH, 22);
+    STEP1(a, b, c, d, in[12] + 0000000006B901122H, 7);
+    STEP1(d, a, b, c, in[13] + 0FFFFFFFFFD987193H, 12);
+    STEP1(c, d, a, b, in[14] + 0FFFFFFFFA679438EH, 17);
+    STEP1(b, c, d, a, in[15] + 00000000049B40821H, 22);
 
-    STEP2(a, b, c, d, in[1]+0F61E2562H, 5);
-    STEP2(d, a, b, c, in[6]+0C040B340H, 9);
-    STEP2(c, d, a, b, in[11]+0265E5A51H, 14);
-    STEP2(b, c, d, a, in[0]+0E9B6C7AAH, 20);
-    STEP2(a, b, c, d, in[5]+0D62F105DH, 5);
-    STEP2(d, a, b, c, in[10]+02441453H, 9);
-    STEP2(c, d, a, b, in[15]+0D8A1E681H, 14);
-    STEP2(b, c, d, a, in[4]+0E7D3FBC8H, 20);
-    STEP2(a, b, c, d, in[9]+021E1CDE6H, 5);
-    STEP2(d, a, b, c, in[14]+0C33707D6H, 9);
-    STEP2(c, d, a, b, in[3]+0F4D50D87H, 14);
-    STEP2(b, c, d, a, in[8]+0455A14EDH, 20);
-    STEP2(a, b, c, d, in[13]+0A9E3E905H, 5);
-    STEP2(d, a, b, c, in[2]+0FCEFA3F8H, 9);
-    STEP2(c, d, a, b, in[7]+0676F02D9H, 14);
-    STEP2(b, c, d, a, in[12]+08D2A4C8AH, 20);
+    STEP2(a, b, c, d, in[1]  + 0FFFFFFFFF61E2562H, 5);
+    STEP2(d, a, b, c, in[6]  + 0FFFFFFFFC040B340H, 9);
+    STEP2(c, d, a, b, in[11] + 000000000265E5A51H, 14);
+    STEP2(b, c, d, a, in[0]  + 0FFFFFFFFE9B6C7AAH, 20);
+    STEP2(a, b, c, d, in[5]  + 0FFFFFFFFD62F105DH, 5);
+    STEP2(d, a, b, c, in[10] + 00000000002441453H, 9);
+    STEP2(c, d, a, b, in[15] + 0FFFFFFFFD8A1E681H, 14);
+    STEP2(b, c, d, a, in[4]  + 0FFFFFFFFE7D3FBC8H, 20);
+    STEP2(a, b, c, d, in[9]  + 00000000021E1CDE6H, 5);
+    STEP2(d, a, b, c, in[14] + 0FFFFFFFFC33707D6H, 9);
+    STEP2(c, d, a, b, in[3]  + 0FFFFFFFFF4D50D87H, 14);
+    STEP2(b, c, d, a, in[8]  + 000000000455A14EDH, 20);
+    STEP2(a, b, c, d, in[13] + 0FFFFFFFFA9E3E905H, 5);
+    STEP2(d, a, b, c, in[2]  + 0FFFFFFFFFCEFA3F8H, 9);
+    STEP2(c, d, a, b, in[7]  + 000000000676F02D9H, 14);
+    STEP2(b, c, d, a, in[12] + 0FFFFFFFF8D2A4C8AH, 20);
 
-    STEP3(a, b, c, d, in[5]+0FFFA3942H, 4);
-    STEP3(d, a, b, c, in[8]+08771F681H, 11);
-    STEP3(c, d, a, b, in[11]+06D9D6122H, 16);
-    STEP3(b, c, d, a, in[14]+0FDE5380CH, 23);
-    STEP3(a, b, c, d, in[1]+0A4BEEA44H, 4);
-    STEP3(d, a, b, c, in[4]+04BDECFA9H, 11);
-    STEP3(c, d, a, b, in[7]+0F6BB4B60H, 16);
-    STEP3(b, c, d, a, in[10]+0BEBFBC70H, 23);
-    STEP3(a, b, c, d, in[13]+0289B7EC6H, 4);
-    STEP3(d, a, b, c, in[0]+0EAA127FAH, 11);
-    STEP3(c, d, a, b, in[3]+0D4EF3085H, 16);
-    STEP3(b, c, d, a, in[6]+04881D05H, 23);
-    STEP3(a, b, c, d, in[9]+0D9D4D039H, 4);
-    STEP3(d, a, b, c, in[12]+0E6DB99E5H, 11);
-    STEP3(c, d, a, b, in[15]+01FA27CF8H, 16);
-    STEP3(b, c, d, a, in[2]+0C4AC5665H, 23);
+    STEP3(a, b, c, d, in[5]  + 0FFFFFFFFFFFA3942H, 4);
+    STEP3(d, a, b, c, in[8]  + 0FFFFFFFF8771F681H, 11);
+    STEP3(c, d, a, b, in[11] + 0000000006D9D6122H, 16);
+    STEP3(b, c, d, a, in[14] + 0FFFFFFFFFDE5380CH, 23);
+    STEP3(a, b, c, d, in[1]  + 0FFFFFFFFA4BEEA44H, 4);
+    STEP3(d, a, b, c, in[4]  + 0000000004BDECFA9H, 11);
+    STEP3(c, d, a, b, in[7]  + 0FFFFFFFFF6BB4B60H, 16);
+    STEP3(b, c, d, a, in[10] + 0FFFFFFFFBEBFBC70H, 23);
+    STEP3(a, b, c, d, in[13] + 000000000289B7EC6H, 4);
+    STEP3(d, a, b, c, in[0]  + 0FFFFFFFFEAA127FAH, 11);
+    STEP3(c, d, a, b, in[3]  + 0FFFFFFFFD4EF3085H, 16);
+    STEP3(b, c, d, a, in[6]  + 00000000004881D05H, 23);
+    STEP3(a, b, c, d, in[9]  + 0FFFFFFFFD9D4D039H, 4);
+    STEP3(d, a, b, c, in[12] + 0FFFFFFFFE6DB99E5H, 11);
+    STEP3(c, d, a, b, in[15] + 0000000001FA27CF8H, 16);
+    STEP3(b, c, d, a, in[2]  + 0FFFFFFFFC4AC5665H, 23);
 
-    STEP4(a, b, c, d, in[0]+0F4292244H, 6);
-    STEP4(d, a, b, c, in[7]+0432AFF97H, 10);
-    STEP4(c, d, a, b, in[14]+0AB9423A7H, 15);
-    STEP4(b, c, d, a, in[5]+0FC93A039H, 21);
-    STEP4(a, b, c, d, in[12]+0655B59C3H, 6);
-    STEP4(d, a, b, c, in[3]+08F0CCC92H, 10);
-    STEP4(c, d, a, b, in[10]+0FFEFF47DH, 15);
-    STEP4(b, c, d, a, in[1]+085845DD1H, 21);
-    STEP4(a, b, c, d, in[8]+06FA87E4FH, 6);
-    STEP4(d, a, b, c, in[15]+0FE2CE6E0H, 10);
-    STEP4(c, d, a, b, in[6]+0A3014314H, 15);
-    STEP4(b, c, d, a, in[13]+04E0811A1H, 21);
-    STEP4(a, b, c, d, in[4]+0F7537E82H, 6);
-    STEP4(d, a, b, c, in[11]+ 0BD3AF235H, 10);
-    STEP4(c, d, a, b, in[2]+02AD7D2BBH, 15);
-    STEP4(b, c, d, a, in[9]+0EB86D391H, 21);
+    STEP4(a, b, c, d, in[0]  + 0FFFFFFFFF4292244H, 6);
+    STEP4(d, a, b, c, in[7]  + 000000000432AFF97H, 10);
+    STEP4(c, d, a, b, in[14] + 0FFFFFFFFAB9423A7H, 15);
+    STEP4(b, c, d, a, in[5]  + 0FFFFFFFFFC93A039H, 21);
+    STEP4(a, b, c, d, in[12] + 000000000655B59C3H, 6);
+    STEP4(d, a, b, c, in[3]  + 0FFFFFFFF8F0CCC92H, 10);
+    STEP4(c, d, a, b, in[10] + 0FFFFFFFFFFEFF47DH, 15);
+    STEP4(b, c, d, a, in[1]  + 0FFFFFFFF85845DD1H, 21);
+    STEP4(a, b, c, d, in[8]  + 0000000006FA87E4FH, 6);
+    STEP4(d, a, b, c, in[15] + 0FFFFFFFFFE2CE6E0H, 10);
+    STEP4(c, d, a, b, in[6]  + 0FFFFFFFFA3014314H, 15);
+    STEP4(b, c, d, a, in[13] + 0000000004E0811A1H, 21);
+    STEP4(a, b, c, d, in[4]  + 0FFFFFFFFF7537E82H, 6);
+    STEP4(d, a, b, c, in[11] + 0FFFFFFFFBD3AF235H, 10);
+    STEP4(c, d, a, b, in[2]  + 0000000002AD7D2BBH, 15);
+    STEP4(b, c, d, a, in[9]  + 0FFFFFFFFEB86D391H, 21);
 
     INC(buf[0], a); INC(buf[1], b);
     INC(buf[2], c); INC(buf[3], d)

@@ -105,12 +105,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END EmptySet;
 
   PROCEDURE SetIntType(node: OPT.Node);
-    VAR b: INTEGER; n: SYSTEM.INT64;
-  BEGIN
-    (* Determine number of bytes required to represent constant value *)
-    IF node.conval.intval >= 0 THEN n := node.conval.intval ELSE n := -(node.conval.intval+1) END;
-    b := 1; WHILE (b < 8) & (ASH(n, -(8*b-1)) # 0) DO INC(b) END;
-    node.typ := OPT.IntType(b)
+  BEGIN node.typ := OPT.IntType(OPT.IntSize(node.conval.intval))
   END SetIntType;
 
   PROCEDURE NewIntConst*(intval: SYSTEM.INT64): OPT.Node;

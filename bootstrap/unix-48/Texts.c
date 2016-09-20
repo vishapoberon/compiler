@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/18] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -221,7 +221,7 @@ export void Texts_Write (Texts_Writer *W, LONGINT *W__typ, CHAR ch);
 export void Texts_WriteDate (Texts_Writer *W, LONGINT *W__typ, int32 t, int32 d);
 export void Texts_WriteElem (Texts_Writer *W, LONGINT *W__typ, Texts_Elem e);
 export void Texts_WriteHex (Texts_Writer *W, LONGINT *W__typ, int32 x);
-export void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int32 x, int32 n);
+export void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n);
 export void Texts_WriteLn (Texts_Writer *W, LONGINT *W__typ);
 export void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, int16 n);
 export void Texts_WriteLongRealHex (Texts_Writer *W, LONGINT *W__typ, LONGREAL x);
@@ -1050,15 +1050,15 @@ void Texts_WriteString (Texts_Writer *W, LONGINT *W__typ, CHAR *s, LONGINT s__le
 	__DEL(s);
 }
 
-void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int32 x, int32 n)
+void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n)
 {
 	int16 i;
-	int32 x0;
-	CHAR a[22];
+	int64 x0;
+	CHAR a[24];
 	i = 0;
 	if (x < 0) {
-		if (x == (-2147483647-1)) {
-			Texts_WriteString(&*W, W__typ, (CHAR*)" -2147483648", 13);
+		if (x == (-9223372036854775807-1)) {
+			Texts_WriteString(&*W, W__typ, (CHAR*)" -9223372036854775808", 22);
 			return;
 		} else {
 			n -= 1;
@@ -1068,11 +1068,11 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int32 x, int32 n)
 		x0 = x;
 	}
 	do {
-		a[__X(i, 22)] = (CHAR)((int)__MOD(x0, 10) + 48);
+		a[__X(i, 24)] = (CHAR)(__MOD(x0, 10) + 48);
 		x0 = __DIV(x0, 10);
 		i += 1;
 	} while (!(x0 == 0));
-	while (n > i) {
+	while (n > (int64)i) {
 		Texts_Write(&*W, W__typ, ' ');
 		n -= 1;
 	}
@@ -1081,7 +1081,7 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int32 x, int32 n)
 	}
 	do {
 		i -= 1;
-		Texts_Write(&*W, W__typ, a[__X(i, 22)]);
+		Texts_Write(&*W, W__typ, a[__X(i, 24)]);
 	} while (!(i == 0));
 }
 

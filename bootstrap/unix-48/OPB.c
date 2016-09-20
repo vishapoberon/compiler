@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/18] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -221,18 +221,7 @@ OPT_Node OPB_EmptySet (void)
 
 static void OPB_SetIntType (OPT_Node node)
 {
-	int16 b;
-	int64 n;
-	if (node->conval->intval >= 0) {
-		n = node->conval->intval;
-	} else {
-		n = -(node->conval->intval + 1);
-	}
-	b = 1;
-	while ((b < 8 && __ASH(n, -(__ASHL(b, 3) - 1)) != 0)) {
-		b += 1;
-	}
-	node->typ = OPT_IntType(b);
+	node->typ = OPT_IntType(OPT_IntSize(node->conval->intval));
 }
 
 OPT_Node OPB_NewIntConst (int64 intval)

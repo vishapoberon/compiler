@@ -212,6 +212,14 @@ VAR
 PROCEDURE err(n: INTEGER); BEGIN OPM.err(n) END err;
 
 
+PROCEDURE IntSize*(n: SYSTEM.INT64):INTEGER;
+(* Determines number of bytes required to store signed value n. *)
+  VAR bytes: INTEGER;
+BEGIN
+  IF n < 0 THEN n := -(n+1) END;
+  bytes := 1; WHILE (bytes < 8) & (ASH(n, -(8*bytes-1)) # 0) DO INC(bytes) END;
+  RETURN bytes
+END IntSize;
 
 PROCEDURE IntType*(size: LONGINT): Struct;
 (* Selects smallest standard integer type for given size in bytes *)

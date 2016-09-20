@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/18] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -1054,7 +1054,7 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n)
 {
 	int32 i;
 	int64 x0;
-	CHAR a[22];
+	CHAR a[24];
 	i = 0;
 	if (x < 0) {
 		if (x == (-9223372036854775807-1)) {
@@ -1068,7 +1068,7 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n)
 		x0 = x;
 	}
 	do {
-		a[__X(i, 22)] = (CHAR)(__MOD(x0, 10) + 48);
+		a[__X(i, 24)] = (CHAR)(__MOD(x0, 10) + 48);
 		x0 = __DIV(x0, 10);
 		i += 1;
 	} while (!(x0 == 0));
@@ -1081,7 +1081,7 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n)
 	}
 	do {
 		i -= 1;
-		Texts_Write(&*W, W__typ, a[__X(i, 22)]);
+		Texts_Write(&*W, W__typ, a[__X(i, 24)]);
 	} while (!(i == 0));
 }
 
