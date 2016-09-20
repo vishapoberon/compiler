@@ -7,7 +7,7 @@
 
 
 import int16 OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
-import int32 OPM_MaxIndex;
+import int64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;
 import int32 OPM_curpos, OPM_errpos, OPM_breakpc;
@@ -40,8 +40,8 @@ import void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 import void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
 import BOOLEAN OPM_OpenPar (void);
 import void OPM_RegisterNewSym (void);
-import int32 OPM_SignedMaximum (int32 bytecount);
-import int32 OPM_SignedMinimum (int32 bytecount);
+import int64 OPM_SignedMaximum (int32 bytecount);
+import int64 OPM_SignedMinimum (int32 bytecount);
 import void OPM_SymRCh (CHAR *ch);
 import int32 OPM_SymRInt (void);
 import int64 OPM_SymRInt64 (void);

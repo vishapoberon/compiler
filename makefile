@@ -157,6 +157,25 @@ full: configuration
 	@make -f src/tools/make/vishap.make -s showpath
 
 
+# short - like make full, but omitting most libraries
+# Convenient for testing changes to the compilersource but not a shippable result
+short: configuration
+	@make -f src/tools/make/vishap.make -s installable
+	@-make -f src/tools/make/vishap.make -s uninstall
+	@make -f src/tools/make/vishap.make -s clean
+# Make bootstrap compiler from source suitable for current data model
+	@printf "\n\n--- Compiler build started ---\n\n"
+	@make -f src/tools/make/vishap.make -s compilerfromsavedsource
+# Use bootstrap compiler to make compiler binary from latest compiler sources
+	@make -f src/tools/make/vishap.make -s translate
+	@make -f src/tools/make/vishap.make -s assemble
+# Use latest compiler to make compiler binary from latest compiler sources
+	@make -f src/tools/make/vishap.make -s translate
+	@make -f src/tools/make/vishap.make -s assemble
+	@printf "\n\n--- Compiler build successfull ---\n\n"
+	@make -f src/tools/make/vishap.make -s v4
+	@make -f src/tools/make/vishap.make -s misc
+
 
 assemble:
 	@make -f src/tools/make/vishap.make -s assemble

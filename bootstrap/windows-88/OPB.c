@@ -17,7 +17,7 @@ static int64 OPB_maxExp;
 
 export void OPB_Assign (OPT_Node *x, OPT_Node y);
 static void OPB_BindNodes (int8 class, OPT_Struct typ, OPT_Node *x, OPT_Node y);
-static int64 OPB_BoolToInt (BOOLEAN b);
+static int32 OPB_BoolToInt (BOOLEAN b);
 export void OPB_Call (OPT_Node *x, OPT_Node apar, OPT_Object fp);
 static void OPB_CharToString (OPT_Node n);
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode);
@@ -128,9 +128,9 @@ void OPB_Link (OPT_Node *x, OPT_Node *last, OPT_Node y)
 	*last = y;
 }
 
-static int64 OPB_BoolToInt (BOOLEAN b)
+static int32 OPB_BoolToInt (BOOLEAN b)
 {
-	int64 _o_result;
+	int32 _o_result;
 	if (b) {
 		_o_result = 1;
 		return _o_result;

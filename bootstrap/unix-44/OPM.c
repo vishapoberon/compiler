@@ -20,7 +20,7 @@ typedef
 
 static CHAR OPM_SourceFileName[256];
 export int16 OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
-export int32 OPM_MaxIndex;
+export int64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
 export int32 OPM_curpos, OPM_errpos, OPM_breakpc;
@@ -72,8 +72,8 @@ export BOOLEAN OPM_OpenPar (void);
 export void OPM_RegisterNewSym (void);
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt);
 static void OPM_ShowLine (int64 pos);
-export int32 OPM_SignedMaximum (int32 bytecount);
-export int32 OPM_SignedMinimum (int32 bytecount);
+export int64 OPM_SignedMaximum (int32 bytecount);
+export int64 OPM_SignedMinimum (int32 bytecount);
 export void OPM_SymRCh (CHAR *ch);
 export int32 OPM_SymRInt (void);
 export int64 OPM_SymRInt64 (void);
@@ -665,19 +665,19 @@ static void OPM_VerboseListSizes (void)
 	OPM_LogWLn();
 }
 
-int32 OPM_SignedMaximum (int32 bytecount)
+int64 OPM_SignedMaximum (int32 bytecount)
 {
-	int32 _o_result;
-	int32 result;
+	int64 _o_result;
+	int64 result;
 	result = 1;
-	result = __LSH(result, __ASHL(bytecount, 3) - 1, 32);
+	result = __LSH(result, __ASHL(bytecount, 3) - 1, 64);
 	_o_result = result - 1;
 	return _o_result;
 }
 
-int32 OPM_SignedMinimum (int32 bytecount)
+int64 OPM_SignedMinimum (int32 bytecount)
 {
-	int32 _o_result;
+	int64 _o_result;
 	_o_result = -OPM_SignedMaximum(bytecount) - 1;
 	return _o_result;
 }
@@ -871,7 +871,7 @@ void OPM_WriteInt (int64 i)
 {
 	CHAR s[24];
 	int64 i1, k;
-	if ((i == (int64)OPM_SignedMinimum(OPM_IntSize) || i == (int64)OPM_SignedMinimum(OPM_LIntSize)) || i == (int64)OPM_SignedMinimum(8)) {
+	if ((i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) || i == OPM_SignedMinimum(8)) {
 		OPM_Write('(');
 		OPM_WriteInt(i + 1);
 		OPM_WriteString((CHAR*)"-1)", 4);

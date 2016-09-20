@@ -52,7 +52,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     last := y
   END Link;
 
-  PROCEDURE BoolToInt(b: BOOLEAN): LONGINT;
+  PROCEDURE BoolToInt(b: BOOLEAN): INTEGER;
   BEGIN
     IF b THEN RETURN 1 ELSE RETURN 0 END
   END BoolToInt;
@@ -484,10 +484,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     CASE op OF
     |OPS.times: IF f = OPT.Int THEN xv := xval^.intval; yv := yval^.intval;
                   IF (xv = 0) OR (yv = 0) OR  (* division with negative numbers is not defined *)
-                    (xv > 0) & (yv > 0) & (yv <= MAX(LONGINT) DIV xv) OR
-                    (xv > 0) & (yv < 0) & (yv >= MIN(LONGINT) DIV xv) OR
-                    (xv < 0) & (yv > 0) & (xv >= MIN(LONGINT) DIV yv) OR
-                    (xv < 0) & (yv < 0) & (xv  # MIN(LONGINT)) & (yv # MIN(LONGINT)) & (-xv <= MAX(LONGINT) DIV (-yv)) THEN
+                    (xv > 0) & (yv > 0) & (yv <= MAX(SYSTEM.INT64) DIV xv) OR
+                    (xv > 0) & (yv < 0) & (yv >= MIN(SYSTEM.INT64) DIV xv) OR
+                    (xv < 0) & (yv > 0) & (xv >= MIN(SYSTEM.INT64) DIV yv) OR
+                    (xv < 0) & (yv < 0) & (xv  # MIN(SYSTEM.INT64)) & (yv # MIN(SYSTEM.INT64)) & (-xv <= MAX(SYSTEM.INT64) DIV (-yv)) THEN
                     xval^.intval := xv * yv; SetIntType(x)
                   ELSE err(204)
                   END
@@ -536,8 +536,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                 ELSE err(94)
                 END
     |OPS.plus:  IF f = OPT.Int THEN
-                  temp := (yval^.intval >= 0) & (xval^.intval <= MAX(LONGINT) - yval^.intval);
-                  IF temp OR (yval^.intval < 0) & (xval^.intval >= MIN(LONGINT) - yval^.intval) THEN
+                  temp := (yval^.intval >= 0) & (xval^.intval <= MAX(SYSTEM.INT64) - yval^.intval);
+                  IF temp OR (yval^.intval < 0) & (xval^.intval >= MIN(SYSTEM.INT64) - yval^.intval) THEN
                       INC(xval^.intval, yval^.intval); SetIntType(x)
                   ELSE err(206)
                   END
@@ -552,8 +552,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                 ELSIF f # OPT.Undef THEN err(105)
                 END
     |OPS.minus: IF f = OPT.Int THEN
-                  IF (yval^.intval >= 0) & (xval^.intval >= MIN(LONGINT) + yval^.intval) OR
-                    (yval^.intval < 0) & (xval^.intval  <= MAX(LONGINT) + yval^.intval) THEN
+                  IF (yval^.intval >= 0) & (xval^.intval >= MIN(SYSTEM.INT64) + yval^.intval) OR
+                    (yval^.intval < 0) & (xval^.intval  <= MAX(SYSTEM.INT64) + yval^.intval) THEN
                       DEC(xval^.intval, yval^.intval); SetIntType(x)
                   ELSE err(207)
                   END
@@ -605,9 +605,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         END
       ELSIF f IN OPT.realSet THEN
         IF g IN OPT.realSet THEN CheckRealType(g, 203, x^.conval)
-        ELSE (*g = OPT.LInt*)
+        ELSE (* g = OPT.Int *)
           r := x^.conval^.realval;
-          IF (r < MIN(LONGINT)) OR (r > MAX(LONGINT)) THEN err(203); r := 1 END ;
+          IF (r < MIN(SYSTEM.INT64)) OR (r > MAX(SYSTEM.INT64)) THEN err(203); r := 1 END ;
           x^.conval^.intval := ENTIER(r); SetIntType(x)
         END
       ELSE (* (f IN {OPT.Char, OPT.Byte}) & (g IN {OPT.Byte} + OPT.intSet) OR (f = OPT.Undef) *)

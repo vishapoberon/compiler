@@ -94,7 +94,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     LIntSize*, SetSize*, RealSize*, LRealSize*, PointerSize*, ProcSize*, RecSize*,
     MaxSet*: INTEGER;
 
-    MaxIndex*: LONGINT;
+    MaxIndex*: SYSTEM.INT64;
 
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;
 
@@ -557,15 +557,15 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* Integer size support *)
 
-  PROCEDURE SignedMaximum*(bytecount: LONGINT): LONGINT;
-  VAR result: LONGINT;
+  PROCEDURE SignedMaximum*(bytecount: LONGINT): SYSTEM.INT64;
+  VAR result: SYSTEM.INT64;
   BEGIN
     result := 1;
     result := SYSTEM.LSH(result, bytecount*8-1);
     RETURN result - 1;
   END SignedMaximum;
 
-  PROCEDURE SignedMinimum*(bytecount: LONGINT): LONGINT;
+  PROCEDURE SignedMinimum*(bytecount: LONGINT): SYSTEM.INT64;
   BEGIN RETURN -SignedMaximum(bytecount) - 1
   END SignedMinimum;
 

@@ -275,7 +275,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 		OPP_ConstExpression(&x);
 		if (x->typ->form == 4) {
 			n = x->conval->intval;
-			if (n <= 0 || n > (int64)OPM_MaxIndex) {
+			if (n <= 0 || n > OPM_MaxIndex) {
 				OPP_err(63);
 				n = 1;
 			}
