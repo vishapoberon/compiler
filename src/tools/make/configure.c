@@ -351,6 +351,7 @@ void testSystemDotH() {
   assert(((char*)&s.x  - (char*)&s)  == MIN(alignment, sizeof(SET)), "Alignment of SET differs from alignmnet of LONGINT.");
   assert(((char*)&p.x  - (char*)&p)  == addressSize, "Alignment of data pointer differs from address size.");
   assert(((char*)&f.x  - (char*)&f)  == addressSize, "Alignment of data pointer differs from address size.");
+  assert(((char*)&lr.x - (char*)&lr) == ((char*)&ll.x - (char*)&ll), "Alignment of LONGREAL differs from alignment of long long.");
 
   assert(sizeof(rec0) ==  1, "CHAR wrapped in record aligns differently to CHAR alone.");
   assert(sizeof(rec2) == 65, "CHAR array wrapped in record aligns differently to CHAR array alone.");
