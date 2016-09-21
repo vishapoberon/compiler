@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -1733,10 +1733,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 			}
 			OPT_OutObj(OPT_topScope->right);
 			*ext = (OPT_sfpresent && OPT_symExtended);
-			*new = !OPT_sfpresent || OPT_symNew;
-			if (OPM_forceNewSym) {
-				*new = 1;
-			}
+			*new = (!OPT_sfpresent || OPT_symNew) || __IN(17, OPM_opt, 32);
 			if ((((OPM_noerr && OPT_sfpresent)) && OPT_impCtxt.reffp != OPT_expCtxt.reffp)) {
 				*new = 1;
 				if (!OPT_extsf) {

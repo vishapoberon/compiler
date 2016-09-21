@@ -8,7 +8,9 @@ VAR compilationOptions, CFLAGS: ARRAY 1023 OF CHAR;
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
   VAR r, status, exitcode: INTEGER;
 BEGIN
-  IF OPM.Verbose THEN Console.String(title); Console.String(cmd); Console.Ln END;
+  IF OPM.verbose IN OPM.opt THEN
+    Console.String(title); Console.String(cmd); Console.Ln
+  END;
   r := Platform.System(cmd);
   status := r MOD 128;
   exitcode := r DIV 256;

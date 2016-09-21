@@ -830,11 +830,11 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       g: INTEGER;    (* expression (source) form *)
       p, q: OPT.Struct;
   BEGIN
-    IF OPM.Verbose THEN
+    IF OPM.verbose IN OPM.opt THEN
        OPM.LogWLn; OPM.LogWStr("PROCEDURE CheckAssign"); OPM.LogWLn;
     END;
     y := ynode^.typ; f := x^.form; g := y^.form;
-    IF OPM.Verbose THEN
+    IF OPM.verbose IN OPM.opt THEN
        OPM.LogWStr("y.form = "); OPM.LogWNum(y.form, 0); OPM.LogWLn;
        OPM.LogWStr("f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
        OPM.LogWStr("g = "); OPM.LogWNum(g, 0); OPM.LogWLn;

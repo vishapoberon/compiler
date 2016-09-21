@@ -15,7 +15,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     typchk*         = 3;  (* type check on *)
     newsf*          = 4;  (* generation of new symbol file allowed *)
     ptrinit*        = 5;  (* pointer initialization *)
-    ansi*           = 6;  (* ANSI or K&R style prototypes *)
     assert*         = 7;  (* assert evaluation *)
     extsf*          = 9;  (* extension of old symbol file allowed *)
     mainprog*       = 10; (* translate module body into C main function *)
@@ -25,7 +24,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     notcoloroutput* = 16; (* turn off color output *)
     forcenewsym*    = 17; (* force new symbol file *)
     verbose*        = 18; (* verbose *)
-    defopt*         = {inxchk, typchk, ptrinit, ansi, assert};  (* default options *)
+    defopt*         = {inxchk, typchk, ptrinit, assert};  (* default options *)
 
     nilval*         = 0;
 
@@ -122,8 +121,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     S: INTEGER;
 
-    dontAsm-, dontLink-, mainProg-, mainLinkStat-, notColorOutput-, forceNewSym-, Verbose-: BOOLEAN;
-
     OBERON:  ARRAY 1024 OF CHAR;
     MODULES: ARRAY 1024 OF CHAR;
 
@@ -143,25 +140,53 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* ------------------------- parameter handling -------------------------*)
 
-  PROCEDURE ScanOptions(VAR s: ARRAY OF CHAR; VAR opt: SET);
+  PROCEDURE ScanOptions(s: ARRAY OF CHAR; VAR opt: SET);
     VAR i: INTEGER;
   BEGIN
   i := 1; (* skip - *)
     WHILE s[i] # 0X DO
       CASE s[i] OF
 
-      | "a": opt := opt / {assert}
-      | "c": opt := opt / {dontlink}
-      | "e": opt := opt / {extsf}
-      | "f": opt := opt / {notcoloroutput}
-      | "k": opt := opt / {ansi}             (* undocumented *)
-      | "m": opt := opt / {mainprog}
-      | "p": opt := opt / {ptrinit}
-      | "r": opt := opt / {ranchk}
-      | "s": opt := opt / {newsf}
-      | "t": opt := opt / {typchk}
-      | "x": opt := opt / {inxchk}
+      (* Run time safety *)
+      | "p": opt := opt / {ptrinit}          (* Initialise pointers to NIL. *)
+      | "a": opt := opt / {assert}           (* Halt on assertion failures. *)
+      | "r": opt := opt / {ranchk}           (* Halt on range check failures. *)
+      | "t": opt := opt / {typchk}           (* Halt on type guad failure. *)
+      | "x": opt := opt / {inxchk}           (* Halt on index out of range. *)
 
+      (* Symbol file management *)
+      | "e": opt := opt / {extsf}            (* Allow extension of old symbol file. *)
+      | "s": opt := opt / {newsf}            (* Allow generation of new symbol file. *)
+      | "F": opt := opt / {forcenewsym}      (* Force generation of new symbol file. *)
+
+      (* C compiler and linker control *)
+      | "m": opt := opt / {mainprog}         (* This module is main. Link dynamically. *)
+      | "M": opt := opt / {mainlinkstat}     (* This module is main. Link statically. *)
+      | "S": opt := opt / {dontasm}          (* Don't call C compiler *)
+      | "c": opt := opt / {dontlink}         (* Don't link. *)
+
+      (* Miscellaneous *)
+      | "f": opt := opt / {notcoloroutput}   (* Disable vt100 control characters in status output. *)
+      | "V": opt := opt / {verbose}
+
+      (* Elementary type size model *)
+      | "O": IF i+1 >= Strings.Length(s) THEN LogWStr("-O option requires following size model character."); LogWLn ELSE
+               CASE s[i+1] OF
+               |'2': ShortintSize := 1; IntegerSize := 2; LongintSize := 4; SetSize := 4  (* Original Oberon / Oberon 2 *)
+               |'V': ShortintSize := 1; IntegerSize := 4; LongintSize := 8; SetSize := 8  (* Vishap 64 bit *)
+               |'C': ShortintSize := 2; IntegerSize := 4; LongintSize := 8; SetSize := 8  (* Component Pascal *)
+               ELSE LogWStr("Unrecognised size model character following -O."); LogWLn
+               END;
+               INC(i)
+             END
+
+      (* Target machine address size and alignment *)
+      | "A": IF i+2 >= Strings.Length(s) THEN LogWStr("-M option requires two following digits."); LogWLn ELSE
+               AddressSize := ORD(s[i+1]) - ORD('0'); Alignment := ORD(s[i+2]) - ORD('0');
+               INC(i, 2)
+             END
+
+      (* Temporary build control option - remove when makefile updated to new options. *)
       | "B": IF s[i+1] # 0X THEN INC(i); IntegerSize := ORD(s[i]) - ORD('0') END;
              IF s[i+1] # 0X THEN INC(i); AddressSize := ORD(s[i]) - ORD('0') END;
              IF s[i+1] # 0X THEN INC(i); Alignment   := ORD(s[i]) - ORD('0') END;
@@ -176,11 +201,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
                SetSize     := 8;
              END;
              Files.SetSearchPath("")
-
-      | "F": opt := opt / {forcenewsym}
-      | "M": opt := opt / {mainlinkstat}
-      | "S": opt := opt / {dontasm}
-      | "V": opt := opt / {verbose}
       ELSE
         LogWStr("  warning: option ");
         LogW(OptionChar);
@@ -223,20 +243,37 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr('  '); LogWStr(Configuration.name); LogWStr(' options {files {options}}.'); LogWLn; LogWLn;
       LogWStr('Where options = ["-" {option} ].'); LogWLn;
       LogWLn;
-      LogWStr("  m - generate code for main module"); LogWLn;
-      LogWStr("  M - generate code for main module and link object statically"); LogWLn;
-      LogWStr("  s - generate new symbol file"); LogWLn;
-      LogWStr("  e - allow extending the module interface"); LogWLn;
-      LogWStr("  r - check value ranges"); LogWLn;
-      LogWStr("  x - turn off array indices check"); LogWLn;
-      LogWStr("  a - don't check ASSERTs at runtime, use this option in tested production code"); LogWLn;
-      LogWStr("  p - turn off automatic pointer initialization"); LogWLn;
-      LogWStr("  t - don't check type guards (use in rare cases such as low-level modules where every cycle counts)"); LogWLn;
-      LogWStr("  S - don't call external assembler/compiler, only generate C code"); LogWLn;
-      LogWStr("  c - don't call linker"); LogWLn;
-      LogWStr("  f - don't use color output"); LogWLn;
-      LogWStr("  F - force writing new symbol file in current directory"); LogWLn;
-      LogWStr("  V - verbose output"); LogWLn;
+      LogWStr("  Run time safety");                                                                                LogWLn;
+      LogWStr("    -p   Initialise pointers to NIL.");                                                             LogWLn;
+      LogWStr("    -a   Halt on assertion failures.");                                                             LogWLn;
+      LogWStr("    -r   Halt on range check failures.");                                                           LogWLn;
+      LogWStr("    -t   Halt on type guad failure.");                                                              LogWLn;
+      LogWStr("    -x   Halt on index out of range.");                                                             LogWLn;
+      LogWLn;
+      LogWStr("  Symbol file management");                                                                         LogWLn;
+      LogWStr("    -e   Allow extension of old symbol file.");                                                     LogWLn;
+      LogWStr("    -s   Allow generation of new symbol file.");                                                    LogWLn;
+      LogWStr("    -F   Force generation of new symbol file.");                                                    LogWLn;
+      LogWLn;
+      LogWStr("  C compiler and linker control");                                                                  LogWLn;
+      LogWStr("    -m   This module is main. Link dynamically.");                                                  LogWLn;
+      LogWStr("    -M   This module is main. Link statically.");                                                   LogWLn;
+      LogWStr("    -S   Don't call C compiler");                                                                   LogWLn;
+      LogWStr("    -c   Don't link.");                                                                             LogWLn;
+      LogWLn;
+      LogWStr("  Miscellaneous");                                                                                  LogWLn;
+      LogWStr("    -f   Disable vt100 control characters in status output.");                                      LogWLn;
+      LogWStr("    -V   Display compiler debugging messages.");                                                    LogWLn;
+      LogWLn;
+      LogWStr("  Size model for elementary types");                                                                LogWLn;
+      LogWStr("    -O2   Original Oberon / Oberon-2: 8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.");    LogWLn;
+      LogWStr("    -OC   Component Pascal:          16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");    LogWLn;
+      LogWStr("    -OV   Alternate large model:      8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");    LogWLn;
+      LogWLn;
+      LogWStr("  Target machine address size and alignment");                                                      LogWLn;
+      LogWStr("    -A44   32 bit addresses, 32 bit alignment (e.g. Unix/linux 32 bit on x86).");                   LogWLn;
+      LogWStr("    -A48   32 bit addresses, 64 bit alignment (e.g. Windows 32 bit on x86, linux 32 bit on arm)."); LogWLn;
+      LogWStr("    -A88   66 bit addresses, 64 bit alignment (e.g. 64 bit platforms).");                           LogWLn;
       LogWLn;
       LogWStr('Initial options specify defaults for all files.'); LogWLn;
       LogWStr('Options following a filename are specific to that file.'); LogWLn;
@@ -267,6 +304,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       INC(S); s:=""; Platform.GetArg(S, s)
     END;
 
+    (*
     dontAsm        := dontasm        IN opt;
     dontLink       := dontlink       IN opt;
     mainProg       := mainprog       IN opt;
@@ -274,8 +312,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     notColorOutput := notcoloroutput IN opt;
     forceNewSym    := forcenewsym    IN opt;
     Verbose        := verbose        IN opt;
+    *)
 
-    IF mainLinkStat THEN INCL(glbopt, mainprog) END; (* sic *)
+    IF mainlinkstat IN opt THEN INCL(glbopt, mainprog); INCL(opt, mainprog) END;
 
     GetProperties;
   END InitOptions;
@@ -346,13 +385,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       buf: ARRAY 1024 OF CHAR;
   BEGIN
     IF n >= 0 THEN
-       IF ~notColorOutput THEN vt100.SetAttr(vt100.Red) END;
+       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.Red) END;
        LogWStr("  err ");
-       IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.ResetAll) END;
     ELSE
-       IF ~notColorOutput THEN vt100.SetAttr(vt100.Magenta) END;
+       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.Magenta) END;
        LogWStr("  warning "); n := -n;
-       IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.ResetAll) END;
     END ;
     LogWNum(n, 1);
     LogWStr("  ");
@@ -425,9 +464,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     i := SHORT(Longint(pos - ErrorLineStartPos));
     WHILE i > 0 DO LogW(" "); DEC(i) END;
 
-    IF ~notColorOutput THEN vt100.SetAttr(vt100.Green) END;
+    IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.Green) END;
     LogW("^");
-    IF ~notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+    IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.ResetAll) END;
 
     Files.Close(f);
   END ShowLine;
@@ -604,7 +643,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     MaxSet   := SetSize * 8 - 1;
     MaxIndex := SignedMaximum(AddressSize);
 
-    IF Verbose THEN VerboseListSizes END;
+    IF verbose IN opt THEN VerboseListSizes END;
   END GetProperties;
 
   (* ------------------------- Read Symbol File ------------------------- *)

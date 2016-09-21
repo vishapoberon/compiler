@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -36,7 +36,6 @@ static Files_Rider OPM_oldSF, OPM_newSF;
 static Files_Rider OPM_R[3];
 static Files_File OPM_oldSFile, OPM_newSFile, OPM_HFile, OPM_BFile, OPM_HIFile;
 static int32 OPM_S;
-export BOOLEAN OPM_dontAsm, OPM_dontLink, OPM_mainProg, OPM_mainLinkStat, OPM_notColorOutput, OPM_forceNewSym, OPM_Verbose;
 static CHAR OPM_OBERON[1024];
 static CHAR OPM_MODULES[1024];
 
@@ -137,41 +136,93 @@ int32 OPM_Integer (int64 n)
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 {
 	int32 i;
+	__DUP(s, s__len, CHAR);
 	i = 1;
 	while (s[__X(i, s__len)] != 0x00) {
 		switch (s[__X(i, s__len)]) {
-			case 'a': 
-				*opt = *opt ^ 0x80;
-				break;
-			case 'c': 
-				*opt = *opt ^ 0x4000;
-				break;
-			case 'e': 
-				*opt = *opt ^ 0x0200;
-				break;
-			case 'f': 
-				*opt = *opt ^ 0x010000;
-				break;
-			case 'k': 
-				*opt = *opt ^ 0x40;
-				break;
-			case 'm': 
-				*opt = *opt ^ 0x0400;
-				break;
 			case 'p': 
 				*opt = *opt ^ 0x20;
 				break;
+			case 'a': 
+				*opt = *opt ^ 0x80;
+				break;
 			case 'r': 
 				*opt = *opt ^ 0x04;
-				break;
-			case 's': 
-				*opt = *opt ^ 0x10;
 				break;
 			case 't': 
 				*opt = *opt ^ 0x08;
 				break;
 			case 'x': 
 				*opt = *opt ^ 0x01;
+				break;
+			case 'e': 
+				*opt = *opt ^ 0x0200;
+				break;
+			case 's': 
+				*opt = *opt ^ 0x10;
+				break;
+			case 'F': 
+				*opt = *opt ^ 0x020000;
+				break;
+			case 'm': 
+				*opt = *opt ^ 0x0400;
+				break;
+			case 'M': 
+				*opt = *opt ^ 0x8000;
+				break;
+			case 'S': 
+				*opt = *opt ^ 0x2000;
+				break;
+			case 'c': 
+				*opt = *opt ^ 0x4000;
+				break;
+			case 'f': 
+				*opt = *opt ^ 0x010000;
+				break;
+			case 'V': 
+				*opt = *opt ^ 0x040000;
+				break;
+			case 'O': 
+				if (i + 1 >= Strings_Length(s, s__len)) {
+					OPM_LogWStr((CHAR*)"-O option requires following size model character.", 51);
+					OPM_LogWLn();
+				} else {
+					switch (s[__X(i + 1, s__len)]) {
+						case '2': 
+							OPM_ShortintSize = 1;
+							OPM_IntegerSize = 2;
+							OPM_LongintSize = 4;
+							OPM_SetSize = 4;
+							break;
+						case 'V': 
+							OPM_ShortintSize = 1;
+							OPM_IntegerSize = 4;
+							OPM_LongintSize = 8;
+							OPM_SetSize = 8;
+							break;
+						case 'C': 
+							OPM_ShortintSize = 2;
+							OPM_IntegerSize = 4;
+							OPM_LongintSize = 8;
+							OPM_SetSize = 8;
+							break;
+						default: 
+							OPM_LogWStr((CHAR*)"Unrecognised size model character following -O.", 48);
+							OPM_LogWLn();
+							break;
+					}
+					i += 1;
+				}
+				break;
+			case 'A': 
+				if (i + 2 >= Strings_Length(s, s__len)) {
+					OPM_LogWStr((CHAR*)"-M option requires two following digits.", 41);
+					OPM_LogWLn();
+				} else {
+					OPM_AddressSize = s[__X(i + 1, s__len)] - 48;
+					OPM_Alignment = s[__X(i + 2, s__len)] - 48;
+					i += 2;
+				}
 				break;
 			case 'B': 
 				if (s[__X(i + 1, s__len)] != 0x00) {
@@ -198,18 +249,6 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 				}
 				Files_SetSearchPath((CHAR*)"", 1);
 				break;
-			case 'F': 
-				*opt = *opt ^ 0x020000;
-				break;
-			case 'M': 
-				*opt = *opt ^ 0x8000;
-				break;
-			case 'S': 
-				*opt = *opt ^ 0x2000;
-				break;
-			case 'V': 
-				*opt = *opt ^ 0x040000;
-				break;
 			default: 
 				OPM_LogWStr((CHAR*)"  warning: option ", 19);
 				OPM_LogW('-');
@@ -220,6 +259,7 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 		}
 		i += 1;
 	}
+	__DEL(s);
 }
 
 BOOLEAN OPM_OpenPar (void)
@@ -246,33 +286,62 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWStr((CHAR*)"Where options = [\"-\" {option} ].", 33);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  m - generate code for main module", 36);
+		OPM_LogWStr((CHAR*)"  Run time safety", 18);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  M - generate code for main module and link object statically", 63);
+		OPM_LogWStr((CHAR*)"    -p   Initialise pointers to NIL.", 37);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  s - generate new symbol file", 31);
+		OPM_LogWStr((CHAR*)"    -a   Halt on assertion failures.", 37);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  e - allow extending the module interface", 43);
+		OPM_LogWStr((CHAR*)"    -r   Halt on range check failures.", 39);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  r - check value ranges", 25);
+		OPM_LogWStr((CHAR*)"    -t   Halt on type guad failure.", 36);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  x - turn off array indices check", 35);
+		OPM_LogWStr((CHAR*)"    -x   Halt on index out of range.", 37);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  a - don't check ASSERTs at runtime, use this option in tested production code", 80);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  p - turn off automatic pointer initialization", 48);
+		OPM_LogWStr((CHAR*)"  Symbol file management", 25);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  t - don't check type guards (use in rare cases such as low-level modules where every cycle counts)", 101);
+		OPM_LogWStr((CHAR*)"    -e   Allow extension of old symbol file.", 45);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  S - don't call external assembler/compiler, only generate C code", 67);
+		OPM_LogWStr((CHAR*)"    -s   Allow generation of new symbol file.", 46);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  c - don't call linker", 24);
+		OPM_LogWStr((CHAR*)"    -F   Force generation of new symbol file.", 46);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  f - don't use color output", 29);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  F - force writing new symbol file in current directory", 57);
+		OPM_LogWStr((CHAR*)"  C compiler and linker control", 32);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  V - verbose output", 21);
+		OPM_LogWStr((CHAR*)"    -m   This module is main. Link dynamically.", 48);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -M   This module is main. Link statically.", 47);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -S   Don't call C compiler", 31);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -c   Don't link.", 21);
+		OPM_LogWLn();
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  Miscellaneous", 16);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -f   Disable vt100 control characters in status output.", 60);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -V   Display compiler debugging messages.", 46);
+		OPM_LogWLn();
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  Size model for elementary types", 34);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -O2   Original Oberon / Oberon-2: 8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.", 94);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -OC   Component Pascal:          16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 94);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -OV   Alternate large model:      8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 94);
+		OPM_LogWLn();
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  Target machine address size and alignment", 44);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -A44   32 bit addresses, 32 bit alignment (e.g. Unix/linux 32 bit on x86).", 79);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -A48   32 bit addresses, 64 bit alignment (e.g. Windows 32 bit on x86, linux 32 bit on arm).", 97);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -A88   66 bit addresses, 64 bit alignment (e.g. 64 bit platforms).", 71);
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Initial options specify defaults for all files.", 48);
@@ -287,9 +356,9 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_S = 1;
 		s[0] = 0x00;
 		Platform_GetArg(OPM_S, (void*)s, 256);
-		OPM_glbopt = 0xe9;
+		OPM_glbopt = 0xa9;
 		while (s[0] == '-') {
-			OPM_ScanOptions((void*)s, 256, &OPM_glbopt);
+			OPM_ScanOptions(s, 256, &OPM_glbopt);
 			OPM_S += 1;
 			s[0] = 0x00;
 			Platform_GetArg(OPM_S, (void*)s, 256);
@@ -307,20 +376,14 @@ void OPM_InitOptions (void)
 	s[0] = 0x00;
 	Platform_GetArg(OPM_S, (void*)s, 256);
 	while (s[0] == '-') {
-		OPM_ScanOptions((void*)s, 256, &OPM_opt);
+		OPM_ScanOptions(s, 256, &OPM_opt);
 		OPM_S += 1;
 		s[0] = 0x00;
 		Platform_GetArg(OPM_S, (void*)s, 256);
 	}
-	OPM_dontAsm = __IN(13, OPM_opt, 64);
-	OPM_dontLink = __IN(14, OPM_opt, 64);
-	OPM_mainProg = __IN(10, OPM_opt, 64);
-	OPM_mainLinkStat = __IN(15, OPM_opt, 64);
-	OPM_notColorOutput = __IN(16, OPM_opt, 64);
-	OPM_forceNewSym = __IN(17, OPM_opt, 64);
-	OPM_Verbose = __IN(18, OPM_opt, 64);
-	if (OPM_mainLinkStat) {
+	if (__IN(15, OPM_opt, 64)) {
 		OPM_glbopt |= __SETOF(10,64);
+		OPM_opt |= __SETOF(10,64);
 	}
 	OPM_GetProperties();
 }
@@ -406,20 +469,20 @@ static void OPM_LogErrMsg (int32 n)
 	int32 i;
 	CHAR buf[1024];
 	if (n >= 0) {
-		if (!OPM_notColorOutput) {
+		if (!__IN(16, OPM_opt, 64)) {
 			vt100_SetAttr((CHAR*)"31m", 4);
 		}
 		OPM_LogWStr((CHAR*)"  err ", 7);
-		if (!OPM_notColorOutput) {
+		if (!__IN(16, OPM_opt, 64)) {
 			vt100_SetAttr((CHAR*)"0m", 3);
 		}
 	} else {
-		if (!OPM_notColorOutput) {
+		if (!__IN(16, OPM_opt, 64)) {
 			vt100_SetAttr((CHAR*)"35m", 4);
 		}
 		OPM_LogWStr((CHAR*)"  warning ", 11);
 		n = -n;
-		if (!OPM_notColorOutput) {
+		if (!__IN(16, OPM_opt, 64)) {
 			vt100_SetAttr((CHAR*)"0m", 3);
 		}
 	}
@@ -492,11 +555,11 @@ static void OPM_ShowLine (int64 pos)
 		OPM_LogW(' ');
 		i -= 1;
 	}
-	if (!OPM_notColorOutput) {
+	if (!__IN(16, OPM_opt, 64)) {
 		vt100_SetAttr((CHAR*)"32m", 4);
 	}
 	OPM_LogW('^');
-	if (!OPM_notColorOutput) {
+	if (!__IN(16, OPM_opt, 64)) {
 		vt100_SetAttr((CHAR*)"0m", 3);
 	}
 	Files_Close(f);
@@ -679,7 +742,7 @@ static void OPM_GetProperties (void)
 	OPM_MinLReal = -OPM_MaxLReal;
 	OPM_MaxSet = __ASHL(OPM_SetSize, 3) - 1;
 	OPM_MaxIndex = OPM_SignedMaximum(OPM_AddressSize);
-	if (OPM_Verbose) {
+	if (__IN(18, OPM_opt, 64)) {
 		OPM_VerboseListSizes();
 	}
 }

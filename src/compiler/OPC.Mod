@@ -38,7 +38,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   VAR
     indentLevel: INTEGER;
-    ptrinit, mainprog, ansi: BOOLEAN;
     hashtab:     ARRAY 105 OF SHORTINT;
     keytab:      ARRAY 50, 9 OF CHAR;
     GlbPtrs:     BOOLEAN;
@@ -48,11 +47,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE Init*;
   BEGIN
     indentLevel := 0;
-    ptrinit := OPM.ptrinit IN OPM.opt;
-    (*mainprog := OPM.mainprog IN OPM.opt;*)
-    mainprog := OPM.mainProg OR OPM.mainLinkStat;
-    ansi := OPM.ansi IN OPM.opt;
-    IF ansi THEN BodyNameExt := "__init(void)" ELSE BodyNameExt := "__init()" END
+    BodyNameExt := "__init(void)"
   END Init;
 
   PROCEDURE Indent* (count: INTEGER);
@@ -189,9 +184,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       ELSIF (form = OPT.ProcTyp) OR (comp IN {OPT.Array, OPT.DynArr}) THEN
         IF openClause THEN OPM.Write(')'); openClause := FALSE END ;
         IF form = OPT.ProcTyp THEN
-          IF ansi THEN OPM.Write(")"); AnsiParamList(typ^.link, FALSE)
-          ELSE OPM.WriteString(")()")
-          END ;
+          OPM.Write(")"); AnsiParamList(typ^.link, FALSE);
           EXIT
         ELSIF comp = OPT.Array THEN
           OPM.Write('['); OPM.WriteInt(typ^.n); OPM.Write(']')
@@ -373,9 +366,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR par: OPT.Object;
   BEGIN
     IF obj^.typ # OPT.notyp THEN DefineType(obj^.typ) END ;
-    IF ansi THEN par := obj^.link;
-      WHILE par # NIL DO DefineType(par^.typ); par := par^.link END
-    END
+    par := obj^.link; WHILE par # NIL DO DefineType(par^.typ); par := par^.link END
   END DefineTProcTypes;
 
   PROCEDURE DeclareTProcs(obj: OPT.Object; VAR empty: BOOLEAN);
@@ -428,11 +419,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         Str1(", #, ", obj^.adr DIV 10000H);
         IF obj^.typ = OPT.notyp THEN OPM.WriteString('void') ELSE Ident(obj^.typ^.strobj) END ;
         OPM.WriteString("(*)");
-        IF ansi THEN
-          AnsiParamList(obj^.link, FALSE);
-        ELSE
-          OPM.WriteString("()");
-        END ;
+        AnsiParamList(obj^.link, FALSE);
         OPM.WriteString(", ");
         DeclareParams(obj^.link, TRUE);
         OPM.Write(")"); OPM.WriteLn
@@ -713,7 +700,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           EndStat; BegStat;
           OPM.WriteString("LONGINT *"); Ident(obj); OPM.WriteString(TagExt);
           base := NIL
-        ELSIF ptrinit & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
+        ELSIF (OPM.ptrinit IN OPM.opt) & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
           OPM.WriteString(" = NIL")
         END
       END ;
@@ -754,16 +741,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF proc^.typ = OPT.notyp THEN OPM.WriteString('void') ELSE Ident(proc^.typ^.strobj) END ;
     OPM.Write(' '); Ident(proc); OPM.Write(' ');
-    IF ansi THEN
-      AnsiParamList(proc^.link, TRUE);
-      IF ~define THEN OPM.Write(";") END ;
-      OPM.WriteLn;
-    ELSIF define THEN
-      DeclareParams(proc^.link, FALSE);
-      OPM.WriteLn;
-      Indent(1); IdentList(proc^.link, 2(* map REAL to double *)); Indent(-1)
-    ELSE OPM.WriteString("();"); OPM.WriteLn
-    END
+    AnsiParamList(proc^.link, TRUE);
+    IF ~define THEN OPM.Write(";") END ;
+    OPM.WriteLn
   END ProcHeader;
 
   PROCEDURE ProcPredefs (obj: OPT.Object; vis: SHORTINT); (* forward declaration of procedures *)
@@ -846,7 +826,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         | OPM.typchk:         OPM.Write("t")
         | OPM.newsf:          OPM.Write("s")
         | OPM.ptrinit:        OPM.Write("p")
-        | OPM.ansi:           OPM.Write("k")
         | OPM.assert:         OPM.Write("a")
         | OPM.extsf:          OPM.Write("e")
         | OPM.mainprog:       OPM.Write("m")
@@ -932,14 +911,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       typ := var^.typ;
       IF NofPtrs(typ) > 0 THEN
         IF ~GlbPtrs THEN GlbPtrs := TRUE;
-          OPM.WriteString('static ');
-          IF ansi THEN
-            OPM.WriteString("void EnumPtrs(void (*P)(void*))")
-          ELSE
-            OPM.WriteString("void EnumPtrs(P)"); OPM.WriteLn;
-            OPM.Write(Tab); OPM.WriteString("void (*P)();");
-          END ;
-          OPM.WriteLn;
+          OPM.WriteString("static void EnumPtrs(void (*P)(void*))"); OPM.WriteLn;
           BegBlk
         END ;
         BegStat;
@@ -970,27 +942,22 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE EnterBody*;
   BEGIN
     OPM.WriteLn; OPM.WriteString(Export);
-    IF mainprog THEN
-      IF ansi THEN
-        OPM.WriteString("int main(int argc, char **argv)"); OPM.WriteLn;
-      ELSE
-        OPM.WriteString("main(argc, argv)"); OPM.WriteLn;
-        OPM.Write(Tab); OPM.WriteString("int argc; char **argv;"); OPM.WriteLn
-      END
+    IF OPM.mainprog IN OPM.opt THEN
+      OPM.WriteString("int main(int argc, char **argv)"); OPM.WriteLn;
     ELSE
       OPM.WriteString("void *");
       OPM.WriteString(OPM.modName); OPM.WriteString(BodyNameExt); OPM.WriteLn;
     END ;
     BegBlk; BegStat;
-    IF mainprog THEN OPM.WriteString("__INIT(argc, argv)") ELSE OPM.WriteString("__DEFMOD") END ;
+    IF OPM.mainprog IN OPM.opt THEN OPM.WriteString("__INIT(argc, argv)") ELSE OPM.WriteString("__DEFMOD") END ;
     EndStat;
-    IF mainprog & demoVersion THEN BegStat;
+    IF (OPM.mainprog IN OPM.opt) & demoVersion THEN BegStat;
       OPM.WriteString('/*don`t do it!*/ printf("DEMO VERSION: DO NOT USE THIS PROGRAM FOR ANY COMMERCIAL PURPOSE\n")');
       EndStat
     END ;
     InitImports(OPT.topScope^.right);
     BegStat;
-    IF mainprog THEN OPM.WriteString('__REGMAIN("') ELSE OPM.WriteString('__REGMOD("') END ;
+    IF OPM.mainprog IN OPM.opt THEN OPM.WriteString('__REGMAIN("') ELSE OPM.WriteString('__REGMOD("') END ;
     OPM.WriteString(OPM.modName);
     IF GlbPtrs THEN OPM.WriteString('", EnumPtrs)') ELSE OPM.WriteString('", 0)') END ;
     EndStat;
@@ -1000,7 +967,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE ExitBody*;
   BEGIN
     BegStat;
-    IF mainprog THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
+    IF OPM.mainprog IN OPM.opt THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
     OPM.WriteLn; EndBlk
   END ExitBody;
 
@@ -1051,17 +1018,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         EndStat
       END ;
       var := var^.link
-    END ;
-    IF ~ansi THEN
-      var := proc^.link;
-      WHILE var # NIL DO (* "unpromote" value real parameters *)
-        IF (var^.typ^.form = OPT.Real) & (var^.mode = OPT.Var) THEN
-          BegStat;
-          Ident(var^.typ^.strobj); OPM.Write(' '); Ident(var); OPM.WriteString(" = _"); Ident(var);
-          EndStat
-        END ;
-        var := var^.link
-      END
     END ;
     var := proc^.link;
     WHILE var # NIL DO (* copy value array parameters *)
@@ -1303,7 +1259,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       IF dim # 0 THEN OPM.WriteInt(dim) END
     ELSE (* array *)
       WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END;
-      IF ansi THEN OPM.WriteInt(array.n) ELSE IntLiteral(array.n, OPM.AddressSize) END
+      OPM.WriteInt(array.n)
     END
   END Len;
 

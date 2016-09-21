@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkamSf */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspamSf */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -42,22 +42,22 @@ void Vishap_Module (BOOLEAN *done)
 			OPC_Init();
 			OPV_Module(p);
 			if (OPM_noerr) {
-				if (((OPM_mainProg || OPM_mainLinkStat) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
+				if ((__IN(10, OPM_opt, 64) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
 					OPM_DeleteNewSym();
-					if (!OPM_notColorOutput) {
+					if (!__IN(16, OPM_opt, 64)) {
 						vt100_SetAttr((CHAR*)"32m", 4);
 					}
 					OPM_LogWStr((CHAR*)"  Main program.", 16);
-					if (!OPM_notColorOutput) {
+					if (!__IN(16, OPM_opt, 64)) {
 						vt100_SetAttr((CHAR*)"0m", 3);
 					}
 				} else {
 					if (new) {
-						if (!OPM_notColorOutput) {
+						if (!__IN(16, OPM_opt, 64)) {
 							vt100_SetAttr((CHAR*)"32m", 4);
 						}
 						OPM_LogWStr((CHAR*)"  New symbol file.", 19);
-						if (!OPM_notColorOutput) {
+						if (!__IN(16, OPM_opt, 64)) {
 							vt100_SetAttr((CHAR*)"0m", 3);
 						}
 						OPM_RegisterNewSym();
@@ -111,17 +111,17 @@ void Vishap_Translate (void)
 				OPM_LogWLn();
 				Platform_Exit(1);
 			}
-			if (!OPM_dontAsm) {
-				if (OPM_dontLink) {
+			if (!__IN(13, OPM_opt, 64)) {
+				if (__IN(14, OPM_opt, 64)) {
 					extTools_Assemble(OPM_modName, 32);
 				} else {
-					if (!(OPM_mainProg || OPM_mainLinkStat)) {
+					if (!__IN(10, OPM_opt, 64)) {
 						extTools_Assemble(OPM_modName, 32);
 						Strings_Append((CHAR*)" ", 2, (void*)modulesobj, 2048);
 						Strings_Append(OPM_modName, 32, (void*)modulesobj, 2048);
 						Strings_Append((CHAR*)".o", 3, (void*)modulesobj, 2048);
 					} else {
-						extTools_LinkMain((void*)OPM_modName, 32, OPM_mainLinkStat, modulesobj, 2048);
+						extTools_LinkMain((void*)OPM_modName, 32, __IN(15, OPM_opt, 64), modulesobj, 2048);
 					}
 				}
 			}

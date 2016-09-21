@@ -1143,10 +1143,8 @@ END Import;
         expCtxt.nofm := 1; expCtxt.locmno[0] := 0;
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END;
         OutObj(topScope^.right);
-        ext := sfpresent & symExtended; new := ~sfpresent OR symNew;
-        IF OPM.forceNewSym THEN
-          new := TRUE
-        END; (* for bootstrapping -- noch *)
+        ext := sfpresent & symExtended;
+        new := ~sfpresent OR symNew OR (OPM.forcenewsym IN OPM.opt);
         IF OPM.noerr & sfpresent & (impCtxt.reffp # expCtxt.reffp) THEN
           new := TRUE;
           IF ~extsf THEN err(155) END

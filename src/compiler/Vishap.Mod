@@ -22,16 +22,16 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
         OPC.Init;
         OPV.Module(p);
         IF OPM.noerr THEN
-          IF (OPM.mainProg OR OPM.mainLinkStat) & (OPM.modName # "SYSTEM") THEN
+          IF (OPM.mainprog IN OPM.opt) & (OPM.modName # "SYSTEM") THEN
             OPM.DeleteNewSym;
-            IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.Green) END;
+            IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.Green) END;
             OPM.LogWStr("  Main program.");
-            IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+            IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.ResetAll) END;
           ELSE
             IF new THEN
-              IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.Green) END;
+              IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.Green) END;
               OPM.LogWStr("  New symbol file.");
-              IF ~OPM.notColorOutput THEN vt100.SetAttr(vt100.ResetAll) END;
+              IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.ResetAll) END;
 	            OPM.RegisterNewSym
             ELSIF ext THEN
               OPM.LogWStr("  Extended symbol file.");
@@ -90,12 +90,12 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
         END;
 
         (* 'assemble' (i.e. c compile) .c to object or executable. *)
-        IF ~OPM.dontAsm THEN
-          IF OPM.dontLink THEN
+        IF ~(OPM.dontasm IN OPM.opt) THEN
+          IF OPM.dontlink IN OPM.opt THEN
             (* If not linking, just assemble each module. *)
             extTools.Assemble(OPM.modName)
           ELSE
-            IF ~(OPM.mainProg OR OPM.mainLinkStat) THEN
+            IF ~(OPM.mainprog IN OPM.opt) THEN
               (* Assemble non main rogram and add object name to link list *)
               extTools.Assemble(OPM.modName);
               Strings.Append(" ",                  modulesobj);
@@ -103,7 +103,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
               Strings.Append(Configuration.objext, modulesobj)
             ELSE
               (* Assemble and link main program *)
-              extTools.LinkMain (OPM.modName, OPM.mainLinkStat, modulesobj)
+              extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.opt, modulesobj)
             END
           END
   	    END

@@ -46,7 +46,6 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
 
   VAR
-    assert, inxchk, mainprog, ansi: BOOLEAN;
     stamp: INTEGER;  (* unique number for nested objects *)
     recno: LONGINT;  (* number of anonymous record types *)
 
@@ -104,10 +103,6 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE Init*;
   BEGIN
     stamp := 0; recno := 0; nofExitLabels := 0;
-    assert := OPM.assert IN OPM.opt;
-    inxchk := OPM.inxchk IN OPM.opt;
-    mainprog := OPM.mainprog IN OPM.opt;
-    ansi := OPM.ansi IN OPM.opt
   END Init;
 
   PROCEDURE ^Traverse (obj, outerScope: OPT.Object; exported: BOOLEAN);
@@ -333,7 +328,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE Index(n, d: OPT.Node; prec, dim: INTEGER);
   BEGIN
-    IF ~inxchk
+    IF ~(OPM.inxchk IN OPM.opt)
     OR (n^.right^.class = OPT.Nconst) & ((n^.right^.conval^.intval = 0) OR (n^.left^.typ^.comp # OPT.DynArr)) THEN
       expr(n^.right, prec)
     ELSE
@@ -434,7 +429,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE ParIntLiteral(n: SYSTEM.INT64; size: LONGINT);
   BEGIN
     (* Literal parameters (other than varargs) do not need an explicit size cast on ansi C compilers. *)
-    IF ansi THEN OPM.WriteInt(n) ELSE OPC.IntLiteral(n, size) END
+    OPM.WriteInt(n)
   END ParIntLiteral;
 
   PROCEDURE ActualPar(n: OPT.Node; fp: OPT.Object);
@@ -448,22 +443,16 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       END ;
       IF ~(n^.typ^.comp IN {OPT.Array, OPT.DynArr}) THEN
         IF mode = OPT.VarPar THEN
-          IF ansi & (typ # n^.typ) THEN OPM.WriteString("(void*)") END ;
+          IF typ # n^.typ THEN OPM.WriteString("(void*)") END;
           OPM.Write("&"); prec := 9
-        ELSIF ansi THEN
+        ELSE
           IF (comp IN {OPT.Array, OPT.DynArr}) & (n^.class = OPT.Nconst) THEN
             OPM.WriteString("(CHAR*)")  (* force to unsigned char *)
           ELSIF (form = OPT.Pointer) & (typ # n^.typ) & (n^.typ # OPT.niltyp) THEN
             OPM.WriteString("(void*)")  (* type extension *)
           END
-        ELSE
-          IF (form IN {OPT.Real, OPT.LReal}) & (n^.typ^.form = OPT.Int) THEN (* real promotion *)
-            OPM.WriteString("(double)"); prec := 9
-          ELSIF form = OPT.Int THEN
-            SizeCast(n.typ.size, typ.size)
-          END
         END
-      ELSIF ansi THEN
+      ELSE
         (* casting of params should be simplified eventually *)
         IF (mode = OPT.VarPar) & (typ # n^.typ) & (prec = MinPrec) THEN OPM.WriteString("(void*)") END
       END;
@@ -903,7 +892,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      END ;
                      ActualPar(n^.right, n^.obj)
       | OPT.Nifelse: IF n^.subcl # OPT.assertfn THEN IfStat(n, FALSE, outerProc)
-                     ELSIF assert THEN OPM.WriteString("__ASSERT("); expr(n^.left^.left^.left, MinPrec); OPM.WriteString(Comma);
+                     ELSIF OPM.assert IN OPM.opt THEN
+                       OPM.WriteString("__ASSERT("); expr(n^.left^.left^.left, MinPrec); OPM.WriteString(Comma);
                        OPM.WriteInt(n^.left^.right^.right^.conval^.intval); OPM.Write(CloseParen); OPC.EndStat
                      END
       | OPT.Ncase:   INC(exit.level); CaseStat(n, outerProc); DEC(exit.level)
@@ -925,7 +915,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.WriteString("goto exit__"); OPM.WriteInt(exit.label)
                      END
       | OPT.Nreturn: IF OPM.level = 0 THEN
-                       IF mainprog THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
+                       IF OPM.mainprog IN OPM.opt THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
                      ELSE
                        IF n^.left # NIL THEN
                          (* Make local copy of result before ExitProc deletes dynamic vars *)
@@ -953,7 +943,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE Module*(prog: OPT.Node);
   BEGIN
-    IF ~mainprog THEN OPC.GenHdr(prog^.right); OPC.GenHdrIncludes END ;
+    IF ~(OPM.mainprog IN OPM.opt) THEN OPC.GenHdr(prog^.right); OPC.GenHdrIncludes END ;
     OPC.GenBdy(prog^.right); stat(prog, NIL)
   END Module;
 

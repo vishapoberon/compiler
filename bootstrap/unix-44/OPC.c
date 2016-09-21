@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -11,7 +11,6 @@
 
 
 static int16 OPC_indentLevel;
-static BOOLEAN OPC_ptrinit, OPC_mainprog, OPC_ansi;
 static int8 OPC_hashtab[105];
 static CHAR OPC_keytab[50][9];
 static BOOLEAN OPC_GlbPtrs;
@@ -93,14 +92,7 @@ static BOOLEAN OPC_Undefined (OPT_Object obj);
 void OPC_Init (void)
 {
 	OPC_indentLevel = 0;
-	OPC_ptrinit = __IN(5, OPM_opt, 32);
-	OPC_mainprog = OPM_mainProg || OPM_mainLinkStat;
-	OPC_ansi = __IN(6, OPM_opt, 32);
-	if (OPC_ansi) {
-		__MOVE("__init(void)", OPC_BodyNameExt, 13);
-	} else {
-		__MOVE("__init()", OPC_BodyNameExt, 9);
-	}
+	__MOVE("__init(void)", OPC_BodyNameExt, 13);
 }
 
 void OPC_Indent (int16 count)
@@ -299,12 +291,8 @@ static void OPC_DeclareObj (OPT_Object dcl, BOOLEAN scopeDef)
 				openClause = 0;
 			}
 			if (form == 12) {
-				if (OPC_ansi) {
-					OPM_Write(')');
-					OPC_AnsiParamList(typ->link, 0);
-				} else {
-					OPM_WriteString((CHAR*)")()", 4);
-				}
+				OPM_Write(')');
+				OPC_AnsiParamList(typ->link, 0);
 				break;
 			} else if (comp == 2) {
 				OPM_Write('[');
@@ -579,12 +567,10 @@ static void OPC_DefineTProcTypes (OPT_Object obj)
 	if (obj->typ != OPT_notyp) {
 		OPC_DefineType(obj->typ);
 	}
-	if (OPC_ansi) {
-		par = obj->link;
-		while (par != NIL) {
-			OPC_DefineType(par->typ);
-			par = par->link;
-		}
+	par = obj->link;
+	while (par != NIL) {
+		OPC_DefineType(par->typ);
+		par = par->link;
 	}
 }
 
@@ -662,11 +648,7 @@ static void OPC_DefineTProcMacros (OPT_Object obj, BOOLEAN *empty)
 				OPC_Ident(obj->typ->strobj);
 			}
 			OPM_WriteString((CHAR*)"(*)", 4);
-			if (OPC_ansi) {
-				OPC_AnsiParamList(obj->link, 0);
-			} else {
-				OPM_WriteString((CHAR*)"()", 3);
-			}
+			OPC_AnsiParamList(obj->link, 0);
 			OPM_WriteString((CHAR*)", ", 3);
 			OPC_DeclareParams(obj->link, 1);
 			OPM_Write(')');
@@ -1063,7 +1045,7 @@ static void OPC_IdentList (OPT_Object obj, int16 vis)
 				OPC_Ident(obj);
 				OPM_WriteString((CHAR*)"__typ", 6);
 				base = NIL;
-			} else if ((((((OPC_ptrinit && vis == 0)) && obj->mnolev > 0)) && obj->typ->form == 11)) {
+			} else if ((((((__IN(5, OPM_opt, 32) && vis == 0)) && obj->mnolev > 0)) && obj->typ->form == 11)) {
 				OPM_WriteString((CHAR*)" = NIL", 7);
 			}
 		}
@@ -1122,22 +1104,11 @@ static void OPC_ProcHeader (OPT_Object proc, BOOLEAN define)
 	OPM_Write(' ');
 	OPC_Ident(proc);
 	OPM_Write(' ');
-	if (OPC_ansi) {
-		OPC_AnsiParamList(proc->link, 1);
-		if (!define) {
-			OPM_Write(';');
-		}
-		OPM_WriteLn();
-	} else if (define) {
-		OPC_DeclareParams(proc->link, 0);
-		OPM_WriteLn();
-		OPC_Indent(1);
-		OPC_IdentList(proc->link, 2);
-		OPC_Indent(-1);
-	} else {
-		OPM_WriteString((CHAR*)"();", 4);
-		OPM_WriteLn();
+	OPC_AnsiParamList(proc->link, 1);
+	if (!define) {
+		OPM_Write(';');
 	}
+	OPM_WriteLn();
 }
 
 static void OPC_ProcPredefs (OPT_Object obj, int8 vis)
@@ -1254,9 +1225,6 @@ static void OPC_GenHeaderMsg (void)
 					break;
 				case 5: 
 					OPM_Write('p');
-					break;
-				case 6: 
-					OPM_Write('k');
 					break;
 				case 7: 
 					OPM_Write('a');
@@ -1391,15 +1359,7 @@ void OPC_GenEnumPtrs (OPT_Object var)
 		if (OPC_NofPtrs(typ) > 0) {
 			if (!OPC_GlbPtrs) {
 				OPC_GlbPtrs = 1;
-				OPM_WriteString((CHAR*)"static ", 8);
-				if (OPC_ansi) {
-					OPM_WriteString((CHAR*)"void EnumPtrs(void (*P)(void*))", 32);
-				} else {
-					OPM_WriteString((CHAR*)"void EnumPtrs(P)", 17);
-					OPM_WriteLn();
-					OPM_Write(0x09);
-					OPM_WriteString((CHAR*)"void (*P)();", 13);
-				}
+				OPM_WriteString((CHAR*)"static void EnumPtrs(void (*P)(void*))", 39);
 				OPM_WriteLn();
 				OPC_BegBlk();
 			}
@@ -1451,17 +1411,9 @@ void OPC_EnterBody (void)
 {
 	OPM_WriteLn();
 	OPM_WriteString((CHAR*)"export ", 8);
-	if (OPC_mainprog) {
-		if (OPC_ansi) {
-			OPM_WriteString((CHAR*)"int main(int argc, char **argv)", 32);
-			OPM_WriteLn();
-		} else {
-			OPM_WriteString((CHAR*)"main(argc, argv)", 17);
-			OPM_WriteLn();
-			OPM_Write(0x09);
-			OPM_WriteString((CHAR*)"int argc; char **argv;", 23);
-			OPM_WriteLn();
-		}
+	if (__IN(10, OPM_opt, 32)) {
+		OPM_WriteString((CHAR*)"int main(int argc, char **argv)", 32);
+		OPM_WriteLn();
 	} else {
 		OPM_WriteString((CHAR*)"void *", 7);
 		OPM_WriteString(OPM_modName, 32);
@@ -1470,20 +1422,20 @@ void OPC_EnterBody (void)
 	}
 	OPC_BegBlk();
 	OPC_BegStat();
-	if (OPC_mainprog) {
+	if (__IN(10, OPM_opt, 32)) {
 		OPM_WriteString((CHAR*)"__INIT(argc, argv)", 19);
 	} else {
 		OPM_WriteString((CHAR*)"__DEFMOD", 9);
 	}
 	OPC_EndStat();
-	if ((OPC_mainprog && 0)) {
+	if ((__IN(10, OPM_opt, 32) && 0)) {
 		OPC_BegStat();
 		OPM_WriteString((CHAR*)"/*don`t do it!*/ printf(\"DEMO VERSION: DO NOT USE THIS PROGRAM FOR ANY COMMERCIAL PURPOSE\\n\")", 94);
 		OPC_EndStat();
 	}
 	OPC_InitImports(OPT_topScope->right);
 	OPC_BegStat();
-	if (OPC_mainprog) {
+	if (__IN(10, OPM_opt, 32)) {
 		OPM_WriteString((CHAR*)"__REGMAIN(\"", 12);
 	} else {
 		OPM_WriteString((CHAR*)"__REGMOD(\"", 11);
@@ -1503,7 +1455,7 @@ void OPC_EnterBody (void)
 void OPC_ExitBody (void)
 {
 	OPC_BegStat();
-	if (OPC_mainprog) {
+	if (__IN(10, OPM_opt, 32)) {
 		OPM_WriteString((CHAR*)"__FINI;", 8);
 	} else {
 		OPM_WriteString((CHAR*)"__ENDMOD;", 10);
@@ -1582,21 +1534,6 @@ void OPC_EnterProc (OPT_Object proc)
 			OPC_EndStat();
 		}
 		var = var->link;
-	}
-	if (!OPC_ansi) {
-		var = proc->link;
-		while (var != NIL) {
-			if ((var->typ->form == 5 && var->mode == 1)) {
-				OPC_BegStat();
-				OPC_Ident(var->typ->strobj);
-				OPM_Write(' ');
-				OPC_Ident(var);
-				OPM_WriteString((CHAR*)" = _", 5);
-				OPC_Ident(var);
-				OPC_EndStat();
-			}
-			var = var->link;
-		}
 	}
 	var = proc->link;
 	while (var != NIL) {
@@ -1963,11 +1900,7 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
 			array = array->BaseTyp;
 			dim -= 1;
 		}
-		if (OPC_ansi) {
-			OPM_WriteInt(array->n);
-		} else {
-			OPC_IntLiteral(array->n, OPM_AddressSize);
-		}
+		OPM_WriteInt(array->n);
 	}
 }
 

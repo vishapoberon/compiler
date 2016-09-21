@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -1542,7 +1542,7 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 	OPT_Struct y = NIL;
 	int32 f, g;
 	OPT_Struct p = NIL, q = NIL;
-	if (OPM_Verbose) {
+	if (__IN(18, OPM_opt, 64)) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"PROCEDURE CheckAssign", 22);
 		OPM_LogWLn();
@@ -1550,7 +1550,7 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 	y = ynode->typ;
 	f = x->form;
 	g = y->form;
-	if (OPM_Verbose) {
+	if (__IN(18, OPM_opt, 64)) {
 		OPM_LogWStr((CHAR*)"y.form = ", 10);
 		OPM_LogWNum(y->form, 0);
 		OPM_LogWLn();

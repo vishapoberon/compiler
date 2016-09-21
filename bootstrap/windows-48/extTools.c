@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -25,7 +25,7 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 	int16 r, status, exitcode;
 	__DUP(title, title__len, CHAR);
 	__DUP(cmd, cmd__len, CHAR);
-	if (OPM_Verbose) {
+	if (__IN(18, OPM_opt, 32)) {
 		Console_String(title, title__len);
 		Console_String(cmd, cmd__len);
 		Console_Ln();

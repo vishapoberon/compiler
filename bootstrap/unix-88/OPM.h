@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -15,7 +15,6 @@ import int32 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 import CHAR OPM_modName[32];
 import CHAR OPM_objname[64];
 import SET OPM_opt, OPM_glbopt;
-import BOOLEAN OPM_dontAsm, OPM_dontLink, OPM_mainProg, OPM_mainLinkStat, OPM_notColorOutput, OPM_forceNewSym, OPM_Verbose;
 
 
 import void OPM_CloseFiles (void);

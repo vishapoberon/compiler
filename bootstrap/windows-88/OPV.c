@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -16,7 +16,6 @@ typedef
 	} OPV_ExitInfo;
 
 
-static BOOLEAN OPV_assert, OPV_inxchk, OPV_mainprog, OPV_ansi;
 static int32 OPV_stamp;
 static int64 OPV_recno;
 static OPV_ExitInfo OPV_exit;
@@ -130,10 +129,6 @@ void OPV_Init (void)
 	OPV_stamp = 0;
 	OPV_recno = 0;
 	OPV_nofExitLabels = 0;
-	OPV_assert = __IN(7, OPM_opt, 64);
-	OPV_inxchk = __IN(0, OPM_opt, 64);
-	OPV_mainprog = __IN(10, OPM_opt, 64);
-	OPV_ansi = __IN(6, OPM_opt, 64);
 }
 
 static void OPV_GetTProcNum (OPT_Object obj)
@@ -532,7 +527,7 @@ static void OPV_TypeOf (OPT_Node n)
 
 static void OPV_Index (OPT_Node n, OPT_Node d, int32 prec, int32 dim)
 {
-	if (!OPV_inxchk || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
+	if (!__IN(0, OPM_opt, 64) || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
 		OPV_expr(n->right, prec);
 	} else {
 		if (OPV_SideEffects(n->right)) {
@@ -728,11 +723,7 @@ static void OPV_design (OPT_Node n, int32 prec)
 
 static void OPV_ParIntLiteral (int64 n, int64 size)
 {
-	if (OPV_ansi) {
-		OPM_WriteInt(n);
-	} else {
-		OPC_IntLiteral(n, size);
-	}
+	OPM_WriteInt(n);
 }
 
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
@@ -754,26 +745,19 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 		}
 		if (!__IN(n->typ->comp, 0x0c, 64)) {
 			if (mode == 2) {
-				if ((OPV_ansi && typ != n->typ)) {
+				if (typ != n->typ) {
 					OPM_WriteString((CHAR*)"(void*)", 8);
 				}
 				OPM_Write('&');
 				prec = 9;
-			} else if (OPV_ansi) {
+			} else {
 				if ((__IN(comp, 0x0c, 64) && n->class == 7)) {
 					OPM_WriteString((CHAR*)"(CHAR*)", 8);
 				} else if ((((form == 11 && typ != n->typ)) && n->typ != OPT_niltyp)) {
 					OPM_WriteString((CHAR*)"(void*)", 8);
 				}
-			} else {
-				if ((__IN(form, 0x60, 64) && n->typ->form == 4)) {
-					OPM_WriteString((CHAR*)"(double)", 9);
-					prec = 9;
-				} else if (form == 4) {
-					OPV_SizeCast(n->typ->size, typ->size);
-				}
 			}
-		} else if (OPV_ansi) {
+		} else {
 			if ((((mode == 2 && typ != n->typ)) && prec == -1)) {
 				OPM_WriteString((CHAR*)"(void*)", 8);
 			}
@@ -1532,7 +1516,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 			case 20: 
 				if (n->subcl != 32) {
 					OPV_IfStat(n, 0, outerProc);
-				} else if (OPV_assert) {
+				} else if (__IN(7, OPM_opt, 64)) {
 					OPM_WriteString((CHAR*)"__ASSERT(", 10);
 					OPV_expr(n->left->left->left, -1);
 					OPM_WriteString((CHAR*)", ", 3);
@@ -1598,7 +1582,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				break;
 			case 26: 
 				if (OPM_level == 0) {
-					if (OPV_mainprog) {
+					if (__IN(10, OPM_opt, 64)) {
 						OPM_WriteString((CHAR*)"__FINI", 7);
 					} else {
 						OPM_WriteString((CHAR*)"__ENDMOD", 9);
@@ -1643,7 +1627,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 
 void OPV_Module (OPT_Node prog)
 {
-	if (!OPV_mainprog) {
+	if (!__IN(10, OPM_opt, 64)) {
 		OPC_GenHdr(prog->right);
 		OPC_GenHdrIncludes();
 	}
