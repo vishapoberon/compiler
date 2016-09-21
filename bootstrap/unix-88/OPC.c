@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -839,7 +839,7 @@ void OPC_TDescDecl (OPT_Struct typ)
 	OPC_Str1((CHAR*)", #), {", 8, typ->size);
 	nofptrs = 0;
 	OPC_PutPtrOffsets(typ, 0, &nofptrs);
-	OPC_Str1((CHAR*)"#}}", 4, -((nofptrs + 1) * (int64)OPM_PointerSize));
+	OPC_Str1((CHAR*)"#}}", 4, -((nofptrs + 1) * (int64)OPM_AddressSize));
 	OPC_EndStat();
 }
 
@@ -1966,7 +1966,7 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
 		if (OPC_ansi) {
 			OPM_WriteInt(array->n);
 		} else {
-			OPC_IntLiteral(array->n, OPM_PointerSize);
+			OPC_IntLiteral(array->n, OPM_AddressSize);
 		}
 	}
 }

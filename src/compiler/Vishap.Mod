@@ -51,23 +51,14 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
 
   PROCEDURE PropagateElementaryTypeSizes;
   BEGIN
-    OPT.bytetyp.size   := OPM.ByteSize;
-    OPT.sysptrtyp.size := OPM.PointerSize;
-    OPT.chartyp.size   := OPM.CharSize;
+    OPT.sysptrtyp.size := OPM.AddressSize;
+    OPT.adrtyp.size    := OPM.AddressSize;
     OPT.settyp.size    := OPM.SetSize;
-    OPT.realtyp.size   := OPM.RealSize;
-    OPT.adrtyp.size    := OPM.PointerSize;
-    OPT.lrltyp.size    := OPM.LRealSize;
-    OPT.booltyp.size   := OPM.BoolSize;
 
-    OPT.sinttyp := OPT.int8typ;
-    IF OPM.IntSize = 2 THEN
-      OPT.inttyp  := OPT.int16typ;
-      OPT.linttyp := OPT.int32typ
-    ELSE
-      OPT.inttyp  := OPT.int32typ;
-      OPT.linttyp := OPT.int64typ
-    END;
+    OPT.sinttyp := OPT.IntType(OPM.ShortintSize);
+    OPT.inttyp  := OPT.IntType(OPM.IntegerSize);
+    OPT.linttyp := OPT.IntType(OPM.LongintSize);
+
     OPT.sintobj.typ   := OPT.sinttyp;
     OPT.intobj.typ    := OPT.inttyp;
     OPT.lintobj.typ   := OPT.linttyp

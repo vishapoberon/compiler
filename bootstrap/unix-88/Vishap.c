@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkamSf */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkamSf */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -79,22 +79,12 @@ void Vishap_Module (BOOLEAN *done)
 
 static void Vishap_PropagateElementaryTypeSizes (void)
 {
-	OPT_bytetyp->size = OPM_ByteSize;
-	OPT_sysptrtyp->size = OPM_PointerSize;
-	OPT_chartyp->size = OPM_CharSize;
+	OPT_sysptrtyp->size = OPM_AddressSize;
+	OPT_adrtyp->size = OPM_AddressSize;
 	OPT_settyp->size = OPM_SetSize;
-	OPT_realtyp->size = OPM_RealSize;
-	OPT_adrtyp->size = OPM_PointerSize;
-	OPT_lrltyp->size = OPM_LRealSize;
-	OPT_booltyp->size = OPM_BoolSize;
-	OPT_sinttyp = OPT_int8typ;
-	if (OPM_IntSize == 2) {
-		OPT_inttyp = OPT_int16typ;
-		OPT_linttyp = OPT_int32typ;
-	} else {
-		OPT_inttyp = OPT_int32typ;
-		OPT_linttyp = OPT_int64typ;
-	}
+	OPT_sinttyp = OPT_IntType(OPM_ShortintSize);
+	OPT_inttyp = OPT_IntType(OPM_IntegerSize);
+	OPT_linttyp = OPT_IntType(OPM_LongintSize);
 	OPT_sintobj->typ = OPT_sinttyp;
 	OPT_intobj->typ = OPT_inttyp;
 	OPT_lintobj->typ = OPT_linttyp;

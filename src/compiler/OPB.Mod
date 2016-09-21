@@ -1053,7 +1053,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
      OPT.movefn:   (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.AddressSize)) THEN err(111); x^.typ := OPT.linttyp
                    END
     |OPT.getrfn,
      OPT.putrfn:   (*SYSTEM.GETREG, SYSTEM.PUTREG*)
@@ -1230,7 +1230,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.movefn:   (*SYSTEM.MOVE*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.PointerSize)) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.AddressSize)) THEN err(111); x^.typ := OPT.linttyp
                    END;
                    p^.link := x
     |OPT.assertfn: (*ASSERT*)

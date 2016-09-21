@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -6,7 +6,7 @@
 #include "SYSTEM.h"
 
 
-import int16 OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
+import int16 OPM_Alignment, OPM_AddressSize, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
 import int64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;

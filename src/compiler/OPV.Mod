@@ -62,7 +62,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSIF typ^.size = -1 THEN
       f := typ^.form; c := typ^.comp;
       IF c = OPT.Record THEN btyp := typ^.BaseTyp;
-        IF btyp = NIL THEN offset := 0; base := (*OPM.RecAlign*)OPC.SizeAlignment(OPM.RecSize);
+        IF btyp = NIL THEN offset := 0; base := 1;
         ELSE TypSize(btyp); offset := btyp^.size - btyp^.sysflag DIV 100H; base := btyp^.align;
         END;
         fld := typ^.link;
@@ -86,12 +86,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         TypSize(typ^.BaseTyp);
         typ^.size := typ^.n * typ^.BaseTyp^.size;
       ELSIF f = OPT.Pointer THEN
-        typ^.size := OPM.PointerSize;
+        typ^.size := OPM.AddressSize;
         IF typ^.BaseTyp = OPT.undftyp THEN OPM.Mark(128, typ^.n)
         ELSE TypSize(typ^.BaseTyp)
         END
       ELSIF f = OPT.ProcTyp THEN
-        typ^.size := OPM.ProcSize;
+        typ^.size := OPM.AddressSize;
       ELSIF c = OPT.DynArr THEN
         btyp := typ^.BaseTyp; TypSize(btyp);
         IF btyp^.comp = OPT.DynArr THEN typ^.size := btyp^.size + 4  (* describes dim not size *)
@@ -187,21 +187,17 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     topScope^.leaf := TRUE;
     Traverse(topScope^.right, topScope, TRUE);  (* first pass only on exported types and procedures  *)
     Traverse(topScope^.right, topScope, FALSE);  (* second pass *)
+
     (* mark basic types as predefined, OPC.Ident can avoid qualification*)
     OPT.chartyp^.strobj^.linkadr   := PredefinedType;
     OPT.settyp^.strobj^.linkadr    := PredefinedType;
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
-
-    (* SHORTINT, INTEGER and LONGINT are alternate names for INT8, INT16, INT32 and INT64 and have not been set up yet.
-    OPT.sinttyp^.strobj^.linkadr   := PredefinedType;
-    OPT.inttyp^.strobj^.linkadr    := PredefinedType;
-    OPT.linttyp^.strobj^.linkadr   := PredefinedType;
-    *)
     OPT.adrtyp^.strobj^.linkadr    := PredefinedType;
     OPT.int8typ^.strobj^.linkadr   := PredefinedType;
     OPT.int16typ^.strobj^.linkadr  := PredefinedType;
     OPT.int32typ^.strobj^.linkadr  := PredefinedType;
     OPT.int64typ^.strobj^.linkadr  := PredefinedType;
+    OPT.hinttyp.strobj.linkadr     := PredefinedType;
     OPT.lrltyp^.strobj^.linkadr    := PredefinedType;
     OPT.booltyp^.strobj^.linkadr   := PredefinedType;
     OPT.bytetyp^.strobj^.linkadr   := PredefinedType;
@@ -482,7 +478,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         OPM.WriteString(", "); TypeOf(n)
       ELSIF comp = OPT.DynArr THEN
         IF n^.class = OPT.Nconst THEN (* ap is string constant *)
-          OPM.WriteString(Comma); ParIntLiteral(n.conval.intval2, OPM.PointerSize)
+          OPM.WriteString(Comma); ParIntLiteral(n.conval.intval2, OPM.AddressSize)
         ELSE
           aptyp := n^.typ; dim := 0;
           WHILE (typ^.comp = OPT.DynArr) & (typ^.BaseTyp^.form # OPT.Byte) DO
@@ -495,7 +491,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
               Len(n, dim); OPM.WriteString(" * "); INC(dim); aptyp := aptyp^.BaseTyp
             END ;
             (*OPM.WriteString("((LONGINT)("); OPM.WriteInt(aptyp^.size); OPM.WriteString("))");*)
-            ParIntLiteral(aptyp.size, OPM.PointerSize)
+            ParIntLiteral(aptyp.size, OPM.AddressSize)
           END
         END
       END ;
@@ -791,12 +787,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       OPM.WriteString(", ");
       IF typ^.comp = OPT.DynArr THEN
         IF x^.class = OPT.Nconst THEN
-          OPC.IntLiteral(x.conval.intval, OPM.PointerSize)
+          OPC.IntLiteral(x.conval.intval, OPM.AddressSize)
         ELSE OPM.WriteString("((address)("); expr(x, 10); OPM.WriteString("))")
         END ;
         x := x^.link
       ELSE
-        OPC.IntLiteral(typ.n, OPM.PointerSize)
+        OPC.IntLiteral(typ.n, OPM.AddressSize)
       END ;
       typ := typ^.BaseTyp
     END ;

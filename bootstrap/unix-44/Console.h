@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #ifndef Console__h
 #define Console__h

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -1940,7 +1940,7 @@ void OPB_StPar0 (OPT_Node *par0, int16 fctno)
 				OPB_err(126);
 			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_linttyp->size)) {
 				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x0810, 32) && x->typ->size == OPM_PointerSize))) {
+			} else if (!((__IN(x->typ->form, 0x0810, 32) && x->typ->size == OPM_AddressSize))) {
 				OPB_err(111);
 				x->typ = OPT_linttyp;
 			}
@@ -2213,7 +2213,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 				OPB_err(126);
 			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_linttyp->size)) {
 				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x0810, 32) && x->typ->size == OPM_PointerSize))) {
+			} else if (!((__IN(x->typ->form, 0x0810, 32) && x->typ->size == OPM_AddressSize))) {
 				OPB_err(111);
 				x->typ = OPT_linttyp;
 			}

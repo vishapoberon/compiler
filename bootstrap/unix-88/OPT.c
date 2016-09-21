@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -88,7 +88,7 @@ typedef
 
 export void (*OPT_typSize)(OPT_Struct);
 export OPT_Object OPT_topScope;
-export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
+export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
 export OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj;
 export int8 OPT_nofGmod;
 export OPT_Object OPT_GlbMod[64];
@@ -1109,7 +1109,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 		switch (tag) {
 			case 36: 
 				(*typ)->form = 11;
-				(*typ)->size = OPM_PointerSize;
+				(*typ)->size = OPM_AddressSize;
 				(*typ)->n = 0;
 				OPT_InStruct(&(*typ)->BaseTyp);
 				break;
@@ -1167,7 +1167,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				break;
 			case 40: 
 				(*typ)->form = 12;
-				(*typ)->size = OPM_ProcSize;
+				(*typ)->size = OPM_AddressSize;
 				OPT_InSign(mno, &(*typ)->BaseTyp, &(*typ)->link);
 				break;
 			default: 
@@ -1755,7 +1755,7 @@ static void OPT_InitStruct (OPT_Struct *typ, int8 form)
 {
 	*typ = OPT_NewStr(form, 1);
 	(*typ)->ref = form;
-	(*typ)->size = OPM_ByteSize;
+	(*typ)->size = 1;
 	(*typ)->allocated = 1;
 	(*typ)->strobj = OPT_NewObj();
 	(*typ)->pbfp = form;
@@ -1833,6 +1833,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPT_sinttyp);
 	P(OPT_inttyp);
 	P(OPT_linttyp);
+	P(OPT_hinttyp);
 	P(OPT_adrtyp);
 	P(OPT_int8typ);
 	P(OPT_int16typ);
@@ -1915,9 +1916,9 @@ export void *OPT__init(void)
 	OPT_InitStruct(&OPT_notyp, 10);
 	OPT_InitStruct(&OPT_stringtyp, 8);
 	OPT_InitStruct(&OPT_niltyp, 9);
-	OPT_EnterTyp((CHAR*)"BYTE", 1, OPM_ByteSize, &OPT_bytetyp);
-	OPT_EnterTyp((CHAR*)"PTR", 11, OPM_PointerSize, &OPT_sysptrtyp);
-	OPT_EnterTyp((CHAR*)"ADDRESS", 4, OPM_PointerSize, &OPT_adrtyp);
+	OPT_EnterTyp((CHAR*)"BYTE", 1, 1, &OPT_bytetyp);
+	OPT_EnterTyp((CHAR*)"PTR", 11, -1, &OPT_sysptrtyp);
+	OPT_EnterTyp((CHAR*)"ADDRESS", 4, -1, &OPT_adrtyp);
 	OPT_EnterTyp((CHAR*)"INT8", 4, 1, &OPT_int8typ);
 	OPT_EnterTyp((CHAR*)"INT16", 4, 2, &OPT_int16typ);
 	OPT_EnterTyp((CHAR*)"INT32", 4, 4, &OPT_int32typ);
@@ -1937,11 +1938,12 @@ export void *OPT__init(void)
 	OPT_syslink = OPT_topScope->right;
 	OPT_universe = OPT_topScope;
 	OPT_topScope->right = NIL;
-	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, OPM_BoolSize, &OPT_booltyp);
-	OPT_EnterTyp((CHAR*)"CHAR", 3, OPM_CharSize, &OPT_chartyp);
-	OPT_EnterTyp((CHAR*)"SET", 7, OPM_SetSize, &OPT_settyp);
-	OPT_EnterTyp((CHAR*)"REAL", 5, OPM_RealSize, &OPT_realtyp);
-	OPT_EnterTyp((CHAR*)"LONGREAL", 6, OPM_LRealSize, &OPT_lrltyp);
+	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, 1, &OPT_booltyp);
+	OPT_EnterTyp((CHAR*)"CHAR", 3, 1, &OPT_chartyp);
+	OPT_EnterTyp((CHAR*)"SET", 7, -1, &OPT_settyp);
+	OPT_EnterTyp((CHAR*)"REAL", 5, 4, &OPT_realtyp);
+	OPT_EnterTyp((CHAR*)"LONGREAL", 6, 8, &OPT_lrltyp);
+	OPT_EnterTyp((CHAR*)"HUGEINT", 4, 8, &OPT_hinttyp);
 	OPT_EnterTypeAlias((CHAR*)"SHORTINT", &OPT_sintobj);
 	OPT_EnterTypeAlias((CHAR*)"INTEGER", &OPT_intobj);
 	OPT_EnterTypeAlias((CHAR*)"LONGINT", &OPT_lintobj);

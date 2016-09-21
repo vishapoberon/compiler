@@ -552,7 +552,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF typ^.strobj # NIL THEN OPM.WriteStringVar(typ^.strobj^.name) END ;
     OPM.Write(DoubleQuote);
     Str1(', #), {', typ^.size);
-    nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.PointerSize);
+    nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.AddressSize);
     EndStat
   END TDescDecl;
 
@@ -1303,7 +1303,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       IF dim # 0 THEN OPM.WriteInt(dim) END
     ELSE (* array *)
       WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END;
-      IF ansi THEN OPM.WriteInt(array.n) ELSE IntLiteral(array.n, OPM.PointerSize) END
+      IF ansi THEN OPM.WriteInt(array.n) ELSE IntLiteral(array.n, OPM.AddressSize) END
     END
   END Len;
 

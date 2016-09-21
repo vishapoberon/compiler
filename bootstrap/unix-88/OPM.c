@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -19,7 +19,7 @@ typedef
 
 
 static CHAR OPM_SourceFileName[256];
-export int32 OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
+export int32 OPM_Alignment, OPM_AddressSize, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
 export int64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
@@ -176,19 +176,26 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 			case 'B': 
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_IntSize = s[__X(i, s__len)] - 48;
+					OPM_IntegerSize = s[__X(i, s__len)] - 48;
 				}
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
-					OPM_PointerSize = s[__X(i, s__len)] - 48;
+					OPM_AddressSize = s[__X(i, s__len)] - 48;
 				}
 				if (s[__X(i + 1, s__len)] != 0x00) {
 					i += 1;
 					OPM_Alignment = s[__X(i, s__len)] - 48;
 				}
-				__ASSERT(OPM_IntSize == 2 || OPM_IntSize == 4, 0);
-				__ASSERT(OPM_PointerSize == 4 || OPM_PointerSize == 8, 0);
+				__ASSERT(OPM_IntegerSize == 2 || OPM_IntegerSize == 4, 0);
+				__ASSERT(OPM_AddressSize == 4 || OPM_AddressSize == 8, 0);
 				__ASSERT(OPM_Alignment == 4 || OPM_Alignment == 8, 0);
+				if (OPM_IntegerSize == 2) {
+					OPM_LongintSize = 4;
+					OPM_SetSize = 4;
+				} else {
+					OPM_LongintSize = 8;
+					OPM_SetSize = 8;
+				}
 				Files_SetSearchPath((CHAR*)"", 1);
 				break;
 			case 'F': 
@@ -624,41 +631,26 @@ static int64 OPM_power0 (int64 i, int64 j)
 static void OPM_VerboseListSizes (void)
 {
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Type        Size  Alignement", 29);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"CHAR         ", 14);
-	OPM_LogWNum(OPM_CharSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"BOOLEAN      ", 14);
-	OPM_LogWNum(OPM_BoolSize, 4);
+	OPM_LogWStr((CHAR*)"Type        Size", 17);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"SHORTINT     ", 14);
-	OPM_LogWNum(OPM_SIntSize, 4);
+	OPM_LogWNum(OPM_ShortintSize, 4);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"INTEGER      ", 14);
-	OPM_LogWNum(OPM_IntSize, 4);
+	OPM_LogWNum(OPM_IntegerSize, 4);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"LONGINT      ", 14);
-	OPM_LogWNum(OPM_LIntSize, 4);
+	OPM_LogWNum(OPM_LongintSize, 4);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"SET          ", 14);
 	OPM_LogWNum(OPM_SetSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"REAL         ", 14);
-	OPM_LogWNum(OPM_RealSize, 4);
+	OPM_LogWStr((CHAR*)"ADDRESS      ", 14);
+	OPM_LogWNum(OPM_AddressSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"LONGREAL     ", 14);
-	OPM_LogWNum(OPM_LRealSize, 4);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"PTR          ", 14);
-	OPM_LogWNum(OPM_PointerSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"PROC         ", 14);
-	OPM_LogWNum(OPM_ProcSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"RECORD       ", 14);
-	OPM_LogWNum(OPM_RecSize, 4);
-	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"Alignment: ", 12);
+	OPM_LogWNum(OPM_Alignment, 4);
 	OPM_LogWLn();
 }
 
@@ -681,23 +673,12 @@ int64 OPM_SignedMinimum (int64 bytecount)
 
 static void OPM_GetProperties (void)
 {
-	OPM_ProcSize = OPM_PointerSize;
-	OPM_LIntSize = __ASHL(OPM_IntSize, 1);
-	OPM_SetSize = OPM_LIntSize;
-	if (OPM_RealSize == 4) {
-		OPM_MaxReal =   3.40282346000000e+038;
-	} else if (OPM_RealSize == 8) {
-		OPM_MaxReal =   1.79769296342094e+308;
-	}
-	if (OPM_LRealSize == 4) {
-		OPM_MaxLReal =   3.40282346000000e+038;
-	} else if (OPM_LRealSize == 8) {
-		OPM_MaxLReal =   1.79769296342094e+308;
-	}
+	OPM_MaxReal =   3.40282346000000e+038;
+	OPM_MaxLReal =   1.79769296342094e+308;
 	OPM_MinReal = -OPM_MaxReal;
 	OPM_MinLReal = -OPM_MaxLReal;
 	OPM_MaxSet = __ASHL(OPM_SetSize, 3) - 1;
-	OPM_MaxIndex = OPM_SignedMaximum(OPM_PointerSize);
+	OPM_MaxIndex = OPM_SignedMaximum(OPM_AddressSize);
 	if (OPM_Verbose) {
 		OPM_VerboseListSizes();
 	}
@@ -868,7 +849,7 @@ void OPM_WriteInt (int64 i)
 {
 	CHAR s[24];
 	int64 i1, k;
-	if ((i == OPM_SignedMinimum(OPM_IntSize) || i == OPM_SignedMinimum(OPM_LIntSize)) || i == OPM_SignedMinimum(8)) {
+	if ((i == OPM_SignedMinimum(2) || i == OPM_SignedMinimum(4)) || i == OPM_SignedMinimum(8)) {
 		OPM_Write('(');
 		OPM_WriteInt(i + 1);
 		OPM_WriteString((CHAR*)"-1)", 4);
@@ -901,7 +882,7 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 	CHAR s[32];
 	CHAR ch;
 	int32 i;
-	if ((((r < OPM_SignedMaximum(OPM_LIntSize) && r > OPM_SignedMinimum(OPM_LIntSize))) && r == (__ENTIER(r)))) {
+	if ((((r < OPM_SignedMaximum(OPM_LongintSize) && r > OPM_SignedMinimum(OPM_LongintSize))) && r == (__ENTIER(r)))) {
 		if (suffx == 'f') {
 			OPM_WriteString((CHAR*)"(REAL)", 7);
 		} else {
@@ -1070,15 +1051,11 @@ export void *OPM__init(void)
 	Strings_Append((CHAR*)"/opt/voc", 9, (void*)OPM_OBERON, 1024);
 	Strings_Append((CHAR*)"/sym;", 6, (void*)OPM_OBERON, 1024);
 	Files_SetSearchPath(OPM_OBERON, 1024);
-	OPM_CharSize = 1;
-	OPM_BoolSize = 1;
-	OPM_SIntSize = 1;
-	OPM_RecSize = 1;
-	OPM_ByteSize = 1;
-	OPM_RealSize = 4;
-	OPM_LRealSize = 8;
-	OPM_PointerSize = 8;
+	OPM_AddressSize = 8;
 	OPM_Alignment = 8;
-	OPM_IntSize = 4;
+	OPM_ShortintSize = 1;
+	OPM_IntegerSize = 4;
+	OPM_LongintSize = 8;
+	OPM_SetSize = 8;
 	__ENDMOD;
 }

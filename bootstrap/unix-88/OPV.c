@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/20] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspkaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -69,7 +69,7 @@ void OPV_TypSize (OPT_Struct typ)
 			btyp = typ->BaseTyp;
 			if (btyp == NIL) {
 				offset = 0;
-				base = OPC_SizeAlignment(OPM_RecSize);
+				base = 1;
 			} else {
 				OPV_TypSize(btyp);
 				offset = btyp->size - (int64)__ASHR(btyp->sysflag, 8);
@@ -105,14 +105,14 @@ void OPV_TypSize (OPT_Struct typ)
 			OPV_TypSize(typ->BaseTyp);
 			typ->size = typ->n * typ->BaseTyp->size;
 		} else if (f == 11) {
-			typ->size = OPM_PointerSize;
+			typ->size = OPM_AddressSize;
 			if (typ->BaseTyp == OPT_undftyp) {
 				OPM_Mark(128, typ->n);
 			} else {
 				OPV_TypSize(typ->BaseTyp);
 			}
 		} else if (f == 12) {
-			typ->size = OPM_ProcSize;
+			typ->size = OPM_AddressSize;
 		} else if (c == 3) {
 			btyp = typ->BaseTyp;
 			OPV_TypSize(btyp);
@@ -273,6 +273,7 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_int16typ->strobj->linkadr = 2;
 	OPT_int32typ->strobj->linkadr = 2;
 	OPT_int64typ->strobj->linkadr = 2;
+	OPT_hinttyp->strobj->linkadr = 2;
 	OPT_lrltyp->strobj->linkadr = 2;
 	OPT_booltyp->strobj->linkadr = 2;
 	OPT_bytetyp->strobj->linkadr = 2;
@@ -790,7 +791,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 		} else if (comp == 3) {
 			if (n->class == 7) {
 				OPM_WriteString((CHAR*)", ", 3);
-				OPV_ParIntLiteral(n->conval->intval2, OPM_PointerSize);
+				OPV_ParIntLiteral(n->conval->intval2, OPM_AddressSize);
 			} else {
 				aptyp = n->typ;
 				dim = 0;
@@ -809,7 +810,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 						dim += 1;
 						aptyp = aptyp->BaseTyp;
 					}
-					OPV_ParIntLiteral(aptyp->size, OPM_PointerSize);
+					OPV_ParIntLiteral(aptyp->size, OPM_AddressSize);
 				}
 			}
 		}
@@ -1314,7 +1315,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x)
 		OPM_WriteString((CHAR*)", ", 3);
 		if (typ->comp == 3) {
 			if (x->class == 7) {
-				OPC_IntLiteral(x->conval->intval, OPM_PointerSize);
+				OPC_IntLiteral(x->conval->intval, OPM_AddressSize);
 			} else {
 				OPM_WriteString((CHAR*)"((address)(", 12);
 				OPV_expr(x, 10);
@@ -1322,7 +1323,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x)
 			}
 			x = x->link;
 		} else {
-			OPC_IntLiteral(typ->n, OPM_PointerSize);
+			OPC_IntLiteral(typ->n, OPM_AddressSize);
 		}
 		typ = typ->BaseTyp;
 	}

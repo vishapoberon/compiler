@@ -154,7 +154,7 @@ VAR
 
   undftyp*,
   bytetyp*, booltyp*, chartyp*,
-  sinttyp*, inttyp*, linttyp*,
+  sinttyp*, inttyp*, linttyp*, hinttyp*,
   adrtyp*,
   int8typ*, int16typ*, int32typ*, int64typ*,
   realtyp*, lrltyp*, settyp*, stringtyp*,
@@ -762,7 +762,7 @@ BEGIN
     tag := OPM.SymRInt();
     IF tag = Ssys THEN typ^.sysflag := SHORT(OPM.SymRInt()); tag := OPM.SymRInt() END;
     CASE tag OF
-    | Sptr:  typ^.form := Pointer; typ^.size := OPM.PointerSize;
+    | Sptr:  typ^.form := Pointer; typ^.size := OPM.AddressSize;
              typ^.n := 0; InStruct(typ^.BaseTyp)
     | Sarr:  typ^.form := Comp; typ^.comp := Array;
              InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
@@ -796,7 +796,7 @@ BEGIN
                InsertImport(fld, typ^.link, dummy);
                impCtxt.nextTag := OPM.SymRInt()
              END
-    | Spro:  typ^.form := ProcTyp; typ^.size := OPM.ProcSize;
+    | Spro:  typ^.form := ProcTyp; typ^.size := OPM.AddressSize;
              InSign(mno, typ^.BaseTyp, typ^.link)
     ELSE     OPM.LogWStr("unhandled case at InStruct, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
     END;
@@ -1163,7 +1163,7 @@ END Import;
 
   PROCEDURE InitStruct(VAR typ: Struct; form: SHORTINT);
   BEGIN
-    typ := NewStr(form, Basic); typ^.ref := form; typ^.size := OPM.ByteSize; typ^.allocated := TRUE;
+    typ := NewStr(form, Basic); typ^.ref := form; typ^.size := 1; typ^.allocated := TRUE;
     typ^.strobj := NewObj(); typ^.pbfp := form; typ^.pvfp := form; typ^.fpdone := TRUE;
     typ^.idfp := form; typ^.idfpdone := TRUE
   END InitStruct;
@@ -1207,36 +1207,37 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   InitStruct(niltyp,    NilTyp);
 
   (*initialization of module SYSTEM*)
-  EnterTyp("BYTE",    Byte,    OPM.ByteSize,    bytetyp);
-  EnterTyp("PTR",     Pointer, OPM.PointerSize, sysptrtyp);
-  EnterTyp("ADDRESS", Int,     OPM.PointerSize, adrtyp);
-  EnterTyp("INT8",    Int,     1,               int8typ);
-  EnterTyp("INT16",   Int,     2,               int16typ);
-  EnterTyp("INT32",   Int,     4,               int32typ);
-  EnterTyp("INT64",   Int,     8,               int64typ);
+  EnterTyp("BYTE",    Byte,    1,  bytetyp);
+  EnterTyp("PTR",     Pointer, -1, sysptrtyp);  (* Size set in Vishap.PropagateElementaryTypeSize *)
+  EnterTyp("ADDRESS", Int,     -1, adrtyp);     (* Size set in Vishap.PropagateElementaryTypeSize *)
+  EnterTyp("INT8",    Int,     1,  int8typ);
+  EnterTyp("INT16",   Int,     2,  int16typ);
+  EnterTyp("INT32",   Int,     4,  int32typ);
+  EnterTyp("INT64",   Int,     8,  int64typ);
 
-  EnterProc("ADR", adrfn);
-  EnterProc("CC", ccfn);
-  EnterProc("LSH", lshfn);
-  EnterProc("ROT", rotfn);
-  EnterProc("GET", getfn);
-  EnterProc("PUT", putfn);
+  EnterProc("ADR",    adrfn);
+  EnterProc("CC",     ccfn);
+  EnterProc("LSH",    lshfn);
+  EnterProc("ROT",    rotfn);
+  EnterProc("GET",    getfn);
+  EnterProc("PUT",    putfn);
   EnterProc("GETREG", getrfn);
   EnterProc("PUTREG", putrfn);
-  EnterProc("BIT", bitfn);
-  EnterProc("VAL", valfn);
-  EnterProc("NEW", sysnewfn);
-  EnterProc("MOVE", movefn);
+  EnterProc("BIT",    bitfn);
+  EnterProc("VAL",    valfn);
+  EnterProc("NEW",    sysnewfn);
+  EnterProc("MOVE",   movefn);
 
   syslink := topScope^.right;
   universe := topScope; topScope^.right := NIL;
 
 
-  EnterTyp("BOOLEAN",  Bool,  OPM.BoolSize,  booltyp);
-  EnterTyp("CHAR",     Char,  OPM.CharSize,  chartyp);
-  EnterTyp("SET",      Set,   OPM.SetSize,   settyp);
-  EnterTyp("REAL",     Real,  OPM.RealSize,  realtyp);
-  EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
+  EnterTyp("BOOLEAN",  Bool,  1,  booltyp);
+  EnterTyp("CHAR",     Char,  1,  chartyp);
+  EnterTyp("SET",      Set,   -1, settyp);    (* Size set in Vishap.PropagateElementaryTypeSize *)
+  EnterTyp("REAL",     Real,  4,  realtyp);
+  EnterTyp("LONGREAL", LReal, 8,  lrltyp);
+  EnterTyp("HUGEINT",  Int,   8,  hinttyp);
 
   EnterTypeAlias("SHORTINT", sintobj);
   EnterTypeAlias("INTEGER",  intobj);
