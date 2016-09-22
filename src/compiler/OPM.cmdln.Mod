@@ -218,6 +218,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* Undocumented options used by the build system:
 
+     Todo - this is obsoleted by the -A and -O options. Remove when the build system
+     has been updated.
+
      The following parameter overrides the integer size, pointer size and alignment
      settings compiled into the binary. They are used when bootstrapping to generate
      the C source for a compiler with different sizes to the current compiler.
@@ -236,19 +239,22 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     IF Platform.ArgCount = 1 THEN
       LogWLn;
-      LogWStr("Vishap Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW("."); LogWLn;
-      LogWStr("Based on Ofront by Software Templ OEG, continued by Norayr Chilingarian and others."); LogWLn;
+      LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
+      LogWStr("Based on Ofront by Software Templ OEG.");                                                           LogWLn;
+      LogWStr("Further development by Norayr Chilingarian, David Brown and others.");                              LogWLn;
       LogWLn;
-      LogWStr('Usage:'); LogWLn; LogWLn;
-      LogWStr('  '); LogWStr(Configuration.name); LogWStr(' options {files {options}}.'); LogWLn; LogWLn;
-      LogWStr('Where options = ["-" {option} ].'); LogWLn;
+      LogWStr("Usage:");                                                                                           LogWLn;
+      LogWLn;
+      LogWStr("  "); LogWStr(Configuration.name); LogWStr(" options {files {options}}.");                          LogWLn;
+      LogWLn;
+      LogWStr('Where options = ["-" {option} ].');                                                                 LogWLn;
       LogWLn;
       LogWStr("  Run time safety");                                                                                LogWLn;
-      LogWStr("    -p   Initialise pointers to NIL.");                                                             LogWLn;
-      LogWStr("    -a   Halt on assertion failures.");                                                             LogWLn;
+      LogWStr("    -p   Initialise pointers to NIL. On by default.");                                              LogWLn;
+      LogWStr("    -a   Halt on assertion failures. On by default.");                                              LogWLn;
       LogWStr("    -r   Halt on range check failures.");                                                           LogWLn;
-      LogWStr("    -t   Halt on type guad failure.");                                                              LogWLn;
-      LogWStr("    -x   Halt on index out of range.");                                                             LogWLn;
+      LogWStr("    -t   Halt on type guard failure. On by default.");                                              LogWLn;
+      LogWStr("    -x   Halt on index out of range. On by default.");                                              LogWLn;
       LogWLn;
       LogWStr("  Symbol file management");                                                                         LogWLn;
       LogWStr("    -e   Allow extension of old symbol file.");                                                     LogWLn;
@@ -265,19 +271,20 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("    -f   Disable vt100 control characters in status output.");                                      LogWLn;
       LogWStr("    -V   Display compiler debugging messages.");                                                    LogWLn;
       LogWLn;
-      LogWStr("  Size model for elementary types");                                                                LogWLn;
-      LogWStr("    -O2   Original Oberon / Oberon-2: 8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.");    LogWLn;
-      LogWStr("    -OC   Component Pascal:          16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");    LogWLn;
-      LogWStr("    -OV   Alternate large model:      8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");    LogWLn;
+      LogWStr("  Size model for elementary types (default O2 on 32 bit builds, OV on 64 bits)");                   LogWLn;
+      LogWStr("    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.");   LogWLn;
+      LogWStr("    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
+      LogWStr("    -OV   Alternate large model:       8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
       LogWLn;
-      LogWStr("  Target machine address size and alignment");                                                      LogWLn;
+      LogWStr("  Target machine address size and alignment (default is that of the running compiler binary)");     LogWLn;
       LogWStr("    -A44   32 bit addresses, 32 bit alignment (e.g. Unix/linux 32 bit on x86).");                   LogWLn;
       LogWStr("    -A48   32 bit addresses, 64 bit alignment (e.g. Windows 32 bit on x86, linux 32 bit on arm)."); LogWLn;
       LogWStr("    -A88   66 bit addresses, 64 bit alignment (e.g. 64 bit platforms).");                           LogWLn;
       LogWLn;
-      LogWStr('Initial options specify defaults for all files.'); LogWLn;
-      LogWStr('Options following a filename are specific to that file.'); LogWLn;
-      LogWStr('Repeating an option toggles its value.'); LogWLn;
+      LogWStr("All options are off by default, except where noted above.");                                        LogWLn;
+      LogWStr("Initial options specify defaults for all files.");                                                  LogWLn;
+      LogWStr("Options following a filename are specific to that file.");                                          LogWLn;
+      LogWStr("Repeating an option toggles its value.");                                                           LogWLn;
       RETURN FALSE
     ELSE
       S:=1; s:=""; Platform.GetArg(S, s);
@@ -577,17 +584,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE VerboseListSizes;
   BEGIN
     LogWLn;
-  (*LogWStr("Type        Size  Alignement"); LogWLn;*)
     LogWStr("Type        Size"); LogWLn;
-    (*
-    LogWStr("CHAR         "); LogWNum(CharSize,    4); (* LogWNum(CharAlign,    5); *) LogWLn;
-    LogWStr("BOOLEAN      "); LogWNum(BoolSize,    4); (* LogWNum(BoolAlign,    5); *) LogWLn;
-    LogWStr("REAL         "); LogWNum(RealSize,    4); (* LogWNum(RealAlign,    5); *) LogWLn;
-    LogWStr("LONGREAL     "); LogWNum(LRealSize,   4); (* LogWNum(LRealAlign,   5); *) LogWLn;
-    LogWStr("RECORD       "); LogWNum(RecSize,     4); (* LogWNum(RecAlign,     5); *) LogWLn;
-    LogWStr("PROC         "); LogWNum(ProcSize,    4); (* LogWNum(ProcAlign,    5); *) LogWLn;
-    LogWStr("ENDIAN       "); LogWNum(ByteOrder,   4); LogWNum(BitOrder,     5); LogWLn;
-    *)
     LogWStr("SHORTINT     "); LogWNum(ShortintSize, 4); (* LogWNum(SIntAlign,    5); *) LogWLn;
     LogWStr("INTEGER      "); LogWNum(IntegerSize,  4); (* LogWNum(IntAlign,     5); *) LogWLn;
     LogWStr("LONGINT      "); LogWNum(LongintSize,  4); (* LogWNum(LIntAlign,    5); *) LogWLn;
@@ -595,13 +592,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     LogWStr("ADDRESS      "); LogWNum(AddressSize,  4); (* LogWNum(PointerAlign, 5); *) LogWLn;
     LogWLn;
     LogWStr("Alignment: "); LogWNum(Alignment, 4); LogWLn;
-    (*
-    LogWStr("Min shortint "); LogWNum(MinSInt,     4); LogWLn;
-    LogWStr("Max shortint "); LogWNum(MaxSInt,     4); LogWLn;
-    LogWStr("Min integer  "); LogWNum(MinInt,      4); LogWLn;
-    LogWStr("Max integer  "); LogWNum(MaxInt,      4); LogWLn;
-    LogWStr("Min longint  "); LogWNum(MinLInt,     4); LogWLn;
-    *)
   END VerboseListSizes;
 
 
@@ -864,7 +854,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
 BEGIN
-
   Texts.OpenWriter(W);
 
   MODULES := "";  Platform.GetEnv("MODULES", MODULES);
@@ -881,16 +870,18 @@ BEGIN
   (* type sizes with configuration based defaults *)
   AddressSize  := Configuration.addressSize;
   Alignment    := Configuration.alignment;
-  ShortintSize := 1;
 
   IF Configuration.intsize = 2 THEN
-    IntegerSize := 2;
-    LongintSize := 4;
-    SetSize     := 4;
+    (* Original Oberon-2 implementation sizes (-O2) *)
+    ShortintSize := 1;
+    IntegerSize  := 2;
+    LongintSize  := 4;
+    SetSize      := 4;
   ELSE
-    IntegerSize := 4;
-    LongintSize := 8;
-    SetSize     := 8;
-  END;
-
+    (* Legacy Vishap 64 bit build sizes (-OV) *)
+    ShortintSize := 1;
+    IntegerSize  := 4;
+    LongintSize  := 8;
+    SetSize      := 8;
+  END
 END OPM.

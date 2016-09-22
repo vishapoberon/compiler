@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef Configuration__h
 #define Configuration__h

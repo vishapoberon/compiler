@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/21] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -269,11 +269,13 @@ BOOLEAN OPM_OpenPar (void)
 	CHAR s[256];
 	if (Platform_ArgCount == 1) {
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Vishap Oberon-2 compiler v", 27);
+		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);
 		OPM_LogWStr(Configuration_versionLong, 41);
 		OPM_LogW('.');
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG, continued by Norayr Chilingarian and others.", 84);
+		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG.", 39);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"Further development by Norayr Chilingarian, David Brown and others.", 68);
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Usage:", 7);
@@ -289,15 +291,15 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Run time safety", 18);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -p   Initialise pointers to NIL.", 37);
+		OPM_LogWStr((CHAR*)"    -p   Initialise pointers to NIL. On by default.", 52);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -a   Halt on assertion failures.", 37);
+		OPM_LogWStr((CHAR*)"    -a   Halt on assertion failures. On by default.", 52);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -r   Halt on range check failures.", 39);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -t   Halt on type guad failure.", 36);
+		OPM_LogWStr((CHAR*)"    -t   Halt on type guard failure. On by default.", 52);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -x   Halt on index out of range.", 37);
+		OPM_LogWStr((CHAR*)"    -x   Halt on index out of range. On by default.", 52);
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Symbol file management", 25);
@@ -327,16 +329,16 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWStr((CHAR*)"    -V   Display compiler debugging messages.", 46);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  Size model for elementary types", 34);
+		OPM_LogWStr((CHAR*)"  Size model for elementary types (default O2 on 32 bit builds, OV on 64 bits)", 79);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -O2   Original Oberon / Oberon-2: 8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.", 94);
+		OPM_LogWStr((CHAR*)"    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.", 95);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -OC   Component Pascal:          16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 94);
+		OPM_LogWStr((CHAR*)"    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 95);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -OV   Alternate large model:      8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 94);
+		OPM_LogWStr((CHAR*)"    -OV   Alternate large model:       8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 95);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  Target machine address size and alignment", 44);
+		OPM_LogWStr((CHAR*)"  Target machine address size and alignment (default is that of the running compiler binary)", 93);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -A44   32 bit addresses, 32 bit alignment (e.g. Unix/linux 32 bit on x86).", 79);
 		OPM_LogWLn();
@@ -344,6 +346,8 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -A88   66 bit addresses, 64 bit alignment (e.g. 64 bit platforms).", 71);
 		OPM_LogWLn();
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"All options are off by default, except where noted above.", 58);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Initial options specify defaults for all files.", 48);
 		OPM_LogWLn();
