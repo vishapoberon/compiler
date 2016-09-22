@@ -20,6 +20,7 @@ FLAVOUR  = $(OS).$(DATAMODEL).$(COMPILER)
 BUILDDIR = build/$(FLAVOUR)
 VISHAP   = $(ONAME)$(BINEXT)
 
+# MODEL=-O2 # Override model - build everything as S8,I16,L32.
 
 
 

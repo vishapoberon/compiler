@@ -2067,7 +2067,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 							x->conval->intval += 1;
 						}
 						p = NewOp__53(12, 19, p, x);
-						p->typ = OPT_adrtyp;
+						p->typ = OPT_linttyp;
 					} else {
 						p = x;
 						p->conval->intval = typ->n;
@@ -2323,7 +2323,7 @@ void OPB_StFct (OPT_Node *par0, int8 fctno, int32 parno)
 						p = p->left;
 						dim += 1;
 					}
-					OPB_BindNodes(12, OPT_adrtyp, &p, OPB_NewIntConst(dim));
+					OPB_BindNodes(12, OPT_linttyp, &p, OPB_NewIntConst(dim));
 					p->subcl = 19;
 				} else {
 					p = OPB_NewIntConst(p->typ->n);

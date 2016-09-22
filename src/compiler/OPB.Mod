@@ -1124,7 +1124,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      ELSE x^.obj := NIL;
                        IF typ^.comp = OPT.DynArr THEN
                          WHILE p^.class = OPT.Nindex DO p := p^.left; INC(x^.conval^.intval) END ;  (* possible side effect ignored *)
-                         p := NewOp(OPT.Ndop, OPT.len, p, x); p^.typ := OPT.adrtyp
+                         p := NewOp(OPT.Ndop, OPT.len, p, x); p^.typ := OPT.linttyp
                        ELSE p := x; p^.conval^.intval := typ^.n; SetIntType(p)
                        END
                      END
@@ -1293,7 +1293,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         ELSIF (fctno = OPT.lenfn) & (parno = 1) THEN (*LEN*)
           IF p^.typ^.comp = OPT.DynArr THEN dim := 0;
             WHILE p^.class = OPT.Nindex DO p := p^.left; INC(dim) END ;  (* possible side effect ignored *)
-            BindNodes(OPT.Ndop, OPT.adrtyp, p, NewIntConst(dim)); p^.subcl := OPT.len
+            BindNodes(OPT.Ndop, OPT.linttyp, p, NewIntConst(dim)); p^.subcl := OPT.len
           ELSE
             p := NewIntConst(p^.typ^.n)
           END
