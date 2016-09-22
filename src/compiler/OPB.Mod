@@ -341,7 +341,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   IF (z^.class < OPT.Nconst) OR (f = OPT.String) THEN z := NewOp(op, typ, z)
                   ELSE err(127)
                   END ;
-                  z^.typ := OPT.linttyp
+                  z^.typ := OPT.adrtyp
       |OPT.cc:    IF (f = OPT.Int) & (z^.class = OPT.Nconst) THEN                              (*SYSTEM.CC*)
                     IF (0 <= z^.conval^.intval) & (z^.conval^.intval <= OPM.MaxCC) THEN z := NewOp(op, typ, z) ELSE err(219) END
                   ELSE err(69)
@@ -1052,8 +1052,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
      OPT.bitfn,
      OPT.movefn:   (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.AddressSize)) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.adrtyp.size) THEN Convert(x, OPT.adrtyp)
+                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.AddressSize)) THEN err(111); x^.typ := OPT.adrtyp
                    END
     |OPT.getrfn,
      OPT.putrfn:   (*SYSTEM.GETREG, SYSTEM.PUTREG*)
@@ -1124,7 +1124,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      ELSE x^.obj := NIL;
                        IF typ^.comp = OPT.DynArr THEN
                          WHILE p^.class = OPT.Nindex DO p := p^.left; INC(x^.conval^.intval) END ;  (* possible side effect ignored *)
-                         p := NewOp(OPT.Ndop, OPT.len, p, x); p^.typ := OPT.linttyp
+                         p := NewOp(OPT.Ndop, OPT.len, p, x); p^.typ := OPT.adrtyp
                        ELSE p := x; p^.conval^.intval := typ^.n; SetIntType(p)
                        END
                      END
@@ -1229,8 +1229,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    p^.typ := OPT.notyp
     |OPT.movefn:   (*SYSTEM.MOVE*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
-                   ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.linttyp.size) THEN Convert(x, OPT.linttyp)
-                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.AddressSize)) THEN err(111); x^.typ := OPT.linttyp
+                   ELSIF (x^.class = OPT.Nconst) & (f = OPT.Int) & (x.typ.size < OPT.adrtyp.size) THEN Convert(x, OPT.adrtyp)
+                   ELSIF ~((x.typ.form IN {OPT.Pointer, OPT.Int}) & (x.typ.size = OPM.AddressSize)) THEN err(111); x^.typ := OPT.adrtyp
                    END;
                    p^.link := x
     |OPT.assertfn: (*ASSERT*)
@@ -1293,7 +1293,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         ELSIF (fctno = OPT.lenfn) & (parno = 1) THEN (*LEN*)
           IF p^.typ^.comp = OPT.DynArr THEN dim := 0;
             WHILE p^.class = OPT.Nindex DO p := p^.left; INC(dim) END ;  (* possible side effect ignored *)
-            BindNodes(OPT.Ndop, OPT.linttyp, p, NewIntConst(dim)); p^.subcl := OPT.len
+            BindNodes(OPT.Ndop, OPT.adrtyp, p, NewIntConst(dim)); p^.subcl := OPT.len
           ELSE
             p := NewIntConst(p^.typ^.n)
           END
@@ -1379,7 +1379,11 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           WHILE (q # fp^.typ) & (q # NIL) & (q # OPT.undftyp) DO q := q^.BaseTyp END ;
           IF q = NIL THEN err(111) END
         ELSIF (fp^.typ = OPT.sysptrtyp) & (ap^.typ^.form = OPT.Pointer) THEN (* ok *)
-        ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = OPT.Byte) & ((ap.typ.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (ap.typ.size = 1))) THEN err(123)
+        ELSIF (ap^.typ # fp^.typ) THEN
+          IF    (fp^.typ^.form = OPT.Byte) & ((ap.typ.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (ap.typ.size = 1)) THEN (* OK *)
+          ELSIF (ap.typ = OPT.adrtyp) & (fp.typ = OPT.IntType(ap.typ.size)) THEN (* OK (ADDRESS is changed to INTnn in symbol file) *)
+          ELSE err(123)
+          END
         ELSIF (fp^.typ^.form = OPT.Pointer) & (ap^.class = OPT.Nguard) THEN err(123)
         END
       ELSIF fp^.typ^.comp = OPT.DynArr THEN
