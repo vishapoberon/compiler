@@ -639,7 +639,7 @@ void OPB_MOp (int8 op, OPT_Node *x)
 				} else {
 					OPB_err(127);
 				}
-				z->typ = OPT_linttyp;
+				z->typ = OPT_adrtyp;
 				break;
 			case 25: 
 				if ((f == 4 && z->class == 7)) {
@@ -1938,11 +1938,11 @@ void OPB_StPar0 (OPT_Node *par0, int32 fctno)
 		case 24: case 25: case 28: case 31: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_linttyp->size)) {
-				OPB_Convert(&x, OPT_linttyp);
+			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_adrtyp->size)) {
+				OPB_Convert(&x, OPT_adrtyp);
 			} else if (!((__IN(x->typ->form, 0x0810, 64) && x->typ->size == (int64)OPM_AddressSize))) {
 				OPB_err(111);
-				x->typ = OPT_linttyp;
+				x->typ = OPT_adrtyp;
 			}
 			break;
 		case 26: case 27: 
@@ -2067,7 +2067,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 							x->conval->intval += 1;
 						}
 						p = NewOp__53(12, 19, p, x);
-						p->typ = OPT_linttyp;
+						p->typ = OPT_adrtyp;
 					} else {
 						p = x;
 						p->conval->intval = typ->n;
@@ -2211,11 +2211,11 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 		case 31: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_linttyp->size)) {
-				OPB_Convert(&x, OPT_linttyp);
+			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_adrtyp->size)) {
+				OPB_Convert(&x, OPT_adrtyp);
 			} else if (!((__IN(x->typ->form, 0x0810, 64) && x->typ->size == (int64)OPM_AddressSize))) {
 				OPB_err(111);
-				x->typ = OPT_linttyp;
+				x->typ = OPT_adrtyp;
 			}
 			p->link = x;
 			break;
@@ -2323,7 +2323,7 @@ void OPB_StFct (OPT_Node *par0, int8 fctno, int32 parno)
 						p = p->left;
 						dim += 1;
 					}
-					OPB_BindNodes(12, OPT_linttyp, &p, OPB_NewIntConst(dim));
+					OPB_BindNodes(12, OPT_adrtyp, &p, OPB_NewIntConst(dim));
 					p->subcl = 19;
 				} else {
 					p = OPB_NewIntConst(p->typ->n);
@@ -2450,8 +2450,12 @@ void OPB_Param (OPT_Node ap, OPT_Object fp)
 					OPB_err(111);
 				}
 			} else if ((fp->typ == OPT_sysptrtyp && ap->typ->form == 11)) {
-			} else if ((ap->typ != fp->typ && !((fp->typ->form == 1 && ((__IN(ap->typ->form, 0x1e, 64) && ap->typ->size == 1)))))) {
-				OPB_err(123);
+			} else if (ap->typ != fp->typ) {
+				if ((fp->typ->form == 1 && ((__IN(ap->typ->form, 0x1e, 64) && ap->typ->size == 1)))) {
+				} else if ((ap->typ == OPT_adrtyp && fp->typ == OPT_IntType(ap->typ->size))) {
+				} else {
+					OPB_err(123);
+				}
 			} else if ((fp->typ->form == 11 && ap->class == 5)) {
 				OPB_err(123);
 			}

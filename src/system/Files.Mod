@@ -34,14 +34,16 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     Buffer   = POINTER TO BufDesc;
 
     FileDesc = RECORD
-      workName, registerName: FileName;
-      tempFile: BOOLEAN;
-      identity: Platform.FileIdentity;
-      fd-:      Platform.FileHandle;
-      len, pos: LONGINT;
-      bufs: ARRAY nofbufs OF Buffer;
-      swapper, state: INTEGER;
-      next:     File;
+      workName:     FileName;
+      registerName: FileName;
+      tempFile:     BOOLEAN;
+      identity:     Platform.FileIdentity;
+      fd-:          Platform.FileHandle;
+      len, pos:     LONGINT;
+      bufs:         ARRAY nofbufs OF Buffer;
+      swapper:      INTEGER;
+      state:        INTEGER;
+      next:         File;
     END;
 
     BufDesc = RECORD
@@ -52,11 +54,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       data: ARRAY bufsize OF SYSTEM.BYTE
     END;
 
-    Rider* = RECORD
-      res*: LONGINT;
-      eof*: BOOLEAN;
-      buf: Buffer;
-      org, offset: LONGINT
+    Rider* =  RECORD
+      res*:   LONGINT;
+      eof*:   BOOLEAN;
+      buf:    Buffer;
+      org:    LONGINT;
+      offset: LONGINT
     END;
 
 

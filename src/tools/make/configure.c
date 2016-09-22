@@ -379,6 +379,7 @@ void writeMakeParameters() {
   fprintf(fd, "ONAME=%s\n",      oname);
   fprintf(fd, "DATAMODEL=%s\n",  dataModel);
   fprintf(fd, "INTSIZE=%d\n",    intsize);
+  fprintf(fd, "MODEL=-O%c\n",    intsize == 2 ? '2' : 'V');
   fprintf(fd, "ADRSIZE=%d\n",    addressSize);
   fprintf(fd, "ALIGNMENT=%d\n",  alignment);
   fprintf(fd, "INSTALLDIR=%s\n", installdir);

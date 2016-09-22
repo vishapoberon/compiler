@@ -67,7 +67,7 @@ import void Platform_SetHalt (Platform_HaltProcedure p);
 import void Platform_SetInterruptHandler (Platform_SignalHandler handler);
 import void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
 import void Platform_SetQuitHandler (Platform_SignalHandler handler);
-import int16 Platform_Size (int32 h, int32 *l);
+import int16 Platform_Size (int32 h, address *l);
 import int16 Platform_Sync (int32 h);
 import int16 Platform_System (CHAR *cmd, LONGINT cmd__len);
 import int32 Platform_Time (void);

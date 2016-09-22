@@ -97,6 +97,7 @@ translate:
 	@printf "\nmake translate - translating compiler source from Oberon to C:\n"
 	@printf "  PLATFORM:  %s\n" $(PLATFORM)
 	@printf "  INTSIZE:   %s\n" $(INTSIZE)
+	@printf "  MODEL:     %s\n" $(MODEL)
 	@printf "  ADRSIZE:   %s\n" $(ADRSIZE)
 	@printf "  ALIGNMENT: %s\n" $(ALIGNMENT)
 	@mkdir -p $(BUILDDIR)

@@ -663,7 +663,7 @@ void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x
 		} else {
 			min = n;
 		}
-		__MOVE((address)buf->data + offset, (address)x + xpos, min);
+		__MOVE(((address)buf->data) + offset, ((address)x) + xpos, min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -728,7 +728,7 @@ void Files_WriteBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT 
 		} else {
 			min = n;
 		}
-		__MOVE((address)x + xpos, (address)buf->data + offset, min);
+		__MOVE(((address)x) + xpos, ((address)buf->data) + offset, min);
 		offset += min;
 		(*r).offset = offset;
 		if (offset > buf->size) {

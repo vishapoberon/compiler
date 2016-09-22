@@ -118,10 +118,10 @@ void Console_Hex (int32 i)
 
 void Console_Read (CHAR *ch)
 {
-	int32 n;
+	address n;
 	int16 error;
 	Console_Flush();
-	error = Platform_ReadBuf(0, (void*)&*ch, 1, &n);
+	error = Platform_ReadBuf(0, (void*)&*ch, 1, (void*)&n);
 	if (n != 1) {
 		*ch = 0x00;
 	}

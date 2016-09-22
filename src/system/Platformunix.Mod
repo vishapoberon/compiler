@@ -316,7 +316,7 @@ PROCEDURE -structstats                     "struct stat s";
 PROCEDURE -statdev():              LONGINT "(LONGINT)s.st_dev";
 PROCEDURE -statino():              LONGINT "(LONGINT)s.st_ino";
 PROCEDURE -statmtime():            LONGINT "(LONGINT)s.st_mtime";
-PROCEDURE -statsize():             LONGINT "(LONGINT)s.st_size";
+PROCEDURE -statsize():             SYSTEM.ADDRESS "(address)s.st_size";
 
 PROCEDURE Identify*(h: FileHandle; VAR identity: FileIdentity): ErrorCode;
 BEGIN
@@ -358,7 +358,7 @@ BEGIN
 END MTimeAsClock;
 
 
-PROCEDURE Size*(h: FileHandle; VAR l: LONGINT): ErrorCode;
+PROCEDURE Size*(h: FileHandle; VAR l: SYSTEM.ADDRESS): ErrorCode;
 BEGIN
   structstats;
   IF fstat(h) < 0 THEN RETURN err() END;

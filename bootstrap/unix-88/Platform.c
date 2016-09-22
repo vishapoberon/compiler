@@ -13,7 +13,7 @@ typedef
 	Platform_ArgPtr (*Platform_ArgVec)[1024];
 
 typedef
-	int64 (*Platform_ArgVecPtr)[1];
+	address (*Platform_ArgVecPtr)[1];
 
 typedef
 	CHAR (*Platform_EnvPtr)[1024];
@@ -83,7 +83,7 @@ export void Platform_SetHalt (Platform_HaltProcedure p);
 export void Platform_SetInterruptHandler (Platform_SignalHandler handler);
 export void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
 export void Platform_SetQuitHandler (Platform_SignalHandler handler);
-export int32 Platform_Size (int64 h, int64 *l);
+export int32 Platform_Size (int64 h, address *l);
 export int32 Platform_Sync (int64 h);
 export int32 Platform_System (CHAR *cmd, LONGINT cmd__len);
 static void Platform_TestLittleEndian (void);
@@ -155,7 +155,7 @@ extern void Heap_InitHeap();
 #define Platform_statdev()	(LONGINT)s.st_dev
 #define Platform_statino()	(LONGINT)s.st_ino
 #define Platform_statmtime()	(LONGINT)s.st_mtime
-#define Platform_statsize()	(LONGINT)s.st_size
+#define Platform_statsize()	(address)s.st_size
 #define Platform_structstats()	struct stat s
 #define Platform_system(str, str__len)	system((char*)str)
 #define Platform_tmhour()	(LONGINT)time->tm_hour
@@ -504,7 +504,7 @@ void Platform_MTimeAsClock (Platform_FileIdentity i, int64 *t, int64 *d)
 	Platform_YMDHMStoClock(Platform_tmyear(), Platform_tmmon(), Platform_tmmday(), Platform_tmhour(), Platform_tmmin(), Platform_tmsec(), &*t, &*d);
 }
 
-int32 Platform_Size (int64 h, int64 *l)
+int32 Platform_Size (int64 h, address *l)
 {
 	int32 _o_result;
 	Platform_structstats();
