@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin tsSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin tsSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -74,10 +74,10 @@ static int16 Heap_lockdepth;
 static BOOLEAN Heap_interrupted;
 export int16 Heap_FileCount;
 
-export LONGINT *Heap_ModuleDesc__typ;
-export LONGINT *Heap_CmdDesc__typ;
-export LONGINT *Heap_FinDesc__typ;
-export LONGINT *Heap__1__typ;
+export address *Heap_ModuleDesc__typ;
+export address *Heap_CmdDesc__typ;
+export address *Heap_FinDesc__typ;
+export address *Heap__1__typ;
 
 static void Heap_CheckFin (void);
 static void Heap_ExtendHeap (address blksz);

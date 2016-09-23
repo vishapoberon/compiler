@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef Texts__h
 #define Texts__h
@@ -35,7 +35,7 @@ typedef
 	} Texts_RunDesc;
 
 typedef
-	void (*Texts_Handler)(Texts_Elem, Texts_ElemMsg*, LONGINT *);
+	void (*Texts_Handler)(Texts_Elem, Texts_ElemMsg*, address *);
 
 typedef
 	struct Texts_ElemDesc {
@@ -115,18 +115,18 @@ typedef
 
 import Texts_Elem Texts_new;
 
-import LONGINT *Texts_FontDesc__typ;
-import LONGINT *Texts_RunDesc__typ;
-import LONGINT *Texts_ElemMsg__typ;
-import LONGINT *Texts_ElemDesc__typ;
-import LONGINT *Texts_FileMsg__typ;
-import LONGINT *Texts_CopyMsg__typ;
-import LONGINT *Texts_IdentifyMsg__typ;
-import LONGINT *Texts_BufDesc__typ;
-import LONGINT *Texts_TextDesc__typ;
-import LONGINT *Texts_Reader__typ;
-import LONGINT *Texts_Scanner__typ;
-import LONGINT *Texts_Writer__typ;
+import address *Texts_FontDesc__typ;
+import address *Texts_RunDesc__typ;
+import address *Texts_ElemMsg__typ;
+import address *Texts_ElemDesc__typ;
+import address *Texts_FileMsg__typ;
+import address *Texts_CopyMsg__typ;
+import address *Texts_IdentifyMsg__typ;
+import address *Texts_BufDesc__typ;
+import address *Texts_TextDesc__typ;
+import address *Texts_Reader__typ;
+import address *Texts_Scanner__typ;
+import address *Texts_Writer__typ;
 
 import void Texts_Append (Texts_Text T, Texts_Buffer B);
 import void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff);
@@ -137,35 +137,35 @@ import void Texts_Delete (Texts_Text T, int32 beg, int32 end);
 import Texts_Text Texts_ElemBase (Texts_Elem E);
 import int32 Texts_ElemPos (Texts_Elem E);
 import void Texts_Insert (Texts_Text T, int32 pos, Texts_Buffer B);
-import void Texts_Load (Files_Rider *r, LONGINT *r__typ, Texts_Text T);
+import void Texts_Load (Files_Rider *r, address *r__typ, Texts_Text T);
 import void Texts_Open (Texts_Text T, CHAR *name, LONGINT name__len);
 import void Texts_OpenBuf (Texts_Buffer B);
-import void Texts_OpenReader (Texts_Reader *R, LONGINT *R__typ, Texts_Text T, int32 pos);
-import void Texts_OpenScanner (Texts_Scanner *S, LONGINT *S__typ, Texts_Text T, int32 pos);
-import void Texts_OpenWriter (Texts_Writer *W, LONGINT *W__typ);
-import int32 Texts_Pos (Texts_Reader *R, LONGINT *R__typ);
-import void Texts_Read (Texts_Reader *R, LONGINT *R__typ, CHAR *ch);
-import void Texts_ReadElem (Texts_Reader *R, LONGINT *R__typ);
-import void Texts_ReadPrevElem (Texts_Reader *R, LONGINT *R__typ);
+import void Texts_OpenReader (Texts_Reader *R, address *R__typ, Texts_Text T, int32 pos);
+import void Texts_OpenScanner (Texts_Scanner *S, address *S__typ, Texts_Text T, int32 pos);
+import void Texts_OpenWriter (Texts_Writer *W, address *W__typ);
+import int32 Texts_Pos (Texts_Reader *R, address *R__typ);
+import void Texts_Read (Texts_Reader *R, address *R__typ, CHAR *ch);
+import void Texts_ReadElem (Texts_Reader *R, address *R__typ);
+import void Texts_ReadPrevElem (Texts_Reader *R, address *R__typ);
 import void Texts_Recall (Texts_Buffer *B);
 import void Texts_Save (Texts_Text T, int32 beg, int32 end, Texts_Buffer B);
-import void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ);
-import void Texts_SetColor (Texts_Writer *W, LONGINT *W__typ, int8 col);
-import void Texts_SetFont (Texts_Writer *W, LONGINT *W__typ, Texts_FontsFont fnt);
-import void Texts_SetOffset (Texts_Writer *W, LONGINT *W__typ, int8 voff);
-import void Texts_Store (Files_Rider *r, LONGINT *r__typ, Texts_Text T);
-import void Texts_Write (Texts_Writer *W, LONGINT *W__typ, CHAR ch);
-import void Texts_WriteDate (Texts_Writer *W, LONGINT *W__typ, int32 t, int32 d);
-import void Texts_WriteElem (Texts_Writer *W, LONGINT *W__typ, Texts_Elem e);
-import void Texts_WriteHex (Texts_Writer *W, LONGINT *W__typ, int32 x);
-import void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n);
-import void Texts_WriteLn (Texts_Writer *W, LONGINT *W__typ);
-import void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, int16 n);
-import void Texts_WriteLongRealHex (Texts_Writer *W, LONGINT *W__typ, LONGREAL x);
-import void Texts_WriteReal (Texts_Writer *W, LONGINT *W__typ, REAL x, int16 n);
-import void Texts_WriteRealFix (Texts_Writer *W, LONGINT *W__typ, REAL x, int16 n, int16 k);
-import void Texts_WriteRealHex (Texts_Writer *W, LONGINT *W__typ, REAL x);
-import void Texts_WriteString (Texts_Writer *W, LONGINT *W__typ, CHAR *s, LONGINT s__len);
+import void Texts_Scan (Texts_Scanner *S, address *S__typ);
+import void Texts_SetColor (Texts_Writer *W, address *W__typ, int8 col);
+import void Texts_SetFont (Texts_Writer *W, address *W__typ, Texts_FontsFont fnt);
+import void Texts_SetOffset (Texts_Writer *W, address *W__typ, int8 voff);
+import void Texts_Store (Files_Rider *r, address *r__typ, Texts_Text T);
+import void Texts_Write (Texts_Writer *W, address *W__typ, CHAR ch);
+import void Texts_WriteDate (Texts_Writer *W, address *W__typ, int32 t, int32 d);
+import void Texts_WriteElem (Texts_Writer *W, address *W__typ, Texts_Elem e);
+import void Texts_WriteHex (Texts_Writer *W, address *W__typ, int32 x);
+import void Texts_WriteInt (Texts_Writer *W, address *W__typ, int64 x, int64 n);
+import void Texts_WriteLn (Texts_Writer *W, address *W__typ);
+import void Texts_WriteLongReal (Texts_Writer *W, address *W__typ, LONGREAL x, int16 n);
+import void Texts_WriteLongRealHex (Texts_Writer *W, address *W__typ, LONGREAL x);
+import void Texts_WriteReal (Texts_Writer *W, address *W__typ, REAL x, int16 n);
+import void Texts_WriteRealFix (Texts_Writer *W, address *W__typ, REAL x, int16 n, int16 k);
+import void Texts_WriteRealHex (Texts_Writer *W, address *W__typ, REAL x);
+import void Texts_WriteString (Texts_Writer *W, address *W__typ, CHAR *s, LONGINT s__len);
 import void *Texts__init(void);
 
 

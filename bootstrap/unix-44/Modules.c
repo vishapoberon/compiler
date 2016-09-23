@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -43,8 +43,8 @@ export int16 Modules_res;
 export CHAR Modules_resMsg[256];
 export Modules_ModuleName Modules_imported, Modules_importing;
 
-export LONGINT *Modules_ModuleDesc__typ;
-export LONGINT *Modules_CmdDesc__typ;
+export address *Modules_ModuleDesc__typ;
+export address *Modules_CmdDesc__typ;
 
 static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len);
 export void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);

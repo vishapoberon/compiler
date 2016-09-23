@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -118,10 +118,10 @@ void Console_Hex (int64 i)
 
 void Console_Read (CHAR *ch)
 {
-	address n;
+	int64 n;
 	int32 error;
 	Console_Flush();
-	error = Platform_ReadBuf(Platform_StdIn, (void*)&*ch, 1, (void*)&n);
+	error = Platform_ReadBuf(Platform_StdIn, (void*)&*ch, 1, &n);
 	if (n != 1) {
 		*ch = 0x00;
 	}

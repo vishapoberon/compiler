@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -40,7 +40,7 @@ static CHAR OPM_OBERON[1024];
 static CHAR OPM_MODULES[1024];
 
 
-static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F);
+static void OPM_Append (Files_Rider *R, address *R__typ, Files_File F);
 export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
 export void OPM_DeleteNewSym (void);
@@ -48,10 +48,10 @@ export void OPM_FPrint (int64 *fp, int64 val);
 export void OPM_FPrintLReal (int64 *fp, LONGREAL lr);
 export void OPM_FPrintReal (int64 *fp, REAL real);
 export void OPM_FPrintSet (int64 *fp, SET set);
-static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int64 pos);
+static void OPM_FindLine (Files_File f, Files_Rider *r, address *r__typ, int64 pos);
 export void OPM_Get (CHAR *ch);
 static void OPM_GetProperties (void);
-static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONGINT name__len, int32 *size, int32 *align);
+static void OPM_GetProperty (Texts_Scanner *S, address *S__typ, CHAR *name, LONGINT name__len, int32 *size, int32 *align);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 export void OPM_InitOptions (void);
 export int32 OPM_Integer (int64 n);
@@ -495,7 +495,7 @@ static void OPM_LogErrMsg (int32 n)
 	OPM_LogWStr(errors_errors[__X(n, 350)], 128);
 }
 
-static void OPM_FindLine (Files_File f, Files_Rider *r, LONGINT *r__typ, int64 pos)
+static void OPM_FindLine (Files_File f, Files_Rider *r, address *r__typ, int64 pos)
 {
 	CHAR ch, cheol;
 	if (pos < OPM_ErrorLineStartPos) {
@@ -651,7 +651,7 @@ void OPM_FPrintLReal (int64 *fp, LONGREAL lr)
 	OPM_FPrint(&*fp, __VAL(int64, lr));
 }
 
-static void OPM_GetProperty (Texts_Scanner *S, LONGINT *S__typ, CHAR *name, LONGINT name__len, int32 *size, int32 *align)
+static void OPM_GetProperty (Texts_Scanner *S, address *S__typ, CHAR *name, LONGINT name__len, int32 *size, int32 *align)
 {
 	__DUP(name, name__len, CHAR);
 	if (((*S).class == 1 && __STRCMP((*S).s, name) == 0)) {
@@ -993,7 +993,7 @@ void OPM_WriteLn (void)
 	Files_Write(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, 0x0a);
 }
 
-static void OPM_Append (Files_Rider *R, LONGINT *R__typ, Files_File F)
+static void OPM_Append (Files_Rider *R, address *R__typ, Files_File F)
 {
 	Files_Rider R1;
 	CHAR buffer[4096];

@@ -316,7 +316,7 @@ PROCEDURE -structstats                     "struct stat s";
 PROCEDURE -statdev():              LONGINT "(LONGINT)s.st_dev";
 PROCEDURE -statino():              LONGINT "(LONGINT)s.st_ino";
 PROCEDURE -statmtime():            LONGINT "(LONGINT)s.st_mtime";
-PROCEDURE -statsize():             SYSTEM.ADDRESS "(address)s.st_size";
+PROCEDURE -statsize():             LONGINT "(address)s.st_size";
 
 PROCEDURE Identify*(h: FileHandle; VAR identity: FileIdentity): ErrorCode;
 BEGIN
@@ -358,7 +358,7 @@ BEGIN
 END MTimeAsClock;
 
 
-PROCEDURE Size*(h: FileHandle; VAR l: SYSTEM.ADDRESS): ErrorCode;
+PROCEDURE Size*(h: FileHandle; VAR l: LONGINT): ErrorCode;
 BEGIN
   structstats;
   IF fstat(h) < 0 THEN RETURN err() END;
@@ -368,16 +368,16 @@ END Size;
 
 
 
-PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): SYSTEM.ADDRESS
+PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): LONGINT
 "read(fd, (void*)(address)(p), l)";
 
-PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS; VAR n: SYSTEM.ADDRESS): ErrorCode;
+PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: LONGINT): ErrorCode;
 BEGIN
   n := readfile(h, p, l);
   IF n < 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
 END Read;
 
-PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: SYSTEM.ADDRESS): ErrorCode;
+PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: LONGINT): ErrorCode;
 BEGIN
   n := readfile(h, SYSTEM.ADR(b), LEN(b));
   IF n < 0 THEN n := 0; RETURN err() ELSE RETURN 0 END

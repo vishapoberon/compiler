@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin tspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin tspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -56,11 +56,11 @@ static struct {
 	CHAR data[1];
 } *Files_SearchPath;
 
-export LONGINT *Files_FileDesc__typ;
-export LONGINT *Files_BufDesc__typ;
-export LONGINT *Files_Rider__typ;
+export address *Files_FileDesc__typ;
+export address *Files_BufDesc__typ;
+export address *Files_Rider__typ;
 
-export Files_File Files_Base (Files_Rider *r, LONGINT *r__typ);
+export Files_File Files_Base (Files_Rider *r, address *r__typ);
 static Files_File Files_CacheEntry (Platform_FileIdentity identity);
 export void Files_ChangeDirectory (CHAR *path, LONGINT path__len, int32 *res);
 export void Files_Close (Files_File f);
@@ -79,37 +79,37 @@ export int64 Files_Length (Files_File f);
 static void Files_MakeFileName (CHAR *dir, LONGINT dir__len, CHAR *name, LONGINT name__len, CHAR *dest, LONGINT dest__len);
 export Files_File Files_New (CHAR *name, LONGINT name__len);
 export Files_File Files_Old (CHAR *name, LONGINT name__len);
-export int64 Files_Pos (Files_Rider *r, LONGINT *r__typ);
+export int64 Files_Pos (Files_Rider *r, address *r__typ);
 export void Files_Purge (Files_File f);
-export void Files_Read (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x);
-export void Files_ReadBool (Files_Rider *R, LONGINT *R__typ, BOOLEAN *x);
-export void Files_ReadByte (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len);
-export void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n);
-export void Files_ReadInt (Files_Rider *R, LONGINT *R__typ, int32 *x);
-export void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, int64 *x);
-export void Files_ReadLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL *x);
-export void Files_ReadLine (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len);
-export void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, int64 *x);
-export void Files_ReadNum64 (Files_Rider *R, LONGINT *R__typ, int64 *x);
-export void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x);
-export void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x);
-export void Files_ReadString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len);
+export void Files_Read (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x);
+export void Files_ReadBool (Files_Rider *R, address *R__typ, BOOLEAN *x);
+export void Files_ReadByte (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len);
+export void Files_ReadBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n);
+export void Files_ReadInt (Files_Rider *R, address *R__typ, int32 *x);
+export void Files_ReadLInt (Files_Rider *R, address *R__typ, int64 *x);
+export void Files_ReadLReal (Files_Rider *R, address *R__typ, LONGREAL *x);
+export void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
+export void Files_ReadNum (Files_Rider *R, address *R__typ, int64 *x);
+export void Files_ReadNum64 (Files_Rider *R, address *R__typ, int64 *x);
+export void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x);
+export void Files_ReadSet (Files_Rider *R, address *R__typ, SET *x);
+export void Files_ReadString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 export void Files_Register (Files_File f);
 export void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, int32 *res);
 static void Files_ScanPath (int32 *pos, CHAR *dir, LONGINT dir__len);
-export void Files_Set (Files_Rider *r, LONGINT *r__typ, Files_File f, int64 pos);
+export void Files_Set (Files_Rider *r, address *r__typ, Files_File f, int64 pos);
 export void Files_SetSearchPath (CHAR *path, LONGINT path__len);
-export void Files_Write (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE x);
-export void Files_WriteBool (Files_Rider *R, LONGINT *R__typ, BOOLEAN x);
-export void Files_WriteBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n);
-export void Files_WriteInt (Files_Rider *R, LONGINT *R__typ, int32 x);
-export void Files_WriteLInt (Files_Rider *R, LONGINT *R__typ, int64 x);
-export void Files_WriteLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL x);
-export void Files_WriteNum (Files_Rider *R, LONGINT *R__typ, int64 x);
-export void Files_WriteNum64 (Files_Rider *R, LONGINT *R__typ, int64 x);
-export void Files_WriteReal (Files_Rider *R, LONGINT *R__typ, REAL x);
-export void Files_WriteSet (Files_Rider *R, LONGINT *R__typ, SET x);
-export void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len);
+export void Files_Write (Files_Rider *r, address *r__typ, SYSTEM_BYTE x);
+export void Files_WriteBool (Files_Rider *R, address *R__typ, BOOLEAN x);
+export void Files_WriteBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n);
+export void Files_WriteInt (Files_Rider *R, address *R__typ, int32 x);
+export void Files_WriteLInt (Files_Rider *R, address *R__typ, int64 x);
+export void Files_WriteLReal (Files_Rider *R, address *R__typ, LONGREAL x);
+export void Files_WriteNum (Files_Rider *R, address *R__typ, int64 x);
+export void Files_WriteNum64 (Files_Rider *R, address *R__typ, int64 x);
+export void Files_WriteReal (Files_Rider *R, address *R__typ, REAL x);
+export void Files_WriteSet (Files_Rider *R, address *R__typ, SET x);
+export void Files_WriteString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 
 #define Files_IdxTrap()	__HALT(-1)
 
@@ -544,14 +544,14 @@ void Files_GetDate (Files_File f, int64 *t, int64 *d)
 	Platform_MTimeAsClock(identity, &*t, &*d);
 }
 
-int64 Files_Pos (Files_Rider *r, LONGINT *r__typ)
+int64 Files_Pos (Files_Rider *r, address *r__typ)
 {
 	int64 _o_result;
 	_o_result = (*r).org + (*r).offset;
 	return _o_result;
 }
 
-void Files_Set (Files_Rider *r, LONGINT *r__typ, Files_File f, int64 pos)
+void Files_Set (Files_Rider *r, address *r__typ, Files_File f, int64 pos)
 {
 	int64 org, offset, i, n;
 	Files_Buffer buf = NIL;
@@ -613,7 +613,7 @@ void Files_Set (Files_Rider *r, LONGINT *r__typ, Files_File f, int64 pos)
 	(*r).res = 0;
 }
 
-void Files_Read (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x)
+void Files_Read (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x)
 {
 	int64 offset;
 	Files_Buffer buf = NIL;
@@ -637,7 +637,7 @@ void Files_Read (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x)
 	}
 }
 
-void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n)
+void Files_ReadBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n)
 {
 	int64 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
@@ -673,19 +673,19 @@ void Files_ReadBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x
 	(*r).eof = 0;
 }
 
-void Files_ReadByte (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len)
+void Files_ReadByte (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len)
 {
 	Files_ReadBytes(&*r, r__typ, (void*)x, x__len * 1, 1);
 }
 
-Files_File Files_Base (Files_Rider *r, LONGINT *r__typ)
+Files_File Files_Base (Files_Rider *r, address *r__typ)
 {
 	Files_File _o_result;
 	_o_result = (*r).buf->f;
 	return _o_result;
 }
 
-void Files_Write (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE x)
+void Files_Write (Files_Rider *r, address *r__typ, SYSTEM_BYTE x)
 {
 	Files_Buffer buf = NIL;
 	int64 offset;
@@ -706,7 +706,7 @@ void Files_Write (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE x)
 	(*r).res = 0;
 }
 
-void Files_WriteBytes (Files_Rider *r, LONGINT *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n)
+void Files_WriteBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int64 n)
 {
 	int64 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
@@ -849,26 +849,26 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *de
 	}
 }
 
-void Files_ReadBool (Files_Rider *R, LONGINT *R__typ, BOOLEAN *x)
+void Files_ReadBool (Files_Rider *R, address *R__typ, BOOLEAN *x)
 {
 	Files_Read(&*R, R__typ, (CHAR*)(void*)&*x);
 }
 
-void Files_ReadInt (Files_Rider *R, LONGINT *R__typ, int32 *x)
+void Files_ReadInt (Files_Rider *R, address *R__typ, int32 *x)
 {
 	CHAR b[2];
 	Files_ReadBytes(&*R, R__typ, (void*)b, 2, 2);
 	*x = b[0] + __ASHL(b[1], 8);
 }
 
-void Files_ReadLInt (Files_Rider *R, LONGINT *R__typ, int64 *x)
+void Files_ReadLInt (Files_Rider *R, address *R__typ, int64 *x)
 {
 	CHAR b[4];
 	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
 	*x = ((b[0] + __ASHL(b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
 }
 
-void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
+void Files_ReadSet (Files_Rider *R, address *R__typ, SET *x)
 {
 	CHAR b[4];
 	int64 l;
@@ -877,21 +877,21 @@ void Files_ReadSet (Files_Rider *R, LONGINT *R__typ, SET *x)
 	*x = (SET)l;
 }
 
-void Files_ReadReal (Files_Rider *R, LONGINT *R__typ, REAL *x)
+void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x)
 {
 	CHAR b[4];
 	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
 	Files_FlipBytes((void*)b, 4, (void*)&*x, 4);
 }
 
-void Files_ReadLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL *x)
+void Files_ReadLReal (Files_Rider *R, address *R__typ, LONGREAL *x)
 {
 	CHAR b[8];
 	Files_ReadBytes(&*R, R__typ, (void*)b, 8, 8);
 	Files_FlipBytes((void*)b, 8, (void*)&*x, 8);
 }
 
-void Files_ReadString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
+void Files_ReadString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len)
 {
 	int32 i;
 	CHAR ch;
@@ -903,7 +903,7 @@ void Files_ReadString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
 	} while (!(ch == 0x00));
 }
 
-void Files_ReadLine (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
+void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len)
 {
 	int32 i;
 	CHAR ch;
@@ -921,7 +921,7 @@ void Files_ReadLine (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
 	} while (!b);
 }
 
-void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, int64 *x)
+void Files_ReadNum (Files_Rider *R, address *R__typ, int64 *x)
 {
 	int8 s;
 	CHAR ch;
@@ -938,19 +938,19 @@ void Files_ReadNum (Files_Rider *R, LONGINT *R__typ, int64 *x)
 	*x = n;
 }
 
-void Files_ReadNum64 (Files_Rider *R, LONGINT *R__typ, int64 *x)
+void Files_ReadNum64 (Files_Rider *R, address *R__typ, int64 *x)
 {
 	int64 n;
 	Files_ReadNum(&*R, R__typ, &n);
 	*x = n;
 }
 
-void Files_WriteBool (Files_Rider *R, LONGINT *R__typ, BOOLEAN x)
+void Files_WriteBool (Files_Rider *R, address *R__typ, BOOLEAN x)
 {
 	Files_Write(&*R, R__typ, __VAL(CHAR, x));
 }
 
-void Files_WriteInt (Files_Rider *R, LONGINT *R__typ, int32 x)
+void Files_WriteInt (Files_Rider *R, address *R__typ, int32 x)
 {
 	CHAR b[2];
 	b[0] = (CHAR)x;
@@ -958,7 +958,7 @@ void Files_WriteInt (Files_Rider *R, LONGINT *R__typ, int32 x)
 	Files_WriteBytes(&*R, R__typ, (void*)b, 2, 2);
 }
 
-void Files_WriteLInt (Files_Rider *R, LONGINT *R__typ, int64 x)
+void Files_WriteLInt (Files_Rider *R, address *R__typ, int64 x)
 {
 	CHAR b[4];
 	b[0] = (CHAR)x;
@@ -968,7 +968,7 @@ void Files_WriteLInt (Files_Rider *R, LONGINT *R__typ, int64 x)
 	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
-void Files_WriteSet (Files_Rider *R, LONGINT *R__typ, SET x)
+void Files_WriteSet (Files_Rider *R, address *R__typ, SET x)
 {
 	CHAR b[4];
 	int64 i;
@@ -980,21 +980,21 @@ void Files_WriteSet (Files_Rider *R, LONGINT *R__typ, SET x)
 	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
-void Files_WriteReal (Files_Rider *R, LONGINT *R__typ, REAL x)
+void Files_WriteReal (Files_Rider *R, address *R__typ, REAL x)
 {
 	CHAR b[4];
 	Files_FlipBytes((void*)&x, 4, (void*)b, 4);
 	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
-void Files_WriteLReal (Files_Rider *R, LONGINT *R__typ, LONGREAL x)
+void Files_WriteLReal (Files_Rider *R, address *R__typ, LONGREAL x)
 {
 	CHAR b[8];
 	Files_FlipBytes((void*)&x, 8, (void*)b, 8);
 	Files_WriteBytes(&*R, R__typ, (void*)b, 8, 8);
 }
 
-void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len)
+void Files_WriteString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len)
 {
 	int32 i;
 	i = 0;
@@ -1004,7 +1004,7 @@ void Files_WriteString (Files_Rider *R, LONGINT *R__typ, CHAR *x, LONGINT x__len
 	Files_WriteBytes(&*R, R__typ, (void*)x, x__len * 1, i + 1);
 }
 
-void Files_WriteNum (Files_Rider *R, LONGINT *R__typ, int64 x)
+void Files_WriteNum (Files_Rider *R, address *R__typ, int64 x)
 {
 	while (x < -64 || x > 63) {
 		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));
@@ -1013,7 +1013,7 @@ void Files_WriteNum (Files_Rider *R, LONGINT *R__typ, int64 x)
 	Files_Write(&*R, R__typ, (CHAR)__MASK(x, -128));
 }
 
-void Files_WriteNum64 (Files_Rider *R, LONGINT *R__typ, int64 x)
+void Files_WriteNum64 (Files_Rider *R, address *R__typ, int64 x)
 {
 	while (x < -64 || x > 63) {
 		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));

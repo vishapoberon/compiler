@@ -65,7 +65,7 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
   END Hex;
 
   PROCEDURE Read*(VAR ch: CHAR);
-    VAR n: SYSTEM.ADDRESS; error: Platform.ErrorCode;
+    VAR n: LONGINT; error: Platform.ErrorCode;
   BEGIN Flush();
     error := Platform.ReadBuf(Platform.StdIn, ch, n);
     IF n # 1 THEN ch := 0X END

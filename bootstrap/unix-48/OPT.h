@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -75,10 +75,10 @@ import OPT_Object OPT_GlbMod[64];
 import OPS_Name OPT_SelfName;
 import BOOLEAN OPT_SYSimported;
 
-import LONGINT *OPT_ConstDesc__typ;
-import LONGINT *OPT_ObjDesc__typ;
-import LONGINT *OPT_StrDesc__typ;
-import LONGINT *OPT_NodeDesc__typ;
+import address *OPT_ConstDesc__typ;
+import address *OPT_ObjDesc__typ;
+import address *OPT_StrDesc__typ;
+import address *OPT_NodeDesc__typ;
 
 import void OPT_Close (void);
 import void OPT_CloseScope (void);

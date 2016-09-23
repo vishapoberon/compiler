@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -1041,7 +1041,7 @@ static void OPC_IdentList (OPT_Object obj, int32 vis)
 			} else if ((obj->mode == 2 && obj->typ->comp == 4)) {
 				OPC_EndStat();
 				OPC_BegStat();
-				OPM_WriteString((CHAR*)"LONGINT *", 10);
+				OPM_WriteString((CHAR*)"address *", 10);
 				OPC_Ident(obj);
 				OPM_WriteString((CHAR*)"__typ", 6);
 				base = NIL;
@@ -1078,7 +1078,7 @@ static void OPC_AnsiParamList (OPT_Object obj, BOOLEAN showParamNames)
 				OPM_WriteString((CHAR*)", LONGINT ", 11);
 				OPC_LenList(obj, 1, showParamNames);
 			} else if ((obj->mode == 2 && obj->typ->comp == 4)) {
-				OPM_WriteString((CHAR*)", LONGINT *", 12);
+				OPM_WriteString((CHAR*)", address *", 12);
 				if (showParamNames) {
 					OPC_Ident(obj);
 					OPM_WriteString((CHAR*)"__typ", 6);
@@ -1166,7 +1166,7 @@ static void OPC_GenDynTypes (OPT_Node n, int32 vis)
 			} else {
 				OPM_WriteString((CHAR*)"export ", 8);
 			}
-			OPM_WriteString((CHAR*)"LONGINT *", 10);
+			OPM_WriteString((CHAR*)"address *", 10);
 			OPC_Andent(typ);
 			OPM_WriteString((CHAR*)"__typ", 6);
 			OPC_EndStat();

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin tsSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin tsSfF */
 
 #ifndef Heap__h
 #define Heap__h
@@ -34,7 +34,7 @@ import SYSTEM_PTR Heap_modules;
 import address Heap_allocated, Heap_heapsize;
 import int32 Heap_FileCount;
 
-import LONGINT *Heap_ModuleDesc__typ;
+import address *Heap_ModuleDesc__typ;
 
 import void Heap_FINALL (void);
 import void Heap_GC (BOOLEAN markStack);

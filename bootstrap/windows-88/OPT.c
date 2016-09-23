@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -100,12 +100,12 @@ static OPT_ExpCtxt OPT_expCtxt;
 static int64 OPT_nofhdfld;
 static BOOLEAN OPT_newsf, OPT_findpc, OPT_extsf, OPT_sfpresent, OPT_symExtended, OPT_symNew;
 
-export LONGINT *OPT_ConstDesc__typ;
-export LONGINT *OPT_ObjDesc__typ;
-export LONGINT *OPT_StrDesc__typ;
-export LONGINT *OPT_NodeDesc__typ;
-export LONGINT *OPT_ImpCtxt__typ;
-export LONGINT *OPT_ExpCtxt__typ;
+export address *OPT_ConstDesc__typ;
+export address *OPT_ObjDesc__typ;
+export address *OPT_StrDesc__typ;
+export address *OPT_NodeDesc__typ;
+export address *OPT_ImpCtxt__typ;
+export address *OPT_ExpCtxt__typ;
 
 export void OPT_Close (void);
 export void OPT_CloseScope (void);

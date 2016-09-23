@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -44,7 +44,7 @@ export int32 Platform_StdIn, Platform_StdOut, Platform_StdErr;
 static Platform_SignalHandler Platform_InterruptHandler;
 export CHAR Platform_nl[3];
 
-export LONGINT *Platform_FileIdentity__typ;
+export address *Platform_FileIdentity__typ;
 
 export BOOLEAN Platform_Absent (int16 e);
 export int16 Platform_ArgPos (CHAR *s, LONGINT s__len);
@@ -63,8 +63,8 @@ export void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val
 export void Platform_GetIntArg (int16 n, int32 *val);
 export void Platform_GetTimeOfDay (int32 *sec, int32 *usec);
 export void Platform_Halt (int32 code);
-export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
-export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
+export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
+export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
 export void Platform_Init (int16 argc, address argvadr);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
@@ -82,7 +82,7 @@ export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIde
 export int16 Platform_Seek (int32 h, int32 o, int16 r);
 export void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 export void Platform_SetHalt (Platform_HaltProcedure p);
-export void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
+export void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source);
 export int16 Platform_Size (int32 h, int32 *l);
 export int16 Platform_Sync (int32 h);
 export int16 Platform_System (CHAR *cmd, LONGINT cmd__len);
@@ -467,7 +467,7 @@ int16 Platform_Close (int32 h)
 	__RETCHK;
 }
 
-int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ)
+int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ)
 {
 	int16 _o_result;
 	Platform_byHandleFileInformation();
@@ -484,7 +484,7 @@ int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *iden
 	return _o_result;
 }
 
-int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ)
+int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ)
 {
 	int16 _o_result;
 	int32 h;
@@ -517,7 +517,7 @@ BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i
 	return _o_result;
 }
 
-void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source)
+void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source)
 {
 	(*target).mtimehigh = source.mtimehigh;
 	(*target).mtimelow = source.mtimelow;

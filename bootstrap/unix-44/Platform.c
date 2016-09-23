@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -42,7 +42,7 @@ static int32 Platform_TimeStart;
 export int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 export CHAR Platform_nl[3];
 
-export LONGINT *Platform_FileIdentity__typ;
+export address *Platform_FileIdentity__typ;
 
 export BOOLEAN Platform_Absent (int16 e);
 export int16 Platform_ArgPos (CHAR *s, LONGINT s__len);
@@ -61,8 +61,8 @@ export void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val
 export void Platform_GetIntArg (int16 n, int32 *val);
 export void Platform_GetTimeOfDay (int32 *sec, int32 *usec);
 export void Platform_Halt (int32 code);
-export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
-export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
+export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
+export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
 export void Platform_Init (int16 argc, address argvadr);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
@@ -72,8 +72,8 @@ export address Platform_OSAllocate (address size);
 export void Platform_OSFree (address address);
 export int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 export int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
-export int16 Platform_Read (int32 h, address p, address l, address *n);
-export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n);
+export int16 Platform_Read (int32 h, address p, int32 l, int32 *n);
+export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n);
 export int16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
@@ -81,9 +81,9 @@ export int16 Platform_Seek (int32 h, int32 offset, int16 whence);
 export void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 export void Platform_SetHalt (Platform_HaltProcedure p);
 export void Platform_SetInterruptHandler (Platform_SignalHandler handler);
-export void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
+export void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source);
 export void Platform_SetQuitHandler (Platform_SignalHandler handler);
-export int16 Platform_Size (int32 h, address *l);
+export int16 Platform_Size (int32 h, int32 *l);
 export int16 Platform_Sync (int32 h);
 export int16 Platform_System (CHAR *cmd, LONGINT cmd__len);
 static void Platform_TestLittleEndian (void);
@@ -446,7 +446,7 @@ int16 Platform_Close (int32 h)
 	__RETCHK;
 }
 
-int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ)
+int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ)
 {
 	int16 _o_result;
 	Platform_structstats();
@@ -461,7 +461,7 @@ int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *iden
 	return _o_result;
 }
 
-int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ)
+int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ)
 {
 	int16 _o_result;
 	__DUP(n, n__len, CHAR);
@@ -493,7 +493,7 @@ BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i
 	return _o_result;
 }
 
-void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source)
+void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source)
 {
 	(*target).mtime = source.mtime;
 }
@@ -504,7 +504,7 @@ void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d)
 	Platform_YMDHMStoClock(Platform_tmyear(), Platform_tmmon(), Platform_tmmday(), Platform_tmhour(), Platform_tmmin(), Platform_tmsec(), &*t, &*d);
 }
 
-int16 Platform_Size (int32 h, address *l)
+int16 Platform_Size (int32 h, int32 *l)
 {
 	int16 _o_result;
 	Platform_structstats();
@@ -517,7 +517,7 @@ int16 Platform_Size (int32 h, address *l)
 	return _o_result;
 }
 
-int16 Platform_Read (int32 h, address p, address l, address *n)
+int16 Platform_Read (int32 h, address p, int32 l, int32 *n)
 {
 	int16 _o_result;
 	*n = Platform_readfile(h, p, l);
@@ -532,7 +532,7 @@ int16 Platform_Read (int32 h, address p, address l, address *n)
 	__RETCHK;
 }
 
-int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n)
+int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 {
 	int16 _o_result;
 	*n = Platform_readfile(h, (address)b, b__len);

@@ -698,7 +698,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString("LONGINT "); LenList(obj, FALSE, TRUE)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           EndStat; BegStat;
-          OPM.WriteString("LONGINT *"); Ident(obj); OPM.WriteString(TagExt);
+          OPM.WriteString("address *"); Ident(obj); OPM.WriteString(TagExt);
           base := NIL
         ELSIF (OPM.ptrinit IN OPM.opt) & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
           OPM.WriteString(" = NIL")
@@ -726,7 +726,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString(", LONGINT ");
           LenList(obj, TRUE, showParamNames)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
-          OPM.WriteString(", LONGINT *");
+          OPM.WriteString(", address *");
           IF showParamNames THEN Ident(obj); OPM.WriteString(TagExt) END
         END ;
         IF (obj^.link = NIL) OR (obj^.link.mode = OPT.TProc) THEN EXIT END ;
@@ -790,7 +790,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         ELSIF (typ^.strobj # NIL) & (typ^.strobj^.mnolev > 0) THEN OPM.WriteString('static ')
         ELSE OPM.WriteString(Export)
         END ;
-        OPM.WriteString("LONGINT *"); Andent(typ); OPM.WriteString(DynTypExt);
+        OPM.WriteString("address *"); Andent(typ); OPM.WriteString(DynTypExt);
         EndStat
       END ;
       n := n^.link

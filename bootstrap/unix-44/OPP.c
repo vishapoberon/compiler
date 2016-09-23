@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -24,7 +24,7 @@ static OPT_Node OPP_TDinit, OPP_lastTDinit;
 static int16 OPP_nofFwdPtr;
 static OPT_Struct OPP_FwdPtr[64];
 
-export LONGINT *OPP__1__typ;
+export address *OPP__1__typ;
 
 static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);

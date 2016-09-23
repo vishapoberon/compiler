@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -21,7 +21,7 @@ static int32 OPV_recno;
 static OPV_ExitInfo OPV_exit;
 static int16 OPV_nofExitLabels;
 
-export LONGINT *OPV_ExitInfo__typ;
+export address *OPV_ExitInfo__typ;
 
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp);
 export void OPV_AdrAndSize (OPT_Object topScope);

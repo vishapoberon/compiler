@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -29,7 +29,7 @@ import int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 import int32 Platform_StdIn, Platform_StdOut, Platform_StdErr;
 import CHAR Platform_nl[3];
 
-import LONGINT *Platform_FileIdentity__typ;
+import address *Platform_FileIdentity__typ;
 
 import BOOLEAN Platform_Absent (int16 e);
 import int16 Platform_ArgPos (CHAR *s, LONGINT s__len);
@@ -47,8 +47,8 @@ import void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val
 import void Platform_GetIntArg (int16 n, int32 *val);
 import void Platform_GetTimeOfDay (int32 *sec, int32 *usec);
 import void Platform_Halt (int32 code);
-import int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
-import int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
+import int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
+import int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 import BOOLEAN Platform_Inaccessible (int16 e);
 import void Platform_Init (int16 argc, address argvadr);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
@@ -66,7 +66,7 @@ import BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIde
 import int16 Platform_Seek (int32 h, int32 o, int16 r);
 import void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 import void Platform_SetHalt (Platform_HaltProcedure p);
-import void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
+import void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source);
 import int16 Platform_Size (int32 h, int32 *l);
 import int16 Platform_Sync (int32 h);
 import int16 Platform_System (CHAR *cmd, LONGINT cmd__len);

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef Modules__h
 #define Modules__h
@@ -40,8 +40,8 @@ import int32 Modules_res;
 import CHAR Modules_resMsg[256];
 import Modules_ModuleName Modules_imported, Modules_importing;
 
-import LONGINT *Modules_ModuleDesc__typ;
-import LONGINT *Modules_CmdDesc__typ;
+import address *Modules_ModuleDesc__typ;
+import address *Modules_CmdDesc__typ;
 
 import void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
 import Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);

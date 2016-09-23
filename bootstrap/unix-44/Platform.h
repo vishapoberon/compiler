@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -27,7 +27,7 @@ import address Platform_ArgVector;
 import int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 import CHAR Platform_nl[3];
 
-import LONGINT *Platform_FileIdentity__typ;
+import address *Platform_FileIdentity__typ;
 
 import BOOLEAN Platform_Absent (int16 e);
 import int16 Platform_ArgPos (CHAR *s, LONGINT s__len);
@@ -45,8 +45,8 @@ import void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val
 import void Platform_GetIntArg (int16 n, int32 *val);
 import void Platform_GetTimeOfDay (int32 *sec, int32 *usec);
 import void Platform_Halt (int32 code);
-import int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, LONGINT *identity__typ);
-import int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, LONGINT *identity__typ);
+import int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
+import int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 import BOOLEAN Platform_Inaccessible (int16 e);
 import void Platform_Init (int16 argc, address argvadr);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
@@ -56,8 +56,8 @@ import address Platform_OSAllocate (address size);
 import void Platform_OSFree (address address);
 import int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 import int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
-import int16 Platform_Read (int32 h, address p, address l, address *n);
-import int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n);
+import int16 Platform_Read (int32 h, address p, int32 l, int32 *n);
+import int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n);
 import int16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 import BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 import BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
@@ -65,9 +65,9 @@ import int16 Platform_Seek (int32 h, int32 offset, int16 whence);
 import void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 import void Platform_SetHalt (Platform_HaltProcedure p);
 import void Platform_SetInterruptHandler (Platform_SignalHandler handler);
-import void Platform_SetMTime (Platform_FileIdentity *target, LONGINT *target__typ, Platform_FileIdentity source);
+import void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source);
 import void Platform_SetQuitHandler (Platform_SignalHandler handler);
-import int16 Platform_Size (int32 h, address *l);
+import int16 Platform_Size (int32 h, int32 *l);
 import int16 Platform_Sync (int32 h);
 import int16 Platform_System (CHAR *cmd, LONGINT cmd__len);
 import int32 Platform_Time (void);

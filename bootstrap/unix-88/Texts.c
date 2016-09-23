@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/22] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
 #define INTEGER int32
 #define LONGINT int64
@@ -33,7 +33,7 @@ typedef
 	} Texts_ElemMsg;
 
 typedef
-	void (*Texts_Handler)(Texts_Elem, Texts_ElemMsg*, LONGINT *);
+	void (*Texts_Handler)(Texts_Elem, Texts_ElemMsg*, address *);
 
 typedef
 	struct Texts_TextDesc *Texts_Text;
@@ -167,20 +167,20 @@ export Texts_Elem Texts_new;
 static Texts_Buffer Texts_del;
 static Texts_FontsFont Texts_FontsDefault;
 
-export LONGINT *Texts_FontDesc__typ;
-export LONGINT *Texts_RunDesc__typ;
-export LONGINT *Texts_PieceDesc__typ;
-export LONGINT *Texts_ElemMsg__typ;
-export LONGINT *Texts_ElemDesc__typ;
-export LONGINT *Texts_FileMsg__typ;
-export LONGINT *Texts_CopyMsg__typ;
-export LONGINT *Texts_IdentifyMsg__typ;
-export LONGINT *Texts_BufDesc__typ;
-export LONGINT *Texts_TextDesc__typ;
-export LONGINT *Texts_Reader__typ;
-export LONGINT *Texts_Scanner__typ;
-export LONGINT *Texts_Writer__typ;
-export LONGINT *Texts__1__typ;
+export address *Texts_FontDesc__typ;
+export address *Texts_RunDesc__typ;
+export address *Texts_PieceDesc__typ;
+export address *Texts_ElemMsg__typ;
+export address *Texts_ElemDesc__typ;
+export address *Texts_FileMsg__typ;
+export address *Texts_CopyMsg__typ;
+export address *Texts_IdentifyMsg__typ;
+export address *Texts_BufDesc__typ;
+export address *Texts_TextDesc__typ;
+export address *Texts_Reader__typ;
+export address *Texts_Scanner__typ;
+export address *Texts_Writer__typ;
+export address *Texts__1__typ;
 
 export void Texts_Append (Texts_Text T, Texts_Buffer B);
 export void Texts_ChangeLooks (Texts_Text T, int64 beg, int64 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff);
@@ -194,41 +194,41 @@ export Texts_Text Texts_ElemBase (Texts_Elem E);
 export int64 Texts_ElemPos (Texts_Elem E);
 static void Texts_Find (Texts_Text T, int64 *pos, Texts_Run *u, int64 *org, int64 *off);
 static Texts_FontsFont Texts_FontsThis (CHAR *name, LONGINT name__len);
-static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, LONGINT *msg__typ);
+static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, address *msg__typ);
 export void Texts_Insert (Texts_Text T, int64 pos, Texts_Buffer B);
-export void Texts_Load (Files_Rider *r, LONGINT *r__typ, Texts_Text T);
-static void Texts_Load0 (Files_Rider *r, LONGINT *r__typ, Texts_Text T);
+export void Texts_Load (Files_Rider *r, address *r__typ, Texts_Text T);
+static void Texts_Load0 (Files_Rider *r, address *r__typ, Texts_Text T);
 static void Texts_Merge (Texts_Text T, Texts_Run u, Texts_Run *v);
 export void Texts_Open (Texts_Text T, CHAR *name, LONGINT name__len);
 export void Texts_OpenBuf (Texts_Buffer B);
-export void Texts_OpenReader (Texts_Reader *R, LONGINT *R__typ, Texts_Text T, int64 pos);
-export void Texts_OpenScanner (Texts_Scanner *S, LONGINT *S__typ, Texts_Text T, int64 pos);
-export void Texts_OpenWriter (Texts_Writer *W, LONGINT *W__typ);
-export int64 Texts_Pos (Texts_Reader *R, LONGINT *R__typ);
-export void Texts_Read (Texts_Reader *R, LONGINT *R__typ, CHAR *ch);
-export void Texts_ReadElem (Texts_Reader *R, LONGINT *R__typ);
-export void Texts_ReadPrevElem (Texts_Reader *R, LONGINT *R__typ);
+export void Texts_OpenReader (Texts_Reader *R, address *R__typ, Texts_Text T, int64 pos);
+export void Texts_OpenScanner (Texts_Scanner *S, address *S__typ, Texts_Text T, int64 pos);
+export void Texts_OpenWriter (Texts_Writer *W, address *W__typ);
+export int64 Texts_Pos (Texts_Reader *R, address *R__typ);
+export void Texts_Read (Texts_Reader *R, address *R__typ, CHAR *ch);
+export void Texts_ReadElem (Texts_Reader *R, address *R__typ);
+export void Texts_ReadPrevElem (Texts_Reader *R, address *R__typ);
 export void Texts_Recall (Texts_Buffer *B);
 export void Texts_Save (Texts_Text T, int64 beg, int64 end, Texts_Buffer B);
-export void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ);
-export void Texts_SetColor (Texts_Writer *W, LONGINT *W__typ, int8 col);
-export void Texts_SetFont (Texts_Writer *W, LONGINT *W__typ, Texts_FontsFont fnt);
-export void Texts_SetOffset (Texts_Writer *W, LONGINT *W__typ, int8 voff);
+export void Texts_Scan (Texts_Scanner *S, address *S__typ);
+export void Texts_SetColor (Texts_Writer *W, address *W__typ, int8 col);
+export void Texts_SetFont (Texts_Writer *W, address *W__typ, Texts_FontsFont fnt);
+export void Texts_SetOffset (Texts_Writer *W, address *W__typ, int8 voff);
 static void Texts_Splice (Texts_Run un, Texts_Run v, Texts_Run w, Texts_Text base);
 static void Texts_Split (int64 off, Texts_Run *u, Texts_Run *un);
-export void Texts_Store (Files_Rider *r, LONGINT *r__typ, Texts_Text T);
-export void Texts_Write (Texts_Writer *W, LONGINT *W__typ, CHAR ch);
-export void Texts_WriteDate (Texts_Writer *W, LONGINT *W__typ, int64 t, int64 d);
-export void Texts_WriteElem (Texts_Writer *W, LONGINT *W__typ, Texts_Elem e);
-export void Texts_WriteHex (Texts_Writer *W, LONGINT *W__typ, int64 x);
-export void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n);
-export void Texts_WriteLn (Texts_Writer *W, LONGINT *W__typ);
-export void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, int32 n);
-export void Texts_WriteLongRealHex (Texts_Writer *W, LONGINT *W__typ, LONGREAL x);
-export void Texts_WriteReal (Texts_Writer *W, LONGINT *W__typ, REAL x, int32 n);
-export void Texts_WriteRealFix (Texts_Writer *W, LONGINT *W__typ, REAL x, int32 n, int32 k);
-export void Texts_WriteRealHex (Texts_Writer *W, LONGINT *W__typ, REAL x);
-export void Texts_WriteString (Texts_Writer *W, LONGINT *W__typ, CHAR *s, LONGINT s__len);
+export void Texts_Store (Files_Rider *r, address *r__typ, Texts_Text T);
+export void Texts_Write (Texts_Writer *W, address *W__typ, CHAR ch);
+export void Texts_WriteDate (Texts_Writer *W, address *W__typ, int64 t, int64 d);
+export void Texts_WriteElem (Texts_Writer *W, address *W__typ, Texts_Elem e);
+export void Texts_WriteHex (Texts_Writer *W, address *W__typ, int64 x);
+export void Texts_WriteInt (Texts_Writer *W, address *W__typ, int64 x, int64 n);
+export void Texts_WriteLn (Texts_Writer *W, address *W__typ);
+export void Texts_WriteLongReal (Texts_Writer *W, address *W__typ, LONGREAL x, int32 n);
+export void Texts_WriteLongRealHex (Texts_Writer *W, address *W__typ, LONGREAL x);
+export void Texts_WriteReal (Texts_Writer *W, address *W__typ, REAL x, int32 n);
+export void Texts_WriteRealFix (Texts_Writer *W, address *W__typ, REAL x, int32 n, int32 k);
+export void Texts_WriteRealHex (Texts_Writer *W, address *W__typ, REAL x);
+export void Texts_WriteString (Texts_Writer *W, address *W__typ, CHAR *s, LONGINT s__len);
 
 
 static Texts_FontsFont Texts_FontsThis (CHAR *name, LONGINT name__len)
@@ -388,7 +388,7 @@ int64 Texts_ElemPos (Texts_Elem E)
 	return _o_result;
 }
 
-static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, LONGINT *msg__typ)
+static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, address *msg__typ)
 {
 	Texts_Alien e = NIL;
 	Files_Rider r;
@@ -604,7 +604,7 @@ void Texts_ChangeLooks (Texts_Text T, int64 beg, int64 end, SET sel, Texts_Fonts
 	}
 }
 
-void Texts_OpenReader (Texts_Reader *R, LONGINT *R__typ, Texts_Text T, int64 pos)
+void Texts_OpenReader (Texts_Reader *R, address *R__typ, Texts_Text T, int64 pos)
 {
 	Texts_Run u = NIL;
 	if (pos >= T->len) {
@@ -618,7 +618,7 @@ void Texts_OpenReader (Texts_Reader *R, LONGINT *R__typ, Texts_Text T, int64 pos
 	}
 }
 
-void Texts_Read (Texts_Reader *R, LONGINT *R__typ, CHAR *ch)
+void Texts_Read (Texts_Reader *R, address *R__typ, CHAR *ch)
 {
 	Texts_Run u = NIL;
 	int64 pos;
@@ -663,7 +663,7 @@ void Texts_Read (Texts_Reader *R, LONGINT *R__typ, CHAR *ch)
 	}
 }
 
-void Texts_ReadElem (Texts_Reader *R, LONGINT *R__typ)
+void Texts_ReadElem (Texts_Reader *R, address *R__typ)
 {
 	Texts_Run u = NIL, un = NIL;
 	u = (*R).run;
@@ -691,7 +691,7 @@ void Texts_ReadElem (Texts_Reader *R, LONGINT *R__typ)
 	}
 }
 
-void Texts_ReadPrevElem (Texts_Reader *R, LONGINT *R__typ)
+void Texts_ReadPrevElem (Texts_Reader *R, address *R__typ)
 {
 	Texts_Run u = NIL;
 	u = (*R).run->prev;
@@ -713,14 +713,14 @@ void Texts_ReadPrevElem (Texts_Reader *R, LONGINT *R__typ)
 	}
 }
 
-int64 Texts_Pos (Texts_Reader *R, LONGINT *R__typ)
+int64 Texts_Pos (Texts_Reader *R, address *R__typ)
 {
 	int64 _o_result;
 	_o_result = (*R).org + (*R).off;
 	return _o_result;
 }
 
-void Texts_OpenScanner (Texts_Scanner *S, LONGINT *S__typ, Texts_Text T, int64 pos)
+void Texts_OpenScanner (Texts_Scanner *S, address *S__typ, Texts_Text T, int64 pos)
 {
 	Texts_OpenReader((void*)&*S, S__typ, T, pos);
 	(*S).line = 0;
@@ -729,7 +729,7 @@ void Texts_OpenScanner (Texts_Scanner *S, LONGINT *S__typ, Texts_Text T, int64 p
 
 static struct Scan__31 {
 	Texts_Scanner *S;
-	LONGINT *S__typ;
+	address *S__typ;
 	CHAR *ch;
 	BOOLEAN *negE;
 	int32 *e;
@@ -756,7 +756,7 @@ static void ReadScaleFactor__32 (void)
 	}
 }
 
-void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
+void Texts_Scan (Texts_Scanner *S, address *S__typ)
 {
 	CHAR ch, term;
 	BOOLEAN neg, negE, hex;
@@ -962,7 +962,7 @@ void Texts_Scan (Texts_Scanner *S, LONGINT *S__typ)
 	Scan__31_s = _s.lnk;
 }
 
-void Texts_OpenWriter (Texts_Writer *W, LONGINT *W__typ)
+void Texts_OpenWriter (Texts_Writer *W, address *W__typ)
 {
 	__NEW((*W).buf, Texts_BufDesc);
 	Texts_OpenBuf((*W).buf);
@@ -973,22 +973,22 @@ void Texts_OpenWriter (Texts_Writer *W, LONGINT *W__typ)
 	Files_Set(&(*W).rider, Files_Rider__typ, (*W).file, 0);
 }
 
-void Texts_SetFont (Texts_Writer *W, LONGINT *W__typ, Texts_FontsFont fnt)
+void Texts_SetFont (Texts_Writer *W, address *W__typ, Texts_FontsFont fnt)
 {
 	(*W).fnt = fnt;
 }
 
-void Texts_SetColor (Texts_Writer *W, LONGINT *W__typ, int8 col)
+void Texts_SetColor (Texts_Writer *W, address *W__typ, int8 col)
 {
 	(*W).col = col;
 }
 
-void Texts_SetOffset (Texts_Writer *W, LONGINT *W__typ, int8 voff)
+void Texts_SetOffset (Texts_Writer *W, address *W__typ, int8 voff)
 {
 	(*W).voff = voff;
 }
 
-void Texts_Write (Texts_Writer *W, LONGINT *W__typ, CHAR ch)
+void Texts_Write (Texts_Writer *W, address *W__typ, CHAR ch)
 {
 	Texts_Run u = NIL, un = NIL;
 	Texts_Piece p = NIL;
@@ -1014,7 +1014,7 @@ void Texts_Write (Texts_Writer *W, LONGINT *W__typ, CHAR ch)
 	}
 }
 
-void Texts_WriteElem (Texts_Writer *W, LONGINT *W__typ, Texts_Elem e)
+void Texts_WriteElem (Texts_Writer *W, address *W__typ, Texts_Elem e)
 {
 	Texts_Run u = NIL, un = NIL;
 	if (e->base != NIL) {
@@ -1033,12 +1033,12 @@ void Texts_WriteElem (Texts_Writer *W, LONGINT *W__typ, Texts_Elem e)
 	un->prev = (Texts_Run)e;
 }
 
-void Texts_WriteLn (Texts_Writer *W, LONGINT *W__typ)
+void Texts_WriteLn (Texts_Writer *W, address *W__typ)
 {
 	Texts_Write(&*W, W__typ, 0x0d);
 }
 
-void Texts_WriteString (Texts_Writer *W, LONGINT *W__typ, CHAR *s, LONGINT s__len)
+void Texts_WriteString (Texts_Writer *W, address *W__typ, CHAR *s, LONGINT s__len)
 {
 	int32 i;
 	__DUP(s, s__len, CHAR);
@@ -1050,7 +1050,7 @@ void Texts_WriteString (Texts_Writer *W, LONGINT *W__typ, CHAR *s, LONGINT s__le
 	__DEL(s);
 }
 
-void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n)
+void Texts_WriteInt (Texts_Writer *W, address *W__typ, int64 x, int64 n)
 {
 	int32 i;
 	int64 x0;
@@ -1085,7 +1085,7 @@ void Texts_WriteInt (Texts_Writer *W, LONGINT *W__typ, int64 x, int64 n)
 	} while (!(i == 0));
 }
 
-void Texts_WriteHex (Texts_Writer *W, LONGINT *W__typ, int64 x)
+void Texts_WriteHex (Texts_Writer *W, address *W__typ, int64 x)
 {
 	int32 i;
 	int64 y;
@@ -1108,7 +1108,7 @@ void Texts_WriteHex (Texts_Writer *W, LONGINT *W__typ, int64 x)
 	} while (!(i == 0));
 }
 
-void Texts_WriteReal (Texts_Writer *W, LONGINT *W__typ, REAL x, int32 n)
+void Texts_WriteReal (Texts_Writer *W, address *W__typ, REAL x, int32 n)
 {
 	int32 e;
 	REAL x0;
@@ -1180,7 +1180,7 @@ void Texts_WriteReal (Texts_Writer *W, LONGINT *W__typ, REAL x, int32 n)
 
 static struct WriteRealFix__53 {
 	Texts_Writer *W;
-	LONGINT *W__typ;
+	address *W__typ;
 	int32 *i;
 	CHAR (*d)[9];
 	struct WriteRealFix__53 *lnk;
@@ -1206,7 +1206,7 @@ static void dig__54 (int32 n)
 	}
 }
 
-void Texts_WriteRealFix (Texts_Writer *W, LONGINT *W__typ, REAL x, int32 n, int32 k)
+void Texts_WriteRealFix (Texts_Writer *W, address *W__typ, REAL x, int32 n, int32 k)
 {
 	int32 e, i;
 	CHAR sign;
@@ -1278,7 +1278,7 @@ void Texts_WriteRealFix (Texts_Writer *W, LONGINT *W__typ, REAL x, int32 n, int3
 	WriteRealFix__53_s = _s.lnk;
 }
 
-void Texts_WriteRealHex (Texts_Writer *W, LONGINT *W__typ, REAL x)
+void Texts_WriteRealHex (Texts_Writer *W, address *W__typ, REAL x)
 {
 	int32 i;
 	CHAR d[8];
@@ -1290,7 +1290,7 @@ void Texts_WriteRealHex (Texts_Writer *W, LONGINT *W__typ, REAL x)
 	} while (!(i == 8));
 }
 
-void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, int32 n)
+void Texts_WriteLongReal (Texts_Writer *W, address *W__typ, LONGREAL x, int32 n)
 {
 	int32 e;
 	LONGREAL x0;
@@ -1362,7 +1362,7 @@ void Texts_WriteLongReal (Texts_Writer *W, LONGINT *W__typ, LONGREAL x, int32 n)
 	}
 }
 
-void Texts_WriteLongRealHex (Texts_Writer *W, LONGINT *W__typ, LONGREAL x)
+void Texts_WriteLongRealHex (Texts_Writer *W, address *W__typ, LONGREAL x)
 {
 	int32 i;
 	CHAR d[16];
@@ -1376,7 +1376,7 @@ void Texts_WriteLongRealHex (Texts_Writer *W, LONGINT *W__typ, LONGREAL x)
 
 static struct WriteDate__43 {
 	Texts_Writer *W;
-	LONGINT *W__typ;
+	address *W__typ;
 	struct WriteDate__43 *lnk;
 } *WriteDate__43_s;
 
@@ -1389,7 +1389,7 @@ static void WritePair__44 (CHAR ch, int64 x)
 	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, (CHAR)(__MOD(x, 10) + 48));
 }
 
-void Texts_WriteDate (Texts_Writer *W, LONGINT *W__typ, int64 t, int64 d)
+void Texts_WriteDate (Texts_Writer *W, address *W__typ, int64 t, int64 d)
 {
 	struct WriteDate__43 _s;
 	_s.W = W; _s.W__typ = W__typ;
@@ -1413,9 +1413,9 @@ static struct Load0__16 {
 	struct Load0__16 *lnk;
 } *Load0__16_s;
 
-static void LoadElem__17 (Files_Rider *r, LONGINT *r__typ, int64 pos, int64 span, Texts_Elem *e);
+static void LoadElem__17 (Files_Rider *r, address *r__typ, int64 pos, int64 span, Texts_Elem *e);
 
-static void LoadElem__17 (Files_Rider *r, LONGINT *r__typ, int64 pos, int64 span, Texts_Elem *e)
+static void LoadElem__17 (Files_Rider *r, address *r__typ, int64 pos, int64 span, Texts_Elem *e)
 {
 	Modules_Module M = NIL;
 	Modules_Command Cmd;
@@ -1466,7 +1466,7 @@ static void LoadElem__17 (Files_Rider *r, LONGINT *r__typ, int64 pos, int64 span
 	}
 }
 
-static void Texts_Load0 (Files_Rider *r, LONGINT *r__typ, Texts_Text T)
+static void Texts_Load0 (Files_Rider *r, address *r__typ, Texts_Text T)
 {
 	Texts_Run u = NIL, un = NIL;
 	Texts_Piece p = NIL;
@@ -1540,7 +1540,7 @@ static void Texts_Load0 (Files_Rider *r, LONGINT *r__typ, Texts_Text T)
 	Load0__16_s = _s.lnk;
 }
 
-void Texts_Load (Files_Rider *r, LONGINT *r__typ, Texts_Text T)
+void Texts_Load (Files_Rider *r, address *r__typ, Texts_Text T)
 {
 	int32 tag;
 	Files_ReadInt(&*r, r__typ, &tag);
@@ -1614,9 +1614,9 @@ static struct Store__39 {
 	struct Store__39 *lnk;
 } *Store__39_s;
 
-static void StoreElem__40 (Files_Rider *r, LONGINT *r__typ, int64 pos, Texts_Elem e);
+static void StoreElem__40 (Files_Rider *r, address *r__typ, int64 pos, Texts_Elem e);
 
-static void StoreElem__40 (Files_Rider *r, LONGINT *r__typ, int64 pos, Texts_Elem e)
+static void StoreElem__40 (Files_Rider *r, address *r__typ, int64 pos, Texts_Elem e)
 {
 	Files_Rider r1;
 	int64 org, span;
@@ -1646,7 +1646,7 @@ static void StoreElem__40 (Files_Rider *r, LONGINT *r__typ, int64 pos, Texts_Ele
 	Files_WriteLInt(&r1, Files_Rider__typ, e->H);
 }
 
-void Texts_Store (Files_Rider *r, LONGINT *r__typ, Texts_Text T)
+void Texts_Store (Files_Rider *r, address *r__typ, Texts_Text T)
 {
 	Files_Rider r1;
 	Texts_Run u = NIL, un = NIL;
