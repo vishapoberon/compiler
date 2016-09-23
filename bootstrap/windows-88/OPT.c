@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -17,15 +17,16 @@ typedef
 typedef
 	struct OPT_ConstDesc {
 		OPT_ConstExt ext;
-		int64 intval, intval2;
+		int64 intval;
+		int32 intval2;
 		SET setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
 
 typedef
 	struct OPT_ExpCtxt {
-		int64 reffp;
-		int32 ref;
+		int32 reffp;
+		int16 ref;
 		int8 nofm;
 		int8 locmno[64];
 	} OPT_ExpCtxt;
@@ -38,12 +39,12 @@ typedef
 
 typedef
 	struct OPT_ImpCtxt {
-		int64 nextTag, reffp;
-		int32 nofr, minr, nofm;
+		int32 nextTag, reffp;
+		int16 nofr, minr, nofm;
 		BOOLEAN self;
 		OPT_Struct ref[255];
 		OPT_Object old[255];
-		int64 pvfp[255];
+		int32 pvfp[255];
 		int8 glbmno[64];
 	} OPT_ImpCtxt;
 
@@ -67,20 +68,20 @@ typedef
 		BOOLEAN leaf;
 		int8 mode, mnolev, vis, history;
 		BOOLEAN used, fpdone;
-		int64 fprint;
+		int32 fprint;
 		OPT_Struct typ;
 		OPT_Const conval;
-		int64 adr, linkadr;
-		int32 x;
+		int32 adr, linkadr;
+		int16 x;
 	} OPT_ObjDesc;
 
 typedef
 	struct OPT_StrDesc {
 		int8 form, comp, mno, extlev;
-		int32 ref, sysflag;
-		int64 n, size, align, txtpos;
+		int16 ref, sysflag;
+		int32 n, size, align, txtpos;
 		BOOLEAN allocated, pbused, pvused, fpdone, idfpdone;
-		int64 idfp, pbfp, pvfp;
+		int32 idfp, pbfp, pvfp;
 		OPT_Struct BaseTyp;
 		OPT_Object link, strobj;
 	} OPT_StrDesc;
@@ -97,7 +98,7 @@ export BOOLEAN OPT_SYSimported;
 static OPT_Object OPT_universe, OPT_syslink;
 static OPT_ImpCtxt OPT_impCtxt;
 static OPT_ExpCtxt OPT_expCtxt;
-static int64 OPT_nofhdfld;
+static int32 OPT_nofhdfld;
 static BOOLEAN OPT_newsf, OPT_findpc, OPT_extsf, OPT_sfpresent, OPT_symExtended, OPT_symNew;
 
 export address *OPT_ConstDesc__typ;
@@ -110,22 +111,22 @@ export address *OPT_ExpCtxt__typ;
 export void OPT_Close (void);
 export void OPT_CloseScope (void);
 static void OPT_DebugStruct (OPT_Struct btyp);
-static void OPT_EnterBoolConst (OPS_Name name, int64 value);
-static void OPT_EnterProc (OPS_Name name, int32 num);
-static void OPT_EnterTyp (OPS_Name name, int8 form, int32 size, OPT_Struct *res);
+static void OPT_EnterBoolConst (OPS_Name name, int32 value);
+static void OPT_EnterProc (OPS_Name name, int16 num);
+static void OPT_EnterTyp (OPS_Name name, int8 form, int16 size, OPT_Struct *res);
 static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res);
 export void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
-export void OPT_FPrintErr (OPT_Object obj, int32 errcode);
-static void OPT_FPrintName (int64 *fp, CHAR *name, LONGINT name__len);
+export void OPT_FPrintErr (OPT_Object obj, int16 errcode);
+static void OPT_FPrintName (int32 *fp, CHAR *name, LONGINT name__len);
 export void OPT_FPrintObj (OPT_Object obj);
-static void OPT_FPrintSign (int64 *fp, OPT_Struct result, OPT_Object par);
+static void OPT_FPrintSign (int32 *fp, OPT_Struct result, OPT_Object par);
 export void OPT_FPrintStr (OPT_Struct typ);
 export void OPT_Find (OPT_Object *res);
 export void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res);
 export void OPT_FindImport (OPT_Object mod, OPT_Object *res);
 export void OPT_IdFPrint (OPT_Struct typ);
 export void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
-static void OPT_InConstant (int64 f, OPT_Const conval);
+static void OPT_InConstant (int32 f, OPT_Const conval);
 static OPT_Object OPT_InFld (void);
 static void OPT_InMod (int8 *mno);
 static void OPT_InName (CHAR *name, LONGINT name__len);
@@ -133,13 +134,13 @@ static OPT_Object OPT_InObj (int8 mno);
 static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par);
 static void OPT_InStruct (OPT_Struct *typ);
 static OPT_Object OPT_InTProc (int8 mno);
-static OPT_Struct OPT_InTyp (int64 tag);
+static OPT_Struct OPT_InTyp (int32 tag);
 export void OPT_Init (OPS_Name name, SET opt);
 static void OPT_InitStruct (OPT_Struct *typ, int8 form);
 export void OPT_Insert (OPS_Name name, OPT_Object *obj);
 export void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
-export int32 OPT_IntSize (int64 n);
-export OPT_Struct OPT_IntType (int64 size);
+export int16 OPT_IntSize (int64 n);
+export OPT_Struct OPT_IntType (int32 size);
 export OPT_Const OPT_NewConst (void);
 export OPT_ConstExt OPT_NewExt (void);
 export OPT_Node OPT_NewNode (int8 class);
@@ -147,27 +148,27 @@ export OPT_Object OPT_NewObj (void);
 export OPT_Struct OPT_NewStr (int8 form, int8 comp);
 export void OPT_OpenScope (int8 level, OPT_Object owner);
 static void OPT_OutConstant (OPT_Object obj);
-static void OPT_OutFlds (OPT_Object fld, int64 adr, BOOLEAN visible);
-static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int64 adr);
-static void OPT_OutMod (int32 mno);
+static void OPT_OutFlds (OPT_Object fld, int32 adr, BOOLEAN visible);
+static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int32 adr);
+static void OPT_OutMod (int16 mno);
 static void OPT_OutName (CHAR *name, LONGINT name__len);
 static void OPT_OutObj (OPT_Object obj);
 static void OPT_OutSign (OPT_Struct result, OPT_Object par);
 static void OPT_OutStr (OPT_Struct typ);
 static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj);
-export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int32 dir);
-static void OPT_err (int32 n);
+export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
+static void OPT_err (int16 n);
 
 
-static void OPT_err (int32 n)
+static void OPT_err (int16 n)
 {
 	OPM_err(n);
 }
 
-int32 OPT_IntSize (int64 n)
+int16 OPT_IntSize (int64 n)
 {
-	int32 _o_result;
-	int32 bytes;
+	int16 _o_result;
+	int16 bytes;
 	if (n < 0) {
 		n = -(n + 1);
 	}
@@ -179,7 +180,7 @@ int32 OPT_IntSize (int64 n)
 	return _o_result;
 }
 
-OPT_Struct OPT_IntType (int64 size)
+OPT_Struct OPT_IntType (int32 size)
 {
 	OPT_Struct _o_result;
 	if (size <= OPT_int8typ->size) {
@@ -198,10 +199,10 @@ OPT_Struct OPT_IntType (int64 size)
 	return _o_result;
 }
 
-OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int32 dir)
+OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir)
 {
 	OPT_Struct _o_result;
-	int32 i;
+	int16 i;
 	__ASSERT(x->form == 4, 0);
 	__ASSERT(x->BaseTyp == OPT_undftyp, 0);
 	__ASSERT(dir == 1 || dir == -1, 0);
@@ -323,15 +324,15 @@ void OPT_Init (OPS_Name name, SET opt)
 	__COPY(name, OPT_topScope->name, 256);
 	OPT_GlbMod[0] = OPT_topScope;
 	OPT_nofGmod = 1;
-	OPT_newsf = __IN(4, opt, 64);
-	OPT_findpc = __IN(8, opt, 64);
-	OPT_extsf = OPT_newsf || __IN(9, opt, 64);
+	OPT_newsf = __IN(4, opt, 32);
+	OPT_findpc = __IN(8, opt, 32);
+	OPT_extsf = OPT_newsf || __IN(9, opt, 32);
 	OPT_sfpresent = 1;
 }
 
 void OPT_Close (void)
 {
-	int32 i;
+	int16 i;
 	OPT_CloseScope();
 	i = 0;
 	while (i < 64) {
@@ -461,14 +462,14 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 	*obj = ob1;
 }
 
-static void OPT_FPrintName (int64 *fp, CHAR *name, LONGINT name__len)
+static void OPT_FPrintName (int32 *fp, CHAR *name, LONGINT name__len)
 {
-	int32 i;
+	int16 i;
 	CHAR ch;
 	i = 0;
 	do {
 		ch = name[__X(i, name__len)];
-		OPM_FPrint(&*fp, ch);
+		OPM_FPrint(&*fp, (int16)ch);
 		i += 1;
 	} while (!(ch == 0x00));
 }
@@ -506,7 +507,7 @@ static void OPT_DebugStruct (OPT_Struct btyp)
 	OPM_LogWLn();
 }
 
-static void OPT_FPrintSign (int64 *fp, OPT_Struct result, OPT_Object par)
+static void OPT_FPrintSign (int32 *fp, OPT_Struct result, OPT_Object par)
 {
 	OPT_IdFPrint(result);
 	OPM_FPrint(&*fp, result->idfp);
@@ -522,8 +523,8 @@ void OPT_IdFPrint (OPT_Struct typ)
 {
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL;
-	int64 idfp;
-	int32 f, c;
+	int32 idfp;
+	int16 f, c;
 	if (!typ->idfpdone) {
 		typ->idfpdone = 1;
 		idfp = 0;
@@ -552,17 +553,17 @@ void OPT_IdFPrint (OPT_Struct typ)
 }
 
 static struct FPrintStr__13 {
-	int64 *pbfp, *pvfp;
+	int32 *pbfp, *pvfp;
 	struct FPrintStr__13 *lnk;
 } *FPrintStr__13_s;
 
-static void FPrintFlds__14 (OPT_Object fld, int64 adr, BOOLEAN visible);
-static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int64 adr);
+static void FPrintFlds__14 (OPT_Object fld, int32 adr, BOOLEAN visible);
+static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int32 adr);
 static void FPrintTProcs__18 (OPT_Object obj);
 
-static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int64 adr)
+static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int32 adr)
 {
-	int64 i, j, n;
+	int32 i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
 		FPrintFlds__14(typ->link, adr, 0);
@@ -592,7 +593,7 @@ static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int64 adr)
 	}
 }
 
-static void FPrintFlds__14 (OPT_Object fld, int64 adr, BOOLEAN visible)
+static void FPrintFlds__14 (OPT_Object fld, int32 adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
@@ -627,10 +628,10 @@ static void FPrintTProcs__18 (OPT_Object obj)
 
 void OPT_FPrintStr (OPT_Struct typ)
 {
-	int32 f, c;
+	int16 f, c;
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL, bstrobj = NIL;
-	int64 pbfp, pvfp;
+	int32 pbfp, pvfp;
 	struct FPrintStr__13 _s;
 	_s.pbfp = &pbfp;
 	_s.pvfp = &pvfp;
@@ -658,7 +659,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 				pvfp = pbfp;
 			}
 		} else if (f == 12) {
-		} else if (__IN(c, 0x0c, 64)) {
+		} else if (__IN(c, 0x0c, 32)) {
 			OPT_FPrintStr(btyp);
 			OPM_FPrint(&pbfp, btyp->pvfp);
 			pvfp = pbfp;
@@ -691,8 +692,8 @@ void OPT_FPrintStr (OPT_Struct typ)
 
 void OPT_FPrintObj (OPT_Object obj)
 {
-	int64 fprint;
-	int32 f, m;
+	int32 fprint;
+	int16 f, m;
 	REAL rval;
 	OPT_ConstExt ext = NIL;
 	if (!obj->fpdone) {
@@ -729,16 +730,16 @@ void OPT_FPrintObj (OPT_Object obj)
 			OPM_FPrint(&fprint, obj->vis);
 			OPT_FPrintStr(obj->typ);
 			OPM_FPrint(&fprint, obj->typ->pbfp);
-		} else if (__IN(obj->mode, 0x0480, 64)) {
+		} else if (__IN(obj->mode, 0x0480, 32)) {
 			OPT_FPrintSign(&fprint, obj->typ, obj->link);
 		} else if (obj->mode == 9) {
 			OPT_FPrintSign(&fprint, obj->typ, obj->link);
 			ext = obj->conval->ext;
-			m = (*ext)[0];
+			m = (int16)(*ext)[0];
 			f = 1;
 			OPM_FPrint(&fprint, m);
 			while (f <= m) {
-				OPM_FPrint(&fprint, (*ext)[__X(f, 256)]);
+				OPM_FPrint(&fprint, (int16)(*ext)[__X(f, 256)]);
 				f += 1;
 			}
 		} else if (obj->mode == 5) {
@@ -749,9 +750,9 @@ void OPT_FPrintObj (OPT_Object obj)
 	}
 }
 
-void OPT_FPrintErr (OPT_Object obj, int32 errcode)
+void OPT_FPrintErr (OPT_Object obj, int16 errcode)
 {
-	int32 i, j;
+	int16 i, j;
 	CHAR ch;
 	if (obj->mnolev != 0) {
 		__COPY(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, OPM_objname, 64);
@@ -841,7 +842,7 @@ void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old)
 
 static void OPT_InName (CHAR *name, LONGINT name__len)
 {
-	int32 i;
+	int16 i;
 	CHAR ch;
 	i = 0;
 	do {
@@ -855,7 +856,7 @@ static void OPT_InMod (int8 *mno)
 {
 	OPT_Object head = NIL;
 	OPS_Name name;
-	int64 mn;
+	int32 mn;
 	int8 i;
 	mn = OPM_SymRInt();
 	if (mn == 0) {
@@ -893,16 +894,16 @@ static void OPT_InMod (int8 *mno)
 	}
 }
 
-static void OPT_InConstant (int64 f, OPT_Const conval)
+static void OPT_InConstant (int32 f, OPT_Const conval)
 {
 	CHAR ch;
-	int32 i;
+	int16 i;
 	OPT_ConstExt ext = NIL;
 	REAL rval;
 	switch (f) {
 		case 1: case 3: case 2: 
 			OPM_SymRCh(&ch);
-			conval->intval = ch;
+			conval->intval = (int16)ch;
 			break;
 		case 4: 
 			conval->intval = OPM_SymRInt();
@@ -945,7 +946,7 @@ static void OPT_InConstant (int64 f, OPT_Const conval)
 static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par)
 {
 	OPT_Object last = NIL, new = NIL;
-	int64 tag;
+	int32 tag;
 	OPT_InStruct(&*res);
 	tag = OPM_SymRInt();
 	last = NIL;
@@ -973,7 +974,7 @@ static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par)
 static OPT_Object OPT_InFld (void)
 {
 	OPT_Object _o_result;
-	int64 tag;
+	int32 tag;
 	OPT_Object obj = NIL;
 	tag = OPT_impCtxt.nextTag;
 	obj = OPT_NewObj();
@@ -1005,7 +1006,7 @@ static OPT_Object OPT_InFld (void)
 static OPT_Object OPT_InTProc (int8 mno)
 {
 	OPT_Object _o_result;
-	int64 tag;
+	int32 tag;
 	OPT_Object obj = NIL;
 	tag = OPT_impCtxt.nextTag;
 	obj = OPT_NewObj();
@@ -1030,7 +1031,7 @@ static OPT_Object OPT_InTProc (int8 mno)
 	return _o_result;
 }
 
-static OPT_Struct OPT_InTyp (int64 tag)
+static OPT_Struct OPT_InTyp (int32 tag)
 {
 	OPT_Struct _o_result;
 	if (tag == 4) {
@@ -1046,8 +1047,8 @@ static OPT_Struct OPT_InTyp (int64 tag)
 static void OPT_InStruct (OPT_Struct *typ)
 {
 	int8 mno;
-	int32 ref;
-	int64 tag;
+	int16 ref;
+	int32 tag;
 	OPS_Name name;
 	OPT_Struct t = NIL;
 	OPT_Object obj = NIL, last = NIL, fld = NIL, old = NIL, dummy = NIL;
@@ -1103,7 +1104,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 		obj->vis = 0;
 		tag = OPM_SymRInt();
 		if (tag == 35) {
-			(*typ)->sysflag = (int32)OPM_SymRInt();
+			(*typ)->sysflag = (int16)OPM_SymRInt();
 			tag = OPM_SymRInt();
 		}
 		switch (tag) {
@@ -1228,11 +1229,11 @@ static void OPT_InStruct (OPT_Struct *typ)
 static OPT_Object OPT_InObj (int8 mno)
 {
 	OPT_Object _o_result;
-	int32 i, s;
+	int16 i, s;
 	CHAR ch;
 	OPT_Object obj = NIL, old = NIL;
 	OPT_Struct typ = NIL;
-	int64 tag;
+	int32 tag;
 	OPT_ConstExt ext = NIL;
 	tag = OPT_impCtxt.nextTag;
 	if (tag == 19) {
@@ -1265,7 +1266,7 @@ static OPT_Object OPT_InObj (int8 mno)
 					obj->mode = 9;
 					ext = OPT_NewExt();
 					obj->conval->ext = ext;
-					s = (int32)OPM_SymRInt();
+					s = (int16)OPM_SymRInt();
 					(*ext)[0] = (CHAR)s;
 					i = 1;
 					while (i <= s) {
@@ -1374,7 +1375,7 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 
 static void OPT_OutName (CHAR *name, LONGINT name__len)
 {
-	int32 i;
+	int16 i;
 	CHAR ch;
 	i = 0;
 	do {
@@ -1384,7 +1385,7 @@ static void OPT_OutName (CHAR *name, LONGINT name__len)
 	} while (!(ch == 0x00));
 }
 
-static void OPT_OutMod (int32 mno)
+static void OPT_OutMod (int16 mno)
 {
 	if (OPT_expCtxt.locmno[__X(mno, 64)] < 0) {
 		OPM_SymWInt(16);
@@ -1396,9 +1397,9 @@ static void OPT_OutMod (int32 mno)
 	}
 }
 
-static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int64 adr)
+static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int32 adr)
 {
-	int64 i, j, n;
+	int32 i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
 		OPT_OutFlds(typ->link, adr, 0);
@@ -1428,7 +1429,7 @@ static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, int64 adr)
 	}
 }
 
-static void OPT_OutFlds (OPT_Object fld, int64 adr, BOOLEAN visible)
+static void OPT_OutFlds (OPT_Object fld, int32 adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
@@ -1583,7 +1584,7 @@ static void OPT_OutStr (OPT_Struct typ)
 
 static void OPT_OutConstant (OPT_Object obj)
 {
-	int32 f;
+	int16 f;
 	REAL rval;
 	f = obj->typ->form;
 	OPM_SymWInt(f);
@@ -1618,11 +1619,11 @@ static void OPT_OutConstant (OPT_Object obj)
 
 static void OPT_OutObj (OPT_Object obj)
 {
-	int32 i, j;
+	int16 i, j;
 	OPT_ConstExt ext = NIL;
 	if (obj != NIL) {
 		OPT_OutObj(obj->left);
-		if (__IN(obj->mode, 0x06ea, 64)) {
+		if (__IN(obj->mode, 0x06ea, 32)) {
 			if (obj->history == 4) {
 				OPT_FPrintErr(obj, 250);
 			} else if (obj->vis != 0) {
@@ -1685,7 +1686,7 @@ static void OPT_OutObj (OPT_Object obj)
 						OPM_SymWInt(33);
 						OPT_OutSign(obj->typ, obj->link);
 						ext = obj->conval->ext;
-						j = (*ext)[0];
+						j = (int16)(*ext)[0];
 						i = 1;
 						OPM_SymWInt(j);
 						while (i <= j) {
@@ -1708,7 +1709,7 @@ static void OPT_OutObj (OPT_Object obj)
 
 void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 {
-	int32 i;
+	int16 i;
 	int8 nofmod;
 	BOOLEAN done;
 	OPT_symExtended = 0;
@@ -1732,7 +1733,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 			}
 			OPT_OutObj(OPT_topScope->right);
 			*ext = (OPT_sfpresent && OPT_symExtended);
-			*new = (!OPT_sfpresent || OPT_symNew) || __IN(17, OPM_opt, 64);
+			*new = (!OPT_sfpresent || OPT_symNew) || __IN(17, OPM_opt, 32);
 			if ((((OPM_noerr && OPT_sfpresent)) && OPT_impCtxt.reffp != OPT_expCtxt.reffp)) {
 				*new = 1;
 				if (!OPT_extsf) {
@@ -1762,7 +1763,7 @@ static void OPT_InitStruct (OPT_Struct *typ, int8 form)
 	(*typ)->idfpdone = 1;
 }
 
-static void OPT_EnterBoolConst (OPS_Name name, int64 value)
+static void OPT_EnterBoolConst (OPS_Name name, int32 value)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;
@@ -1774,7 +1775,7 @@ static void OPT_EnterBoolConst (OPS_Name name, int64 value)
 	obj->conval->intval = value;
 }
 
-static void OPT_EnterTyp (OPS_Name name, int8 form, int32 size, OPT_Struct *res)
+static void OPT_EnterTyp (OPS_Name name, int8 form, int16 size, OPT_Struct *res)
 {
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
@@ -1809,7 +1810,7 @@ static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res)
 	*res = obj;
 }
 
-static void OPT_EnterProc (OPS_Name name, int32 num)
+static void OPT_EnterProc (OPS_Name name, int16 num)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;
@@ -1849,46 +1850,46 @@ static void EnumPtrs(void (*P)(void*))
 	__ENUMP(OPT_GlbMod, 64, P);
 	P(OPT_universe);
 	P(OPT_syslink);
-	__ENUMR(&OPT_impCtxt, OPT_ImpCtxt__typ, 6216, 1, P);
+	__ENUMR(&OPT_impCtxt, OPT_ImpCtxt__typ, 5184, 1, P);
 }
 
-__TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 40), {0, -16}};
-__TDESC(OPT_ObjDesc, 1, 6) = {__TDFLDS("ObjDesc", 344), {0, 8, 16, 24, 304, 312, -56}};
-__TDESC(OPT_StrDesc, 1, 3) = {__TDFLDS("StrDesc", 104), {80, 88, 96, -32}};
+__TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 32), {0, -16}};
+__TDESC(OPT_ObjDesc, 1, 6) = {__TDFLDS("ObjDesc", 336), {0, 8, 16, 24, 304, 312, -56}};
+__TDESC(OPT_StrDesc, 1, 3) = {__TDFLDS("StrDesc", 72), {48, 56, 64, -32}};
 __TDESC(OPT_NodeDesc, 1, 6) = {__TDFLDS("NodeDesc", 56), {0, 8, 16, 32, 40, 48, -56}};
-__TDESC(OPT_ImpCtxt, 1, 510) = {__TDFLDS("ImpCtxt", 6216), {32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 
-	160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 264, 272, 280, 
-	288, 296, 304, 312, 320, 328, 336, 344, 352, 360, 368, 376, 384, 392, 400, 408, 
-	416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 
-	544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664, 
-	672, 680, 688, 696, 704, 712, 720, 728, 736, 744, 752, 760, 768, 776, 784, 792, 
-	800, 808, 816, 824, 832, 840, 848, 856, 864, 872, 880, 888, 896, 904, 912, 920, 
-	928, 936, 944, 952, 960, 968, 976, 984, 992, 1000, 1008, 1016, 1024, 1032, 1040, 1048, 
-	1056, 1064, 1072, 1080, 1088, 1096, 1104, 1112, 1120, 1128, 1136, 1144, 1152, 1160, 1168, 1176, 
-	1184, 1192, 1200, 1208, 1216, 1224, 1232, 1240, 1248, 1256, 1264, 1272, 1280, 1288, 1296, 1304, 
-	1312, 1320, 1328, 1336, 1344, 1352, 1360, 1368, 1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 
-	1440, 1448, 1456, 1464, 1472, 1480, 1488, 1496, 1504, 1512, 1520, 1528, 1536, 1544, 1552, 1560, 
-	1568, 1576, 1584, 1592, 1600, 1608, 1616, 1624, 1632, 1640, 1648, 1656, 1664, 1672, 1680, 1688, 
-	1696, 1704, 1712, 1720, 1728, 1736, 1744, 1752, 1760, 1768, 1776, 1784, 1792, 1800, 1808, 1816, 
-	1824, 1832, 1840, 1848, 1856, 1864, 1872, 1880, 1888, 1896, 1904, 1912, 1920, 1928, 1936, 1944, 
-	1952, 1960, 1968, 1976, 1984, 1992, 2000, 2008, 2016, 2024, 2032, 2040, 2048, 2056, 2064, 2072, 
-	2080, 2088, 2096, 2104, 2112, 2120, 2128, 2136, 2144, 2152, 2160, 2168, 2176, 2184, 2192, 2200, 
-	2208, 2216, 2224, 2232, 2240, 2248, 2256, 2264, 2272, 2280, 2288, 2296, 2304, 2312, 2320, 2328, 
-	2336, 2344, 2352, 2360, 2368, 2376, 2384, 2392, 2400, 2408, 2416, 2424, 2432, 2440, 2448, 2456, 
-	2464, 2472, 2480, 2488, 2496, 2504, 2512, 2520, 2528, 2536, 2544, 2552, 2560, 2568, 2576, 2584, 
-	2592, 2600, 2608, 2616, 2624, 2632, 2640, 2648, 2656, 2664, 2672, 2680, 2688, 2696, 2704, 2712, 
-	2720, 2728, 2736, 2744, 2752, 2760, 2768, 2776, 2784, 2792, 2800, 2808, 2816, 2824, 2832, 2840, 
-	2848, 2856, 2864, 2872, 2880, 2888, 2896, 2904, 2912, 2920, 2928, 2936, 2944, 2952, 2960, 2968, 
-	2976, 2984, 2992, 3000, 3008, 3016, 3024, 3032, 3040, 3048, 3056, 3064, 3072, 3080, 3088, 3096, 
-	3104, 3112, 3120, 3128, 3136, 3144, 3152, 3160, 3168, 3176, 3184, 3192, 3200, 3208, 3216, 3224, 
-	3232, 3240, 3248, 3256, 3264, 3272, 3280, 3288, 3296, 3304, 3312, 3320, 3328, 3336, 3344, 3352, 
-	3360, 3368, 3376, 3384, 3392, 3400, 3408, 3416, 3424, 3432, 3440, 3448, 3456, 3464, 3472, 3480, 
-	3488, 3496, 3504, 3512, 3520, 3528, 3536, 3544, 3552, 3560, 3568, 3576, 3584, 3592, 3600, 3608, 
-	3616, 3624, 3632, 3640, 3648, 3656, 3664, 3672, 3680, 3688, 3696, 3704, 3712, 3720, 3728, 3736, 
-	3744, 3752, 3760, 3768, 3776, 3784, 3792, 3800, 3808, 3816, 3824, 3832, 3840, 3848, 3856, 3864, 
-	3872, 3880, 3888, 3896, 3904, 3912, 3920, 3928, 3936, 3944, 3952, 3960, 3968, 3976, 3984, 3992, 
-	4000, 4008, 4016, 4024, 4032, 4040, 4048, 4056, 4064, 4072, 4080, 4088, 4096, 4104, -4088}};
-__TDESC(OPT_ExpCtxt, 1, 0) = {__TDFLDS("ExpCtxt", 80), {-8}};
+__TDESC(OPT_ImpCtxt, 1, 510) = {__TDFLDS("ImpCtxt", 5184), {16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 
+	144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 264, 
+	272, 280, 288, 296, 304, 312, 320, 328, 336, 344, 352, 360, 368, 376, 384, 392, 
+	400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 
+	528, 536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 
+	656, 664, 672, 680, 688, 696, 704, 712, 720, 728, 736, 744, 752, 760, 768, 776, 
+	784, 792, 800, 808, 816, 824, 832, 840, 848, 856, 864, 872, 880, 888, 896, 904, 
+	912, 920, 928, 936, 944, 952, 960, 968, 976, 984, 992, 1000, 1008, 1016, 1024, 1032, 
+	1040, 1048, 1056, 1064, 1072, 1080, 1088, 1096, 1104, 1112, 1120, 1128, 1136, 1144, 1152, 1160, 
+	1168, 1176, 1184, 1192, 1200, 1208, 1216, 1224, 1232, 1240, 1248, 1256, 1264, 1272, 1280, 1288, 
+	1296, 1304, 1312, 1320, 1328, 1336, 1344, 1352, 1360, 1368, 1376, 1384, 1392, 1400, 1408, 1416, 
+	1424, 1432, 1440, 1448, 1456, 1464, 1472, 1480, 1488, 1496, 1504, 1512, 1520, 1528, 1536, 1544, 
+	1552, 1560, 1568, 1576, 1584, 1592, 1600, 1608, 1616, 1624, 1632, 1640, 1648, 1656, 1664, 1672, 
+	1680, 1688, 1696, 1704, 1712, 1720, 1728, 1736, 1744, 1752, 1760, 1768, 1776, 1784, 1792, 1800, 
+	1808, 1816, 1824, 1832, 1840, 1848, 1856, 1864, 1872, 1880, 1888, 1896, 1904, 1912, 1920, 1928, 
+	1936, 1944, 1952, 1960, 1968, 1976, 1984, 1992, 2000, 2008, 2016, 2024, 2032, 2040, 2048, 2056, 
+	2064, 2072, 2080, 2088, 2096, 2104, 2112, 2120, 2128, 2136, 2144, 2152, 2160, 2168, 2176, 2184, 
+	2192, 2200, 2208, 2216, 2224, 2232, 2240, 2248, 2256, 2264, 2272, 2280, 2288, 2296, 2304, 2312, 
+	2320, 2328, 2336, 2344, 2352, 2360, 2368, 2376, 2384, 2392, 2400, 2408, 2416, 2424, 2432, 2440, 
+	2448, 2456, 2464, 2472, 2480, 2488, 2496, 2504, 2512, 2520, 2528, 2536, 2544, 2552, 2560, 2568, 
+	2576, 2584, 2592, 2600, 2608, 2616, 2624, 2632, 2640, 2648, 2656, 2664, 2672, 2680, 2688, 2696, 
+	2704, 2712, 2720, 2728, 2736, 2744, 2752, 2760, 2768, 2776, 2784, 2792, 2800, 2808, 2816, 2824, 
+	2832, 2840, 2848, 2856, 2864, 2872, 2880, 2888, 2896, 2904, 2912, 2920, 2928, 2936, 2944, 2952, 
+	2960, 2968, 2976, 2984, 2992, 3000, 3008, 3016, 3024, 3032, 3040, 3048, 3056, 3064, 3072, 3080, 
+	3088, 3096, 3104, 3112, 3120, 3128, 3136, 3144, 3152, 3160, 3168, 3176, 3184, 3192, 3200, 3208, 
+	3216, 3224, 3232, 3240, 3248, 3256, 3264, 3272, 3280, 3288, 3296, 3304, 3312, 3320, 3328, 3336, 
+	3344, 3352, 3360, 3368, 3376, 3384, 3392, 3400, 3408, 3416, 3424, 3432, 3440, 3448, 3456, 3464, 
+	3472, 3480, 3488, 3496, 3504, 3512, 3520, 3528, 3536, 3544, 3552, 3560, 3568, 3576, 3584, 3592, 
+	3600, 3608, 3616, 3624, 3632, 3640, 3648, 3656, 3664, 3672, 3680, 3688, 3696, 3704, 3712, 3720, 
+	3728, 3736, 3744, 3752, 3760, 3768, 3776, 3784, 3792, 3800, 3808, 3816, 3824, 3832, 3840, 3848, 
+	3856, 3864, 3872, 3880, 3888, 3896, 3904, 3912, 3920, 3928, 3936, 3944, 3952, 3960, 3968, 3976, 
+	3984, 3992, 4000, 4008, 4016, 4024, 4032, 4040, 4048, 4056, 4064, 4072, 4080, 4088, -4088}};
+__TDESC(OPT_ExpCtxt, 1, 0) = {__TDFLDS("ExpCtxt", 72), {-8}};
 
 export void *OPT__init(void)
 {

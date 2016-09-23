@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -22,10 +22,10 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 
 static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGINT cmd__len)
 {
-	int32 r, status, exitcode;
+	int16 r, status, exitcode;
 	__DUP(title, title__len, CHAR);
 	__DUP(cmd, cmd__len, CHAR);
-	if (__IN(18, OPM_opt, 64)) {
+	if (__IN(18, OPM_opt, 32)) {
 		Console_String(title, title__len);
 		Console_String(cmd, cmd__len);
 		Console_Ln();

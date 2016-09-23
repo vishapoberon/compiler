@@ -15,7 +15,8 @@ typedef
 typedef
 	struct OPT_ConstDesc {
 		OPT_ConstExt ext;
-		int64 intval, intval2;
+		int64 intval;
+		int32 intval2;
 		SET setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
@@ -46,20 +47,20 @@ typedef
 		BOOLEAN leaf;
 		int8 mode, mnolev, vis, history;
 		BOOLEAN used, fpdone;
-		int64 fprint;
+		int32 fprint;
 		OPT_Struct typ;
 		OPT_Const conval;
-		int64 adr, linkadr;
-		int32 x;
+		int32 adr, linkadr;
+		int16 x;
 	} OPT_ObjDesc;
 
 typedef
 	struct OPT_StrDesc {
 		int8 form, comp, mno, extlev;
-		int32 ref, sysflag;
-		int64 n, size, align, txtpos;
+		int16 ref, sysflag;
+		int32 n, size, align, txtpos;
 		BOOLEAN allocated, pbused, pvused;
-		char _prvt0[24];
+		char _prvt0[16];
 		OPT_Struct BaseTyp;
 		OPT_Object link, strobj;
 	} OPT_StrDesc;
@@ -82,7 +83,7 @@ import address *OPT_NodeDesc__typ;
 import void OPT_Close (void);
 import void OPT_CloseScope (void);
 import void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
-import void OPT_FPrintErr (OPT_Object obj, int32 errcode);
+import void OPT_FPrintErr (OPT_Object obj, int16 errcode);
 import void OPT_FPrintObj (OPT_Object obj);
 import void OPT_FPrintStr (OPT_Struct typ);
 import void OPT_Find (OPT_Object *res);
@@ -93,15 +94,15 @@ import void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
 import void OPT_Init (OPS_Name name, SET opt);
 import void OPT_Insert (OPS_Name name, OPT_Object *obj);
 import void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
-import int32 OPT_IntSize (int64 n);
-import OPT_Struct OPT_IntType (int64 size);
+import int16 OPT_IntSize (int64 n);
+import OPT_Struct OPT_IntType (int32 size);
 import OPT_Const OPT_NewConst (void);
 import OPT_ConstExt OPT_NewExt (void);
 import OPT_Node OPT_NewNode (int8 class);
 import OPT_Object OPT_NewObj (void);
 import OPT_Struct OPT_NewStr (int8 form, int8 comp);
 import void OPT_OpenScope (int8 level, OPT_Object owner);
-import OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int32 dir);
+import OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
 import void *OPT__init(void);
 
 

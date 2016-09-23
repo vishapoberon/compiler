@@ -1124,8 +1124,8 @@ export void *OPM__init(void)
 	OPM_AddressSize = 8;
 	OPM_Alignment = 8;
 	OPM_ShortintSize = 1;
-	OPM_IntegerSize = 4;
-	OPM_LongintSize = 8;
-	OPM_SetSize = 8;
+	OPM_IntegerSize = 2;
+	OPM_LongintSize = 4;
+	OPM_SetSize = 4;
 	__ENDMOD;
 }

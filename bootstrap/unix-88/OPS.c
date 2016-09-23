@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin tspaSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -16,7 +16,7 @@ typedef
 
 export OPS_Name OPS_name;
 export OPS_String OPS_str;
-export int32 OPS_numtyp;
+export int16 OPS_numtyp;
 export int64 OPS_intval;
 export REAL OPS_realval;
 export LONGREAL OPS_lrlval;
@@ -28,17 +28,17 @@ static void OPS_Identifier (int8 *sym);
 export void OPS_Init (void);
 static void OPS_Number (void);
 static void OPS_Str (int8 *sym);
-static void OPS_err (int32 n);
+static void OPS_err (int16 n);
 
 
-static void OPS_err (int32 n)
+static void OPS_err (int16 n)
 {
 	OPM_err(n);
 }
 
 static void OPS_Str (int8 *sym)
 {
-	int32 i;
+	int16 i;
 	CHAR och;
 	i = 0;
 	och = OPS_ch;
@@ -64,7 +64,7 @@ static void OPS_Str (int8 *sym)
 	if (OPS_intval == 2) {
 		*sym = 35;
 		OPS_numtyp = 1;
-		OPS_intval = OPS_str[0];
+		OPS_intval = (int16)OPS_str[0];
 	} else {
 		*sym = 37;
 	}
@@ -72,7 +72,7 @@ static void OPS_Str (int8 *sym)
 
 static void OPS_Identifier (int8 *sym)
 {
-	int32 i;
+	int16 i;
 	i = 0;
 	do {
 		OPS_name[i] = OPS_ch;
@@ -91,10 +91,10 @@ static struct Number__6 {
 	struct Number__6 *lnk;
 } *Number__6_s;
 
-static int32 Ord__7 (CHAR ch, BOOLEAN hex);
-static LONGREAL Ten__9 (int32 e);
+static int16 Ord__7 (CHAR ch, BOOLEAN hex);
+static LONGREAL Ten__9 (int16 e);
 
-static LONGREAL Ten__9 (int32 e)
+static LONGREAL Ten__9 (int16 e)
 {
 	LONGREAL _o_result;
 	LONGREAL x, p;
@@ -113,14 +113,14 @@ static LONGREAL Ten__9 (int32 e)
 	return _o_result;
 }
 
-static int32 Ord__7 (CHAR ch, BOOLEAN hex)
+static int16 Ord__7 (CHAR ch, BOOLEAN hex)
 {
-	int32 _o_result;
+	int16 _o_result;
 	if (ch <= '9') {
-		_o_result = ch - 48;
+		_o_result = (int16)ch - 48;
 		return _o_result;
 	} else if (hex) {
-		_o_result = (ch - 65) + 10;
+		_o_result = ((int16)ch - 65) + 10;
 		return _o_result;
 	} else {
 		OPS_err(2);
@@ -132,7 +132,7 @@ static int32 Ord__7 (CHAR ch, BOOLEAN hex)
 
 static void OPS_Number (void)
 {
-	int32 i, m, n, d, e;
+	int16 i, m, n, d, e;
 	CHAR dig[24];
 	LONGREAL f;
 	CHAR expCh;
@@ -235,7 +235,7 @@ static void OPS_Number (void)
 				do {
 					n = Ord__7(OPS_ch, 0);
 					OPM_Get(&OPS_ch);
-					if (e <= __DIV(2147483647 - n, 10)) {
+					if (e <= __DIV(32767 - n, 10)) {
 						e = e * 10 + n;
 					} else {
 						OPS_err(203);

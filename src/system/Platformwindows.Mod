@@ -25,7 +25,7 @@ TYPE
   EnvPtr    = POINTER TO ARRAY 1024 OF CHAR;
   ArgPtr    = POINTER TO ARRAY 1024 OF CHAR;
   ArgVec    = POINTER TO ARRAY 1024 OF ArgPtr;
-  ArgVecPtr = POINTER TO ARRAY 1 OF LONGINT;
+  ArgVecPtr = POINTER TO ARRAY 1 OF SYSTEM.ADDRESS;
 
 
 VAR
@@ -412,31 +412,29 @@ BEGIN
 END Size;
 
 
-PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS; VAR n: SYSTEM.ADDRESS): INTEGER
+PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: SYSTEM.INT32): INTEGER
 "(INTEGER)ReadFile((HANDLE)fd, (void*)p, (DWORD)l, (DWORD*)n, 0)";
 
-PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS; VAR n: SYSTEM.ADDRESS): ErrorCode;
-VAR result: INTEGER;
+PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: LONGINT): ErrorCode;
+VAR result: INTEGER; lengthread: SYSTEM.INT32;
 BEGIN
-  n := 0;  (* Clear n because readfile takes a LONGINT but only updates the bottom 32 bits *)
-  result := readfile(h, p, l, n);
-  IF result = 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
+  result := readfile(h, p, l, lengthread);
+  IF result = 0 THEN n := 0; RETURN err() ELSE n := lengthread; RETURN 0 END
 END Read;
 
-PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: SYSTEM.ADDRESS): ErrorCode;
-VAR result: INTEGER;
+PROCEDURE ReadBuf*(h: FileHandle; VAR b: ARRAY OF SYSTEM.BYTE; VAR n: LONGINT): ErrorCode;
+VAR result: INTEGER; lengthread: SYSTEM.INT32;
 BEGIN
-  n := 0;  (* Clear n because readfile takes a SYSTEM.ADDRESS but only updates the bottom 32 bits *)
-  result := readfile(h, SYSTEM.ADR(b), LEN(b), n);
-  IF result = 0 THEN n := 0; RETURN err() ELSE RETURN 0 END
+  result := readfile(h, SYSTEM.ADR(b), LEN(b), lengthread);
+  IF result = 0 THEN n := 0; RETURN err() ELSE n := lengthread; RETURN 0 END
 END ReadBuf;
 
 
 
-PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): INTEGER
+PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): INTEGER
 "(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, 0,0)";
 
-PROCEDURE Write*(h: FileHandle; p: LONGINT; l: LONGINT): ErrorCode;
+PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
 BEGIN
   IF writefile(h, p, l) = 0 THEN RETURN err() ELSE RETURN 0 END
 END Write;

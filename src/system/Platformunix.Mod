@@ -369,7 +369,7 @@ END Size;
 
 
 PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): LONGINT
-"read(fd, (void*)(address)(p), l)";
+"(LONGINT)read(fd, (void*)(address)(p), l)";
 
 PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: LONGINT): ErrorCode;
 BEGIN
@@ -388,7 +388,7 @@ END ReadBuf;
 PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): SYSTEM.ADDRESS
 "write(fd, (void*)(address)(p), l)";
 
-PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): ErrorCode;
+PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
   VAR written: SYSTEM.ADDRESS;
 BEGIN
   written := writefile(h, p, l);

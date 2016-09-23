@@ -13,7 +13,7 @@ typedef
 	Platform_ArgPtr (*Platform_ArgVec)[1024];
 
 typedef
-	int32 (*Platform_ArgVecPtr)[1];
+	address (*Platform_ArgVecPtr)[1];
 
 typedef
 	CHAR (*Platform_EnvPtr)[1024];
@@ -74,8 +74,8 @@ export address Platform_OSAllocate (address size);
 export void Platform_OSFree (address address);
 export int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 export int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
-export int16 Platform_Read (int32 h, address p, address l, address *n);
-export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n);
+export int16 Platform_Read (int32 h, address p, int32 l, int32 *n);
+export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n);
 export int16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
@@ -92,7 +92,7 @@ export BOOLEAN Platform_TimedOut (int16 e);
 export BOOLEAN Platform_TooManyFiles (int16 e);
 export int16 Platform_Truncate (int32 h, int32 limit);
 export int16 Platform_Unlink (CHAR *n, LONGINT n__len);
-export int16 Platform_Write (int32 h, int32 p, int32 l);
+export int16 Platform_Write (int32 h, address p, int32 l);
 static void Platform_YMDHMStoClock (int16 ye, int16 mo, int16 da, int16 ho, int16 mi, int16 se, int32 *t, int32 *d);
 static void Platform_errch (CHAR c);
 static void Platform_errint (int32 l);
@@ -543,41 +543,43 @@ int16 Platform_Size (int32 h, int32 *l)
 	return _o_result;
 }
 
-int16 Platform_Read (int32 h, address p, address l, address *n)
+int16 Platform_Read (int32 h, address p, int32 l, int32 *n)
 {
 	int16 _o_result;
 	int16 result;
-	*n = 0;
-	result = Platform_readfile(h, p, l, &*n);
+	int32 lengthread;
+	result = Platform_readfile(h, p, l, &lengthread);
 	if (result == 0) {
 		*n = 0;
 		_o_result = Platform_err();
 		return _o_result;
 	} else {
+		*n = lengthread;
 		_o_result = 0;
 		return _o_result;
 	}
 	__RETCHK;
 }
 
-int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, address *n)
+int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 {
 	int16 _o_result;
 	int16 result;
-	*n = 0;
-	result = Platform_readfile(h, (address)b, b__len, &*n);
+	int32 lengthread;
+	result = Platform_readfile(h, (address)b, b__len, &lengthread);
 	if (result == 0) {
 		*n = 0;
 		_o_result = Platform_err();
 		return _o_result;
 	} else {
+		*n = lengthread;
 		_o_result = 0;
 		return _o_result;
 	}
 	__RETCHK;
 }
 
-int16 Platform_Write (int32 h, int32 p, int32 l)
+int16 Platform_Write (int32 h, address p, int32 l)
 {
 	int16 _o_result;
 	if (Platform_writefile(h, p, l) == 0) {

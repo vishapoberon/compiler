@@ -1098,7 +1098,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126); p^.typ := OPT.notyp
                    ELSE
                      IF x^.typ # p^.typ THEN
-                       IF (x^.class = OPT.Nconst) & (f = OPT.Int) THEN Convert(x, p^.typ)
+                       IF (f = OPT.Int)
+                        & (   (x^.class = OPT.Nconst)
+                           OR (p.typ.form = OPT.Int) & (x.typ.size <= p.typ.size)) THEN Convert(x, p^.typ)
                        ELSE err(111)
                        END
                      END ;

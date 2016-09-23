@@ -41,7 +41,8 @@ under a public-key cryptosystem such as RSA. *)
 
   PROCEDURE ByteReverse(VAR in: ARRAY OF SYSTEM.BYTE; VAR out: ARRAY OF LONGINT; longs: LONGINT);
     VAR
-      adr, t, i: LONGINT;
+      adr:   SYSTEM.ADDRESS;
+      t, i:  LONGINT;
       bytes: ARRAY 4 OF CHAR;
   BEGIN
     adr := SYSTEM.ADR(in[0]); i := 0;

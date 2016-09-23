@@ -11,7 +11,7 @@
 import void Console_Bool (BOOLEAN b);
 import void Console_Char (CHAR ch);
 import void Console_Flush (void);
-import void Console_Hex (int64 i);
+import void Console_Hex (int32 i);
 import void Console_Int (int64 i, int64 n);
 import void Console_Ln (void);
 import void Console_Read (CHAR *ch);

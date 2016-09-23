@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "OPC.h"
@@ -12,51 +12,51 @@
 
 typedef
 	struct OPV_ExitInfo {
-		int32 level, label;
+		int16 level, label;
 	} OPV_ExitInfo;
 
 
-static int32 OPV_stamp;
-static int64 OPV_recno;
+static int16 OPV_stamp;
+static int32 OPV_recno;
 static OPV_ExitInfo OPV_exit;
-static int32 OPV_nofExitLabels;
+static int16 OPV_nofExitLabels;
 
 export address *OPV_ExitInfo__typ;
 
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp);
 export void OPV_AdrAndSize (OPT_Object topScope);
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc);
-static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int32 prec);
+static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int16 prec);
 static void OPV_DefineTDescs (OPT_Node n);
-static void OPV_Entier (OPT_Node n, int32 prec);
+static void OPV_Entier (OPT_Node n, int16 prec);
 static void OPV_GetTProcNum (OPT_Object obj);
 static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc);
 static BOOLEAN OPV_ImplicitReturn (OPT_Node n);
-static void OPV_Index (OPT_Node n, OPT_Node d, int32 prec, int32 dim);
+static void OPV_Index (OPT_Node n, OPT_Node d, int16 prec, int16 dim);
 export void OPV_Init (void);
 static void OPV_InitTDescs (OPT_Node n);
 static void OPV_Len (OPT_Node n, int64 dim);
 export void OPV_Module (OPT_Node prog);
 static void OPV_NewArr (OPT_Node d, OPT_Node x);
-static void OPV_ParIntLiteral (int64 n, int64 size);
-static int32 OPV_Precedence (int32 class, int32 subclass, int32 form, int32 comp);
+static void OPV_ParIntLiteral (int64 n, int32 size);
+static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
-static void OPV_SizeCast (int64 from, int64 to);
+static void OPV_SizeCast (int32 from, int32 to);
 static void OPV_Stamp (OPS_Name s);
 static OPT_Object OPV_SuperProc (OPT_Node n);
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported);
 static void OPV_TraverseRecord (OPT_Struct typ);
 export void OPV_TypSize (OPT_Struct typ);
 static void OPV_TypeOf (OPT_Node n);
-static void OPV_design (OPT_Node n, int32 prec);
-static void OPV_expr (OPT_Node n, int32 prec);
+static void OPV_design (OPT_Node n, int16 prec);
+static void OPV_expr (OPT_Node n, int16 prec);
 static void OPV_stat (OPT_Node n, OPT_Object outerProc);
 
 
 void OPV_TypSize (OPT_Struct typ)
 {
-	int32 f, c;
-	int64 offset, size, base, fbase, off0;
+	int16 f, c;
+	int32 offset, size, base, fbase, off0;
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
 	if (typ == OPT_undftyp) {
@@ -71,7 +71,7 @@ void OPV_TypSize (OPT_Struct typ)
 				base = 1;
 			} else {
 				OPV_TypSize(btyp);
-				offset = btyp->size - (int64)__ASHR(btyp->sysflag, 8);
+				offset = btyp->size - __ASHR(btyp->sysflag, 8);
 				base = btyp->align;
 			}
 			fld = typ->link;
@@ -99,7 +99,7 @@ void OPV_TypSize (OPT_Struct typ)
 			}
 			typ->size = offset;
 			typ->align = base;
-			typ->sysflag = __MASK(typ->sysflag, -256) + (int32)__ASHL(offset - off0, 8);
+			typ->sysflag = __MASK(typ->sysflag, -256) + (int16)__ASHL(offset - off0, 8);
 		} else if (c == 2) {
 			OPV_TypSize(typ->BaseTyp);
 			typ->size = typ->n * typ->BaseTyp->size;
@@ -133,7 +133,7 @@ void OPV_Init (void)
 
 static void OPV_GetTProcNum (OPT_Object obj)
 {
-	int64 oldPos;
+	int32 oldPos;
 	OPT_Struct typ = NIL;
 	OPT_Object redef = NIL;
 	oldPos = OPM_errpos;
@@ -145,7 +145,7 @@ static void OPV_GetTProcNum (OPT_Object obj)
 	OPT_FindField(obj->name, typ->BaseTyp, &redef);
 	if (redef != NIL) {
 		obj->adr = __ASHL(__ASHR(redef->adr, 16), 16);
-		if (!__IN(2, obj->conval->setval, 64)) {
+		if (!__IN(2, obj->conval->setval, 32)) {
 			OPM_err(119);
 		}
 	} else {
@@ -169,7 +169,7 @@ static void OPV_TraverseRecord (OPT_Struct typ)
 
 static void OPV_Stamp (OPS_Name s)
 {
-	int32 i, j, k;
+	int16 i, j, k;
 	CHAR n[10];
 	OPV_stamp += 1;
 	i = 0;
@@ -199,7 +199,7 @@ static void OPV_Stamp (OPS_Name s)
 
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported)
 {
-	int32 mode;
+	int16 mode;
 	OPT_Object scope = NIL;
 	OPT_Struct typ = NIL;
 	if (obj != NIL) {
@@ -225,12 +225,12 @@ static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exporte
 			OPV_TypSize(obj->typ);
 		}
 		if (!exported) {
-			if ((__IN(mode, 0x60, 64) && obj->mnolev > 0)) {
+			if ((__IN(mode, 0x60, 32) && obj->mnolev > 0)) {
 				OPV_Stamp(obj->name);
 			}
-			if (__IN(mode, 0x26, 64)) {
+			if (__IN(mode, 0x26, 32)) {
 				obj->scope = outerScope;
-			} else if (__IN(mode, 0x26c0, 64)) {
+			} else if (__IN(mode, 0x26c0, 32)) {
 				if (obj->conval->setval == 0x0) {
 					OPM_err(129);
 				}
@@ -275,9 +275,9 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_sysptrtyp->strobj->linkadr = 2;
 }
 
-static int32 OPV_Precedence (int32 class, int32 subclass, int32 form, int32 comp)
+static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp)
 {
-	int32 _o_result;
+	int16 _o_result;
 	switch (class) {
 		case 7: case 0: case 2: case 4: case 9: 
 		case 13: 
@@ -285,7 +285,7 @@ static int32 OPV_Precedence (int32 class, int32 subclass, int32 form, int32 comp
 			return _o_result;
 			break;
 		case 5: 
-			if (__IN(3, OPM_opt, 64)) {
+			if (__IN(3, OPM_opt, 32)) {
 				_o_result = 10;
 				return _o_result;
 			} else {
@@ -294,7 +294,7 @@ static int32 OPV_Precedence (int32 class, int32 subclass, int32 form, int32 comp
 			}
 			break;
 		case 1: 
-			if (__IN(comp, 0x0c, 64)) {
+			if (__IN(comp, 0x0c, 32)) {
 				_o_result = 10;
 				return _o_result;
 			} else {
@@ -439,9 +439,9 @@ static BOOLEAN OPV_SideEffects (OPT_Node n)
 	__RETCHK;
 }
 
-static void OPV_Entier (OPT_Node n, int32 prec)
+static void OPV_Entier (OPT_Node n, int16 prec)
 {
-	if (__IN(n->typ->form, 0x60, 64)) {
+	if (__IN(n->typ->form, 0x60, 32)) {
 		OPM_WriteString((CHAR*)"__ENTIER(", 10);
 		OPV_expr(n, -1);
 		OPM_Write(')');
@@ -450,7 +450,7 @@ static void OPV_Entier (OPT_Node n, int32 prec)
 	}
 }
 
-static void OPV_SizeCast (int64 from, int64 to)
+static void OPV_SizeCast (int32 from, int32 to)
 {
 	if ((from != to && (from > 4 || to != 4))) {
 		OPM_WriteString((CHAR*)"(int", 5);
@@ -459,9 +459,9 @@ static void OPV_SizeCast (int64 from, int64 to)
 	}
 }
 
-static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int32 prec)
+static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int16 prec)
 {
-	int32 from, to;
+	int16 from, to;
 	from = n->typ->form;
 	to = newtype->form;
 	if (to == 7) {
@@ -471,7 +471,7 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int32 prec)
 		OPM_WriteInt(__ASHL(newtype->size, 3));
 		OPM_Write(')');
 	} else if (to == 4) {
-		if ((newtype->size < n->typ->size && __IN(2, OPM_opt, 64))) {
+		if ((newtype->size < n->typ->size && __IN(2, OPM_opt, 32))) {
 			OPM_WriteString((CHAR*)"__SHORT", 8);
 			if (OPV_SideEffects(n)) {
 				OPM_Write('F');
@@ -486,7 +486,7 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int32 prec)
 			OPV_Entier(n, 9);
 		}
 	} else if (to == 3) {
-		if (__IN(2, OPM_opt, 64)) {
+		if (__IN(2, OPM_opt, 32)) {
 			OPM_WriteString((CHAR*)"__CHR", 6);
 			if (OPV_SideEffects(n)) {
 				OPM_Write('F');
@@ -509,7 +509,7 @@ static void OPV_TypeOf (OPT_Node n)
 		OPM_WriteString((CHAR*)"__TYPEOF(", 10);
 		OPV_expr(n, -1);
 		OPM_Write(')');
-	} else if (__IN(n->class, 0x15, 64)) {
+	} else if (__IN(n->class, 0x15, 32)) {
 		OPC_Andent(n->typ);
 		OPM_WriteString((CHAR*)"__typ", 6);
 	} else if (n->class == 3) {
@@ -525,9 +525,9 @@ static void OPV_TypeOf (OPT_Node n)
 	}
 }
 
-static void OPV_Index (OPT_Node n, OPT_Node d, int32 prec, int32 dim)
+static void OPV_Index (OPT_Node n, OPT_Node d, int16 prec, int16 dim)
 {
-	if (!__IN(0, OPM_opt, 64) || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
+	if (!__IN(0, OPM_opt, 32) || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
 		OPV_expr(n->right, prec);
 	} else {
 		if (OPV_SideEffects(n->right)) {
@@ -542,18 +542,18 @@ static void OPV_Index (OPT_Node n, OPT_Node d, int32 prec, int32 dim)
 	}
 }
 
-static void OPV_design (OPT_Node n, int32 prec)
+static void OPV_design (OPT_Node n, int16 prec)
 {
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
-	int32 class, designPrec, comp;
+	int16 class, designPrec, comp;
 	OPT_Node d = NIL, x = NIL;
-	int32 dims, i, _for__27;
+	int16 dims, i, _for__27;
 	comp = n->typ->comp;
 	obj = n->obj;
 	class = n->class;
 	designPrec = OPV_Precedence(class, n->subcl, n->typ->form, comp);
-	if ((((((class == 0 && obj->mnolev > 0)) && obj->mnolev != OPM_level)) && prec == 10)) {
+	if ((((((class == 0 && obj->mnolev > 0)) && (int16)obj->mnolev != OPM_level)) && prec == 10)) {
 		designPrec = 9;
 	}
 	if (prec > designPrec) {
@@ -570,7 +570,7 @@ static void OPV_design (OPT_Node n, int32 prec)
 			OPC_CompleteIdent(n->obj);
 			break;
 		case 1: 
-			if (!__IN(comp, 0x0c, 64)) {
+			if (!__IN(comp, 0x0c, 32)) {
 				OPM_Write('*');
 			}
 			OPC_CompleteIdent(n->obj);
@@ -632,7 +632,7 @@ static void OPV_design (OPT_Node n, int32 prec)
 				}
 				if (n->typ->comp == 3) {
 					OPM_Write(')');
-					while ((int64)i < __ASHR(d->typ->size - 4, 2)) {
+					while (i < __ASHR(d->typ->size - 4, 2)) {
 						OPM_WriteString((CHAR*)" * ", 4);
 						OPV_Len(d, i);
 						i += 1;
@@ -649,10 +649,10 @@ static void OPV_design (OPT_Node n, int32 prec)
 		case 5: 
 			typ = n->typ;
 			obj = n->left->obj;
-			if (__IN(3, OPM_opt, 64)) {
+			if (__IN(3, OPM_opt, 32)) {
 				if (typ->comp == 4) {
 					OPM_WriteString((CHAR*)"__GUARDR(", 10);
-					if (obj->mnolev != OPM_level) {
+					if ((int16)obj->mnolev != OPM_level) {
 						OPM_WriteStringVar((void*)obj->scope->name, 256);
 						OPM_WriteString((CHAR*)"__curr->", 9);
 						OPC_Ident(obj);
@@ -688,7 +688,7 @@ static void OPV_design (OPT_Node n, int32 prec)
 			}
 			break;
 		case 6: 
-			if (__IN(3, OPM_opt, 64)) {
+			if (__IN(3, OPM_opt, 32)) {
 				if (n->left->class == 1) {
 					OPM_WriteString((CHAR*)"__GUARDEQR(", 12);
 					OPC_CompleteIdent(n->left->obj);
@@ -721,7 +721,7 @@ static void OPV_design (OPT_Node n, int32 prec)
 	}
 }
 
-static void OPV_ParIntLiteral (int64 n, int64 size)
+static void OPV_ParIntLiteral (int64 n, int32 size)
 {
 	OPM_WriteInt(n);
 }
@@ -729,7 +729,7 @@ static void OPV_ParIntLiteral (int64 n, int64 size)
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 {
 	OPT_Struct typ = NIL, aptyp = NIL;
-	int32 comp, form, mode, prec, dim;
+	int16 comp, form, mode, prec, dim;
 	OPM_Write('(');
 	while (n != NIL) {
 		typ = fp->typ;
@@ -743,7 +743,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 			OPM_WriteString((CHAR*)"*)", 3);
 			prec = 10;
 		}
-		if (!__IN(n->typ->comp, 0x0c, 64)) {
+		if (!__IN(n->typ->comp, 0x0c, 32)) {
 			if (mode == 2) {
 				if (typ != n->typ) {
 					OPM_WriteString((CHAR*)"(void*)", 8);
@@ -751,7 +751,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 				OPM_Write('&');
 				prec = 9;
 			} else {
-				if ((__IN(comp, 0x0c, 64) && n->class == 7)) {
+				if ((__IN(comp, 0x0c, 32) && n->class == 7)) {
 					OPM_WriteString((CHAR*)"(CHAR*)", 8);
 				} else if ((((form == 11 && typ != n->typ)) && n->typ != OPT_niltyp)) {
 					OPM_WriteString((CHAR*)"(void*)", 8);
@@ -821,9 +821,9 @@ static OPT_Object OPV_SuperProc (OPT_Node n)
 	return _o_result;
 }
 
-static void OPV_expr (OPT_Node n, int32 prec)
+static void OPV_expr (OPT_Node n, int16 prec)
 {
-	int32 class, subclass, form, exprPrec;
+	int16 class, subclass, form, exprPrec;
 	OPT_Struct typ = NIL;
 	OPT_Node l = NIL, r = NIL;
 	OPT_Object proc = NIL;
@@ -833,7 +833,7 @@ static void OPV_expr (OPT_Node n, int32 prec)
 	l = n->left;
 	r = n->right;
 	exprPrec = OPV_Precedence(class, subclass, form, n->typ->comp);
-	if ((exprPrec <= prec && __IN(class, 0x3ce0, 64))) {
+	if ((exprPrec <= prec && __IN(class, 0x3ce0, 32))) {
 		OPM_Write('(');
 	}
 	switch (class) {
@@ -913,18 +913,18 @@ static void OPV_expr (OPT_Node n, int32 prec)
 					if (l->class == 1) {
 						OPC_CompleteIdent(l->obj);
 					} else {
-						if ((l->typ->form != 8 && !__IN(l->typ->comp, 0x0c, 64))) {
+						if ((l->typ->form != 8 && !__IN(l->typ->comp, 0x0c, 32))) {
 							OPM_Write('&');
 						}
 						OPV_expr(l, exprPrec);
 					}
 					break;
 				case 29: 
-					if (!__IN(l->class, 0x17, 64) || (((__IN(n->typ->form, 0x1890, 64) && __IN(l->typ->form, 0x1890, 64))) && n->typ->size == l->typ->size)) {
+					if (!__IN(l->class, 0x17, 32) || (((__IN(n->typ->form, 0x1890, 32) && __IN(l->typ->form, 0x1890, 32))) && n->typ->size == l->typ->size)) {
 						OPM_Write('(');
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');
-						if (__IN(n->typ->form, 0x1800, 64) || __IN(l->typ->form, 0x1800, 64)) {
+						if (__IN(n->typ->form, 0x1800, 32) || __IN(l->typ->form, 0x1800, 32)) {
 							OPM_WriteString((CHAR*)"(address)", 10);
 						}
 						OPV_expr(l, exprPrec);
@@ -1021,12 +1021,12 @@ static void OPV_expr (OPT_Node n, int32 prec)
 					}
 					OPV_expr(l, -1);
 					OPM_WriteString((CHAR*)", ", 3);
-					if ((((__IN(subclass, 0x18020000, 64) && r->class == 7)) && r->conval->intval < 0)) {
+					if ((((__IN(subclass, 0x18020000, 32) && r->class == 7)) && r->conval->intval < 0)) {
 						OPM_WriteInt(-r->conval->intval);
 					} else {
 						OPV_expr(r, -1);
 					}
-					if (__IN(subclass, 0x18008000, 64)) {
+					if (__IN(subclass, 0x18008000, 32)) {
 						OPM_WriteString((CHAR*)", ", 3);
 						if (subclass == 15) {
 							OPM_WriteInt(__ASHL(r->typ->size, 3));
@@ -1038,7 +1038,7 @@ static void OPV_expr (OPT_Node n, int32 prec)
 					break;
 				case 9: case 10: case 11: case 12: case 13: 
 				case 14: 
-					if (__IN(l->typ->form, 0x2100, 64)) {
+					if (__IN(l->typ->form, 0x2100, 32)) {
 						OPM_WriteString((CHAR*)"__STRCMP(", 10);
 						OPV_expr(l, -1);
 						OPM_WriteString((CHAR*)", ", 3);
@@ -1135,7 +1135,7 @@ static void OPV_expr (OPT_Node n, int32 prec)
 			OPV_design(n, prec);
 			break;
 	}
-	if ((exprPrec <= prec && __IN(class, 0x3ca0, 64))) {
+	if ((exprPrec <= prec && __IN(class, 0x3ca0, 32))) {
 		OPM_Write(')');
 	}
 }
@@ -1145,7 +1145,7 @@ static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc)
 	OPT_Node if_ = NIL;
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
-	int64 adr;
+	int32 adr;
 	if_ = n->left;
 	while (if_ != NIL) {
 		OPM_WriteString((CHAR*)"if ", 4);
@@ -1196,7 +1196,7 @@ static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc)
 {
 	OPT_Node switchCase = NIL, label = NIL;
 	int64 low, high;
-	int32 form, i;
+	int16 form, i;
 	OPM_WriteString((CHAR*)"switch ", 8);
 	OPV_expr(n->left, 12);
 	OPM_Write(' ');
@@ -1263,7 +1263,7 @@ static BOOLEAN OPV_ImplicitReturn (OPT_Node n)
 static void OPV_NewArr (OPT_Node d, OPT_Node x)
 {
 	OPT_Struct typ = NIL, base = NIL;
-	int32 nofdim, nofdyn;
+	int16 nofdim, nofdyn;
 	typ = d->typ->BaseTyp;
 	base = typ;
 	nofdim = 0;
@@ -1425,7 +1425,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 							OPM_WriteString((CHAR*)", ", 3);
 							OPC_Andent(n->left->typ->BaseTyp);
 							OPM_WriteString((CHAR*)")", 2);
-						} else if (__IN(n->left->typ->BaseTyp->comp, 0x0c, 64)) {
+						} else if (__IN(n->left->typ->BaseTyp->comp, 0x0c, 32)) {
 							OPV_NewArr(n->left, n->right);
 						}
 						break;
@@ -1516,7 +1516,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 			case 20: 
 				if (n->subcl != 32) {
 					OPV_IfStat(n, 0, outerProc);
-				} else if (__IN(7, OPM_opt, 64)) {
+				} else if (__IN(7, OPM_opt, 32)) {
 					OPM_WriteString((CHAR*)"__ASSERT(", 10);
 					OPV_expr(n->left->left->left, -1);
 					OPM_WriteString((CHAR*)", ", 3);
@@ -1582,7 +1582,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				break;
 			case 26: 
 				if (OPM_level == 0) {
-					if (__IN(10, OPM_opt, 64)) {
+					if (__IN(10, OPM_opt, 32)) {
 						OPM_WriteString((CHAR*)"__FINI", 7);
 					} else {
 						OPM_WriteString((CHAR*)"__ENDMOD", 9);
@@ -1618,7 +1618,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				OPM_LogWLn();
 				break;
 		}
-		if (!__IN(n->class, 0x09744000, 64)) {
+		if (!__IN(n->class, 0x09744000, 32)) {
 			OPC_EndStat();
 		}
 		n = n->link;
@@ -1627,7 +1627,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 
 void OPV_Module (OPT_Node prog)
 {
-	if (!__IN(10, OPM_opt, 64)) {
+	if (!__IN(10, OPM_opt, 32)) {
 		OPC_GenHdr(prog->right);
 		OPC_GenHdrIncludes();
 	}
@@ -1635,7 +1635,7 @@ void OPV_Module (OPT_Node prog)
 	OPV_stat(prog, NIL);
 }
 
-__TDESC(OPV_ExitInfo, 1, 0) = {__TDFLDS("ExitInfo", 8), {-8}};
+__TDESC(OPV_ExitInfo, 1, 0) = {__TDFLDS("ExitInfo", 4), {-8}};
 
 export void *OPV__init(void)
 {

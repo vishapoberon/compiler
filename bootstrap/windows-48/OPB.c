@@ -2024,7 +2024,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 				p->typ = OPT_notyp;
 			} else {
 				if (x->typ != p->typ) {
-					if ((x->class == 7 && f == 4)) {
+					if ((f == 4 && (x->class == 7 || (p->typ->form == 4 && x->typ->size <= p->typ->size)))) {
 						OPB_Convert(&x, p->typ);
 					} else {
 						OPB_err(111);

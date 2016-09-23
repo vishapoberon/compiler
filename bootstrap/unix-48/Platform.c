@@ -92,7 +92,7 @@ export BOOLEAN Platform_TimedOut (int16 e);
 export BOOLEAN Platform_TooManyFiles (int16 e);
 export int16 Platform_Truncate (int32 h, int32 l);
 export int16 Platform_Unlink (CHAR *n, LONGINT n__len);
-export int16 Platform_Write (int32 h, address p, address l);
+export int16 Platform_Write (int32 h, address p, int32 l);
 static void Platform_YMDHMStoClock (int32 ye, int32 mo, int32 da, int32 ho, int32 mi, int32 se, int32 *t, int32 *d);
 static void Platform_errch (CHAR c);
 static void Platform_errint (int32 l);
@@ -144,7 +144,7 @@ extern void Heap_InitHeap();
 #define Platform_opennew(n, n__len)	open((char*)n, O_CREAT | O_TRUNC | O_RDWR, 0664)
 #define Platform_openro(n, n__len)	open((char*)n, O_RDONLY)
 #define Platform_openrw(n, n__len)	open((char*)n, O_RDWR)
-#define Platform_readfile(fd, p, l)	read(fd, (void*)(address)(p), l)
+#define Platform_readfile(fd, p, l)	(LONGINT)read(fd, (void*)(address)(p), l)
 #define Platform_rename(o, o__len, n, n__len)	rename((char*)o, (char*)n)
 #define Platform_sectotm(s)	struct tm *time = localtime((time_t*)&s)
 #define Platform_seekcur()	SEEK_CUR
@@ -547,7 +547,7 @@ int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 	__RETCHK;
 }
 
-int16 Platform_Write (int32 h, address p, address l)
+int16 Platform_Write (int32 h, address p, int32 l)
 {
 	int16 _o_result;
 	address written;

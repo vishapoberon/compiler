@@ -1,21 +1,21 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "Platform.h"
 
 
 static CHAR Console_line[128];
-static int32 Console_pos;
+static int16 Console_pos;
 
 
 export void Console_Bool (BOOLEAN b);
 export void Console_Char (CHAR ch);
 export void Console_Flush (void);
-export void Console_Hex (int64 i);
+export void Console_Hex (int32 i);
 export void Console_Int (int64 i, int64 n);
 export void Console_Ln (void);
 export void Console_Read (CHAR *ch);
@@ -25,7 +25,7 @@ export void Console_String (CHAR *s, LONGINT s__len);
 
 void Console_Flush (void)
 {
-	int32 error;
+	int16 error;
 	error = Platform_Write(1, (address)Console_line, Console_pos);
 	Console_pos = 0;
 }
@@ -44,7 +44,7 @@ void Console_Char (CHAR ch)
 
 void Console_String (CHAR *s, LONGINT s__len)
 {
-	int32 i;
+	int16 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	while (s[__X(i, s__len)] != 0x00) {
@@ -57,17 +57,17 @@ void Console_String (CHAR *s, LONGINT s__len)
 void Console_Int (int64 i, int64 n)
 {
 	CHAR s[32];
-	int64 i1, k;
-	if (i == __LSHL(1, 63, 64)) {
-		__MOVE("8085774586302733229", s, 20);
-		k = 19;
+	int32 i1, k;
+	if (i == (int64)__LSHL(1, 31, 32)) {
+		__MOVE("8463847412", s, 11);
+		k = 10;
 	} else {
-		i1 = __ABS((int64)i);
-		s[0] = (CHAR)(__MOD(i1, 10) + 48);
+		i1 = __ABS(__VAL(int32, i));
+		s[0] = (CHAR)((int)__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k = 1;
 		while (i1 > 0) {
-			s[__X(k, 32)] = (CHAR)(__MOD(i1, 10) + 48);
+			s[__X(k, 32)] = (CHAR)((int)__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
@@ -76,7 +76,7 @@ void Console_Int (int64 i, int64 n)
 		s[__X(k, 32)] = '-';
 		k += 1;
 	}
-	while (n > k) {
+	while (n > (int64)k) {
 		Console_Char(' ');
 		n -= 1;
 	}
@@ -100,11 +100,11 @@ void Console_Bool (BOOLEAN b)
 	}
 }
 
-void Console_Hex (int64 i)
+void Console_Hex (int32 i)
 {
-	int32 k;
+	int16 k;
 	int64 n;
-	k = -60;
+	k = -28;
 	while (k <= 0) {
 		n = __MASK(__ASH(i, k), -16);
 		if (n <= 9) {
@@ -118,8 +118,8 @@ void Console_Hex (int64 i)
 
 void Console_Read (CHAR *ch)
 {
-	int64 n;
-	int32 error;
+	int32 n;
+	int16 error;
 	Console_Flush();
 	error = Platform_ReadBuf(0, (void*)&*ch, 1, &n);
 	if (n != 1) {
@@ -129,7 +129,7 @@ void Console_Read (CHAR *ch)
 
 void Console_ReadLine (CHAR *line, LONGINT line__len)
 {
-	int64 i;
+	int32 i;
 	CHAR ch;
 	Console_Flush();
 	i = 0;

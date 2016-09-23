@@ -23,7 +23,7 @@ typedef
 typedef
 	struct Heap_ModuleDesc {
 		int64 _prvt0;
-		char _prvt1[72];
+		char _prvt1[56];
 	} Heap_ModuleDesc;
 
 typedef
@@ -32,7 +32,7 @@ typedef
 
 import SYSTEM_PTR Heap_modules;
 import address Heap_allocated, Heap_heapsize;
-import int32 Heap_FileCount;
+import int16 Heap_FileCount;
 
 import address *Heap_ModuleDesc__typ;
 

@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspamSf */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -25,7 +25,7 @@ static CHAR Vishap_mname[256];
 export void Vishap_Module (BOOLEAN *done);
 static void Vishap_PropagateElementaryTypeSizes (void);
 export void Vishap_Translate (void);
-static void Vishap_Trap (int32 sig);
+static void Vishap_Trap (int16 sig);
 
 
 void Vishap_Module (BOOLEAN *done)
@@ -42,22 +42,22 @@ void Vishap_Module (BOOLEAN *done)
 			OPC_Init();
 			OPV_Module(p);
 			if (OPM_noerr) {
-				if ((__IN(10, OPM_opt, 64) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
+				if ((__IN(10, OPM_opt, 32) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
 					OPM_DeleteNewSym();
-					if (!__IN(16, OPM_opt, 64)) {
+					if (!__IN(16, OPM_opt, 32)) {
 						vt100_SetAttr((CHAR*)"32m", 4);
 					}
 					OPM_LogWStr((CHAR*)"  Main program.", 16);
-					if (!__IN(16, OPM_opt, 64)) {
+					if (!__IN(16, OPM_opt, 32)) {
 						vt100_SetAttr((CHAR*)"0m", 3);
 					}
 				} else {
 					if (new) {
-						if (!__IN(16, OPM_opt, 64)) {
+						if (!__IN(16, OPM_opt, 32)) {
 							vt100_SetAttr((CHAR*)"32m", 4);
 						}
 						OPM_LogWStr((CHAR*)"  New symbol file.", 19);
-						if (!__IN(16, OPM_opt, 64)) {
+						if (!__IN(16, OPM_opt, 32)) {
 							vt100_SetAttr((CHAR*)"0m", 3);
 						}
 						OPM_RegisterNewSym();
@@ -111,17 +111,17 @@ void Vishap_Translate (void)
 				OPM_LogWLn();
 				Platform_Exit(1);
 			}
-			if (!__IN(13, OPM_opt, 64)) {
-				if (__IN(14, OPM_opt, 64)) {
+			if (!__IN(13, OPM_opt, 32)) {
+				if (__IN(14, OPM_opt, 32)) {
 					extTools_Assemble(OPM_modName, 32);
 				} else {
-					if (!__IN(10, OPM_opt, 64)) {
+					if (!__IN(10, OPM_opt, 32)) {
 						extTools_Assemble(OPM_modName, 32);
 						Strings_Append((CHAR*)" ", 2, (void*)modulesobj, 2048);
 						Strings_Append(OPM_modName, 32, (void*)modulesobj, 2048);
 						Strings_Append((CHAR*)".o", 3, (void*)modulesobj, 2048);
 					} else {
-						extTools_LinkMain((void*)OPM_modName, 32, __IN(15, OPM_opt, 64), modulesobj, 2048);
+						extTools_LinkMain((void*)OPM_modName, 32, __IN(15, OPM_opt, 32), modulesobj, 2048);
 					}
 				}
 			}
@@ -129,7 +129,7 @@ void Vishap_Translate (void)
 	}
 }
 
-static void Vishap_Trap (int32 sig)
+static void Vishap_Trap (int16 sig)
 {
 	Heap_FINALL();
 	if (sig == 3) {

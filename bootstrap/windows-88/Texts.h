@@ -8,8 +8,8 @@
 
 typedef
 	struct Texts_BufDesc {
-		int64 len;
-		char _prvt0[8];
+		int32 len;
+		int64 _prvt0;
 	} Texts_BufDesc;
 
 typedef
@@ -39,16 +39,17 @@ typedef
 
 typedef
 	struct Texts_ElemDesc {
-		char _prvt0[40];
-		int64 W, H;
+		int64 _prvt0;
+		char _prvt1[28];
+		int32 W, H;
 		Texts_Handler handle;
-		char _prvt1[8];
+		char _prvt2[8];
 	} Texts_ElemDesc;
 
 typedef
 	struct Texts_FileMsg { /* Texts_ElemMsg */
-		int32 id;
-		int64 pos;
+		int16 id;
+		int32 pos;
 		Files_Rider r;
 	} Texts_FileMsg;
 
@@ -69,7 +70,7 @@ typedef
 	struct Texts_TextDesc *Texts_Text;
 
 typedef
-	void (*Texts_Notifier)(Texts_Text, int32, int64, int64);
+	void (*Texts_Notifier)(Texts_Text, int16, int32, int32);
 
 typedef
 	struct Texts_Reader {
@@ -77,7 +78,7 @@ typedef
 		Texts_FontsFont fnt;
 		int8 col, voff;
 		Texts_Elem elem;
-		char _prvt0[64];
+		char _prvt0[40];
 	} Texts_Reader;
 
 typedef
@@ -86,10 +87,10 @@ typedef
 		Texts_FontsFont fnt;
 		int8 col, voff;
 		Texts_Elem elem;
-		char _prvt0[64];
+		char _prvt0[40];
 		CHAR nextCh;
-		int32 line, class;
-		int64 i;
+		int16 line, class;
+		int32 i;
 		REAL x;
 		LONGREAL y;
 		CHAR c;
@@ -99,9 +100,9 @@ typedef
 
 typedef
 	struct Texts_TextDesc {
-		int64 len;
+		int32 len;
 		Texts_Notifier notify;
-		char _prvt0[24];
+		char _prvt0[20];
 	} Texts_TextDesc;
 
 typedef
@@ -109,7 +110,7 @@ typedef
 		Texts_Buffer buf;
 		Texts_FontsFont fnt;
 		int8 col, voff;
-		char _prvt0[54];
+		char _prvt0[38];
 	} Texts_Writer;
 
 
@@ -129,41 +130,41 @@ import address *Texts_Scanner__typ;
 import address *Texts_Writer__typ;
 
 import void Texts_Append (Texts_Text T, Texts_Buffer B);
-import void Texts_ChangeLooks (Texts_Text T, int64 beg, int64 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff);
+import void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff);
 import void Texts_Close (Texts_Text T, CHAR *name, LONGINT name__len);
 import void Texts_Copy (Texts_Buffer SB, Texts_Buffer DB);
 import void Texts_CopyElem (Texts_Elem SE, Texts_Elem DE);
-import void Texts_Delete (Texts_Text T, int64 beg, int64 end);
+import void Texts_Delete (Texts_Text T, int32 beg, int32 end);
 import Texts_Text Texts_ElemBase (Texts_Elem E);
-import int64 Texts_ElemPos (Texts_Elem E);
-import void Texts_Insert (Texts_Text T, int64 pos, Texts_Buffer B);
+import int32 Texts_ElemPos (Texts_Elem E);
+import void Texts_Insert (Texts_Text T, int32 pos, Texts_Buffer B);
 import void Texts_Load (Files_Rider *r, address *r__typ, Texts_Text T);
 import void Texts_Open (Texts_Text T, CHAR *name, LONGINT name__len);
 import void Texts_OpenBuf (Texts_Buffer B);
-import void Texts_OpenReader (Texts_Reader *R, address *R__typ, Texts_Text T, int64 pos);
-import void Texts_OpenScanner (Texts_Scanner *S, address *S__typ, Texts_Text T, int64 pos);
+import void Texts_OpenReader (Texts_Reader *R, address *R__typ, Texts_Text T, int32 pos);
+import void Texts_OpenScanner (Texts_Scanner *S, address *S__typ, Texts_Text T, int32 pos);
 import void Texts_OpenWriter (Texts_Writer *W, address *W__typ);
-import int64 Texts_Pos (Texts_Reader *R, address *R__typ);
+import int32 Texts_Pos (Texts_Reader *R, address *R__typ);
 import void Texts_Read (Texts_Reader *R, address *R__typ, CHAR *ch);
 import void Texts_ReadElem (Texts_Reader *R, address *R__typ);
 import void Texts_ReadPrevElem (Texts_Reader *R, address *R__typ);
 import void Texts_Recall (Texts_Buffer *B);
-import void Texts_Save (Texts_Text T, int64 beg, int64 end, Texts_Buffer B);
+import void Texts_Save (Texts_Text T, int32 beg, int32 end, Texts_Buffer B);
 import void Texts_Scan (Texts_Scanner *S, address *S__typ);
 import void Texts_SetColor (Texts_Writer *W, address *W__typ, int8 col);
 import void Texts_SetFont (Texts_Writer *W, address *W__typ, Texts_FontsFont fnt);
 import void Texts_SetOffset (Texts_Writer *W, address *W__typ, int8 voff);
 import void Texts_Store (Files_Rider *r, address *r__typ, Texts_Text T);
 import void Texts_Write (Texts_Writer *W, address *W__typ, CHAR ch);
-import void Texts_WriteDate (Texts_Writer *W, address *W__typ, int64 t, int64 d);
+import void Texts_WriteDate (Texts_Writer *W, address *W__typ, int32 t, int32 d);
 import void Texts_WriteElem (Texts_Writer *W, address *W__typ, Texts_Elem e);
-import void Texts_WriteHex (Texts_Writer *W, address *W__typ, int64 x);
+import void Texts_WriteHex (Texts_Writer *W, address *W__typ, int32 x);
 import void Texts_WriteInt (Texts_Writer *W, address *W__typ, int64 x, int64 n);
 import void Texts_WriteLn (Texts_Writer *W, address *W__typ);
-import void Texts_WriteLongReal (Texts_Writer *W, address *W__typ, LONGREAL x, int32 n);
+import void Texts_WriteLongReal (Texts_Writer *W, address *W__typ, LONGREAL x, int16 n);
 import void Texts_WriteLongRealHex (Texts_Writer *W, address *W__typ, LONGREAL x);
-import void Texts_WriteReal (Texts_Writer *W, address *W__typ, REAL x, int32 n);
-import void Texts_WriteRealFix (Texts_Writer *W, address *W__typ, REAL x, int32 n, int32 k);
+import void Texts_WriteReal (Texts_Writer *W, address *W__typ, REAL x, int16 n);
+import void Texts_WriteRealFix (Texts_Writer *W, address *W__typ, REAL x, int16 n, int16 k);
 import void Texts_WriteRealHex (Texts_Writer *W, address *W__typ, REAL x);
 import void Texts_WriteString (Texts_Writer *W, address *W__typ, CHAR *s, LONGINT s__len);
 import void *Texts__init(void);

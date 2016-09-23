@@ -1,6 +1,6 @@
 MODULE ulmIO;
 
-  IMPORT SYS := ulmSYSTEM, SYSTEM;
+  IMPORT SYS := ulmSYSTEM, SYSTEM, Platform;
 
   CONST nl = 0AX;
 
@@ -118,6 +118,7 @@ MODULE ulmIO;
 
   (* ========================= terminal ============================ *)
 
+(*
   PROCEDURE ReadChar(VAR ch: CHAR) : BOOLEAN;
     CONST read = 3;
     (*VAR r0, r1: INTEGER;*)
@@ -125,13 +126,30 @@ MODULE ulmIO;
   BEGIN
     RETURN SYS.UNIXCALL(read, r0, r1, 0, SYSTEM.ADR(ch), 1) & (r0 > 0)
   END ReadChar;
+*)
 
+  PROCEDURE ReadChar(VAR ch: CHAR) : BOOLEAN;
+  (* Read one byte, returning success flag *)
+    VAR error: Platform.ErrorCode; readcount: LONGINT;
+  BEGIN
+    error := Platform.ReadBuf(Platform.StdIn, ch, readcount);
+    RETURN readcount > 0
+  END ReadChar;
+
+(*
   PROCEDURE WriteChar(ch: CHAR) : BOOLEAN;
     CONST write = 4;
     (*VAR r0, r1: INTEGER;*)
     VAR r0, r1: LONGINT;     (* same here *)
   BEGIN
     RETURN SYS.UNIXCALL(write, r0, r1, 1, SYSTEM.ADR(ch), 1)
+  END WriteChar;
+*)
+
+  PROCEDURE WriteChar(ch: CHAR) : BOOLEAN;
+  (* Write one byte, returning success flag *)
+  BEGIN
+    RETURN Platform.Write(Platform.StdOut, SYSTEM.ADR(ch), 1) = 0
   END WriteChar;
 
   PROCEDURE Read*(VAR ch: CHAR);

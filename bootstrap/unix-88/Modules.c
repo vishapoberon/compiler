@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 #include "Console.h"
@@ -31,15 +31,15 @@ typedef
 	struct Modules_ModuleDesc {
 		Modules_Module next;
 		Modules_ModuleName name;
-		int64 refcnt;
+		int32 refcnt;
 		Modules_Cmd cmds;
-		int64 types;
-		void (*enumPtrs)(void(*)(int64));
-		int64 reserved1, reserved2;
+		int32 types;
+		void (*enumPtrs)(void(*)(int32));
+		int32 reserved1, reserved2;
 	} Modules_ModuleDesc;
 
 
-export int32 Modules_res;
+export int16 Modules_res;
 export CHAR Modules_resMsg[256];
 export Modules_ModuleName Modules_imported, Modules_importing;
 
@@ -56,7 +56,7 @@ export Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
 
 static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len)
 {
-	int32 i, j;
+	int16 i, j;
 	__DUP(b, b__len, CHAR);
 	i = 0;
 	while (a[__X(i, a__len)] != 0x00) {
@@ -160,7 +160,7 @@ void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all)
 	__DEL(name);
 }
 
-__TDESC(Modules_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 80), {0, 40, -24}};
+__TDESC(Modules_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 64), {0, 32, -24}};
 __TDESC(Modules_CmdDesc, 1, 1) = {__TDFLDS("CmdDesc", 40), {0, -16}};
 
 export void *Modules__init(void)

@@ -75,7 +75,7 @@ import BOOLEAN Platform_TimedOut (int16 e);
 import BOOLEAN Platform_TooManyFiles (int16 e);
 import int16 Platform_Truncate (int32 h, int32 l);
 import int16 Platform_Unlink (CHAR *n, LONGINT n__len);
-import int16 Platform_Write (int32 h, address p, address l);
+import int16 Platform_Write (int32 h, address p, int32 l);
 import BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 import void *Platform__init(void);
 

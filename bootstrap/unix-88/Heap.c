@@ -1,8 +1,8 @@
 /* voc 1.95 [2016/09/23] for gcc LP64 on cygwin tsSfF */
 
-#define INTEGER int32
-#define LONGINT int64
-#define SET     uint64
+#define INTEGER int16
+#define LONGINT int32
+#define SET     uint32
 
 #include "SYSTEM.h"
 
@@ -54,11 +54,11 @@ typedef
 	struct Heap_ModuleDesc {
 		Heap_Module next;
 		Heap_ModuleName name;
-		int64 refcnt;
+		int32 refcnt;
 		Heap_Cmd cmds;
 		address types;
 		Heap_EnumProc enumPtrs;
-		int64 reserved1, reserved2;
+		int32 reserved1, reserved2;
 	} Heap_ModuleDesc;
 
 
@@ -70,9 +70,9 @@ static BOOLEAN Heap_firstTry;
 static address Heap_heap, Heap_heapend;
 export address Heap_heapsize;
 static Heap_FinNode Heap_fin;
-static int32 Heap_lockdepth;
+static int16 Heap_lockdepth;
 static BOOLEAN Heap_interrupted;
-export int32 Heap_FileCount;
+export int16 Heap_FileCount;
 
 export address *Heap_ModuleDesc__typ;
 export address *Heap_CmdDesc__typ;
@@ -129,7 +129,7 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 	SYSTEM_PTR _o_result;
 	Heap_Module m;
 	if (__STRCMP(name, "Heap") == 0) {
-		__SYSNEW(m, 80);
+		__SYSNEW(m, 64);
 	} else {
 		__NEW(m, Heap_ModuleDesc);
 	}
@@ -602,7 +602,7 @@ static void Heap_MarkStack (address n, address *cand, LONGINT cand__len)
 		while (sp != stack0) {
 			__GET(sp, p, address);
 			if ((p > Heap_heap && p < Heap_heapend)) {
-				if (nofcand == cand__len) {
+				if (nofcand == (int64)cand__len) {
 					Heap_HeapSort(nofcand, (void*)cand, cand__len);
 					Heap_MarkCandidates(nofcand, (void*)cand, cand__len);
 					nofcand = 0;
@@ -734,7 +734,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(Heap_fin);
 }
 
-__TDESC(Heap_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 80), {0, 40, -24}};
+__TDESC(Heap_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 64), {0, 32, -24}};
 __TDESC(Heap_CmdDesc, 1, 1) = {__TDFLDS("CmdDesc", 40), {0, -16}};
 __TDESC(Heap_FinDesc, 1, 1) = {__TDFLDS("FinDesc", 32), {0, -16}};
 __TDESC(Heap__1, 1, 1) = {__TDFLDS("", 16), {8, -16}};

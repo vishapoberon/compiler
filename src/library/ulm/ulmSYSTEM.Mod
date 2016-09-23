@@ -49,6 +49,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      RETURN oldflag;
   END TAS;
 
+(*
   PROCEDURE UNIXCALL*(syscall: LONGINT; VAR d0, d1: LONGINT; (* in ulm version both LONGINT and INTEGER are 4 byte size *)
                      arg1, arg2, arg3: LONGINT) : BOOLEAN;
   VAR
@@ -122,7 +123,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
   END
 
   END UNIXCALL;
-
+*)
 
   PROCEDURE UNIXFORK(VAR pid: LONGINT) : BOOLEAN;
   BEGIN
@@ -135,8 +136,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
 
   END UNIXSIGNAL;
 
-  PROCEDURE WMOVE*(from, to, n : LONGINT);
-  VAR l : LONGINT;
+  PROCEDURE WMOVE*(from, to, n : SYSTEM.ADDRESS);
   BEGIN
      SYSTEM.MOVE(from, to, n);
   END WMOVE;

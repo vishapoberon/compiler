@@ -14,7 +14,7 @@ typedef
 
 import OPS_Name OPS_name;
 import OPS_String OPS_str;
-import int32 OPS_numtyp;
+import int16 OPS_numtyp;
 import int64 OPS_intval;
 import REAL OPS_realval;
 import LONGREAL OPS_lrlval;

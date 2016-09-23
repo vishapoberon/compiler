@@ -871,17 +871,9 @@ BEGIN
   AddressSize  := Configuration.addressSize;
   Alignment    := Configuration.alignment;
 
-  IF Configuration.intsize = 2 THEN
-    (* Original Oberon-2 implementation sizes (-O2) *)
-    ShortintSize := 1;
-    IntegerSize  := 2;
-    LongintSize  := 4;
-    SetSize      := 4;
-  ELSE
-    (* Legacy Vishap 64 bit build sizes (-OV) *)
-    ShortintSize := 1;
-    IntegerSize  := 4;
-    LongintSize  := 8;
-    SetSize      := 8;
-  END
+  (* Default type size model is that of the original Oberon-2 implementation (-O2) *)
+  ShortintSize := 1;
+  IntegerSize  := 2;
+  LongintSize  := 4;
+  SetSize      := 4
 END OPM.
