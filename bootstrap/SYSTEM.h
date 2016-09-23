@@ -244,12 +244,8 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __WITHCHK    __HALT(-7)
 
 
-//#define __IS(tag, typ, level) (*(tag-(__BASEOFF-level))==(LONGINT)(address)typ##__typ)
-//#define __TYPEOF(p)           ((address*)(address)(*(((LONGINT*)(p))-1)))
-//#define __ISP(p, typ, level)  __IS(__TYPEOF(p),typ,level)
-
 #define __IS(tag, typ, level) (*(tag-(__BASEOFF-level))==(address)typ##__typ)
-#define __TYPEOF(p)           ((address*)(address)(*(((address*)(p))-1)))
+#define  __TYPEOF(p)          (*(((address**)(p))-1))
 #define __ISP(p, typ, level)  __IS(__TYPEOF(p),typ,level)
 
 
