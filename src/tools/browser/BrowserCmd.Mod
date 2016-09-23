@@ -267,5 +267,5 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   END ShowDef;
 
 BEGIN
-  OPT.typSize := OPV.TypSize; Texts.OpenWriter(W); ShowDef
+  Texts.OpenWriter(W); ShowDef
 END BrowserCmd.

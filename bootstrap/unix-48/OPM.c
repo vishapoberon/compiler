@@ -223,7 +223,6 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 					OPM_AddressSize = (int16)s[__X(i + 1, s__len)] - 48;
 					OPM_Alignment = (int16)s[__X(i + 2, s__len)] - 48;
 					i += 2;
-					Files_SetSearchPath((CHAR*)"", 1);
 				}
 				break;
 			case 'B': 
