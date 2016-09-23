@@ -15,6 +15,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
     OPP.Module(p, OPM.opt);
     IF OPM.noerr THEN
       OPV.Init;
+      OPT.InitRecno;
       OPV.AdrAndSize(OPT.topScope);
       OPT.Export(ext, new);
       IF OPM.noerr THEN
@@ -129,7 +130,5 @@ BEGIN
   Platform.SetInterruptHandler(Trap);
   Platform.SetQuitHandler(Trap);
   Platform.SetBadInstructionHandler(Trap);
-  OPB.typSize := OPV.TypSize;
-  OPT.typSize := OPV.TypSize;
   Translate
 END Vishap.

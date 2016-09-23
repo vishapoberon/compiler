@@ -69,6 +69,7 @@ int   addressSize = 0;
 int   intsize     = 0;
 int   bsd         = 0;
 int   termux      = 0;
+int   bootstrap   = 0;    // 1 iff generating a bootstrap compiler.
 
 
 
@@ -161,28 +162,32 @@ void determineCCompiler() {
 
 
 void determineInstallDirectory() {
-  char *env = getenv("INSTALLDIR");
-  if (env) {
-    strncpy(installdir, env, sizeof(installdir));
+  if (bootstrap) {
+    installdir[0] = 0;
   } else {
-    #if defined(_MSC_VER) || defined(__MINGW32__)
-      if (sizeof (void*) == 8) {
-        snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles"), oname);
-      } else {
-        snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles(x86)"), oname);
-      }
-      #if defined(__MINGW32__)
-        int i; for(i=0; installdir[i]; i++) if (installdir[i] == '\\') installdir[i] = '/';
+    char *env = getenv("INSTALLDIR");
+    if (env) {
+      strncpy(installdir, env, sizeof(installdir));
+    } else {
+      #if defined(_MSC_VER) || defined(__MINGW32__)
+        if (sizeof (void*) == 8) {
+          snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles"), oname);
+        } else {
+          snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles(x86)"), oname);
+        }
+        #if defined(__MINGW32__)
+          int i; for(i=0; installdir[i]; i++) if (installdir[i] == '\\') installdir[i] = '/';
+        #endif
+      #else
+        if (bsd) {
+          snprintf(installdir, sizeof(installdir), "/usr/local/share/%s", oname);
+        } else if (termux) {
+          snprintf(installdir, sizeof(installdir), "/data/data/com.termux/files/opt/%s", oname);
+        } else {
+          snprintf(installdir, sizeof(installdir), "/opt/%s", oname);
+        }
       #endif
-    #else
-      if (bsd) {
-        snprintf(installdir, sizeof(installdir), "/usr/local/share/%s", oname);
-      } else if (termux) {
-        snprintf(installdir, sizeof(installdir), "/data/data/com.termux/files/opt/%s", oname);
-      } else {
-        snprintf(installdir, sizeof(installdir), "/opt/%s", oname);
-      }
-    #endif
+    }
   }
 }
 
@@ -431,8 +436,12 @@ int main(int argc, char *argv[])
   oname = getenv("ONAME"); if (!oname) oname = macrotostring(O_NAME);
 
   if (argc>1) {
-    ReportSizesAndAlignments();
-    exit(0);
+    if (strncasecmp(argv[1], "rep", 3) == 0) {
+      ReportSizesAndAlignments();
+      exit(0);
+    } else {
+      bootstrap = 1;
+    }
   }
 
   getcwd(cwd, sizeof(cwd));
@@ -447,9 +456,15 @@ int main(int argc, char *argv[])
 
   testSystemDotH();
 
-  snprintf(versionstring, sizeof(versionstring),
-           "%s [%s] for %s %s on %s",
-           version, builddate, compiler, dataModel, os);
+  if (bootstrap) {
+    snprintf(versionstring, sizeof(versionstring),
+             "%s [%s]. Bootstrapping compiler for address size %d, alignment %d.",
+             version, builddate, addressSize, alignment);
+  } else {
+    snprintf(versionstring, sizeof(versionstring),
+             "%s [%s] for %s %s on %s",
+             version, builddate, compiler, dataModel, os);
+  }
 
   writeConfigurationMod();
   writeMakeParameters();

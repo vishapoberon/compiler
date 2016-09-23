@@ -553,46 +553,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF typ^.strobj # NIL THEN InitTProcs(typ^.strobj, typ^.link) END
   END InitTDesc;
 
-  PROCEDURE Align*(VAR adr: LONGINT; base: LONGINT);
-  BEGIN
-    CASE base OF
-    |  2: INC(adr,   adr  MOD 2)
-    |  4: INC(adr, (-adr) MOD 4)
-    |  8: INC(adr, (-adr) MOD 8)
-    | 16: INC(adr, (-adr) MOD 16)
-    ELSE (*1*) (*OPM.LogWStr("unhandled case at OPC.Align, base = "); OPM.LogWNum(base, 0); OPM.LogWLn;*)
-    END
-  END Align;
-
-  PROCEDURE SizeAlignment*(size: LONGINT): LONGINT;
-    VAR alignment: LONGINT;
-  BEGIN
-    IF size < OPM.Alignment THEN
-      (* Round up to next power of 2 *)
-      alignment := 1; WHILE alignment < size DO alignment := alignment * 2 END;
-    ELSE
-      alignment := OPM.Alignment
-    END;
-    RETURN alignment
-  END SizeAlignment;
-
-
-  PROCEDURE BaseAlignment*(typ: OPT.Struct): LONGINT;
-    VAR alignment: LONGINT;
-  BEGIN
-    IF typ.form = OPT.Comp THEN
-      IF typ.comp = OPT.Record THEN
-        alignment := typ.align MOD 10000H
-      ELSE
-        alignment := BaseAlignment(typ.BaseTyp)
-      END
-    ELSE
-      alignment := SizeAlignment(typ.size)
-    END;
-    RETURN alignment
-  END BaseAlignment;
-
-
   PROCEDURE FillGap(gap, off, align: LONGINT; VAR n, curAlign: LONGINT);
   (* gap:      Required gap - already calculated based on alignment requirements
      off:      Current offset - where gap begins
@@ -602,7 +562,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   *)
     VAR adr: LONGINT;
   BEGIN
-    adr := off; Align(adr, align);
+    adr := off; OPT.Align(adr, align);
     IF (curAlign < align) & (gap - (adr - off) >= align) THEN (* preserve alignment of the enclosing struct! *)
       DEC(gap, (adr - off) + align);
       BegStat;
@@ -640,8 +600,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       ELSE
         (* mimic OPV.TypSize to detect gaps caused by private fields *)
         adr := off;
-        fldAlign := BaseAlignment(fld^.typ);
-        Align(adr, fldAlign);
+        fldAlign := OPT.BaseAlignment(fld^.typ);
+        OPT.Align(adr, fldAlign);
         gap := fld.adr - adr;
         IF fldAlign > curAlign THEN curAlign := fldAlign END;
         IF gap > 0 THEN

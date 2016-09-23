@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPC__h
 #define OPC__h
@@ -9,9 +9,7 @@
 
 
 
-import void OPC_Align (int32 *adr, int32 base);
 import void OPC_Andent (OPT_Struct typ);
-import int32 OPC_BaseAlignment (OPT_Struct typ);
 import OPT_Object OPC_BaseTProc (OPT_Object obj);
 import void OPC_BegBlk (void);
 import void OPC_BegStat (void);
@@ -41,7 +39,6 @@ import void OPC_IntLiteral (int64 n, int32 size);
 import void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim);
 import int32 OPC_NofPtrs (OPT_Struct typ);
 import void OPC_SetInclude (BOOLEAN exclude);
-import int32 OPC_SizeAlignment (int32 size);
 import void OPC_TDescDecl (OPT_Struct typ);
 import void OPC_TypeDefs (OPT_Object obj, int16 vis);
 import void OPC_TypeOf (OPT_Object ap);

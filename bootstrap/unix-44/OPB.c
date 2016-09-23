@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -10,7 +10,6 @@
 #include "OPT.h"
 
 
-export void (*OPB_typSize)(OPT_Struct);
 static int16 OPB_exp;
 static int64 OPB_maxExp;
 
@@ -1917,7 +1916,7 @@ void OPB_StPar0 (OPT_Node *par0, int16 fctno)
 				OPB_err(110);
 				x = OPB_NewIntConst(1);
 			} else if (__IN(f, 0x18fe, 32) || __IN(x->typ->comp, 0x14, 32)) {
-				(*OPB_typSize)(x->typ);
+				OPT_TypSize(x->typ);
 				x->typ->pvused = 1;
 				x = OPB_NewIntConst(x->typ->size);
 			} else {

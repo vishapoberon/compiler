@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPB__h
 #define OPB__h
@@ -8,7 +8,6 @@
 #include "OPT.h"
 
 
-import void (*OPB_typSize)(OPT_Struct);
 
 
 import void OPB_Assign (OPT_Node *x, OPT_Node y);

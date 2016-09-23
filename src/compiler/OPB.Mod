@@ -9,7 +9,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 
 
   VAR
-    typSize*: PROCEDURE(typ: OPT.Struct);
     exp:      INTEGER;       (* side effect of log*)
     maxExp:   SYSTEM.INT64;  (* max n in ASH(1, n) on this machine *)
 
@@ -1037,7 +1036,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    IF x^.class # OPT.Ntype THEN err(110); x := NewIntConst(1)
                    ELSIF (f IN {OPT.Byte..OPT.Set, OPT.Pointer, OPT.ProcTyp})
                       OR (x^.typ^.comp IN {OPT.Array, OPT.Record}) THEN
-                     typSize(x^.typ); x^.typ^.pvused := TRUE; x := NewIntConst(x^.typ^.size)
+                     OPT.TypSize(x^.typ); x^.typ^.pvused := TRUE; x := NewIntConst(x^.typ^.size)
                    ELSE err(111); x := NewIntConst(1)
                    END
     |OPT.ccfn:     (*SYSTEM.CC*)

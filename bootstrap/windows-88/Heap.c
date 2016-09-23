@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin tsSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. tsSfF */
 
 #define INTEGER int16
 #define LONGINT int32

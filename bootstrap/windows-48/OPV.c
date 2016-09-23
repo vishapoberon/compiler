@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -17,7 +17,6 @@ typedef
 
 
 static int16 OPV_stamp;
-static int32 OPV_recno;
 static OPV_ExitInfo OPV_exit;
 static int16 OPV_nofExitLabels;
 
@@ -46,88 +45,15 @@ static void OPV_Stamp (OPS_Name s);
 static OPT_Object OPV_SuperProc (OPT_Node n);
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported);
 static void OPV_TraverseRecord (OPT_Struct typ);
-export void OPV_TypSize (OPT_Struct typ);
 static void OPV_TypeOf (OPT_Node n);
 static void OPV_design (OPT_Node n, int16 prec);
 static void OPV_expr (OPT_Node n, int16 prec);
 static void OPV_stat (OPT_Node n, OPT_Object outerProc);
 
 
-void OPV_TypSize (OPT_Struct typ)
-{
-	int16 f, c;
-	int32 offset, size, base, fbase, off0;
-	OPT_Object fld = NIL;
-	OPT_Struct btyp = NIL;
-	if (typ == OPT_undftyp) {
-		OPM_err(58);
-	} else if (typ->size == -1) {
-		f = typ->form;
-		c = typ->comp;
-		if (c == 4) {
-			btyp = typ->BaseTyp;
-			if (btyp == NIL) {
-				offset = 0;
-				base = 1;
-			} else {
-				OPV_TypSize(btyp);
-				offset = btyp->size - __ASHR(btyp->sysflag, 8);
-				base = btyp->align;
-			}
-			fld = typ->link;
-			while ((fld != NIL && fld->mode == 4)) {
-				btyp = fld->typ;
-				OPV_TypSize(btyp);
-				size = btyp->size;
-				fbase = OPC_BaseAlignment(btyp);
-				OPC_Align(&offset, fbase);
-				fld->adr = offset;
-				offset += size;
-				if (fbase > base) {
-					base = fbase;
-				}
-				fld = fld->link;
-			}
-			off0 = offset;
-			if (offset == 0) {
-				offset = 1;
-			}
-			OPC_Align(&offset, base);
-			if ((typ->strobj == NIL && __MASK(typ->align, -65536) == 0)) {
-				OPV_recno += 1;
-				base += __ASHL(OPV_recno, 16);
-			}
-			typ->size = offset;
-			typ->align = base;
-			typ->sysflag = __MASK(typ->sysflag, -256) + (int16)__ASHL(offset - off0, 8);
-		} else if (c == 2) {
-			OPV_TypSize(typ->BaseTyp);
-			typ->size = typ->n * typ->BaseTyp->size;
-		} else if (f == 11) {
-			typ->size = OPM_AddressSize;
-			if (typ->BaseTyp == OPT_undftyp) {
-				OPM_Mark(128, typ->n);
-			} else {
-				OPV_TypSize(typ->BaseTyp);
-			}
-		} else if (f == 12) {
-			typ->size = OPM_AddressSize;
-		} else if (c == 3) {
-			btyp = typ->BaseTyp;
-			OPV_TypSize(btyp);
-			if (btyp->comp == 3) {
-				typ->size = btyp->size + 4;
-			} else {
-				typ->size = 8;
-			}
-		}
-	}
-}
-
 void OPV_Init (void)
 {
 	OPV_stamp = 0;
-	OPV_recno = 0;
 	OPV_nofExitLabels = 0;
 }
 
@@ -212,7 +138,7 @@ static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exporte
 		mode = obj->mode;
 		if ((mode == 5 && (obj->vis != 0) == exported)) {
 			typ = obj->typ;
-			OPV_TypSize(obj->typ);
+			OPT_TypSize(obj->typ);
 			if (typ->form == 11) {
 				typ = typ->BaseTyp;
 			}
@@ -222,7 +148,7 @@ static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exporte
 		} else if (mode == 13) {
 			OPV_GetTProcNum(obj);
 		} else if (mode == 1) {
-			OPV_TypSize(obj->typ);
+			OPT_TypSize(obj->typ);
 		}
 		if (!exported) {
 			if ((__IN(mode, 0x60, 32) && obj->mnolev > 0)) {
@@ -548,7 +474,7 @@ static void OPV_design (OPT_Node n, int16 prec)
 	OPT_Struct typ = NIL;
 	int16 class, designPrec, comp;
 	OPT_Node d = NIL, x = NIL;
-	int16 dims, i, _for__27;
+	int16 dims, i, _for__26;
 	comp = n->typ->comp;
 	obj = n->obj;
 	class = n->class;
@@ -624,9 +550,9 @@ static void OPV_design (OPT_Node n, int16 prec)
 					}
 					x = x->left;
 				}
-				_for__27 = dims;
+				_for__26 = dims;
 				i = 1;
-				while (i <= _for__27) {
+				while (i <= _for__26) {
 					OPM_Write(')');
 					i += 1;
 				}
@@ -1290,7 +1216,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x)
 	OPM_WriteString((CHAR*)", ", 3);
 	OPM_WriteInt(base->size);
 	OPM_WriteString((CHAR*)", ", 3);
-	OPM_WriteInt(OPC_BaseAlignment(base));
+	OPM_WriteInt(OPT_BaseAlignment(base));
 	OPM_WriteString((CHAR*)", ", 3);
 	OPM_WriteInt(nofdim);
 	OPM_WriteString((CHAR*)", ", 3);

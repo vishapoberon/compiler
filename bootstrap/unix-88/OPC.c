@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -17,10 +17,8 @@ static BOOLEAN OPC_GlbPtrs;
 static CHAR OPC_BodyNameExt[13];
 
 
-export void OPC_Align (int32 *adr, int32 base);
 export void OPC_Andent (OPT_Struct typ);
 static void OPC_AnsiParamList (OPT_Object obj, BOOLEAN showParamNames);
-export int32 OPC_BaseAlignment (OPT_Struct typ);
 export OPT_Object OPC_BaseTProc (OPT_Object obj);
 export void OPC_BegBlk (void);
 export void OPC_BegStat (void);
@@ -79,7 +77,6 @@ static void OPC_PutBase (OPT_Struct typ);
 static void OPC_PutPtrOffsets (OPT_Struct typ, int32 adr, int32 *cnt);
 static void OPC_RegCmds (OPT_Object obj);
 export void OPC_SetInclude (BOOLEAN exclude);
-export int32 OPC_SizeAlignment (int32 size);
 static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause);
 static void OPC_Str1 (CHAR *s, LONGINT s__len, int32 x);
 static void OPC_StringLiteral (CHAR *s, LONGINT s__len, int32 l);
@@ -750,7 +747,7 @@ static void OPC_CProcDefs (OPT_Object obj, int16 vis)
 {
 	int16 i;
 	OPT_ConstExt ext = NIL;
-	int16 _for__9;
+	int16 _for__7;
 	if (obj != NIL) {
 		OPC_CProcDefs(obj->left, vis);
 		if ((((obj->mode == 9 && (int16)obj->vis >= vis)) && obj->adr == 1)) {
@@ -762,9 +759,9 @@ static void OPC_CProcDefs (OPT_Object obj, int16 vis)
 				OPC_DeclareParams(obj->link, 1);
 				OPM_Write(0x09);
 			}
-			_for__9 = (int16)(*obj->conval->ext)[0];
+			_for__7 = (int16)(*obj->conval->ext)[0];
 			i = i;
-			while (i <= _for__9) {
+			while (i <= _for__7) {
 				OPM_Write((*obj->conval->ext)[__X(i, 256)]);
 				i += 1;
 			}
@@ -843,64 +840,11 @@ void OPC_InitTDesc (OPT_Struct typ)
 	}
 }
 
-void OPC_Align (int32 *adr, int32 base)
-{
-	switch (base) {
-		case 2: 
-			*adr += __MASK(*adr, -2);
-			break;
-		case 4: 
-			*adr += __MASK(-*adr, -4);
-			break;
-		case 8: 
-			*adr += __MASK(-*adr, -8);
-			break;
-		case 16: 
-			*adr += __MASK(-*adr, -16);
-			break;
-		default: 
-			break;
-	}
-}
-
-int32 OPC_SizeAlignment (int32 size)
-{
-	int32 _o_result;
-	int32 alignment;
-	if (size < OPM_Alignment) {
-		alignment = 1;
-		while (alignment < size) {
-			alignment = __ASHL(alignment, 1);
-		}
-	} else {
-		alignment = OPM_Alignment;
-	}
-	_o_result = alignment;
-	return _o_result;
-}
-
-int32 OPC_BaseAlignment (OPT_Struct typ)
-{
-	int32 _o_result;
-	int32 alignment;
-	if (typ->form == 13) {
-		if (typ->comp == 4) {
-			alignment = __MASK(typ->align, -65536);
-		} else {
-			alignment = OPC_BaseAlignment(typ->BaseTyp);
-		}
-	} else {
-		alignment = OPC_SizeAlignment(typ->size);
-	}
-	_o_result = alignment;
-	return _o_result;
-}
-
 static void OPC_FillGap (int32 gap, int32 off, int32 align, int32 *n, int32 *curAlign)
 {
 	int32 adr;
 	adr = off;
-	OPC_Align(&adr, align);
+	OPT_Align(&adr, align);
 	if ((*curAlign < align && gap - (adr - off) >= align)) {
 		gap -= (adr - off) + align;
 		OPC_BegStat();
@@ -955,8 +899,8 @@ static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, int32 *off, int32 *n, i
 			}
 		} else {
 			adr = *off;
-			fldAlign = OPC_BaseAlignment(fld->typ);
-			OPC_Align(&adr, fldAlign);
+			fldAlign = OPT_BaseAlignment(fld->typ);
+			OPT_Align(&adr, fldAlign);
 			gap = fld->adr - adr;
 			if (fldAlign > *curAlign) {
 				*curAlign = fldAlign;
@@ -1205,7 +1149,7 @@ static void OPC_GenHeaderMsg (void)
 	OPM_WriteString((CHAR*)"/* ", 4);
 	OPM_WriteString((CHAR*)"voc", 4);
 	OPM_Write(' ');
-	OPM_WriteString(Configuration_versionLong, 41);
+	OPM_WriteString(Configuration_versionLong, 75);
 	OPM_Write(' ');
 	i = 0;
 	while (i <= 31) {
@@ -1966,84 +1910,84 @@ void OPC_Constant (OPT_Const con, int16 form)
 	}
 }
 
-static struct InitKeywords__48 {
+static struct InitKeywords__46 {
 	int8 *n;
-	struct InitKeywords__48 *lnk;
-} *InitKeywords__48_s;
+	struct InitKeywords__46 *lnk;
+} *InitKeywords__46_s;
 
-static void Enter__49 (CHAR *s, LONGINT s__len);
+static void Enter__47 (CHAR *s, LONGINT s__len);
 
-static void Enter__49 (CHAR *s, LONGINT s__len)
+static void Enter__47 (CHAR *s, LONGINT s__len)
 {
 	int16 h;
 	__DUP(s, s__len, CHAR);
 	h = OPC_PerfectHash((void*)s, s__len);
-	OPC_hashtab[__X(h, 105)] = *InitKeywords__48_s->n;
-	__COPY(s, OPC_keytab[__X(*InitKeywords__48_s->n, 50)], 9);
-	*InitKeywords__48_s->n += 1;
+	OPC_hashtab[__X(h, 105)] = *InitKeywords__46_s->n;
+	__COPY(s, OPC_keytab[__X(*InitKeywords__46_s->n, 50)], 9);
+	*InitKeywords__46_s->n += 1;
 	__DEL(s);
 }
 
 static void OPC_InitKeywords (void)
 {
 	int8 n, i;
-	struct InitKeywords__48 _s;
+	struct InitKeywords__46 _s;
 	_s.n = &n;
-	_s.lnk = InitKeywords__48_s;
-	InitKeywords__48_s = &_s;
+	_s.lnk = InitKeywords__46_s;
+	InitKeywords__46_s = &_s;
 	n = 0;
 	i = 0;
 	while (i <= 104) {
 		OPC_hashtab[__X(i, 105)] = -1;
 		i += 1;
 	}
-	Enter__49((CHAR*)"address", 8);
-	Enter__49((CHAR*)"asm", 4);
-	Enter__49((CHAR*)"auto", 5);
-	Enter__49((CHAR*)"break", 6);
-	Enter__49((CHAR*)"case", 5);
-	Enter__49((CHAR*)"char", 5);
-	Enter__49((CHAR*)"const", 6);
-	Enter__49((CHAR*)"continue", 9);
-	Enter__49((CHAR*)"default", 8);
-	Enter__49((CHAR*)"do", 3);
-	Enter__49((CHAR*)"double", 7);
-	Enter__49((CHAR*)"else", 5);
-	Enter__49((CHAR*)"enum", 5);
-	Enter__49((CHAR*)"extern", 7);
-	Enter__49((CHAR*)"export", 7);
-	Enter__49((CHAR*)"float", 6);
-	Enter__49((CHAR*)"for", 4);
-	Enter__49((CHAR*)"fortran", 8);
-	Enter__49((CHAR*)"goto", 5);
-	Enter__49((CHAR*)"if", 3);
-	Enter__49((CHAR*)"import", 7);
-	Enter__49((CHAR*)"int", 4);
-	Enter__49((CHAR*)"int16", 6);
-	Enter__49((CHAR*)"int32", 6);
-	Enter__49((CHAR*)"int64", 6);
-	Enter__49((CHAR*)"int8", 5);
-	Enter__49((CHAR*)"long", 5);
-	Enter__49((CHAR*)"register", 9);
-	Enter__49((CHAR*)"return", 7);
-	Enter__49((CHAR*)"short", 6);
-	Enter__49((CHAR*)"signed", 7);
-	Enter__49((CHAR*)"sizeof", 7);
-	Enter__49((CHAR*)"size_t", 7);
-	Enter__49((CHAR*)"static", 7);
-	Enter__49((CHAR*)"struct", 7);
-	Enter__49((CHAR*)"switch", 7);
-	Enter__49((CHAR*)"typedef", 8);
-	Enter__49((CHAR*)"uint16", 7);
-	Enter__49((CHAR*)"uint32", 7);
-	Enter__49((CHAR*)"uint64", 7);
-	Enter__49((CHAR*)"uint8", 6);
-	Enter__49((CHAR*)"union", 6);
-	Enter__49((CHAR*)"unsigned", 9);
-	Enter__49((CHAR*)"void", 5);
-	Enter__49((CHAR*)"volatile", 9);
-	Enter__49((CHAR*)"while", 6);
-	InitKeywords__48_s = _s.lnk;
+	Enter__47((CHAR*)"address", 8);
+	Enter__47((CHAR*)"asm", 4);
+	Enter__47((CHAR*)"auto", 5);
+	Enter__47((CHAR*)"break", 6);
+	Enter__47((CHAR*)"case", 5);
+	Enter__47((CHAR*)"char", 5);
+	Enter__47((CHAR*)"const", 6);
+	Enter__47((CHAR*)"continue", 9);
+	Enter__47((CHAR*)"default", 8);
+	Enter__47((CHAR*)"do", 3);
+	Enter__47((CHAR*)"double", 7);
+	Enter__47((CHAR*)"else", 5);
+	Enter__47((CHAR*)"enum", 5);
+	Enter__47((CHAR*)"extern", 7);
+	Enter__47((CHAR*)"export", 7);
+	Enter__47((CHAR*)"float", 6);
+	Enter__47((CHAR*)"for", 4);
+	Enter__47((CHAR*)"fortran", 8);
+	Enter__47((CHAR*)"goto", 5);
+	Enter__47((CHAR*)"if", 3);
+	Enter__47((CHAR*)"import", 7);
+	Enter__47((CHAR*)"int", 4);
+	Enter__47((CHAR*)"int16", 6);
+	Enter__47((CHAR*)"int32", 6);
+	Enter__47((CHAR*)"int64", 6);
+	Enter__47((CHAR*)"int8", 5);
+	Enter__47((CHAR*)"long", 5);
+	Enter__47((CHAR*)"register", 9);
+	Enter__47((CHAR*)"return", 7);
+	Enter__47((CHAR*)"short", 6);
+	Enter__47((CHAR*)"signed", 7);
+	Enter__47((CHAR*)"sizeof", 7);
+	Enter__47((CHAR*)"size_t", 7);
+	Enter__47((CHAR*)"static", 7);
+	Enter__47((CHAR*)"struct", 7);
+	Enter__47((CHAR*)"switch", 7);
+	Enter__47((CHAR*)"typedef", 8);
+	Enter__47((CHAR*)"uint16", 7);
+	Enter__47((CHAR*)"uint32", 7);
+	Enter__47((CHAR*)"uint64", 7);
+	Enter__47((CHAR*)"uint8", 6);
+	Enter__47((CHAR*)"union", 6);
+	Enter__47((CHAR*)"unsigned", 9);
+	Enter__47((CHAR*)"void", 5);
+	Enter__47((CHAR*)"volatile", 9);
+	Enter__47((CHAR*)"while", 6);
+	InitKeywords__46_s = _s.lnk;
 }
 
 

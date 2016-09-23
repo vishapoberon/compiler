@@ -109,6 +109,14 @@ configuration: FORCE
 	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
 
 
+bootstrapconfiguration: FORCE
+	@$(CC) -I src/system -o a.o src/tools/make/configure.c
+	@./a.o bootstrap
+	@rm a.o
+	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
+	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
+
+
 
 
 reportsizes: FORCE
@@ -257,7 +265,7 @@ planned-binary-change:
 # bootstrap: Rebuild the bootstrap directories
 # If the bootstrap directories are broken or only partially
 # built then run 'make revertbootstrap' first.
-bootstrap: configuration
+bootstrap: bootstrapconfiguration
 	@make -f src/tools/make/vishap.make -s clean
 	@make -f src/tools/make/vishap.make -s translate
 	@make -f src/tools/make/vishap.make -s assemble
@@ -270,7 +278,7 @@ bootstrap: configuration
 	cp src/system/*.[ch] bootstrap
 
 
-bootstrapunclean:
+bootstrapunclean: bootstrapconfiguration
 	rm -rf bootstrap/*
 	make -f src/tools/make/vishap.make -s translate MODEL=-O2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
 	make -f src/tools/make/vishap.make -s translate MODEL=-O2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym

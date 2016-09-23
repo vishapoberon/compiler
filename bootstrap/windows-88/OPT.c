@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -87,7 +87,6 @@ typedef
 	} OPT_StrDesc;
 
 
-export void (*OPT_typSize)(OPT_Struct);
 export OPT_Object OPT_topScope;
 export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
 export OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj;
@@ -100,6 +99,7 @@ static OPT_ImpCtxt OPT_impCtxt;
 static OPT_ExpCtxt OPT_expCtxt;
 static int32 OPT_nofhdfld;
 static BOOLEAN OPT_newsf, OPT_findpc, OPT_extsf, OPT_sfpresent, OPT_symExtended, OPT_symNew;
+static int32 OPT_recno;
 
 export address *OPT_ConstDesc__typ;
 export address *OPT_ObjDesc__typ;
@@ -108,6 +108,8 @@ export address *OPT_NodeDesc__typ;
 export address *OPT_ImpCtxt__typ;
 export address *OPT_ExpCtxt__typ;
 
+export void OPT_Align (int32 *adr, int32 base);
+export int32 OPT_BaseAlignment (OPT_Struct typ);
 export void OPT_Close (void);
 export void OPT_CloseScope (void);
 static void OPT_DebugStruct (OPT_Struct btyp);
@@ -136,6 +138,7 @@ static void OPT_InStruct (OPT_Struct *typ);
 static OPT_Object OPT_InTProc (int8 mno);
 static OPT_Struct OPT_InTyp (int32 tag);
 export void OPT_Init (OPS_Name name, SET opt);
+export void OPT_InitRecno (void);
 static void OPT_InitStruct (OPT_Struct *typ, int8 form);
 export void OPT_Insert (OPS_Name name, OPT_Object *obj);
 export void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
@@ -157,8 +160,15 @@ static void OPT_OutSign (OPT_Struct result, OPT_Object par);
 static void OPT_OutStr (OPT_Struct typ);
 static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj);
 export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
+export int32 OPT_SizeAlignment (int32 size);
+export void OPT_TypSize (OPT_Struct typ);
 static void OPT_err (int16 n);
 
+
+void OPT_InitRecno (void)
+{
+	OPT_recno = 0;
+}
 
 static void OPT_err (int16 n)
 {
@@ -238,6 +248,130 @@ OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir)
 		return _o_result;
 	}
 	__RETCHK;
+}
+
+void OPT_Align (int32 *adr, int32 base)
+{
+	switch (base) {
+		case 2: 
+			*adr += __MASK(*adr, -2);
+			break;
+		case 4: 
+			*adr += __MASK(-*adr, -4);
+			break;
+		case 8: 
+			*adr += __MASK(-*adr, -8);
+			break;
+		case 16: 
+			*adr += __MASK(-*adr, -16);
+			break;
+		default: 
+			break;
+	}
+}
+
+int32 OPT_SizeAlignment (int32 size)
+{
+	int32 _o_result;
+	int32 alignment;
+	if (size < OPM_Alignment) {
+		alignment = 1;
+		while (alignment < size) {
+			alignment = __ASHL(alignment, 1);
+		}
+	} else {
+		alignment = OPM_Alignment;
+	}
+	_o_result = alignment;
+	return _o_result;
+}
+
+int32 OPT_BaseAlignment (OPT_Struct typ)
+{
+	int32 _o_result;
+	int32 alignment;
+	if (typ->form == 13) {
+		if (typ->comp == 4) {
+			alignment = __MASK(typ->align, -65536);
+		} else {
+			alignment = OPT_BaseAlignment(typ->BaseTyp);
+		}
+	} else {
+		alignment = OPT_SizeAlignment(typ->size);
+	}
+	_o_result = alignment;
+	return _o_result;
+}
+
+void OPT_TypSize (OPT_Struct typ)
+{
+	int16 f, c;
+	int32 offset, size, base, fbase, off0;
+	OPT_Object fld = NIL;
+	OPT_Struct btyp = NIL;
+	if (typ == OPT_undftyp) {
+		OPM_err(58);
+	} else if (typ->size == -1) {
+		f = typ->form;
+		c = typ->comp;
+		if (c == 4) {
+			btyp = typ->BaseTyp;
+			if (btyp == NIL) {
+				offset = 0;
+				base = 1;
+			} else {
+				OPT_TypSize(btyp);
+				offset = btyp->size - __ASHR(btyp->sysflag, 8);
+				base = btyp->align;
+			}
+			fld = typ->link;
+			while ((fld != NIL && fld->mode == 4)) {
+				btyp = fld->typ;
+				OPT_TypSize(btyp);
+				size = btyp->size;
+				fbase = OPT_BaseAlignment(btyp);
+				OPT_Align(&offset, fbase);
+				fld->adr = offset;
+				offset += size;
+				if (fbase > base) {
+					base = fbase;
+				}
+				fld = fld->link;
+			}
+			off0 = offset;
+			if (offset == 0) {
+				offset = 1;
+			}
+			OPT_Align(&offset, base);
+			if ((typ->strobj == NIL && __MASK(typ->align, -65536) == 0)) {
+				OPT_recno += 1;
+				base += __ASHL(OPT_recno, 16);
+			}
+			typ->size = offset;
+			typ->align = base;
+			typ->sysflag = __MASK(typ->sysflag, -256) + (int16)__ASHL(offset - off0, 8);
+		} else if (c == 2) {
+			OPT_TypSize(typ->BaseTyp);
+			typ->size = typ->n * typ->BaseTyp->size;
+		} else if (f == 11) {
+			typ->size = OPM_AddressSize;
+			if (typ->BaseTyp == OPT_undftyp) {
+				OPM_Mark(128, typ->n);
+			} else {
+				OPT_TypSize(typ->BaseTyp);
+			}
+		} else if (f == 12) {
+			typ->size = OPM_AddressSize;
+		} else if (c == 3) {
+			btyp = typ->BaseTyp;
+			OPT_TypSize(btyp);
+			if (btyp->comp == 3) {
+				typ->size = btyp->size + 4;
+			} else {
+				typ->size = 8;
+			}
+		}
+	}
 }
 
 OPT_Const OPT_NewConst (void)
@@ -552,21 +686,21 @@ void OPT_IdFPrint (OPT_Struct typ)
 	}
 }
 
-static struct FPrintStr__13 {
+static struct FPrintStr__15 {
 	int32 *pbfp, *pvfp;
-	struct FPrintStr__13 *lnk;
-} *FPrintStr__13_s;
+	struct FPrintStr__15 *lnk;
+} *FPrintStr__15_s;
 
-static void FPrintFlds__14 (OPT_Object fld, int32 adr, BOOLEAN visible);
-static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int32 adr);
-static void FPrintTProcs__18 (OPT_Object obj);
+static void FPrintFlds__16 (OPT_Object fld, int32 adr, BOOLEAN visible);
+static void FPrintHdFld__18 (OPT_Struct typ, OPT_Object fld, int32 adr);
+static void FPrintTProcs__20 (OPT_Object obj);
 
-static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int32 adr)
+static void FPrintHdFld__18 (OPT_Struct typ, OPT_Object fld, int32 adr)
 {
 	int32 i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
-		FPrintFlds__14(typ->link, adr, 0);
+		FPrintFlds__16(typ->link, adr, 0);
 	} else if (typ->comp == 2) {
 		btyp = typ->BaseTyp;
 		n = typ->n;
@@ -576,53 +710,53 @@ static void FPrintHdFld__16 (OPT_Struct typ, OPT_Object fld, int32 adr)
 		}
 		if (btyp->form == 11 || btyp->comp == 4) {
 			j = OPT_nofhdfld;
-			FPrintHdFld__16(btyp, fld, adr);
+			FPrintHdFld__18(btyp, fld, adr);
 			if (j != OPT_nofhdfld) {
 				i = 1;
 				while ((i < n && OPT_nofhdfld <= 2048)) {
 					adr += btyp->size;
-					FPrintHdFld__16(btyp, fld, adr);
+					FPrintHdFld__18(btyp, fld, adr);
 					i += 1;
 				}
 			}
 		}
 	} else if (typ->form == 11 || __STRCMP(fld->name, "@ptr") == 0) {
-		OPM_FPrint(&*FPrintStr__13_s->pvfp, 11);
-		OPM_FPrint(&*FPrintStr__13_s->pvfp, adr);
+		OPM_FPrint(&*FPrintStr__15_s->pvfp, 11);
+		OPM_FPrint(&*FPrintStr__15_s->pvfp, adr);
 		OPT_nofhdfld += 1;
 	}
 }
 
-static void FPrintFlds__14 (OPT_Object fld, int32 adr, BOOLEAN visible)
+static void FPrintFlds__16 (OPT_Object fld, int32 adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
-			OPM_FPrint(&*FPrintStr__13_s->pbfp, fld->vis);
-			OPT_FPrintName(&*FPrintStr__13_s->pbfp, (void*)fld->name, 256);
-			OPM_FPrint(&*FPrintStr__13_s->pbfp, fld->adr);
+			OPM_FPrint(&*FPrintStr__15_s->pbfp, fld->vis);
+			OPT_FPrintName(&*FPrintStr__15_s->pbfp, (void*)fld->name, 256);
+			OPM_FPrint(&*FPrintStr__15_s->pbfp, fld->adr);
 			OPT_FPrintStr(fld->typ);
-			OPM_FPrint(&*FPrintStr__13_s->pbfp, fld->typ->pbfp);
-			OPM_FPrint(&*FPrintStr__13_s->pvfp, fld->typ->pvfp);
+			OPM_FPrint(&*FPrintStr__15_s->pbfp, fld->typ->pbfp);
+			OPM_FPrint(&*FPrintStr__15_s->pvfp, fld->typ->pvfp);
 		} else {
-			FPrintHdFld__16(fld->typ, fld, fld->adr + adr);
+			FPrintHdFld__18(fld->typ, fld, fld->adr + adr);
 		}
 		fld = fld->link;
 	}
 }
 
-static void FPrintTProcs__18 (OPT_Object obj)
+static void FPrintTProcs__20 (OPT_Object obj)
 {
 	if (obj != NIL) {
-		FPrintTProcs__18(obj->left);
+		FPrintTProcs__20(obj->left);
 		if (obj->mode == 13) {
 			if (obj->vis != 0) {
-				OPM_FPrint(&*FPrintStr__13_s->pbfp, 13);
-				OPM_FPrint(&*FPrintStr__13_s->pbfp, __ASHR(obj->adr, 16));
-				OPT_FPrintSign(&*FPrintStr__13_s->pbfp, obj->typ, obj->link);
-				OPT_FPrintName(&*FPrintStr__13_s->pbfp, (void*)obj->name, 256);
+				OPM_FPrint(&*FPrintStr__15_s->pbfp, 13);
+				OPM_FPrint(&*FPrintStr__15_s->pbfp, __ASHR(obj->adr, 16));
+				OPT_FPrintSign(&*FPrintStr__15_s->pbfp, obj->typ, obj->link);
+				OPT_FPrintName(&*FPrintStr__15_s->pbfp, (void*)obj->name, 256);
 			}
 		}
-		FPrintTProcs__18(obj->right);
+		FPrintTProcs__20(obj->right);
 	}
 }
 
@@ -632,11 +766,11 @@ void OPT_FPrintStr (OPT_Struct typ)
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL, bstrobj = NIL;
 	int32 pbfp, pvfp;
-	struct FPrintStr__13 _s;
+	struct FPrintStr__15 _s;
 	_s.pbfp = &pbfp;
 	_s.pvfp = &pvfp;
-	_s.lnk = FPrintStr__13_s;
-	FPrintStr__13_s = &_s;
+	_s.lnk = FPrintStr__15_s;
+	FPrintStr__15_s = &_s;
 	if (!typ->fpdone) {
 		OPT_IdFPrint(typ);
 		pbfp = typ->idfp;
@@ -673,11 +807,11 @@ void OPT_FPrintStr (OPT_Struct typ)
 			OPM_FPrint(&pvfp, typ->align);
 			OPM_FPrint(&pvfp, typ->n);
 			OPT_nofhdfld = 0;
-			FPrintFlds__14(typ->link, 0, 1);
+			FPrintFlds__16(typ->link, 0, 1);
 			if (OPT_nofhdfld > 2048) {
 				OPM_Mark(225, typ->txtpos);
 			}
-			FPrintTProcs__18(typ->link);
+			FPrintTProcs__20(typ->link);
 			OPM_FPrint(&pvfp, pbfp);
 			strobj = typ->strobj;
 			if (strobj == NIL || strobj->name[0] == 0x00) {
@@ -687,7 +821,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 		typ->pbfp = pbfp;
 		typ->pvfp = pvfp;
 	}
-	FPrintStr__13_s = _s.lnk;
+	FPrintStr__15_s = _s.lnk;
 }
 
 void OPT_FPrintObj (OPT_Object obj)
@@ -1119,7 +1253,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				(*typ)->comp = 2;
 				OPT_InStruct(&(*typ)->BaseTyp);
 				(*typ)->n = OPM_SymRInt();
-				(*OPT_typSize)(*typ);
+				OPT_TypSize(*typ);
 				break;
 			case 38: 
 				(*typ)->form = 13;
@@ -1130,7 +1264,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 				} else {
 					(*typ)->n = 0;
 				}
-				(*OPT_typSize)(*typ);
+				OPT_TypSize(*typ);
 				break;
 			case 39: 
 				(*typ)->form = 13;
@@ -1899,6 +2033,7 @@ export void *OPT__init(void)
 	__REGMOD("OPT", EnumPtrs);
 	__REGCMD("Close", OPT_Close);
 	__REGCMD("CloseScope", OPT_CloseScope);
+	__REGCMD("InitRecno", OPT_InitRecno);
 	__INITYP(OPT_ConstDesc, OPT_ConstDesc, 0);
 	__INITYP(OPT_ObjDesc, OPT_ObjDesc, 0);
 	__INITYP(OPT_StrDesc, OPT_StrDesc, 0);

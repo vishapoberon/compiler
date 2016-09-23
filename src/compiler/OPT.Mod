@@ -149,7 +149,6 @@ CONST
   FirstRef  = Comp + 1;
 
 VAR
-  typSize*:  PROCEDURE(typ: Struct);
   topScope*: Object;
 
   undftyp*,
@@ -205,10 +204,11 @@ VAR
   newsf, findpc:       BOOLEAN;
   extsf, sfpresent:    BOOLEAN;
   symExtended, symNew: BOOLEAN;
+  recno:               LONGINT;  (* number of anonymous record types *)
 
 
 
-
+PROCEDURE InitRecno*; BEGIN recno := 0 END InitRecno;
 PROCEDURE err(n: INTEGER); BEGIN OPM.err(n) END err;
 
 
@@ -249,6 +249,96 @@ BEGIN
   END
 END ShorterOrLongerType;
 
+
+PROCEDURE Align*(VAR adr: LONGINT; base: LONGINT);
+BEGIN
+  CASE base OF
+  |  2: INC(adr,   adr  MOD 2)
+  |  4: INC(adr, (-adr) MOD 4)
+  |  8: INC(adr, (-adr) MOD 8)
+  | 16: INC(adr, (-adr) MOD 16)
+  ELSE (*1*) (*OPM.LogWStr("unhandled case at OPC.Align, base = "); OPM.LogWNum(base, 0); OPM.LogWLn;*)
+  END
+END Align;
+
+PROCEDURE SizeAlignment*(size: LONGINT): LONGINT;
+  VAR alignment: LONGINT;
+BEGIN
+  IF size < OPM.Alignment THEN
+    (* Round up to next power of 2 *)
+    alignment := 1; WHILE alignment < size DO alignment := alignment * 2 END;
+  ELSE
+    alignment := OPM.Alignment
+  END;
+  RETURN alignment
+END SizeAlignment;
+
+PROCEDURE BaseAlignment*(typ: Struct): LONGINT;
+  VAR alignment: LONGINT;
+BEGIN
+  IF typ.form = Comp THEN
+    IF typ.comp = Record THEN
+      alignment := typ.align MOD 10000H
+    ELSE
+      alignment := BaseAlignment(typ.BaseTyp)
+    END
+  ELSE
+    alignment := SizeAlignment(typ.size)
+  END;
+  RETURN alignment
+END BaseAlignment;
+
+PROCEDURE TypSize*(typ: Struct);
+  VAR
+    f, c: INTEGER;
+    offset, size, base, fbase, off0: LONGINT;
+    fld: Object; btyp: Struct;
+BEGIN
+  IF typ = undftyp THEN OPM.err(58)
+  ELSIF typ.size = -1 THEN
+    f := typ.form;
+    c := typ.comp;
+    IF c = Record THEN btyp := typ.BaseTyp;
+      IF btyp = NIL THEN offset := 0; base := 1;
+      ELSE TypSize(btyp); offset := btyp.size - btyp.sysflag DIV 100H; base := btyp.align;
+      END;
+      fld := typ.link;
+      WHILE (fld # NIL) & (fld.mode = Fld) DO
+        btyp := fld.typ; TypSize(btyp);
+        size := btyp.size;
+        fbase := BaseAlignment(btyp);
+        Align(offset, fbase);
+        fld.adr := offset; INC(offset, size);
+        IF fbase > base THEN base := fbase END;
+        fld := fld.link
+      END;
+      (* base is now the largest alignment of any field *)
+      off0 := offset;
+      IF offset = 0 THEN offset := 1 END;  (* 1 byte filler to avoid empty struct *)
+      Align(offset, base);
+      IF (typ^.strobj = NIL) & (typ^.align MOD 10000H = 0) THEN INC(recno); INC(base, recno * 10000H) END;
+      typ.size := offset;
+      typ.align := base;
+      (* encode the trailing gap into the symbol table to allow dense packing of extended records *)
+      typ^.sysflag := typ^.sysflag MOD 100H + SHORT((offset - off0)*100H)
+    ELSIF c = Array THEN
+      TypSize(typ.BaseTyp);
+      typ.size := typ.n * typ.BaseTyp.size;
+    ELSIF f = Pointer THEN
+      typ.size := OPM.AddressSize;
+      IF typ.BaseTyp = undftyp THEN OPM.Mark(128, typ.n)
+      ELSE TypSize(typ.BaseTyp)
+      END
+    ELSIF f = ProcTyp THEN
+      typ.size := OPM.AddressSize;
+    ELSIF c = DynArr THEN
+      btyp := typ.BaseTyp; TypSize(btyp);
+      IF btyp.comp = DynArr THEN typ.size := btyp.size + 4  (* describes dim not size *)
+      ELSE typ.size := 8
+      END
+    END
+  END
+END TypSize;
 
 
 PROCEDURE NewConst*(): Const;
@@ -766,14 +856,14 @@ BEGIN
              typ^.n := 0; InStruct(typ^.BaseTyp)
     | Sarr:  typ^.form := Comp; typ^.comp := Array;
              InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
-             typSize(typ) (* no bounds address !! *)
+             TypSize(typ) (* no bounds address !! *)
     | Sdarr: typ^.form := Comp; typ^.comp := DynArr; InStruct(typ^.BaseTyp);
              IF typ^.BaseTyp^.comp = DynArr THEN
                typ^.n := typ^.BaseTyp^.n + 1
              ELSE
                typ^.n := 0
              END;
-             typSize(typ)
+             TypSize(typ)
     | Srec:  typ^.form := Comp; typ^.comp := Record;
              InStruct(typ^.BaseTyp);
              IF typ^.BaseTyp = notyp THEN typ^.BaseTyp := NIL END;

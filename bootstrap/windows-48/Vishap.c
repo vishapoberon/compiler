@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspamSf */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -35,6 +35,7 @@ void Vishap_Module (BOOLEAN *done)
 	OPP_Module(&p, OPM_opt);
 	if (OPM_noerr) {
 		OPV_Init();
+		OPT_InitRecno();
 		OPV_AdrAndSize(OPT_topScope);
 		OPT_Export(&ext, &new);
 		if (OPM_noerr) {
@@ -165,8 +166,6 @@ export int main(int argc, char **argv)
 	Platform_SetInterruptHandler(Vishap_Trap);
 	Platform_SetQuitHandler(Vishap_Trap);
 	Platform_SetBadInstructionHandler(Vishap_Trap);
-	OPB_typSize = OPV_TypSize;
-	OPT_typSize = OPV_TypSize;
 	Vishap_Translate();
 	__FINI;
 }

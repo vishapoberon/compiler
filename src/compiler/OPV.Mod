@@ -47,62 +47,14 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   VAR
     stamp: INTEGER;  (* unique number for nested objects *)
-    recno: LONGINT;  (* number of anonymous record types *)
 
     exit: ExitInfo;  (* to check if EXIT is simply a break *)
     nofExitLabels: INTEGER;
 
 
-  PROCEDURE TypSize*(typ: OPT.Struct);
-    VAR f, c: INTEGER; offset, size, base, fbase, off0: LONGINT;
-      fld: OPT.Object; btyp: OPT.Struct;
-  BEGIN
-    IF typ = OPT.undftyp THEN OPM.err(58)
-    ELSIF typ^.size = -1 THEN
-      f := typ^.form; c := typ^.comp;
-      IF c = OPT.Record THEN btyp := typ^.BaseTyp;
-        IF btyp = NIL THEN offset := 0; base := 1;
-        ELSE TypSize(btyp); offset := btyp^.size - btyp^.sysflag DIV 100H; base := btyp^.align;
-        END;
-        fld := typ^.link;
-        WHILE (fld # NIL) & (fld^.mode = OPT.Fld) DO
-          btyp := fld^.typ; TypSize(btyp);
-          size := btyp^.size; fbase := OPC.BaseAlignment(btyp);
-          OPC.Align(offset, fbase);
-          fld^.adr := offset; INC(offset, size);
-          IF fbase > base THEN base := fbase END ;
-          fld := fld^.link
-        END;
-        (* base is now the largest alignment of any field *)
-        off0 := offset;
-        IF offset = 0 THEN offset := 1 END ;  (* 1 byte filler to avoid empty struct *)
-        OPC.Align(offset, base);
-        IF (typ^.strobj = NIL) & (typ^.align MOD 10000H = 0) THEN INC(recno); INC(base, recno * 10000H) END ;
-        typ^.size := offset; typ^.align := base;
-        (* encode the trailing gap into the symbol table to allow dense packing of extended records *)
-        typ^.sysflag := typ^.sysflag MOD 100H + SHORT((offset - off0)*100H)
-      ELSIF c = OPT.Array THEN
-        TypSize(typ^.BaseTyp);
-        typ^.size := typ^.n * typ^.BaseTyp^.size;
-      ELSIF f = OPT.Pointer THEN
-        typ^.size := OPM.AddressSize;
-        IF typ^.BaseTyp = OPT.undftyp THEN OPM.Mark(128, typ^.n)
-        ELSE TypSize(typ^.BaseTyp)
-        END
-      ELSIF f = OPT.ProcTyp THEN
-        typ^.size := OPM.AddressSize;
-      ELSIF c = OPT.DynArr THEN
-        btyp := typ^.BaseTyp; TypSize(btyp);
-        IF btyp^.comp = OPT.DynArr THEN typ^.size := btyp^.size + 4  (* describes dim not size *)
-        ELSE typ^.size := 8
-        END
-      END
-    END
-  END TypSize;
-
   PROCEDURE Init*;
   BEGIN
-    stamp := 0; recno := 0; nofExitLabels := 0;
+    stamp := 0; nofExitLabels := 0;
   END Init;
 
   PROCEDURE ^Traverse (obj, outerScope: OPT.Object; exported: BOOLEAN);
@@ -150,11 +102,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       obj^.linkadr := UndefinedType;
       mode := obj^.mode;
       IF (mode = OPT.Typ) & ((obj^.vis # OPT.internal) = exported) THEN
-        typ := obj^.typ; TypSize(obj^.typ);
+        typ := obj^.typ; OPT.TypSize(obj^.typ);
         IF typ^.form = OPT.Pointer THEN typ := typ^.BaseTyp END ;
         IF typ^.comp = OPT.Record THEN TraverseRecord(typ) END
       ELSIF mode = OPT.TProc THEN GetTProcNum(obj)
-      ELSIF mode = OPT.Var THEN TypSize(obj^.typ)
+      ELSIF mode = OPT.Var THEN OPT.TypSize(obj^.typ)
       END ;
       IF ~exported THEN (* do this only once *)
         IF (mode IN {OPT.LProc, OPT.Typ}) & (obj^.mnolev > 0) THEN Stamp(obj^.name) END ;
@@ -769,7 +721,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSE OPM.WriteString("NIL")
     END ;
     OPM.WriteString(", "); OPM.WriteInt(base.size);
-    OPM.WriteString(", "); OPM.WriteInt(OPC.BaseAlignment(base));  (* element alignment *)
+    OPM.WriteString(", "); OPM.WriteInt(OPT.BaseAlignment(base));  (* element alignment *)
     OPM.WriteString(", "); OPM.WriteInt(nofdim);  (* total number of dimensions = number of additional parameters *)
     OPM.WriteString(", "); OPM.WriteInt(nofdyn);  (* number of dynamic dimensions *)
     WHILE typ # base DO

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -223,6 +223,7 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 					OPM_AddressSize = (int16)s[__X(i + 1, s__len)] - 48;
 					OPM_Alignment = (int16)s[__X(i + 2, s__len)] - 48;
 					i += 2;
+					Files_SetSearchPath((CHAR*)"", 1);
 				}
 				break;
 			case 'B': 
@@ -270,7 +271,7 @@ BOOLEAN OPM_OpenPar (void)
 	if (Platform_ArgCount == 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);
-		OPM_LogWStr(Configuration_versionLong, 41);
+		OPM_LogWStr(Configuration_versionLong, 75);
 		OPM_LogW('.');
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG.", 39);
@@ -1118,7 +1119,7 @@ export void *OPM__init(void)
 	Strings_Append((CHAR*)";.;", 4, (void*)OPM_OBERON, 1024);
 	Strings_Append(OPM_MODULES, 1024, (void*)OPM_OBERON, 1024);
 	Strings_Append((CHAR*)";", 2, (void*)OPM_OBERON, 1024);
-	Strings_Append((CHAR*)"/opt/voc", 9, (void*)OPM_OBERON, 1024);
+	Strings_Append((CHAR*)"", 1, (void*)OPM_OBERON, 1024);
 	Strings_Append((CHAR*)"/sym;", 6, (void*)OPM_OBERON, 1024);
 	Files_SetSearchPath(OPM_OBERON, 1024);
 	OPM_AddressSize = 4;

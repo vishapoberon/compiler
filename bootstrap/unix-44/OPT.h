@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -66,7 +66,6 @@ typedef
 	} OPT_StrDesc;
 
 
-import void (*OPT_typSize)(OPT_Struct);
 import OPT_Object OPT_topScope;
 import OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
 import OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj;
@@ -80,6 +79,8 @@ import address *OPT_ObjDesc__typ;
 import address *OPT_StrDesc__typ;
 import address *OPT_NodeDesc__typ;
 
+import void OPT_Align (int32 *adr, int32 base);
+import int32 OPT_BaseAlignment (OPT_Struct typ);
 import void OPT_Close (void);
 import void OPT_CloseScope (void);
 import void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
@@ -92,6 +93,7 @@ import void OPT_FindImport (OPT_Object mod, OPT_Object *res);
 import void OPT_IdFPrint (OPT_Struct typ);
 import void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
 import void OPT_Init (OPS_Name name, SET opt);
+import void OPT_InitRecno (void);
 import void OPT_Insert (OPS_Name name, OPT_Object *obj);
 import void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
 import int16 OPT_IntSize (int64 n);
@@ -103,6 +105,8 @@ import OPT_Object OPT_NewObj (void);
 import OPT_Struct OPT_NewStr (int8 form, int8 comp);
 import void OPT_OpenScope (int8 level, OPT_Object owner);
 import OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
+import int32 OPT_SizeAlignment (int32 size);
+import void OPT_TypSize (OPT_Struct typ);
 import void *OPT__init(void);
 
 

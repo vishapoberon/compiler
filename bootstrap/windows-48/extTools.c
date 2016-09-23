@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23] for gcc LP64 on cygwin xtspaSfF */
+/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -89,7 +89,7 @@ void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN stati
 	Strings_Append((CHAR*)" -o ", 5, (void*)cmd, 1023);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 1023);
 	Strings_Append((CHAR*)" -L\"", 5, (void*)cmd, 1023);
-	Strings_Append((CHAR*)"/opt/voc", 9, (void*)cmd, 1023);
+	Strings_Append((CHAR*)"", 1, (void*)cmd, 1023);
 	Strings_Append((CHAR*)"/lib\"", 6, (void*)cmd, 1023);
 	Strings_Append((CHAR*)" -l voc", 8, (void*)cmd, 1023);
 	extTools_execute((CHAR*)"Assemble and link: ", 20, cmd, 1023);
@@ -108,7 +108,7 @@ export void *extTools__init(void)
 	__REGMOD("extTools", 0);
 /* BEGIN */
 	Strings_Append((CHAR*)" -I \"", 6, (void*)extTools_compilationOptions, 1023);
-	Strings_Append((CHAR*)"/opt/voc", 9, (void*)extTools_compilationOptions, 1023);
+	Strings_Append((CHAR*)"", 1, (void*)extTools_compilationOptions, 1023);
 	Strings_Append((CHAR*)"/include\" ", 11, (void*)extTools_compilationOptions, 1023);
 	Platform_GetEnv((CHAR*)"CFLAGS", 7, (void*)extTools_CFLAGS, 1023);
 	Strings_Append(extTools_CFLAGS, 1023, (void*)extTools_compilationOptions, 1023);
