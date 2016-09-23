@@ -67,7 +67,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     BodyFile*       = 1;
     HeaderInclude*  = 2;
 
-    (* C default expression integral size details. Const for now, will be var with avr_gcc/sdcc support *)
+    (* C default expression integral size details. Const for now, should be var for avr_gcc/sdcc support *)
     CIntSize*       = 4;
     CIntMax*        = 7FFFFFFFH;
     CIntMin*        = -CIntMax - 1;
@@ -88,12 +88,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     SourceFileName : ARRAY 256 OF CHAR;
 
     (* Parameter selectable sizes *)
-    Alignment*,
-    AddressSize*, SetSize*,
+    AddressSize*, Alignment*,
+    SetSize*,
     ShortintSize*, IntegerSize*, LongintSize*: INTEGER;
 
     MaxSet*: INTEGER;
-
     MaxIndex*: SYSTEM.INT64;
 
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;
@@ -110,7 +109,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber: LONGINT;  (* Limit = start of next line *)
 
-    lasterrpos:   SYSTEM.INT64;
+    lasterrpos:   LONGINT;
     inR:          Texts.Reader;
     Log:          Texts.Text;
     W:            Texts.Writer;
@@ -479,7 +478,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END ShowLine;
 
 
-  PROCEDURE Mark*(n: INTEGER; pos: SYSTEM.INT64);
+  PROCEDURE Mark*(n: INTEGER; pos: LONGINT);
   BEGIN
     IF pos = -1 THEN pos := 0 END;
     IF n >= 0 THEN
@@ -853,6 +852,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END CloseFiles;
 
 
+
+
+PROCEDURE -GetAlignment(VAR a: INTEGER) "struct {char c; long long l;} s; *a = (char*)&s.l - (char*)&s";
+
 BEGIN
   Texts.OpenWriter(W);
 
@@ -867,9 +870,9 @@ BEGIN
 
   Files.SetSearchPath(OBERON);
 
-  (* type sizes with configuration based defaults *)
-  AddressSize  := Configuration.addressSize;
-  Alignment    := Configuration.alignment;
+  (* Default address size and alignment are those of this compiler *)
+  AddressSize  := SIZE(SYSTEM.ADDRESS);
+  GetAlignment(Alignment);
 
   (* Default type size model is that of the original Oberon-2 implementation (-O2) *)
   ShortintSize := 1;

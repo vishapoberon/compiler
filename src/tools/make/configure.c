@@ -401,15 +401,11 @@ void writeConfigurationMod() {
   fprintf(fd, "MODULE Configuration;\n");
   fprintf(fd, "CONST\n");
   fprintf(fd, "  name*        = '%s';\n", oname);
-  fprintf(fd, "  intsize*     = %d;\n",   intsize);
-  fprintf(fd, "  addressSize* = %d;\n",   addressSize);
-  fprintf(fd, "  alignment*   = %d;\n",   alignment);
   fprintf(fd, "  objext*      = '%s';\n", objext);
   fprintf(fd, "  objflag*     = '%s';\n", objflag);
   fprintf(fd, "  linkflags*   = '%s';\n", linkflags);
   fprintf(fd, "  libspec*     = '%s';\n", libspec);
   fprintf(fd, "  compile*     = '%s';\n", cc);
-  fprintf(fd, "  dataModel*   = '%s';\n", dataModel);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
   fprintf(fd, "VAR\n");

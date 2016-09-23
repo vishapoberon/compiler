@@ -96,7 +96,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
             extTools.Assemble(OPM.modName)
           ELSE
             IF ~(OPM.mainprog IN OPM.opt) THEN
-              (* Assemble non main rogram and add object name to link list *)
+              (* Assemble non main program and add object name to link list *)
               extTools.Assemble(OPM.modName);
               Strings.Append(" ",                  modulesobj);
               Strings.Append(OPM.modName,          modulesobj);

@@ -19,7 +19,7 @@ typedef
 
 
 static CHAR OPM_SourceFileName[256];
-export int16 OPM_Alignment, OPM_AddressSize, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
+export int16 OPM_AddressSize, OPM_Alignment, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
 export int64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
@@ -28,8 +28,7 @@ export int16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 export CHAR OPM_modName[32];
 export CHAR OPM_objname[64];
 export SET OPM_opt, OPM_glbopt;
-static int32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber;
-static int64 OPM_lasterrpos;
+static int32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
 static Texts_Reader OPM_inR;
 static Texts_Text OPM_Log;
 static Texts_Writer OPM_W;
@@ -63,7 +62,7 @@ export void OPM_LogWNum (int64 i, int64 len);
 export void OPM_LogWStr (CHAR *s, LONGINT s__len);
 export int32 OPM_Longint (int64 n);
 static void OPM_MakeFileName (CHAR *name, LONGINT name__len, CHAR *FName, LONGINT FName__len, CHAR *ext, LONGINT ext__len);
-export void OPM_Mark (int16 n, int64 pos);
+export void OPM_Mark (int16 n, int32 pos);
 export void OPM_NewSym (CHAR *modName, LONGINT modName__len);
 export void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 export void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
@@ -97,6 +96,7 @@ export void OPM_err (int16 n);
 static int32 OPM_minusop (int32 i);
 static int32 OPM_power0 (int32 i, int32 j);
 
+#define OPM_GetAlignment(a)	struct {char c; long long l;} s; *a = (char*)&s.l - (char*)&s
 
 void OPM_LogW (CHAR ch)
 {
@@ -570,7 +570,7 @@ static void OPM_ShowLine (int64 pos)
 	Files_Close(f);
 }
 
-void OPM_Mark (int16 n, int64 pos)
+void OPM_Mark (int16 n, int32 pos)
 {
 	if (pos == -1) {
 		pos = 0;
@@ -1121,8 +1121,8 @@ export void *OPM__init(void)
 	Strings_Append((CHAR*)"/opt/voc", 9, (void*)OPM_OBERON, 1024);
 	Strings_Append((CHAR*)"/sym;", 6, (void*)OPM_OBERON, 1024);
 	Files_SetSearchPath(OPM_OBERON, 1024);
-	OPM_AddressSize = 8;
-	OPM_Alignment = 8;
+	OPM_AddressSize = 4;
+	OPM_GetAlignment(&OPM_Alignment);
 	OPM_ShortintSize = 1;
 	OPM_IntegerSize = 2;
 	OPM_LongintSize = 4;

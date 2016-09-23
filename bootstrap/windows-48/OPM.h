@@ -6,7 +6,7 @@
 #include "SYSTEM.h"
 
 
-import int16 OPM_Alignment, OPM_AddressSize, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
+import int16 OPM_AddressSize, OPM_Alignment, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
 import int64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;
@@ -33,7 +33,7 @@ import void OPM_LogWLn (void);
 import void OPM_LogWNum (int64 i, int64 len);
 import void OPM_LogWStr (CHAR *s, LONGINT s__len);
 import int32 OPM_Longint (int64 n);
-import void OPM_Mark (int16 n, int64 pos);
+import void OPM_Mark (int16 n, int32 pos);
 import void OPM_NewSym (CHAR *modName, LONGINT modName__len);
 import void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 import void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
