@@ -51,10 +51,14 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
 
 
   PROCEDURE PropagateElementaryTypeSizes;
+    VAR adrinttyp: OPT.Struct;
   BEGIN
     OPT.sysptrtyp.size := OPM.AddressSize;
     OPT.adrtyp.size    := OPM.AddressSize;
     OPT.settyp.size    := OPM.SetSize;
+
+    adrinttyp := OPT.IntType(OPM.AddressSize);
+    OPT.adrtyp.strobj := adrinttyp.strobj;
 
     OPT.sinttyp := OPT.IntType(OPM.ShortintSize);
     OPT.inttyp  := OPT.IntType(OPM.IntegerSize);

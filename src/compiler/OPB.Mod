@@ -1380,11 +1380,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
           WHILE (q # fp^.typ) & (q # NIL) & (q # OPT.undftyp) DO q := q^.BaseTyp END ;
           IF q = NIL THEN err(111) END
         ELSIF (fp^.typ = OPT.sysptrtyp) & (ap^.typ^.form = OPT.Pointer) THEN (* ok *)
-        ELSIF (ap^.typ # fp^.typ) THEN
-          IF    (fp^.typ^.form = OPT.Byte) & ((ap.typ.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (ap.typ.size = 1)) THEN (* OK *)
-          ELSIF (ap.typ = OPT.adrtyp) & (fp.typ = OPT.IntType(ap.typ.size)) THEN (* OK (ADDRESS is changed to INTnn in symbol file) *)
-          ELSE err(123)
-          END
+        ELSIF (ap^.typ # fp^.typ)
+            & ~(  (fp^.typ^.form = OPT.Byte)
+                & (ap.typ.form IN {OPT.Byte..OPT.Char, OPT.Int})
+                & (ap.typ.size = 1)) THEN err(123)
         ELSIF (fp^.typ^.form = OPT.Pointer) & (ap^.class = OPT.Nguard) THEN err(123)
         END
       ELSIF fp^.typ^.comp = OPT.DynArr THEN

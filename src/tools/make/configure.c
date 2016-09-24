@@ -126,26 +126,27 @@ void determineOS() {
   #endif
 }
 
+#define optimize " -O1"
 
 void determineCCompiler() {
   snprintf(libspec, sizeof(libspec), " -l %s", oname);
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
-      cc = "i686-w64-mingw32-gcc -g -O1";
+      cc = "i686-w64-mingw32-gcc -g" optimize;
     } else {
-      cc = "x86_64-w64-mingw32-gcc -g -O1";
+      cc = "x86_64-w64-mingw32-gcc -g" optimize;
     }
   #elif defined(__clang__)
     compiler = "clang";
-    cc       = "clang -fPIC -g -O1";
+    cc       = "clang -fPIC -g" optimize;
   #elif defined(__GNUC__)
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g -O1";
+      cc = "gcc -g" optimize;
     } else {
-      cc = "gcc -fPIC -g -O1";
+      cc = "gcc -fPIC -g" optimize;
     }
   #elif defined(_MSC_VER)
     compiler  = "MSC";
