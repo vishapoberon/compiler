@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
 #ifndef Files__h
 #define Files__h
@@ -42,7 +42,6 @@ import int32 Files_Pos (Files_Rider *r, address *r__typ);
 import void Files_Purge (Files_File f);
 import void Files_Read (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x);
 import void Files_ReadBool (Files_Rider *R, address *R__typ, BOOLEAN *x);
-import void Files_ReadByte (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len);
 import void Files_ReadBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x__len, int32 n);
 import void Files_ReadInt (Files_Rider *R, address *R__typ, int16 *x);
 import void Files_ReadLInt (Files_Rider *R, address *R__typ, int32 *x);

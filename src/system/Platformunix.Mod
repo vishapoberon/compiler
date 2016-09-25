@@ -14,9 +14,9 @@ TYPE
   FileHandle* = LONGINT;
 
   FileIdentity* = RECORD
-    volume*: LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
-    index*:  LONGINT;  (* inode on Unix filesystems, file id on NTFS *)
-    mtime*:  LONGINT;  (* File modification time, value is system dependent *)
+    volume: LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
+    index:  LONGINT;  (* inode on Unix filesystems, file id on NTFS *)
+    mtime:  LONGINT;  (* File modification time, value is system dependent *)
   END;
 
   EnvPtr    = POINTER TO ARRAY 1024 OF CHAR;

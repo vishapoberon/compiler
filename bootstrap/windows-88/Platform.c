@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -13,7 +13,7 @@ typedef
 	Platform_ArgPtr (*Platform_ArgVec)[1024];
 
 typedef
-	address (*Platform_ArgVecPtr)[1];
+	int64 (*Platform_ArgVecPtr)[1];
 
 typedef
 	CHAR (*Platform_EnvPtr)[1024];
@@ -31,12 +31,12 @@ typedef
 
 
 export BOOLEAN Platform_LittleEndian;
-export address Platform_MainStackFrame;
+export int64 Platform_MainStackFrame;
 export int32 Platform_HaltCode;
 export int16 Platform_PID;
 export CHAR Platform_CWD[4096];
 export int16 Platform_ArgCount;
-export address Platform_ArgVector;
+export int64 Platform_ArgVector;
 static Platform_HaltProcedure Platform_HaltHandler;
 static int32 Platform_TimeStart;
 export int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
@@ -66,15 +66,15 @@ export void Platform_Halt (int32 code);
 export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
 export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
-export void Platform_Init (int16 argc, address argvadr);
+export void Platform_Init (int16 argc, int64 argvadr);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 export int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
 export BOOLEAN Platform_NoSuchDirectory (int16 e);
-export address Platform_OSAllocate (address size);
-export void Platform_OSFree (address address);
+export int64 Platform_OSAllocate (int64 size);
+export void Platform_OSFree (int64 address);
 export int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h);
 export int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h);
-export int16 Platform_Read (int32 h, address p, int32 l, int32 *n);
+export int16 Platform_Read (int32 h, int64 p, int32 l, int32 *n);
 export int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n);
 export int16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
@@ -92,7 +92,7 @@ export BOOLEAN Platform_TimedOut (int16 e);
 export BOOLEAN Platform_TooManyFiles (int16 e);
 export int16 Platform_Truncate (int32 h, int32 limit);
 export int16 Platform_Unlink (CHAR *n, LONGINT n__len);
-export int16 Platform_Write (int32 h, address p, int32 l);
+export int16 Platform_Write (int32 h, int64 p, int32 l);
 static void Platform_YMDHMStoClock (int16 ye, int16 mo, int16 da, int16 ho, int16 mi, int16 se, int32 *t, int32 *d);
 static void Platform_errch (CHAR c);
 static void Platform_errint (int32 l);
@@ -230,19 +230,19 @@ BOOLEAN Platform_ConnectionFailed (int16 e)
 	return _o_result;
 }
 
-address Platform_OSAllocate (address size)
+int64 Platform_OSAllocate (int64 size)
 {
-	address _o_result;
+	int64 _o_result;
 	_o_result = Platform_allocate(size);
 	return _o_result;
 }
 
-void Platform_OSFree (address address)
+void Platform_OSFree (int64 address)
 {
 	Platform_free(address);
 }
 
-void Platform_Init (int16 argc, address argvadr)
+void Platform_Init (int16 argc, int64 argvadr)
 {
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
@@ -543,7 +543,7 @@ int16 Platform_Size (int32 h, int32 *l)
 	return _o_result;
 }
 
-int16 Platform_Read (int32 h, address p, int32 l, int32 *n)
+int16 Platform_Read (int32 h, int64 p, int32 l, int32 *n)
 {
 	int16 _o_result;
 	int16 result;
@@ -579,7 +579,7 @@ int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 	__RETCHK;
 }
 
-int16 Platform_Write (int32 h, address p, int32 l)
+int16 Platform_Write (int32 h, int64 p, int32 l)
 {
 	int16 _o_result;
 	if (Platform_writefile(h, p, l) == 0) {

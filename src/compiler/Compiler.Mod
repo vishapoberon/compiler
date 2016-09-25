@@ -1,4 +1,4 @@
-MODULE Vishap;  (* J. Templ 3.2.95 *)
+MODULE Compiler;  (* J. Templ 3.2.95 *)
 
   IMPORT
     SYSTEM, Heap, Platform, Configuration,
@@ -12,7 +12,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
   PROCEDURE Module*(VAR done: BOOLEAN);
     VAR ext, new: BOOLEAN; p: OPT.Node;
   BEGIN
-    OPP.Module(p, OPM.opt);
+    OPP.Module(p, OPM.Options);
     IF OPM.noerr THEN
       OPV.Init;
       OPT.InitRecno;
@@ -23,16 +23,16 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
         OPC.Init;
         OPV.Module(p);
         IF OPM.noerr THEN
-          IF (OPM.mainprog IN OPM.opt) & (OPM.modName # "SYSTEM") THEN
+          IF (OPM.mainprog IN OPM.Options) & (OPM.modName # "SYSTEM") THEN
             OPM.DeleteNewSym;
-            IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.Green) END;
+            IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.Green) END;
             OPM.LogWStr("  Main program.");
-            IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.ResetAll) END;
+            IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.ResetAll) END;
           ELSE
             IF new THEN
-              IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.Green) END;
+              IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.Green) END;
               OPM.LogWStr("  New symbol file.");
-              IF ~(OPM.notcoloroutput IN OPM.opt) THEN vt100.SetAttr(vt100.ResetAll) END;
+              IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.ResetAll) END;
 	            OPM.RegisterNewSym
             ELSIF ext THEN
               OPM.LogWStr("  Extended symbol file.");
@@ -95,12 +95,12 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
         END;
 
         (* 'assemble' (i.e. c compile) .c to object or executable. *)
-        IF ~(OPM.dontasm IN OPM.opt) THEN
-          IF OPM.dontlink IN OPM.opt THEN
+        IF ~(OPM.dontasm IN OPM.Options) THEN
+          IF OPM.dontlink IN OPM.Options THEN
             (* If not linking, just assemble each module. *)
             extTools.Assemble(OPM.modName)
           ELSE
-            IF ~(OPM.mainprog IN OPM.opt) THEN
+            IF ~(OPM.mainprog IN OPM.Options) THEN
               (* Assemble non main program and add object name to link list *)
               extTools.Assemble(OPM.modName);
               Strings.Append(" ",                  modulesobj);
@@ -108,7 +108,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
               Strings.Append(Configuration.objext, modulesobj)
             ELSE
               (* Assemble and link main program *)
-              extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.opt, modulesobj)
+              extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.Options, modulesobj)
             END
           END
   	    END
@@ -123,7 +123,7 @@ MODULE Vishap;  (* J. Templ 3.2.95 *)
       Platform.Exit(0)
     ELSE
       IF (sig = 4) & (Platform.HaltCode = -15) THEN
-        OPM.LogWStr(" --- Vishap Oberon: internal error");
+        OPM.LogWStr(" --- Oberon compiler internal error");
         OPM.LogWLn
       END ;
       Platform.Exit(2)
@@ -135,4 +135,4 @@ BEGIN
   Platform.SetQuitHandler(Trap);
   Platform.SetBadInstructionHandler(Trap);
   Translate
-END Vishap.
+END Compiler.

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/23]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -2449,12 +2449,8 @@ void OPB_Param (OPT_Node ap, OPT_Object fp)
 					OPB_err(111);
 				}
 			} else if ((fp->typ == OPT_sysptrtyp && ap->typ->form == 11)) {
-			} else if (ap->typ != fp->typ) {
-				if ((fp->typ->form == 1 && ((__IN(ap->typ->form, 0x1e, 32) && ap->typ->size == 1)))) {
-				} else if ((ap->typ == OPT_adrtyp && fp->typ == OPT_IntType(ap->typ->size))) {
-				} else {
-					OPB_err(123);
-				}
+			} else if ((ap->typ != fp->typ && !((((fp->typ->form == 1 && __IN(ap->typ->form, 0x1e, 32))) && ap->typ->size == 1)))) {
+				OPB_err(123);
 			} else if ((fp->typ->form == 11 && ap->class == 5)) {
 				OPB_err(123);
 			}

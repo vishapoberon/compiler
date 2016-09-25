@@ -2,13 +2,13 @@ MODULE extTools;
 
 IMPORT Strings, Console, Configuration, Platform, OPM;
 
-VAR compilationOptions, CFLAGS: ARRAY 1023 OF CHAR;
+VAR CFLAGS: ARRAY 1023 OF CHAR;
 
 
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
   VAR r, status, exitcode: INTEGER;
 BEGIN
-  IF OPM.verbose IN OPM.opt THEN
+  IF OPM.verbose IN OPM.Options THEN
     Console.String(title); Console.String(cmd); Console.Ln
   END;
   r := Platform.System(cmd);
@@ -29,16 +29,27 @@ BEGIN
 END execute;
 
 
+PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR);
+BEGIN
+  COPY(Configuration.compile, s);
+  Strings.Append(' -I "', s);
+  Strings.Append(OPM.ResourceDir, s);
+  Strings.Append('/include" ', s);
+  Platform.GetEnv("CFLAGS", CFLAGS);
+  Strings.Append (CFLAGS, s);
+  Strings.Append (" ", s);
+END InitialiseCompilerCommand;
+
+
 PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
   VAR
     cmd: ARRAY 1023 OF CHAR;
   BEGIN
-    cmd := Configuration.compile;
-    Strings.Append(compilationOptions, cmd);
-    Strings.Append("-c ",              cmd);
-    Strings.Append(moduleName,         cmd);
-    Strings.Append(".c",               cmd);
-    execute("Assemble: ", cmd);
+    InitialiseCompilerCommand(cmd);
+    Strings.Append("-c ",      cmd);
+    Strings.Append(moduleName, cmd);
+    Strings.Append(".c",       cmd);
+    execute("Assemble: ",      cmd);
   END Assemble;
 
 
@@ -46,9 +57,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
   VAR
     cmd: ARRAY 1023 OF CHAR;
   BEGIN
-    cmd := Configuration.compile;
-    Strings.Append(" ",                        cmd);
-    Strings.Append(compilationOptions,         cmd);
+    InitialiseCompilerCommand(cmd);
     Strings.Append(moduleName,                 cmd);
     Strings.Append(".c ",                      cmd);
     Strings.Append(additionalopts,             cmd);
@@ -58,7 +67,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(Configuration.objflag,      cmd);
     Strings.Append(moduleName,                 cmd);
     Strings.Append(Configuration.linkflags,    cmd);
-    Strings.Append(Configuration.installdir,   cmd);
+    Strings.Append(OPM.ResourceDir,            cmd);
     Strings.Append('/lib"',                    cmd);
     Strings.Append(Configuration.libspec,      cmd);
 
@@ -66,11 +75,5 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
   END LinkMain;
 
 
-BEGIN
-  Strings.Append(' -I "',                  compilationOptions);
-  Strings.Append(Configuration.installdir, compilationOptions);
-  Strings.Append('/include" ',             compilationOptions);
-  Platform.GetEnv("CFLAGS", CFLAGS);
-  Strings.Append (CFLAGS,                  compilationOptions);
-  Strings.Append (" ",                     compilationOptions);
 END extTools.
+,

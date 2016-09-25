@@ -1234,7 +1234,7 @@ END Import;
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END;
         OutObj(topScope^.right);
         ext := sfpresent & symExtended;
-        new := ~sfpresent OR symNew OR (OPM.forcenewsym IN OPM.opt);
+        new := ~sfpresent OR symNew OR (OPM.forcenewsym IN OPM.Options);
         IF OPM.noerr & sfpresent & (impCtxt.reffp # expCtxt.reffp) THEN
           new := TRUE;
           IF ~extsf THEN err(155) END
@@ -1296,8 +1296,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 
   (*initialization of module SYSTEM*)
   EnterTyp("BYTE",    Byte,    1,  bytetyp);
-  EnterTyp("PTR",     Pointer, -1, sysptrtyp);  (* Size set in Vishap.PropagateElementaryTypeSize *)
-  EnterTyp("ADDRESS", Int,     -1, adrtyp);     (* Size set in Vishap.PropagateElementaryTypeSize *)
+  EnterTyp("PTR",     Pointer, -1, sysptrtyp);  (* Size set in Compiler.PropagateElementaryTypeSize *)
+  EnterTyp("ADDRESS", Int,     -1, adrtyp);     (* Size set in Compiler.PropagateElementaryTypeSize *)
   EnterTyp("INT8",    Int,     1,  int8typ);
   EnterTyp("INT16",   Int,     2,  int16typ);
   EnterTyp("INT32",   Int,     4,  int32typ);
@@ -1322,7 +1322,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 
   EnterTyp("BOOLEAN",  Bool,  1,  booltyp);
   EnterTyp("CHAR",     Char,  1,  chartyp);
-  EnterTyp("SET",      Set,   -1, settyp);    (* Size set in Vishap.PropagateElementaryTypeSize *)
+  EnterTyp("SET",      Set,   -1, settyp);    (* Size set in Compiler.PropagateElementaryTypeSize *)
   EnterTyp("REAL",     Real,  4,  realtyp);
   EnterTyp("LONGREAL", LReal, 8,  lrltyp);
   EnterTyp("HUGEINT",  Int,   8,  hinttyp);

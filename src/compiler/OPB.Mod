@@ -829,16 +829,18 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       g: INTEGER;    (* expression (source) form *)
       p, q: OPT.Struct;
   BEGIN
-    IF OPM.verbose IN OPM.opt THEN
+    y := ynode^.typ; f := x^.form; g := y^.form;
+    (*
+    IF OPM.verbose IN OPM.Options THEN
        OPM.LogWLn; OPM.LogWStr("PROCEDURE CheckAssign"); OPM.LogWLn;
     END;
-    y := ynode^.typ; f := x^.form; g := y^.form;
-    IF OPM.verbose IN OPM.opt THEN
+    IF OPM.verbose IN OPM.Options THEN
        OPM.LogWStr("y.form = "); OPM.LogWNum(y.form, 0); OPM.LogWLn;
        OPM.LogWStr("f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
        OPM.LogWStr("g = "); OPM.LogWNum(g, 0); OPM.LogWLn;
        OPM.LogWStr("ynode.typ.syze = "); OPM.LogWNum(ynode.typ.size, 0); OPM.LogWLn;
     END;
+    *)
     IF (ynode^.class = OPT.Ntype) OR (ynode^.class = OPT.Nproc) & (f # OPT.ProcTyp) THEN err(126) END ;
     CASE f OF
       OPT.Undef,
@@ -1328,7 +1330,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
     IF fvarpar & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
       IF ~(f IN {OPT.Array, OPT.DynArr}) OR ~((atyp.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (atyp.size = 1)) THEN
-        IF OPM.verbose IN OPM.opt THEN err(-301) END
+        IF OPM.verbose IN OPM.Options THEN err(-301) END
       END
     ELSIF f IN {OPT.Array, OPT.DynArr} THEN
       IF ftyp^.comp = OPT.DynArr THEN DynArrParCheck(ftyp, atyp, fvarpar)

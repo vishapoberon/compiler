@@ -24,7 +24,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     notcoloroutput* = 16; (* turn off color output *)
     forcenewsym*    = 17; (* force new symbol file *)
     verbose*        = 18; (* verbose *)
-    defopt*         = {inxchk, typchk, ptrinit, assert};  (* default options *)
 
     nilval*         = 0;
 
@@ -87,10 +86,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   VAR
     SourceFileName : ARRAY 256 OF CHAR;
 
-    (* Parameter selectable sizes *)
-    AddressSize*, Alignment*,
-    SetSize*,
-    ShortintSize*, IntegerSize*, LongintSize*: INTEGER;
+    GlobalModel,       Model*:       CHAR;  (* 2: S8/I16/L32, C: S16/I32/L64, V:S8/I32/L64 *)
+    GlobalAddressSize, AddressSize*: INTEGER;
+    GlobalAlignment,   Alignment*:   INTEGER;
+    GlobalOptions*,    Options*:     SET;
+
+    ShortintSize*, IntegerSize*, LongintSize*, SetSize*: INTEGER;
 
     MaxSet*: INTEGER;
     MaxIndex*: SYSTEM.INT64;
@@ -105,7 +106,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     pc*, entno*:      INTEGER;  (* entry number *)
     modName*:         ARRAY 32 OF CHAR;
     objname*:         ARRAY 64 OF CHAR;
-    opt*, glbopt*:    SET;
 
     ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber: LONGINT;  (* Limit = start of next line *)
 
@@ -120,8 +120,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     S: INTEGER;
 
-    OBERON:  ARRAY 1024 OF CHAR;
-    MODULES: ARRAY 1024 OF CHAR;
+    ResourceDir*: ARRAY 1024 OF CHAR;
 
 
   (* ------------------------- Log Output ------------------------- *)
@@ -134,12 +133,32 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
 
+  (* Integer size support *)
+
+  PROCEDURE SignedMaximum*(bytecount: LONGINT): SYSTEM.INT64;
+  VAR result: SYSTEM.INT64;
+  BEGIN
+    result := 1;
+    result := SYSTEM.LSH(result, bytecount*8-1);
+    RETURN result - 1;
+  END SignedMaximum;
+
+  PROCEDURE SignedMinimum*(bytecount: LONGINT): SYSTEM.INT64;
+  BEGIN RETURN -SignedMaximum(bytecount) - 1
+  END SignedMinimum;
+
+
+  (* Unchecked conversion of any size integer to INTEGER or LONGINT *)
+
   PROCEDURE Longint* (n: SYSTEM.INT64): LONGINT; BEGIN RETURN SYSTEM.VAL(LONGINT, n) END Longint;
   PROCEDURE Integer* (n: SYSTEM.INT64): INTEGER; BEGIN RETURN SYSTEM.VAL(INTEGER, n) END Integer;
 
-  (* ------------------------- parameter handling -------------------------*)
 
-  PROCEDURE ScanOptions(s: ARRAY OF CHAR; VAR opt: SET);
+
+
+  (* --------------- Initialisation and parameter handling ---------------*)
+
+  PROCEDURE ScanOptions(s: ARRAY OF CHAR);
     VAR i: INTEGER;
   BEGIN
   i := 1; (* skip - *)
@@ -147,34 +166,32 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       CASE s[i] OF
 
       (* Run time safety *)
-      | "p": opt := opt / {ptrinit}          (* Initialise pointers to NIL. *)
-      | "a": opt := opt / {assert}           (* Halt on assertion failures. *)
-      | "r": opt := opt / {ranchk}           (* Halt on range check failures. *)
-      | "t": opt := opt / {typchk}           (* Halt on type guad failure. *)
-      | "x": opt := opt / {inxchk}           (* Halt on index out of range. *)
+      | "p": Options := Options / {ptrinit}          (* Initialise pointers to NIL. *)
+      | "a": Options := Options / {assert}           (* Halt on assertion failures. *)
+      | "r": Options := Options / {ranchk}           (* Halt on range check failures. *)
+      | "t": Options := Options / {typchk}           (* Halt on type guad failure. *)
+      | "x": Options := Options / {inxchk}           (* Halt on index out of range. *)
 
       (* Symbol file management *)
-      | "e": opt := opt / {extsf}            (* Allow extension of old symbol file. *)
-      | "s": opt := opt / {newsf}            (* Allow generation of new symbol file. *)
-      | "F": opt := opt / {forcenewsym}      (* Force generation of new symbol file. *)
+      | "e": Options := Options / {extsf}            (* Allow extension of old symbol file. *)
+      | "s": Options := Options / {newsf}            (* Allow generation of new symbol file. *)
+      | "F": Options := Options / {forcenewsym}      (* Force generation of new symbol file. *)
 
       (* C compiler and linker control *)
-      | "m": opt := opt / {mainprog}         (* This module is main. Link dynamically. *)
-      | "M": opt := opt / {mainlinkstat}     (* This module is main. Link statically. *)
-      | "S": opt := opt / {dontasm}          (* Don't call C compiler *)
-      | "c": opt := opt / {dontlink}         (* Don't link. *)
+      | "m": Options := Options / {mainprog}         (* This module is main. Link dynamically. *)
+      | "M": Options := Options / {mainlinkstat}     (* This module is main. Link statically. *)
+      | "S": Options := Options / {dontasm}          (* Don't call C compiler *)
+      | "c": Options := Options / {dontlink}         (* Don't link. *)
 
       (* Miscellaneous *)
-      | "f": opt := opt / {notcoloroutput}   (* Disable vt100 control characters in status output. *)
-      | "V": opt := opt / {verbose}
+      | "f": Options := Options / {notcoloroutput}   (* Disable vt100 control characters in status output. *)
+      | "V": Options := Options / {verbose}
 
       (* Elementary type size model *)
       | "O": IF i+1 >= Strings.Length(s) THEN LogWStr("-O option requires following size model character."); LogWLn ELSE
-               CASE s[i+1] OF
-               |'2': ShortintSize := 1; IntegerSize := 2; LongintSize := 4; SetSize := 4  (* Original Oberon / Oberon 2 *)
-               |'V': ShortintSize := 1; IntegerSize := 4; LongintSize := 8; SetSize := 8  (* Vishap 64 bit *)
-               |'C': ShortintSize := 2; IntegerSize := 4; LongintSize := 8; SetSize := 8  (* Component Pascal *)
-               ELSE LogWStr("Unrecognised size model character following -O."); LogWLn
+               Model := s[i+1];
+               IF (Model # '2') & (Model # 'C') & (Model # 'V') THEN
+                 LogWStr("Unrecognised size model character following -O."); LogWLn
                END;
                INC(i)
              END
@@ -212,26 +229,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END ScanOptions;
 
 
-  PROCEDURE ^GetProperties;
-
-
-  (* Undocumented options used by the build system:
-
-     Todo - this is obsoleted by the -A and -O options. Remove when the build system
-     has been updated.
-
-     The following parameter overrides the integer size, pointer size and alignment
-     settings compiled into the binary. They are used when bootstrapping to generate
-     the C source for a compiler with different sizes to the current compiler.
-
-     -Bnnn  Where each n is a single digit specifying the integer size, pointer size
-            and alignment in bytes.
-
-            An alignment of n means that types smaller than n align to their
-            own size, types larger than n align to n bytes.
-
-            LONGINT size will be set to twice the integer size.
-  *)
+  PROCEDURE -GetAlignment(VAR a: INTEGER) "struct {char c; long long l;} _s; *a = (char*)&_s.l - (char*)&_s";
 
   PROCEDURE OpenPar*(): BOOLEAN;  (* prepare for a sequence of translations *)
     VAR s: ARRAY 256 OF CHAR;
@@ -286,43 +284,82 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("Repeating an option toggles its value.");                                                           LogWLn;
       RETURN FALSE
     ELSE
+      (* Set options to initial defaults *)
+      AddressSize := SIZE(SYSTEM.ADDRESS); (* This compilers address size *)
+      GetAlignment(Alignment);             (* This compilers alignment *)
+      Model := '2';                        (* Size model of common Oberon-2 implementations: S8/I16/L32  *)
+      Options := {inxchk, typchk, ptrinit, assert};  (* Default options *)
+
+      (* Pick up global option changes from start of command line *)
       S:=1; s:=""; Platform.GetArg(S, s);
-
-      glbopt := defopt;
-
       WHILE s[0] = OptionChar DO
-        ScanOptions(s, glbopt);
+        ScanOptions(s);
         INC(S); s:=""; Platform.GetArg(S, s)
       END;
+
+      (* Record global option settings for this command line *)
+      GlobalAddressSize := AddressSize;
+      GlobalAlignment   := Alignment;
+      GlobalModel       := Model;
+      GlobalOptions     := Options;
 
       RETURN TRUE
     END;
   END OpenPar;
 
 
-  PROCEDURE InitOptions*;  (* get the options for one translation *)
-    VAR s: ARRAY 256 OF CHAR;
+  PROCEDURE VerboseListSizes;
   BEGIN
-    opt := glbopt;
+    LogWLn;
+    LogWStr("Type      Size"); LogWLn;
+    LogWStr("SHORTINT   "); LogWNum(ShortintSize, 4); (* LogWNum(SIntAlign,    5); *) LogWLn;
+    LogWStr("INTEGER    "); LogWNum(IntegerSize,  4); (* LogWNum(IntAlign,     5); *) LogWLn;
+    LogWStr("LONGINT    "); LogWNum(LongintSize,  4); (* LogWNum(LIntAlign,    5); *) LogWLn;
+    LogWStr("SET        "); LogWNum(SetSize,      4); (* LogWNum(SetAlign,     5); *) LogWLn;
+    LogWStr("ADDRESS    "); LogWNum(AddressSize,  4); (* LogWNum(PointerAlign, 5); *) LogWLn;
+    LogWLn;
+    LogWStr("Alignment: "); LogWNum(Alignment, 4); LogWLn;
+  END VerboseListSizes;
+
+
+  PROCEDURE InitOptions*;  (* get the options for one translation *)
+    VAR s: ARRAY 256 OF CHAR; searchpath, modules: ARRAY 1024 OF CHAR;
+    MODULES: ARRAY 1024 OF CHAR;
+
+  BEGIN
+    Options := GlobalOptions; Model:=GlobalModel; Alignment := GlobalAlignment; AddressSize := GlobalAddressSize;
+
     s:=""; Platform.GetArg(S, s);
     WHILE s[0] = OptionChar DO
-      ScanOptions(s, opt);
+      ScanOptions(s);
       INC(S); s:=""; Platform.GetArg(S, s)
     END;
 
-    (*
-    dontAsm        := dontasm        IN opt;
-    dontLink       := dontlink       IN opt;
-    mainProg       := mainprog       IN opt;
-    mainLinkStat   := mainlinkstat   IN opt;
-    notColorOutput := notcoloroutput IN opt;
-    forceNewSym    := forcenewsym    IN opt;
-    Verbose        := verbose        IN opt;
-    *)
+    IF mainlinkstat IN Options THEN INCL(Options, mainprog) END;
 
-    IF mainlinkstat IN opt THEN INCL(glbopt, mainprog); INCL(opt, mainprog) END;
+    MaxIndex := SignedMaximum(AddressSize);
+    CASE Model OF
+    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4
+    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
+    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
+    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4
+    END;
+    MaxSet := SetSize * 8 - 1;
 
-    GetProperties;
+    IF verbose IN Options THEN VerboseListSizes END;
+
+    ResourceDir := Configuration.installdir;
+    Strings.Append("/ ",   ResourceDir);
+    ResourceDir[Strings.Length(ResourceDir)-1] := Model;
+
+    modules    := "";  Platform.GetEnv("MODULES", modules);
+    searchpath := "."; Platform.GetEnv("OBERON",  searchpath);
+    Strings.Append(";.;",                         searchpath);
+    Strings.Append(modules,                       searchpath);
+    Strings.Append(";",                           searchpath);
+    Strings.Append(ResourceDir,                   searchpath);
+    Strings.Append("/sym;",                       searchpath);
+    Files.SetSearchPath(searchpath);
   END InitOptions;
 
 
@@ -391,13 +428,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       buf: ARRAY 1024 OF CHAR;
   BEGIN
     IF n >= 0 THEN
-       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.Red) END;
+       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.Red) END;
        LogWStr("  err ");
-       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.ResetAll) END;
+       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.ResetAll) END;
     ELSE
-       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.Magenta) END;
+       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.Magenta) END;
        LogWStr("  warning "); n := -n;
-       IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.ResetAll) END;
+       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.ResetAll) END;
     END ;
     LogWNum(n, 1);
     LogWStr("  ");
@@ -470,9 +507,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     i := SHORT(Longint(pos - ErrorLineStartPos));
     WHILE i > 0 DO LogW(" "); DEC(i) END;
 
-    IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.Green) END;
+    IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.Green) END;
     LogW("^");
-    IF ~(notcoloroutput IN opt) THEN vt100.SetAttr(vt100.ResetAll) END;
+    IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.ResetAll) END;
 
     Files.Close(f);
   END ShowLine;
@@ -547,93 +584,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
 
-
-  (* ------------------------- initialization ------------------------- *)
-
-  PROCEDURE GetProperty(VAR S: Texts.Scanner; name: ARRAY OF CHAR; VAR size, align: INTEGER);
-  BEGIN
-    IF (S.class = Texts.Name) & (S.s = name) THEN Texts.Scan(S);
-      IF S.class = Texts.Int THEN size := SHORT(S.i); Texts.Scan(S) ELSE Mark(-157, -1) END ;
-      IF S.class = Texts.Int THEN align := SHORT(S.i); Texts.Scan(S) ELSE Mark(-157, -1) END
-    ELSE Mark(-157, -1)
-    END
-  END GetProperty;
-
-
-  PROCEDURE minusop(i: LONGINT): LONGINT;
-  BEGIN
-    RETURN -i;
-  END minusop;
-
-
-  PROCEDURE power0(i, j : LONGINT) : LONGINT; (* we would like to calculate exact Min Max values in GetProperties, not hardcode em, noch *)
-  VAR k : LONGINT;
-      p : LONGINT;
-  BEGIN
-     k := 1;
-     p := i;
-     REPEAT
-        p := p * i;
-        INC(k);
-     UNTIL k=j;
-     RETURN p;
-  END power0;
-
-
-  PROCEDURE VerboseListSizes;
-  BEGIN
-    LogWLn;
-    LogWStr("Type        Size"); LogWLn;
-    LogWStr("SHORTINT     "); LogWNum(ShortintSize, 4); (* LogWNum(SIntAlign,    5); *) LogWLn;
-    LogWStr("INTEGER      "); LogWNum(IntegerSize,  4); (* LogWNum(IntAlign,     5); *) LogWLn;
-    LogWStr("LONGINT      "); LogWNum(LongintSize,  4); (* LogWNum(LIntAlign,    5); *) LogWLn;
-    LogWStr("SET          "); LogWNum(SetSize,      4); (* LogWNum(SetAlign,     5); *) LogWLn;
-    LogWStr("ADDRESS      "); LogWNum(AddressSize,  4); (* LogWNum(PointerAlign, 5); *) LogWLn;
-    LogWLn;
-    LogWStr("Alignment: "); LogWNum(Alignment, 4); LogWLn;
-  END VerboseListSizes;
-
-
-
-
-  (* Integer size support *)
-
-  PROCEDURE SignedMaximum*(bytecount: LONGINT): SYSTEM.INT64;
-  VAR result: SYSTEM.INT64;
-  BEGIN
-    result := 1;
-    result := SYSTEM.LSH(result, bytecount*8-1);
-    RETURN result - 1;
-  END SignedMaximum;
-
-  PROCEDURE SignedMinimum*(bytecount: LONGINT): SYSTEM.INT64;
-  BEGIN RETURN -SignedMaximum(bytecount) - 1
-  END SignedMinimum;
-
-
-
-
-
-
-
-  PROCEDURE GetProperties();
-    (* VAR base: LONGINT; *)
-  BEGIN
-    (* Fixed and Configuration.Mod based sizes have been initialised in
-       the module startup code, and maybe overridden by the -Bnnn bootstrap
-       parameter *)
-
-    MaxReal := 3.40282346D38;                      (* REAL is 4 bytes *)
-    MaxLReal := 1.7976931348623157D307 * 9.999999; (* LONGREAL is 8 bytes *)
-      (*should be 1.7976931348623157D308 *)
-
-    MinReal  := -MaxReal;
-    MinLReal := -MaxLReal;
-    MaxSet   := SetSize * 8 - 1;
-    MaxIndex := SignedMaximum(AddressSize);
-
-    IF verbose IN opt THEN VerboseListSizes END;
-  END GetProperties;
 
   (* ------------------------- Read Symbol File ------------------------- *)
 
@@ -711,7 +661,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   PROCEDURE RegisterNewSym*;
   BEGIN
-    IF (modName # "SYSTEM") OR (mainprog IN opt) THEN Files.Register(newSFile) END
+    IF (modName # "SYSTEM") OR (mainprog IN Options) THEN Files.Register(newSFile) END
   END RegisterNewSym;
 
   PROCEDURE DeleteNewSym*;
@@ -837,8 +787,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF noerr THEN LogWStr("  "); LogWNum(Files.Pos(R[BodyFile]), 0); LogWStr(" chars.") END;
     IF noerr THEN
       IF modName = "SYSTEM" THEN
-        IF ~(mainprog IN opt) THEN Files.Register(BFile) END
-      ELSIF ~(mainprog IN opt) THEN
+        IF ~(mainprog IN Options) THEN Files.Register(BFile) END
+      ELSIF ~(mainprog IN Options) THEN
         Append(R[HeaderInclude], HFile);
         Files.Register(HIFile); Files.Register(BFile)
       ELSE
@@ -854,29 +804,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
 
-PROCEDURE -GetAlignment(VAR a: INTEGER) "struct {char c; long long l;} s; *a = (char*)&s.l - (char*)&s";
-
 BEGIN
+  MaxReal := 3.40282346D38;                      (* REAL is 4 bytes *)
+  MaxLReal := 1.7976931348623157D307 * 9.999999; (* LONGREAL is 8 bytes, should be 1.7976931348623157D308 *)
+  MinReal  := -MaxReal;
+  MinLReal := -MaxLReal;
+
   Texts.OpenWriter(W);
-
-  MODULES := "";  Platform.GetEnv("MODULES", MODULES);
-
-  OBERON  := "."; Platform.GetEnv("OBERON", OBERON);
-  Strings.Append(";.;",                     OBERON);
-  Strings.Append(MODULES,                   OBERON);
-  Strings.Append(";",                       OBERON);
-  Strings.Append(Configuration.installdir,  OBERON);
-  Strings.Append("/sym;",                   OBERON);
-
-  Files.SetSearchPath(OBERON);
-
-  (* Default address size and alignment are those of this compiler *)
-  AddressSize  := SIZE(SYSTEM.ADDRESS);
-  GetAlignment(Alignment);
-
-  (* Default type size model is that of the original Oberon-2 implementation (-O2) *)
-  ShortintSize := 1;
-  IntegerSize  := 2;
-  LongintSize  := 4;
-  SetSize      := 4
 END OPM.

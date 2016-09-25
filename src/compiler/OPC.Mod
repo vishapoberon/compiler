@@ -660,7 +660,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           EndStat; BegStat;
           OPM.WriteString("address *"); Ident(obj); OPM.WriteString(TagExt);
           base := NIL
-        ELSIF (OPM.ptrinit IN OPM.opt) & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
+        ELSIF (OPM.ptrinit IN OPM.Options) & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
           OPM.WriteString(" = NIL")
         END
       END ;
@@ -779,7 +779,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString("/* "); OPM.WriteString(Configuration.name);
     OPM.Write(" "); OPM.WriteString(Configuration.versionLong); OPM.Write (" "); (* noch *)
     FOR i := 0 TO MAX(SET) DO
-      IF i IN OPM.glbopt THEN
+      IF i IN OPM.Options THEN
         CASE i OF  (* c.f. ScanOptions in OPM *)
         | OPM.inxchk:         OPM.Write("x")
         | OPM.ranchk:         OPM.Write("r")
@@ -902,22 +902,22 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE EnterBody*;
   BEGIN
     OPM.WriteLn; OPM.WriteString(Export);
-    IF OPM.mainprog IN OPM.opt THEN
+    IF OPM.mainprog IN OPM.Options THEN
       OPM.WriteString("int main(int argc, char **argv)"); OPM.WriteLn;
     ELSE
       OPM.WriteString("void *");
       OPM.WriteString(OPM.modName); OPM.WriteString(BodyNameExt); OPM.WriteLn;
     END ;
     BegBlk; BegStat;
-    IF OPM.mainprog IN OPM.opt THEN OPM.WriteString("__INIT(argc, argv)") ELSE OPM.WriteString("__DEFMOD") END ;
+    IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__INIT(argc, argv)") ELSE OPM.WriteString("__DEFMOD") END ;
     EndStat;
-    IF (OPM.mainprog IN OPM.opt) & demoVersion THEN BegStat;
+    IF (OPM.mainprog IN OPM.Options) & demoVersion THEN BegStat;
       OPM.WriteString('/*don`t do it!*/ printf("DEMO VERSION: DO NOT USE THIS PROGRAM FOR ANY COMMERCIAL PURPOSE\n")');
       EndStat
     END ;
     InitImports(OPT.topScope^.right);
     BegStat;
-    IF OPM.mainprog IN OPM.opt THEN OPM.WriteString('__REGMAIN("') ELSE OPM.WriteString('__REGMOD("') END ;
+    IF OPM.mainprog IN OPM.Options THEN OPM.WriteString('__REGMAIN("') ELSE OPM.WriteString('__REGMOD("') END ;
     OPM.WriteString(OPM.modName);
     IF GlbPtrs THEN OPM.WriteString('", EnumPtrs)') ELSE OPM.WriteString('", 0)') END ;
     EndStat;
@@ -927,7 +927,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE ExitBody*;
   BEGIN
     BegStat;
-    IF OPM.mainprog IN OPM.opt THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
+    IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
     OPM.WriteLn; EndBlk
   END ExitBody;
 

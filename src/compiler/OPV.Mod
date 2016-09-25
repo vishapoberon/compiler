@@ -162,7 +162,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       OPT.Nindex,
       OPT.Nproc,
       OPT.Ncall:   RETURN 10
-    | OPT.Nguard:  IF OPM.typchk IN OPM.opt THEN RETURN 10 ELSE RETURN 9 (*cast*) END
+    | OPT.Nguard:  IF OPM.typchk IN OPM.Options THEN RETURN 10 ELSE RETURN 9 (*cast*) END
     | OPT.Nvarpar: IF comp IN {OPT.Array, OPT.DynArr} THEN RETURN 10 ELSE RETURN 9 END (* arrays don't need deref *)
     | OPT.Nderef:  RETURN 9
     | OPT.Nmop:    CASE subclass OF
@@ -243,7 +243,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       OPM.WriteString("__SETOF("); Entier(n, MinPrec);
       OPM.WriteString(","); OPM.WriteInt(newtype.size*8); OPM.Write(CloseParen)
     ELSIF to = OPT.Int THEN
-      IF (newtype.size < n.typ.size) & (OPM.ranchk IN OPM.opt) THEN
+      IF (newtype.size < n.typ.size) & (OPM.ranchk IN OPM.Options) THEN
         OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
         OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
         OPM.WriteInt(OPM.SignedMaximum(newtype.size) + 1); OPM.Write(CloseParen)
@@ -251,7 +251,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         SizeCast(n.typ.size, newtype.size); Entier(n, 9)
       END
     ELSIF to = OPT.Char THEN
-      IF OPM.ranchk IN OPM.opt THEN OPM.WriteString("__CHR");
+      IF OPM.ranchk IN OPM.Options THEN OPM.WriteString("__CHR");
         IF SideEffects(n) THEN OPM.Write("F") END ;
         OPM.Write(OpenParen); Entier(n, MinPrec); OPM.Write(CloseParen)
       ELSE OPM.WriteString("(CHAR)"); Entier(n, 9)
@@ -280,7 +280,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE Index(n, d: OPT.Node; prec, dim: INTEGER);
   BEGIN
-    IF ~(OPM.inxchk IN OPM.opt)
+    IF ~(OPM.inxchk IN OPM.Options)
     OR (n^.right^.class = OPT.Nconst) & ((n^.right^.conval^.intval = 0) OR (n^.left^.typ^.comp # OPT.DynArr)) THEN
       expr(n^.right, prec)
     ELSE
@@ -342,7 +342,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      OPM.Write(CloseBracket)
                    END
     | OPT.Nguard:  typ := n^.typ; obj := n^.left^.obj;
-                   IF OPM.typchk IN OPM.opt THEN
+                   IF OPM.typchk IN OPM.Options THEN
                      IF typ^.comp = OPT.Record THEN OPM.WriteString(GuardRecFunc);
                        IF obj^.mnolev # OPM.level THEN (*intermediate level var-par record*)
                          OPM.WriteStringVar(obj^.scope^.name); OPM.WriteString("__curr->"); OPC.Ident(obj)
@@ -363,7 +363,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.Write("("); OPC.Ident(typ^.strobj); OPM.Write(")"); expr(n^.left, designPrec)
                      END
                    END
-    | OPT.Neguard: IF OPM.typchk IN OPM.opt THEN
+    | OPT.Neguard: IF OPM.typchk IN OPM.Options THEN
                      IF n^.left^.class = OPT.Nvarpar THEN OPM.WriteString("__GUARDEQR(");
                        OPC.CompleteIdent(n^.left^.obj); OPM.WriteString(Comma); TypeOf(n^.left);
                      ELSE OPM.WriteString("__GUARDEQP("); expr(n^.left^.left, MinPrec)
@@ -844,7 +844,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      END ;
                      ActualPar(n^.right, n^.obj)
       | OPT.Nifelse: IF n^.subcl # OPT.assertfn THEN IfStat(n, FALSE, outerProc)
-                     ELSIF OPM.assert IN OPM.opt THEN
+                     ELSIF OPM.assert IN OPM.Options THEN
                        OPM.WriteString("__ASSERT("); expr(n^.left^.left^.left, MinPrec); OPM.WriteString(Comma);
                        OPM.WriteInt(n^.left^.right^.right^.conval^.intval); OPM.Write(CloseParen); OPC.EndStat
                      END
@@ -867,7 +867,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.WriteString("goto exit__"); OPM.WriteInt(exit.label)
                      END
       | OPT.Nreturn: IF OPM.level = 0 THEN
-                       IF OPM.mainprog IN OPM.opt THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
+                       IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
                      ELSE
                        IF n^.left # NIL THEN
                          (* Make local copy of result before ExitProc deletes dynamic vars *)
@@ -895,7 +895,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE Module*(prog: OPT.Node);
   BEGIN
-    IF ~(OPM.mainprog IN OPM.opt) THEN OPC.GenHdr(prog^.right); OPC.GenHdrIncludes END ;
+    IF ~(OPM.mainprog IN OPM.Options) THEN OPC.GenHdr(prog^.right); OPC.GenHdrIncludes END ;
     OPC.GenBdy(prog^.right); stat(prog, NIL)
   END Module;
 
