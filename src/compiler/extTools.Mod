@@ -67,10 +67,10 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(Configuration.objflag,      cmd);
     Strings.Append(moduleName,                 cmd);
     Strings.Append(Configuration.linkflags,    cmd);
-    Strings.Append(OPM.ResourceDir,            cmd);
+    Strings.Append(Configuration.installdir,   cmd);
     Strings.Append('/lib"',                    cmd);
     Strings.Append(Configuration.libspec,      cmd);
-
+    Strings.Append(OPM.Model,                  cmd);
     execute("Assemble and link: ", cmd);
   END LinkMain;
 

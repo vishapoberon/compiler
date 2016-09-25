@@ -86,7 +86,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   VAR
     SourceFileName : ARRAY 256 OF CHAR;
 
-    GlobalModel,       Model*:       CHAR;  (* 2: S8/I16/L32, C: S16/I32/L64, V:S8/I32/L64 *)
+    GlobalModel,       Model*:       ARRAY 10 OF CHAR;  (* 2: S8/I16/L32, C: S16/I32/L64, V:S8/I32/L64 *)
     GlobalAddressSize, AddressSize*: INTEGER;
     GlobalAlignment,   Alignment*:   INTEGER;
     GlobalOptions*,    Options*:     SET;
@@ -189,8 +189,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
       (* Elementary type size model *)
       | "O": IF i+1 >= Strings.Length(s) THEN LogWStr("-O option requires following size model character."); LogWLn ELSE
-               Model := s[i+1];
-               IF (Model # '2') & (Model # 'C') & (Model # 'V') THEN
+               Model[0] := s[i+1]; Model[1] := 0X;
+               IF (Model[0] # '2') & (Model[0] # 'C') & (Model[0] # 'V') THEN
                  LogWStr("Unrecognised size model character following -O."); LogWLn
                END;
                INC(i)
@@ -287,7 +287,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       (* Set options to initial defaults *)
       AddressSize := SIZE(SYSTEM.ADDRESS); (* This compilers address size *)
       GetAlignment(Alignment);             (* This compilers alignment *)
-      Model := '2';                        (* Size model of common Oberon-2 implementations: S8/I16/L32  *)
+      Model := "2";                        (* Size model of common Oberon-2 implementations: S8/I16/L32  *)
       Options := {inxchk, typchk, ptrinit, assert};  (* Default options *)
 
       (* Pick up global option changes from start of command line *)
@@ -338,7 +338,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF mainlinkstat IN Options THEN INCL(Options, mainprog) END;
 
     MaxIndex := SignedMaximum(AddressSize);
-    CASE Model OF
+    CASE Model[0] OF
     |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4
     |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
     |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
@@ -349,8 +349,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF verbose IN Options THEN VerboseListSizes END;
 
     ResourceDir := Configuration.installdir;
-    Strings.Append("/ ",   ResourceDir);
-    ResourceDir[Strings.Length(ResourceDir)-1] := Model;
+    Strings.Append("/",   ResourceDir);
+    Strings.Append(Model, ResourceDir);
 
     modules    := "";  Platform.GetEnv("MODULES", modules);
     searchpath := "."; Platform.GetEnv("OBERON",  searchpath);

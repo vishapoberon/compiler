@@ -157,14 +157,14 @@ install:
 	@printf "\nInstalling into \"$(INSTALLDIR)\"\n"
 	@rm -rf "$(INSTALLDIR)/bin" "$(INSTALLDIR)/$(MODEL)"
 	@mkdir -p "$(INSTALLDIR)/bin"
+	@mkdir -p "$(INSTALLDIR)/lib"
 	@mkdir -p "$(INSTALLDIR)/$(MODEL)/include"
 	@mkdir -p "$(INSTALLDIR)/$(MODEL)/sym"
-	@mkdir -p "$(INSTALLDIR)/$(MODEL)/lib"
-	@cp $(BUILDDIR)/*.h                "$(INSTALLDIR)/$(MODEL)/include/"
-	@cp $(BUILDDIR)/*.sym              "$(INSTALLDIR)/$(MODEL)/sym/"
-	@cp $(OBECOMP)                     "$(INSTALLDIR)/bin/$(OBECOMP)"
-	@-cp $(BUILDDIR)/showdef$(BINEXT)  "$(INSTALLDIR)/bin"
-	@cp $(BUILDDIR)/lib$(ONAME)*       "$(INSTALLDIR)/$(MODEL)/lib/"
+	@cp $(BUILDDIR)/*.h                  "$(INSTALLDIR)/$(MODEL)/include/"
+	@cp $(BUILDDIR)/*.sym                "$(INSTALLDIR)/$(MODEL)/sym/"
+	@cp $(OBECOMP)                       "$(INSTALLDIR)/bin/$(OBECOMP)"
+	@-cp $(BUILDDIR)/showdef$(BINEXT)    "$(INSTALLDIR)/bin"
+	@cp $(BUILDDIR)/lib$(ONAME)*         "$(INSTALLDIR)/lib/"
 	@if which ldconfig >/dev/null 2>&1; then $(LDCONFIG); fi
 
 
@@ -345,10 +345,10 @@ librarybinary:
 #	of utilities like BrowserCmd.Mod (aka showdef).
 
 #	Make static library
-	ar rcs "$(BUILDDIR)/lib$(ONAME).a" $(BUILDDIR)/*.o
+	ar rcs "$(BUILDDIR)/lib$(ONAME)$(MODEL).a" $(BUILDDIR)/*.o
 
 #	Make shared library
-	@cd $(BUILDDIR) && $(COMPILE) -shared -o lib$(ONAME).so *.o
+	@cd $(BUILDDIR) && $(COMPILE) -shared -o lib$(ONAME)$(MODEL).so *.o
 
 
 

@@ -437,13 +437,13 @@ END Unlink;
 
 
 PROCEDURE -chdir(n: ARRAY OF CHAR): INTEGER "chdir((char*)n)";
-PROCEDURE -getcwd(VAR cwd: ARRAY OF CHAR) "getcwd((char*)cwd, cwd__len)";
+PROCEDURE -getcwd(VAR cwd: ARRAY OF CHAR): SYSTEM.PTR "getcwd((char*)cwd, cwd__len)";
 
 PROCEDURE Chdir*(VAR n: ARRAY OF CHAR): ErrorCode;
   VAR r: INTEGER;
 BEGIN
-  r := chdir(n);  getcwd(CWD);
-  IF r < 0 THEN RETURN err() ELSE RETURN 0 END
+  IF (chdir(n) >= 0) & (getcwd(CWD) # NIL) THEN RETURN 0
+  ELSE RETURN err() END
 END Chdir;
 
 
@@ -536,8 +536,8 @@ BEGIN
   HaltCode    := -128;
   HaltHandler := NIL;
   TimeStart   := 0;   TimeStart := Time();
-  CWD         := "";  getcwd(CWD);
   PID         := getpid();
+  IF getcwd(CWD) = NIL THEN CWD := "" END;
 
   SeekSet := seekset();
   SeekCur := seekcur();
