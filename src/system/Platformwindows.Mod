@@ -72,6 +72,7 @@ PROCEDURE -ECONNREFUSED():          ErrorCode 'WSAECONNREFUSED';
 PROCEDURE -ECONNABORTED():          ErrorCode 'WSAECONNABORTED';
 PROCEDURE -ENETUNREACH():           ErrorCode 'WSAENETUNREACH';
 PROCEDURE -EHOSTUNREACH():          ErrorCode 'WSAEHOSTUNREACH';
+PROCEDURE -EINTR():                 ErrorCode 'WSAEINTR';
 
 
 
@@ -99,6 +100,9 @@ BEGIN RETURN (e = ETIMEDOUT()) END TimedOut;
 PROCEDURE ConnectionFailed*(e: ErrorCode): BOOLEAN;
 BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
           OR (e = ENETUNREACH())  OR (e = EHOSTUNREACH()) END ConnectionFailed;
+
+PROCEDURE Interrupted*(e: ErrorCode): BOOLEAN;
+BEGIN RETURN e = EINTR() END Interrupted;
 
 
 

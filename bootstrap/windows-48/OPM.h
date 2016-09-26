@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -6,7 +6,10 @@
 #include "SYSTEM.h"
 
 
-import int16 OPM_AddressSize, OPM_Alignment, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
+import CHAR OPM_Model[10];
+import int16 OPM_AddressSize, OPM_Alignment;
+import SET OPM_GlobalOptions, OPM_Options;
+import int16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize, OPM_MaxSet;
 import int64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;
@@ -14,7 +17,7 @@ import int32 OPM_curpos, OPM_errpos, OPM_breakpc;
 import int16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 import CHAR OPM_modName[32];
 import CHAR OPM_objname[64];
-import SET OPM_opt, OPM_glbopt;
+import CHAR OPM_ResourceDir[1024];
 
 
 import void OPM_CloseFiles (void);

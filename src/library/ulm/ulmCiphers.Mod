@@ -29,15 +29,15 @@
 (* abstraction for the use of ciphers and cryptographic methods *)
 MODULE ulmCiphers;
 
-IMPORT Objects := ulmObjects, PersistentObjects := ulmPersistentObjects, PersistentDisciplines := ulmPersistentDisciplines, Services := ulmServices, 
+IMPORT Objects := ulmObjects, PersistentObjects := ulmPersistentObjects, PersistentDisciplines := ulmPersistentDisciplines, Services := ulmServices,
        Streams := ulmStreams, Write := ulmWrite;
 
 TYPE
    Cipher* = POINTER TO CipherRec;
 
-TYPE 
-   CryptProc* = PROCEDURE (in: Streams.Stream; key: Cipher; 
-			  length: INTEGER; out: Streams.Stream) : BOOLEAN;
+TYPE
+   CryptProc* = PROCEDURE (in: Streams.Stream; key: Cipher;
+                          length: INTEGER; out: Streams.Stream) : BOOLEAN;
 
 TYPE
    Interface* = POINTER TO InterfaceRec;
@@ -48,7 +48,7 @@ TYPE
    END;
 
 TYPE
-   CipherRec* = RECORD 
+   CipherRec* = RECORD
       (PersistentDisciplines.ObjectRec)
       (* private *)
       if : Interface
@@ -64,31 +64,31 @@ BEGIN
    key.if := if;
 END Init;
 
-PROCEDURE Encrypt*(in: Streams.Stream; key: Cipher; 
-		  out: Streams.Stream) : BOOLEAN;
+PROCEDURE Encrypt*(in: Streams.Stream; key: Cipher;
+                  out: Streams.Stream) : BOOLEAN;
 BEGIN
    RETURN key.if.encrypt(in, key, -1, out);
 END Encrypt;
 
-PROCEDURE Decrypt*(in: Streams.Stream; key: Cipher; 
-		  out: Streams.Stream) : BOOLEAN;
+PROCEDURE Decrypt*(in: Streams.Stream; key: Cipher;
+                  out: Streams.Stream) : BOOLEAN;
 BEGIN
    RETURN key.if.decrypt(in, key, -1, out);
 END Decrypt;
 
-PROCEDURE EncryptPart*(in: Streams.Stream; key: Cipher; 
-		      length: INTEGER; out: Streams.Stream) : BOOLEAN;
+PROCEDURE EncryptPart*(in: Streams.Stream; key: Cipher;
+                      length: INTEGER; out: Streams.Stream) : BOOLEAN;
 BEGIN
    RETURN key.if.encrypt(in, key, length, out);
 END EncryptPart;
 
-PROCEDURE DecryptPart*(in: Streams.Stream; key: Cipher; 
-		      length: INTEGER; out: Streams.Stream) : BOOLEAN;
+PROCEDURE DecryptPart*(in: Streams.Stream; key: Cipher;
+                      length: INTEGER; out: Streams.Stream) : BOOLEAN;
 BEGIN
    RETURN key.if.decrypt(in, key, length, out);
 END DecryptPart;
 
 BEGIN
-   PersistentObjects.RegisterType(cipherType, "Ciphers.Cipher", 
+   PersistentObjects.RegisterType(cipherType, "Ciphers.Cipher",
       "PersistentDisciplines.Object", NIL);
 END ulmCiphers.

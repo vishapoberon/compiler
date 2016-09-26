@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -67,6 +67,7 @@ export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, addres
 export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
 export void Platform_Init (int16 argc, int32 argvadr);
+export BOOLEAN Platform_Interrupted (int16 e);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 export int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
 export BOOLEAN Platform_NoSuchDirectory (int16 e);
@@ -104,6 +105,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 #define Platform_ECONNABORTED()	WSAECONNABORTED
 #define Platform_ECONNREFUSED()	WSAECONNREFUSED
 #define Platform_EHOSTUNREACH()	WSAEHOSTUNREACH
+#define Platform_EINTR()	WSAEINTR
 #define Platform_ENETUNREACH()	WSAENETUNREACH
 #define Platform_ERRORACCESSDENIED()	ERROR_ACCESS_DENIED
 #define Platform_ERRORFILENOTFOUND()	ERROR_FILE_NOT_FOUND
@@ -227,6 +229,13 @@ BOOLEAN Platform_ConnectionFailed (int16 e)
 {
 	BOOLEAN _o_result;
 	_o_result = ((e == Platform_ECONNREFUSED() || e == Platform_ECONNABORTED()) || e == Platform_ENETUNREACH()) || e == Platform_EHOSTUNREACH();
+	return _o_result;
+}
+
+BOOLEAN Platform_Interrupted (int16 e)
+{
+	BOOLEAN _o_result;
+	_o_result = e == Platform_EINTR();
 	return _o_result;
 }
 

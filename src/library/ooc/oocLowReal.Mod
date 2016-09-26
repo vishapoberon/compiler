@@ -216,7 +216,7 @@ BEGIN
   IF x<ZERO THEN RETURN -ONE ELSE RETURN ONE END
 END sign;
 
-(*** Refactor for 64 bit support.
+
 PROCEDURE scale*(x: REAL; n: INTEGER): REAL;
 (*
   The value of the call scale(x,n) shall be the value x*radix^n if such
@@ -335,7 +335,7 @@ PROCEDURE synthesize*(expart: INTEGER; frapart: REAL): REAL;
 BEGIN
   RETURN scale(frapart, expart)
 END synthesize;
-*)
+
 
 PROCEDURE setMode*(m: Modes);
 (*

@@ -42,9 +42,7 @@ MODULE ulmIO;
       dig       : LONGINT;
       NumberLen : SHORTINT;
   BEGIN
-    IF SIZE(LONGINT) = 4 THEN
-      NumberLen := 11
-    ELSIF SIZE(LONGINT) = 8 THEN
+    IF  SIZE(LONGINT) = 8 THEN
       NumberLen := 21
     ELSE
       NumberLen := 11 (* default value, corresponds to 32 bit *)

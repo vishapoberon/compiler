@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -1541,28 +1541,9 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 	OPT_Struct y = NIL;
 	int16 f, g;
 	OPT_Struct p = NIL, q = NIL;
-	if (__IN(18, OPM_opt, 32)) {
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"PROCEDURE CheckAssign", 22);
-		OPM_LogWLn();
-	}
 	y = ynode->typ;
 	f = x->form;
 	g = y->form;
-	if (__IN(18, OPM_opt, 32)) {
-		OPM_LogWStr((CHAR*)"y.form = ", 10);
-		OPM_LogWNum(y->form, 0);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"f = ", 5);
-		OPM_LogWNum(f, 0);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"g = ", 5);
-		OPM_LogWNum(g, 0);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"ynode.typ.syze = ", 18);
-		OPM_LogWNum(ynode->typ->size, 0);
-		OPM_LogWLn();
-	}
 	if (ynode->class == 8 || (ynode->class == 9 && f != 12)) {
 		OPB_err(126);
 	}
@@ -2367,7 +2348,7 @@ static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpa
 	atyp = atyp->BaseTyp;
 	if ((fvarpar && ftyp == OPT_bytetyp)) {
 		if (!__IN(f, 0x0c, 32) || !((__IN(atyp->form, 0x1e, 32) && atyp->size == 1))) {
-			if (__IN(18, OPM_opt, 32)) {
+			if (__IN(18, OPM_Options, 32)) {
 				OPB_err(-301);
 			}
 		}

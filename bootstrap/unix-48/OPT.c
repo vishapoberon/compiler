@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -1867,7 +1867,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 			}
 			OPT_OutObj(OPT_topScope->right);
 			*ext = (OPT_sfpresent && OPT_symExtended);
-			*new = (!OPT_sfpresent || OPT_symNew) || __IN(17, OPM_opt, 32);
+			*new = (!OPT_sfpresent || OPT_symNew) || __IN(17, OPM_Options, 32);
 			if ((((OPM_noerr && OPT_sfpresent)) && OPT_impCtxt.reffp != OPT_expCtxt.reffp)) {
 				*new = 1;
 				if (!OPT_extsf) {

@@ -190,29 +190,29 @@ browsercmd: configuration
 
 # library: build all directories under src/library
 library: configuration
-	@make -f src/tools/make/oberon.mk -s library
+	@make -f src/tools/make/oberon.mk -s library MODEL=2
 
 # Individual library components
 v4: configuration
-	@make -f src/tools/make/oberon.mk -s v4
+	@make -f src/tools/make/oberon.mk -s v4 MODEL=2
 
 ooc2: configuration
-	@make -f src/tools/make/oberon.mk -s ooc2
+	@make -f src/tools/make/oberon.mk -s ooc2 MODEL=2
 
 ooc: configuration
-	@make -f src/tools/make/oberon.mk -s ooc
+	@make -f src/tools/make/oberon.mk -s ooc MODEL=2
 
 ulm: configuration
-	@make -f src/tools/make/oberon.mk -s ulm
+	@make -f src/tools/make/oberon.mk -s ulm MODEL=2
 
 pow32: configuration
-	@make -f src/tools/make/oberon.mk -s pow32
+	@make -f src/tools/make/oberon.mk -s pow32 MODEL=2
 
 misc: configuration
-	@make -f src/tools/make/oberon.mk -s misc
+	@make -f src/tools/make/oberon.mk -s misc MODEL=2
 
 s3: configuration
-	@make -f src/tools/make/oberon.mk -s s3
+	@make -f src/tools/make/oberon.mk -s s3 MODEL=2
 
 
 
@@ -247,8 +247,8 @@ planned-binary-change:
 # built then run 'make revertbootstrap' first.
 bootstrap: bootstrapconfiguration
 	@make -f src/tools/make/oberon.mk -s clean
-	@make -f src/tools/make/oberon.mk -s translate
-	@make -f src/tools/make/oberon.mk -s assemble
+	@make -f src/tools/make/oberon.mk -s translate MODEL=2
+	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
 	rm -rf bootstrap/*
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym

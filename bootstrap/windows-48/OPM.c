@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -19,7 +19,14 @@ typedef
 
 
 static CHAR OPM_SourceFileName[256];
-export int16 OPM_AddressSize, OPM_Alignment, OPM_SetSize, OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_MaxSet;
+static CHAR OPM_GlobalModel[10];
+export CHAR OPM_Model[10];
+static int16 OPM_GlobalAddressSize;
+export int16 OPM_AddressSize;
+static int16 OPM_GlobalAlignment;
+export int16 OPM_Alignment;
+export SET OPM_GlobalOptions, OPM_Options;
+export int16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize, OPM_MaxSet;
 export int64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
@@ -27,7 +34,6 @@ export int32 OPM_curpos, OPM_errpos, OPM_breakpc;
 export int16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 export CHAR OPM_modName[32];
 export CHAR OPM_objname[64];
-export SET OPM_opt, OPM_glbopt;
 static int32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
 static Texts_Reader OPM_inR;
 static Texts_Text OPM_Log;
@@ -36,8 +42,7 @@ static Files_Rider OPM_oldSF, OPM_newSF;
 static Files_Rider OPM_R[3];
 static Files_File OPM_oldSFile, OPM_newSFile, OPM_HFile, OPM_BFile, OPM_HIFile;
 static int16 OPM_S;
-static CHAR OPM_OBERON[1024];
-static CHAR OPM_MODULES[1024];
+export CHAR OPM_ResourceDir[1024];
 
 
 static void OPM_Append (Files_Rider *R, address *R__typ, Files_File F);
@@ -50,8 +55,6 @@ export void OPM_FPrintReal (int32 *fp, REAL real);
 export void OPM_FPrintSet (int32 *fp, SET set);
 static void OPM_FindLine (Files_File f, Files_Rider *r, address *r__typ, int64 pos);
 export void OPM_Get (CHAR *ch);
-static void OPM_GetProperties (void);
-static void OPM_GetProperty (Texts_Scanner *S, address *S__typ, CHAR *name, LONGINT name__len, int16 *size, int16 *align);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 export void OPM_InitOptions (void);
 export int16 OPM_Integer (int64 n);
@@ -68,7 +71,7 @@ export void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 export void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
 export BOOLEAN OPM_OpenPar (void);
 export void OPM_RegisterNewSym (void);
-static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt);
+static void OPM_ScanOptions (CHAR *s, LONGINT s__len);
 static void OPM_ShowLine (int64 pos);
 export int64 OPM_SignedMaximum (int32 bytecount);
 export int64 OPM_SignedMinimum (int32 bytecount);
@@ -93,10 +96,8 @@ export void OPM_WriteString (CHAR *s, LONGINT s__len);
 export void OPM_WriteStringVar (CHAR *s, LONGINT s__len);
 export BOOLEAN OPM_eofSF (void);
 export void OPM_err (int16 n);
-static int32 OPM_minusop (int32 i);
-static int32 OPM_power0 (int32 i, int32 j);
 
-#define OPM_GetAlignment(a)	struct {char c; long long l;} s; *a = (char*)&s.l - (char*)&s
+#define OPM_GetAlignment(a)	struct {char c; long long l;} _s; *a = (char*)&_s.l - (char*)&_s
 
 void OPM_LogW (CHAR ch)
 {
@@ -120,6 +121,23 @@ void OPM_LogWLn (void)
 	Console_Ln();
 }
 
+int64 OPM_SignedMaximum (int32 bytecount)
+{
+	int64 _o_result;
+	int64 result;
+	result = 1;
+	result = __LSH(result, __ASHL(bytecount, 3) - 1, 64);
+	_o_result = result - 1;
+	return _o_result;
+}
+
+int64 OPM_SignedMinimum (int32 bytecount)
+{
+	int64 _o_result;
+	_o_result = -OPM_SignedMaximum(bytecount) - 1;
+	return _o_result;
+}
+
 int32 OPM_Longint (int64 n)
 {
 	int32 _o_result;
@@ -134,7 +152,7 @@ int16 OPM_Integer (int64 n)
 	return _o_result;
 }
 
-static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
+static void OPM_ScanOptions (CHAR *s, LONGINT s__len)
 {
 	int16 i;
 	__DUP(s, s__len, CHAR);
@@ -142,75 +160,57 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len, SET *opt)
 	while (s[__X(i, s__len)] != 0x00) {
 		switch (s[__X(i, s__len)]) {
 			case 'p': 
-				*opt = *opt ^ 0x20;
+				OPM_Options = OPM_Options ^ 0x20;
 				break;
 			case 'a': 
-				*opt = *opt ^ 0x80;
+				OPM_Options = OPM_Options ^ 0x80;
 				break;
 			case 'r': 
-				*opt = *opt ^ 0x04;
+				OPM_Options = OPM_Options ^ 0x04;
 				break;
 			case 't': 
-				*opt = *opt ^ 0x08;
+				OPM_Options = OPM_Options ^ 0x08;
 				break;
 			case 'x': 
-				*opt = *opt ^ 0x01;
+				OPM_Options = OPM_Options ^ 0x01;
 				break;
 			case 'e': 
-				*opt = *opt ^ 0x0200;
+				OPM_Options = OPM_Options ^ 0x0200;
 				break;
 			case 's': 
-				*opt = *opt ^ 0x10;
+				OPM_Options = OPM_Options ^ 0x10;
 				break;
 			case 'F': 
-				*opt = *opt ^ 0x020000;
+				OPM_Options = OPM_Options ^ 0x020000;
 				break;
 			case 'm': 
-				*opt = *opt ^ 0x0400;
+				OPM_Options = OPM_Options ^ 0x0400;
 				break;
 			case 'M': 
-				*opt = *opt ^ 0x8000;
+				OPM_Options = OPM_Options ^ 0x8000;
 				break;
 			case 'S': 
-				*opt = *opt ^ 0x2000;
+				OPM_Options = OPM_Options ^ 0x2000;
 				break;
 			case 'c': 
-				*opt = *opt ^ 0x4000;
+				OPM_Options = OPM_Options ^ 0x4000;
 				break;
 			case 'f': 
-				*opt = *opt ^ 0x010000;
+				OPM_Options = OPM_Options ^ 0x010000;
 				break;
 			case 'V': 
-				*opt = *opt ^ 0x040000;
+				OPM_Options = OPM_Options ^ 0x040000;
 				break;
 			case 'O': 
 				if (i + 1 >= Strings_Length(s, s__len)) {
 					OPM_LogWStr((CHAR*)"-O option requires following size model character.", 51);
 					OPM_LogWLn();
 				} else {
-					switch (s[__X(i + 1, s__len)]) {
-						case '2': 
-							OPM_ShortintSize = 1;
-							OPM_IntegerSize = 2;
-							OPM_LongintSize = 4;
-							OPM_SetSize = 4;
-							break;
-						case 'V': 
-							OPM_ShortintSize = 1;
-							OPM_IntegerSize = 4;
-							OPM_LongintSize = 8;
-							OPM_SetSize = 8;
-							break;
-						case 'C': 
-							OPM_ShortintSize = 2;
-							OPM_IntegerSize = 4;
-							OPM_LongintSize = 8;
-							OPM_SetSize = 8;
-							break;
-						default: 
-							OPM_LogWStr((CHAR*)"Unrecognised size model character following -O.", 48);
-							OPM_LogWLn();
-							break;
+					OPM_Model[0] = s[__X(i + 1, s__len)];
+					OPM_Model[1] = 0x00;
+					if ((((OPM_Model[0] != '2' && OPM_Model[0] != 'C')) && OPM_Model[0] != 'V')) {
+						OPM_LogWStr((CHAR*)"Unrecognised size model character following -O.", 48);
+						OPM_LogWLn();
 					}
 					i += 1;
 				}
@@ -358,39 +358,119 @@ BOOLEAN OPM_OpenPar (void)
 		_o_result = 0;
 		return _o_result;
 	} else {
+		OPM_AddressSize = 4;
+		OPM_GetAlignment(&OPM_Alignment);
+		__MOVE("2", OPM_Model, 2);
+		OPM_Options = 0xa9;
 		OPM_S = 1;
 		s[0] = 0x00;
 		Platform_GetArg(OPM_S, (void*)s, 256);
-		OPM_glbopt = 0xa9;
 		while (s[0] == '-') {
-			OPM_ScanOptions(s, 256, &OPM_glbopt);
+			OPM_ScanOptions(s, 256);
 			OPM_S += 1;
 			s[0] = 0x00;
 			Platform_GetArg(OPM_S, (void*)s, 256);
 		}
+		OPM_GlobalAddressSize = OPM_AddressSize;
+		OPM_GlobalAlignment = OPM_Alignment;
+		__COPY(OPM_Model, OPM_GlobalModel, 10);
+		OPM_GlobalOptions = OPM_Options;
 		_o_result = 1;
 		return _o_result;
 	}
 	__RETCHK;
 }
 
+static void OPM_VerboseListSizes (void)
+{
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"Type      Size", 15);
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"SHORTINT   ", 12);
+	OPM_LogWNum(OPM_ShortintSize, 4);
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"INTEGER    ", 12);
+	OPM_LogWNum(OPM_IntegerSize, 4);
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"LONGINT    ", 12);
+	OPM_LogWNum(OPM_LongintSize, 4);
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"SET        ", 12);
+	OPM_LogWNum(OPM_SetSize, 4);
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"ADDRESS    ", 12);
+	OPM_LogWNum(OPM_AddressSize, 4);
+	OPM_LogWLn();
+	OPM_LogWLn();
+	OPM_LogWStr((CHAR*)"Alignment: ", 12);
+	OPM_LogWNum(OPM_Alignment, 4);
+	OPM_LogWLn();
+}
+
 void OPM_InitOptions (void)
 {
 	CHAR s[256];
-	OPM_opt = OPM_glbopt;
+	CHAR searchpath[1024], modules[1024];
+	CHAR MODULES[1024];
+	OPM_Options = OPM_GlobalOptions;
+	__COPY(OPM_GlobalModel, OPM_Model, 10);
+	OPM_Alignment = OPM_GlobalAlignment;
+	OPM_AddressSize = OPM_GlobalAddressSize;
 	s[0] = 0x00;
 	Platform_GetArg(OPM_S, (void*)s, 256);
 	while (s[0] == '-') {
-		OPM_ScanOptions(s, 256, &OPM_opt);
+		OPM_ScanOptions(s, 256);
 		OPM_S += 1;
 		s[0] = 0x00;
 		Platform_GetArg(OPM_S, (void*)s, 256);
 	}
-	if (__IN(15, OPM_opt, 32)) {
-		OPM_glbopt |= __SETOF(10,32);
-		OPM_opt |= __SETOF(10,32);
+	if (__IN(15, OPM_Options, 32)) {
+		OPM_Options |= __SETOF(10,32);
 	}
-	OPM_GetProperties();
+	OPM_MaxIndex = OPM_SignedMaximum(OPM_AddressSize);
+	switch (OPM_Model[0]) {
+		case '2': 
+			OPM_ShortintSize = 1;
+			OPM_IntegerSize = 2;
+			OPM_LongintSize = 4;
+			OPM_SetSize = 4;
+			break;
+		case 'C': 
+			OPM_ShortintSize = 2;
+			OPM_IntegerSize = 4;
+			OPM_LongintSize = 8;
+			OPM_SetSize = 8;
+			break;
+		case 'V': 
+			OPM_ShortintSize = 1;
+			OPM_IntegerSize = 4;
+			OPM_LongintSize = 8;
+			OPM_SetSize = 8;
+			break;
+		default: 
+			OPM_ShortintSize = 1;
+			OPM_IntegerSize = 2;
+			OPM_LongintSize = 4;
+			OPM_SetSize = 4;
+			break;
+	}
+	OPM_MaxSet = __ASHL(OPM_SetSize, 3) - 1;
+	if (__IN(18, OPM_Options, 32)) {
+		OPM_VerboseListSizes();
+	}
+	OPM_ResourceDir[0] = 0x00;
+	Strings_Append((CHAR*)"/", 2, (void*)OPM_ResourceDir, 1024);
+	Strings_Append(OPM_Model, 10, (void*)OPM_ResourceDir, 1024);
+	modules[0] = 0x00;
+	Platform_GetEnv((CHAR*)"MODULES", 8, (void*)modules, 1024);
+	__MOVE(".", searchpath, 2);
+	Platform_GetEnv((CHAR*)"OBERON", 7, (void*)searchpath, 1024);
+	Strings_Append((CHAR*)";.;", 4, (void*)searchpath, 1024);
+	Strings_Append(modules, 1024, (void*)searchpath, 1024);
+	Strings_Append((CHAR*)";", 2, (void*)searchpath, 1024);
+	Strings_Append(OPM_ResourceDir, 1024, (void*)searchpath, 1024);
+	Strings_Append((CHAR*)"/sym;", 6, (void*)searchpath, 1024);
+	Files_SetSearchPath(searchpath, 1024);
 }
 
 void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len)
@@ -474,20 +554,20 @@ static void OPM_LogErrMsg (int16 n)
 	int16 i;
 	CHAR buf[1024];
 	if (n >= 0) {
-		if (!__IN(16, OPM_opt, 32)) {
+		if (!__IN(16, OPM_Options, 32)) {
 			vt100_SetAttr((CHAR*)"31m", 4);
 		}
 		OPM_LogWStr((CHAR*)"  err ", 7);
-		if (!__IN(16, OPM_opt, 32)) {
+		if (!__IN(16, OPM_Options, 32)) {
 			vt100_SetAttr((CHAR*)"0m", 3);
 		}
 	} else {
-		if (!__IN(16, OPM_opt, 32)) {
+		if (!__IN(16, OPM_Options, 32)) {
 			vt100_SetAttr((CHAR*)"35m", 4);
 		}
 		OPM_LogWStr((CHAR*)"  warning ", 11);
 		n = -n;
-		if (!__IN(16, OPM_opt, 32)) {
+		if (!__IN(16, OPM_Options, 32)) {
 			vt100_SetAttr((CHAR*)"0m", 3);
 		}
 	}
@@ -560,11 +640,11 @@ static void OPM_ShowLine (int64 pos)
 		OPM_LogW(' ');
 		i -= 1;
 	}
-	if (!__IN(16, OPM_opt, 32)) {
+	if (!__IN(16, OPM_Options, 32)) {
 		vt100_SetAttr((CHAR*)"32m", 4);
 	}
 	OPM_LogW('^');
-	if (!__IN(16, OPM_opt, 32)) {
+	if (!__IN(16, OPM_Options, 32)) {
 		vt100_SetAttr((CHAR*)"0m", 3);
 	}
 	Files_Close(f);
@@ -652,106 +732,6 @@ void OPM_FPrintLReal (int32 *fp, LONGREAL lr)
 	__GET((address)&lr + 4, h, int32);
 	OPM_FPrint(&*fp, l);
 	OPM_FPrint(&*fp, h);
-}
-
-static void OPM_GetProperty (Texts_Scanner *S, address *S__typ, CHAR *name, LONGINT name__len, int16 *size, int16 *align)
-{
-	__DUP(name, name__len, CHAR);
-	if (((*S).class == 1 && __STRCMP((*S).s, name) == 0)) {
-		Texts_Scan(&*S, S__typ);
-		if ((*S).class == 3) {
-			*size = (int16)(*S).i;
-			Texts_Scan(&*S, S__typ);
-		} else {
-			OPM_Mark(-157, -1);
-		}
-		if ((*S).class == 3) {
-			*align = (int16)(*S).i;
-			Texts_Scan(&*S, S__typ);
-		} else {
-			OPM_Mark(-157, -1);
-		}
-	} else {
-		OPM_Mark(-157, -1);
-	}
-	__DEL(name);
-}
-
-static int32 OPM_minusop (int32 i)
-{
-	int32 _o_result;
-	_o_result = -i;
-	return _o_result;
-}
-
-static int32 OPM_power0 (int32 i, int32 j)
-{
-	int32 _o_result;
-	int32 k, p;
-	k = 1;
-	p = i;
-	do {
-		p = p * i;
-		k += 1;
-	} while (!(k == j));
-	_o_result = p;
-	return _o_result;
-}
-
-static void OPM_VerboseListSizes (void)
-{
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Type        Size", 17);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"SHORTINT     ", 14);
-	OPM_LogWNum(OPM_ShortintSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"INTEGER      ", 14);
-	OPM_LogWNum(OPM_IntegerSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"LONGINT      ", 14);
-	OPM_LogWNum(OPM_LongintSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"SET          ", 14);
-	OPM_LogWNum(OPM_SetSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"ADDRESS      ", 14);
-	OPM_LogWNum(OPM_AddressSize, 4);
-	OPM_LogWLn();
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Alignment: ", 12);
-	OPM_LogWNum(OPM_Alignment, 4);
-	OPM_LogWLn();
-}
-
-int64 OPM_SignedMaximum (int32 bytecount)
-{
-	int64 _o_result;
-	int64 result;
-	result = 1;
-	result = __LSH(result, __ASHL(bytecount, 3) - 1, 64);
-	_o_result = result - 1;
-	return _o_result;
-}
-
-int64 OPM_SignedMinimum (int32 bytecount)
-{
-	int64 _o_result;
-	_o_result = -OPM_SignedMaximum(bytecount) - 1;
-	return _o_result;
-}
-
-static void OPM_GetProperties (void)
-{
-	OPM_MaxReal =   3.40282346000000e+038;
-	OPM_MaxLReal =   1.79769296342094e+308;
-	OPM_MinReal = -OPM_MaxReal;
-	OPM_MinLReal = -OPM_MaxLReal;
-	OPM_MaxSet = __ASHL(OPM_SetSize, 3) - 1;
-	OPM_MaxIndex = OPM_SignedMaximum(OPM_AddressSize);
-	if (__IN(18, OPM_opt, 32)) {
-		OPM_VerboseListSizes();
-	}
 }
 
 void OPM_SymRCh (CHAR *ch)
@@ -848,7 +828,7 @@ void OPM_SymWLReal (LONGREAL lr)
 
 void OPM_RegisterNewSym (void)
 {
-	if (__STRCMP(OPM_modName, "SYSTEM") != 0 || __IN(10, OPM_opt, 32)) {
+	if (__STRCMP(OPM_modName, "SYSTEM") != 0 || __IN(10, OPM_Options, 32)) {
 		Files_Register(OPM_newSFile);
 	}
 }
@@ -1047,10 +1027,10 @@ void OPM_CloseFiles (void)
 	}
 	if (OPM_noerr) {
 		if (__STRCMP(OPM_modName, "SYSTEM") == 0) {
-			if (!__IN(10, OPM_opt, 32)) {
+			if (!__IN(10, OPM_Options, 32)) {
 				Files_Register(OPM_BFile);
 			}
-		} else if (!__IN(10, OPM_opt, 32)) {
+		} else if (!__IN(10, OPM_Options, 32)) {
 			OPM_Append(&OPM_R[2], Files_Rider__typ, OPM_HFile);
 			Files_Register(OPM_HIFile);
 			Files_Register(OPM_BFile);
@@ -1110,22 +1090,10 @@ export void *OPM__init(void)
 	__REGCMD("RegisterNewSym", OPM_RegisterNewSym);
 	__REGCMD("WriteLn", OPM_WriteLn);
 /* BEGIN */
+	OPM_MaxReal =   3.40282346000000e+038;
+	OPM_MaxLReal =   1.79769296342094e+308;
+	OPM_MinReal = -OPM_MaxReal;
+	OPM_MinLReal = -OPM_MaxLReal;
 	Texts_OpenWriter(&OPM_W, Texts_Writer__typ);
-	OPM_MODULES[0] = 0x00;
-	Platform_GetEnv((CHAR*)"MODULES", 8, (void*)OPM_MODULES, 1024);
-	__MOVE(".", OPM_OBERON, 2);
-	Platform_GetEnv((CHAR*)"OBERON", 7, (void*)OPM_OBERON, 1024);
-	Strings_Append((CHAR*)";.;", 4, (void*)OPM_OBERON, 1024);
-	Strings_Append(OPM_MODULES, 1024, (void*)OPM_OBERON, 1024);
-	Strings_Append((CHAR*)";", 2, (void*)OPM_OBERON, 1024);
-	Strings_Append((CHAR*)"", 1, (void*)OPM_OBERON, 1024);
-	Strings_Append((CHAR*)"/sym;", 6, (void*)OPM_OBERON, 1024);
-	Files_SetSearchPath(OPM_OBERON, 1024);
-	OPM_AddressSize = 4;
-	OPM_GetAlignment(&OPM_Alignment);
-	OPM_ShortintSize = 1;
-	OPM_IntegerSize = 2;
-	OPM_LongintSize = 4;
-	OPM_SetSize = 4;
 	__ENDMOD;
 }

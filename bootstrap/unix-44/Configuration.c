@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -18,6 +18,6 @@ export void *Configuration__init(void)
 	__DEFMOD;
 	__REGMOD("Configuration", 0);
 /* BEGIN */
-	__MOVE("1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8.", Configuration_versionLong, 75);
+	__MOVE("1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8.", Configuration_versionLong, 75);
 	__ENDMOD;
 }

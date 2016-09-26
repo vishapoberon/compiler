@@ -75,6 +75,7 @@ PROCEDURE -ECONNREFUSED(): ErrorCode 'ECONNREFUSED';
 PROCEDURE -ECONNABORTED(): ErrorCode 'ECONNABORTED';
 PROCEDURE -ENETUNREACH():  ErrorCode 'ENETUNREACH';
 PROCEDURE -EHOSTUNREACH(): ErrorCode 'EHOSTUNREACH';
+PROCEDURE -EINTR():        ErrorCode 'EINTR';
 
 
 
@@ -92,14 +93,17 @@ PROCEDURE Inaccessible*(e: ErrorCode): BOOLEAN;
 BEGIN RETURN (e = EACCES()) OR (e = EROFS()) OR (e = EAGAIN()) END Inaccessible;
 
 PROCEDURE Absent*(e: ErrorCode): BOOLEAN;
-BEGIN RETURN (e = ENOENT()) END Absent;
+BEGIN RETURN e = ENOENT() END Absent;
 
 PROCEDURE TimedOut*(e: ErrorCode): BOOLEAN;
-BEGIN RETURN (e = ETIMEDOUT()) END TimedOut;
+BEGIN RETURN e = ETIMEDOUT() END TimedOut;
 
 PROCEDURE ConnectionFailed*(e: ErrorCode): BOOLEAN;
 BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
           OR (e = ENETUNREACH())  OR (e = EHOSTUNREACH()) END ConnectionFailed;
+
+PROCEDURE Interrupted*(e: ErrorCode): BOOLEAN;
+BEGIN RETURN e = EINTR() END Interrupted;
 
 
 

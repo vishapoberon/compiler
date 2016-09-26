@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -211,7 +211,7 @@ static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp
 			return _o_result;
 			break;
 		case 5: 
-			if (__IN(3, OPM_opt, 32)) {
+			if (__IN(3, OPM_Options, 32)) {
 				_o_result = 10;
 				return _o_result;
 			} else {
@@ -397,7 +397,7 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int16 prec)
 		OPM_WriteInt(__ASHL(newtype->size, 3));
 		OPM_Write(')');
 	} else if (to == 4) {
-		if ((newtype->size < n->typ->size && __IN(2, OPM_opt, 32))) {
+		if ((newtype->size < n->typ->size && __IN(2, OPM_Options, 32))) {
 			OPM_WriteString((CHAR*)"__SHORT", 8);
 			if (OPV_SideEffects(n)) {
 				OPM_Write('F');
@@ -412,7 +412,7 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int16 prec)
 			OPV_Entier(n, 9);
 		}
 	} else if (to == 3) {
-		if (__IN(2, OPM_opt, 32)) {
+		if (__IN(2, OPM_Options, 32)) {
 			OPM_WriteString((CHAR*)"__CHR", 6);
 			if (OPV_SideEffects(n)) {
 				OPM_Write('F');
@@ -453,7 +453,7 @@ static void OPV_TypeOf (OPT_Node n)
 
 static void OPV_Index (OPT_Node n, OPT_Node d, int16 prec, int16 dim)
 {
-	if (!__IN(0, OPM_opt, 32) || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
+	if (!__IN(0, OPM_Options, 32) || (n->right->class == 7 && (n->right->conval->intval == 0 || n->left->typ->comp != 3))) {
 		OPV_expr(n->right, prec);
 	} else {
 		if (OPV_SideEffects(n->right)) {
@@ -575,7 +575,7 @@ static void OPV_design (OPT_Node n, int16 prec)
 		case 5: 
 			typ = n->typ;
 			obj = n->left->obj;
-			if (__IN(3, OPM_opt, 32)) {
+			if (__IN(3, OPM_Options, 32)) {
 				if (typ->comp == 4) {
 					OPM_WriteString((CHAR*)"__GUARDR(", 10);
 					if ((int16)obj->mnolev != OPM_level) {
@@ -614,7 +614,7 @@ static void OPV_design (OPT_Node n, int16 prec)
 			}
 			break;
 		case 6: 
-			if (__IN(3, OPM_opt, 32)) {
+			if (__IN(3, OPM_Options, 32)) {
 				if (n->left->class == 1) {
 					OPM_WriteString((CHAR*)"__GUARDEQR(", 12);
 					OPC_CompleteIdent(n->left->obj);
@@ -1442,7 +1442,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 			case 20: 
 				if (n->subcl != 32) {
 					OPV_IfStat(n, 0, outerProc);
-				} else if (__IN(7, OPM_opt, 32)) {
+				} else if (__IN(7, OPM_Options, 32)) {
 					OPM_WriteString((CHAR*)"__ASSERT(", 10);
 					OPV_expr(n->left->left->left, -1);
 					OPM_WriteString((CHAR*)", ", 3);
@@ -1508,7 +1508,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				break;
 			case 26: 
 				if (OPM_level == 0) {
-					if (__IN(10, OPM_opt, 32)) {
+					if (__IN(10, OPM_Options, 32)) {
 						OPM_WriteString((CHAR*)"__FINI", 7);
 					} else {
 						OPM_WriteString((CHAR*)"__ENDMOD", 9);
@@ -1553,7 +1553,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 
 void OPV_Module (OPT_Node prog)
 {
-	if (!__IN(10, OPM_opt, 32)) {
+	if (!__IN(10, OPM_Options, 32)) {
 		OPC_GenHdr(prog->right);
 		OPC_GenHdrIncludes();
 	}

@@ -28,52 +28,53 @@
 
 MODULE ulmIntOperations; (* Frank B.J. Fischer *)
 
-   IMPORT Operations := ulmOperations, PersistentObjects := ulmPersistentObjects, Services := ulmServices, Streams := ulmStreams, Types := ulmTypes, SYSTEM;
+   IMPORT
+      Operations := ulmOperations, PersistentObjects := ulmPersistentObjects,
+      Services   := ulmServices,   Streams           := ulmStreams,
+      Types      := ulmTypes;
 
-(* SYSTEM added to make casts necessary to port ulm library because ulm compiler is not as strict (read it's wrong) as it had to be --noch *)
-
-   CONST 
+   CONST
       mod* = 5; pow* = 6; inc* = 7; dec* = 8; mmul* = 9; mpow* = 10;
       odd* = 11; shift* = 12;
 
-   TYPE 
+   TYPE
       Operation* = Operations.Operation;  (* Operations.add..mpow *)
       Operand* = POINTER TO OperandRec;
 
    TYPE
-      CapabilitySet* = Operations.CapabilitySet; 
-	 (* SET of [Operations.add..shift] *)
+      CapabilitySet* = Operations.CapabilitySet;
+         (* SET of [Operations.add..shift] *)
       IsLargeEnoughForProc* = PROCEDURE (op: Operations.Operand;
-					n: LONGINT): BOOLEAN;
+                                        n: LONGINT): BOOLEAN;
       UnsignedProc* = PROCEDURE (op: Operations.Operand): BOOLEAN;
       IntToOpProc* = PROCEDURE (int32: Types.Int32; VAR op: Operations.Operand);
       OpToIntProc* = PROCEDURE (op: Operations.Operand; VAR int32: Types.Int32);
       Log2Proc* = PROCEDURE (op: Operations.Operand): LONGINT;
       OddProc* = PROCEDURE (op: Operations.Operand): BOOLEAN;
-      ShiftProc* = PROCEDURE (op: Operations.Operand; 
-			     n: INTEGER): Operations.Operand;
-      IntOperatorProc* = PROCEDURE(op: Operation; 
-				  op1, op2, op3: Operations.Operand; 
-				  VAR result: Operations.Operand);
+      ShiftProc* = PROCEDURE (op: Operations.Operand;
+                             n: INTEGER): Operations.Operand;
+      IntOperatorProc* = PROCEDURE(op: Operation;
+                                  op1, op2, op3: Operations.Operand;
+                                  VAR result: Operations.Operand);
       Interface* = POINTER TO InterfaceRec;
       InterfaceRec* = RECORD
-			(Operations.InterfaceRec)
-			isLargeEnoughFor*: IsLargeEnoughForProc;
-			unsigned*        : UnsignedProc;
-			intToOp*         : IntToOpProc;
-			opToInt*         : OpToIntProc;
-			log2*            : Log2Proc;
-			odd*             : OddProc;
-			shift*           : ShiftProc;
-			intOp*           : IntOperatorProc;
+                        (Operations.InterfaceRec)
+                        isLargeEnoughFor*: IsLargeEnoughForProc;
+                        unsigned*        : UnsignedProc;
+                        intToOp*         : IntToOpProc;
+                        opToInt*         : OpToIntProc;
+                        log2*            : Log2Proc;
+                        odd*             : OddProc;
+                        shift*           : ShiftProc;
+                        intOp*           : IntOperatorProc;
                      END;
 
    TYPE
       OperandRec* = RECORD
-	              (Operations.OperandRec);
-		      (* private components *)
-		      if  : Interface;
-		      caps: CapabilitySet;
+                      (Operations.OperandRec);
+                      (* private components *)
+                      if  : Interface;
+                      caps: CapabilitySet;
                    END;
 
    VAR
@@ -97,7 +98,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    PROCEDURE IsLargeEnoughFor*(op: Operations.Operand; n: LONGINT): BOOLEAN;
    BEGIN
       WITH op: Operand DO
-	 RETURN op.if.isLargeEnoughFor(op, n)
+         RETURN op.if.isLargeEnoughFor(op, n)
       END;
    END IsLargeEnoughFor;
 
@@ -105,34 +106,18 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    PROCEDURE Unsigned*(op: Operations.Operand): BOOLEAN;
    BEGIN
       WITH op: Operand DO
-	 RETURN op.if.unsigned(op)
+         RETURN op.if.unsigned(op)
       END;
    END Unsigned;
 
 
    PROCEDURE IntToOp*(int32: Types.Int32; VAR op: Operations.Operand);
       (* converts int32 into operand type, and stores result in already
-	 initialized op
+         initialized op
       *)
    BEGIN
-      (*WITH op: Operand DO*)
-      (*
-        with original ulm source we were getting:
-
-        WITH op: Operand DO
-	      ^
-    pos  4101  err 245  guarded pointer variable may be manipulated by non-local operations; use auxiliary pointer variable
-      
-      thus we considered changing WITH op: Operand by op(Operand) 
-       
-       -- noch
-
-      *)
-         (*ASSERT(op.if # NIL);*)
-         ASSERT(op(Operand).if # NIL);
-         (*op.if.intToOp(int32, op);*)
-         op(Operand).if.intToOp(int32, op(Operations.Operand));
-      (*END;*)
+      ASSERT(op(Operand).if # NIL);
+      op(Operand).if.intToOp(int32, op);
    END IntToOp;
 
 
@@ -140,7 +125,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
       (* converts op into int32 *)
    BEGIN
       WITH op: Operand DO
-	 op.if.opToInt(op, int32);
+         op.if.opToInt(op, int32);
       END;
    END OpToInt;
 
@@ -148,7 +133,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    PROCEDURE Log2*(op: Operations.Operand): LONGINT;
    BEGIN
       WITH op: Operand DO
-	 RETURN op.if.log2(op)
+         RETURN op.if.log2(op)
       END;
    END Log2;
 
@@ -162,22 +147,22 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END Odd;
 
 
-   PROCEDURE Op(op: Operation; op1, op2, op3: Operations.Operand; 
-		VAR result: Operations.Operand);
+   PROCEDURE Op(op: Operation; op1, op2, op3: Operations.Operand;
+                VAR result: Operations.Operand);
       VAR
          tmpresult: Operations.Operand;
    BEGIN
       WITH op1: Operand DO
-	    IF (op2#NIL) & (op3#NIL) THEN 
-	       ASSERT((op1.if = op2(Operand).if) & 
-		      (op2(Operand).if = op3(Operand).if));
-	    ELSIF (op2#NIL) THEN
-	       ASSERT(op1.if = op2(Operand).if);
-	    END;
-	    ASSERT(op IN op1.caps);
-	    op1.if.create(tmpresult);
-	    op1.if.intOp(op, op1, op2, op3, tmpresult);
-	    result := tmpresult;
+            IF (op2#NIL) & (op3#NIL) THEN
+               ASSERT((op1.if = op2(Operand).if) &
+                      (op2(Operand).if = op3(Operand).if));
+            ELSIF (op2#NIL) THEN
+               ASSERT(op1.if = op2(Operand).if);
+            END;
+            ASSERT(op IN op1.caps);
+            op1.if.create(tmpresult);
+            op1.if.intOp(op, op1, op2, op3, tmpresult);
+            result := tmpresult;
       END;
    END Op;
 
@@ -197,15 +182,15 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END Shift2;
 
 
-   PROCEDURE Shift3*(VAR result: Operations.Operand; op1: Operations.Operand; 
-		    n : INTEGER);
+   PROCEDURE Shift3*(VAR result: Operations.Operand; op1: Operations.Operand;
+                    n : INTEGER);
       VAR
          tmpresult: Operations.Operand;
    BEGIN
       WITH op1: Operand DO
-	 op1.if.create(tmpresult);
-	 tmpresult := Shift(op1, n);
-	 result := tmpresult;
+         op1.if.create(tmpresult);
+         tmpresult := Shift(op1, n);
+         result := tmpresult;
       END;
    END Shift3;
 
@@ -230,7 +215,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    BEGIN
       Op(inc,op1,NIL,NIL,result);
    END Inc3;
-    
+
 
    PROCEDURE Dec*(op1: Operations.Operand): Operations.Operand;
       VAR
@@ -252,7 +237,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    BEGIN
       Op(dec,op1,NIL,NIL,result);
    END Dec3;
-    
+
 
    PROCEDURE Mod*(op1, op2: Operations.Operand): Operations.Operand;
       VAR
@@ -278,11 +263,10 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
 
    PROCEDURE Pow*(op1, op2: Operations.Operand): Operations.Operand;
       VAR
-         result : Operand;
+         result: Operations.Operand;
    BEGIN
       result := NIL;
-      (*Op(pow, op1, op2, NIL, result);*)
-      Op(pow, op1, op2, NIL, SYSTEM.VAL(Operations.Operand, result)); (* -- noch *)
+      Op(pow, op1, op2, NIL, result);
       RETURN result
    END Pow;
 
@@ -301,11 +285,10 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
 
    PROCEDURE MMul*(op1, op2, op3: Operations.Operand): Operations.Operand;
       VAR
-         result : Operand;
+         result : Operations.Operand;
    BEGIN
       result := NIL;
-      (*Op(mmul, op1, op2, op3, result); *)
-      Op(mmul, op1, op2, op3, SYSTEM.VAL(Operations.Operand, result)); (* --noch*)
+      Op(mmul, op1, op2, op3, result);
       RETURN result
    END MMul;
 
@@ -316,8 +299,8 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END MMul2;
 
 
-   PROCEDURE MMul3*(VAR result: Operations.Operand; 
-		   op1, op2, op3: Operations.Operand);
+   PROCEDURE MMul3*(VAR result: Operations.Operand;
+                   op1, op2, op3: Operations.Operand);
    BEGIN
       Op(mmul, op1, op2, op3, result);
    END MMul3;
@@ -325,11 +308,10 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
 
    PROCEDURE MPow*(op1, op2, op3: Operations.Operand): Operations.Operand;
       VAR
-         result : Operand;
+         result : Operations.Operand;
    BEGIN
       result := NIL;
-      (*Op(mpow, op1, op2, op3, result); *)
-      Op(mpow, op1, op2, op3, SYSTEM.VAL(Operations.Operand, result)); (* -- noch*)
+      Op(mpow, op1, op2, op3, result);
       RETURN result
    END MPow;
 
@@ -340,8 +322,8 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END MPow2;
 
 
-   PROCEDURE MPow3*(VAR result: Operations.Operand; 
-		   op1, op2, op3: Operations.Operand);
+   PROCEDURE MPow3*(VAR result: Operations.Operand;
+                   op1, op2, op3: Operations.Operand);
    BEGIN
       Op(mpow, op1, op2, op3, result);
    END MPow3;

@@ -46,88 +46,88 @@ MODULE ulmEvents;
 
    CONST
       (* possibilities on receipt of an event: *)
-      default* = 0;		(* causes abortion *)
-      ignore* = 1;		(* ignore event *)
-      funcs* = 2;		(* call associated event handlers *)
+      default* = 0;             (* causes abortion *)
+      ignore* = 1;              (* ignore event *)
+      funcs* = 2;               (* call associated event handlers *)
 
    TYPE
-      Reaction* = INTEGER;	(* one of default, ignore, or funcs *)
+      Reaction* = INTEGER;      (* one of default, ignore, or funcs *)
       Message* = ARRAY 80 OF CHAR;
       Event* = POINTER TO EventRec;
       EventRec* =
-	 RECORD
-	    (Objects.ObjectRec)
-	    type*: EventType;
-	    message*: Message;
-	    (* private part *)
-	    next: Event;		(* queue *)
-	 END;
+         RECORD
+            (Objects.ObjectRec)
+            type*: EventType;
+            message*: Message;
+            (* private part *)
+            next: Event;                (* queue *)
+         END;
       EventHandler = PROCEDURE (event: Event);
 
       (* event managers are needed if there is any action necessary
-	 on changing the kind of reaction
+         on changing the kind of reaction
       *)
       EventManager = PROCEDURE (type: EventType; reaction: Reaction);
 
       Priority = INTEGER; (* must be non-negative *)
 
       (* every event with reaction `funcs' has a handler list;
-	 the list is in calling order which is reverse to
-	 the order of `Handler'-calls
+         the list is in calling order which is reverse to
+         the order of `Handler'-calls
       *)
       HandlerList = POINTER TO HandlerRec;
       HandlerRec* =
-	 RECORD
-	    (Objects.ObjectRec)
-	    handler*: EventHandler;
-	    next*: HandlerList;
-	 END;
+         RECORD
+            (Objects.ObjectRec)
+            handler*: EventHandler;
+            next*: HandlerList;
+         END;
       SaveList = POINTER TO SaveRec;
       SaveRec =
-	 RECORD
-	    reaction: Reaction;
-	    handlers: HandlerList;
-	    next: SaveList;
-	 END;
+         RECORD
+            reaction: Reaction;
+            handlers: HandlerList;
+            next: SaveList;
+         END;
 
       EventTypeRec* =
-	 RECORD
-	    (Services.ObjectRec)
-	    (* private components *)
-	    handlers: HandlerList;
-	    priority: Priority;
-	    reaction: Reaction;
-	    manager:  EventManager;
-	    savelist: SaveList;
-	 END;
+         RECORD
+            (Services.ObjectRec)
+            (* private components *)
+            handlers: HandlerList;
+            priority: Priority;
+            reaction: Reaction;
+            manager:  EventManager;
+            savelist: SaveList;
+         END;
 
       Queue = POINTER TO QueueRec;
       QueueRec =
-	 RECORD
-	    priority: INTEGER;		(* queue for this priority *)
-	    head, tail: Event;
-	    next: Queue;		(* queue with lower priority *)
-	 END;
+         RECORD
+            priority: INTEGER;          (* queue for this priority *)
+            head, tail: Event;
+            next: Queue;                (* queue with lower priority *)
+         END;
 
    VAR
       eventTypeType: Services.Type;
-   
+
    CONST
-      priotabsize = 256;	(* size of a priority table *)
-      maxnestlevel = 1024;	(* of Raise-calls (avoids endless recursion) *)
+      priotabsize = 256;        (* size of a priority table *)
+      maxnestlevel = 1024;      (* of Raise-calls (avoids endless recursion) *)
 
    TYPE
       (* in some cases coroutines uses local priority systems *)
       PrioritySystem* = POINTER TO PrioritySystemRec;
       PrioritySystemRec* =
-	 RECORD
-	    (Objects.ObjectRec)
-	    (* private part *)
-	    currentPriority: Priority;
-	    priotab: ARRAY priotabsize OF Priority;
-	    priotop: INTEGER;
-	    overflow: INTEGER;	(* of priority table *)
-	 END;
+         RECORD
+            (Objects.ObjectRec)
+            (* private part *)
+            currentPriority: Priority;
+            priotab: ARRAY priotabsize OF Priority;
+            priotop: INTEGER;
+            overflow: INTEGER;  (* of priority table *)
+         END;
 
    CONST
       priorityViolation* = 0; (* priority violation (EnterPriority *)
@@ -139,10 +139,10 @@ MODULE ulmEvents;
    TYPE
       ErrorEvent* = POINTER TO ErrorEventRec;
       ErrorEventRec* =
-	 RECORD
-	    (EventRec)
-	    errorcode*: SHORTINT;
-	 END;
+         RECORD
+            (EventRec)
+            errorcode*: SHORTINT;
+         END;
 
    VAR
       errormsg*: ARRAY errorcodes OF Message;
@@ -151,10 +151,10 @@ MODULE ulmEvents;
    VAR
       (* private part *)
       abort, log, queueHandler: EventHandler;
-      nestlevel: INTEGER;	(* of Raise calls *)
+      nestlevel: INTEGER;       (* of Raise calls *)
       queue: Queue;
-      lock: BOOLEAN;		(* lock critical operations *)
-      psys: PrioritySystem;	(* current priority system *)
+      lock: BOOLEAN;            (* lock critical operations *)
+      psys: PrioritySystem;     (* current priority system *)
 
    PROCEDURE ^ Define*(VAR type: EventType);
    PROCEDURE ^ SetPriority*(type: EventType; priority: Priority);
@@ -164,13 +164,13 @@ MODULE ulmEvents;
    BEGIN
       Define(error); SetPriority(error, Priorities.liberrors);
       errormsg[priorityViolation] :=
-	 "priority violation (Events.EnterPriority)";
+         "priority violation (Events.EnterPriority)";
       errormsg[unbalancedExitPriority] :=
-	 "unbalanced call of Events.ExitPriority";
+         "unbalanced call of Events.ExitPriority";
       errormsg[unbalancedRestoreReaction] :=
-	 "unbalanced call of Events.RestoreReaction";
+         "unbalanced call of Events.RestoreReaction";
       errormsg[negPriority] :=
-	 "negative priority given to Events.SetPriority";
+         "negative priority given to Events.SetPriority";
    END InitErrorHandling;
 
    PROCEDURE Error(code: SHORTINT);
@@ -187,7 +187,7 @@ MODULE ulmEvents;
 
    PROCEDURE Init*(type: EventType);
       VAR
-	 stype: Services.Type;
+         stype: Services.Type;
    BEGIN
       Services.GetType(type, stype); ASSERT(stype # NIL);
       type.handlers := NIL;
@@ -199,8 +199,8 @@ MODULE ulmEvents;
 
    PROCEDURE Define*(VAR type: EventType);
       (* definition of a new event;
-	 an unique event number is returned;
-	 the reaction on receipt of `type' is defined to be `default'
+         an unique event number is returned;
+         the reaction on receipt of `type' is defined to be `default'
       *)
    BEGIN
       NEW(type);
@@ -218,9 +218,9 @@ MODULE ulmEvents;
       (* (re-)defines the priority of an event *)
    BEGIN
       IF priority <= 0 THEN
-	 Error(negPriority);
+         Error(negPriority);
       ELSE
-	 type.priority := priority;
+         type.priority := priority;
       END;
    END SetPriority;
 
@@ -238,42 +238,42 @@ MODULE ulmEvents;
    PROCEDURE Handler*(type: EventType; handler: EventHandler);
       (* add `handler' to the list of handlers for event `type' *)
       VAR
-	 newhandler: HandlerList;
+         newhandler: HandlerList;
    BEGIN
       NEW(newhandler);
       newhandler.handler := handler; newhandler.next := type.handlers;
       type.handlers := newhandler;
       IF type.reaction # funcs THEN
-	 type.reaction := funcs; type.manager(type, funcs);
+         type.reaction := funcs; type.manager(type, funcs);
       END;
    END Handler;
 
    PROCEDURE RemoveHandlers*(type: EventType);
       (* remove list of handlers for event `type';
-	 implies default reaction (abortion) on
-	 receipt of `type'
+         implies default reaction (abortion) on
+         receipt of `type'
       *)
    BEGIN
       type.handlers := NIL;
       IF type.reaction # default THEN
-	 type.reaction := default; type.manager(type, default);
+         type.reaction := default; type.manager(type, default);
       END;
    END RemoveHandlers;
 
    PROCEDURE Ignore*(type: EventType);
       (* implies RemoveHandlers(type) and causes receipt
-	 of `type' to be ignored
+         of `type' to be ignored
       *)
    BEGIN
       type.handlers := NIL;
       IF type.reaction # ignore THEN
-	 type.reaction := ignore; type.manager(type, ignore);
+         type.reaction := ignore; type.manager(type, ignore);
       END;
    END Ignore;
 
    PROCEDURE GetHandlers*(type: EventType; handlers: HandlerList);
       (* returns the list of handlers in `handlers';
-	 the reaction of `type' must be `funcs'
+         the reaction of `type' must be `funcs'
       *)
    BEGIN
       handlers := type.handlers;
@@ -281,8 +281,8 @@ MODULE ulmEvents;
 
    PROCEDURE Log*(loghandler: EventHandler);
       (* call `loghandler' for every event;
-	 subsequent calls of `Log' replace the loghandler;
-	 the loghandler is not called on default and ignore
+         subsequent calls of `Log' replace the loghandler;
+         the loghandler is not called on default and ignore
       *)
    BEGIN
       log := loghandler;
@@ -311,8 +311,8 @@ MODULE ulmEvents;
 
    PROCEDURE QueueHandler*(handler: EventHandler);
       (* setup an alternative handler of events
-	 that cannot be processed now because
-	 of their unsufficient priority
+         that cannot be processed now because
+         of their unsufficient priority
       *)
       VAR b : BOOLEAN; (* noch *)
       tmphandler : EventHandler;
@@ -345,93 +345,93 @@ MODULE ulmEvents;
 
    PROCEDURE WorkupQueue;
       VAR
-	 ptr: Event;
+         ptr: Event;
    BEGIN
       WHILE (queue # NIL) & (queue.priority > psys.currentPriority) DO
-	 IF SYS.TAS(lock) THEN RETURN END;
-	 ptr := queue.head; queue := queue.next;
-	 lock := FALSE;
-	 WHILE ptr # NIL DO
-	    CallHandlers(ptr);
-	    ptr := ptr.next;
-	 END;
+         IF SYS.TAS(lock) THEN RETURN END;
+         ptr := queue.head; queue := queue.next;
+         lock := FALSE;
+         WHILE ptr # NIL DO
+            CallHandlers(ptr);
+            ptr := ptr.next;
+         END;
       END;
    END WorkupQueue;
 
    PROCEDURE CallHandlers(event: Event);
       VAR
-	 ptr: HandlerList;
-	 oldPriority: Priority;
+         ptr: HandlerList;
+         oldPriority: Priority;
    BEGIN
       CASE event.type.reaction OF
       | default:  abort(event);
       | ignore:
       | funcs:    oldPriority := psys.currentPriority;
-		  psys.currentPriority := event.type.priority;
-		  log(event);
-		  ptr := event.type.handlers;
-		  WHILE ptr # NIL DO
-		     ptr.handler(event);
-		     ptr := ptr.next;
-		  END;
-		  psys.currentPriority := oldPriority;
+                  psys.currentPriority := event.type.priority;
+                  log(event);
+                  ptr := event.type.handlers;
+                  WHILE ptr # NIL DO
+                     ptr.handler(event);
+                     ptr := ptr.next;
+                  END;
+                  psys.currentPriority := oldPriority;
       ELSE (* Explicitly ignore unhandled even type reactions *)
       END;
    END CallHandlers;
 
    PROCEDURE Raise*(event: Event);
       (* call all event handlers (in reverse order)
-	    associated with event.type;
-	 abort if there are none;
-	 some system events may abort in another way
-	    (i.e. they do not cause the abortion handler to be called)
+            associated with event.type;
+         abort if there are none;
+         some system events may abort in another way
+            (i.e. they do not cause the abortion handler to be called)
       *)
       VAR
-	 priority: Priority;
+         priority: Priority;
 
       PROCEDURE AddToQueue(event: Event);
-	 VAR
-	    prev, ptr: Queue;
+         VAR
+            prev, ptr: Queue;
       BEGIN
-	 event.next := NIL;
-	 ptr := queue; prev := NIL;
-	 WHILE (ptr # NIL) & (ptr.priority > priority) DO
-	    prev := ptr;
-	    ptr := ptr.next;
-	 END;
-	 IF (ptr # NIL) & (ptr.priority = priority) THEN
-	    ptr.tail.next := event;
-	    ptr.tail := event;
-	 ELSE
-	    NEW(ptr);
-	    ptr.priority := priority;
-	    ptr.head := event; ptr.tail := event;
-	    IF prev = NIL THEN
-	       ptr.next := queue;
-	       queue := ptr;
-	    ELSE
-	       ptr.next := prev.next;
-	       prev.next := ptr;
-	    END;
-	 END;
+         event.next := NIL;
+         ptr := queue; prev := NIL;
+         WHILE (ptr # NIL) & (ptr.priority > priority) DO
+            prev := ptr;
+            ptr := ptr.next;
+         END;
+         IF (ptr # NIL) & (ptr.priority = priority) THEN
+            ptr.tail.next := event;
+            ptr.tail := event;
+         ELSE
+            NEW(ptr);
+            ptr.priority := priority;
+            ptr.head := event; ptr.tail := event;
+            IF prev = NIL THEN
+               ptr.next := queue;
+               queue := ptr;
+            ELSE
+               ptr.next := prev.next;
+               prev.next := ptr;
+            END;
+         END;
       END AddToQueue;
 
    BEGIN (* Raise *)
       INC(nestlevel);
       IF nestlevel >= maxnestlevel THEN
-	 abort(event);
+         abort(event);
       ELSE
-	 IF event.type.reaction # ignore THEN
-	    priority := event.type.priority;
-	    IF psys.currentPriority < priority THEN
-	       CallHandlers(event); WorkupQueue;
-	    ELSIF queueHandler # NIL THEN
-	       queueHandler(event);
-	    ELSIF ~SYS.TAS(lock) THEN
-	       AddToQueue(event);
-	       lock := FALSE;
-	    END;
-	 END;
+         IF event.type.reaction # ignore THEN
+            priority := event.type.priority;
+            IF psys.currentPriority < priority THEN
+               CallHandlers(event); WorkupQueue;
+            ELSIF queueHandler # NIL THEN
+               queueHandler(event);
+            ELSIF ~SYS.TAS(lock) THEN
+               AddToQueue(event);
+               lock := FALSE;
+            END;
+         END;
       END;
       DEC(nestlevel);
    END Raise;
@@ -452,7 +452,7 @@ MODULE ulmEvents;
 
    PROCEDURE SwitchPrioritySystem*(prioritySystem: PrioritySystem);
       (* switch to another priority system; this is typically
-	 done in case of task switches
+         done in case of task switches
       *)
    BEGIN
       psys := prioritySystem;
@@ -460,52 +460,52 @@ MODULE ulmEvents;
 
    PROCEDURE EnterPriority*(priority: Priority);
       (* sets the current priority to `priority';
-	 it is an error to give a priority less than
-	 the current priority (event `badpriority')
+         it is an error to give a priority less than
+         the current priority (event `badpriority')
       *)
    BEGIN
       IF psys.currentPriority <= priority THEN
-	 IF (psys.overflow = 0) & (psys.priotop < priotabsize) THEN
-	    psys.priotab[psys.priotop] := psys.currentPriority;
-	    INC(psys.priotop);
-	    psys.currentPriority := priority;
-	 ELSE
-	    INC(psys.overflow);
-	 END;
+         IF (psys.overflow = 0) & (psys.priotop < priotabsize) THEN
+            psys.priotab[psys.priotop] := psys.currentPriority;
+            INC(psys.priotop);
+            psys.currentPriority := priority;
+         ELSE
+            INC(psys.overflow);
+         END;
       ELSE
-	 Error(priorityViolation);
-	 INC(psys.overflow);
+         Error(priorityViolation);
+         INC(psys.overflow);
       END;
    END EnterPriority;
 
    PROCEDURE AssertPriority*(priority: Priority);
       (* current priority
-	     <  priority:  set the current priority to `priority'
-	     >= priority:  the current priority remains unchanged
+             <  priority:  set the current priority to `priority'
+             >= priority:  the current priority remains unchanged
       *)
    BEGIN
       IF (psys.overflow = 0) & (psys.priotop < priotabsize) THEN
-	 psys.priotab[psys.priotop] := psys.currentPriority; INC(psys.priotop);
-	 IF psys.currentPriority < priority THEN
-	    psys.currentPriority := priority;
-	 END;
+         psys.priotab[psys.priotop] := psys.currentPriority; INC(psys.priotop);
+         IF psys.currentPriority < priority THEN
+            psys.currentPriority := priority;
+         END;
       ELSE
-	 INC(psys.overflow);
+         INC(psys.overflow);
       END;
    END AssertPriority;
 
    PROCEDURE ExitPriority*;
       (* causes the priority before the last effective call
-	 of SetPriority or AssertPriority to be restored
+         of SetPriority or AssertPriority to be restored
       *)
    BEGIN
       IF psys.overflow > 0 THEN
-	 DEC(psys.overflow);
+         DEC(psys.overflow);
       ELSIF psys.priotop = 0 THEN
-	 Error(unbalancedExitPriority);
+         Error(unbalancedExitPriority);
       ELSE
-	 DEC(psys.priotop); psys.currentPriority := psys.priotab[psys.priotop];
-	 WorkupQueue;
+         DEC(psys.priotop); psys.currentPriority := psys.priotab[psys.priotop];
+         WorkupQueue;
       END;
    END ExitPriority;
 
@@ -517,11 +517,11 @@ MODULE ulmEvents;
 
    PROCEDURE SaveReaction*(type: EventType);
       (* saves current reaction until call of RestoreReaction;
-	 the new reaction of `type' is defined to be `ignore'
-	 but can be changed by Events.Handler or Events.RemoveHandlers
+         the new reaction of `type' is defined to be `ignore'
+         but can be changed by Events.Handler or Events.RemoveHandlers
       *)
       VAR
-	 savelist: SaveList;
+         savelist: SaveList;
    BEGIN
       NEW(savelist);
       savelist.reaction := type.reaction;
@@ -530,27 +530,27 @@ MODULE ulmEvents;
       type.savelist := savelist;
       type.handlers := NIL;
       IF type.reaction # ignore THEN
-	 type.reaction := ignore; type.manager(type, ignore);
+         type.reaction := ignore; type.manager(type, ignore);
       END;
    END SaveReaction;
 
    PROCEDURE RestoreReaction*(type: EventType);
       (* restores old reaction;
-	 must be properly nested
+         must be properly nested
       *)
       VAR
-	 savelist: SaveList;
+         savelist: SaveList;
    BEGIN
       IF type.savelist = NIL THEN
-	 Error(unbalancedRestoreReaction);
+         Error(unbalancedRestoreReaction);
       ELSE
-	 savelist := type.savelist;
-	 type.savelist := savelist.next;
-	 type.handlers := savelist.handlers;
-	 IF type.reaction # savelist.reaction THEN
-	    type.reaction := savelist.reaction;
-	    type.manager(type, savelist.reaction);
-	 END;
+         savelist := type.savelist;
+         type.savelist := savelist.next;
+         type.handlers := savelist.handlers;
+         IF type.reaction # savelist.reaction THEN
+            type.reaction := savelist.reaction;
+            type.manager(type, savelist.reaction);
+         END;
       END;
    END RestoreReaction;
 

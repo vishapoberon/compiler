@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -989,7 +989,7 @@ static void OPC_IdentList (OPT_Object obj, int16 vis)
 				OPC_Ident(obj);
 				OPM_WriteString((CHAR*)"__typ", 6);
 				base = NIL;
-			} else if ((((((__IN(5, OPM_opt, 32) && vis == 0)) && obj->mnolev > 0)) && obj->typ->form == 11)) {
+			} else if ((((((__IN(5, OPM_Options, 32) && vis == 0)) && obj->mnolev > 0)) && obj->typ->form == 11)) {
 				OPM_WriteString((CHAR*)" = NIL", 7);
 			}
 		}
@@ -1153,7 +1153,7 @@ static void OPC_GenHeaderMsg (void)
 	OPM_Write(' ');
 	i = 0;
 	while (i <= 31) {
-		if (__IN(i, OPM_glbopt, 32)) {
+		if (__IN(i, OPM_Options, 32)) {
 			switch (i) {
 				case 0: 
 					OPM_Write('x');
@@ -1355,7 +1355,7 @@ void OPC_EnterBody (void)
 {
 	OPM_WriteLn();
 	OPM_WriteString((CHAR*)"export ", 8);
-	if (__IN(10, OPM_opt, 32)) {
+	if (__IN(10, OPM_Options, 32)) {
 		OPM_WriteString((CHAR*)"int main(int argc, char **argv)", 32);
 		OPM_WriteLn();
 	} else {
@@ -1366,20 +1366,20 @@ void OPC_EnterBody (void)
 	}
 	OPC_BegBlk();
 	OPC_BegStat();
-	if (__IN(10, OPM_opt, 32)) {
+	if (__IN(10, OPM_Options, 32)) {
 		OPM_WriteString((CHAR*)"__INIT(argc, argv)", 19);
 	} else {
 		OPM_WriteString((CHAR*)"__DEFMOD", 9);
 	}
 	OPC_EndStat();
-	if ((__IN(10, OPM_opt, 32) && 0)) {
+	if ((__IN(10, OPM_Options, 32) && 0)) {
 		OPC_BegStat();
 		OPM_WriteString((CHAR*)"/*don`t do it!*/ printf(\"DEMO VERSION: DO NOT USE THIS PROGRAM FOR ANY COMMERCIAL PURPOSE\\n\")", 94);
 		OPC_EndStat();
 	}
 	OPC_InitImports(OPT_topScope->right);
 	OPC_BegStat();
-	if (__IN(10, OPM_opt, 32)) {
+	if (__IN(10, OPM_Options, 32)) {
 		OPM_WriteString((CHAR*)"__REGMAIN(\"", 12);
 	} else {
 		OPM_WriteString((CHAR*)"__REGMOD(\"", 11);
@@ -1399,7 +1399,7 @@ void OPC_EnterBody (void)
 void OPC_ExitBody (void)
 {
 	OPC_BegStat();
-	if (__IN(10, OPM_opt, 32)) {
+	if (__IN(10, OPM_Options, 32)) {
 		OPM_WriteString((CHAR*)"__FINI;", 8);
 	} else {
 		OPM_WriteString((CHAR*)"__ENDMOD;", 10);

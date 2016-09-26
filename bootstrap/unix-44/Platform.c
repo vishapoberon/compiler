@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define INTEGER int16
 #define LONGINT int32
@@ -65,6 +65,7 @@ export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, addres
 export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
 export void Platform_Init (int16 argc, int32 argvadr);
+export BOOLEAN Platform_Interrupted (int16 e);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 export int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
 export BOOLEAN Platform_NoSuchDirectory (int16 e);
@@ -115,6 +116,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 #define Platform_ECONNABORTED()	ECONNABORTED
 #define Platform_ECONNREFUSED()	ECONNREFUSED
 #define Platform_EHOSTUNREACH()	EHOSTUNREACH
+#define Platform_EINTR()	EINTR
 #define Platform_EMFILE()	EMFILE
 #define Platform_ENETUNREACH()	ENETUNREACH
 #define Platform_ENFILE()	ENFILE
@@ -215,6 +217,13 @@ BOOLEAN Platform_ConnectionFailed (int16 e)
 {
 	BOOLEAN _o_result;
 	_o_result = ((e == Platform_ECONNREFUSED() || e == Platform_ECONNABORTED()) || e == Platform_ENETUNREACH()) || e == Platform_EHOSTUNREACH();
+	return _o_result;
+}
+
+BOOLEAN Platform_Interrupted (int16 e)
+{
+	BOOLEAN _o_result;
+	_o_result = e == Platform_EINTR();
 	return _o_result;
 }
 
@@ -618,13 +627,11 @@ int16 Platform_Chdir (CHAR *n, LONGINT n__len)
 {
 	int16 _o_result;
 	int16 r;
-	r = Platform_chdir(n, n__len);
-	Platform_getcwd((void*)Platform_CWD, 256);
-	if (r < 0) {
-		_o_result = Platform_err();
+	if ((Platform_chdir(n, n__len) >= 0 && Platform_getcwd((void*)Platform_CWD, 256) != NIL)) {
+		_o_result = 0;
 		return _o_result;
 	} else {
-		_o_result = 0;
+		_o_result = Platform_err();
 		return _o_result;
 	}
 	__RETCHK;
@@ -784,9 +791,10 @@ export void *Platform__init(void)
 	Platform_HaltHandler = NIL;
 	Platform_TimeStart = 0;
 	Platform_TimeStart = Platform_Time();
-	Platform_CWD[0] = 0x00;
-	Platform_getcwd((void*)Platform_CWD, 256);
 	Platform_PID = Platform_getpid();
+	if (Platform_getcwd((void*)Platform_CWD, 256) == NIL) {
+		Platform_CWD[0] = 0x00;
+	}
 	Platform_SeekSet = Platform_seekset();
 	Platform_SeekCur = Platform_seekcur();
 	Platform_SeekEnd = Platform_seekend();
