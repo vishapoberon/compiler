@@ -66,7 +66,14 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
 
     OPT.sintobj.typ   := OPT.sinttyp;
     OPT.intobj.typ    := OPT.inttyp;
-    OPT.lintobj.typ   := OPT.linttyp
+    OPT.lintobj.typ   := OPT.linttyp;
+
+    (* Enable or disable (non-system) BYTE type *)
+    IF OPM.Model = "C" THEN
+      OPT.cpbytetyp.strobj.name[4] := 0X  (* Enable Component Pascal non-system BYTE type *)
+    ELSE
+      OPT.cpbytetyp.strobj.name[4] := '@' (* Disable Component Pascal non-system BYTE type *)
+    END
   END PropagateElementaryTypeSizes;
 
 

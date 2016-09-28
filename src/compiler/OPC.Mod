@@ -821,10 +821,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     GenHeaderMsg;
     OPM.WriteLn;
 
-    (* Define adjustable type sizes *)
-    OPM.WriteString("#define INTEGER int");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
-    OPM.WriteString("#define LONGINT int");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
-    OPM.WriteString("#define SET     uint"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
+    (* Define model dependent type sizes *)
+    OPM.WriteString("#define SHORTINT int");  OPM.WriteInt(OPT.sinttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define INTEGER  int");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
+    OPM.WriteString("#define LONGINT  int");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define SET      uint"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
     OPM.WriteLn;
 
     Include(BasicIncludeFile);

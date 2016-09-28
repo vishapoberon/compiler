@@ -76,4 +76,3 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
 
 
 END extTools.
-,

@@ -151,13 +151,12 @@ CONST
 VAR
   topScope*: Object;
 
-  undftyp*,
-  bytetyp*, booltyp*, chartyp*,
-  sinttyp*, inttyp*, linttyp*, hinttyp*,
-  adrtyp*,
-  int8typ*, int16typ*, int32typ*, int64typ*,
-  realtyp*, lrltyp*, settyp*, stringtyp*,
-  niltyp*,  notyp*,  sysptrtyp*:            Struct;
+  undftyp*, niltyp*,    notyp*,
+  bytetyp*, cpbytetyp*, booltyp*,  chartyp*,
+  sinttyp*, inttyp*,    linttyp*,  hinttyp*,
+  int8typ*, int16typ*,  int32typ*, int64typ*,
+  realtyp*, lrltyp*,    settyp*,   stringtyp*,
+  adrtyp*,  sysptrtyp*: Struct;
 
   sintobj*, intobj*, lintobj*: Object;
 
@@ -1295,13 +1294,13 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   InitStruct(niltyp,    NilTyp);
 
   (*initialization of module SYSTEM*)
-  EnterTyp("BYTE",    Byte,    1,  bytetyp);
+  EnterTyp("BYTE",    Byte,     1, bytetyp);
   EnterTyp("PTR",     Pointer, -1, sysptrtyp);  (* Size set in Compiler.PropagateElementaryTypeSize *)
   EnterTyp("ADDRESS", Int,     -1, adrtyp);     (* Size set in Compiler.PropagateElementaryTypeSize *)
-  EnterTyp("INT8",    Int,     1,  int8typ);
-  EnterTyp("INT16",   Int,     2,  int16typ);
-  EnterTyp("INT32",   Int,     4,  int32typ);
-  EnterTyp("INT64",   Int,     8,  int64typ);
+  EnterTyp("INT8",    Int,      1, int8typ);
+  EnterTyp("INT16",   Int,      2, int16typ);
+  EnterTyp("INT32",   Int,      4, int32typ);
+  EnterTyp("INT64",   Int,      8, int64typ);
 
   EnterProc("ADR",    adrfn);
   EnterProc("CC",     ccfn);
@@ -1320,12 +1319,13 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   universe := topScope; topScope^.right := NIL;
 
 
-  EnterTyp("BOOLEAN",  Bool,  1,  booltyp);
-  EnterTyp("CHAR",     Char,  1,  chartyp);
+  EnterTyp("BOOLEAN",  Bool,   1, booltyp);
+  EnterTyp("CHAR",     Char,   1, chartyp);
   EnterTyp("SET",      Set,   -1, settyp);    (* Size set in Compiler.PropagateElementaryTypeSize *)
-  EnterTyp("REAL",     Real,  4,  realtyp);
-  EnterTyp("LONGREAL", LReal, 8,  lrltyp);
-  EnterTyp("HUGEINT",  Int,   8,  hinttyp);
+  EnterTyp("REAL",     Real,   4, realtyp);
+  EnterTyp("LONGREAL", LReal,  8, lrltyp);
+  EnterTyp("HUGEINT",  Int,    8, hinttyp);
+  EnterTyp("BYTE@",    Int,    1, cpbytetyp);  (* Component Pascal byte type, enabled in Compiler.PropagateElementaryTypeSize *)
 
   EnterTypeAlias("SHORTINT", sintobj);
   EnterTypeAlias("INTEGER",  intobj);

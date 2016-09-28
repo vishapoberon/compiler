@@ -137,6 +137,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
     (* mark basic types as predefined, OPC.Ident can avoid qualification*)
     OPT.chartyp^.strobj^.linkadr   := PredefinedType;
+    OPT.cpbytetyp^.strobj^.linkadr := PredefinedType;
     OPT.settyp^.strobj^.linkadr    := PredefinedType;
     OPT.realtyp^.strobj^.linkadr   := PredefinedType;
     OPT.adrtyp^.strobj^.linkadr    := PredefinedType;
