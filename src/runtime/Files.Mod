@@ -73,6 +73,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   PROCEDURE -IdxTrap "__HALT(-1)";
+  PROCEDURE -ToAdr(x: SYSTEM.INT64): SYSTEM.ADDRESS "(address)x";
 
   PROCEDURE^ Finalize(o: SYSTEM.PTR);
 
@@ -427,7 +428,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       restInBuf := buf.size - offset;
       IF restInBuf = 0 THEN r.res := n; r.eof := TRUE; RETURN
       ELSIF n > restInBuf THEN min := restInBuf ELSE min := n END;
-      SYSTEM.MOVE(SYSTEM.ADR(buf.data) + offset, SYSTEM.ADR(x) + xpos, min);
+      SYSTEM.MOVE(SYSTEM.ADR(buf.data) + ToAdr(offset), SYSTEM.ADR(x) + ToAdr(xpos), min);
       INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min)
     END;
     r.res := 0; r.eof := FALSE
@@ -465,7 +466,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       END;
       restInBuf := bufsize - offset;
       IF n > restInBuf THEN min := restInBuf ELSE min := n END;
-      SYSTEM.MOVE(SYSTEM.ADR(x) + xpos, SYSTEM.ADR(buf.data) + offset, min);
+      SYSTEM.MOVE(SYSTEM.ADR(x) + ToAdr(xpos), SYSTEM.ADR(buf.data) + ToAdr(offset), min);
       INC(offset, min); r.offset := offset;
       IF offset > buf.size THEN INC(buf.f.len, offset - buf.size); buf.size := offset END;
       INC(xpos, min); DEC(n, min); buf.chg := TRUE

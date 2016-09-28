@@ -155,10 +155,11 @@ VAR
   bytetyp*, cpbytetyp*, booltyp*,  chartyp*,
   sinttyp*, inttyp*,    linttyp*,  hinttyp*,
   int8typ*, int16typ*,  int32typ*, int64typ*,
-  realtyp*, lrltyp*,    settyp*,   stringtyp*,
+  settyp*,  set32typ*,  set64typ*,
+  realtyp*, lrltyp*,    stringtyp*,
   adrtyp*,  sysptrtyp*: Struct;
 
-  sintobj*, intobj*, lintobj*: Object;
+  sintobj*, intobj*, lintobj*, setobj*: Object;
 
   nofGmod*: SHORTINT;  (*nof imports*)
   GlbMod*:  ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
@@ -228,6 +229,12 @@ BEGIN
   IF size <= int32typ.size THEN RETURN int32typ END;
   RETURN int64typ
 END IntType;
+
+PROCEDURE SetType*(size: LONGINT): Struct;
+BEGIN
+  IF size = set32typ.size THEN RETURN set32typ END;
+  RETURN set64typ
+END SetType;
 
 PROCEDURE ShorterOrLongerType*(x: Struct; dir: INTEGER): Struct;
   VAR i: INTEGER;
@@ -803,10 +810,9 @@ END InTProc;
 
 PROCEDURE InTyp(tag: LONGINT): Struct;
 BEGIN
-  IF tag = Int THEN
-    RETURN IntType(OPM.SymRInt())
-  ELSE
-    RETURN impCtxt.ref[tag]
+  IF    tag = Int THEN RETURN IntType(OPM.SymRInt())
+  ELSIF tag = Set THEN RETURN SetType(OPM.SymRInt())
+  ELSE RETURN impCtxt.ref[tag]
   END
 END InTyp;
 
@@ -1124,7 +1130,7 @@ END Import;
     VAR strobj: Object;
   BEGIN
     IF (typ^.ref < expCtxt.ref) THEN OPM.SymWInt(-typ^.ref);
-      IF typ.ref = Int THEN OPM.SymWInt(typ.size) END
+      IF typ.ref IN {Int, Set} THEN OPM.SymWInt(typ.size) END
     ELSE
       OPM.SymWInt(Sstruct);
       typ^.ref := expCtxt.ref; INC(expCtxt.ref);
@@ -1170,7 +1176,7 @@ END Import;
     | Bool,
       Char:   OPM.SymWCh(CHR(obj^.conval^.intval))
     | Int:    OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
-    | Set:    OPM.SymWSet(obj^.conval^.setval)
+    | Set:    OPM.SymWSet(obj^.conval^.setval); OPM.SymWInt(obj.typ.size)
     | Real:   rval := SHORT(obj^.conval^.realval); OPM.SymWReal(rval)
     | LReal:  OPM.SymWLReal(obj^.conval^.realval)
     | String: OutName(obj^.conval^.ext^)
@@ -1301,6 +1307,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("INT16",   Int,      2, int16typ);
   EnterTyp("INT32",   Int,      4, int32typ);
   EnterTyp("INT64",   Int,      8, int64typ);
+  EnterTyp("SET32",   Set,      4, set32typ);
+  EnterTyp("SET64",   Set,      8, set64typ);
 
   EnterProc("ADR",    adrfn);
   EnterProc("CC",     ccfn);
@@ -1321,7 +1329,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 
   EnterTyp("BOOLEAN",  Bool,   1, booltyp);
   EnterTyp("CHAR",     Char,   1, chartyp);
-  EnterTyp("SET",      Set,   -1, settyp);    (* Size set in Compiler.PropagateElementaryTypeSize *)
+(*EnterTyp("SET",      Set,   -1, settyp);*)    (* Size set in Compiler.PropagateElementaryTypeSize *)
   EnterTyp("REAL",     Real,   4, realtyp);
   EnterTyp("LONGREAL", LReal,  8, lrltyp);
   EnterTyp("HUGEINT",  Int,    8, hinttyp);
@@ -1330,6 +1338,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTypeAlias("SHORTINT", sintobj);
   EnterTypeAlias("INTEGER",  intobj);
   EnterTypeAlias("LONGINT",  lintobj);
+  EnterTypeAlias("SET",      setobj);
+
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
   EnterBoolConst("TRUE",  1);

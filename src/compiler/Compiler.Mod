@@ -55,7 +55,6 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
   BEGIN
     OPT.sysptrtyp.size := OPM.AddressSize;
     OPT.adrtyp.size    := OPM.AddressSize;
-    OPT.settyp.size    := OPM.SetSize;
 
     adrinttyp := OPT.IntType(OPM.AddressSize);
     OPT.adrtyp.strobj := adrinttyp.strobj;
@@ -67,6 +66,13 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     OPT.sintobj.typ   := OPT.sinttyp;
     OPT.intobj.typ    := OPT.inttyp;
     OPT.lintobj.typ   := OPT.linttyp;
+
+  (*OPT.settyp.size    := OPM.SetSize;*)
+    CASE OPM.LongintSize OF
+    |4:  OPT.settyp := OPT.set32typ
+    ELSE OPT.settyp := OPT.set64typ
+    END;
+    OPT.setobj.typ := OPT.settyp;
 
     (* Enable or disable (non-system) BYTE type *)
     IF OPM.Model = "C" THEN

@@ -189,7 +189,9 @@ uninstall:
 
 
 runtime:
-	@printf "\nMaking v4 library for -O$(MODEL)\n"
+	@printf "\nMaking run time library for -O$(MODEL)\n"
+	mkdir -p $(BUILDDIR)/$(MODEL)
+	cp src/system/*.[ch] $(BUILDDIR)/$(MODEL)
 	cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Heap.Mod
@@ -204,6 +206,10 @@ runtime:
 #	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/MathL.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Texts.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Oberon.Mod
+	@printf "\nMaking lib$(ONAME)$(MODEL)\n"
+	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
+	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)$(MODEL).so *.o
+
 
 
 v4:
@@ -368,14 +374,6 @@ O2library: v4 ooc2 ooc ulm pow32 misc s3
 
 
 
-
-OakwoodLibrary:
-	@printf "\nMaking lib$(ONAME)$(MODEL)\n"
-	mkdir -p $(BUILDDIR)/$(MODEL)
-	cp src/system/*.[ch] $(BUILDDIR)/$(MODEL)
-	@make -f src/tools/make/oberon.mk -s runtime MODEL=$(MODEL)
-	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
-	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)$(MODEL).so *.o
 
 
 

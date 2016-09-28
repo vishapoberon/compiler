@@ -157,7 +157,7 @@ full: configuration
 	@make -f src/tools/make/oberon.mk -s browsercmd MODEL=2
 	@printf "\n\n--- Library build started ---\n\n"
 	@make -f src/tools/make/oberon.mk -s O2library
-	@make -f src/tools/make/oberon.mk -s OakwoodLibrary MODEL=C
+	@make -f src/tools/make/oberon.mk -s runtime MODEL=C
 	@printf "\n\n--- Library build successfull ---\n\n"
 	@make -f src/tools/make/oberon.mk -s sourcechanges
 	@make -f src/tools/make/oberon.mk -s install
@@ -192,7 +192,13 @@ browsercmd: configuration
 # library: build all directories under src/library
 library: configuration
 	@make -f src/tools/make/oberon.mk -s O2library
-	@make -f src/tools/make/oberon.mk -s OakwoodLibrary MODEL=C
+	@make -f src/tools/make/oberon.mk -s runtime MODEL=C
+
+runtime: configuration
+	@make -f src/tools/make/oberon.mk -s runtime MODEL=C
+
+
+
 
 # Individual library components
 v4: configuration
