@@ -50,7 +50,7 @@ VAR
 
   InterruptHandler: SignalHandler;
 
-  nl-:              ARRAY 3 OF CHAR;  (* Platform specific newline representation *)
+  NL-:              ARRAY 3 OF CHAR;  (* Platform specific newline representation *)
 
 
 
@@ -616,7 +616,7 @@ BEGIN
   StdOut := getstdouthandle();
   StdErr := getstderrhandle();
 
-  nl[0] := 0DX;  (* CR *)
-  nl[1] := 0AX;  (* LF *)
-  nl[2] := 0X;
+  NL[0] := 0DX;  (* CR *)
+  NL[1] := 0AX;  (* LF *)
+  NL[2] := 0X;
 END Platform.
