@@ -745,7 +745,7 @@ int32 OPM_SymRInt (void)
 {
 	int32 _o_result;
 	int32 k;
-	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, &k);
+	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&k, 4);
 	_o_result = k;
 	return _o_result;
 }
@@ -754,19 +754,19 @@ int64 OPM_SymRInt64 (void)
 {
 	int64 _o_result;
 	int64 k;
-	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, (void*)&k, 8);
+	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&k, 8);
 	_o_result = k;
 	return _o_result;
 }
 
 void OPM_SymRSet64 (uint64 *s)
 {
-	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, (void*)&*s, 8);
+	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&*s, 8);
 }
 
 void OPM_SymRSet (uint32 *s)
 {
-	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (int32*)&*s);
+	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&*s, 4);
 }
 
 void OPM_SymRReal (REAL *r)

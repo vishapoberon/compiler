@@ -654,23 +654,14 @@ Especially Length would become fairly complex.
     UNTIL b
   END ReadLine;
 
-  (* todo combine ReadNum and ReadNum64 *)
-  PROCEDURE ReadNum64*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
+  PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
     VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;
-  BEGIN s := 0; q := 0; Read(R, b);
-    WHILE b >= 128 DO INC(q, ASH(b-128, s)); INC(s, 7); Read(R, b) END;
+  BEGIN
+    s := 0; q := 0; Read(R, b);
+    WHILE b < 0 DO INC(q, ASH(b+128, s)); INC(s, 7); Read(R, b) END;
     INC(q, ASH(b MOD 64 - b DIV 64 * 64, s));
     ASSERT(LEN(x) <= 8);
     SYSTEM.MOVE(SYSTEM.ADR(q), SYSTEM.ADR(x), LEN(x))  (* Assumes little endian representation of q and x. *)
-  END ReadNum64;
-
-
-  PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
-    VAR s: SHORTINT; ch: CHAR; n: LONGINT;
-  BEGIN s := 0; n := 0; Read(R, ch);
-    WHILE ORD(ch) >= 128 DO INC(n, ASH(ORD(ch) - 128, s) ); INC(s, 7); Read(R, ch) END;
-    INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
-    x := n
   END ReadNum;
 
   PROCEDURE WriteBool* (VAR R: Rider; x: BOOLEAN);

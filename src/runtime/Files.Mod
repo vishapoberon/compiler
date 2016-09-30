@@ -657,7 +657,7 @@ Especially Length would become fairly complex.
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
     VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;
   BEGIN s := 0; q := 0; Read(R, b);
-    WHILE b >= 128 DO INC(q, ASH(b-128, s)); INC(s, 7); Read(R, b) END;
+    WHILE b < 0 DO INC(q, ASH(b+128, s)); INC(s, 7); Read(R, b) END;
     INC(q, ASH(b MOD 64 - b DIV 64 * 64, s));
     ASSERT(LEN(x) <= 8);
     SYSTEM.MOVE(SYSTEM.ADR(q), SYSTEM.ADR(x), LEN(x))  (* Assumes little endian representation of q and x. *)

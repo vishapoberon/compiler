@@ -600,16 +600,16 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   PROCEDURE SymRInt64*(): SYSTEM.INT64;
     VAR k: SYSTEM.INT64;
-  BEGIN Files.ReadNum64(oldSF, k); RETURN k
+  BEGIN Files.ReadNum(oldSF, k); RETURN k
   END SymRInt64;
 
   (* todo - combine RSet64 and RSet *)
   PROCEDURE SymRSet64*(VAR s: SYSTEM.SET64);
-  BEGIN Files.ReadNum64(oldSF, s)
+  BEGIN Files.ReadNum(oldSF, s)
   END SymRSet64;
 
   PROCEDURE SymRSet*(VAR s: SET);
-  BEGIN Files.ReadNum(oldSF, SYSTEM.VAL(LONGINT, s))
+  BEGIN Files.ReadNum(oldSF, s)
   END SymRSet;
 
   PROCEDURE SymRReal*(VAR r: REAL);

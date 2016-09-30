@@ -126,7 +126,7 @@ void determineOS() {
   #endif
 }
 
-#define optimize " -O1"
+#define optimize "" // " -O1"
 
 void determineCCompiler() {
   snprintf(libspec, sizeof(libspec), " -l %s", oname);
