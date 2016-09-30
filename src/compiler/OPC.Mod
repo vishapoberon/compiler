@@ -1227,7 +1227,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END Len;
 
   PROCEDURE Constant* (con: OPT.Const; form: INTEGER);
-    VAR i: INTEGER; s: SET;
+    VAR i: INTEGER; s: SYSTEM.SET64;
       hex: LONGINT; skipLeading: BOOLEAN;
   BEGIN
     CASE form OF
@@ -1239,7 +1239,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     | OPT.LReal:  OPM.WriteReal(con^.realval, 0X)
     | OPT.Set:    OPM.WriteString("0x");
                   skipLeading := TRUE;
-                  s := con^.setval; i := MAX(SET) + 1;
+                  s := con^.setval; i := MAX(SYSTEM.SET64) + 1;
                   REPEAT
                     hex := 0;
                     REPEAT

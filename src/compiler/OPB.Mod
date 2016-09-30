@@ -243,7 +243,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     ELSIF (f = OPT.Int) & (y^.typ^.form = OPT.Set) THEN
       IF x^.class = OPT.Nconst THEN
         k := x^.conval^.intval;
-        IF (k < 0) OR (k > OPM.MaxSet) THEN err(202)
+        IF (k < 0) OR (k >= y.typ.size*8) THEN err(202)
         ELSIF y^.class = OPT.Nconst THEN x^.conval^.intval := BoolToInt(k IN y^.conval^.setval); x^.obj := NIL
         ELSE BindNodes(OPT.Ndop, OPT.booltyp, x, y); x^.subcl := OPS.in
         END
@@ -305,8 +305,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                         ELSE z^.conval^.intval := -z^.conval^.intval; SetIntType(z)
                         END
                       ELSIF f IN OPT.realSet THEN z^.conval^.realval := -z^.conval^.realval
-                      ELSE z^.conval^.setval := -z^.conval^.setval
-                      END ;
+                      ELSE
+                        IF z.typ.size = 8 THEN
+                          z^.conval^.setval := -z^.conval^.setval
+                        ELSE
+                          z.conval.setval := z.conval.setval / {0..31}
+                        END
+                      END;
                       z^.obj := NIL
                     ELSE z := NewOp(op, typ, z)
                     END
@@ -503,7 +508,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSE err(204)
                   END
                 ELSIF f = OPT.Set THEN
-                  xval^.setval := xval^.setval * yval^.setval
+                  xval^.setval := xval^.setval * yval^.setval; SetSetType(x)
                 ELSIF f # OPT.Undef THEN err(101)
                 END
     |OPS.slash: IF f = OPT.Int THEN
@@ -519,7 +524,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSE err(205)
                   END
                 ELSIF f = OPT.Set THEN
-                  xval^.setval := xval^.setval / yval^.setval
+                  xval^.setval := xval^.setval / yval^.setval; SetSetType(x)
                 ELSIF f # OPT.Undef THEN err(102)
                 END
     |OPS.div:   IF f = OPT.Int THEN
@@ -553,7 +558,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSE err(206)
                   END
                 ELSIF f = OPT.Set THEN
-                  xval^.setval := xval^.setval + yval^.setval
+                  xval^.setval := xval^.setval + yval^.setval; SetSetType(x)
                 ELSIF f # OPT.Undef THEN err(105)
                 END
     |OPS.minus: IF f = OPT.Int THEN
@@ -569,7 +574,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                   ELSE err(207)
                   END
                 ELSIF f = OPT.Set THEN
-                  xval^.setval := xval^.setval - yval^.setval
+                  xval^.setval := xval^.setval - yval^.setval; SetSetType(x)
                 ELSIF f # OPT.Undef THEN err(106)
                 END
     |OPS.or:    IF f = OPT.Bool THEN
@@ -799,23 +804,23 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     ELSIF (x^.typ^.form = OPT.Int) & (y^.typ^.form = OPT.Int) THEN
       IF x^.class = OPT.Nconst THEN
         k := x^.conval^.intval;
-        IF (0 > k) OR (k > OPM.MaxSet) THEN err(202) END
+        IF (0 > k) OR (k > MAX(SYSTEM.SET64)) THEN err(202) END
       END ;
       IF y^.class = OPT.Nconst THEN
         l := y^.conval^.intval;
-        IF (0 > l) OR (l > OPM.MaxSet) THEN err(202) END
+        IF (0 > l) OR (l > MAX(SYSTEM.SET64)) THEN err(202) END
       END ;
       IF (x^.class = OPT.Nconst) & (y^.class = OPT.Nconst) THEN
         IF k <= l THEN
-          x^.conval^.setval := {k..l}
+          x^.conval^.setval := {k..l}; SetSetType(x)
         ELSE err(201); x^.conval^.setval := {l..k}
         END ;
         x^.obj := NIL
-      ELSE BindNodes(OPT.Nupto, OPT.settyp, x, y) (* todo choose appropriate set type ? *)
+      ELSE BindNodes(OPT.Nupto, OPT.settyp, x, y)
       END
     ELSE err(93)
     END ;
-    x^.typ := OPT.settyp (* todo choose appropriate set type ? *)
+    x^.typ := OPT.settyp (* todo: syntax for specifying set type e.g. SYSTEM.SET64{n1..n2} *)
   END SetRange;
 
   PROCEDURE SetElem*(VAR x: OPT.Node);
@@ -825,12 +830,12 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     ELSIF x^.typ^.form # OPT.Int THEN err(93)
     ELSIF x^.class = OPT.Nconst THEN
       k := x^.conval^.intval;
-      IF (0 <= k) & (k <= OPM.MaxSet) THEN x^.conval^.setval := {k}
+      IF (0 <= k) & (k <= MAX(SYSTEM.SET64)) THEN x^.conval^.setval := {k}; SetSetType(x)
       ELSE err(202)
       END ;
       x^.obj := NIL
     ELSE Convert(x, OPT.settyp)  (* todo choose appropriate set type ? *)
-    END ;
+    END;
     x^.typ := OPT.settyp  (* todo choose appropriate set type ? *)
   END SetElem;
 
@@ -859,9 +864,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       OPT.String:
     | OPT.Byte:     IF ~((g IN {OPT.Byte, OPT.Char, OPT.Int}) & (y.size = 1)) THEN err(113) END
     | OPT.Bool,
-      OPT.Char,
-      OPT.Set:      IF g # f THEN err(113) END
-    | OPT.Int:      IF (g # OPT.Int) OR (x.size < y.size) THEN err(113) END
+      OPT.Char:     IF g # f THEN err(113) END
+    | OPT.Int,
+      OPT.Set:      IF (g # f) OR (x.size < y.size) THEN err(113) END
     | OPT.Real:     IF ~(g IN {OPT.Int..OPT.Real})  THEN err(113) END
     | OPT.LReal:    IF ~(g IN {OPT.Int..OPT.LReal}) THEN err(113) END
     | OPT.Pointer:  IF (x = y) OR (g = OPT.NilTyp) OR (x = OPT.sysptrtyp) & (g = OPT.Pointer) THEN (* ok *)

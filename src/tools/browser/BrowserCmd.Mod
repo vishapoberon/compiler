@@ -41,7 +41,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   END Wsign;
 
   PROCEDURE Objects(obj: OPT.Object; mode: SET);
-    VAR i: SYSTEM.INT64; m: INTEGER; s: SET; ext: OPT.ConstExt;
+    VAR i: SYSTEM.INT64; m: INTEGER; s: SYSTEM.SET64; ext: OPT.ConstExt;
   BEGIN
     IF obj # NIL THEN
       Objects(obj^.left, mode);
@@ -61,7 +61,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
                                  END
                     |OPT.Int:    Wi(obj^.conval^.intval)
                     |OPT.Set:    Wch("{"); i := 0; s := obj^.conval^.setval;
-                                 WHILE i <= MAX(SET) DO
+                                 WHILE i <= MAX(SYSTEM.SET64) DO
                                    IF i IN s THEN Wi(i); EXCL(s, i);
                                      IF s # {} THEN Ws(", ") END
                                    END ;

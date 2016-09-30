@@ -468,7 +468,7 @@ void OPB_In (OPT_Node *x, OPT_Node y)
 	} else if ((f == 4 && y->typ->form == 7)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (k < 0 || k > (int64)OPM_MaxSet) {
+			if (k < 0 || k >= (int64)__ASHL(y->typ->size, 3)) {
 				OPB_err(202);
 			} else if (y->class == 7) {
 				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval, 64));
@@ -584,7 +584,11 @@ void OPB_MOp (int8 op, OPT_Node *x)
 						} else if (__IN(f, 0x60, 32)) {
 							z->conval->realval = -z->conval->realval;
 						} else {
-							z->conval->setval = ~z->conval->setval;
+							if (z->typ->size == 8) {
+								z->conval->setval = ~z->conval->setval;
+							} else {
+								z->conval->setval = z->conval->setval ^ 0xffffffff;
+							}
 						}
 						z->obj = NIL;
 					} else {
@@ -959,6 +963,7 @@ static void OPB_ConstOp (int16 op, OPT_Node x, OPT_Node y)
 				}
 			} else if (f == 7) {
 				xval->setval = (xval->setval & yval->setval);
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(101);
 			}
@@ -983,6 +988,7 @@ static void OPB_ConstOp (int16 op, OPT_Node x, OPT_Node y)
 				}
 			} else if (f == 7) {
 				xval->setval = xval->setval ^ yval->setval;
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(102);
 			}
@@ -1037,6 +1043,7 @@ static void OPB_ConstOp (int16 op, OPT_Node x, OPT_Node y)
 				}
 			} else if (f == 7) {
 				xval->setval = xval->setval | yval->setval;
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(105);
 			}
@@ -1059,6 +1066,7 @@ static void OPB_ConstOp (int16 op, OPT_Node x, OPT_Node y)
 				}
 			} else if (f == 7) {
 				xval->setval = (xval->setval & ~yval->setval);
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(106);
 			}
@@ -1514,19 +1522,20 @@ void OPB_SetRange (OPT_Node *x, OPT_Node y)
 	} else if (((*x)->typ->form == 4 && y->typ->form == 4)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (0 > k || k > (int64)OPM_MaxSet) {
+			if (0 > k || k > 31) {
 				OPB_err(202);
 			}
 		}
 		if (y->class == 7) {
 			l = y->conval->intval;
-			if (0 > l || l > (int64)OPM_MaxSet) {
+			if (0 > l || l > 31) {
 				OPB_err(202);
 			}
 		}
 		if (((*x)->class == 7 && y->class == 7)) {
 			if (k <= l) {
 				(*x)->conval->setval = __SETRNG(k, l, 32);
+				OPB_SetSetType(*x);
 			} else {
 				OPB_err(201);
 				(*x)->conval->setval = __SETRNG(l, k, 32);
@@ -1550,8 +1559,9 @@ void OPB_SetElem (OPT_Node *x)
 		OPB_err(93);
 	} else if ((*x)->class == 7) {
 		k = (*x)->conval->intval;
-		if ((0 <= k && k <= (int64)OPM_MaxSet)) {
+		if ((0 <= k && k <= 31)) {
 			(*x)->conval->setval = __SETOF(k,32);
+			OPB_SetSetType(*x);
 		} else {
 			OPB_err(202);
 		}
@@ -1581,13 +1591,13 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 				OPB_err(113);
 			}
 			break;
-		case 2: case 3: case 7: 
+		case 2: case 3: 
 			if (g != f) {
 				OPB_err(113);
 			}
 			break;
-		case 4: 
-			if (g != 4 || x->size < y->size) {
+		case 4: case 7: 
+			if (g != f || x->size < y->size) {
 				OPB_err(113);
 			}
 			break;

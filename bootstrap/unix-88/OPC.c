@@ -1859,7 +1859,7 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
 void OPC_Constant (OPT_Const con, int16 form)
 {
 	int16 i;
-	uint32 s;
+	uint64 s;
 	int32 hex;
 	BOOLEAN skipLeading;
 	switch (form) {
@@ -1891,7 +1891,7 @@ void OPC_Constant (OPT_Const con, int16 form)
 				do {
 					i -= 1;
 					hex = __ASHL(hex, 1);
-					if (__IN(i, s, 32)) {
+					if (__IN(i, s, 64)) {
 						hex += 1;
 					}
 				} while (!(__MASK(i, -8) == 0));
