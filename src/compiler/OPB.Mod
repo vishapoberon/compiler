@@ -811,11 +811,11 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         ELSE err(201); x^.conval^.setval := {l..k}
         END ;
         x^.obj := NIL
-      ELSE BindNodes(OPT.Nupto, OPT.settyp, x, y)
+      ELSE BindNodes(OPT.Nupto, OPT.settyp, x, y) (* todo choose appropriate set type ? *)
       END
     ELSE err(93)
     END ;
-    x^.typ := OPT.settyp
+    x^.typ := OPT.settyp (* todo choose appropriate set type ? *)
   END SetRange;
 
   PROCEDURE SetElem*(VAR x: OPT.Node);
@@ -829,9 +829,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       ELSE err(202)
       END ;
       x^.obj := NIL
-    ELSE Convert(x, OPT.settyp)
+    ELSE Convert(x, OPT.settyp)  (* todo choose appropriate set type ? *)
     END ;
-    x^.typ := OPT.settyp
+    x^.typ := OPT.settyp  (* todo choose appropriate set type ? *)
   END SetElem;
 
   PROCEDURE CheckAssign(x: OPT.Struct; ynode: OPT.Node);  (* x := y *)
@@ -1027,7 +1027,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.inclfn,
      OPT.exclfn:   (*INCL, EXCL*)
                    IF NotVar(x) THEN err(112)
-                   ELSIF x^.typ # OPT.settyp THEN err(111); x^.typ := OPT.settyp
+                   ELSIF x.typ.form # OPT.Set THEN err(111); x^.typ := OPT.settyp
                    ELSIF x^.readonly THEN err(76)
                    END
     |OPT.lenfn:    (*LEN*)
@@ -1124,8 +1124,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
      OPT.exclfn:   (*INCL, EXCL*)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f = OPT.Int THEN
-                     IF (x^.class = OPT.Nconst) & ((0 > x^.conval^.intval) OR (x^.conval^.intval > OPM.MaxSet)) THEN err(202)
-                     END ;
+                     IF (x^.class = OPT.Nconst) & ((0 > x^.conval^.intval) OR (x^.conval^.intval >= p.typ.size*8)) THEN err(202)
+                     END;
                      p := NewOp(OPT.Nassign, fctno, p, x)
                    ELSE err(111)
                    END ;

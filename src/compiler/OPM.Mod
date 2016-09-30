@@ -552,7 +552,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END FPrint;
 
 
-  PROCEDURE FPrintSet*(VAR fp: LONGINT; set: SET);
+  PROCEDURE FPrintSet*(VAR fp: LONGINT; set: SET); (*SYSTEM.SET64);*)
   BEGIN FPrint(fp, SYSTEM.VAL(LONGINT, set))
   END FPrintSet;
 
@@ -603,12 +603,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN Files.ReadNum(oldSF, k); RETURN k
   END SymRInt64;
 
-  (* todo - combine RSet64 and RSet *)
-  PROCEDURE SymRSet64*(VAR s: SYSTEM.SET64);
-  BEGIN Files.ReadNum(oldSF, s)
-  END SymRSet64;
-
-  PROCEDURE SymRSet*(VAR s: SET);
+  PROCEDURE SymRSet*(VAR s: SET); (*SYSTEM.SET64);*)
   BEGIN Files.ReadNum(oldSF, s)
   END SymRSet;
 
@@ -653,7 +648,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN Files.WriteNum(newSF, i)
   END SymWInt;
 
-  (* todo
+  (*
   PROCEDURE SymWSet*(s: SYSTEM.SET64);
   BEGIN Files.WriteNum(newSF, SYSTEM.VAL(SYSTEM.INT64, s))
   END SymWSet;

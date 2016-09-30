@@ -1879,7 +1879,7 @@ void OPB_StPar0 (OPT_Node *par0, int16 fctno)
 		case 15: case 16: 
 			if (OPB_NotVar(x)) {
 				OPB_err(112);
-			} else if (x->typ != OPT_settyp) {
+			} else if (x->typ->form != 7) {
 				OPB_err(111);
 				x->typ = OPT_settyp;
 			} else if (x->readonly) {
@@ -2044,7 +2044,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (f == 4) {
-				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (int64)OPM_MaxSet))) {
+				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval >= (int64)__ASHL(p->typ->size, 3)))) {
 					OPB_err(202);
 				}
 				p = NewOp__54(19, fctno, p, x);

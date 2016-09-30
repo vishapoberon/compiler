@@ -15,10 +15,8 @@ TYPE
     ext*:      ConstExt;      (* string or code for code proc *)
     intval*:   SYSTEM.INT64;  (* constant value or adr, proc par size, text position or least case label *)
     intval2*:  LONGINT;       (* string length, proc var size or larger case label *)
-    (* todo
-    setval*:   SYSTEM.SET64;  (* constant value, procedure body present or "ELSE" present in case *)
-    *)
-    setval*:   SET;           (* constant value, procedure body present or "ELSE" present in case *)
+  (*setval*:   SYSTEM.SET64;*)  (* constant value, procedure body present or "ELSE" present in case *)
+    setval*:   SET;  (* constant value, procedure body present or "ELSE" present in case *)
     realval*:  LONGREAL       (* real or longreal constant value *)
   END;
 
