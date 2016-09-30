@@ -48,6 +48,7 @@ import void Files_ReadLInt (Files_Rider *R, address *R__typ, int32 *x);
 import void Files_ReadLReal (Files_Rider *R, address *R__typ, LONGREAL *x);
 import void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 import void Files_ReadNum (Files_Rider *R, address *R__typ, int32 *x);
+import void Files_ReadNum64 (Files_Rider *R, address *R__typ, SYSTEM_BYTE *x, LONGINT x__len);
 import void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x);
 import void Files_ReadSet (Files_Rider *R, address *R__typ, uint32 *x);
 import void Files_ReadString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);

@@ -654,16 +654,16 @@ Especially Length would become fairly complex.
     UNTIL b
   END ReadLine;
 
-  (* todo
-  PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
+  (* todo combine ReadNum and ReadNum64 *)
+  PROCEDURE ReadNum64*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
     VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;
   BEGIN s := 0; q := 0; Read(R, b);
     WHILE b >= 128 DO INC(q, ASH(b-128, s)); INC(s, 7); Read(R, b) END;
     INC(q, ASH(b MOD 64 - b DIV 64 * 64, s));
     ASSERT(LEN(x) <= 8);
     SYSTEM.MOVE(SYSTEM.ADR(q), SYSTEM.ADR(x), LEN(x))  (* Assumes little endian representation of q and x. *)
-  END ReadNum;
-  *)
+  END ReadNum64;
+
 
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
     VAR s: SHORTINT; ch: CHAR; n: LONGINT;

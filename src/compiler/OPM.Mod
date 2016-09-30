@@ -592,27 +592,21 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN Files.Read(oldSF, ch)
   END SymRCh;
 
+  (* todo - combine RInt64 and RInt *)
   PROCEDURE SymRInt*(): LONGINT;
     VAR k: LONGINT;
   BEGIN Files.ReadNum(oldSF, k); RETURN k
   END SymRInt;
 
-  (* todo
   PROCEDURE SymRInt64*(): SYSTEM.INT64;
     VAR k: SYSTEM.INT64;
-  BEGIN Files.ReadNum(oldSF, k); RETURN k
-  END SymRInt64;
-  *)
-
-  PROCEDURE SymRInt64*(): SYSTEM.INT64;
-  BEGIN RETURN SymRInt()
+  BEGIN Files.ReadNum64(oldSF, k); RETURN k
   END SymRInt64;
 
-  (* todo
-  PROCEDURE SymRSet*(VAR s: SYSTEM.SET64);
-  BEGIN Files.ReadNum(oldSF, SYSTEM.VAL(SYSTEM.INT64, s))
-  END SymRSet;
-  *)
+  (* todo - combine RSet64 and RSet *)
+  PROCEDURE SymRSet64*(VAR s: SYSTEM.SET64);
+  BEGIN Files.ReadNum64(oldSF, s)
+  END SymRSet64;
 
   PROCEDURE SymRSet*(VAR s: SET);
   BEGIN Files.ReadNum(oldSF, SYSTEM.VAL(LONGINT, s))

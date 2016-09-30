@@ -654,16 +654,6 @@ Especially Length would become fairly complex.
     UNTIL b
   END ReadLine;
 
-  (*
-  PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
-    VAR s: SHORTINT; ch: CHAR; n: LONGINT;
-  BEGIN s := 0; n := 0; Read(R, ch);
-    WHILE ORD(ch) >= 128 DO INC(n, ASH(ORD(ch) - 128, s) ); INC(s, 7); Read(R, ch) END;
-    INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
-    x := n
-  END ReadNum;
-  *)
-
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
     VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;
   BEGIN s := 0; q := 0; Read(R, b);

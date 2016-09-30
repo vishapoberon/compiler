@@ -50,6 +50,7 @@ import int64 OPM_SymRInt64 (void);
 import void OPM_SymRLReal (LONGREAL *lr);
 import void OPM_SymRReal (REAL *r);
 import void OPM_SymRSet (uint32 *s);
+import void OPM_SymRSet64 (uint64 *s);
 import void OPM_SymWCh (CHAR ch);
 import void OPM_SymWInt (int64 i);
 import void OPM_SymWLReal (LONGREAL lr);

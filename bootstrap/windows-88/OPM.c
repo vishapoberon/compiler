@@ -82,6 +82,7 @@ export int64 OPM_SymRInt64 (void);
 export void OPM_SymRLReal (LONGREAL *lr);
 export void OPM_SymRReal (REAL *r);
 export void OPM_SymRSet (uint32 *s);
+export void OPM_SymRSet64 (uint64 *s);
 export void OPM_SymWCh (CHAR ch);
 export void OPM_SymWInt (int64 i);
 export void OPM_SymWLReal (LONGREAL lr);
@@ -752,8 +753,15 @@ int32 OPM_SymRInt (void)
 int64 OPM_SymRInt64 (void)
 {
 	int64 _o_result;
-	_o_result = OPM_SymRInt();
+	int64 k;
+	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, (void*)&k, 8);
+	_o_result = k;
 	return _o_result;
+}
+
+void OPM_SymRSet64 (uint64 *s)
+{
+	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, (void*)&*s, 8);
 }
 
 void OPM_SymRSet (uint32 *s)

@@ -155,7 +155,7 @@ installable:
 #          May require root access.
 install:
 	@printf "\nInstalling into \"$(INSTALLDIR)\"\n"
-	@rm -rf "$(INSTALLDIR)/bin" "$(INSTALLDIR)/2 "$(INSTALLDIR)/C
+	@rm -rf "$(INSTALLDIR)"
 
 	@mkdir -p "$(INSTALLDIR)/bin"
 	@cp $(OBECOMP) "$(INSTALLDIR)/bin/$(OBECOMP)"

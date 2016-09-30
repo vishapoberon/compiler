@@ -89,6 +89,7 @@ export void Files_ReadLInt (Files_Rider *R, address *R__typ, int32 *x);
 export void Files_ReadLReal (Files_Rider *R, address *R__typ, LONGREAL *x);
 export void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 export void Files_ReadNum (Files_Rider *R, address *R__typ, int32 *x);
+export void Files_ReadNum64 (Files_Rider *R, address *R__typ, SYSTEM_BYTE *x, LONGINT x__len);
 export void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x);
 export void Files_ReadSet (Files_Rider *R, address *R__typ, uint32 *x);
 export void Files_ReadString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
@@ -912,6 +913,23 @@ void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len)
 			i += 1;
 		}
 	} while (!b);
+}
+
+void Files_ReadNum64 (Files_Rider *R, address *R__typ, SYSTEM_BYTE *x, LONGINT x__len)
+{
+	int8 s, b;
+	int64 q;
+	s = 0;
+	q = 0;
+	Files_Read(&*R, R__typ, (void*)&b);
+	while ((int16)b >= 128) {
+		q += (int64)__ASH(((int16)b - 128), s);
+		s += 7;
+		Files_Read(&*R, R__typ, (void*)&b);
+	}
+	q += (int64)__ASH((__MASK(b, -64) - __ASHL(__ASHR(b, 6), 6)), s);
+	__ASSERT(x__len <= 8, 0);
+	__MOVE((address)&q, (address)x, x__len);
 }
 
 void Files_ReadNum (Files_Rider *R, address *R__typ, int32 *x)
