@@ -72,7 +72,7 @@ static void OPV_GetTProcNum (OPT_Object obj)
 	OPT_FindField(obj->name, typ->BaseTyp, &redef);
 	if (redef != NIL) {
 		obj->adr = __ASHL(__ASHR(redef->adr, 16), 16);
-		if (!__IN(2, obj->conval->setval, 32)) {
+		if (!__IN(2, obj->conval->setval, 64)) {
 			OPM_err(119);
 		}
 	} else {

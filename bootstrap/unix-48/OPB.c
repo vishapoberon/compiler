@@ -471,7 +471,7 @@ void OPB_In (OPT_Node *x, OPT_Node y)
 			if (k < 0 || k > (int64)OPM_MaxSet) {
 				OPB_err(202);
 			} else if (y->class == 7) {
-				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval, 32));
+				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval, 64));
 				(*x)->obj = NIL;
 			} else {
 				OPB_BindNodes(12, OPT_booltyp, &*x, y);
@@ -2483,7 +2483,7 @@ void OPB_StaticLink (int8 dlev)
 	scope = OPT_topScope;
 	while (dlev > 0) {
 		dlev -= 1;
-		scope->link->conval->setval |= __SETOF(3,32);
+		scope->link->conval->setval |= __SETOF(3,64);
 		scope = scope->left;
 	}
 }

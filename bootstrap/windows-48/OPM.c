@@ -53,7 +53,7 @@ export void OPM_DeleteNewSym (void);
 export void OPM_FPrint (int32 *fp, int64 val);
 export void OPM_FPrintLReal (int32 *fp, LONGREAL lr);
 export void OPM_FPrintReal (int32 *fp, REAL real);
-export void OPM_FPrintSet (int32 *fp, uint32 set);
+export void OPM_FPrintSet (int32 *fp, uint64 set);
 static void OPM_FindLine (Files_File f, Files_Rider *r, address *r__typ, int64 pos);
 export void OPM_Get (CHAR *ch);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
@@ -81,12 +81,12 @@ export int32 OPM_SymRInt (void);
 export int64 OPM_SymRInt64 (void);
 export void OPM_SymRLReal (LONGREAL *lr);
 export void OPM_SymRReal (REAL *r);
-export void OPM_SymRSet (uint32 *s);
+export void OPM_SymRSet (uint64 *s);
 export void OPM_SymWCh (CHAR ch);
 export void OPM_SymWInt (int64 i);
 export void OPM_SymWLReal (LONGREAL lr);
 export void OPM_SymWReal (REAL r);
-export void OPM_SymWSet (uint32 s);
+export void OPM_SymWSet (uint64 s);
 static void OPM_VerboseListSizes (void);
 export void OPM_Write (CHAR ch);
 export void OPM_WriteHex (int64 i);
@@ -713,9 +713,9 @@ void OPM_FPrint (int32 *fp, int64 val)
 	*fp = __ROTL((int32)((uint32)*fp ^ __VAL(uint32, val)), 1, 32);
 }
 
-void OPM_FPrintSet (int32 *fp, uint32 set)
+void OPM_FPrintSet (int32 *fp, uint64 set)
 {
-	OPM_FPrint(&*fp, (int32)set);
+	OPM_FPrint(&*fp, __VAL(int32, set));
 }
 
 void OPM_FPrintReal (int32 *fp, REAL real)
@@ -758,9 +758,9 @@ int64 OPM_SymRInt64 (void)
 	return _o_result;
 }
 
-void OPM_SymRSet (uint32 *s)
+void OPM_SymRSet (uint64 *s)
 {
-	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&*s, 4);
+	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&*s, 8);
 }
 
 void OPM_SymRReal (REAL *r)
@@ -812,9 +812,9 @@ void OPM_SymWInt (int64 i)
 	Files_WriteNum(&OPM_newSF, Files_Rider__typ, i);
 }
 
-void OPM_SymWSet (uint32 s)
+void OPM_SymWSet (uint64 s)
 {
-	Files_WriteNum(&OPM_newSF, Files_Rider__typ, (int32)s);
+	Files_WriteNum(&OPM_newSF, Files_Rider__typ, (int64)s);
 }
 
 void OPM_SymWReal (REAL r)

@@ -20,7 +20,7 @@ typedef
 		OPT_ConstExt ext;
 		int64 intval;
 		int32 intval2;
-		uint32 setval;
+		uint64 setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
 
@@ -2008,7 +2008,7 @@ static void EnumPtrs(void (*P)(void*))
 	__ENUMR(&OPT_impCtxt, OPT_ImpCtxt__typ, 5184, 1, P);
 }
 
-__TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 32), {0, -16}};
+__TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 40), {0, -16}};
 __TDESC(OPT_ObjDesc, 1, 6) = {__TDFLDS("ObjDesc", 336), {0, 8, 16, 24, 304, 312, -56}};
 __TDESC(OPT_StrDesc, 1, 3) = {__TDFLDS("StrDesc", 72), {48, 56, 64, -32}};
 __TDESC(OPT_NodeDesc, 1, 6) = {__TDFLDS("NodeDesc", 56), {0, 8, 16, 32, 40, 48, -56}};

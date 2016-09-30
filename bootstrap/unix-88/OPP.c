@@ -967,7 +967,7 @@ static void GetCode__19 (void)
 			}
 		}
 	}
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,32);
+	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,64);
 }
 
 static void GetParams__21 (void)
@@ -999,7 +999,7 @@ static void Body__17 (void)
 	OPT_Node procdec = NIL, statseq = NIL;
 	int32 c;
 	c = OPM_errpos;
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,32);
+	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,64);
 	OPP_CheckSym(39);
 	OPP_Block(&procdec, &statseq);
 	OPB_Enter(&procdec, statseq, *ProcedureDeclaration__16_s->proc);
@@ -1042,7 +1042,7 @@ static void TProcDecl__23 (void)
 		if ((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mnolev != OPP_level)) {
 			*ProcedureDeclaration__16_s->fwd = NIL;
 		}
-		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval, 32))) {
+		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval, 64))) {
 			*ProcedureDeclaration__16_s->proc = OPT_NewObj();
 			(*ProcedureDeclaration__16_s->proc)->leaf = 1;
 			if ((*ProcedureDeclaration__16_s->fwd)->vis != *ProcedureDeclaration__16_s->vis) {
@@ -1076,7 +1076,7 @@ static void TProcDecl__23 (void)
 			if ((((((baseProc->vis == 1 && (*ProcedureDeclaration__16_s->proc)->vis == 0)) && recTyp->strobj != NIL)) && recTyp->strobj->vis == 1)) {
 				OPP_err(109);
 			}
-			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2,32);
+			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2,64);
 		}
 		if (!*ProcedureDeclaration__16_s->forward) {
 			Body__17();
@@ -1136,7 +1136,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		if ((fwd != NIL && (fwd->mnolev != OPP_level || fwd->mode == 8))) {
 			fwd = NIL;
 		}
-		if ((((fwd != NIL && __IN(fwd->mode, 0xc0, 32))) && !__IN(1, fwd->conval->setval, 32))) {
+		if ((((fwd != NIL && __IN(fwd->mode, 0xc0, 32))) && !__IN(1, fwd->conval->setval, 64))) {
 			proc = OPT_NewObj();
 			proc->leaf = 1;
 			if (fwd->vis != vis) {

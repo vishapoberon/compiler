@@ -17,7 +17,7 @@ typedef
 		OPT_ConstExt ext;
 		int64 intval;
 		int32 intval2;
-		uint32 setval;
+		uint64 setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
 
