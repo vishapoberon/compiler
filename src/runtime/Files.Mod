@@ -58,8 +58,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       res*:   LONGINT;
       eof*:   BOOLEAN;
       buf:    Buffer;
-      org:    LONGINT;
-      offset: LONGINT
+      org:    LONGINT;  (* File offset of block containing current position *)
+      offset: LONGINT   (* Current position offset within block at org. *)
     END;
 
 
@@ -654,6 +654,7 @@ Especially Length would become fairly complex.
     UNTIL b
   END ReadLine;
 
+  (*
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
     VAR s: SHORTINT; ch: CHAR; n: LONGINT;
   BEGIN s := 0; n := 0; Read(R, ch);
@@ -661,18 +662,16 @@ Especially Length would become fairly complex.
     INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
     x := n
   END ReadNum;
-
-  PROCEDURE ReadNum64* (VAR R: Rider; VAR x: SYSTEM.INT64);
-  (* todo. use proper code when INC/ASH properly support INT64 on 32 bit platforms
-    VAR s: SHORTINT; ch: CHAR; n: SYSTEM.INT64;
-  BEGIN s := 0; n := 0; Read(R, ch);
-    WHILE ORD(ch) >= 128 DO INC(n, ASH(ORD(ch) - 128, s) ); INC(s, 7); Read(R, ch) END;
-    INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
-    x := n
   *)
-    VAR n: LONGINT;
-  BEGIN ReadNum(R, n); x := n
-  END ReadNum64;
+
+  PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
+    VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;
+  BEGIN s := 0; q := 0; Read(R, b);
+    WHILE b >= 128 DO INC(q, ASH(b-128, s)); INC(s, 7); Read(R, b) END;
+    INC(q, ASH(b MOD 64 - b DIV 64 * 64, s));
+    ASSERT(LEN(x) <= 8);
+    SYSTEM.MOVE(SYSTEM.ADR(q), SYSTEM.ADR(x), LEN(x))  (* Assumes little endian representation of q and x. *)
+  END ReadNum;
 
   PROCEDURE WriteBool* (VAR R: Rider; x: BOOLEAN);
   BEGIN Write(R, SYSTEM.VAL(CHAR, x))
@@ -715,17 +714,11 @@ Especially Length would become fairly complex.
     WriteBytes(R, x, i+1)
   END WriteString;
 
-  PROCEDURE WriteNum* (VAR R: Rider; x: LONGINT);
+  PROCEDURE WriteNum* (VAR R: Rider; x: SYSTEM.INT64);
   BEGIN
     WHILE (x < - 64) OR (x > 63) DO Write(R, CHR(x MOD 128 + 128)); x := x DIV 128 END;
     Write(R, CHR(x MOD 128))
   END WriteNum;
-
-  PROCEDURE WriteNum64* (VAR R: Rider; x: SYSTEM.INT64);
-  BEGIN
-    WHILE (x < - 64) OR (x > 63) DO Write(R, CHR(x MOD 128 + 128)); x := x DIV 128 END;
-    Write(R, CHR(x MOD 128))
-  END WriteNum64;
 
   PROCEDURE GetName*(f: File; VAR name: ARRAY OF CHAR);
   BEGIN

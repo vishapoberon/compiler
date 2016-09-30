@@ -23,7 +23,7 @@ MODULE LowReal;
 *)
 
 
-IMPORT S := SYSTEM, Reals;
+IMPORT SYSTEM;
 
 (*
 
@@ -99,13 +99,13 @@ CONST
   ZERO = 0.0;
 
   expOffset = expoMax;
-  hiBit     = 22;
-  expBit    = hiBit+1;
-  nMask     = {0..hiBit,31};  (* number mask *)
-  expMask   = {expBit..30};   (* exponent mask *)
+  (*hiBit     = 22;*)
+  (*expBit    = hiBit+1;*)
+  nMask     = {0..22,31};  (* number mask *)
+  expMask   = {23..30};    (* exponent mask *)
 
 TYPE
-  Modes*= SET;
+  Modes* = SET;
 
 VAR
   (*small* : REAL; tmp: REAL;*) (* this was a test to get small as a variable at runtime. obviously, compile time preferred; -- noch *)
@@ -131,15 +131,24 @@ PROCEDURE exponent*(x: REAL): INTEGER;
    that lies between `expoMin' and `expoMax'.  An exception shall occur
    and may be raised if `x' is equal to 0.0.
  *)
+  VAR w: SYSTEM.INT16;
 BEGIN
   (* NOTE: x=0.0 should raise exception *)
-  IF x = ZERO THEN RETURN 0
-  ELSE RETURN Reals.Expo(x) - expOffset
-  END
+  IF x = ZERO THEN RETURN 0 END;
+
+  RETURN SYSTEM.VAL(INTEGER, SYSTEM.LSH((SYSTEM.VAL(SYSTEM.SET32, x) * expMask), -23));
+
+
+  SYSTEM.GET(SYSTEM.ADR(x)+2, w); (* Load most significant word *)
+  RETURN ((w DIV 128) MOD 256) - expOffset
 END exponent;
 
-PROCEDURE SetExponent(VAR x: REAL; ex: INTEGER);
-BEGIN Reals.SetExpo(x, ex + expOffset)
+PROCEDURE SetExponent(VAR x: REAL; ex: SYSTEM.INT32);
+  VAR s: SYSTEM.SET32;
+BEGIN
+  ex := SYSTEM.LSH(ex + expOffset, 23);
+  s := SYSTEM.VAL(SYSTEM.SET32, s) * nMask  +  SYSTEM.VAL(SYSTEM.SET32, ex) * expMask;
+  SYSTEM.PUT(SYSTEM.ADR(x), s)
 END SetExponent;
 
 PROCEDURE exponent10*(x: REAL): INTEGER;
@@ -170,20 +179,20 @@ BEGIN
   IF x=ZERO THEN RETURN ZERO
   ELSE
     (* Set top 7 bits of exponent to 0111111 *)
-    S.GET(S.ADR(x)+3, c);
+    SYSTEM.GET(SYSTEM.ADR(x)+3, c);
     c := CHR(((ORD(c) DIV 128) * 128) + 63); (* Set X0111111 (X unchanged) *)
-    S.PUT(S.ADR(x)+3, c);
+    SYSTEM.PUT(SYSTEM.ADR(x)+3, c);
     (* Set bottom bit of exponent to 0 *)
-    S.GET(S.ADR(x)+2, c);
+    SYSTEM.GET(SYSTEM.ADR(x)+2, c);
     c := CHR(ORD(c) MOD 128); (* Set 0XXXXXXX (X unchanged) *)
-    S.PUT(S.ADR(x)+2, c);
+    SYSTEM.PUT(SYSTEM.ADR(x)+2, c);
     RETURN x * 2.0;
   END
 (*
   CONST eZero={(hiBit+2)..29};
 BEGIN
   IF x=ZERO THEN RETURN ZERO
-  ELSE RETURN S.VAL(REAL,(S.VAL(SET,x)*nMask)+eZero)*2.0  (* set the mantissa's exponent to zero *)
+  ELSE RETURN SYSTEM.VAL(REAL,(SYSTEM.VAL(SET,x)*nMask)+eZero)*2.0  (* set the mantissa's exponent to zero *)
   END
 *)
 END fraction;
@@ -191,20 +200,20 @@ END fraction;
 PROCEDURE IsInfinity * (real: REAL) : BOOLEAN;
   VAR c0, c1, c2, c3: CHAR;
 BEGIN
-  S.GET(S.ADR(real)+0, c3);
-  S.GET(S.ADR(real)+1, c2);
-  S.GET(S.ADR(real)+2, c1);
-  S.GET(S.ADR(real)+3, c0);
+  SYSTEM.GET(SYSTEM.ADR(real)+0, c3);
+  SYSTEM.GET(SYSTEM.ADR(real)+1, c2);
+  SYSTEM.GET(SYSTEM.ADR(real)+2, c1);
+  SYSTEM.GET(SYSTEM.ADR(real)+3, c0);
   RETURN (ORD(c0) MOD 128 = 127) & (ORD(c1) = 128) & (ORD(c2) = 0) & (ORD(c3) = 0)
 END IsInfinity;
 
 PROCEDURE IsNaN * (real: REAL) : BOOLEAN;
   VAR c0, c1, c2, c3: CHAR;
 BEGIN
-  S.GET(S.ADR(real)+0, c3);
-  S.GET(S.ADR(real)+1, c2);
-  S.GET(S.ADR(real)+2, c1);
-  S.GET(S.ADR(real)+3, c0);
+  SYSTEM.GET(SYSTEM.ADR(real)+0, c3);
+  SYSTEM.GET(SYSTEM.ADR(real)+1, c2);
+  SYSTEM.GET(SYSTEM.ADR(real)+2, c1);
+  SYSTEM.GET(SYSTEM.ADR(real)+3, c0);
   RETURN (ORD(c0) MOD 128 = 127)
        & (ORD(c1) DIV 128 = 1)
        & ((ORD(c1) MOD 128 # 0) OR (ORD(c2) # 0) OR (ORD(c3) # 0))
@@ -235,8 +244,8 @@ BEGIN
   END;
   SetExponent(x, SHORT(exp));
   (* SetExponent replaces these 2 lines:
-  lexp := S.VAL(SET, S.LSH(exp + expOffset, expBit)); (* shifted exponent bits *)
-  RETURN S.VAL(REAL, (S.VAL(SET, x) * nMask) + lexp)  (* insert new exponent *)
+  lexp := SYSTEM.VAL(SET, SYSTEM.LSH(exp + expOffset, expBit)); (* shifted exponent bits *)
+  RETURN SYSTEM.VAL(REAL, (SYSTEM.VAL(SET, x) * nMask) + lexp)  (* insert new exponent *)
   *)
 END scale;
 
@@ -280,7 +289,7 @@ BEGIN
   loBit := (hiBit+1) - exponent(x);
   IF loBit <= 0 THEN RETURN x                   (* no fractional part *)
   ELSIF loBit <= hiBit+1 THEN
-    RETURN S.VAL(REAL,S.VAL(SET,x)*{loBit..31}) (* integer part is extracted *)
+    RETURN SYSTEM.VAL(REAL,SYSTEM.VAL(SET,x)*{loBit..31}) (* integer part is extracted *)
   ELSE RETURN ZERO                              (* no whole part *)
   END
 END intpart;
@@ -305,7 +314,7 @@ BEGIN loBit:=places-n;
   IF n<=0 THEN RETURN ZERO                   (* exception should be raised *)
   ELSIF loBit<=0 THEN RETURN x               (* nothing was truncated *)
   ELSE mask:={loBit..31};                    (* truncation bit mask *)
-    RETURN S.VAL(REAL,S.VAL(SET,x)*mask)
+    RETURN SYSTEM.VAL(REAL,SYSTEM.VAL(SET,x)*mask)
   END
 END trunc;
 
@@ -320,8 +329,8 @@ PROCEDURE round*(x: REAL; n: INTEGER): REAL;
 BEGIN loBit:=places-n;
   IF n<=0 THEN RETURN ZERO                   (* exception should be raised *)
   ELSIF loBit<=0 THEN RETURN x               (* nothing was rounded *)
-  ELSE mask:={loBit..31}; num:=S.VAL(SET,x); (* truncation bit mask and number as SET *)
-    x:=S.VAL(REAL,num*mask);                 (* truncated result *)
+  ELSE mask:={loBit..31}; num:=SYSTEM.VAL(SET,x); (* truncation bit mask and number as SET *)
+    x:=SYSTEM.VAL(REAL,num*mask);                 (* truncated result *)
     IF loBit-1 IN num THEN                   (* check if result should be rounded *)
       r:=scale(ONE,exponent(x)-n+1);         (* rounding fraction *)
       IF 31 IN num THEN RETURN x-r           (* negative rounding toward -infinity *)

@@ -268,7 +268,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("    -f   Disable vt100 control characters in status output.");                                      LogWLn;
       LogWStr("    -V   Display compiler debugging messages.");                                                    LogWLn;
       LogWLn;
-      LogWStr("  Size model for elementary types (default O2 on 32 bit builds, OV on 64 bits)");                   LogWLn;
+      LogWStr("  Size model for elementary types (default O2)");                                                   LogWLn;
       LogWStr("    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.");   LogWLn;
       LogWStr("    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
       LogWStr("    -OV   Alternate large model:       8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
@@ -597,10 +597,22 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN Files.ReadNum(oldSF, k); RETURN k
   END SymRInt;
 
+  (* todo
   PROCEDURE SymRInt64*(): SYSTEM.INT64;
     VAR k: SYSTEM.INT64;
-  BEGIN Files.ReadNum64(oldSF, k); RETURN k
+  BEGIN Files.ReadNum(oldSF, k); RETURN k
   END SymRInt64;
+  *)
+
+  PROCEDURE SymRInt64*(): SYSTEM.INT64;
+  BEGIN RETURN SymRInt()
+  END SymRInt64;
+
+  (* todo
+  PROCEDURE SymRSet*(VAR s: SYSTEM.SET64);
+  BEGIN Files.ReadNum(oldSF, SYSTEM.VAL(SYSTEM.INT64, s))
+  END SymRSet;
+  *)
 
   PROCEDURE SymRSet*(VAR s: SET);
   BEGIN Files.ReadNum(oldSF, SYSTEM.VAL(LONGINT, s))
@@ -644,8 +656,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END SymWCh;
 
   PROCEDURE SymWInt*(i: SYSTEM.INT64);
-  BEGIN Files.WriteNum64(newSF, i)
+  BEGIN Files.WriteNum(newSF, i)
   END SymWInt;
+
+  (* todo
+  PROCEDURE SymWSet*(s: SYSTEM.SET64);
+  BEGIN Files.WriteNum(newSF, SYSTEM.VAL(SYSTEM.INT64, s))
+  END SymWSet;
+  *)
 
   PROCEDURE SymWSet*(s: SET);
   BEGIN Files.WriteNum(newSF, SYSTEM.VAL(LONGINT, s))

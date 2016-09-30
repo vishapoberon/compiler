@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -17,7 +17,7 @@ typedef
 		OPT_ConstExt ext;
 		int64 intval;
 		int32 intval2;
-		SET setval;
+		uint32 setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
 
@@ -67,8 +67,8 @@ typedef
 
 
 import OPT_Object OPT_topScope;
-import OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
-import OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj;
+import OPT_Struct OPT_undftyp, OPT_niltyp, OPT_notyp, OPT_bytetyp, OPT_cpbytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_settyp, OPT_set32typ, OPT_set64typ, OPT_realtyp, OPT_lrltyp, OPT_stringtyp, OPT_adrtyp, OPT_sysptrtyp;
+import OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj, OPT_setobj;
 import int8 OPT_nofGmod;
 import OPT_Object OPT_GlbMod[64];
 import OPS_Name OPT_SelfName;
@@ -92,7 +92,7 @@ import void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res);
 import void OPT_FindImport (OPT_Object mod, OPT_Object *res);
 import void OPT_IdFPrint (OPT_Struct typ);
 import void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
-import void OPT_Init (OPS_Name name, SET opt);
+import void OPT_Init (OPS_Name name, uint32 opt);
 import void OPT_InitRecno (void);
 import void OPT_Insert (OPS_Name name, OPT_Object *obj);
 import void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
@@ -104,6 +104,7 @@ import OPT_Node OPT_NewNode (int8 class);
 import OPT_Object OPT_NewObj (void);
 import OPT_Struct OPT_NewStr (int8 form, int8 comp);
 import void OPT_OpenScope (int8 level, OPT_Object owner);
+import OPT_Struct OPT_SetType (int32 size);
 import OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
 import int32 OPT_SizeAlignment (int32 size);
 import void OPT_TypSize (OPT_Struct typ);

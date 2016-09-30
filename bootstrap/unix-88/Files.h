@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
 #ifndef Files__h
 #define Files__h
@@ -48,9 +48,8 @@ import void Files_ReadLInt (Files_Rider *R, address *R__typ, int32 *x);
 import void Files_ReadLReal (Files_Rider *R, address *R__typ, LONGREAL *x);
 import void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 import void Files_ReadNum (Files_Rider *R, address *R__typ, int32 *x);
-import void Files_ReadNum64 (Files_Rider *R, address *R__typ, int64 *x);
 import void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x);
-import void Files_ReadSet (Files_Rider *R, address *R__typ, SET *x);
+import void Files_ReadSet (Files_Rider *R, address *R__typ, uint32 *x);
 import void Files_ReadString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 import void Files_Register (Files_File f);
 import void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, int16 *res);
@@ -62,10 +61,9 @@ import void Files_WriteBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, L
 import void Files_WriteInt (Files_Rider *R, address *R__typ, int16 x);
 import void Files_WriteLInt (Files_Rider *R, address *R__typ, int32 x);
 import void Files_WriteLReal (Files_Rider *R, address *R__typ, LONGREAL x);
-import void Files_WriteNum (Files_Rider *R, address *R__typ, int32 x);
-import void Files_WriteNum64 (Files_Rider *R, address *R__typ, int64 x);
+import void Files_WriteNum (Files_Rider *R, address *R__typ, int64 x);
 import void Files_WriteReal (Files_Rider *R, address *R__typ, REAL x);
-import void Files_WriteSet (Files_Rider *R, address *R__typ, SET x);
+import void Files_WriteSet (Files_Rider *R, address *R__typ, uint32 x);
 import void Files_WriteString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 import void *Files__init(void);
 

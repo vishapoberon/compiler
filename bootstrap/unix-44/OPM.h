@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -8,7 +8,7 @@
 
 import CHAR OPM_Model[10];
 import int16 OPM_AddressSize, OPM_Alignment;
-import SET OPM_GlobalOptions, OPM_Options;
+import uint32 OPM_GlobalOptions, OPM_Options;
 import int16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize, OPM_MaxSet;
 import int64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
@@ -26,7 +26,7 @@ import void OPM_DeleteNewSym (void);
 import void OPM_FPrint (int32 *fp, int64 val);
 import void OPM_FPrintLReal (int32 *fp, LONGREAL lr);
 import void OPM_FPrintReal (int32 *fp, REAL real);
-import void OPM_FPrintSet (int32 *fp, SET set);
+import void OPM_FPrintSet (int32 *fp, uint32 set);
 import void OPM_Get (CHAR *ch);
 import void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 import void OPM_InitOptions (void);
@@ -49,12 +49,12 @@ import int32 OPM_SymRInt (void);
 import int64 OPM_SymRInt64 (void);
 import void OPM_SymRLReal (LONGREAL *lr);
 import void OPM_SymRReal (REAL *r);
-import void OPM_SymRSet (SET *s);
+import void OPM_SymRSet (uint32 *s);
 import void OPM_SymWCh (CHAR ch);
 import void OPM_SymWInt (int64 i);
 import void OPM_SymWLReal (LONGREAL lr);
 import void OPM_SymWReal (REAL r);
-import void OPM_SymWSet (SET s);
+import void OPM_SymWSet (uint32 s);
 import void OPM_Write (CHAR ch);
 import void OPM_WriteHex (int64 i);
 import void OPM_WriteInt (int64 i);

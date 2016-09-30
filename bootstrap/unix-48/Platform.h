@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -26,7 +26,7 @@ import CHAR Platform_CWD[256];
 import int16 Platform_ArgCount;
 import int32 Platform_ArgVector;
 import int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
-import CHAR Platform_nl[3];
+import CHAR Platform_NL[3];
 
 import address *Platform_FileIdentity__typ;
 

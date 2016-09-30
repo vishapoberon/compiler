@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 
@@ -40,7 +41,7 @@ export int64 Platform_ArgVector;
 static Platform_HaltProcedure Platform_HaltHandler;
 static int32 Platform_TimeStart;
 export int16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
-export CHAR Platform_nl[3];
+export CHAR Platform_NL[3];
 
 export address *Platform_FileIdentity__typ;
 
@@ -798,7 +799,7 @@ export void *Platform__init(void)
 	Platform_SeekSet = Platform_seekset();
 	Platform_SeekCur = Platform_seekcur();
 	Platform_SeekEnd = Platform_seekend();
-	Platform_nl[0] = 0x0a;
-	Platform_nl[1] = 0x00;
+	Platform_NL[0] = 0x0a;
+	Platform_NL[1] = 0x00;
 	__ENDMOD;
 }

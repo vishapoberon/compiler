@@ -1,13 +1,13 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
-#include "Configuration.h"
-#include "Console.h"
 #include "Heap.h"
+#include "Console.h"
 #include "Platform.h"
 #include "Strings.h"
 
@@ -89,9 +89,8 @@ export void Files_ReadLInt (Files_Rider *R, address *R__typ, int32 *x);
 export void Files_ReadLReal (Files_Rider *R, address *R__typ, LONGREAL *x);
 export void Files_ReadLine (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 export void Files_ReadNum (Files_Rider *R, address *R__typ, int32 *x);
-export void Files_ReadNum64 (Files_Rider *R, address *R__typ, int64 *x);
 export void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x);
-export void Files_ReadSet (Files_Rider *R, address *R__typ, SET *x);
+export void Files_ReadSet (Files_Rider *R, address *R__typ, uint32 *x);
 export void Files_ReadString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 export void Files_Register (Files_File f);
 export void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, int16 *res);
@@ -104,13 +103,13 @@ export void Files_WriteBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, L
 export void Files_WriteInt (Files_Rider *R, address *R__typ, int16 x);
 export void Files_WriteLInt (Files_Rider *R, address *R__typ, int32 x);
 export void Files_WriteLReal (Files_Rider *R, address *R__typ, LONGREAL x);
-export void Files_WriteNum (Files_Rider *R, address *R__typ, int32 x);
-export void Files_WriteNum64 (Files_Rider *R, address *R__typ, int64 x);
+export void Files_WriteNum (Files_Rider *R, address *R__typ, int64 x);
 export void Files_WriteReal (Files_Rider *R, address *R__typ, REAL x);
-export void Files_WriteSet (Files_Rider *R, address *R__typ, SET x);
+export void Files_WriteSet (Files_Rider *R, address *R__typ, uint32 x);
 export void Files_WriteString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len);
 
 #define Files_IdxTrap()	__HALT(-1)
+#define Files_ToAdr(x)	(address)x
 
 static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, int16 errcode)
 {
@@ -662,7 +661,7 @@ void Files_ReadBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x
 		} else {
 			min = n;
 		}
-		__MOVE((address)buf->data + (int64)offset, (address)x + (int64)xpos, min);
+		__MOVE((address)buf->data + Files_ToAdr(offset), (address)x + Files_ToAdr(xpos), min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -722,7 +721,7 @@ void Files_WriteBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT 
 		} else {
 			min = n;
 		}
-		__MOVE((address)x + (int64)xpos, (address)buf->data + (int64)offset, min);
+		__MOVE((address)x + Files_ToAdr(xpos), (address)buf->data + Files_ToAdr(offset), min);
 		offset += min;
 		(*r).offset = offset;
 		if (offset > buf->size) {
@@ -862,13 +861,13 @@ void Files_ReadLInt (Files_Rider *R, address *R__typ, int32 *x)
 	*x = (((int16)b[0] + __ASHL((int16)b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
 }
 
-void Files_ReadSet (Files_Rider *R, address *R__typ, SET *x)
+void Files_ReadSet (Files_Rider *R, address *R__typ, uint32 *x)
 {
 	CHAR b[4];
 	int32 l;
 	Files_ReadBytes(&*R, R__typ, (void*)b, 4, 4);
 	l = (((int16)b[0] + __ASHL((int16)b[1], 8)) + __ASHL(b[2], 16)) + __ASHL(b[3], 24);
-	*x = (SET)l;
+	*x = (uint32)l;
 }
 
 void Files_ReadReal (Files_Rider *R, address *R__typ, REAL *x)
@@ -932,13 +931,6 @@ void Files_ReadNum (Files_Rider *R, address *R__typ, int32 *x)
 	*x = n;
 }
 
-void Files_ReadNum64 (Files_Rider *R, address *R__typ, int64 *x)
-{
-	int32 n;
-	Files_ReadNum(&*R, R__typ, &n);
-	*x = n;
-}
-
 void Files_WriteBool (Files_Rider *R, address *R__typ, BOOLEAN x)
 {
 	Files_Write(&*R, R__typ, __VAL(CHAR, x));
@@ -962,7 +954,7 @@ void Files_WriteLInt (Files_Rider *R, address *R__typ, int32 x)
 	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
-void Files_WriteSet (Files_Rider *R, address *R__typ, SET x)
+void Files_WriteSet (Files_Rider *R, address *R__typ, uint32 x)
 {
 	CHAR b[4];
 	int32 i;
@@ -998,16 +990,7 @@ void Files_WriteString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT x__len
 	Files_WriteBytes(&*R, R__typ, (void*)x, x__len * 1, i + 1);
 }
 
-void Files_WriteNum (Files_Rider *R, address *R__typ, int32 x)
-{
-	while (x < -64 || x > 63) {
-		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));
-		x = __ASHR(x, 7);
-	}
-	Files_Write(&*R, R__typ, (CHAR)__MASK(x, -128));
-}
-
-void Files_WriteNum64 (Files_Rider *R, address *R__typ, int64 x)
+void Files_WriteNum (Files_Rider *R, address *R__typ, int64 x)
 {
 	while (x < -64 || x > 63) {
 		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));
@@ -1059,9 +1042,8 @@ __TDESC(Files_Rider, 1, 1) = {__TDFLDS("Rider", 24), {8, -16}};
 export void *Files__init(void)
 {
 	__DEFMOD;
-	__MODULE_IMPORT(Configuration);
-	__MODULE_IMPORT(Console);
 	__MODULE_IMPORT(Heap);
+	__MODULE_IMPORT(Console);
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
 	__REGMOD("Files", EnumPtrs);

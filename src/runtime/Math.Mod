@@ -573,6 +573,10 @@ BEGIN t:=ABS(x);
   RETURN arcsinh(x/sqrt(ONE-x*x))
 END arctanh;
 
+PROCEDURE ToREAL(h: HUGEINT): REAL;
+BEGIN RETURN SYSTEM.VAL(REAL, h)
+END ToREAL;
+
 BEGIN
   (* determine some fundamental constants used by hyperbolic trig functions *)
   em:=l.ulp(ONE);
@@ -582,31 +586,31 @@ BEGIN
   t:=l.pred(ONE)/sqrt(em); TanhMax:=ln(t+sqrt(t*t+ONE));
 
   (* initialize some tables for the power() function a1[i]=2**((1-i)/16) *)
-  a1[1] :=ONE;
-  a1[2] :=S.VAL(REAL, 3F75257DH);
-  a1[3] :=S.VAL(REAL, 3F6AC0C7H);
-  a1[4] :=S.VAL(REAL, 3F60CCDFH);
-  a1[5] :=S.VAL(REAL, 3F5744FDH);
-  a1[6] :=S.VAL(REAL, 3F4E248CH);
-  a1[7] :=S.VAL(REAL, 3F45672AH);
-  a1[8] :=S.VAL(REAL, 3F3D08A4H);
-  a1[9] :=S.VAL(REAL, 3F3504F3H);
-  a1[10]:=S.VAL(REAL, 3F2D583FH);
-  a1[11]:=S.VAL(REAL, 3F25FED7H);
-  a1[12]:=S.VAL(REAL, 3F1EF532H);
-  a1[13]:=S.VAL(REAL, 3F1837F0H);
-  a1[14]:=S.VAL(REAL, 3F11C3D3H);
-  a1[15]:=S.VAL(REAL, 3F0B95C2H);
-  a1[16]:=S.VAL(REAL, 3F05AAC3H);
-  a1[17]:=HALF;
+  a1[1]  := ONE;
+  a1[2]  := ToREAL(3F75257DH);
+  a1[3]  := ToREAL(3F6AC0C7H);
+  a1[4]  := ToREAL(3F60CCDFH);
+  a1[5]  := ToREAL(3F5744FDH);
+  a1[6]  := ToREAL(3F4E248CH);
+  a1[7]  := ToREAL(3F45672AH);
+  a1[8]  := ToREAL(3F3D08A4H);
+  a1[9]  := ToREAL(3F3504F3H);
+  a1[10] := ToREAL(3F2D583FH);
+  a1[11] := ToREAL(3F25FED7H);
+  a1[12] := ToREAL(3F1EF532H);
+  a1[13] := ToREAL(3F1837F0H);
+  a1[14] := ToREAL(3F11C3D3H);
+  a1[15] := ToREAL(3F0B95C2H);
+  a1[16] := ToREAL(3F05AAC3H);
+  a1[17] := HALF;
 
   (* a2[i]=2**[(1-2i)/16] - a1[2i]; delta resolution *)
-  a2[1]:=S.VAL(REAL, 31A92436H);
-  a2[2]:=S.VAL(REAL, 336C2A95H);
-  a2[3]:=S.VAL(REAL, 31A8FC24H);
-  a2[4]:=S.VAL(REAL, 331F580CH);
-  a2[5]:=S.VAL(REAL, 336A42A1H);
-  a2[6]:=S.VAL(REAL, 32C12342H);
-  a2[7]:=S.VAL(REAL, 32E75624H);
-  a2[8]:=S.VAL(REAL, 32CF9890H)
+  a2[1] := ToREAL(31A92436H);
+  a2[2] := ToREAL(336C2A95H);
+  a2[3] := ToREAL(31A8FC24H);
+  a2[4] := ToREAL(331F580CH);
+  a2[5] := ToREAL(336A42A1H);
+  a2[6] := ToREAL(32C12342H);
+  a2[7] := ToREAL(32E75624H);
+  a2[8] := ToREAL(32CF9890H)
 END oocRealMath.

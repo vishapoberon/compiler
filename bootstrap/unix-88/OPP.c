@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "OPB.h"
@@ -39,7 +40,7 @@ static void OPP_Expression (OPT_Node *x);
 static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b);
 static void OPP_Factor (OPT_Node *x);
 static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp);
-export void OPP_Module (OPT_Node *prog, SET opt);
+export void OPP_Module (OPT_Node *prog, uint32 opt);
 static void OPP_PointerType (OPT_Struct *typ);
 static void OPP_ProcedureDeclaration (OPT_Node *x);
 static void OPP_Receiver (int8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec);
@@ -1775,7 +1776,7 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 	OPP_CheckSym(41);
 }
 
-void OPP_Module (OPT_Node *prog, SET opt)
+void OPP_Module (OPT_Node *prog, uint32 opt)
 {
 	OPS_Name impName, aliasName;
 	OPT_Node procdec = NIL, statseq = NIL;

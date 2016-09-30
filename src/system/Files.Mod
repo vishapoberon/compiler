@@ -1,6 +1,6 @@
 MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files *)
 
-  IMPORT SYSTEM, Platform, Heap, Strings, Configuration, Console;
+  IMPORT SYSTEM, Platform, Heap, Strings, Out := Console;
 
   (* standard data type I/O
 
@@ -58,8 +58,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       res*:   LONGINT;
       eof*:   BOOLEAN;
       buf:    Buffer;
-      org:    LONGINT;
-      offset: LONGINT
+      org:    LONGINT;  (* File offset of block containing current position *)
+      offset: LONGINT   (* Current position offset within block at org. *)
     END;
 
 
@@ -73,18 +73,19 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   PROCEDURE -IdxTrap "__HALT(-1)";
+  PROCEDURE -ToAdr(x: SYSTEM.INT64): SYSTEM.ADDRESS "(address)x";
 
   PROCEDURE^ Finalize(o: SYSTEM.PTR);
 
   PROCEDURE Err(s: ARRAY OF CHAR; f: File; errcode: Platform.ErrorCode);
   BEGIN
-    Console.Ln; Console.String("-- "); Console.String(s); Console.String(": ");
+    Out.Ln; Out.String("-- "); Out.String(s); Out.String(": ");
     IF f # NIL THEN
-      IF f.registerName # "" THEN Console.String(f.registerName) ELSE Console.String(f.workName) END;
-      IF f.fd # 0 THEN Console.String("f.fd = "); Console.Int(f.fd,1) END
+      IF f.registerName # "" THEN Out.String(f.registerName) ELSE Out.String(f.workName) END;
+      IF f.fd # 0 THEN Out.String("f.fd = "); Out.Int(f.fd,1) END
     END;
-    IF errcode # 0 THEN Console.String(" errcode = "); Console.Int(errcode, 1) END;
-    Console.Ln;
+    IF errcode # 0 THEN Out.String(" errcode = "); Out.Int(errcode, 1) END;
+    Out.Ln;
     HALT(99)
   END Err;
 
@@ -124,11 +125,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       err:   ARRAY 32 OF CHAR;
   BEGIN
     (*
-    Console.String("Files.Create fd = "); Console.Int(f.fd,1);
-    Console.String(", registerName = ");  Console.String(f.registerName);
-    Console.String(", workName = ");      Console.String(f.workName);
-    Console.String(", state = ");         Console.Int(f.state,1);
-    Console.Ln;
+    Out.String("Files.Create fd = "); Out.Int(f.fd,1);
+    Out.String(", registerName = ");  Out.String(f.registerName);
+    Out.String(", workName = ");      Out.String(f.workName);
+    Out.String(", state = ");         Out.Int(f.state,1);
+    Out.Ln;
     *)
     IF f.fd = noDesc THEN
       IF f.state = create THEN
@@ -164,17 +165,17 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       (* identity:  Platform.FileIdentity; *)
   BEGIN
     (*
-    Console.String("Files.Flush buf.f.registername = "); Console.String(buf.f.registerName);
-    Console.String(", buf.f.fd = "); Console.Int(buf.f.fd,1);
-    Console.String(", buffer at $"); Console.Hex(SYSTEM.ADR(buf.data));
-    Console.String(", size "); Console.Int(buf.size,1); Console.Ln;
+    Out.String("Files.Flush buf.f.registername = "); Out.String(buf.f.registerName);
+    Out.String(", buf.f.fd = "); Out.Int(buf.f.fd,1);
+    Out.String(", buffer at $"); Out.Hex(SYSTEM.ADR(buf.data));
+    Out.String(", size "); Out.Int(buf.size,1); Out.Ln;
     *)
     IF buf.chg THEN f := buf.f; Create(f);
       IF buf.org # f.pos THEN
         error := Platform.Seek(f.fd, buf.org, Platform.SeekSet);
         (*
-          Console.String("Seeking to "); Console.Int(buf.org,1);
-          Console.String(", error code "); Console.Int(error,1); Console.Ln;
+          Out.String("Seeking to "); Out.Int(buf.org,1);
+          Out.String(", error code "); Out.Int(error,1); Out.Ln;
         *)
       END;
       error := Platform.Write(f.fd, SYSTEM.ADR(buf.data), buf.size);
@@ -295,7 +296,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       error:     Platform.ErrorCode;
       identity:  Platform.FileIdentity;
   BEGIN
-    (* Console.String("Files.Old "); Console.String(name); Console.Ln; *)
+    (* Out.String("Files.Old "); Out.String(name); Out.Ln; *)
     IF name # "" THEN
       IF HasDir(name) THEN dir := ""; COPY(name, path)
       ELSE pos := 0; ScanPath(pos, dir); MakeFileName(dir, name, path); ScanPath(pos, dir)
@@ -307,11 +308,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
           error := Platform.OldRO(path, fd); done := error = 0;
         END;
         IF ~done & ~Platform.Absent(error) THEN
-          Console.String("Warning: Files.Old "); Console.String(name);
-          Console.String(" error = "); Console.Int(error, 0); Console.Ln;
+          Out.String("Warning: Files.Old "); Out.String(name);
+          Out.String(" error = "); Out.Int(error, 0); Out.Ln;
         END;
         IF done THEN
-          (* Console.String("  fd = "); Console.Int(fd,1); Console.Ln; *)
+          (* Out.String("  fd = "); Out.Int(fd,1); Out.Ln; *)
           error := Platform.Identify(fd, identity);
           f := CacheEntry(identity);
           IF f # NIL THEN
@@ -365,11 +366,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   BEGIN
     IF f # NIL THEN
       (*
-      Console.String("Files.Set rider on fd = "); Console.Int(f.fd,1);
-      Console.String(", registerName = ");  Console.String(f.registerName);
-      Console.String(", workName = ");      Console.String(f.workName);
-      Console.String(", state = ");         Console.Int(f.state,1);
-      Console.Ln;
+      Out.String("Files.Set rider on fd = "); Out.Int(f.fd,1);
+      Out.String(", registerName = ");  Out.String(f.registerName);
+      Out.String(", workName = ");      Out.String(f.workName);
+      Out.String(", state = ");         Out.Int(f.state,1);
+      Out.Ln;
       *)
       IF pos > f.len THEN pos := f.len ELSIF pos < 0 THEN pos := 0 END;
       offset := pos MOD bufsize; org := pos - offset; i := 0;
@@ -427,7 +428,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       restInBuf := buf.size - offset;
       IF restInBuf = 0 THEN r.res := n; r.eof := TRUE; RETURN
       ELSIF n > restInBuf THEN min := restInBuf ELSE min := n END;
-      SYSTEM.MOVE(SYSTEM.ADR(buf.data) + offset, SYSTEM.ADR(x) + xpos, min);
+      SYSTEM.MOVE(SYSTEM.ADR(buf.data) + ToAdr(offset), SYSTEM.ADR(x) + ToAdr(xpos), min);
       INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min)
     END;
     r.res := 0; r.eof := FALSE
@@ -465,7 +466,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       END;
       restInBuf := bufsize - offset;
       IF n > restInBuf THEN min := restInBuf ELSE min := n END;
-      SYSTEM.MOVE(SYSTEM.ADR(x) + xpos, SYSTEM.ADR(buf.data) + offset, min);
+      SYSTEM.MOVE(SYSTEM.ADR(x) + ToAdr(xpos), SYSTEM.ADR(buf.data) + ToAdr(offset), min);
       INC(offset, min); r.offset := offset;
       IF offset > buf.size THEN INC(buf.f.len, offset - buf.size); buf.size := offset END;
       INC(xpos, min); DEC(n, min); buf.chg := TRUE
@@ -518,8 +519,8 @@ Especially Length would become fairly complex.
       buf: ARRAY 4096 OF CHAR;
   BEGIN
     (*
-    Console.String("Files.Rename old = "); Console.String(old);
-    Console.String(", new = "); Console.String(new); Console.Ln;
+    Out.String("Files.Rename old = "); Out.String(old);
+    Out.String(", new = "); Out.String(new); Out.Ln;
     *)
     error := Platform.IdentifyByName(old, oldidentity);
     IF error = 0 THEN
@@ -528,7 +529,7 @@ Especially Length would become fairly complex.
         Delete(new, error);  (* work around stale nfs handles *)
       END;
       error := Platform.Rename(old, new);
-      (* Console.String("Platform.Rename error code "); Console.Int(error,1); Console.Ln; *)
+      (* Out.String("Platform.Rename error code "); Out.Int(error,1); Out.Ln; *)
       IF ~Platform.DifferentFilesystems(error) THEN
         res := error; RETURN
       ELSE
@@ -564,18 +565,18 @@ Especially Length would become fairly complex.
     VAR idx, errcode: INTEGER; f1: File; file: ARRAY 104 OF CHAR;
   BEGIN
     (*
-    Console.String("Files.Register f.registerName = "); Console.String(f.registerName);
-    Console.String(", fd = "); Console.Int(f.fd,1); Console.Ln;
+    Out.String("Files.Register f.registerName = "); Out.String(f.registerName);
+    Out.String(", fd = "); Out.Int(f.fd,1); Out.Ln;
     *)
     IF (f.state = create) & (f.registerName # "") THEN f.state := close (* shortcut renaming *) END;
     Close(f);
     IF f.registerName # "" THEN
       Rename(f.workName, f.registerName, errcode);
       (*
-      Console.String("Renamed (for register) f.fd = "); Console.Int(f.fd,1);
-      Console.String(" from workname ");                Console.String(f.workName);
-      Console.String(" to registerName ");              Console.String(f.registerName);
-      Console.String(" errorcode = ");                  Console.Int(errcode,1); Console.Ln;
+      Out.String("Renamed (for register) f.fd = "); Out.Int(f.fd,1);
+      Out.String(" from workname ");                Out.String(f.workName);
+      Out.String(" to registerName ");              Out.String(f.registerName);
+      Out.String(" errorcode = ");                  Out.Int(errcode,1); Out.Ln;
       *)
       IF errcode # 0 THEN COPY(f.registerName, file); HALT(99) END;
       f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
@@ -653,6 +654,17 @@ Especially Length would become fairly complex.
     UNTIL b
   END ReadLine;
 
+  (* todo
+  PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
+    VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;
+  BEGIN s := 0; q := 0; Read(R, b);
+    WHILE b >= 128 DO INC(q, ASH(b-128, s)); INC(s, 7); Read(R, b) END;
+    INC(q, ASH(b MOD 64 - b DIV 64 * 64, s));
+    ASSERT(LEN(x) <= 8);
+    SYSTEM.MOVE(SYSTEM.ADR(q), SYSTEM.ADR(x), LEN(x))  (* Assumes little endian representation of q and x. *)
+  END ReadNum;
+  *)
+
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
     VAR s: SHORTINT; ch: CHAR; n: LONGINT;
   BEGIN s := 0; n := 0; Read(R, ch);
@@ -660,18 +672,6 @@ Especially Length would become fairly complex.
     INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
     x := n
   END ReadNum;
-
-  PROCEDURE ReadNum64* (VAR R: Rider; VAR x: SYSTEM.INT64);
-  (* todo. use proper code when INC/ASH properly support INT64 on 32 bit platforms
-    VAR s: SHORTINT; ch: CHAR; n: SYSTEM.INT64;
-  BEGIN s := 0; n := 0; Read(R, ch);
-    WHILE ORD(ch) >= 128 DO INC(n, ASH(ORD(ch) - 128, s) ); INC(s, 7); Read(R, ch) END;
-    INC(n, ASH(ORD(ch) MOD 64 - ORD(ch) DIV 64 * 64, s) );
-    x := n
-  *)
-    VAR n: LONGINT;
-  BEGIN ReadNum(R, n); x := n
-  END ReadNum64;
 
   PROCEDURE WriteBool* (VAR R: Rider; x: BOOLEAN);
   BEGIN Write(R, SYSTEM.VAL(CHAR, x))
@@ -714,17 +714,11 @@ Especially Length would become fairly complex.
     WriteBytes(R, x, i+1)
   END WriteString;
 
-  PROCEDURE WriteNum* (VAR R: Rider; x: LONGINT);
+  PROCEDURE WriteNum* (VAR R: Rider; x: SYSTEM.INT64);
   BEGIN
     WHILE (x < - 64) OR (x > 63) DO Write(R, CHR(x MOD 128 + 128)); x := x DIV 128 END;
     Write(R, CHR(x MOD 128))
   END WriteNum;
-
-  PROCEDURE WriteNum64* (VAR R: Rider; x: SYSTEM.INT64);
-  BEGIN
-    WHILE (x < - 64) OR (x > 63) DO Write(R, CHR(x MOD 128 + 128)); x := x DIV 128 END;
-    Write(R, CHR(x MOD 128))
-  END WriteNum64;
 
   PROCEDURE GetName*(f: File; VAR name: ARRAY OF CHAR);
   BEGIN
@@ -736,9 +730,9 @@ Especially Length would become fairly complex.
   BEGIN
     f := SYSTEM.VAL(File, o);
     (*
-    Console.String("Files.Finalize f.fd = "); Console.Int(f.fd,1);
-    Console.String(", f.registername = "); Console.String(f.registerName);
-    Console.String(", f.workName = "); Console.String(f.workName); Console.Ln;
+    Out.String("Files.Finalize f.fd = "); Out.Int(f.fd,1);
+    Out.String(", f.registername = "); Out.String(f.registerName);
+    Out.String(", f.workName = "); Out.String(f.workName); Out.Ln;
     *)
     IF f.fd >= 0 THEN
       CloseOSFile(f);

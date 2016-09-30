@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "OPM.h"
@@ -19,7 +20,7 @@ typedef
 		OPT_ConstExt ext;
 		int64 intval;
 		int32 intval2;
-		SET setval;
+		uint32 setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
 
@@ -88,8 +89,8 @@ typedef
 
 
 export OPT_Object OPT_topScope;
-export OPT_Struct OPT_undftyp, OPT_bytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_adrtyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_realtyp, OPT_lrltyp, OPT_settyp, OPT_stringtyp, OPT_niltyp, OPT_notyp, OPT_sysptrtyp;
-export OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj;
+export OPT_Struct OPT_undftyp, OPT_niltyp, OPT_notyp, OPT_bytetyp, OPT_cpbytetyp, OPT_booltyp, OPT_chartyp, OPT_sinttyp, OPT_inttyp, OPT_linttyp, OPT_hinttyp, OPT_int8typ, OPT_int16typ, OPT_int32typ, OPT_int64typ, OPT_settyp, OPT_set32typ, OPT_set64typ, OPT_realtyp, OPT_lrltyp, OPT_stringtyp, OPT_adrtyp, OPT_sysptrtyp;
+export OPT_Object OPT_sintobj, OPT_intobj, OPT_lintobj, OPT_setobj;
 export int8 OPT_nofGmod;
 export OPT_Object OPT_GlbMod[64];
 export OPS_Name OPT_SelfName;
@@ -137,7 +138,7 @@ static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par);
 static void OPT_InStruct (OPT_Struct *typ);
 static OPT_Object OPT_InTProc (int8 mno);
 static OPT_Struct OPT_InTyp (int32 tag);
-export void OPT_Init (OPS_Name name, SET opt);
+export void OPT_Init (OPS_Name name, uint32 opt);
 export void OPT_InitRecno (void);
 static void OPT_InitStruct (OPT_Struct *typ, int8 form);
 export void OPT_Insert (OPS_Name name, OPT_Object *obj);
@@ -159,6 +160,7 @@ static void OPT_OutObj (OPT_Object obj);
 static void OPT_OutSign (OPT_Struct result, OPT_Object par);
 static void OPT_OutStr (OPT_Struct typ);
 static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj);
+export OPT_Struct OPT_SetType (int32 size);
 export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir);
 export int32 OPT_SizeAlignment (int32 size);
 export void OPT_TypSize (OPT_Struct typ);
@@ -206,6 +208,17 @@ OPT_Struct OPT_IntType (int32 size)
 		return _o_result;
 	}
 	_o_result = OPT_int64typ;
+	return _o_result;
+}
+
+OPT_Struct OPT_SetType (int32 size)
+{
+	OPT_Struct _o_result;
+	if (size == OPT_set32typ->size) {
+		_o_result = OPT_set32typ;
+		return _o_result;
+	}
+	_o_result = OPT_set64typ;
 	return _o_result;
 }
 
@@ -449,7 +462,7 @@ void OPT_CloseScope (void)
 	OPT_topScope = OPT_topScope->left;
 }
 
-void OPT_Init (OPS_Name name, SET opt)
+void OPT_Init (OPS_Name name, uint32 opt)
 {
 	OPT_topScope = OPT_universe;
 	OPT_OpenScope(0, NIL);
@@ -1171,6 +1184,9 @@ static OPT_Struct OPT_InTyp (int32 tag)
 	if (tag == 4) {
 		_o_result = OPT_IntType(OPM_SymRInt());
 		return _o_result;
+	} else if (tag == 7) {
+		_o_result = OPT_SetType(OPM_SymRInt());
+		return _o_result;
 	} else {
 		_o_result = OPT_impCtxt.ref[__X(tag, 255)];
 		return _o_result;
@@ -1628,7 +1644,7 @@ static void OPT_OutStr (OPT_Struct typ)
 	OPT_Object strobj = NIL;
 	if (typ->ref < OPT_expCtxt.ref) {
 		OPM_SymWInt(-typ->ref);
-		if (typ->ref == 4) {
+		if (__IN(typ->ref, 0x90, 32)) {
 			OPM_SymWInt(typ->size);
 		}
 	} else {
@@ -1732,6 +1748,7 @@ static void OPT_OutConstant (OPT_Object obj)
 			break;
 		case 7: 
 			OPM_SymWSet(obj->conval->setval);
+			OPM_SymWInt(obj->typ->size);
 			break;
 		case 5: 
 			rval = obj->conval->realval;
@@ -1959,28 +1976,32 @@ static void EnumPtrs(void (*P)(void*))
 {
 	P(OPT_topScope);
 	P(OPT_undftyp);
+	P(OPT_niltyp);
+	P(OPT_notyp);
 	P(OPT_bytetyp);
+	P(OPT_cpbytetyp);
 	P(OPT_booltyp);
 	P(OPT_chartyp);
 	P(OPT_sinttyp);
 	P(OPT_inttyp);
 	P(OPT_linttyp);
 	P(OPT_hinttyp);
-	P(OPT_adrtyp);
 	P(OPT_int8typ);
 	P(OPT_int16typ);
 	P(OPT_int32typ);
 	P(OPT_int64typ);
+	P(OPT_settyp);
+	P(OPT_set32typ);
+	P(OPT_set64typ);
 	P(OPT_realtyp);
 	P(OPT_lrltyp);
-	P(OPT_settyp);
 	P(OPT_stringtyp);
-	P(OPT_niltyp);
-	P(OPT_notyp);
+	P(OPT_adrtyp);
 	P(OPT_sysptrtyp);
 	P(OPT_sintobj);
 	P(OPT_intobj);
 	P(OPT_lintobj);
+	P(OPT_setobj);
 	__ENUMP(OPT_GlbMod, 64, P);
 	P(OPT_universe);
 	P(OPT_syslink);
@@ -2056,6 +2077,8 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"INT16", 4, 2, &OPT_int16typ);
 	OPT_EnterTyp((CHAR*)"INT32", 4, 4, &OPT_int32typ);
 	OPT_EnterTyp((CHAR*)"INT64", 4, 8, &OPT_int64typ);
+	OPT_EnterTyp((CHAR*)"SET32", 7, 4, &OPT_set32typ);
+	OPT_EnterTyp((CHAR*)"SET64", 7, 8, &OPT_set64typ);
 	OPT_EnterProc((CHAR*)"ADR", 20);
 	OPT_EnterProc((CHAR*)"CC", 21);
 	OPT_EnterProc((CHAR*)"LSH", 22);
@@ -2073,13 +2096,14 @@ export void *OPT__init(void)
 	OPT_topScope->right = NIL;
 	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, 1, &OPT_booltyp);
 	OPT_EnterTyp((CHAR*)"CHAR", 3, 1, &OPT_chartyp);
-	OPT_EnterTyp((CHAR*)"SET", 7, -1, &OPT_settyp);
 	OPT_EnterTyp((CHAR*)"REAL", 5, 4, &OPT_realtyp);
 	OPT_EnterTyp((CHAR*)"LONGREAL", 6, 8, &OPT_lrltyp);
 	OPT_EnterTyp((CHAR*)"HUGEINT", 4, 8, &OPT_hinttyp);
+	OPT_EnterTyp((CHAR*)"BYTE@", 4, 1, &OPT_cpbytetyp);
 	OPT_EnterTypeAlias((CHAR*)"SHORTINT", &OPT_sintobj);
 	OPT_EnterTypeAlias((CHAR*)"INTEGER", &OPT_intobj);
 	OPT_EnterTypeAlias((CHAR*)"LONGINT", &OPT_lintobj);
+	OPT_EnterTypeAlias((CHAR*)"SET", &OPT_setobj);
 	OPT_EnterBoolConst((CHAR*)"FALSE", 0);
 	OPT_EnterBoolConst((CHAR*)"TRUE", 1);
 	OPT_EnterProc((CHAR*)"HALT", 0);

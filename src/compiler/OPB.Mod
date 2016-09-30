@@ -107,6 +107,12 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN node.typ := OPT.IntType(OPT.IntSize(node.conval.intval))
   END SetIntType;
 
+  PROCEDURE SetSetType(node: OPT.Node);
+    VAR i32: SYSTEM.INT32;
+  BEGIN SYSTEM.GET(SYSTEM.ADR(node.conval.setval)+4, i32); (* See if upper 32 bits are zero *)
+    IF i32 = 0 THEN node.typ := OPT.set32typ ELSE node.typ := OPT.set64typ END
+  END SetSetType;
+
   PROCEDURE NewIntConst*(intval: SYSTEM.INT64): OPT.Node;
     VAR x: OPT.Node;
   BEGIN
@@ -593,7 +599,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     VAR node: OPT.Node; f, g: INTEGER; k: SYSTEM.INT64; r: LONGREAL;
   BEGIN f := x^.typ^.form; g := typ^.form;  (* f: old form, g: new form *)
     IF x^.class = OPT.Nconst THEN
-      IF f = OPT.Int THEN
+      IF (f = OPT.Set) & (g = OPT.Set) & (x.typ.size > typ.size) THEN
+        SetSetType(x);
+        IF x.typ.size > typ.size THEN err(203); x^.conval^.setval := {} END
+      ELSIF f = OPT.Int THEN
         IF g = OPT.Int THEN
           IF x.typ.size > typ.size THEN SetIntType(x);
             IF x.typ.size > typ.size THEN err(203); x^.conval^.intval := 1 END
@@ -661,6 +670,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         |OPT.Char:    IF z^.class = OPT.Nconst THEN CharToString(z) ELSE err(100) END
         |OPT.Int:     IF (g = OPT.Int) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
                       ELSIF g IN {OPT.Int} + OPT.realSet           THEN Convert(z, y.typ)
+                      ELSE err(100)
+                      END
+        |OPT.Set:     IF (g = OPT.Set) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
                       ELSE err(100)
                       END
         |OPT.Real:    IF g = OPT.Int THEN Convert(y, z^.typ)

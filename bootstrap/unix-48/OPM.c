@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -25,7 +26,7 @@ static int16 OPM_GlobalAddressSize;
 export int16 OPM_AddressSize;
 static int16 OPM_GlobalAlignment;
 export int16 OPM_Alignment;
-export SET OPM_GlobalOptions, OPM_Options;
+export uint32 OPM_GlobalOptions, OPM_Options;
 export int16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize, OPM_MaxSet;
 export int64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
@@ -52,7 +53,7 @@ export void OPM_DeleteNewSym (void);
 export void OPM_FPrint (int32 *fp, int64 val);
 export void OPM_FPrintLReal (int32 *fp, LONGREAL lr);
 export void OPM_FPrintReal (int32 *fp, REAL real);
-export void OPM_FPrintSet (int32 *fp, SET set);
+export void OPM_FPrintSet (int32 *fp, uint32 set);
 static void OPM_FindLine (Files_File f, Files_Rider *r, address *r__typ, int64 pos);
 export void OPM_Get (CHAR *ch);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
@@ -80,12 +81,12 @@ export int32 OPM_SymRInt (void);
 export int64 OPM_SymRInt64 (void);
 export void OPM_SymRLReal (LONGREAL *lr);
 export void OPM_SymRReal (REAL *r);
-export void OPM_SymRSet (SET *s);
+export void OPM_SymRSet (uint32 *s);
 export void OPM_SymWCh (CHAR ch);
 export void OPM_SymWInt (int64 i);
 export void OPM_SymWLReal (LONGREAL lr);
 export void OPM_SymWReal (REAL r);
-export void OPM_SymWSet (SET s);
+export void OPM_SymWSet (uint32 s);
 static void OPM_VerboseListSizes (void);
 export void OPM_Write (CHAR ch);
 export void OPM_WriteHex (int64 i);
@@ -329,7 +330,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWStr((CHAR*)"    -V   Display compiler debugging messages.", 46);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  Size model for elementary types (default O2 on 32 bit builds, OV on 64 bits)", 79);
+		OPM_LogWStr((CHAR*)"  Size model for elementary types (default O2)", 47);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.", 95);
 		OPM_LogWLn();
@@ -709,10 +710,10 @@ void OPM_err (int16 n)
 
 void OPM_FPrint (int32 *fp, int64 val)
 {
-	*fp = __ROTL((int32)((SET)*fp ^ __VAL(SET, val)), 1, 32);
+	*fp = __ROTL((int32)((uint32)*fp ^ __VAL(uint32, val)), 1, 32);
 }
 
-void OPM_FPrintSet (int32 *fp, SET set)
+void OPM_FPrintSet (int32 *fp, uint32 set)
 {
 	OPM_FPrint(&*fp, (int32)set);
 }
@@ -751,13 +752,11 @@ int32 OPM_SymRInt (void)
 int64 OPM_SymRInt64 (void)
 {
 	int64 _o_result;
-	int64 k;
-	Files_ReadNum64(&OPM_oldSF, Files_Rider__typ, &k);
-	_o_result = k;
+	_o_result = OPM_SymRInt();
 	return _o_result;
 }
 
-void OPM_SymRSet (SET *s)
+void OPM_SymRSet (uint32 *s)
 {
 	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (int32*)&*s);
 }
@@ -808,10 +807,10 @@ void OPM_SymWCh (CHAR ch)
 
 void OPM_SymWInt (int64 i)
 {
-	Files_WriteNum64(&OPM_newSF, Files_Rider__typ, i);
+	Files_WriteNum(&OPM_newSF, Files_Rider__typ, i);
 }
 
-void OPM_SymWSet (SET s)
+void OPM_SymWSet (uint32 s)
 {
 	Files_WriteNum(&OPM_newSF, Files_Rider__typ, (int32)s);
 }

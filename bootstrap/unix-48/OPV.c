@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "OPC.h"
@@ -187,6 +188,7 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPV_Traverse(topScope->right, topScope, 1);
 	OPV_Traverse(topScope->right, topScope, 0);
 	OPT_chartyp->strobj->linkadr = 2;
+	OPT_cpbytetyp->strobj->linkadr = 2;
 	OPT_settyp->strobj->linkadr = 2;
 	OPT_realtyp->strobj->linkadr = 2;
 	OPT_adrtyp->strobj->linkadr = 2;
@@ -194,6 +196,8 @@ void OPV_AdrAndSize (OPT_Object topScope)
 	OPT_int16typ->strobj->linkadr = 2;
 	OPT_int32typ->strobj->linkadr = 2;
 	OPT_int64typ->strobj->linkadr = 2;
+	OPT_set32typ->strobj->linkadr = 2;
+	OPT_set64typ->strobj->linkadr = 2;
 	OPT_hinttyp->strobj->linkadr = 2;
 	OPT_lrltyp->strobj->linkadr = 2;
 	OPT_booltyp->strobj->linkadr = 2;

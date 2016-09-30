@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -193,11 +194,15 @@ void OPC_Ident (OPT_Object obj)
 				OPM_Write('_');
 			}
 		}
-	} else if ((mode == 5 && obj->typ->form == 4)) {
+	} else if ((mode == 5 && __IN(obj->typ->form, 0x90, 32))) {
 		if (obj->typ == OPT_adrtyp) {
 			OPM_WriteString((CHAR*)"address", 8);
 		} else {
-			OPM_WriteString((CHAR*)"int", 4);
+			if (obj->typ->form == 4) {
+				OPM_WriteString((CHAR*)"int", 4);
+			} else {
+				OPM_WriteString((CHAR*)"uint", 5);
+			}
 			OPM_WriteInt(__ASHL(obj->typ->size, 3));
 		}
 	} else {
@@ -1233,13 +1238,16 @@ void OPC_GenBdy (OPT_Node n)
 	OPM_currFile = 1;
 	OPC_GenHeaderMsg();
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define INTEGER int", 20);
+	OPM_WriteString((CHAR*)"#define SHORTINT int", 21);
+	OPM_WriteInt(__ASHL(OPT_sinttyp->size, 3));
+	OPM_WriteLn();
+	OPM_WriteString((CHAR*)"#define INTEGER  int", 21);
 	OPM_WriteInt(__ASHL(OPT_inttyp->size, 3));
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define LONGINT int", 20);
+	OPM_WriteString((CHAR*)"#define LONGINT  int", 21);
 	OPM_WriteInt(__ASHL(OPT_linttyp->size, 3));
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define SET     uint", 21);
+	OPM_WriteString((CHAR*)"#define SET      uint", 22);
 	OPM_WriteInt(__ASHL(OPT_settyp->size, 3));
 	OPM_WriteLn();
 	OPM_WriteLn();
@@ -1851,7 +1859,7 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
 void OPC_Constant (OPT_Const con, int16 form)
 {
 	int16 i;
-	SET s;
+	uint32 s;
 	int32 hex;
 	BOOLEAN skipLeading;
 	switch (form) {

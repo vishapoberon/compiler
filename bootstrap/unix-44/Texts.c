@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "Files.h"
@@ -183,7 +184,7 @@ export address *Texts_Writer__typ;
 export address *Texts__1__typ;
 
 export void Texts_Append (Texts_Text T, Texts_Buffer B);
-export void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff);
+export void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, uint32 sel, Texts_FontsFont fnt, int8 col, int8 voff);
 static Texts_Elem Texts_CloneElem (Texts_Elem e);
 static Texts_Piece Texts_ClonePiece (Texts_Piece p);
 export void Texts_Close (Texts_Text T, CHAR *name, LONGINT name__len);
@@ -565,7 +566,7 @@ void Texts_Delete (Texts_Text T, int32 beg, int32 end)
 	}
 }
 
-void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff)
+void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, uint32 sel, Texts_FontsFont fnt, int8 col, int8 voff)
 {
 	Texts_Run c = NIL, u = NIL, un = NIL, v = NIL, vn = NIL;
 	int32 co, uo, ud, vo, vd;

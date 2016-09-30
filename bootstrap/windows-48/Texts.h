@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Texts__h
 #define Texts__h
@@ -130,7 +130,7 @@ import address *Texts_Scanner__typ;
 import address *Texts_Writer__typ;
 
 import void Texts_Append (Texts_Text T, Texts_Buffer B);
-import void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, SET sel, Texts_FontsFont fnt, int8 col, int8 voff);
+import void Texts_ChangeLooks (Texts_Text T, int32 beg, int32 end, uint32 sel, Texts_FontsFont fnt, int8 col, int8 voff);
 import void Texts_Close (Texts_Text T, CHAR *name, LONGINT name__len);
 import void Texts_Copy (Texts_Buffer SB, Texts_Buffer DB);
 import void Texts_CopyElem (Texts_Elem SE, Texts_Elem DE);

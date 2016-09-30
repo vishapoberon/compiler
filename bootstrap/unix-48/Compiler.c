@@ -1,8 +1,9 @@
-/* voc 1.95 [2016/09/26]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
-#define INTEGER int16
-#define LONGINT int32
-#define SET     uint32
+#define SHORTINT int8
+#define INTEGER  int16
+#define LONGINT  int32
+#define SET      uint32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -83,7 +84,6 @@ static void Compiler_PropagateElementaryTypeSizes (void)
 	OPT_Struct adrinttyp = NIL;
 	OPT_sysptrtyp->size = OPM_AddressSize;
 	OPT_adrtyp->size = OPM_AddressSize;
-	OPT_settyp->size = OPM_SetSize;
 	adrinttyp = OPT_IntType(OPM_AddressSize);
 	OPT_adrtyp->strobj = adrinttyp->strobj;
 	OPT_sinttyp = OPT_IntType(OPM_ShortintSize);
@@ -92,6 +92,20 @@ static void Compiler_PropagateElementaryTypeSizes (void)
 	OPT_sintobj->typ = OPT_sinttyp;
 	OPT_intobj->typ = OPT_inttyp;
 	OPT_lintobj->typ = OPT_linttyp;
+	switch (OPM_LongintSize) {
+		case 4: 
+			OPT_settyp = OPT_set32typ;
+			break;
+		default: 
+			OPT_settyp = OPT_set64typ;
+			break;
+	}
+	OPT_setobj->typ = OPT_settyp;
+	if (__STRCMP(OPM_Model, "C") == 0) {
+		OPT_cpbytetyp->strobj->name[4] = 0x00;
+	} else {
+		OPT_cpbytetyp->strobj->name[4] = '@';
+	}
 }
 
 void Compiler_Translate (void)
