@@ -1,6 +1,6 @@
 MODULE extTools;
 
-IMPORT Strings, Console, Configuration, Platform, OPM;
+IMPORT Strings, Out, Configuration, Platform, OPM;
 
 VAR CFLAGS: ARRAY 1023 OF CHAR;
 
@@ -9,7 +9,7 @@ PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
   VAR r, status, exitcode: INTEGER;
 BEGIN
   IF OPM.verbose IN OPM.Options THEN
-    Console.String(title); Console.String(cmd); Console.Ln
+    Out.String(title); Out.String(cmd); Out.Ln
   END;
   r := Platform.System(cmd);
   status := r MOD 128;
@@ -17,12 +17,12 @@ BEGIN
   IF exitcode > 127 THEN exitcode := exitcode - 256 END; (* Handle signed exit code *)
 
   IF r # 0 THEN
-    Console.String(title); Console.String(cmd); Console.Ln;
-    Console.String("-- failed: status "); Console.Int(status,1);
-    Console.String(", exitcode ");        Console.Int(exitcode,1);
-    Console.String("."); Console.Ln;
+    Out.String(title); Out.String(cmd); Out.Ln;
+    Out.String("-- failed: status "); Out.Int(status,1);
+    Out.String(", exitcode ");        Out.Int(exitcode,1);
+    Out.String("."); Out.Ln;
     IF (status = 0) & (exitcode = 127) THEN
-      Console.String("Is the C compiler in the current command path?"); Console.Ln
+      Out.String("Is the C compiler in the current command path?"); Out.Ln
     END;
     IF status # 0 THEN Platform.Halt(status) ELSE Platform.Halt(exitcode) END
   END;

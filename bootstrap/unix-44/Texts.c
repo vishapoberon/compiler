@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -1473,7 +1473,7 @@ static void Texts_Load0 (Files_Rider *r, address *r__typ, Texts_Text T)
 	Texts_Piece p = NIL;
 	Texts_Elem e = NIL;
 	int32 org, pos, hlen, plen;
-	int8 ecnt, fno, fcnt, col, voff;
+	int8 ecnt, fcnt, fno, col, voff;
 	Files_File f = NIL;
 	Texts_FileMsg msg;
 	CHAR mods[64][32], procs[64][32];
@@ -1653,8 +1653,9 @@ void Texts_Store (Files_Rider *r, address *r__typ, Texts_Text T)
 	Texts_Run u = NIL, un = NIL;
 	Texts_Elem e = NIL;
 	int32 org, pos, delta, hlen, rlen;
-	int8 ecnt, fno, fcnt;
+	int8 ecnt, fcnt;
 	CHAR ch;
+	int8 fno;
 	Texts_FileMsg msg;
 	Texts_IdentifyMsg iden;
 	CHAR mods[64][32], procs[64][32];

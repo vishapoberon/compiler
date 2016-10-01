@@ -1,7 +1,7 @@
 MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line version jt 4.4.95 *)
 
  IMPORT
-    OPM, OPS, OPT, OPV, Texts, Console, Platform, SYSTEM;
+    OPM, OPS, OPT, OPV, Texts, Out, Platform, SYSTEM;
 
 
   CONST
@@ -257,12 +257,12 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
       OPT.Init(name, {}); OPT.SelfName := "AvoidErr154"; WModule(name, T); OPT.Close;
       Texts.OpenReader(R, T, 0); Texts.Read(R, ch); i := 0;
       WHILE ~R.eot DO
-        IF ch = 0DX THEN s[i] := 0X; i := 0; Console.String(s); Console.Ln
+        IF ch = 0DX THEN s[i] := 0X; i := 0; Out.String(s); Out.Ln
         ELSE s[i] := ch; INC(i)
         END ;
         Texts.Read(R, ch)
       END ;
-      s[i] := 0X; Console.String(s)
+      s[i] := 0X; Out.String(s)
     END
   END ShowDef;
 

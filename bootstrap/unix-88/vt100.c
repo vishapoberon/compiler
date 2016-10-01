@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -6,7 +6,7 @@
 #define SET      uint32
 
 #include "SYSTEM.h"
-#include "Console.h"
+#include "Out.h"
 #include "Strings.h"
 
 
@@ -90,7 +90,7 @@ static void vt100_EscSeq0 (CHAR *letter, LONGINT letter__len)
 	__DUP(letter, letter__len, CHAR);
 	__COPY(vt100_CSI, cmd, 9);
 	Strings_Append(letter, letter__len, (void*)cmd, 9);
-	Console_String(cmd, 9);
+	Out_String(cmd, 9);
 	__DEL(letter);
 }
 
@@ -103,7 +103,7 @@ static void vt100_EscSeq (int16 n, CHAR *letter, LONGINT letter__len)
 	__COPY(vt100_CSI, cmd, 7);
 	Strings_Append(nstr, 2, (void*)cmd, 7);
 	Strings_Append(letter, letter__len, (void*)cmd, 7);
-	Console_String(cmd, 7);
+	Out_String(cmd, 7);
 	__DEL(letter);
 }
 
@@ -116,7 +116,7 @@ static void vt100_EscSeqSwapped (int16 n, CHAR *letter, LONGINT letter__len)
 	__COPY(vt100_CSI, cmd, 7);
 	Strings_Append(letter, letter__len, (void*)cmd, 7);
 	Strings_Append(nstr, 2, (void*)cmd, 7);
-	Console_String(cmd, 7);
+	Out_String(cmd, 7);
 	__DEL(letter);
 }
 
@@ -132,7 +132,7 @@ static void vt100_EscSeq2 (int16 n, int16 m, CHAR *letter, LONGINT letter__len)
 	Strings_Append((CHAR*)";", 2, (void*)cmd, 12);
 	Strings_Append(mstr, 5, (void*)cmd, 12);
 	Strings_Append(letter, letter__len, (void*)cmd, 12);
-	Console_String(cmd, 12);
+	Out_String(cmd, 12);
 	__DEL(letter);
 }
 
@@ -242,7 +242,7 @@ void vt100_SetAttr (CHAR *attr, LONGINT attr__len)
 	__DUP(attr, attr__len, CHAR);
 	__COPY(vt100_CSI, tmpstr, 16);
 	Strings_Append(attr, attr__len, (void*)tmpstr, 16);
-	Console_String(tmpstr, 16);
+	Out_String(tmpstr, 16);
 	__DEL(attr);
 }
 
@@ -250,7 +250,7 @@ void vt100_SetAttr (CHAR *attr, LONGINT attr__len)
 export void *vt100__init(void)
 {
 	__DEFMOD;
-	__MODULE_IMPORT(Console);
+	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Strings);
 	__REGMOD("vt100", 0);
 	__REGCMD("DECTCEMh", vt100_DECTCEMh);

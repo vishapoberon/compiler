@@ -19,7 +19,7 @@ BEGIN
   error := Platform.Write(Platform.StdOut, SYSTEM.ADR(str), l)
 END String;
 
-PROCEDURE Int*(x: HUGEINT; n: LONGINT);
+PROCEDURE Int*(x, n: HUGEINT);
   CONST zero = ORD('0');
   VAR s: ARRAY 22 OF CHAR; i: INTEGER; negative: BOOLEAN;
 BEGIN

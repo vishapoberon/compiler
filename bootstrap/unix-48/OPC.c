@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -1860,7 +1860,7 @@ void OPC_Constant (OPT_Const con, int16 form)
 {
 	int16 i;
 	uint64 s;
-	int32 hex;
+	int64 hex;
 	BOOLEAN skipLeading;
 	switch (form) {
 		case 1: 
@@ -1885,7 +1885,7 @@ void OPC_Constant (OPT_Const con, int16 form)
 			OPM_WriteString((CHAR*)"0x", 3);
 			skipLeading = 1;
 			s = con->setval;
-			i = 32;
+			i = 64;
 			do {
 				hex = 0;
 				do {

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -6,7 +6,6 @@
 #define SET      uint32
 
 #include "SYSTEM.h"
-#include "Console.h"
 #include "Heap.h"
 
 typedef
@@ -167,7 +166,6 @@ __TDESC(Modules_CmdDesc, 1, 1) = {__TDFLDS("CmdDesc", 32), {0, -8}};
 export void *Modules__init(void)
 {
 	__DEFMOD;
-	__MODULE_IMPORT(Console);
 	__MODULE_IMPORT(Heap);
 	__REGMOD("Modules", 0);
 	__INITYP(Modules_ModuleDesc, Modules_ModuleDesc, 0);

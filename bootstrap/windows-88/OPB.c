@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -1522,13 +1522,13 @@ void OPB_SetRange (OPT_Node *x, OPT_Node y)
 	} else if (((*x)->typ->form == 4 && y->typ->form == 4)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (0 > k || k > 31) {
+			if (0 > k || k > 63) {
 				OPB_err(202);
 			}
 		}
 		if (y->class == 7) {
 			l = y->conval->intval;
-			if (0 > l || l > 31) {
+			if (0 > l || l > 63) {
 				OPB_err(202);
 			}
 		}
@@ -1559,17 +1559,18 @@ void OPB_SetElem (OPT_Node *x)
 		OPB_err(93);
 	} else if ((*x)->class == 7) {
 		k = (*x)->conval->intval;
-		if ((0 <= k && k <= 31)) {
-			(*x)->conval->setval = __SETOF(k,32);
-			OPB_SetSetType(*x);
+		if ((0 <= k && k <= 63)) {
+			(*x)->conval->setval = 0x0;
+			(*x)->conval->setval |= __SETOF(k,64);
 		} else {
 			OPB_err(202);
 		}
+		OPB_SetSetType(*x);
 		(*x)->obj = NIL;
 	} else {
 		OPB_Convert(&*x, OPT_settyp);
+		(*x)->typ = OPT_settyp;
 	}
-	(*x)->typ = OPT_settyp;
 }
 
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
@@ -1816,7 +1817,7 @@ void OPB_StPar0 (OPT_Node *par0, int16 fctno)
 						x = OPB_NewIntConst(OPM_SignedMaximum(x->typ->size));
 						break;
 					case 7: 
-						x = OPB_NewIntConst(OPM_MaxSet);
+						x = OPB_NewIntConst(__ASHL(x->typ->size, 3) - 1);
 						x->typ = OPT_inttyp;
 						break;
 					case 5: 

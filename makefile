@@ -102,7 +102,7 @@ usage:
 FORCE:
 
 configuration: FORCE
-	@$(CC) -I src/system -o a.o src/tools/make/configure.c
+	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
 	@./a.o
 	@rm a.o
 	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
@@ -110,7 +110,7 @@ configuration: FORCE
 
 
 bootstrapconfiguration: FORCE
-	@$(CC) -I src/system -o a.o src/tools/make/configure.c
+	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
 	@./a.o bootstrap
 	@rm a.o
 	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
@@ -120,7 +120,7 @@ bootstrapconfiguration: FORCE
 
 
 reportsizes: FORCE
-	@$(CC) -I src/system -o a.o src/tools/make/configure.c
+	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
 	@./a.o report
 	@rm a.o
 
@@ -263,7 +263,7 @@ bootstrap: bootstrapconfiguration
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
-	cp src/system/*.[ch] bootstrap
+	cp src/runtime/*.[ch] bootstrap
 
 
 bootstrapunclean: bootstrapconfiguration
@@ -273,7 +273,7 @@ bootstrapunclean: bootstrapconfiguration
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
 	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
-	cp src/system/*.[ch] bootstrap
+	cp src/runtime/*.[ch] bootstrap
 
 
 

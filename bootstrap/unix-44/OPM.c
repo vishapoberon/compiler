@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -7,8 +7,8 @@
 
 #include "SYSTEM.h"
 #include "Configuration.h"
-#include "Console.h"
 #include "Files.h"
+#include "Out.h"
 #include "Platform.h"
 #include "Strings.h"
 #include "Texts.h"
@@ -27,7 +27,7 @@ export int16 OPM_AddressSize;
 static int16 OPM_GlobalAlignment;
 export int16 OPM_Alignment;
 export uint32 OPM_GlobalOptions, OPM_Options;
-export int16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize, OPM_MaxSet;
+export int16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize;
 export int64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
@@ -102,24 +102,24 @@ export void OPM_err (int16 n);
 
 void OPM_LogW (CHAR ch)
 {
-	Console_Char(ch);
+	Out_Char(ch);
 }
 
 void OPM_LogWStr (CHAR *s, LONGINT s__len)
 {
 	__DUP(s, s__len, CHAR);
-	Console_String(s, s__len);
+	Out_String(s, s__len);
 	__DEL(s);
 }
 
 void OPM_LogWNum (int64 i, int64 len)
 {
-	Console_Int(i, len);
+	Out_Int(i, len);
 }
 
 void OPM_LogWLn (void)
 {
-	Console_Ln();
+	Out_Ln();
 }
 
 int64 OPM_SignedMaximum (int32 bytecount)
@@ -455,7 +455,6 @@ void OPM_InitOptions (void)
 			OPM_SetSize = 4;
 			break;
 	}
-	OPM_MaxSet = __ASHL(OPM_SetSize, 3) - 1;
 	if (__IN(18, OPM_Options, 32)) {
 		OPM_VerboseListSizes();
 	}
@@ -1075,8 +1074,8 @@ export void *OPM__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Configuration);
-	__MODULE_IMPORT(Console);
 	__MODULE_IMPORT(Files);
+	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
 	__MODULE_IMPORT(Texts);

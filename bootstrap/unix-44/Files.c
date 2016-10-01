@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -7,7 +7,7 @@
 
 #include "SYSTEM.h"
 #include "Heap.h"
-#include "Console.h"
+#include "Out.h"
 #include "Platform.h"
 #include "Strings.h"
 
@@ -114,26 +114,26 @@ export void Files_WriteString (Files_Rider *R, address *R__typ, CHAR *x, LONGINT
 static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, int16 errcode)
 {
 	__DUP(s, s__len, CHAR);
-	Console_Ln();
-	Console_String((CHAR*)"-- ", 4);
-	Console_String(s, s__len);
-	Console_String((CHAR*)": ", 3);
+	Out_Ln();
+	Out_String((CHAR*)"-- ", 4);
+	Out_String(s, s__len);
+	Out_String((CHAR*)": ", 3);
 	if (f != NIL) {
 		if (f->registerName[0] != 0x00) {
-			Console_String(f->registerName, 101);
+			Out_String(f->registerName, 101);
 		} else {
-			Console_String(f->workName, 101);
+			Out_String(f->workName, 101);
 		}
 		if (f->fd != 0) {
-			Console_String((CHAR*)"f.fd = ", 8);
-			Console_Int(f->fd, 1);
+			Out_String((CHAR*)"f.fd = ", 8);
+			Out_Int(f->fd, 1);
 		}
 	}
 	if (errcode != 0) {
-		Console_String((CHAR*)" errcode = ", 12);
-		Console_Int(errcode, 1);
+		Out_String((CHAR*)" errcode = ", 12);
+		Out_Int(errcode, 1);
 	}
-	Console_Ln();
+	Out_Ln();
 	__HALT(99);
 	__DEL(s);
 }
@@ -460,11 +460,11 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 				done = error == 0;
 			}
 			if ((!done && !Platform_Absent(error))) {
-				Console_String((CHAR*)"Warning: Files.Old ", 20);
-				Console_String(name, name__len);
-				Console_String((CHAR*)" error = ", 10);
-				Console_Int(error, 0);
-				Console_Ln();
+				Out_String((CHAR*)"Warning: Files.Old ", 20);
+				Out_String(name, name__len);
+				Out_String((CHAR*)" error = ", 10);
+				Out_Int(error, 0);
+				Out_Ln();
 			}
 			if (done) {
 				error = Platform_Identify(fd, &identity, Platform_FileIdentity__typ);
@@ -1043,7 +1043,7 @@ export void *Files__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Heap);
-	__MODULE_IMPORT(Console);
+	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
 	__REGMOD("Files", EnumPtrs);

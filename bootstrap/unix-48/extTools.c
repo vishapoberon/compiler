@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/09/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -7,8 +7,8 @@
 
 #include "SYSTEM.h"
 #include "Configuration.h"
-#include "Console.h"
 #include "OPM.h"
+#include "Out.h"
 #include "Platform.h"
 #include "Strings.h"
 
@@ -28,9 +28,9 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 	__DUP(title, title__len, CHAR);
 	__DUP(cmd, cmd__len, CHAR);
 	if (__IN(18, OPM_Options, 32)) {
-		Console_String(title, title__len);
-		Console_String(cmd, cmd__len);
-		Console_Ln();
+		Out_String(title, title__len);
+		Out_String(cmd, cmd__len);
+		Out_Ln();
 	}
 	r = Platform_System(cmd, cmd__len);
 	status = __MASK(r, -128);
@@ -39,18 +39,18 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 		exitcode = exitcode - 256;
 	}
 	if (r != 0) {
-		Console_String(title, title__len);
-		Console_String(cmd, cmd__len);
-		Console_Ln();
-		Console_String((CHAR*)"-- failed: status ", 19);
-		Console_Int(status, 1);
-		Console_String((CHAR*)", exitcode ", 12);
-		Console_Int(exitcode, 1);
-		Console_String((CHAR*)".", 2);
-		Console_Ln();
+		Out_String(title, title__len);
+		Out_String(cmd, cmd__len);
+		Out_Ln();
+		Out_String((CHAR*)"-- failed: status ", 19);
+		Out_Int(status, 1);
+		Out_String((CHAR*)", exitcode ", 12);
+		Out_Int(exitcode, 1);
+		Out_String((CHAR*)".", 2);
+		Out_Ln();
 		if ((status == 0 && exitcode == 127)) {
-			Console_String((CHAR*)"Is the C compiler in the current command path\?", 47);
-			Console_Ln();
+			Out_String((CHAR*)"Is the C compiler in the current command path\?", 47);
+			Out_Ln();
 		}
 		if (status != 0) {
 			Platform_Halt(status);
@@ -112,8 +112,8 @@ export void *extTools__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Configuration);
-	__MODULE_IMPORT(Console);
 	__MODULE_IMPORT(OPM);
+	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
 	__REGMOD("extTools", 0);

@@ -4,7 +4,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   31.1.2007 jt synchronized with BlackBox version, in particular PromoteIntConstToLInt added
 *)
 
-  IMPORT SYSTEM, Texts, Files, Platform, Console, errors, Configuration, vt100, Strings;
+  IMPORT SYSTEM, Texts, Files, Platform, Out, errors, Configuration, vt100, Strings;
 
   CONST
     OptionChar* = "-";
@@ -124,10 +124,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* ------------------------- Log Output ------------------------- *)
 
-  PROCEDURE LogW*(ch: CHAR);                BEGIN Console.Char(ch)    END LogW;
-  PROCEDURE LogWStr*(s: ARRAY OF CHAR);     BEGIN Console.String(s)   END LogWStr;
-  PROCEDURE LogWNum*(i, len: SYSTEM.INT64); BEGIN Console.Int(i, len) END LogWNum;
-  PROCEDURE LogWLn*;                        BEGIN Console.Ln          END LogWLn;
+  PROCEDURE LogW*(ch: CHAR);                BEGIN Out.Char(ch)    END LogW;
+  PROCEDURE LogWStr*(s: ARRAY OF CHAR);     BEGIN Out.String(s)   END LogWStr;
+  PROCEDURE LogWNum*(i, len: SYSTEM.INT64); BEGIN Out.Int(i, len) END LogWNum;
+  PROCEDURE LogWLn*;                        BEGIN Out.Ln          END LogWLn;
 
 
 

@@ -60,17 +60,17 @@ assemble:
 	@printf "    DATAMODEL:  %s\n" "$(DATAMODEL)"
 
 	cd $(BUILDDIR) && $(COMPILE) -c SYSTEM.c  Configuration.c Platform.c Heap.c
-	cd $(BUILDDIR) && $(COMPILE) -c Console.c Strings.c       Modules.c  Files.c
+	cd $(BUILDDIR) && $(COMPILE) -c Out.c     Strings.c       Modules.c  Files.c
 	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         vt100.c    errors.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
 	cd $(BUILDDIR) && $(COMPILE) $(STATICLINK) Compiler.c -o $(ROOTDIR)/$(OBECOMP) \
-	SYSTEM.o  Configuration.o Platform.o Heap.o    Console.o Strings.o       Modules.o  Files.o \
+	SYSTEM.o  Configuration.o Platform.o Heap.o    Out.o     Strings.o       Modules.o  Files.o \
 	Reals.o   Texts.o         vt100.o    errors.o  OPM.o     extTools.o      OPS.o      OPT.o \
 	OPC.o     OPV.o           OPB.o      OPP.o
 
-	cp src/system/*.[ch] $(BUILDDIR)
+	cp src/runtime/*.[ch] $(BUILDDIR)
 	@printf "$(OBECOMP) created.\n"
 
 
@@ -102,15 +102,15 @@ translate:
 	@rm -f $(BUILDDIR)/*.sym
 
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../Configuration.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/system/Platform$(PLATFORM).Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFapx -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/system/Heap.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/system/Console.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/v4/Strings.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/v4/Modules.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/system/Files.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/v4/Reals.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/v4/Texts.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/misc/vt100.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Platform$(PLATFORM).Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFapx -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Heap.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFapx -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Out.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Strings.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Modules.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Files.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Reals.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Texts.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/vt100.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/errors.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPM.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/extTools.Mod
@@ -131,7 +131,7 @@ browsercmd:
 	@printf "\nMaking symbol browser\n"
 	@cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -fSm -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
 	@cd $(BUILDDIR); $(COMPILE) BrowserCmd.c -o showdef \
-	  Platform.o Texts.o OPT.o Heap.o Console.o SYSTEM.o OPM.o OPS.o OPV.o \
+	  Platform.o Texts.o OPT.o Heap.o Out.o SYSTEM.o OPM.o OPS.o OPV.o \
 	  Files.o Reals.o Modules.o vt100.o errors.o Configuration.o Strings.o \
 	  OPC.o
 
@@ -191,7 +191,7 @@ uninstall:
 runtime:
 	@printf "\nMaking run time library for -O$(MODEL)\n"
 	mkdir -p $(BUILDDIR)/$(MODEL)
-	cp src/system/*.[ch] $(BUILDDIR)/$(MODEL)
+	cp src/runtime/*.[ch] $(BUILDDIR)/$(MODEL)
 	cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Heap.Mod
@@ -215,6 +215,7 @@ runtime:
 v4:
 	@printf "\nMaking v4 library\n"
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Args.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Console.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Printer.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Sets.Mod
 
@@ -334,7 +335,7 @@ pow32:
 
 misc:
 	@printf "\nMaking misc library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/system/Oberon.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/runtime/Oberon.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/crt.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/Listen.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/MersenneTwister.Mod
