@@ -830,13 +830,14 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     ELSIF x^.typ^.form # OPT.Int THEN err(93)
     ELSIF x^.class = OPT.Nconst THEN
       k := x^.conval^.intval;
-      IF (0 <= k) & (k <= MAX(SYSTEM.SET64)) THEN x^.conval^.setval := {k}; SetSetType(x)
+      IF (0 <= k) & (k <= MAX(SYSTEM.SET64)) THEN
+        x^.conval^.setval := {}; INCL(x.conval.setval, k);
       ELSE err(202)
-      END ;
-      x^.obj := NIL
-    ELSE Convert(x, OPT.settyp)  (* todo choose appropriate set type ? *)
+      END;
+      SetSetType(x); x^.obj := NIL
+    ELSE
+      Convert(x, OPT.settyp);  x^.typ := OPT.settyp
     END;
-    x^.typ := OPT.settyp  (* todo choose appropriate set type ? *)
   END SetElem;
 
   PROCEDURE CheckAssign(x: OPT.Struct; ynode: OPT.Node);  (* x := y *)
@@ -994,7 +995,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                        OPT.Bool:  x := NewBoolConst(TRUE)
                      | OPT.Char:  x := NewIntConst(0FFH); x^.typ := OPT.chartyp
                      | OPT.Int:   x := NewIntConst(OPM.SignedMaximum(x.typ.size))
-                     | OPT.Set:   x := NewIntConst(OPM.MaxSet); x^.typ := OPT.inttyp
+                     | OPT.Set:   x := NewIntConst(x.typ.size*8-1); x^.typ := OPT.inttyp
                      | OPT.Real:  x := NewRealConst(OPM.MaxReal, OPT.realtyp)
                      | OPT.LReal: x := NewRealConst(OPM.MaxLReal, OPT.lrltyp)
                      ELSE err(111)

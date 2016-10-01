@@ -93,7 +93,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     ShortintSize*, IntegerSize*, LongintSize*, SetSize*: INTEGER;
 
-    MaxSet*: INTEGER;
     MaxIndex*: SYSTEM.INT64;
 
     MinReal*, MaxReal*, MinLReal*, MaxLReal*: LONGREAL;
@@ -344,7 +343,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
     ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4
     END;
-    MaxSet := SetSize * 8 - 1;
 
     IF verbose IN Options THEN VerboseListSizes END;
 

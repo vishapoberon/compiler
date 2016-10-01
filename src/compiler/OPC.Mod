@@ -1228,7 +1228,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   PROCEDURE Constant* (con: OPT.Const; form: INTEGER);
     VAR i: INTEGER; s: SYSTEM.SET64;
-      hex: LONGINT; skipLeading: BOOLEAN;
+      hex: SYSTEM.INT64; skipLeading: BOOLEAN;
   BEGIN
     CASE form OF
     | OPT.Byte:   OPM.WriteInt(con^.intval)

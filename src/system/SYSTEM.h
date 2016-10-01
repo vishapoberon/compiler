@@ -229,6 +229,7 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __ODD(x)        ((x)&1)
 
 #define __IN(x, s, size)     (((unsigned int)(x))<size && ((((uint##size)(s))>>(x))&1))
+// todo tested versions of SETOF and SETRNG: check that x, l and h fit size
 #define __SETOF(x, size)     ((uint##size)1<<(x))
 #define __SETRNG(l, h, size) ((~(uint##size)0<<(l))&~(uint##size)0>>(size-1-(h)))
 
