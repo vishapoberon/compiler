@@ -389,7 +389,7 @@ END ReadBuf;
 
 
 
-PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: SYSTEM.ADDRESS): SYSTEM.ADDRESS
+PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): SYSTEM.ADDRESS
 "write(fd, (void*)(address)(p), l)";
 
 PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
