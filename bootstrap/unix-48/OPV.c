@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/03]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -41,7 +41,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x);
 static void OPV_ParIntLiteral (int64 n, int32 size);
 static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
-static void OPV_SizeCast (int32 from, int32 to);
+static void OPV_SizeCast (OPT_Node n, int32 to);
 static void OPV_Stamp (OPS_Name s);
 static OPT_Object OPV_SuperProc (OPT_Node n);
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported);
@@ -380,12 +380,24 @@ static void OPV_Entier (OPT_Node n, int16 prec)
 	}
 }
 
-static void OPV_SizeCast (int32 from, int32 to)
+static void OPV_SizeCast (OPT_Node n, int32 to)
 {
-	if ((from != to && (from > 4 || to != 4))) {
-		OPM_WriteString((CHAR*)"(int", 5);
-		OPM_WriteInt(__ASHL(to, 3));
-		OPM_WriteString((CHAR*)")", 2);
+	if ((to < n->typ->size && __IN(2, OPM_Options, 32))) {
+		OPM_WriteString((CHAR*)"__SHORT", 8);
+		if (OPV_SideEffects(n)) {
+			OPM_Write('F');
+		}
+		OPM_Write('(');
+		OPV_Entier(n, -1);
+		OPM_WriteString((CHAR*)", ", 3);
+		OPM_WriteInt(OPM_SignedMaximum(to) + 1);
+		OPM_Write(')');
+	} else {
+		if ((n->typ->size != to && (n->typ->size > 4 || to != 4))) {
+			OPM_WriteString((CHAR*)"(int", 5);
+			OPM_WriteInt(__ASHL(to, 3));
+			OPM_WriteString((CHAR*)")", 2);
+		}
 	}
 }
 
@@ -395,26 +407,19 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, int16 prec)
 	from = n->typ->form;
 	to = newtype->form;
 	if (to == 7) {
-		OPM_WriteString((CHAR*)"__SETOF(", 9);
-		OPV_Entier(n, -1);
-		OPM_WriteString((CHAR*)",", 2);
-		OPM_WriteInt(__ASHL(newtype->size, 3));
-		OPM_Write(')');
-	} else if (to == 4) {
-		if ((newtype->size < n->typ->size && __IN(2, OPM_Options, 32))) {
-			OPM_WriteString((CHAR*)"__SHORT", 8);
-			if (OPV_SideEffects(n)) {
-				OPM_Write('F');
-			}
-			OPM_Write('(');
-			OPV_Entier(n, -1);
-			OPM_WriteString((CHAR*)", ", 3);
-			OPM_WriteInt(OPM_SignedMaximum(newtype->size) + 1);
-			OPM_Write(')');
-		} else {
-			OPV_SizeCast(n->typ->size, newtype->size);
+		if (from == 7) {
+			OPV_SizeCast(n, newtype->size);
 			OPV_Entier(n, 9);
+		} else {
+			OPM_WriteString((CHAR*)"__SETOF(", 9);
+			OPV_Entier(n, -1);
+			OPM_WriteString((CHAR*)",", 2);
+			OPM_WriteInt(__ASHL(newtype->size, 3));
+			OPM_Write(')');
 		}
+	} else if (to == 4) {
+		OPV_SizeCast(n, newtype->size);
+		OPV_Entier(n, 9);
 	} else if (to == 3) {
 		if (__IN(2, OPM_Options, 32)) {
 			OPM_WriteString((CHAR*)"__CHR", 6);

@@ -678,6 +678,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                       ELSE err(100)
                       END
         |OPT.Set:     IF (g = OPT.Set) & (y.typ.size < z.typ.size) THEN Convert(y, z.typ)
+                      ELSIF (g = OPT.Set)                          THEN Convert(z, y.typ)
                       ELSE err(100)
                       END
         |OPT.Real:    IF g = OPT.Int THEN Convert(y, z^.typ)

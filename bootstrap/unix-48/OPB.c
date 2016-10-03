@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/03]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -1273,6 +1273,8 @@ void OPB_Op (int8 op, OPT_Node *x, OPT_Node y)
 				case 7: 
 					if ((g == 7 && y->typ->size < z->typ->size)) {
 						OPB_Convert(&y, z->typ);
+					} else if (g == 7) {
+						OPB_Convert(&z, y->typ);
 					} else {
 						OPB_err(100);
 					}

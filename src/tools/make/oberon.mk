@@ -199,11 +199,9 @@ runtime:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Modules.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Strings.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Files.Mod
-	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Reals.Mod
-#	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/LowReal.Mod
-#	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Math.Mod
-#	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/LowLReal.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Math.Mod
 #	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/MathL.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Reals.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Texts.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Oberon.Mod
 	@printf "\nMaking lib$(ONAME)$(MODEL)\n"

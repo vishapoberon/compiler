@@ -232,10 +232,16 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END
   END Entier;
 
-  PROCEDURE SizeCast(from, to: LONGINT);
+  PROCEDURE SizeCast(n: OPT.Node; to: LONGINT);
   BEGIN
-    IF (from # to) & ((from > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
-      OPM.WriteString("(int"); OPM.WriteInt(to*8); OPM.WriteString(")")
+    IF (to < n.typ.size) & (OPM.ranchk IN OPM.Options) THEN
+      OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
+      OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
+      OPM.WriteInt(OPM.SignedMaximum(to) + 1); OPM.Write(CloseParen)
+    ELSE
+      IF (n.typ.size # to) & ((n.typ.size > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
+        OPM.WriteString("(int"); OPM.WriteInt(to*8); OPM.WriteString(")")
+      END
     END
   END SizeCast;
 
@@ -243,16 +249,14 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     VAR from, to: INTEGER;
   BEGIN from := n^.typ^.form; to := newtype.form;
     IF to = OPT.Set THEN
-      OPM.WriteString("__SETOF("); Entier(n, MinPrec);
-      OPM.WriteString(","); OPM.WriteInt(newtype.size*8); OPM.Write(CloseParen)
-    ELSIF to = OPT.Int THEN
-      IF (newtype.size < n.typ.size) & (OPM.ranchk IN OPM.Options) THEN
-        OPM.WriteString("__SHORT"); IF SideEffects(n) THEN OPM.Write("F") END;
-        OPM.Write(OpenParen); Entier(n, MinPrec); OPM.WriteString(Comma);
-        OPM.WriteInt(OPM.SignedMaximum(newtype.size) + 1); OPM.Write(CloseParen)
-      ELSE
-        SizeCast(n.typ.size, newtype.size); Entier(n, 9)
+      IF from = OPT.Set THEN (* Sets of different size *)
+        SizeCast(n, newtype.size); Entier(n, 9)
+      ELSE (* Set from integer *)
+        OPM.WriteString("__SETOF("); Entier(n, MinPrec);
+        OPM.WriteString(","); OPM.WriteInt(newtype.size*8); OPM.Write(CloseParen)
       END
+    ELSIF to = OPT.Int THEN (* integers of different size *)
+      SizeCast(n, newtype.size); Entier(n, 9)
     ELSIF to = OPT.Char THEN
       IF OPM.ranchk IN OPM.Options THEN OPM.WriteString("__CHR");
         IF SideEffects(n) THEN OPM.Write("F") END ;
