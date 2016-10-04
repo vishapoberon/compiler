@@ -91,7 +91,6 @@ CONST
   small*    = 1/8.50705917E37;    (* don't know better way; -- noch *)
   expoMax*  = 127;
   expoMin*  = 1-expoMax;
-
   expOffset = expoMax;
   nMask     = {0..22,31};  (* number mask: Sign and mantissa *)
   expMask   = {23..30};    (* exponent mask: exponent value + 127 *)
@@ -101,7 +100,7 @@ CONST
   ONE       = 1.0;
   TWO       = 2.0;
   TEN       = 10.0;
-  miny      = ONE/large;                  (* Smallest number thispackage accepts *)
+  miny      = ONE/large;                  (* Smallest number this package accepts *)
   sqrtHalf  = 0.70710678118654752440;
   Limit     = 2.4414062E-4;               (* 2 * *( - MantBits/2) *)
   eps       = 2.9802322E-8;               (* 2 * *( - MantBits - 1) *)

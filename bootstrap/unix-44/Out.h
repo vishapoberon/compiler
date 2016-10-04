@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/03]. Bootstrapping compiler for address size 8, alignment 8. tsSfF */
+/* voc 1.95 [2016/10/04]. Bootstrapping compiler for address size 8, alignment 8. tsSfF */
 
 #ifndef Out__h
 #define Out__h
