@@ -96,7 +96,7 @@ CONST
   ONE       = 1.0D0;
   HALF      = 0.5D0;
   TWO       = 2.0D0;
-  miny      = ONE/large;                  (* Smallest number this package accepts *)
+  miny      = ONE/large;                 (* Smallest number this package accepts *)
   sqrtHalf  = 0.70710678118654752440D0;
   Limit     = 1.0536712D-8;              (* 2**(-MantBits/2) *)
   eps       = 5.5511151D-17;             (* 2**(-MantBits-1) *)

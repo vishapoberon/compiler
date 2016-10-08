@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/04]. Bootstrapping compiler for address size 8, alignment 8. tsSfF */
+/* voc 1.95 [2016/10/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Out__h
 #define Out__h
@@ -15,6 +15,7 @@ import void Out_LongReal (LONGREAL x, int16 n);
 import void Out_Open (void);
 import void Out_Real (REAL x, int16 n);
 import void Out_String (CHAR *str, LONGINT str__len);
+import REAL Out_Ten (int16 e);
 import void *Out__init(void);
 
 

@@ -271,7 +271,7 @@ END div;
 PROCEDURE^ arctan2* (xn, xd: REAL): REAL;
 PROCEDURE^ sincos* (x: REAL; VAR Sin, Cos: REAL);
 
-PROCEDURE round * (x: REAL): LONGINT;
+PROCEDURE round* (x: REAL): LONGINT;
   (* Returns the value of x rounded to the nearest integer *)
 BEGIN
   IF x < ZERO THEN RETURN -ENTIER(HALF - x)
@@ -279,7 +279,7 @@ BEGIN
   END
 END round;
 
-PROCEDURE sqrt * (x: REAL): REAL;
+PROCEDURE sqrt* (x: REAL): REAL;
   (* Returns the positive square root of x where x >= 0 *)
   CONST
     P0 = 0.41731; P1 = 0.59016;
@@ -306,7 +306,7 @@ BEGIN
   RETURN scale(yEst, xExp DIV 2)
 END sqrt;
 
-PROCEDURE exp * (x: REAL): REAL;
+PROCEDURE exp* (x: REAL): REAL;
   (* Returns the exponential of x for x < Ln(MAX(REAL)) *)
   CONST
     ln2 = 0.6931471805599453094172321D0;
@@ -328,7 +328,7 @@ BEGIN
   RETURN scale(HALF + p/(q - p), SHORT(n + 1))
 END exp;
 
-PROCEDURE ln * (x: REAL): REAL;
+PROCEDURE ln* (x: REAL): REAL;
   (* Returns the natural logarithm of x for x > 0 *)
   CONST
     c1 = 355.0/512.0; c2 = -2.121944400546905827679E-4;
@@ -354,7 +354,7 @@ END ln;
 
 (* The angle in all trigonometric functions is measured in radians *)
 
-PROCEDURE sin * (x: REAL): REAL;
+PROCEDURE sin* (x: REAL): REAL;
   (* Returns the sine of x for all x *)
 BEGIN
   IF x < ZERO THEN RETURN SinCos(x, -x, -ONE)
@@ -362,13 +362,13 @@ BEGIN
   END
 END sin;
 
-PROCEDURE cos * (x: REAL): REAL;
+PROCEDURE cos* (x: REAL): REAL;
   (* Returns the cosine of x for all x *)
 BEGIN
   RETURN SinCos(x, ABS(x) + piByTwo, ONE)
 END cos;
 
-PROCEDURE tan * (x: REAL): REAL;
+PROCEDURE tan* (x: REAL): REAL;
   (* Returns the tangent of x where x cannot be an odd multiple of pi/2 *)
 CONST
   ymax = 6434;  (* ENTIER(2 * *(MantBits/2) * pi/2) *)
@@ -428,7 +428,7 @@ BEGIN
   END
 END asincos;
 
-PROCEDURE arcsin * (x: REAL): REAL;
+PROCEDURE arcsin* (x: REAL): REAL;
   (* Returns the arcsine of x, in the range [ - pi/2, pi/2] where -1 <= x <= 1 *)
 VAR
   res: REAL; i: LONGINT;
@@ -442,7 +442,7 @@ BEGIN
   RETURN res
 END arcsin;
 
-PROCEDURE arccos * (x: REAL): REAL;
+PROCEDURE arccos* (x: REAL): REAL;
   (* Returns the arccosine of x, in the range [0, pi] where -1 <= x <= 1 *)
 VAR
   res: REAL; i: LONGINT;
@@ -497,7 +497,7 @@ BEGIN
   RETURN res
 END atan;
 
-PROCEDURE arctan * (x: REAL): REAL;
+PROCEDURE arctan* (x: REAL): REAL;
   (* Returns the arctangent of x, in the range [ - pi/2, pi/2] for all x *)
 BEGIN
   IF x < 0 THEN RETURN -atan( - x)
@@ -505,7 +505,7 @@ BEGIN
   END
 END arctan;
 
-PROCEDURE power * (base, exp: REAL): REAL;
+PROCEDURE power* (base, exp: REAL): REAL;
   (* Returns the value of the number base raised to the power exponent
      for base > 0 *)
   CONST P1 = 0.83357541E-1; K = 0.4426950409;
@@ -558,7 +558,7 @@ BEGIN
   RETURN scale(z, SHORT(mp))
 END power;
 
-PROCEDURE IsRMathException * (): BOOLEAN;
+PROCEDURE IsRMathException* (): BOOLEAN;
   (* Returns TRUE if the current coroutine is in the exceptional execution state
      because of the raising of the RealMath exception; otherwise returns FALSE.
   *)
