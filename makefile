@@ -239,7 +239,7 @@ uninstall: configuration
 
 # confidence: Run a set of confidence tests
 confidence: configuration
-	@make -f src/tools/make/oberon.mk -s confidence
+	@make -f src/tools/make/oberon.mk -s confidence MODEL=2
 
 planned-binary-change:
 	@date >src/test/confidence/planned-binary-change
