@@ -19,6 +19,7 @@
 /src/test/**/*.sym
 **/*.stackdump
 /src/test/confidence/**/result
+/src/test/confidence/**/result-*
 /src/test/confidence/**/*.asm
 /src/test/confidence/**/*.s
 /src/test/confidence/**/*.map
