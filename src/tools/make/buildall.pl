@@ -6,6 +6,7 @@ use Cwd;
 
 my $branch = "master";
 
+
 if (defined($ARGV[0]) && ($ARGV[0] ne "")) {$branch = $ARGV[0]}
 
 my %machines = (
@@ -14,7 +15,8 @@ my %machines = (
   "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
                                                                        . "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd vishaps/voc && git pull && git checkout $branch && git pull;"
+                                                                       . "sh start64.sh \\\"cd vishaps/voc && git reset --hard && git clean -dfx &&"
+                                                                                         . "git pull && git checkout $branch && git pull;"
                                                                                          . "export CC=gcc && make full;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
@@ -55,7 +57,8 @@ unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && $sudo git pull && $sudo git checkout -f $branch && $sudo git pull && $sudo $mkcmd\" ";
+  my $cmd = "ssh $login \"cd $dir && $sudo git reset --hard && sudo git clean -dfx &&"
+          . "$sudo git pull && $sudo git checkout -f $branch && $sudo git pull && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 
