@@ -32,10 +32,10 @@ MODULE Strings;  (*HM 94-06-22 /  *)
 
 
 PROCEDURE Length* (s: ARRAY OF CHAR): INTEGER;
-  VAR i: INTEGER;
+  VAR i: LONGINT;
 BEGIN
-  i := 0; WHILE (i < LEN(s)) & (s[i] # 0X) DO INC(i) END ;
-  RETURN i
+  i := 0; WHILE (i < LEN(s)) & (s[i] # 0X) DO INC(i) END;
+  IF i <= MAX(INTEGER) THEN RETURN SHORT(i) ELSE RETURN MAX(INTEGER) END
 END Length;
 
 

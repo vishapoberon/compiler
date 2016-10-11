@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -24,15 +24,22 @@ export void Strings_Replace (CHAR *source, LONGINT source__len, int16 pos, CHAR 
 int16 Strings_Length (CHAR *s, LONGINT s__len)
 {
 	int16 _o_result;
-	int16 i;
+	int32 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	while ((i < s__len && s[__X(i, s__len)] != 0x00)) {
 		i += 1;
 	}
-	_o_result = i;
-	__DEL(s);
-	return _o_result;
+	if (i <= 32767) {
+		_o_result = (int16)i;
+		__DEL(s);
+		return _o_result;
+	} else {
+		_o_result = 32767;
+		__DEL(s);
+		return _o_result;
+	}
+	__RETCHK;
 }
 
 void Strings_Append (CHAR *extra, LONGINT extra__len, CHAR *dest, LONGINT dest__len)

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -7,25 +7,36 @@
 
 #include "SYSTEM.h"
 #include "Platform.h"
-#include "Strings.h"
 
 
+static CHAR Out_buf[128];
+static int16 Out_in;
 
 
 export void Out_Char (CHAR ch);
+export void Out_Flush (void);
 export void Out_Int (int64 x, int64 n);
+static int32 Out_Length (CHAR *s, LONGINT s__len);
 export void Out_Ln (void);
 export void Out_LongReal (LONGREAL x, int16 n);
 export void Out_Open (void);
 export void Out_Real (REAL x, int16 n);
+static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdigits, CHAR exp);
 export void Out_String (CHAR *str, LONGINT str__len);
-export REAL Out_Ten (int16 e);
-static LONGREAL Out_TenL (int16 e);
+export LONGREAL Out_Ten (int16 e);
 static void Out_digit (int64 n, CHAR *s, LONGINT s__len, int16 *i);
 static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16 *i);
 
-#define Out_Entier32(x)	(int32)(x)
 #define Out_Entier64(x)	(int64)(x)
+
+void Out_Flush (void)
+{
+	int16 error;
+	if (Out_in > 0) {
+		error = Platform_Write(1, (address)Out_buf, Out_in);
+	}
+	Out_in = 0;
+}
 
 void Out_Open (void)
 {
@@ -33,8 +44,26 @@ void Out_Open (void)
 
 void Out_Char (CHAR ch)
 {
-	int16 error;
-	error = Platform_Write(1, (address)&ch, 1);
+	if (Out_in >= 128) {
+		Out_Flush();
+	}
+	Out_buf[__X(Out_in, 128)] = ch;
+	Out_in += 1;
+	if (ch == 0x0a) {
+		Out_Flush();
+	}
+}
+
+static int32 Out_Length (CHAR *s, LONGINT s__len)
+{
+	int32 _o_result;
+	int32 l;
+	l = 0;
+	while ((l < s__len && s[__X(l, s__len)] != 0x00)) {
+		l += 1;
+	}
+	_o_result = l;
+	return _o_result;
 }
 
 void Out_String (CHAR *str, LONGINT str__len)
@@ -42,11 +71,16 @@ void Out_String (CHAR *str, LONGINT str__len)
 	int32 l;
 	int16 error;
 	__DUP(str, str__len, CHAR);
-	l = 0;
-	while ((l < str__len && str[__X(l, str__len)] != 0x00)) {
-		l += 1;
+	l = Out_Length((void*)str, str__len);
+	if (Out_in + l > 128) {
+		Out_Flush();
 	}
-	error = Platform_Write(1, (address)str, l);
+	if (l > 128) {
+		error = Platform_Write(1, (address)str, l);
+	} else {
+		__MOVE((address)str, (address)&Out_buf[__X(Out_in, 128)], l);
+		Out_in += (int16)l;
+	}
 	__DEL(str);
 }
 
@@ -89,6 +123,7 @@ void Out_Int (int64 x, int64 n)
 void Out_Ln (void)
 {
 	Out_String(Platform_NL, 3);
+	Out_Flush();
 }
 
 static void Out_digit (int64 n, CHAR *s, LONGINT s__len, int16 *i)
@@ -99,13 +134,14 @@ static void Out_digit (int64 n, CHAR *s, LONGINT s__len, int16 *i)
 
 static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16 *i)
 {
-	int16 j, l;
+	int16 j;
+	int32 l;
 	__DUP(t, t__len, CHAR);
-	l = Strings_Length(t, t__len);
+	l = Out_Length((void*)t, t__len);
 	if (l > *i) {
 		l = *i;
 	}
-	*i -= l;
+	*i -= (int16)l;
 	j = 0;
 	while (j < l) {
 		s[__X(*i + j, s__len)] = t[__X(j, t__len)];
@@ -114,116 +150,7 @@ static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16
 	__DEL(t);
 }
 
-REAL Out_Ten (int16 e)
-{
-	REAL _o_result;
-	LONGREAL r, power;
-	r = (LONGREAL)1;
-	power = (LONGREAL)10;
-	while (e > 0) {
-		if (__ODD(e)) {
-			r = r * power;
-		}
-		power = power * power;
-		e = __ASHR(e, 1);
-	}
-	_o_result = r;
-	return _o_result;
-}
-
-void Out_Real (REAL x, int16 n)
-{
-	int16 e;
-	int32 f;
-	CHAR s[30];
-	int16 i;
-	REAL x0;
-	BOOLEAN nn, en;
-	int32 m;
-	int16 d;
-	nn = __VAL(int32, x) < 0;
-	if (nn) {
-		n -= 1;
-	}
-	e = (int16)__MASK(__ASHR(__VAL(int32, x), 23), -256);
-	f = __MASK(__VAL(int32, x), -8388608);
-	i = 30;
-	if (e == 255) {
-		if (f == 0) {
-			Out_prepend((CHAR*)"Infinity", 9, (void*)s, 30, &i);
-		} else {
-			Out_prepend((CHAR*)"NaN", 4, (void*)s, 30, &i);
-		}
-	} else {
-		if (e == 0) {
-			Out_prepend((CHAR*)"E+00", 5, (void*)s, 30, &i);
-			m = 0;
-		} else {
-			if (nn) {
-				x = -x;
-			}
-			e = __ASHR((e - 127) * 77, 8);
-			if (e >= 0) {
-				x = x / (REAL)Out_Ten(e);
-			} else {
-				x = Out_Ten(-e) * x;
-			}
-			if (x >= (REAL)10) {
-				x =   1.0000000e-001 * x;
-				e += 1;
-			}
-			en = e < 0;
-			if (en) {
-				e = -e;
-			}
-			d = 2;
-			while (d > 0) {
-				Out_digit(e, (void*)s, 30, &i);
-				e = __DIV(e, 10);
-				d -= 1;
-			}
-			if (en) {
-				Out_prepend((CHAR*)"E-", 3, (void*)s, 30, &i);
-			} else {
-				Out_prepend((CHAR*)"E+", 3, (void*)s, 30, &i);
-			}
-			x0 = Out_Ten(7);
-			x = x0 * x +   5.0000000e-001;
-			if (x >= (REAL)10 * x0) {
-				x =   1.0000000e-001 * x;
-				e += 1;
-			}
-			m = Out_Entier32(x);
-		}
-		d = 8;
-		while ((((d > 2 && d > n - 5)) && (int)__MOD(m, 10) == 0)) {
-			m = __DIV(m, 10);
-			d -= 1;
-		}
-		while (d > 1) {
-			Out_digit(m, (void*)s, 30, &i);
-			m = __DIV(m, 10);
-			d -= 1;
-		}
-		i -= 1;
-		s[__X(i, 30)] = '.';
-		Out_digit(m, (void*)s, 30, &i);
-	}
-	n -= 30 - i;
-	while (n > 0) {
-		Out_Char(' ');
-		n -= 1;
-	}
-	if (nn) {
-		Out_Char('-');
-	}
-	while (i < 30) {
-		Out_Char(s[__X(i, 30)]);
-		i += 1;
-	}
-}
-
-static LONGREAL Out_TenL (int16 e)
+LONGREAL Out_Ten (int16 e)
 {
 	LONGREAL _o_result;
 	LONGREAL r, power;
@@ -240,7 +167,7 @@ static LONGREAL Out_TenL (int16 e)
 	return _o_result;
 }
 
-void Out_LongReal (LONGREAL x, int16 n)
+static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdigits, CHAR exp)
 {
 	int16 e;
 	int64 f;
@@ -249,7 +176,7 @@ void Out_LongReal (LONGREAL x, int16 n)
 	LONGREAL x0;
 	BOOLEAN nn, en;
 	int64 m;
-	int16 d;
+	int16 d, dr;
 	nn = __VAL(int64, x) < 0;
 	if (nn) {
 		n -= 1;
@@ -265,7 +192,15 @@ void Out_LongReal (LONGREAL x, int16 n)
 		}
 	} else {
 		if (e == 0) {
-			Out_prepend((CHAR*)"D+000", 6, (void*)s, 30, &i);
+			d = i - exponentdigits;
+			while (i > d) {
+				i -= 1;
+				s[__X(i, 30)] = '0';
+			}
+			i -= 1;
+			s[__X(i, 30)] = '+';
+			i -= 1;
+			s[__X(i, 30)] = exp;
 			m = 0;
 		} else {
 			if (nn) {
@@ -273,9 +208,9 @@ void Out_LongReal (LONGREAL x, int16 n)
 			}
 			e = (int16)__ASHR((e - 1023) * 77, 8);
 			if (e >= 0) {
-				x = x / (LONGREAL)Out_TenL(e);
+				x = x / (LONGREAL)Out_Ten(e);
 			} else {
-				x = Out_TenL(-e) * x;
+				x = Out_Ten(-e) * x;
 			}
 			if (x >= (LONGREAL)10) {
 				x =   1.00000000000000e-001 * x;
@@ -285,18 +220,21 @@ void Out_LongReal (LONGREAL x, int16 n)
 			if (en) {
 				e = -e;
 			}
-			d = 3;
+			d = exponentdigits;
 			while (d > 0) {
 				Out_digit(e, (void*)s, 30, &i);
 				e = __DIV(e, 10);
 				d -= 1;
 			}
+			i -= 1;
 			if (en) {
-				Out_prepend((CHAR*)"D-", 3, (void*)s, 30, &i);
+				s[__X(i, 30)] = '-';
 			} else {
-				Out_prepend((CHAR*)"D+", 3, (void*)s, 30, &i);
+				s[__X(i, 30)] = '+';
 			}
-			x0 = Out_TenL(15);
+			i -= 1;
+			s[__X(i, 30)] = exp;
+			x0 = Out_Ten(maxsigdigits - 1);
 			x = x0 * x +   5.00000000000000e-001;
 			if (x >= (LONGREAL)10 * x0) {
 				x =   1.00000000000000e-001 * x;
@@ -304,8 +242,12 @@ void Out_LongReal (LONGREAL x, int16 n)
 			}
 			m = Out_Entier64(x);
 		}
-		d = 16;
-		while ((((d > 2 && d > n - 6)) && __MOD(m, 10) == 0)) {
+		d = maxsigdigits;
+		dr = n - (exponentdigits + 3);
+		if (dr < 2) {
+			dr = 2;
+		}
+		while ((d > dr && __MOD(m, 10) == 0)) {
 			m = __DIV(m, 10);
 			d -= 1;
 		}
@@ -332,13 +274,23 @@ void Out_LongReal (LONGREAL x, int16 n)
 	}
 }
 
+void Out_Real (REAL x, int16 n)
+{
+	Out_RealP(x, n, 2, 7, 'E');
+}
+
+void Out_LongReal (LONGREAL x, int16 n)
+{
+	Out_RealP(x, n, 3, 16, 'D');
+}
+
 
 export void *Out__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Platform);
-	__MODULE_IMPORT(Strings);
 	__REGMOD("Out", 0);
+	__REGCMD("Flush", Out_Flush);
 	__REGCMD("Ln", Out_Ln);
 	__REGCMD("Open", Out_Open);
 /* BEGIN */
