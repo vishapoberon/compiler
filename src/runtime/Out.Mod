@@ -95,7 +95,7 @@ END Ten;
 
 PROCEDURE -Entier64(x: LONGREAL): SYSTEM.INT64 "(int64)(x)";
 
-PROCEDURE RealP(x: LONGREAL; n, exponentdigits, maxsigdigits: INTEGER; exp: CHAR);
+PROCEDURE RealP(x: LONGREAL; n: INTEGER; long: BOOLEAN);
 
 (* LongReal(x, n) writes the long real number x to the end of the output stream using an
    exponential form. If the textual representation of x requires m characters (including  a
@@ -104,16 +104,17 @@ PROCEDURE RealP(x: LONGREAL; n, exponentdigits, maxsigdigits: INTEGER; exp: CHAR
    LONGREAL is 1/sign, 11/exponent, 52/significand *)
 
 VAR
-  e:  INTEGER;          (* Exponent field *)
-  f:  HUGEINT;          (* Fraction field *)
-  s:  ARRAY 30 OF CHAR; (* Buffer built backwards *)
-  i:  INTEGER;          (* Index into s *)
-  x0: LONGREAL;
-  nn: BOOLEAN;          (* Number negative *)
-  en: BOOLEAN;          (* Exponent negative *)
-  m:  HUGEINT;          (* Mantissa digits *)
-  d:  INTEGER;          (* Significant digit count to display *)
-  dr: INTEGER;          (* Number of insignificant digits that can be dropped *)
+  e:   INTEGER;          (* Exponent field *)
+  f:   HUGEINT;          (* Fraction field *)
+  s:   ARRAY 30 OF CHAR; (* Buffer built backwards *)
+  i:   INTEGER;          (* Index into s *)
+  el:  INTEGER;          (* Exponent length *)
+  x0:  LONGREAL;
+  nn:  BOOLEAN;          (* Number negative *)
+  en:  BOOLEAN;          (* Exponent negative *)
+  m:   HUGEINT;          (* Mantissa digits *)
+  d:   INTEGER;          (* Significant digit count to display *)
+  dr:  INTEGER;          (* Number of insignificant digits that can be dropped *)
 
 BEGIN
   nn := SYSTEM.VAL(HUGEINT, x) < 0; IF nn THEN DEC(n) END;
@@ -124,10 +125,25 @@ BEGIN
   IF e = 7FFH THEN (* NaN / Infinity *)
     IF f = 0 THEN prepend("Infinity", s, i) ELSE prepend("NaN", s, i) END
   ELSE
+    (* Calculate number of significant digits caller has proposed space for, and
+       number of digits to generate. *)
+    IF long THEN
+      el := 3;
+      dr := n-6;                    (* Leave room for dp and '+D000' *)
+      IF dr > 17 THEN dr := 17 END; (* Limit to max useful significant digits *)
+      d := dr;                      (* Number of digits to generate *)
+      IF d < 16 THEN d := 16 END    (* Generate enough digits to do trailing zero supporession *)
+    ELSE
+      el := 2;
+      dr := n-5;                    (* Leave room for dp and '+E00' *)
+      IF dr > 9 THEN dr := 9 END;   (* Limit to max useful significant digits *)
+      d := dr;                      (* Number of digits to generate *)
+      IF d < 7 THEN d := 7 END      (* Generate enough digits to do trailing zero supporession *)
+    END;
+
     IF e = 0 THEN
-      d := i - exponentdigits; WHILE i > d DO DEC(i); s[i] := "0" END;
+      WHILE el > 0 DO DEC(i); s[i] := "0"; DEC(el) END;
       DEC(i); s[i] := "+";
-      DEC(i); s[i] := exp;
       m := 0;
     ELSE
       IF nn THEN x := -x END;
@@ -139,25 +155,23 @@ BEGIN
 
       (* Generate the exponent digits *)
       en := e < 0; IF en THEN e := - e END;
-      d := exponentdigits;
-      WHILE d > 0 DO digit(e, s, i); e := e DIV 10; DEC(d) END;
+      WHILE el > 0 DO digit(e, s, i); e := e DIV 10; DEC(el) END;
       DEC(i); IF en THEN s[i] := "-" ELSE s[i] := "+" END;
-      DEC(i); s[i] := exp;
 
-      (* Todo: generate more than maxsigdigits if we have room for them *)
-
-      (* Scale x to enoughsignificant digits to reliably test for trailing
-         zeroes.
-         todo or to the amount of space available, if greater. *)
-      x0 := Ten(maxsigdigits-1);
-      x  := x0 * x + 0.5D0;
+      (* Scale x to enough significant digits to reliably test for trailing
+         zeroes or to the amount of space available, if greater. *)
+      x0 := Ten(d-1);
+      x  := x0 * x;
+      x  := x + 0.5D0; (* Do not combine with previous line as doing so
+                          introduces a least significant bit difference
+                          between 32 bit and 64 bit builds. *)
       IF x >= 10.0D0 * x0 THEN x := 0.1D0 * x; INC(e) END;
       m := Entier64(x)
     END;
 
-    (* Drop trailing zeroes where we don't have room *)
-    d := maxsigdigits;
-    dr := n - (exponentdigits + 3); (* 3 for '.', D/E and +/- *)
+    DEC(i); IF long THEN s[i] := "D" ELSE s[i] := "E" END;
+
+    (* Drop trailing zeroes where caller proposes to use less space *)
     IF dr < 2 THEN dr := 2 END;
     WHILE (d > dr) & (m MOD 10 = 0) DO m := m DIV 10; DEC(d) END;
 
@@ -177,11 +191,11 @@ END RealP;
 
 
 PROCEDURE Real*(x: REAL; n: INTEGER);
-BEGIN RealP(x, n, 2, 7, "E");
+BEGIN RealP(x, n, FALSE);
 END Real;
 
 PROCEDURE LongReal*(x: LONGREAL; n: INTEGER);
-BEGIN RealP(x, n, 3, 16, "D");
+BEGIN RealP(x, n, TRUE);
 END LongReal;
 
 END Out.

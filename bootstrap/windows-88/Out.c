@@ -21,7 +21,7 @@ export void Out_Ln (void);
 export void Out_LongReal (LONGREAL x, int16 n);
 export void Out_Open (void);
 export void Out_Real (REAL x, int16 n);
-static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdigits, CHAR exp);
+static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_);
 export void Out_String (CHAR *str, LONGINT str__len);
 export LONGREAL Out_Ten (int16 e);
 static void Out_digit (int64 n, CHAR *s, LONGINT s__len, int16 *i);
@@ -167,12 +167,12 @@ LONGREAL Out_Ten (int16 e)
 	return _o_result;
 }
 
-static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdigits, CHAR exp)
+static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)
 {
 	int16 e;
 	int64 f;
 	CHAR s[30];
-	int16 i;
+	int16 i, el;
 	LONGREAL x0;
 	BOOLEAN nn, en;
 	int64 m;
@@ -191,16 +191,35 @@ static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdi
 			Out_prepend((CHAR*)"NaN", 4, (void*)s, 30, &i);
 		}
 	} else {
+		if (long_) {
+			el = 3;
+			dr = n - 6;
+			if (dr > 17) {
+				dr = 17;
+			}
+			d = dr;
+			if (d < 16) {
+				d = 16;
+			}
+		} else {
+			el = 2;
+			dr = n - 5;
+			if (dr > 9) {
+				dr = 9;
+			}
+			d = dr;
+			if (d < 7) {
+				d = 7;
+			}
+		}
 		if (e == 0) {
-			d = i - exponentdigits;
-			while (i > d) {
+			while (el > 0) {
 				i -= 1;
 				s[__X(i, 30)] = '0';
+				el -= 1;
 			}
 			i -= 1;
 			s[__X(i, 30)] = '+';
-			i -= 1;
-			s[__X(i, 30)] = exp;
 			m = 0;
 		} else {
 			if (nn) {
@@ -220,11 +239,10 @@ static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdi
 			if (en) {
 				e = -e;
 			}
-			d = exponentdigits;
-			while (d > 0) {
+			while (el > 0) {
 				Out_digit(e, (void*)s, 30, &i);
 				e = __DIV(e, 10);
-				d -= 1;
+				el -= 1;
 			}
 			i -= 1;
 			if (en) {
@@ -232,9 +250,7 @@ static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdi
 			} else {
 				s[__X(i, 30)] = '+';
 			}
-			i -= 1;
-			s[__X(i, 30)] = exp;
-			x0 = Out_Ten(maxsigdigits - 1);
+			x0 = Out_Ten(d - 1);
 			x = x0 * x +   5.00000000000000e-001;
 			if (x >= (LONGREAL)10 * x0) {
 				x =   1.00000000000000e-001 * x;
@@ -242,8 +258,12 @@ static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdi
 			}
 			m = Out_Entier64(x);
 		}
-		d = maxsigdigits;
-		dr = n - (exponentdigits + 3);
+		i -= 1;
+		if (long_) {
+			s[__X(i, 30)] = 'D';
+		} else {
+			s[__X(i, 30)] = 'E';
+		}
 		if (dr < 2) {
 			dr = 2;
 		}
@@ -276,12 +296,12 @@ static void Out_RealP (LONGREAL x, int16 n, int16 exponentdigits, int16 maxsigdi
 
 void Out_Real (REAL x, int16 n)
 {
-	Out_RealP(x, n, 2, 7, 'E');
+	Out_RealP(x, n, 0);
 }
 
 void Out_LongReal (LONGREAL x, int16 n)
 {
-	Out_RealP(x, n, 3, 16, 'D');
+	Out_RealP(x, n, 1);
 }
 
 
