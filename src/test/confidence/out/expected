@@ -11,7 +11,6 @@ Real number hex representation.
  0.000123D0:           3F201F31F46ED246
  1/0.0:                7FF0000000000000
 -1/0.0:                FFF0000000000000
- 0.0/0.0:              FFF8000000000000
 
  1.0E0:                3F800000
  1.1E0:                3F8CCCCD
@@ -24,7 +23,6 @@ Real number hex representation.
  0.000123E0:           3900F990
  1/0.0:                7F800000
 -1/0.0:                FF800000
- 0.0/0.0:              FFC00000
 
 
 Out module tests.
@@ -141,7 +139,6 @@ Real number hex representation.
  0.000123D0:           3F201F31F46ED246
  1/0.0:                7FF0000000000000
 -1/0.0:                FFF0000000000000
- 0.0/0.0:              FFF8000000000000
 
  1.0E0:                3F800000
  1.1E0:                3F8CCCCD
@@ -154,7 +151,6 @@ Real number hex representation.
  0.000123E0:           3900F990
  1/0.0:                7F800000
 -1/0.0:                FF800000
- 0.0/0.0:              FFC00000
 
 
 Out module tests.
