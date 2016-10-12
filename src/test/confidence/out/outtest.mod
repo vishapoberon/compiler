@@ -48,7 +48,7 @@ BEGIN
   lr := 0.000123D0;            ws(" 0.000123D0:           "); wh(lr); wl;
   lr := 0.0; lr :=  1/lr;      ws(" 1/0.0:                "); wh(lr); wl;
   lr := 0.0; lr := -1/lr;      ws("-1/0.0:                "); wh(lr); wl;
-  lr := 0.0; lr :=  0.0D0/lr;  ws(" 0.0/0.0:              "); wh(lr); wl;
+(*lr := 0.0; lr :=  0.0D0/lr;  ws(" 0.0/0.0:              "); wh(lr); wl;*)
   wl;
   r  :=  1.0E0;                ws(" 1.0E0:                "); wh(r);  wl;
   r  :=  1.1E0;                ws(" 1.1E0:                "); wh(r);  wl;
@@ -61,7 +61,7 @@ BEGIN
   r  := 0.000123E0;            ws(" 0.000123E0:           "); wh(r);  wl;
   r  := 0.0; r :=  1/r;        ws(" 1/0.0:                "); wh(r);  wl;
   r  := 0.0; r := -1/r;        ws("-1/0.0:                "); wh(r);  wl;
-  r  := 0.0; r :=  0.0E0/r;    ws(" 0.0/0.0:              "); wh(r);  wl;
+(*r  := 0.0; r :=  0.0E0/r;    ws(" 0.0/0.0:              "); wh(r);  wl;*)
   wl; wl;
 
   ws("Out module tests."); wl;
