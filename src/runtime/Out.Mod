@@ -117,9 +117,10 @@ VAR
   dr:  INTEGER;          (* Number of insignificant digits that can be dropped *)
 
 BEGIN
-  nn := SYSTEM.VAL(HUGEINT, x) < 0; IF nn THEN DEC(n) END;
   e  := SYSTEM.VAL(INTEGER, (SYSTEM.VAL(HUGEINT, x) DIV 10000000000000H) MOD 800H);
   f  := SYSTEM.VAL(HUGEINT, x) MOD 10000000000000H;
+  nn := (SYSTEM.VAL(HUGEINT, x) < 0) & ~((e = 7FFH) & (f # 0)); (* Ignore sign on Nan *)
+  IF nn THEN DEC(n) END;
 
   i := LEN(s);
   IF e = 7FFH THEN (* NaN / Infinity *)

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPB__h
 #define OPB__h

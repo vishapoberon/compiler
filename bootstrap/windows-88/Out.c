@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -177,12 +177,12 @@ static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)
 	BOOLEAN nn, en;
 	int64 m;
 	int16 d, dr;
-	nn = __VAL(int64, x) < 0;
+	e = (int16)__MASK(__ASHR((__VAL(int64, x)), 52), -2048);
+	f = __MASK((__VAL(int64, x)), -4503599627370496);
+	nn = (__VAL(int64, x) < 0 && !((e == 2047 && f != 0)));
 	if (nn) {
 		n -= 1;
 	}
-	e = (int16)__MASK(__ASHR((__VAL(int64, x)), 52), -2048);
-	f = __MASK((__VAL(int64, x)), -4503599627370496);
 	i = 30;
 	if (e == 2047) {
 		if (f == 0) {
@@ -251,7 +251,8 @@ static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)
 				s[__X(i, 30)] = '+';
 			}
 			x0 = Out_Ten(d - 1);
-			x = x0 * x +   5.00000000000000e-001;
+			x = x0 * x;
+			x = x +   5.00000000000000e-001;
 			if (x >= (LONGREAL)10 * x0) {
 				x =   1.00000000000000e-001 * x;
 				e += 1;
