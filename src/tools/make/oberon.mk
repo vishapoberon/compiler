@@ -61,13 +61,13 @@ assemble:
 
 	cd $(BUILDDIR) && $(COMPILE) -c SYSTEM.c  Configuration.c Platform.c Heap.c
 	cd $(BUILDDIR) && $(COMPILE) -c Out.c     Strings.c       Modules.c  Files.c
-	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         vt100.c    errors.c
+	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         VT100.c    errors.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
 	cd $(BUILDDIR) && $(COMPILE) $(STATICLINK) Compiler.c -o $(ROOTDIR)/$(OBECOMP) \
 	SYSTEM.o  Configuration.o Platform.o Heap.o    Out.o     Strings.o       Modules.o  Files.o \
-	Reals.o   Texts.o         vt100.o    errors.o  OPM.o     extTools.o      OPS.o      OPT.o \
+	Reals.o   Texts.o         VT100.o    errors.o  OPM.o     extTools.o      OPS.o      OPT.o \
 	OPC.o     OPV.o           OPB.o      OPP.o
 
 	cp src/runtime/*.[ch] $(BUILDDIR)
@@ -132,7 +132,7 @@ browsercmd:
 	@cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -fSm -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
 	@cd $(BUILDDIR); $(COMPILE) BrowserCmd.c -o showdef \
 	  Platform.o Texts.o OPT.o Heap.o Out.o SYSTEM.o OPM.o OPS.o OPV.o \
-	  Files.o Reals.o Modules.o vt100.o errors.o Configuration.o Strings.o \
+	  Files.o Reals.o Modules.o VT100.o errors.o Configuration.o Strings.o \
 	  OPC.o
 
 
