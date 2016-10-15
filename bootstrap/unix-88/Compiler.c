@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/10/15]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -16,8 +16,8 @@
 #include "OPV.h"
 #include "Platform.h"
 #include "Strings.h"
+#include "VT100.h"
 #include "extTools.h"
-#include "vt100.h"
 
 
 static CHAR Compiler_mname[256];
@@ -47,20 +47,20 @@ void Compiler_Module (BOOLEAN *done)
 				if ((__IN(10, OPM_Options, 32) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
 					OPM_DeleteNewSym();
 					if (!__IN(16, OPM_Options, 32)) {
-						vt100_SetAttr((CHAR*)"32m", 4);
+						VT100_SetAttr((CHAR*)"32m", 4);
 					}
 					OPM_LogWStr((CHAR*)"  Main program.", 16);
 					if (!__IN(16, OPM_Options, 32)) {
-						vt100_SetAttr((CHAR*)"0m", 3);
+						VT100_SetAttr((CHAR*)"0m", 3);
 					}
 				} else {
 					if (new) {
 						if (!__IN(16, OPM_Options, 32)) {
-							vt100_SetAttr((CHAR*)"32m", 4);
+							VT100_SetAttr((CHAR*)"32m", 4);
 						}
 						OPM_LogWStr((CHAR*)"  New symbol file.", 19);
 						if (!__IN(16, OPM_Options, 32)) {
-							vt100_SetAttr((CHAR*)"0m", 3);
+							VT100_SetAttr((CHAR*)"0m", 3);
 						}
 						OPM_RegisterNewSym();
 					} else if (ext) {
@@ -175,8 +175,8 @@ export int main(int argc, char **argv)
 	__MODULE_IMPORT(OPV);
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
+	__MODULE_IMPORT(VT100);
 	__MODULE_IMPORT(extTools);
-	__MODULE_IMPORT(vt100);
 	__REGMAIN("Compiler", 0);
 	__REGCMD("Translate", Compiler_Translate);
 /* BEGIN */

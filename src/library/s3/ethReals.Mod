@@ -10,7 +10,7 @@ Implemented by Bernd Moesli, Seminar for Applied Mathematics,
 Swiss Federal Institute of Technology Z…rich.
 *)
 
-IMPORT SYSTEM, Platform, Configuration;
+IMPORT SYSTEM, Platform;
 
 (* Bernd Moesli
   Seminar for Applied Mathematics

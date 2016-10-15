@@ -1,37 +1,37 @@
-/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#ifndef vt100__h
-#define vt100__h
+#ifndef VT100__h
+#define VT100__h
 
 #include "SYSTEM.h"
 
 
-import CHAR vt100_CSI[5];
+import CHAR VT100_CSI[5];
 
 
-import void vt100_CHA (int16 n);
-import void vt100_CNL (int16 n);
-import void vt100_CPL (int16 n);
-import void vt100_CUB (int16 n);
-import void vt100_CUD (int16 n);
-import void vt100_CUF (int16 n);
-import void vt100_CUP (int16 n, int16 m);
-import void vt100_CUU (int16 n);
-import void vt100_DECTCEMh (void);
-import void vt100_DECTCEMl (void);
-import void vt100_DSR (int16 n);
-import void vt100_ED (int16 n);
-import void vt100_EL (int16 n);
-import void vt100_HVP (int16 n, int16 m);
-import void vt100_IntToStr (int32 int_, CHAR *str, LONGINT str__len);
-import void vt100_RCP (void);
-import void vt100_SCP (void);
-import void vt100_SD (int16 n);
-import void vt100_SGR (int16 n);
-import void vt100_SGR2 (int16 n, int16 m);
-import void vt100_SU (int16 n);
-import void vt100_SetAttr (CHAR *attr, LONGINT attr__len);
-import void *vt100__init(void);
+import void VT100_CHA (int16 n);
+import void VT100_CNL (int16 n);
+import void VT100_CPL (int16 n);
+import void VT100_CUB (int16 n);
+import void VT100_CUD (int16 n);
+import void VT100_CUF (int16 n);
+import void VT100_CUP (int16 n, int16 m);
+import void VT100_CUU (int16 n);
+import void VT100_DECTCEMh (void);
+import void VT100_DECTCEMl (void);
+import void VT100_DSR (int16 n);
+import void VT100_ED (int16 n);
+import void VT100_EL (int16 n);
+import void VT100_HVP (int16 n, int16 m);
+import void VT100_IntToStr (int32 int_, CHAR *str, LONGINT str__len);
+import void VT100_RCP (void);
+import void VT100_SCP (void);
+import void VT100_SD (int16 n);
+import void VT100_SGR (int16 n);
+import void VT100_SGR2 (int16 n, int16 m);
+import void VT100_SU (int16 n);
+import void VT100_SetAttr (CHAR *attr, LONGINT attr__len);
+import void *VT100__init(void);
 
 
-#endif // vt100
+#endif // VT100

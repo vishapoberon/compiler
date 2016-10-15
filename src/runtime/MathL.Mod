@@ -131,7 +131,7 @@ PROCEDURE fraction*(x: LONGREAL): LONGREAL;
    significant) part of `x'.  Hence the following relationship shall
    hold: x = scale(fraction(x), exponent(x)).
 *)
-  VAR s: SET;
+  VAR s: SYSTEM.SET64;
 BEGIN
   IF x = ZERO THEN RETURN ZERO
   ELSE
@@ -170,7 +170,7 @@ PROCEDURE scale*(x: LONGREAL; n: INTEGER): LONGREAL;
   The value of the call scale(x,n) shall be the value x*radix^n if such
   a value exists; otherwise an execption shall occur and may be raised.
 *)
-  VAR exp: LONGINT; lexp: SYSTEM.SET64;
+  VAR exp: HUGEINT; lexp: SYSTEM.SET64;
 BEGIN
   IF x = ZERO THEN RETURN ZERO END;
   exp := exponent(x) + n;                           (* new exponent *)

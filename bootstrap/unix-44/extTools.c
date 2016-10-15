@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -102,6 +102,7 @@ void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN stati
 	Strings_Append((CHAR*)"", 1, (void*)cmd, 1023);
 	Strings_Append((CHAR*)"/lib\"", 6, (void*)cmd, 1023);
 	Strings_Append((CHAR*)" -l voc", 8, (void*)cmd, 1023);
+	Strings_Append((CHAR*)"-O", 3, (void*)cmd, 1023);
 	Strings_Append(OPM_Model, 10, (void*)cmd, 1023);
 	extTools_execute((CHAR*)"Assemble and link: ", 20, cmd, 1023);
 	__DEL(additionalopts);

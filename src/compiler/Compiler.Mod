@@ -4,7 +4,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     SYSTEM, Heap, Platform, Configuration,
     OPP, OPB, OPT,
     OPV, OPC, OPM,
-    extTools, Strings, vt100;
+    extTools, Strings, VT100;
 
   VAR mname: ARRAY 256 OF CHAR; (* noch *)
 
@@ -25,14 +25,14 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
         IF OPM.noerr THEN
           IF (OPM.mainprog IN OPM.Options) & (OPM.modName # "SYSTEM") THEN
             OPM.DeleteNewSym;
-            IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.Green) END;
+            IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.Green) END;
             OPM.LogWStr("  Main program.");
-            IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.ResetAll) END;
+            IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.ResetAll) END;
           ELSE
             IF new THEN
-              IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.Green) END;
+              IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.Green) END;
               OPM.LogWStr("  New symbol file.");
-              IF ~(OPM.notcoloroutput IN OPM.Options) THEN vt100.SetAttr(vt100.ResetAll) END;
+              IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.ResetAll) END;
 	            OPM.RegisterNewSym
             ELSIF ext THEN
               OPM.LogWStr("  Extended symbol file.");

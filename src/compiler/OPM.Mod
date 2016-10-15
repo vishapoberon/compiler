@@ -4,7 +4,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   31.1.2007 jt synchronized with BlackBox version, in particular PromoteIntConstToLInt added
 *)
 
-  IMPORT SYSTEM, Texts, Files, Platform, Out, errors, Configuration, vt100, Strings;
+  IMPORT SYSTEM, Texts, Files, Platform, Out, errors, Configuration, VT100, Strings;
 
   CONST
     OptionChar* = "-";
@@ -183,7 +183,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "c": Options := Options / {dontlink}         (* Don't link. *)
 
       (* Miscellaneous *)
-      | "f": Options := Options / {notcoloroutput}   (* Disable vt100 control characters in status output. *)
+      | "f": Options := Options / {notcoloroutput}   (* Disable VT100 control characters in status output. *)
       | "V": Options := Options / {verbose}
 
       (* Elementary type size model *)
@@ -264,7 +264,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("    -c   Don't link.");                                                                             LogWLn;
       LogWLn;
       LogWStr("  Miscellaneous");                                                                                  LogWLn;
-      LogWStr("    -f   Disable vt100 control characters in status output.");                                      LogWLn;
+      LogWStr("    -f   Disable VT100 control characters in status output.");                                      LogWLn;
       LogWStr("    -V   Display compiler debugging messages.");                                                    LogWLn;
       LogWLn;
       LogWStr("  Size model for elementary types (default O2)");                                                   LogWLn;
@@ -426,13 +426,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       buf: ARRAY 1024 OF CHAR;
   BEGIN
     IF n >= 0 THEN
-       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.Red) END;
+       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Red) END;
        LogWStr("  err ");
-       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.ResetAll) END;
+       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.ResetAll) END;
     ELSE
-       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.Magenta) END;
+       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Magenta) END;
        LogWStr("  warning "); n := -n;
-       IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.ResetAll) END;
+       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.ResetAll) END;
     END ;
     LogWNum(n, 1);
     LogWStr("  ");
@@ -505,9 +505,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     i := SHORT(Longint(pos - ErrorLineStartPos));
     WHILE i > 0 DO LogW(" "); DEC(i) END;
 
-    IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.Green) END;
+    IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Green) END;
     LogW("^");
-    IF ~(notcoloroutput IN Options) THEN vt100.SetAttr(vt100.ResetAll) END;
+    IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.ResetAll) END;
 
     Files.Close(f);
   END ShowLine;

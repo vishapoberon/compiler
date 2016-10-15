@@ -1,4 +1,4 @@
-MODULE vt100;
+MODULE VT100;
 
 IMPORT Out, Strings;
  (* reference http://en.wikipedia.org/wiki/ANSI_escape_code
@@ -339,4 +339,4 @@ CONST
       Strings.Append("hello", tmpstr);
       Out.String(tmpstr); Out.Ln;
 *)
-   END vt100.
+   END VT100.

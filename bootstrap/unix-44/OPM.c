@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -12,8 +12,8 @@
 #include "Platform.h"
 #include "Strings.h"
 #include "Texts.h"
+#include "VT100.h"
 #include "errors.h"
-#include "vt100.h"
 
 typedef
 	CHAR OPM_FileName[32];
@@ -325,7 +325,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Miscellaneous", 16);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -f   Disable vt100 control characters in status output.", 60);
+		OPM_LogWStr((CHAR*)"    -f   Disable VT100 control characters in status output.", 60);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -V   Display compiler debugging messages.", 46);
 		OPM_LogWLn();
@@ -555,20 +555,20 @@ static void OPM_LogErrMsg (int16 n)
 	CHAR buf[1024];
 	if (n >= 0) {
 		if (!__IN(16, OPM_Options, 32)) {
-			vt100_SetAttr((CHAR*)"31m", 4);
+			VT100_SetAttr((CHAR*)"31m", 4);
 		}
 		OPM_LogWStr((CHAR*)"  err ", 7);
 		if (!__IN(16, OPM_Options, 32)) {
-			vt100_SetAttr((CHAR*)"0m", 3);
+			VT100_SetAttr((CHAR*)"0m", 3);
 		}
 	} else {
 		if (!__IN(16, OPM_Options, 32)) {
-			vt100_SetAttr((CHAR*)"35m", 4);
+			VT100_SetAttr((CHAR*)"35m", 4);
 		}
 		OPM_LogWStr((CHAR*)"  warning ", 11);
 		n = -n;
 		if (!__IN(16, OPM_Options, 32)) {
-			vt100_SetAttr((CHAR*)"0m", 3);
+			VT100_SetAttr((CHAR*)"0m", 3);
 		}
 	}
 	OPM_LogWNum(n, 1);
@@ -641,11 +641,11 @@ static void OPM_ShowLine (int64 pos)
 		i -= 1;
 	}
 	if (!__IN(16, OPM_Options, 32)) {
-		vt100_SetAttr((CHAR*)"32m", 4);
+		VT100_SetAttr((CHAR*)"32m", 4);
 	}
 	OPM_LogW('^');
 	if (!__IN(16, OPM_Options, 32)) {
-		vt100_SetAttr((CHAR*)"0m", 3);
+		VT100_SetAttr((CHAR*)"0m", 3);
 	}
 	Files_Close(f);
 }
@@ -1079,8 +1079,8 @@ export void *OPM__init(void)
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);
 	__MODULE_IMPORT(Texts);
+	__MODULE_IMPORT(VT100);
 	__MODULE_IMPORT(errors);
-	__MODULE_IMPORT(vt100);
 	__REGMOD("OPM", EnumPtrs);
 	__REGCMD("CloseFiles", OPM_CloseFiles);
 	__REGCMD("CloseOldSym", OPM_CloseOldSym);

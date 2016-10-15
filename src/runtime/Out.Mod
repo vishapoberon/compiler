@@ -199,4 +199,5 @@ PROCEDURE LongReal*(x: LONGREAL; n: INTEGER);
 BEGIN RealP(x, n, TRUE);
 END LongReal;
 
+BEGIN in := 0
 END Out.

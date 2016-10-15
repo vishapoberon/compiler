@@ -110,7 +110,7 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Files.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Reals.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Texts.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/vt100.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/VT100.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/errors.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPM.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/extTools.Mod
@@ -161,15 +161,17 @@ install:
 	@cp $(OBECOMP) "$(INSTALLDIR)/bin/$(OBECOMP)"
 	@-cp $(BUILDDIR)/showdef$(BINEXT) "$(INSTALLDIR)/bin"
 
-	@mkdir -p "$(INSTALLDIR)/2/include" && cp $(BUILDDIR)/*.h     "$(INSTALLDIR)/2/include/"
-	@mkdir -p "$(INSTALLDIR)/2/sym"     && cp $(BUILDDIR)/*.sym   "$(INSTALLDIR)/2/sym/"
+	@mkdir -p "$(INSTALLDIR)/2/include" && cp $(BUILDDIR)/2/*.h   "$(INSTALLDIR)/2/include/"
+	@mkdir -p "$(INSTALLDIR)/2/sym"     && cp $(BUILDDIR)/2/*.sym "$(INSTALLDIR)/2/sym/"
 	@mkdir -p "$(INSTALLDIR)/C/include" && cp $(BUILDDIR)/C/*.h   "$(INSTALLDIR)/C/include/"
 	@mkdir -p "$(INSTALLDIR)/C/sym"     && cp $(BUILDDIR)/C/*.sym "$(INSTALLDIR)/C/sym/"
 
 	@mkdir -p "$(INSTALLDIR)/lib"
-	@cp $(BUILDDIR)/lib$(ONAME)*   "$(INSTALLDIR)/lib/"
+	@cp $(BUILDDIR)/2/lib$(ONAME)* "$(INSTALLDIR)/lib/"
 	@cp $(BUILDDIR)/C/lib$(ONAME)* "$(INSTALLDIR)/lib/"
 	@if which ldconfig >/dev/null 2>&1; then $(LDCONFIG); fi
+
+
 
 
 # showpath: Describe how to set the PATH variable
@@ -190,190 +192,193 @@ uninstall:
 
 runtime:
 	@printf "\nMaking run time library for -O$(MODEL)\n"
-	mkdir -p $(BUILDDIR)/$(MODEL)
-	cp src/runtime/*.[ch] $(BUILDDIR)/$(MODEL)
-	cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Heap.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Modules.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Strings.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Out.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/VT100.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Files.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Math.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/MathL.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Reals.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Texts.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Oberon.Mod
-	@printf "\nMaking lib$(ONAME)$(MODEL)\n"
-	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
-	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)$(MODEL).so *.o
-
 
 
 v4:
-	@printf "\nMaking v4 library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Args.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Console.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Printer.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/v4/Sets.Mod
+	@printf "\nMaking v4 library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/v4/Args.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/v4/Console.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/v4/Printer.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/v4/Sets.Mod
 
 ooc2:
-	@printf "\nMaking ooc2 library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2Strings.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2Ascii.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2CharClass.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2ConvTypes.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2IntConv.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2IntStr.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc2/ooc2Real0.Mod
-
-
-TODO: Comment disabled lines contain use of VAL that reads beyond source variable
+	@printf "\nMaking ooc2 library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2Strings.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2Ascii.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2CharClass.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2ConvTypes.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2IntConv.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2IntStr.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc2/ooc2Real0.Mod
 
 ooc:
-	@printf "\nMaking ooc library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLowReal.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLowLReal.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocRealMath.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocOakMath.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLRealMath.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLongInts.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocComplexMath.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLComplexMath.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocAscii.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocCharClass.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocStrings.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocConvTypes.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLRealConv.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocLRealStr.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocRealConv.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocRealStr.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocIntConv.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocIntStr.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocMsg.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocSysClock.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocTime.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocChannel.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocStrings2.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocRts.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocFilenames.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocTextRider.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocBinaryRider.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocJulianDay.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocFilenames.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocwrapperlibc.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ooc/oocC$(DATAMODEL).Mod
+	@printf "\nMaking ooc library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLowReal.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLowLReal.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocRealMath.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocOakMath.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLRealMath.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLongInts.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocComplexMath.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLComplexMath.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocAscii.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocCharClass.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocStrings.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocConvTypes.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLRealConv.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocLRealStr.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocRealConv.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocRealStr.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocIntConv.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocIntStr.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocMsg.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocSysClock.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocTime.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocChannel.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocStrings2.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocRts.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocFilenames.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocTextRider.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocBinaryRider.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocJulianDay.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocFilenames.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocwrapperlibc.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ooc/oocC$(DATAMODEL).Mod
 
 oocX11:
-	@printf "\nMaking oocX11 library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/oocX11/oocX11.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/oocX11/oocXutil.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/oocX11/oocXYplane.Mod
+	@printf "\nMaking oocX11 library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/oocX11/oocX11.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/oocX11/oocXutil.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/oocX11/oocXYplane.Mod
 
 ulm:
-	@printf "\nMaking ulm library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmObjects.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmPriorities.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmDisciplines.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmServices.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSys.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSYSTEM.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmEvents.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmProcess.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmResources.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmForwarders.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmRelatedEvents.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmTypes.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmStreams.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmStrings.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSysTypes.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmTexts.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSysConversions.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmErrors.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSysErrors.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSysStat.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmASCII.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSets.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmIO.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmAssertions.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmIndirectDisciplines.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmStreamDisciplines.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmIEEE.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmMC68881.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmReals.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmPrint.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmWrite.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmConstStrings.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmPlotters.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmSysIO.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmLoader.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmNetIO.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmPersistentObjects.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmPersistentDisciplines.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmOperations.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmScales.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmTimes.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmClocks.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmTimers.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmConditions.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmStreamConditions.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmTimeConditions.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmCiphers.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmCipherOps.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmBlockCiphers.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmAsymmetricCiphers.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmConclusions.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmRandomGenerators.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmTCrypt.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/ulm/ulmIntOperations.Mod
+	@printf "\nMaking ulm library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmObjects.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmPriorities.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmDisciplines.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmServices.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSys.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSYSTEM.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmEvents.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmProcess.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmResources.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmForwarders.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmRelatedEvents.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmTypes.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmStreams.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmStrings.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSysTypes.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmTexts.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSysConversions.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmErrors.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSysErrors.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSysStat.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmASCII.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSets.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmIO.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmAssertions.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmIndirectDisciplines.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmStreamDisciplines.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmIEEE.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmMC68881.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmReals.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmPrint.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmWrite.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmConstStrings.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmPlotters.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmSysIO.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmLoader.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmNetIO.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmPersistentObjects.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmPersistentDisciplines.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmOperations.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmScales.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmTimes.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmClocks.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmTimers.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmConditions.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmStreamConditions.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmTimeConditions.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmCiphers.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmCipherOps.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmBlockCiphers.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmAsymmetricCiphers.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmConclusions.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmRandomGenerators.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmTCrypt.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/ulm/ulmIntOperations.Mod
 
 pow32:
-	@printf "\nMaking pow library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/pow/powStrings.Mod
+	@printf "\nMaking pow library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/pow/powStrings.Mod
 
 misc:
-	@printf "\nMaking misc library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/runtime/Oberon.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/crt.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/Listen.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/MersenneTwister.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/MultiArrays.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/misc/MultiArrayRiders.Mod
+	@printf "\nMaking misc library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/misc/crt.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/misc/Listen.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/misc/MersenneTwister.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/misc/MultiArrays.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/misc/MultiArrayRiders.Mod
 
 s3:
-	@printf "\nMaking s3 library\n"
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethBTrees.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethMD5.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethSets.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZlib.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZlibBuffers.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZlibInflate.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZlibDeflate.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZlibReaders.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZlibWriters.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethZip.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethRandomNumbers.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethGZReaders.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethGZWriters.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethUnicode.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethDates.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethReals.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ffs -O2 ../../src/library/s3/ethStrings.Mod
+	@printf "\nMaking s3 library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethBTrees.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethMD5.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethSets.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZlib.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZlibBuffers.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZlibInflate.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZlibDeflate.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZlibReaders.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZlibWriters.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethZip.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethRandomNumbers.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethGZReaders.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethGZWriters.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethUnicode.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethDates.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethReals.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethStrings.Mod
 
 
-O2library: v4 ooc2 ooc ulm pow32 misc s3
-	@printf "\nMaking lib$(ONAME)2\n"
-	rm -f $(BUILDDIR)/Compiler.o
-#	Note: remining compiler files are retained in the library allowing the building
-#	of utilities like BrowserCmd.Mod (aka showdef).
-#	Make static library
-	ar rcs "$(BUILDDIR)/lib$(ONAME)2.a" $(BUILDDIR)/*.o
-#	Make shared library
-	@cd $(BUILDDIR) && $(COMPILE) -shared -o lib$(ONAME)2.so *.o
+# O2library: v4 ooc2 ooc ulm pow32 misc s3 runtime
+# 	@printf "\nMaking lib$(ONAME)2\n"
+# 	rm -f $(BUILDDIR)/Compiler.o
+# #	Note: remining compiler files are retained in the library allowing the building
+# #	of utilities like BrowserCmd.Mod (aka showdef).
+# #	Make static library
+# 	ar rcs "$(BUILDDIR)/lib$(ONAME)2.a" $(BUILDDIR)/*.o
+# #	Make shared library
+# 	@cd $(BUILDDIR) && $(COMPILE) -shared -o lib$(ONAME)2.so *.o
 
 
 
+O2library: runtime v4 ooc2 ooc ulm pow32 misc s3
 
+OClibrary: runtime
+
+library:
+	@printf "\nCompiling lib$(ONAME)-O$(MODEL) sources\n"
+	rm -rf $(BUILDDIR)/$(MODEL)
+	mkdir -p $(BUILDDIR)/$(MODEL)
+	cp src/runtime/*.[ch] $(BUILDDIR)/$(MODEL)
+	cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
+	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
+	@printf "\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n"
+	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
+	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)-O$(MODEL).so *.o
 
 
 

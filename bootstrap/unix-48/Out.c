@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -315,5 +315,6 @@ export void *Out__init(void)
 	__REGCMD("Ln", Out_Ln);
 	__REGCMD("Open", Out_Open);
 /* BEGIN */
+	Out_in = 0;
 	__ENDMOD;
 }
