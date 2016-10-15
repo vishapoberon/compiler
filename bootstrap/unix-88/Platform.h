@@ -15,7 +15,7 @@ typedef
 	void (*Platform_HaltProcedure)(int32);
 
 typedef
-	void (*Platform_SignalHandler)(int16);
+	void (*Platform_SignalHandler)(int32);
 
 
 import BOOLEAN Platform_LittleEndian;
@@ -49,7 +49,7 @@ import void Platform_Halt (int32 code);
 import int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
 import int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 import BOOLEAN Platform_Inaccessible (int16 e);
-import void Platform_Init (int16 argc, int64 argvadr);
+import void Platform_Init (int32 argc, int64 argvadr);
 import BOOLEAN Platform_Interrupted (int16 e);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 import int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);

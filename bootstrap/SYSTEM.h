@@ -8,20 +8,19 @@
   #define __o_64
 #endif
 
-// Temporary while bootstrapping and clearing up SYSTEM.c.
-
-
-#ifndef LONGINT
-  #if defined (__o_64)
-    #define INTEGER int32
-    #define LONGINT int64
-    #define SET     uint64
-  #else
-    #define INTEGER int16
-    #define LONGINT int32
-    #define SET     uint32
-  #endif
-#endif
+//  // Temporary while bootstrapping and clearing up SYSTEM.c.
+//
+//  #ifndef LONGINT
+//    #if defined (__o_64)
+//      #define INTEGER int32
+//      #define LONGINT int64
+//      #define SET     uint64
+//    #else
+//      #define INTEGER int16
+//      #define LONGINT int32
+//      #define SET     uint32
+//    #endif
+//  #endif
 
 
 
@@ -119,11 +118,11 @@ extern void    Platform_OSFree     (address addr);
 
 // Assertions and Halts
 
-extern void Platform_Halt(LONGINT x);
-extern void Platform_AssertFail(LONGINT x);
+extern void Platform_Halt(int32 x);
+extern void Platform_AssertFail(int32 x);
 
 #define __HALT(x)         Platform_Halt(x)
-#define __ASSERT(cond, x) if (!(cond)) Platform_AssertFail((LONGINT)(x))
+#define __ASSERT(cond, x) if (!(cond)) Platform_AssertFail((int32)(x))
 
 
 // Index checking
@@ -136,7 +135,7 @@ static inline int64 __XF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-2);} return
 
 static inline int64 __RF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-8);} return i;}
 #define __R(i, ub)      (((i)<(ub))?i:(__HALT(-8),0))
-#define __SHORT(x, ub)  ((int)((uLONGINT)(x)+(ub)<(ub)+(ub)?(x):(__HALT(-8),0)))
+#define __SHORT(x, ub)  ((int)((uint64)(x)+(ub)<(ub)+(ub)?(x):(__HALT(-8),0)))
 #define __SHORTF(x, ub) ((int)(__RF((x)+(ub),(ub)+(ub))-(ub)))
 #define __CHR(x)        ((CHAR)__R(x, 256))
 #define __CHRF(x)       ((CHAR)__RF(x, 256))
@@ -157,7 +156,7 @@ static inline int64 __RF(uint64 i, uint64 ub) {if (i >= ub) {__HALT(-8);} return
 // String comparison
 
 static inline int __str_cmp(CHAR *x, CHAR *y){
-  LONGINT i = 0;
+  int64 i = 0;
   CHAR ch1, ch2;
   do {ch1 = x[i]; ch2 = y[i]; i++;
     if (!ch1) return -(int)ch2;
@@ -212,7 +211,7 @@ extern int64 SYSTEM_MOD(int64 x, int64 y);
 #define __MOD(x, y) (((x)>0 && (y)>0) ? (x)%(y) : __MODF(x, y))
 
 
-extern LONGINT SYSTEM_ENTIER (double x);
+extern int64 SYSTEM_ENTIER (double x);
 #define __ENTIER(x) SYSTEM_ENTIER(x)
 
 
@@ -275,10 +274,10 @@ extern void       Heap_INCREF();
 
 // Main module initialisation, registration and finalisation
 
-extern void Platform_Init(INTEGER argc, address argv);
+extern void Platform_Init(int32 argc, address argv);
 extern void Heap_FINALL();
 
-#define __INIT(argc, argv)    static void *m; Platform_Init((INTEGER)argc, (address)&argv);
+#define __INIT(argc, argv)    static void *m; Platform_Init(argc, (address)&argv);
 #define __REGMAIN(name, enum) m = Heap_REGMOD((CHAR*)name,enum)
 #define __FINI                Heap_FINALL(); return 0
 
@@ -287,7 +286,7 @@ extern void Heap_FINALL();
 
 extern SYSTEM_PTR Heap_NEWBLK (address size);
 extern SYSTEM_PTR Heap_NEWREC (address tag);
-extern SYSTEM_PTR SYSTEM_NEWARR(LONGINT*, LONGINT, int, int, int, ...);
+extern SYSTEM_PTR SYSTEM_NEWARR(address*, address, int, int, int, ...);
 
 #define __SYSNEW(p, len) p = Heap_NEWBLK((address)(len))
 #define __NEW(p, t)      p = Heap_NEWREC((address)t##__typ)

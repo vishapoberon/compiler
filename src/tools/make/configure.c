@@ -220,9 +220,9 @@ void determineBuildDate() {
 struct {char ch; CHAR      x;}    c;
 struct {char ch; BOOLEAN   x;}    b;
 //struct {char ch; SHORTINT  x;}    si;
-struct {char ch; INTEGER   x;}    i;
-struct {char ch; LONGINT   x;}    li;
-struct {char ch; SET       x;}    s;
+//struct {char ch; INTEGER   x;}    i;
+//struct {char ch; LONGINT   x;}    li;
+//struct {char ch; SET       x;}    s;
 struct {char ch; REAL      x;}    r;
 struct {char ch; LONGREAL  x;}    lr;
 struct {char ch; void*     x;}    p;
@@ -254,9 +254,9 @@ void ReportSizesAndAlignments() {
   printf("CHAR      %4zd    %4td\n", sizeof(CHAR),      (char*)&c.x  - (char*)&c);
   printf("BOOLEAN   %4zd    %4td\n", sizeof(BOOLEAN),   (char*)&b.x  - (char*)&b);
 //printf("SHORTINT  %4zd    %4td\n", sizeof(SHORTINT),  (char*)&si.x - (char*)&si);
-  printf("INTEGER   %4zd    %4td\n", sizeof(INTEGER),   (char*)&i.x  - (char*)&i);
-  printf("LONGINT   %4zd    %4td\n", sizeof(LONGINT),   (char*)&li.x - (char*)&li);
-  printf("SET       %4zd    %4td\n", sizeof(SET),       (char*)&s.x  - (char*)&s);
+//printf("INTEGER   %4zd    %4td\n", sizeof(INTEGER),   (char*)&i.x  - (char*)&i);
+//printf("LONGINT   %4zd    %4td\n", sizeof(LONGINT),   (char*)&li.x - (char*)&li);
+//printf("SET       %4zd    %4td\n", sizeof(SET),       (char*)&s.x  - (char*)&s);
   printf("REAL      %4zd    %4td\n", sizeof(REAL),      (char*)&r.x  - (char*)&r);
   printf("LONGREAL  %4zd    %4td\n", sizeof(LONGREAL),  (char*)&lr.x - (char*)&lr);
   printf("void*     %4zd    %4td\n", sizeof(void*),     (char*)&p.x  - (char*)&p);
@@ -318,11 +318,14 @@ void testSystemDotH() {
 
   /* test the __SETRNG macro */
   long x = 0;
-  long y = sizeof(SET)*8 - 1;
-  if (sizeof(SET) == 4)
-    assert(__SETRNG(x, y, 32) == -1, "SETRNG(0, MAX(SET)) != -1.");
-  else
-    assert(__SETRNG(x, y, 64) == -1, "SETRNG(0, MAX(SET)) != -1.");
+  long y;
+  y=31; assert(__SETRNG(x, y, 32) == -1, "SETRNG(0, MAX(SET), 32) != -1.");
+  y=63; assert(__SETRNG(x, y, 64) == -1, "SETRNG(0, MAX(SET), 32) != -1.");
+//  long y = sizeof(SET)*8 - 1;
+//  if (sizeof(SET) == 4)
+//    assert(__SETRNG(x, y, 32) == -1, "SETRNG(0, MAX(SET)) != -1.");
+//  else
+//    assert(__SETRNG(x, y, 64) == -1, "SETRNG(0, MAX(SET)) != -1.");
 
   /* test string comparison for extended ascii */
   {char a[10], b[10];
@@ -337,11 +340,11 @@ void testSystemDotH() {
   assert(sizeof(CHAR)     == 1, "Size of CHAR not 1.");
   assert(sizeof(BOOLEAN)  == 1, "Size of BOOLEAN not 1.");
 //assert(sizeof(SHORTINT) == 1, "Size of SHORTINT not 1.");
-  assert(sizeof(INTEGER)  == 2
-      || sizeof(INTEGER)  == 4, "Size of INTEGER neither 2 nor 4 bytes.");
-  assert(sizeof(LONGINT)  == 4
-      || sizeof(LONGINT)  == 8, "Size of LONGINT neither 4 nor 8 bytes.");
-  assert(sizeof(SET) == sizeof(LONGINT), "Size of SET differs from size of LONGINT.");
+//assert(sizeof(INTEGER)  == 2
+//    || sizeof(INTEGER)  == 4, "Size of INTEGER neither 2 nor 4 bytes.");
+//assert(sizeof(LONGINT)  == 4
+//    || sizeof(LONGINT)  == 8, "Size of LONGINT neither 4 nor 8 bytes.");
+//assert(sizeof(SET) == sizeof(LONGINT), "Size of SET differs from size of LONGINT.");
   assert(sizeof(REAL)     == 4, "Size of REAL not 4 bytes.");
   assert(sizeof(LONGREAL) == 8, "Size of LONGREAL not 8 bytes.");
   assert(sizeof(f.x) == sizeof(p.x), "Size of function pointer differs from size of data pointer.");
@@ -351,10 +354,10 @@ void testSystemDotH() {
   assert(((char*)&c.x  - (char*)&c)  == 1, "Alignment of CHAR not 1.");
   assert(((char*)&b.x  - (char*)&b)  == 1, "Alignment of BOOLEAN not 1.");
 //assert(((char*)&si.x - (char*)&si) == 1, "Alignment of SHORTINT not 1.");
-  //assert(((char*)&i.x  - (char*)&i)  == 4, "Alignment of INTEGER not 4 bytes.");
+//assert(((char*)&i.x  - (char*)&i)  == 4, "Alignment of INTEGER not 4 bytes.");
   assert(((char*)&r.x  - (char*)&r)  == 4, "Alignment of REAL not 4 bytes.");
   assert(((char*)&lr.x - (char*)&lr) >= 4, "Alignment of LONGREAL less than 4 bytes.");
-  assert(((char*)&s.x  - (char*)&s)  == MIN(alignment, sizeof(SET)), "Alignment of SET differs from alignmnet of LONGINT.");
+//assert(((char*)&s.x  - (char*)&s)  == MIN(alignment, sizeof(SET)), "Alignment of SET differs from alignmnet of LONGINT.");
   assert(((char*)&p.x  - (char*)&p)  == addressSize, "Alignment of data pointer differs from address size.");
   assert(((char*)&f.x  - (char*)&f)  == addressSize, "Alignment of data pointer differs from address size.");
   assert(((char*)&lr.x - (char*)&lr) == ((char*)&ll.x - (char*)&ll), "Alignment of LONGREAL differs from alignment of long long.");
@@ -362,8 +365,8 @@ void testSystemDotH() {
   assert(sizeof(rec0) ==  1, "CHAR wrapped in record aligns differently to CHAR alone.");
   assert(sizeof(rec2) == 65, "CHAR array wrapped in record aligns differently to CHAR array alone.");
 
-  assert(sizeof(LONGINT) >= sizeof(p.x), "LONGINT should have at least the same size as data pointers.");
-  assert(sizeof(LONGINT) >= sizeof(f.x), "LONGINT should have at least the same size as function pointers.");
+//assert(sizeof(LONGINT) >= sizeof(p.x), "LONGINT should have at least the same size as data pointers.");
+//assert(sizeof(LONGINT) >= sizeof(f.x), "LONGINT should have at least the same size as function pointers.");
 
   if (((sizeof(rec2)==65) == (sizeof(rec0)==1)) && ((sizeof(rec2)-64) != sizeof(rec0)))
     printf("error: unsupported record layout  sizeof(rec0) = %lu  sizeof(rec2) = %lu\n", (long)sizeof(rec0), (long)sizeof(rec2));

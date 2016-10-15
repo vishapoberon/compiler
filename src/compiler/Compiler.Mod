@@ -129,7 +129,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     END
   END Translate;
 
-  PROCEDURE Trap(sig: INTEGER);
+  PROCEDURE Trap(sig: SYSTEM.INT32);
   BEGIN
     Heap.FINALL();
     IF sig = 3 THEN

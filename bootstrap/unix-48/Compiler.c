@@ -26,7 +26,7 @@ static CHAR Compiler_mname[256];
 export void Compiler_Module (BOOLEAN *done);
 static void Compiler_PropagateElementaryTypeSizes (void);
 export void Compiler_Translate (void);
-static void Compiler_Trap (int16 sig);
+static void Compiler_Trap (int32 sig);
 
 
 void Compiler_Module (BOOLEAN *done)
@@ -147,7 +147,7 @@ void Compiler_Translate (void)
 	}
 }
 
-static void Compiler_Trap (int16 sig)
+static void Compiler_Trap (int32 sig)
 {
 	Heap_FINALL();
 	if (sig == 3) {

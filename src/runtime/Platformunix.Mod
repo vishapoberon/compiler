@@ -7,8 +7,8 @@ CONST
   StdErr- = 2;
 
 TYPE
-  HaltProcedure = PROCEDURE(n: LONGINT);
-  SignalHandler = PROCEDURE(signal: INTEGER);
+  HaltProcedure = PROCEDURE(n: SYSTEM.INT32);
+  SignalHandler = PROCEDURE(signal: SYSTEM.INT32);
 
   ErrorCode*  = INTEGER;
   FileHandle* = LONGINT;
@@ -124,11 +124,11 @@ PROCEDURE OSFree*(address: SYSTEM.ADDRESS); BEGIN free(address) END OSFree;
 PROCEDURE -ExternInitHeap  "extern void Heap_InitHeap();";
 PROCEDURE -HeapInitHeap()  "Heap_InitHeap()";
 
-PROCEDURE Init*(argc: INTEGER; argvadr: SYSTEM.ADDRESS);
+PROCEDURE Init*(argc: SYSTEM.INT32; argvadr: SYSTEM.ADDRESS);
 VAR av: ArgVecPtr;
 BEGIN
   MainStackFrame := argvadr;
-  ArgCount       := argc;
+  ArgCount       := SYSTEM.VAL(INTEGER, argc);
   av             := SYSTEM.VAL(ArgVecPtr, argvadr);
   ArgVector      := av[0];
   HaltCode       := -128;
@@ -502,7 +502,7 @@ BEGIN
   END
 END DisplayHaltCode;
 
-PROCEDURE Halt*(code: LONGINT);
+PROCEDURE Halt*(code: SYSTEM.INT32);
 BEGIN
   HaltCode := code;
   IF HaltHandler # NIL THEN HaltHandler(code) END;
@@ -512,7 +512,7 @@ BEGIN
   exit(SYSTEM.VAL(INTEGER,code));
 END Halt;
 
-PROCEDURE AssertFail*(code: LONGINT);
+PROCEDURE AssertFail*(code: SYSTEM.INT32);
 BEGIN
   errstring("Assertion failure.");
   IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;

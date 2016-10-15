@@ -28,7 +28,7 @@ typedef
 	void (*Platform_HaltProcedure)(int32);
 
 typedef
-	void (*Platform_SignalHandler)(int16);
+	void (*Platform_SignalHandler)(int32);
 
 
 export BOOLEAN Platform_LittleEndian;
@@ -67,7 +67,7 @@ export void Platform_Halt (int32 code);
 export int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ);
 export int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ);
 export BOOLEAN Platform_Inaccessible (int16 e);
-export void Platform_Init (int16 argc, int32 argvadr);
+export void Platform_Init (int32 argc, int32 argvadr);
 export BOOLEAN Platform_Interrupted (int16 e);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d);
 export int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h);
@@ -252,11 +252,11 @@ void Platform_OSFree (int32 address)
 	Platform_free(address);
 }
 
-void Platform_Init (int16 argc, int32 argvadr)
+void Platform_Init (int32 argc, int32 argvadr)
 {
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
-	Platform_ArgCount = argc;
+	Platform_ArgCount = __VAL(int16, argc);
 	av = (Platform_ArgVecPtr)(address)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;

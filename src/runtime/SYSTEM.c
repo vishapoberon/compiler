@@ -46,17 +46,27 @@ int64 SYSTEM_MOD(int64 x, int64 y)
     else        {return -((-x) % (-y));}
 }
 
-LONGINT SYSTEM_ENTIER(double x)
+// LONGINT SYSTEM_ENTIER(double x)
+// {
+//     LONGINT y;
+//     if (x >= 0)
+//         return (LONGINT)x;
+//     else {
+//         y = (LONGINT)x;
+//         if (y <= x) return y; else return y - 1;
+//     }
+// }
+
+int64 SYSTEM_ENTIER(double x)
 {
-    LONGINT y;
+    int64 y;
     if (x >= 0)
-        return (LONGINT)x;
+        return (int64)x;
     else {
-        y = (LONGINT)x;
+        y = (int64)x;
         if (y <= x) return y; else return y - 1;
     }
 }
-
 
 
 
@@ -155,7 +165,7 @@ SYSTEM_PTR SYSTEM_NEWARR(address *typ, address elemsz, int elemalgn, int nofdim,
 
 
 
-typedef void (*SystemSignalHandler)(INTEGER); // = Platform_SignalHandler
+typedef void (*SystemSignalHandler)(int32); // = Platform_SignalHandler
 
 #ifndef _WIN32
 
