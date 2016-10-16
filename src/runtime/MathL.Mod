@@ -114,10 +114,10 @@ VAR
   LnSmall:      LONGREAL;             (* natural log of very small number *)
   SqrtInfinity: LONGREAL;             (* square root of infinity *)
   TanhMax:      LONGREAL;             (* maximum Tanh value *)
-  t:            LONGREAL;             (* internal variables *)
   NumberMask:   SYSTEM.SET64;         (* Sign and significand, {0..51, 63} *)
   ExponentMask: SYSTEM.SET64;         (* Exponent part, {53..62} *)
   ZeroExponent: SYSTEM.SET64;         (* Zero valued exponent {54..61} *)
+  t:            LONGREAL;             (* internal variables *)
   i:            INTEGER;              (* For initialisation loops in module body. *)
 
 
@@ -675,7 +675,7 @@ BEGIN
   FOR i := 0 TO 51 DO INCL(NumberMask, i) END;
   ExponentMask := -NumberMask;
   ZeroExponent := {};
-  FOR i := 54 TO 61 DO INCL(ZeroExponent, i) END;
+  FOR i := 53 TO 61 DO INCL(ZeroExponent, i) END;
 
   (* determine some fundamental constants used by hyperbolic trig functions *)
   em           := ulp(ONE);
