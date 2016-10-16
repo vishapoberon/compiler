@@ -353,16 +353,6 @@ s3:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/library/s3/ethStrings.Mod
 
 
-# O2library: v4 ooc2 ooc ulm pow32 misc s3 runtime
-# 	@printf "\nMaking lib$(ONAME)2\n"
-# 	rm -f $(BUILDDIR)/Compiler.o
-# #	Note: remining compiler files are retained in the library allowing the building
-# #	of utilities like BrowserCmd.Mod (aka showdef).
-# #	Make static library
-# 	ar rcs "$(BUILDDIR)/lib$(ONAME)2.a" $(BUILDDIR)/*.o
-# #	Make shared library
-# 	@cd $(BUILDDIR) && $(COMPILE) -shared -o lib$(ONAME)2.so *.o
-
 
 
 O2library: runtime v4 ooc2 ooc ulm pow32 misc s3
