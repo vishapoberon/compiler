@@ -144,9 +144,9 @@ void determineCCompiler() {
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g" optimize;
+      cc = "gcc -g -msse2" optimize;
     } else {
-      cc = "gcc -fPIC -g" optimize;
+      cc = "gcc -fPIC -g -msse2" optimize;
     }
   #elif defined(_MSC_VER)
     compiler  = "MSC";

@@ -382,9 +382,9 @@ RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR
 
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
-	cd src/test/confidence/math;            $(RUNTEST)
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)
+	cd src/test/confidence/math;            $(RUNTEST)
 	cd src/test/confidence/intsyntax;       $(RUNTEST)
 	cd src/test/confidence/language;        $(RUNTEST)
 	cd src/test/confidence/texts;           $(RUNTEST)

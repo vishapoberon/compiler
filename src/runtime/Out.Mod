@@ -133,13 +133,13 @@ BEGIN
       dr := n-6;                    (* Leave room for dp and '+D000' *)
       IF dr > 17 THEN dr := 17 END; (* Limit to max useful significant digits *)
       d := dr;                      (* Number of digits to generate *)
-      IF d < 16 THEN d := 16 END    (* Generate enough digits to do trailing zero supporession *)
+      IF d < 15 THEN d := 15 END    (* Generate enough digits to do trailing zero supporession *)
     ELSE
       el := 2;
       dr := n-5;                    (* Leave room for dp and '+E00' *)
       IF dr > 9 THEN dr := 9 END;   (* Limit to max useful significant digits *)
       d := dr;                      (* Number of digits to generate *)
-      IF d < 7 THEN d := 7 END      (* Generate enough digits to do trailing zero supporession *)
+      IF d < 6 THEN d := 6 END      (* Generate enough digits to do trailing zero supporession *)
     END;
 
     IF e = 0 THEN
