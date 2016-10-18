@@ -565,7 +565,7 @@ BEGIN
   END
 END DisplayHaltCode;
 
-PROCEDURE Halt*(code: LONGINT);
+PROCEDURE Halt*(code: SYSTEM.INT32);
 BEGIN
   HaltCode := code;
   IF HaltHandler # NIL THEN HaltHandler(code) END;
