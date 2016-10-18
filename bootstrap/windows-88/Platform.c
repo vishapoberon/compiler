@@ -130,22 +130,22 @@ extern void Heap_InitHeap();
 #define Platform_bhfiVsn()	(LONGINT)bhfi.dwVolumeSerialNumber
 #define Platform_byHandleFileInformation()	BY_HANDLE_FILE_INFORMATION bhfi
 #define Platform_cleanupProcess()	CloseHandle(pi.hProcess); CloseHandle(pi.hThread);
-#define Platform_closeHandle(h)	(INTEGER)CloseHandle((HANDLE)(address)h)
+#define Platform_closeHandle(h)	(INTEGER)CloseHandle((address)h)
 #define Platform_createProcess(str, str__len)	(INTEGER)CreateProcess(0, (char*)str, 0,0,0,0,0,0,&si,&pi)
 #define Platform_deleteFile(n, n__len)	(INTEGER)DeleteFile((char*)n)
 #define Platform_err()	(INTEGER)GetLastError()
-#define Platform_errc(c)	WriteFile((HANDLE)(address)Platform_StdOut, &c, 1, 0,0)
-#define Platform_errstring(s, s__len)	WriteFile((HANDLE)(address)Platform_StdOut, s, s__len-1, 0,0)
+#define Platform_errc(c)	WriteFile((address)Platform_StdOut, &c, 1, 0,0)
+#define Platform_errstring(s, s__len)	WriteFile((address)Platform_StdOut, s, s__len-1, 0,0)
 #define Platform_exit(code)	ExitProcess((UINT)code)
 #define Platform_fileTimeToSysTime()	SYSTEMTIME st; FileTimeToSystemTime(&ft, &st)
-#define Platform_flushFileBuffers(h)	(INTEGER)FlushFileBuffers((HANDLE)h)
+#define Platform_flushFileBuffers(h)	(INTEGER)FlushFileBuffers((address)h)
 #define Platform_free(address)	HeapFree(GetProcessHeap(), 0, (void*)address)
 #define Platform_ftToUli()	ULARGE_INTEGER ul; ul.LowPart=ft.dwLowDateTime; ul.HighPart=ft.dwHighDateTime
 #define Platform_getCurrentDirectory(n, n__len)	GetCurrentDirectory(n__len, (char*)n)
 #define Platform_getExitCodeProcess(exitcode)	GetExitCodeProcess(pi.hProcess, (DWORD*)exitcode);
-#define Platform_getFileInformationByHandle(h)	(INTEGER)GetFileInformationByHandle((HANDLE)(address)h, &bhfi)
-#define Platform_getFilePos(h, r, rc)	LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((HANDLE)(address)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart
-#define Platform_getFileSize(h)	(INTEGER)GetFileSizeEx((HANDLE)(address)h, &li)
+#define Platform_getFileInformationByHandle(h)	(INTEGER)GetFileInformationByHandle((address)h, &bhfi)
+#define Platform_getFilePos(h, r, rc)	LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((address)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart
+#define Platform_getFileSize(h)	(INTEGER)GetFileSizeEx((address)h, &li)
 #define Platform_getLocalTime()	SYSTEMTIME st; GetLocalTime(&st)
 #define Platform_getenv(name, name__len, buf, buf__len)	(INTEGER)GetEnvironmentVariable((char*)name, (char*)buf, buf__len)
 #define Platform_getpid()	(INTEGER)GetCurrentProcessId()
@@ -161,13 +161,13 @@ extern void Heap_InitHeap();
 #define Platform_openro(n, n__len)	(LONGINT)(address)CreateFile((char*)n, GENERIC_READ              , FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 #define Platform_openrw(n, n__len)	(LONGINT)(address)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 #define Platform_processInfo()	PROCESS_INFORMATION pi = {0};
-#define Platform_readfile(fd, p, l, n)	(INTEGER)ReadFile((HANDLE)fd, (void*)p, (DWORD)l, (DWORD*)n, 0)
+#define Platform_readfile(fd, p, l, n)	(INTEGER)ReadFile((address)fd, (void*)p, (DWORD)l, (DWORD*)n, 0)
 #define Platform_seekcur()	FILE_CURRENT
 #define Platform_seekend()	FILE_END
 #define Platform_seekset()	FILE_BEGIN
 #define Platform_setCurrentDirectory(n, n__len)	(INTEGER)SetCurrentDirectory((char*)n)
-#define Platform_setEndOfFile(h)	(INTEGER)SetEndOfFile((HANDLE)(address)h)
-#define Platform_setFilePointerEx(h, o, r, rc)	li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)(address)h, li, 0, (DWORD)r)
+#define Platform_setEndOfFile(h)	(INTEGER)SetEndOfFile((address)h)
+#define Platform_setFilePointerEx(h, o, r, rc)	li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((address)h, li, 0, (DWORD)r)
 #define Platform_sleep(ms)	Sleep((DWORD)ms)
 #define Platform_stToFt()	FILETIME ft; SystemTimeToFileTime(&st, &ft)
 #define Platform_startupInfo()	STARTUPINFO si = {0}; si.cb = sizeof(si);
@@ -182,7 +182,7 @@ extern void Heap_InitHeap();
 #define Platform_ulSec()	(LONGINT)(ul.QuadPart / 1000000LL)
 #define Platform_uluSec()	(LONGINT)(ul.QuadPart % 1000000LL)
 #define Platform_waitForProcess()	(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)
-#define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, 0,0)
+#define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((address)fd, (void*)(p), (DWORD)l, 0,0)
 
 BOOLEAN Platform_TooManyFiles (int16 e)
 {
