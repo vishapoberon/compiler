@@ -8,23 +8,6 @@
   #define __o_64
 #endif
 
-//  // Temporary while bootstrapping and clearing up SYSTEM.c.
-//
-//  #ifndef LONGINT
-//    #if defined (__o_64)
-//      #define INTEGER int32
-//      #define LONGINT int64
-//      #define SET     uint64
-//    #else
-//      #define INTEGER int16
-//      #define LONGINT int32
-//      #define SET     uint32
-//    #endif
-//  #endif
-
-
-
-
 
 // Declare memcpy in a way compatible with C compilers intrinsic
 // built in implementations.
