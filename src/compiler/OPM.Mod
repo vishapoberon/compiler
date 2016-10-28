@@ -614,6 +614,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END SymRLReal;
 
   PROCEDURE CloseOldSym*;
+  BEGIN Files.Close(Files.Base(oldSF))
   END CloseOldSym;
 
   PROCEDURE OldSym*(VAR modName: ARRAY OF CHAR; VAR done: BOOLEAN);
