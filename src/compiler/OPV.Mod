@@ -876,19 +876,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       | OPT.Nreturn: IF OPM.level = 0 THEN
                        IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
                      ELSE
+                       OPC.ExitProc(outerProc, FALSE, FALSE);
+                       OPM.WriteString("return");
                        IF n^.left # NIL THEN
-                         (* Make local copy of result before ExitProc deletes dynamic vars *)
-                         OPM.WriteString("_o_result = ");
+                         OPM.Write(Blank);
                          IF (n^.left^.typ^.form = OPT.Pointer) & (n^.obj^.typ # n^.left^.typ) THEN
                            OPM.WriteString("(void*)"); expr(n^.left, 10)
                          ELSE
                            expr(n^.left, MinPrec)
-                         END;
-                         OPM.WriteString(";"); OPM.WriteLn; OPC.BegStat;
-                         OPC.ExitProc(outerProc, FALSE, FALSE);
-                         OPM.WriteString("return _o_result");
-                       ELSE
-                         OPM.WriteString("return");
+                         END
                        END
                      END
       | OPT.Nwith:   IfStat(n, n^.subcl = 0, outerProc)

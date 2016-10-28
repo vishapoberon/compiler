@@ -478,11 +478,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END DefineType;
 
   PROCEDURE Prefixed(x: OPT.ConstExt;  y: ARRAY OF CHAR): BOOLEAN;
-    VAR i: INTEGER;  r: BOOLEAN;
+    VAR i: INTEGER;
   BEGIN i := 0;
-    WHILE x[i+1] = y[i] DO INC(i) END ;
-    r := y[i] = 0X;
-    RETURN r;
+    WHILE x[i+1] = y[i] DO INC(i) END;
+    RETURN y[i] = 0X;
   END Prefixed;
 
   PROCEDURE CProcDefs(obj: OPT.Object; vis: INTEGER);
@@ -957,15 +956,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF proc^.vis # OPT.external THEN OPM.WriteString('static ') END ;
     ProcHeader(proc, TRUE);
     BegBlk;
-
-    (* If there will be a result, provide a result variable. *)
-    IF proc^.typ # OPT.notyp THEN
-      BegStat;
-      Ident(proc^.typ^.strobj);
-      OPM.WriteString(" _o_result;");
-      OPM.WriteLn;
-    END;
-
     scope := proc^.scope;
     IdentList(scope^.scope, 0);
     IF ~scope^.leaf THEN (* declare intermediate procedure scope record variable*)

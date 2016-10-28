@@ -236,14 +236,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF Platform.ArgCount = 1 THEN
       LogWLn;
       LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
-      LogWStr("Based on Ofront by Software Templ OEG.");                                                           LogWLn;
+      LogWStr("Based on Ofront by J. Templ and Software Templ OEG.");                                              LogWLn;
       LogWStr("Further development by Norayr Chilingarian, David Brown and others.");                              LogWLn;
       LogWLn;
       LogWStr("Usage:");                                                                                           LogWLn;
       LogWLn;
       LogWStr("  "); LogWStr(Configuration.name); LogWStr(" options {files {options}}.");                          LogWLn;
       LogWLn;
-      LogWStr('Where options = ["-" {option} ].');                                                                 LogWLn;
+      LogWStr('Options:');                                                                                         LogWLn;
       LogWLn;
       LogWStr("  Run time safety");                                                                                LogWLn;
       LogWStr("    -p   Initialise pointers to NIL. On by default.");                                              LogWLn;

@@ -156,10 +156,6 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 #define __COPY(s, d, n) {char*_a=(void*)s,*_b=(void*)d; LONGINT _i=0,_t=n-1; \
                          while(_i<_t&&((_b[_i]=_a[_i])!=0)){_i++;};_b[_i]=0;}
 #define __DUPARR(v, t)  v=(void*)memcpy(v##__copy,v,sizeof(t))
-
-//#define __DUP(x, l, t)  x=(void*)memcpy((void*)Platform_OSAllocate(l*sizeof(t)),x,l*sizeof(t))
-//#define __DEL(x)        Platform_OSFree((address)x)
-
 #define __DUP(x, l, t)  x=(void*)memcpy(alloca(l*sizeof(t)),x,l*sizeof(t))
 #define __DEL(x)
 
@@ -167,7 +163,6 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 /* SYSTEM ops */
 
 #define __VAL(t, x)     (*(t*)&(x))
-
 
 #define __GET(a, x, t)  x=*(t*)(address)(a)
 #define __PUT(a, x, t)  *(t*)(address)(a)=x
