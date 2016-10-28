@@ -275,7 +275,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("  Target machine address size and alignment (default is that of the running compiler binary)");     LogWLn;
       LogWStr("    -A44   32 bit addresses, 32 bit alignment (e.g. Unix/linux 32 bit on x86).");                   LogWLn;
       LogWStr("    -A48   32 bit addresses, 64 bit alignment (e.g. Windows 32 bit on x86, linux 32 bit on arm)."); LogWLn;
-      LogWStr("    -A88   66 bit addresses, 64 bit alignment (e.g. 64 bit platforms).");                           LogWLn;
+      LogWStr("    -A88   64 bit addresses, 64 bit alignment (e.g. 64 bit platforms).");                           LogWLn;
       LogWLn;
       LogWStr("All options are off by default, except where noted above.");                                        LogWLn;
       LogWStr("Initial options specify defaults for all files.");                                                  LogWLn;

@@ -23,7 +23,6 @@ export void Strings_Replace (CHAR *source, LONGINT source__len, int16 pos, CHAR 
 
 int16 Strings_Length (CHAR *s, LONGINT s__len)
 {
-	int16 _o_result;
 	int32 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
@@ -31,13 +30,11 @@ int16 Strings_Length (CHAR *s, LONGINT s__len)
 		i += 1;
 	}
 	if (i <= 32767) {
-		_o_result = (int16)i;
 		__DEL(s);
-		return _o_result;
+		return (int16)i;
 	} else {
-		_o_result = 32767;
 		__DEL(s);
-		return _o_result;
+		return 32767;
 	}
 	__RETCHK;
 }
@@ -70,6 +67,7 @@ void Strings_Insert (CHAR *source, LONGINT source__len, int16 pos, CHAR *dest, L
 	}
 	if (pos > n1) {
 		Strings_Append(dest, dest__len, (void*)source, source__len);
+		__DEL(source);
 		return;
 	}
 	if ((pos + n2) < dest__len) {
@@ -131,6 +129,7 @@ void Strings_Extract (CHAR *source, LONGINT source__len, int16 pos, int16 n, CHA
 	}
 	if (pos >= len) {
 		dest[0] = 0x00;
+		__DEL(source);
 		return;
 	}
 	i = 0;
@@ -146,17 +145,15 @@ void Strings_Extract (CHAR *source, LONGINT source__len, int16 pos, int16 n, CHA
 
 int16 Strings_Pos (CHAR *pattern, LONGINT pattern__len, CHAR *s, LONGINT s__len, int16 pos)
 {
-	int16 _o_result;
 	int16 n1, n2, i, j;
 	__DUP(pattern, pattern__len, CHAR);
 	__DUP(s, s__len, CHAR);
 	n1 = Strings_Length(s, s__len);
 	n2 = Strings_Length(pattern, pattern__len);
 	if (n2 == 0) {
-		_o_result = 0;
 		__DEL(pattern);
 		__DEL(s);
-		return _o_result;
+		return 0;
 	}
 	i = pos;
 	while (i <= n1 - n2) {
@@ -166,18 +163,16 @@ int16 Strings_Pos (CHAR *pattern, LONGINT pattern__len, CHAR *s, LONGINT s__len,
 				j += 1;
 			}
 			if (j == n2) {
-				_o_result = i;
 				__DEL(pattern);
 				__DEL(s);
-				return _o_result;
+				return i;
 			}
 		}
 		i += 1;
 	}
-	_o_result = -1;
 	__DEL(pattern);
 	__DEL(s);
-	return _o_result;
+	return -1;
 }
 
 void Strings_Cap (CHAR *s, LONGINT s__len)
@@ -200,50 +195,42 @@ static BOOLEAN M__8 (CHAR *name, LONGINT name__len, CHAR *mask, LONGINT mask__le
 
 static BOOLEAN M__8 (CHAR *name, LONGINT name__len, CHAR *mask, LONGINT mask__len, int16 n, int16 m)
 {
-	BOOLEAN _o_result;
 	while ((((n >= 0 && m >= 0)) && mask[__X(m, mask__len)] != '*')) {
 		if (name[__X(n, name__len)] != mask[__X(m, mask__len)]) {
-			_o_result = 0;
-			return _o_result;
+			return 0;
 		}
 		n -= 1;
 		m -= 1;
 	}
 	if (m < 0) {
-		_o_result = n < 0;
-		return _o_result;
+		return n < 0;
 	}
 	while ((m >= 0 && mask[__X(m, mask__len)] == '*')) {
 		m -= 1;
 	}
 	if (m < 0) {
-		_o_result = 1;
-		return _o_result;
+		return 1;
 	}
 	while (n >= 0) {
 		if (M__8(name, name__len, mask, mask__len, n, m)) {
-			_o_result = 1;
-			return _o_result;
+			return 1;
 		}
 		n -= 1;
 	}
-	_o_result = 0;
-	return _o_result;
+	return 0;
 }
 
 BOOLEAN Strings_Match (CHAR *string, LONGINT string__len, CHAR *pattern, LONGINT pattern__len)
 {
-	BOOLEAN _o_result;
 	struct Match__7 _s;
 	__DUP(string, string__len, CHAR);
 	__DUP(pattern, pattern__len, CHAR);
 	_s.lnk = Match__7_s;
 	Match__7_s = &_s;
-	_o_result = M__8((void*)string, string__len, (void*)pattern, pattern__len, Strings_Length(string, string__len) - 1, Strings_Length(pattern, pattern__len) - 1);
 	Match__7_s = _s.lnk;
 	__DEL(string);
 	__DEL(pattern);
-	return _o_result;
+	return M__8((void*)string, string__len, (void*)pattern, pattern__len, Strings_Length(string, string__len) - 1, Strings_Length(pattern, pattern__len) - 1);
 }
 
 

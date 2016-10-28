@@ -127,7 +127,6 @@ void Heap_Unlock (void)
 
 SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 {
-	SYSTEM_PTR _o_result;
 	Heap_Module m;
 	if (__STRCMP(name, "Heap") == 0) {
 		__SYSNEW(m, 64);
@@ -141,8 +140,7 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 	m->enumPtrs = enumPtrs;
 	m->next = (Heap_Module)(address)Heap_modules;
 	Heap_modules = (SYSTEM_PTR)m;
-	_o_result = (void*)m;
-	return _o_result;
+	return (void*)m;
 }
 
 void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd)
@@ -172,7 +170,6 @@ void Heap_INCREF (Heap_Module m)
 
 static int64 Heap_NewChunk (int64 blksz)
 {
-	int64 _o_result;
 	int64 chnk;
 	chnk = Heap_OSAllocate(blksz + 24);
 	if (chnk != 0) {
@@ -184,8 +181,7 @@ static int64 Heap_NewChunk (int64 blksz)
 		Heap_bigBlocks = chnk + 24;
 		Heap_heapsize += blksz;
 	}
-	_o_result = chnk;
-	return _o_result;
+	return chnk;
 }
 
 static void Heap_ExtendHeap (int64 blksz)
@@ -219,7 +215,6 @@ static void Heap_ExtendHeap (int64 blksz)
 
 SYSTEM_PTR Heap_NEWREC (int64 tag)
 {
-	SYSTEM_PTR _o_result;
 	int64 i, i0, di, blksz, restsize, t, adr, end, next, prev;
 	SYSTEM_PTR new;
 	Heap_Lock();
@@ -267,12 +262,10 @@ SYSTEM_PTR Heap_NEWREC (int64 tag)
 						new = Heap_NEWREC(tag);
 					}
 					Heap_Unlock();
-					_o_result = new;
-					return _o_result;
+					return new;
 				} else {
 					Heap_Unlock();
-					_o_result = NIL;
-					return _o_result;
+					return NIL;
 				}
 			}
 			__GET(adr + 8, t, int64);
@@ -320,13 +313,11 @@ SYSTEM_PTR Heap_NEWREC (int64 tag)
 	__PUT(adr + 16, 0, int64);
 	Heap_allocated += blksz;
 	Heap_Unlock();
-	_o_result = (SYSTEM_PTR)(address)(adr + 8);
-	return _o_result;
+	return (SYSTEM_PTR)(address)(adr + 8);
 }
 
 SYSTEM_PTR Heap_NEWBLK (int64 size)
 {
-	SYSTEM_PTR _o_result;
 	int64 blksz, tag;
 	SYSTEM_PTR new;
 	Heap_Lock();
@@ -338,8 +329,7 @@ SYSTEM_PTR Heap_NEWBLK (int64 size)
 	__PUT(tag + 8, -8, int64);
 	__PUT((int64)(address)new - 8, tag, int64);
 	Heap_Unlock();
-	_o_result = new;
-	return _o_result;
+	return new;
 }
 
 static void Heap_Mark (int64 q)

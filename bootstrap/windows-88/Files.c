@@ -317,14 +317,11 @@ void Files_Close (Files_File f)
 
 int32 Files_Length (Files_File f)
 {
-	int32 _o_result;
-	_o_result = f->len;
-	return _o_result;
+	return f->len;
 }
 
 Files_File Files_New (CHAR *name, LONGINT name__len)
 {
-	Files_File _o_result;
 	Files_File f = NIL;
 	__DUP(name, name__len, CHAR);
 	__NEW(f, Files_FileDesc);
@@ -335,9 +332,8 @@ Files_File Files_New (CHAR *name, LONGINT name__len)
 	f->len = 0;
 	f->pos = 0;
 	f->swapper = -1;
-	_o_result = f;
 	__DEL(name);
-	return _o_result;
+	return f;
 }
 
 static void Files_ScanPath (int16 *pos, CHAR *dir, LONGINT dir__len)
@@ -385,7 +381,6 @@ static void Files_ScanPath (int16 *pos, CHAR *dir, LONGINT dir__len)
 
 static BOOLEAN Files_HasDir (CHAR *name, LONGINT name__len)
 {
-	BOOLEAN _o_result;
 	int16 i;
 	CHAR ch;
 	i = 0;
@@ -394,13 +389,11 @@ static BOOLEAN Files_HasDir (CHAR *name, LONGINT name__len)
 		i += 1;
 		ch = name[i];
 	}
-	_o_result = ch == '/';
-	return _o_result;
+	return ch == '/';
 }
 
 static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 {
-	Files_File _o_result;
 	Files_File f = NIL;
 	int16 i, error;
 	f = Files_files;
@@ -419,18 +412,15 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 				f->identity = identity;
 				error = Platform_Size(f->fd, &f->len);
 			}
-			_o_result = f;
-			return _o_result;
+			return f;
 		}
 		f = f->next;
 	}
-	_o_result = NIL;
-	return _o_result;
+	return NIL;
 }
 
 Files_File Files_Old (CHAR *name, LONGINT name__len)
 {
-	Files_File _o_result;
 	Files_File f = NIL;
 	int32 fd;
 	int16 pos;
@@ -470,9 +460,8 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 				error = Platform_Identify(fd, &identity, Platform_FileIdentity__typ);
 				f = Files_CacheEntry(identity);
 				if (f != NIL) {
-					_o_result = f;
 					__DEL(name);
-					return _o_result;
+					return f;
 				} else {
 					__NEW(f, Files_FileDesc);
 					Heap_RegisterFinalizer((void*)f, Files_Finalize);
@@ -488,23 +477,20 @@ Files_File Files_Old (CHAR *name, LONGINT name__len)
 					f->next = Files_files;
 					Files_files = f;
 					Heap_FileCount += 1;
-					_o_result = f;
 					__DEL(name);
-					return _o_result;
+					return f;
 				}
 			} else if (dir[0] == 0x00) {
-				_o_result = NIL;
 				__DEL(name);
-				return _o_result;
+				return NIL;
 			} else {
 				Files_MakeFileName(dir, 256, name, name__len, (void*)path, 256);
 				Files_ScanPath(&pos, (void*)dir, 256);
 			}
 		}
 	} else {
-		_o_result = NIL;
 		__DEL(name);
-		return _o_result;
+		return NIL;
 	}
 	__RETCHK;
 }
@@ -544,9 +530,7 @@ void Files_GetDate (Files_File f, int32 *t, int32 *d)
 
 int32 Files_Pos (Files_Rider *r, address *r__typ)
 {
-	int32 _o_result;
-	_o_result = (*r).org + (*r).offset;
-	return _o_result;
+	return (*r).org + (*r).offset;
 }
 
 void Files_Set (Files_Rider *r, address *r__typ, Files_File f, int32 pos)
@@ -673,9 +657,7 @@ void Files_ReadBytes (Files_Rider *r, address *r__typ, SYSTEM_BYTE *x, LONGINT x
 
 Files_File Files_Base (Files_Rider *r, address *r__typ)
 {
-	Files_File _o_result;
-	_o_result = (*r).buf->f;
-	return _o_result;
+	return (*r).buf->f;
 }
 
 void Files_Write (Files_Rider *r, address *r__typ, SYSTEM_BYTE x)
@@ -759,17 +741,23 @@ void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, int
 		error = Platform_Rename((void*)old, old__len, (void*)new, new__len);
 		if (!Platform_DifferentFilesystems(error)) {
 			*res = error;
+			__DEL(old);
+			__DEL(new);
 			return;
 		} else {
 			error = Platform_OldRO((void*)old, old__len, &fdold);
 			if (error != 0) {
 				*res = 2;
+				__DEL(old);
+				__DEL(new);
 				return;
 			}
 			error = Platform_New((void*)new, new__len, &fdnew);
 			if (error != 0) {
 				error = Platform_Close(fdold);
 				*res = 3;
+				__DEL(old);
+				__DEL(new);
 				return;
 			}
 			error = Platform_Read(fdold, (address)buf, 4096, &n);

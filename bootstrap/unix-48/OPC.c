@@ -157,19 +157,16 @@ static void OPC_Str1 (CHAR *s, LONGINT s__len, int32 x)
 
 static int16 OPC_Length (CHAR *s, LONGINT s__len)
 {
-	int16 _o_result;
 	int16 i;
 	i = 0;
 	while (s[__X(i, s__len)] != 0x00) {
 		i += 1;
 	}
-	_o_result = i;
-	return _o_result;
+	return i;
 }
 
 static int16 OPC_PerfectHash (CHAR *s, LONGINT s__len)
 {
-	int16 _o_result;
 	int16 i, h;
 	i = 0;
 	h = 0;
@@ -177,8 +174,7 @@ static int16 OPC_PerfectHash (CHAR *s, LONGINT s__len)
 		h = 3 * h + (int16)s[__X(i, s__len)];
 		i += 1;
 	}
-	_o_result = (int)__MOD(h, 105);
-	return _o_result;
+	return (int)__MOD(h, 105);
 }
 
 void OPC_Ident (OPT_Object obj)
@@ -320,9 +316,7 @@ void OPC_Andent (OPT_Struct typ)
 
 static BOOLEAN OPC_Undefined (OPT_Object obj)
 {
-	BOOLEAN _o_result;
-	_o_result = obj->name[0] == 0x00 || (((obj->mnolev >= 0 && obj->linkadr != (3 + OPM_currFile))) && obj->linkadr != 2);
-	return _o_result;
+	return obj->name[0] == 0x00 || (((obj->mnolev >= 0 && obj->linkadr != (3 + OPM_currFile))) && obj->linkadr != 2);
 }
 
 static void OPC_DeclareBase (OPT_Object dcl)
@@ -391,13 +385,11 @@ static void OPC_DeclareBase (OPT_Object dcl)
 
 int32 OPC_NofPtrs (OPT_Struct typ)
 {
-	int32 _o_result;
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
 	int32 n;
 	if ((typ->form == 11 && typ->sysflag == 0)) {
-		_o_result = 1;
-		return _o_result;
+		return 1;
 	} else if ((typ->comp == 4 && __MASK(typ->sysflag, -256) == 0)) {
 		btyp = typ->BaseTyp;
 		if (btyp != NIL) {
@@ -414,8 +406,7 @@ int32 OPC_NofPtrs (OPT_Struct typ)
 			}
 			fld = fld->link;
 		}
-		_o_result = n;
-		return _o_result;
+		return n;
 	} else if (typ->comp == 2) {
 		btyp = typ->BaseTyp;
 		n = typ->n;
@@ -423,11 +414,9 @@ int32 OPC_NofPtrs (OPT_Struct typ)
 			n = btyp->n * n;
 			btyp = btyp->BaseTyp;
 		}
-		_o_result = OPC_NofPtrs(btyp) * n;
-		return _o_result;
+		return OPC_NofPtrs(btyp) * n;
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
@@ -608,7 +597,6 @@ static void OPC_DeclareTProcs (OPT_Object obj, BOOLEAN *empty)
 
 OPT_Object OPC_BaseTProc (OPT_Object obj)
 {
-	OPT_Object _o_result;
 	OPT_Struct typ = NIL, base = NIL;
 	int32 mno;
 	typ = obj->link->typ;
@@ -622,8 +610,7 @@ OPT_Object OPC_BaseTProc (OPT_Object obj)
 		base = typ->BaseTyp;
 	}
 	OPT_FindField(obj->name, typ, &obj);
-	_o_result = obj;
-	return _o_result;
+	return obj;
 }
 
 static void OPC_DefineTProcMacros (OPT_Object obj, BOOLEAN *empty)
@@ -734,18 +721,14 @@ static void OPC_DefineType (OPT_Struct str)
 
 static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, LONGINT y__len)
 {
-	BOOLEAN _o_result;
 	int16 i;
-	BOOLEAN r;
 	__DUP(y, y__len, CHAR);
 	i = 0;
 	while ((*x)[__X(i + 1, 256)] == y[__X(i, y__len)]) {
 		i += 1;
 	}
-	r = y[__X(i, y__len)] == 0x00;
-	_o_result = r;
 	__DEL(y);
-	return _o_result;
+	return y[__X(i, y__len)] == 0x00;
 }
 
 static void OPC_CProcDefs (OPT_Object obj, int16 vis)
@@ -1455,12 +1438,6 @@ void OPC_EnterProc (OPT_Object proc)
 	}
 	OPC_ProcHeader(proc, 1);
 	OPC_BegBlk();
-	if (proc->typ != OPT_notyp) {
-		OPC_BegStat();
-		OPC_Ident(proc->typ->strobj);
-		OPM_WriteString((CHAR*)" _o_result;", 12);
-		OPM_WriteLn();
-	}
 	scope = proc->scope;
 	OPC_IdentList(scope->scope, 0);
 	if (!scope->leaf) {

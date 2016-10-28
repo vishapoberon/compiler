@@ -74,7 +74,6 @@ static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len)
 
 Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len)
 {
-	Modules_Module _o_result;
 	Modules_Module m = NIL;
 	CHAR bodyname[64];
 	Modules_Command body;
@@ -93,14 +92,12 @@ Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len)
 		Modules_Append((void*)Modules_resMsg, 256, name, name__len);
 		Modules_Append((void*)Modules_resMsg, 256, (CHAR*)"\" not found", 12);
 	}
-	_o_result = m;
 	__DEL(name);
-	return _o_result;
+	return m;
 }
 
 Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len)
 {
-	Modules_Command _o_result;
 	Modules_Cmd c = NIL;
 	__DUP(name, name__len, CHAR);
 	c = mod->cmds;
@@ -110,9 +107,8 @@ Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT nam
 	if (c != NIL) {
 		Modules_res = 0;
 		Modules_resMsg[0] = 0x00;
-		_o_result = c->cmd;
 		__DEL(name);
-		return _o_result;
+		return c->cmd;
 	} else {
 		Modules_res = 2;
 		__MOVE(" command \"", Modules_resMsg, 11);
@@ -121,9 +117,8 @@ Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT nam
 		Modules_Append((void*)Modules_resMsg, 256, (CHAR*)".", 2);
 		Modules_Append((void*)Modules_resMsg, 256, name, name__len);
 		Modules_Append((void*)Modules_resMsg, 256, (CHAR*)"\" not found", 12);
-		_o_result = NIL;
 		__DEL(name);
-		return _o_result;
+		return NIL;
 	}
 	__RETCHK;
 }

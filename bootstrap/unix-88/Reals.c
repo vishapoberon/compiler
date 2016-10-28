@@ -25,7 +25,6 @@ static CHAR Reals_ToHex (int16 i);
 
 REAL Reals_Ten (int16 e)
 {
-	REAL _o_result;
 	LONGREAL r, power;
 	r = (LONGREAL)1;
 	power = (LONGREAL)10;
@@ -36,13 +35,11 @@ REAL Reals_Ten (int16 e)
 		power = power * power;
 		e = __ASHR(e, 1);
 	}
-	_o_result = r;
-	return _o_result;
+	return r;
 }
 
 LONGREAL Reals_TenL (int16 e)
 {
-	LONGREAL _o_result;
 	LONGREAL r, power;
 	r = (LONGREAL)1;
 	power = (LONGREAL)10;
@@ -52,8 +49,7 @@ LONGREAL Reals_TenL (int16 e)
 		}
 		e = __ASHR(e, 1);
 		if (e <= 0) {
-			_o_result = r;
-			return _o_result;
+			return r;
 		}
 		power = power * power;
 	}
@@ -62,11 +58,9 @@ LONGREAL Reals_TenL (int16 e)
 
 int16 Reals_Expo (REAL x)
 {
-	int16 _o_result;
 	int16 i;
 	__GET((address)&x + 2, i, int16);
-	_o_result = __MASK(__ASHR(i, 7), -256);
-	return _o_result;
+	return __MASK(__ASHR(i, 7), -256);
 }
 
 void Reals_SetExpo (REAL *x, int16 ex)
@@ -80,11 +74,9 @@ void Reals_SetExpo (REAL *x, int16 ex)
 
 int16 Reals_ExpoL (LONGREAL x)
 {
-	int16 _o_result;
 	int16 i;
 	__GET((address)&x + 6, i, int16);
-	_o_result = __MASK(__ASHR(i, 4), -2048);
-	return _o_result;
+	return __MASK(__ASHR(i, 4), -2048);
 }
 
 void Reals_ConvertL (LONGREAL x, int16 n, CHAR *d, LONGINT d__len)
@@ -122,13 +114,10 @@ void Reals_Convert (REAL x, int16 n, CHAR *d, LONGINT d__len)
 
 static CHAR Reals_ToHex (int16 i)
 {
-	CHAR _o_result;
 	if (i < 10) {
-		_o_result = (CHAR)(i + 48);
-		return _o_result;
+		return (CHAR)(i + 48);
 	} else {
-		_o_result = (CHAR)(i + 55);
-		return _o_result;
+		return (CHAR)(i + 55);
 	}
 	__RETCHK;
 }

@@ -901,7 +901,6 @@ static void OPP_Receiver (int8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct
 
 static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b)
 {
-	BOOLEAN _o_result;
 	if ((b->form == 11 && x->form == 11)) {
 		b = b->BaseTyp;
 		x = x->BaseTyp;
@@ -911,8 +910,7 @@ static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b)
 			x = x->BaseTyp;
 		} while (!(x == NIL || x == b));
 	}
-	_o_result = x == b;
-	return _o_result;
+	return x == b;
 }
 
 static struct ProcedureDeclaration__16 {

@@ -74,7 +74,6 @@ static void OPB_err (int16 n)
 
 OPT_Node OPB_NewLeaf (OPT_Object obj)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	switch (obj->mode) {
 		case 1: 
@@ -102,8 +101,7 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 	}
 	node->obj = obj;
 	node->typ = obj->typ;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
 void OPB_Construct (int8 class, OPT_Node *x, OPT_Node y)
@@ -131,34 +129,27 @@ void OPB_Link (OPT_Node *x, OPT_Node *last, OPT_Node y)
 
 static int16 OPB_BoolToInt (BOOLEAN b)
 {
-	int16 _o_result;
 	if (b) {
-		_o_result = 1;
-		return _o_result;
+		return 1;
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 static BOOLEAN OPB_IntToBool (int64 i)
 {
-	BOOLEAN _o_result;
-	_o_result = i != 0;
-	return _o_result;
+	return i != 0;
 }
 
 OPT_Node OPB_NewBoolConst (BOOLEAN boolval)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->typ = OPT_booltyp;
 	x->conval = OPT_NewConst();
 	x->conval->intval = OPB_BoolToInt(boolval);
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 void OPB_OptIf (OPT_Node *x)
@@ -198,26 +189,22 @@ void OPB_OptIf (OPT_Node *x)
 
 OPT_Node OPB_Nil (void)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->typ = OPT_niltyp;
 	x->conval = OPT_NewConst();
 	x->conval->intval = 0;
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 OPT_Node OPB_EmptySet (void)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->typ = OPT_settyp;
 	x->conval = OPT_NewConst();
 	x->conval->setval = 0x0;
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 static void OPB_SetIntType (OPT_Node node)
@@ -238,32 +225,27 @@ static void OPB_SetSetType (OPT_Node node)
 
 OPT_Node OPB_NewIntConst (int64 intval)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->conval = OPT_NewConst();
 	x->conval->intval = intval;
 	OPB_SetIntType(x);
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 OPT_Node OPB_NewRealConst (LONGREAL realval, OPT_Struct typ)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->conval = OPT_NewConst();
 	x->conval->realval = realval;
 	x->typ = typ;
 	x->conval->intval = -1;
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 OPT_Node OPB_NewString (OPS_String str, int64 len)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->conval = OPT_NewConst();
@@ -272,8 +254,7 @@ OPT_Node OPB_NewString (OPS_String str, int64 len)
 	x->conval->intval2 = OPM_Longint(len);
 	x->conval->ext = OPT_NewExt();
 	__COPY(str, *x->conval->ext, 256);
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 static void OPB_CharToString (OPT_Node n)
@@ -305,9 +286,7 @@ static void OPB_BindNodes (int8 class, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 
 static BOOLEAN OPB_NotVar (OPT_Node x)
 {
-	BOOLEAN _o_result;
-	_o_result = (x->class >= 7 && ((x->class != 11 || x->subcl != 29) || x->left->class >= 7));
-	return _o_result;
+	return (x->class >= 7 && ((x->class != 11 || x->subcl != 29) || x->left->class >= 7));
 }
 
 void OPB_DeRef (OPT_Node *x)
@@ -489,7 +468,6 @@ void OPB_In (OPT_Node *x, OPT_Node y)
 
 static int64 OPB_log (int64 x)
 {
-	int64 _o_result;
 	OPB_exp = 0;
 	if (x > 0) {
 		while (!__ODD(x)) {
@@ -497,8 +475,7 @@ static int64 OPB_log (int64 x)
 			OPB_exp += 1;
 		}
 	}
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 static void OPB_CheckRealType (int16 f, int16 nr, OPT_Const x)
@@ -529,14 +506,12 @@ static OPT_Node NewOp__29 (int8 op, OPT_Struct typ, OPT_Node z);
 
 static OPT_Node NewOp__29 (int8 op, OPT_Struct typ, OPT_Node z)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	node = OPT_NewNode(11);
 	node->subcl = op;
 	node->typ = typ;
 	node->left = z;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
 void OPB_MOp (int8 op, OPT_Node *x)
@@ -775,7 +750,6 @@ static int16 ConstCmp__14 (void);
 
 static int16 ConstCmp__14 (void)
 {
-	int16 _o_result;
 	int16 res;
 	switch (*ConstOp__13_s->f) {
 		case 0: 
@@ -836,8 +810,7 @@ static int16 ConstCmp__14 (void)
 			break;
 	}
 	(*ConstOp__13_s->x)->typ = OPT_booltyp;
-	_o_result = res;
-	return _o_result;
+	return res;
 }
 
 static void OPB_ConstOp (int16 op, OPT_Node x, OPT_Node y)
@@ -1202,7 +1175,6 @@ static void NewOp__39 (int8 op, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 
 static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y)
 {
-	BOOLEAN _o_result;
 	BOOLEAN ok, xCharArr, yCharArr;
 	xCharArr = (__IN((*x)->typ->comp, 0x0c, 32) && (*x)->typ->BaseTyp->form == 3) || *Op__38_s->f == 8;
 	yCharArr = (__IN((*y)->typ->comp, 0x0c, 32) && (*y)->typ->BaseTyp->form == 3) || *Op__38_s->g == 8;
@@ -1228,8 +1200,7 @@ static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y)
 			OPB_Index(&*x, OPB_NewIntConst(0));
 		}
 	}
-	_o_result = ok;
-	return _o_result;
+	return ok;
 }
 
 void OPB_Op (int8 op, OPT_Node *x, OPT_Node y)
@@ -2016,14 +1987,12 @@ static OPT_Node NewOp__54 (int8 class, int8 subcl, OPT_Node left, OPT_Node right
 
 static OPT_Node NewOp__54 (int8 class, int8 subcl, OPT_Node left, OPT_Node right)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	node = OPT_NewNode(class);
 	node->subcl = subcl;
 	node->left = left;
 	node->right = right;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
 void OPB_StPar1 (OPT_Node *par0, OPT_Node x, int8 fctno)

@@ -97,7 +97,6 @@ static LONGREAL Ten__9 (int16 e);
 
 static LONGREAL Ten__9 (int16 e)
 {
-	LONGREAL _o_result;
 	LONGREAL x, p;
 	x = (LONGREAL)1;
 	p = (LONGREAL)10;
@@ -110,23 +109,18 @@ static LONGREAL Ten__9 (int16 e)
 			p = p * p;
 		}
 	}
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 static int16 Ord__7 (CHAR ch, BOOLEAN hex)
 {
-	int16 _o_result;
 	if (ch <= '9') {
-		_o_result = (int16)ch - 48;
-		return _o_result;
+		return (int16)ch - 48;
 	} else if (hex) {
-		_o_result = ((int16)ch - 65) + 10;
-		return _o_result;
+		return ((int16)ch - 65) + 10;
 	} else {
 		OPS_err(2);
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
@@ -324,6 +318,7 @@ void OPS_Get (int8 *sym)
 	while (OPS_ch <= ' ') {
 		if (OPS_ch == 0x00) {
 			*sym = 64;
+			Get__1_s = _s.lnk;
 			return;
 		} else {
 			OPM_Get(&OPS_ch);

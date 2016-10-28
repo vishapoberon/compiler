@@ -234,12 +234,10 @@ export void Texts_WriteString (Texts_Writer *W, address *W__typ, CHAR *s, LONGIN
 
 static Texts_FontsFont Texts_FontsThis (CHAR *name, LONGINT name__len)
 {
-	Texts_FontsFont _o_result;
 	Texts_FontsFont F = NIL;
 	__NEW(F, Texts_FontDesc);
 	__COPY(name, F->name, 32);
-	_o_result = F;
-	return _o_result;
+	return F;
 }
 
 static void Texts_Find (Texts_Text T, int32 *pos, Texts_Run *u, int32 *org, int32 *off)
@@ -338,22 +336,18 @@ static void Texts_Splice (Texts_Run un, Texts_Run v, Texts_Run w, Texts_Text bas
 
 static Texts_Piece Texts_ClonePiece (Texts_Piece p)
 {
-	Texts_Piece _o_result;
 	Texts_Piece q = NIL;
 	__NEW(q, Texts_PieceDesc);
 	__GUARDEQP(q, Texts_PieceDesc) = *p;
-	_o_result = q;
-	return _o_result;
+	return q;
 }
 
 static Texts_Elem Texts_CloneElem (Texts_Elem e)
 {
-	Texts_Elem _o_result;
 	Texts_CopyMsg msg;
 	msg.e = NIL;
 	(*e->handle)(e, (void*)&msg, Texts_CopyMsg__typ);
-	_o_result = msg.e;
-	return _o_result;
+	return msg.e;
 }
 
 void Texts_CopyElem (Texts_Elem SE, Texts_Elem DE)
@@ -369,14 +363,11 @@ void Texts_CopyElem (Texts_Elem SE, Texts_Elem DE)
 
 Texts_Text Texts_ElemBase (Texts_Elem E)
 {
-	Texts_Text _o_result;
-	_o_result = E->base;
-	return _o_result;
+	return E->base;
 }
 
 int32 Texts_ElemPos (Texts_Elem E)
 {
-	int32 _o_result;
 	Texts_Run u = NIL;
 	int32 pos;
 	u = E->base->head->next;
@@ -385,8 +376,7 @@ int32 Texts_ElemPos (Texts_Elem E)
 		pos = pos + u->len;
 		u = u->next;
 	}
-	_o_result = pos;
-	return _o_result;
+	return pos;
 }
 
 static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, address *msg__typ)
@@ -716,9 +706,7 @@ void Texts_ReadPrevElem (Texts_Reader *R, address *R__typ)
 
 int32 Texts_Pos (Texts_Reader *R, address *R__typ)
 {
-	int32 _o_result;
-	_o_result = (*R).org + (*R).off;
-	return _o_result;
+	return (*R).org + (*R).off;
 }
 
 void Texts_OpenScanner (Texts_Scanner *S, address *S__typ, Texts_Text T, int32 pos)

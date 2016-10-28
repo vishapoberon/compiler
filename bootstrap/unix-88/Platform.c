@@ -174,65 +174,47 @@ extern void Heap_InitHeap();
 
 BOOLEAN Platform_TooManyFiles (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = e == Platform_EMFILE() || e == Platform_ENFILE();
-	return _o_result;
+	return e == Platform_EMFILE() || e == Platform_ENFILE();
 }
 
 BOOLEAN Platform_NoSuchDirectory (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = e == Platform_ENOENT();
-	return _o_result;
+	return e == Platform_ENOENT();
 }
 
 BOOLEAN Platform_DifferentFilesystems (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = e == Platform_EXDEV();
-	return _o_result;
+	return e == Platform_EXDEV();
 }
 
 BOOLEAN Platform_Inaccessible (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = (e == Platform_EACCES() || e == Platform_EROFS()) || e == Platform_EAGAIN();
-	return _o_result;
+	return (e == Platform_EACCES() || e == Platform_EROFS()) || e == Platform_EAGAIN();
 }
 
 BOOLEAN Platform_Absent (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = e == Platform_ENOENT();
-	return _o_result;
+	return e == Platform_ENOENT();
 }
 
 BOOLEAN Platform_TimedOut (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = e == Platform_ETIMEDOUT();
-	return _o_result;
+	return e == Platform_ETIMEDOUT();
 }
 
 BOOLEAN Platform_ConnectionFailed (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = ((e == Platform_ECONNREFUSED() || e == Platform_ECONNABORTED()) || e == Platform_ENETUNREACH()) || e == Platform_EHOSTUNREACH();
-	return _o_result;
+	return ((e == Platform_ECONNREFUSED() || e == Platform_ECONNABORTED()) || e == Platform_ENETUNREACH()) || e == Platform_EHOSTUNREACH();
 }
 
 BOOLEAN Platform_Interrupted (int16 e)
 {
-	BOOLEAN _o_result;
-	_o_result = e == Platform_EINTR();
-	return _o_result;
+	return e == Platform_EINTR();
 }
 
 int64 Platform_OSAllocate (int64 size)
 {
-	int64 _o_result;
-	_o_result = Platform_allocate(size);
-	return _o_result;
+	return Platform_allocate(size);
 }
 
 void Platform_OSFree (int64 address)
@@ -253,16 +235,14 @@ void Platform_Init (int32 argc, int64 argvadr)
 
 BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len)
 {
-	BOOLEAN _o_result;
 	Platform_EnvPtr p = NIL;
 	__DUP(var, var__len, CHAR);
 	p = Platform_getenv(var, var__len);
 	if (p != NIL) {
 		__COPY(*p, val, val__len);
 	}
-	_o_result = p != NIL;
 	__DEL(var);
-	return _o_result;
+	return p != NIL;
 }
 
 void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len)
@@ -311,7 +291,6 @@ void Platform_GetIntArg (int16 n, int32 *val)
 
 int16 Platform_ArgPos (CHAR *s, LONGINT s__len)
 {
-	int16 _o_result;
 	int16 i;
 	CHAR arg[256];
 	__DUP(s, s__len, CHAR);
@@ -321,9 +300,8 @@ int16 Platform_ArgPos (CHAR *s, LONGINT s__len)
 		i += 1;
 		Platform_GetArg(i, (void*)arg, 256);
 	}
-	_o_result = i;
 	__DEL(s);
-	return _o_result;
+	return i;
 }
 
 void Platform_SetInterruptHandler (Platform_SignalHandler handler)
@@ -363,12 +341,10 @@ void Platform_GetTimeOfDay (int32 *sec, int32 *usec)
 
 int32 Platform_Time (void)
 {
-	int32 _o_result;
 	int32 ms;
 	Platform_gettimeval();
 	ms = (int)__DIVF(Platform_tvusec(), 1000) + Platform_tvsec() * 1000;
-	_o_result = (int)__MOD(ms - Platform_TimeStart, 2147483647);
-	return _o_result;
+	return (int)__MOD(ms - Platform_TimeStart, 2147483647);
 }
 
 void Platform_Delay (int32 ms)
@@ -381,126 +357,100 @@ void Platform_Delay (int32 ms)
 
 int16 Platform_System (CHAR *cmd, LONGINT cmd__len)
 {
-	int16 _o_result;
 	__DUP(cmd, cmd__len, CHAR);
-	_o_result = Platform_system(cmd, cmd__len);
 	__DEL(cmd);
-	return _o_result;
+	return Platform_system(cmd, cmd__len);
 }
 
 int16 Platform_Error (void)
 {
-	int16 _o_result;
-	_o_result = Platform_err();
-	return _o_result;
+	return Platform_err();
 }
 
 int16 Platform_OldRO (CHAR *n, LONGINT n__len, int32 *h)
 {
-	int16 _o_result;
 	int16 fd;
 	fd = Platform_openro(n, n__len);
 	if (fd < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
 		*h = fd;
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_OldRW (CHAR *n, LONGINT n__len, int32 *h)
 {
-	int16 _o_result;
 	int16 fd;
 	fd = Platform_openrw(n, n__len);
 	if (fd < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
 		*h = fd;
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_New (CHAR *n, LONGINT n__len, int32 *h)
 {
-	int16 _o_result;
 	int16 fd;
 	fd = Platform_opennew(n, n__len);
 	if (fd < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
 		*h = fd;
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Close (int32 h)
 {
-	int16 _o_result;
 	if (Platform_closefile(h) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Identify (int32 h, Platform_FileIdentity *identity, address *identity__typ)
 {
-	int16 _o_result;
 	Platform_structstats();
 	if (Platform_fstat(h) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	}
 	(*identity).volume = Platform_statdev();
 	(*identity).index = Platform_statino();
 	(*identity).mtime = Platform_statmtime();
-	_o_result = 0;
-	return _o_result;
+	return 0;
 }
 
 int16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, address *identity__typ)
 {
-	int16 _o_result;
 	__DUP(n, n__len, CHAR);
 	Platform_structstats();
 	if (Platform_stat(n, n__len) < 0) {
-		_o_result = Platform_err();
 		__DEL(n);
-		return _o_result;
+		return Platform_err();
 	}
 	(*identity).volume = Platform_statdev();
 	(*identity).index = Platform_statino();
 	(*identity).mtime = Platform_statmtime();
-	_o_result = 0;
 	__DEL(n);
-	return _o_result;
+	return 0;
 }
 
 BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2)
 {
-	BOOLEAN _o_result;
-	_o_result = (i1.index == i2.index && i1.volume == i2.volume);
-	return _o_result;
+	return (i1.index == i2.index && i1.volume == i2.volume);
 }
 
 BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2)
 {
-	BOOLEAN _o_result;
-	_o_result = i1.mtime == i2.mtime;
-	return _o_result;
+	return i1.mtime == i2.mtime;
 }
 
 void Platform_SetMTime (Platform_FileIdentity *target, address *target__typ, Platform_FileIdentity source)
@@ -516,137 +466,107 @@ void Platform_MTimeAsClock (Platform_FileIdentity i, int32 *t, int32 *d)
 
 int16 Platform_Size (int32 h, int32 *l)
 {
-	int16 _o_result;
 	Platform_structstats();
 	if (Platform_fstat(h) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	}
 	*l = Platform_statsize();
-	_o_result = 0;
-	return _o_result;
+	return 0;
 }
 
 int16 Platform_Read (int32 h, int64 p, int32 l, int32 *n)
 {
-	int16 _o_result;
 	*n = Platform_readfile(h, p, l);
 	if (*n < 0) {
 		*n = 0;
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_ReadBuf (int32 h, SYSTEM_BYTE *b, LONGINT b__len, int32 *n)
 {
-	int16 _o_result;
 	*n = Platform_readfile(h, (address)b, b__len);
 	if (*n < 0) {
 		*n = 0;
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Write (int32 h, int64 p, int32 l)
 {
-	int16 _o_result;
 	int64 written;
 	written = Platform_writefile(h, p, l);
 	if (written < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Sync (int32 h)
 {
-	int16 _o_result;
 	if (Platform_fsync(h) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Seek (int32 h, int32 offset, int16 whence)
 {
-	int16 _o_result;
 	if (Platform_lseek(h, offset, whence) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Truncate (int32 h, int32 l)
 {
-	int16 _o_result;
 	if (Platform_ftruncate(h, l) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Unlink (CHAR *n, LONGINT n__len)
 {
-	int16 _o_result;
 	if (Platform_unlink(n, n__len) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 int16 Platform_Chdir (CHAR *n, LONGINT n__len)
 {
-	int16 _o_result;
 	int16 r;
 	if ((Platform_chdir(n, n__len) >= 0 && Platform_getcwd((void*)Platform_CWD, 256) != NIL)) {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	} else {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	}
 	__RETCHK;
 }
 
 int16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len)
 {
-	int16 _o_result;
 	if (Platform_rename(o, o__len, n, n__len) < 0) {
-		_o_result = Platform_err();
-		return _o_result;
+		return Platform_err();
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }

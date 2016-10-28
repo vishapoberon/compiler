@@ -207,44 +207,35 @@ void OPV_AdrAndSize (OPT_Object topScope)
 
 static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp)
 {
-	int16 _o_result;
 	switch (class) {
 		case 7: case 0: case 2: case 4: case 9: 
 		case 13: 
-			_o_result = 10;
-			return _o_result;
+			return 10;
 			break;
 		case 5: 
 			if (__IN(3, OPM_Options, 32)) {
-				_o_result = 10;
-				return _o_result;
+				return 10;
 			} else {
-				_o_result = 9;
-				return _o_result;
+				return 9;
 			}
 			break;
 		case 1: 
 			if (__IN(comp, 0x0c, 32)) {
-				_o_result = 10;
-				return _o_result;
+				return 10;
 			} else {
-				_o_result = 9;
-				return _o_result;
+				return 9;
 			}
 			break;
 		case 3: 
-			_o_result = 9;
-			return _o_result;
+			return 9;
 			break;
 		case 11: 
 			switch (subclass) {
 				case 33: case 7: case 24: case 29: case 20: 
-					_o_result = 9;
-					return _o_result;
+					return 9;
 					break;
 				case 16: case 21: case 22: case 23: case 25: 
-					_o_result = 10;
-					return _o_result;
+					return 10;
 					break;
 				default: 
 					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPT.Nmop, subclass = ", 55);
@@ -257,64 +248,50 @@ static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp
 			switch (subclass) {
 				case 1: 
 					if (form == 7) {
-						_o_result = 4;
-						return _o_result;
+						return 4;
 					} else {
-						_o_result = 8;
-						return _o_result;
+						return 8;
 					}
 					break;
 				case 2: 
 					if (form == 7) {
-						_o_result = 3;
-						return _o_result;
+						return 3;
 					} else {
-						_o_result = 8;
-						return _o_result;
+						return 8;
 					}
 					break;
 				case 3: case 4: 
-					_o_result = 10;
-					return _o_result;
+					return 10;
 					break;
 				case 6: 
 					if (form == 7) {
-						_o_result = 2;
-						return _o_result;
+						return 2;
 					} else {
-						_o_result = 7;
-						return _o_result;
+						return 7;
 					}
 					break;
 				case 7: 
 					if (form == 7) {
-						_o_result = 4;
-						return _o_result;
+						return 4;
 					} else {
-						_o_result = 7;
-						return _o_result;
+						return 7;
 					}
 					break;
 				case 11: case 12: case 13: case 14: 
-					_o_result = 6;
-					return _o_result;
+					return 6;
 					break;
 				case 9: case 10: 
-					_o_result = 5;
-					return _o_result;
+					return 5;
 					break;
 				case 5: 
-					_o_result = 1;
-					return _o_result;
+					return 1;
 					break;
 				case 8: 
-					_o_result = 0;
-					return _o_result;
+					return 0;
 					break;
 				case 19: case 15: case 17: case 18: case 26: 
 				case 27: case 28: 
-					_o_result = 10;
-					return _o_result;
+					return 10;
 					break;
 				default: 
 					OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence OPT.Ndop, subclass = ", 55);
@@ -324,12 +301,10 @@ static int16 OPV_Precedence (int16 class, int16 subclass, int16 form, int16 comp
 			}
 			break;
 		case 10: 
-			_o_result = 10;
-			return _o_result;
+			return 10;
 			break;
 		case 8: case 6: 
-			_o_result = 12;
-			return _o_result;
+			return 12;
 			break;
 		default: 
 			OPM_LogWStr((CHAR*)"unhandled case in OPV.Precedence, class = ", 43);
@@ -358,13 +333,10 @@ static void OPV_Len (OPT_Node n, int64 dim)
 
 static BOOLEAN OPV_SideEffects (OPT_Node n)
 {
-	BOOLEAN _o_result;
 	if (n != NIL) {
-		_o_result = (n->class == 13 || OPV_SideEffects(n->left)) || OPV_SideEffects(n->right);
-		return _o_result;
+		return (n->class == 13 || OPV_SideEffects(n->left)) || OPV_SideEffects(n->right);
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
@@ -744,7 +716,6 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 
 static OPT_Object OPV_SuperProc (OPT_Node n)
 {
-	OPT_Object _o_result;
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
 	typ = n->right->typ;
@@ -752,8 +723,7 @@ static OPT_Object OPV_SuperProc (OPT_Node n)
 		typ = typ->BaseTyp;
 	}
 	OPT_FindField(n->left->obj->name, typ->BaseTyp, &obj);
-	_o_result = obj;
-	return _o_result;
+	return obj;
 }
 
 static void OPV_expr (OPT_Node n, int16 prec)
@@ -1187,12 +1157,10 @@ static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc)
 
 static BOOLEAN OPV_ImplicitReturn (OPT_Node n)
 {
-	BOOLEAN _o_result;
 	while ((n != NIL && n->class != 26)) {
 		n = n->link;
 	}
-	_o_result = n == NIL;
-	return _o_result;
+	return n == NIL;
 }
 
 static void OPV_NewArr (OPT_Node d, OPT_Node x)
@@ -1523,21 +1491,16 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 						OPM_WriteString((CHAR*)"__ENDMOD", 9);
 					}
 				} else {
+					OPC_ExitProc(outerProc, 0, 0);
+					OPM_WriteString((CHAR*)"return", 7);
 					if (n->left != NIL) {
-						OPM_WriteString((CHAR*)"_o_result = ", 13);
+						OPM_Write(' ');
 						if ((n->left->typ->form == 11 && n->obj->typ != n->left->typ)) {
 							OPM_WriteString((CHAR*)"(void*)", 8);
 							OPV_expr(n->left, 10);
 						} else {
 							OPV_expr(n->left, -1);
 						}
-						OPM_WriteString((CHAR*)";", 2);
-						OPM_WriteLn();
-						OPC_BegStat();
-						OPC_ExitProc(outerProc, 0, 0);
-						OPM_WriteString((CHAR*)"return _o_result", 17);
-					} else {
-						OPM_WriteString((CHAR*)"return", 7);
 					}
 				}
 				break;

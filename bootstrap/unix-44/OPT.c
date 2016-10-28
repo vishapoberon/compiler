@@ -179,7 +179,6 @@ static void OPT_err (int16 n)
 
 int16 OPT_IntSize (int64 n)
 {
-	int16 _o_result;
 	int16 bytes;
 	if (n < 0) {
 		n = -(n + 1);
@@ -188,77 +187,59 @@ int16 OPT_IntSize (int64 n)
 	while ((bytes < 8 && __ASH(n, -(__ASHL(bytes, 3) - 1)) != 0)) {
 		bytes += 1;
 	}
-	_o_result = bytes;
-	return _o_result;
+	return bytes;
 }
 
 OPT_Struct OPT_IntType (int32 size)
 {
-	OPT_Struct _o_result;
 	if (size <= OPT_int8typ->size) {
-		_o_result = OPT_int8typ;
-		return _o_result;
+		return OPT_int8typ;
 	}
 	if (size <= OPT_int16typ->size) {
-		_o_result = OPT_int16typ;
-		return _o_result;
+		return OPT_int16typ;
 	}
 	if (size <= OPT_int32typ->size) {
-		_o_result = OPT_int32typ;
-		return _o_result;
+		return OPT_int32typ;
 	}
-	_o_result = OPT_int64typ;
-	return _o_result;
+	return OPT_int64typ;
 }
 
 OPT_Struct OPT_SetType (int32 size)
 {
-	OPT_Struct _o_result;
 	if (size == OPT_set32typ->size) {
-		_o_result = OPT_set32typ;
-		return _o_result;
+		return OPT_set32typ;
 	}
-	_o_result = OPT_set64typ;
-	return _o_result;
+	return OPT_set64typ;
 }
 
 OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, int16 dir)
 {
-	OPT_Struct _o_result;
 	int16 i;
 	__ASSERT(x->form == 4, 0);
 	__ASSERT(x->BaseTyp == OPT_undftyp, 0);
 	__ASSERT(dir == 1 || dir == -1, 0);
 	if (dir > 0) {
 		if (x->size < OPT_sinttyp->size) {
-			_o_result = OPT_sinttyp;
-			return _o_result;
+			return OPT_sinttyp;
 		}
 		if (x->size < OPT_inttyp->size) {
-			_o_result = OPT_inttyp;
-			return _o_result;
+			return OPT_inttyp;
 		}
 		if (x->size < OPT_linttyp->size) {
-			_o_result = OPT_linttyp;
-			return _o_result;
+			return OPT_linttyp;
 		}
-		_o_result = OPT_int64typ;
-		return _o_result;
+		return OPT_int64typ;
 	} else {
 		if (x->size > OPT_linttyp->size) {
-			_o_result = OPT_linttyp;
-			return _o_result;
+			return OPT_linttyp;
 		}
 		if (x->size > OPT_inttyp->size) {
-			_o_result = OPT_inttyp;
-			return _o_result;
+			return OPT_inttyp;
 		}
 		if (x->size > OPT_sinttyp->size) {
-			_o_result = OPT_sinttyp;
-			return _o_result;
+			return OPT_sinttyp;
 		}
-		_o_result = OPT_int8typ;
-		return _o_result;
+		return OPT_int8typ;
 	}
 	__RETCHK;
 }
@@ -285,7 +266,6 @@ void OPT_Align (int32 *adr, int32 base)
 
 int32 OPT_SizeAlignment (int32 size)
 {
-	int32 _o_result;
 	int32 alignment;
 	if (size < OPM_Alignment) {
 		alignment = 1;
@@ -295,13 +275,11 @@ int32 OPT_SizeAlignment (int32 size)
 	} else {
 		alignment = OPM_Alignment;
 	}
-	_o_result = alignment;
-	return _o_result;
+	return alignment;
 }
 
 int32 OPT_BaseAlignment (OPT_Struct typ)
 {
-	int32 _o_result;
 	int32 alignment;
 	if (typ->form == 13) {
 		if (typ->comp == 4) {
@@ -312,8 +290,7 @@ int32 OPT_BaseAlignment (OPT_Struct typ)
 	} else {
 		alignment = OPT_SizeAlignment(typ->size);
 	}
-	_o_result = alignment;
-	return _o_result;
+	return alignment;
 }
 
 void OPT_TypSize (OPT_Struct typ)
@@ -389,25 +366,20 @@ void OPT_TypSize (OPT_Struct typ)
 
 OPT_Const OPT_NewConst (void)
 {
-	OPT_Const _o_result;
 	OPT_Const const_ = NIL;
 	__NEW(const_, OPT_ConstDesc);
-	_o_result = const_;
-	return _o_result;
+	return const_;
 }
 
 OPT_Object OPT_NewObj (void)
 {
-	OPT_Object _o_result;
 	OPT_Object obj = NIL;
 	__NEW(obj, OPT_ObjDesc);
-	_o_result = obj;
-	return _o_result;
+	return obj;
 }
 
 OPT_Struct OPT_NewStr (int8 form, int8 comp)
 {
-	OPT_Struct _o_result;
 	OPT_Struct typ = NIL;
 	__NEW(typ, OPT_StrDesc);
 	typ->form = form;
@@ -418,27 +390,22 @@ OPT_Struct OPT_NewStr (int8 form, int8 comp)
 	}
 	typ->size = -1;
 	typ->BaseTyp = OPT_undftyp;
-	_o_result = typ;
-	return _o_result;
+	return typ;
 }
 
 OPT_Node OPT_NewNode (int8 class)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	__NEW(node, OPT_NodeDesc);
 	node->class = class;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
 OPT_ConstExt OPT_NewExt (void)
 {
-	OPT_ConstExt _o_result;
 	OPT_ConstExt ext = NIL;
 	ext = __NEWARR(NIL, 1, 1, 1, 0, 256);
-	_o_result = ext;
-	return _o_result;
+	return ext;
 }
 
 void OPT_OpenScope (int8 level, OPT_Object owner)
@@ -1120,7 +1087,6 @@ static void OPT_InSign (int8 mno, OPT_Struct *res, OPT_Object *par)
 
 static OPT_Object OPT_InFld (void)
 {
-	OPT_Object _o_result;
 	int32 tag;
 	OPT_Object obj = NIL;
 	tag = OPT_impCtxt.nextTag;
@@ -1146,13 +1112,11 @@ static OPT_Object OPT_InFld (void)
 		obj->vis = 0;
 		obj->adr = OPM_SymRInt();
 	}
-	_o_result = obj;
-	return _o_result;
+	return obj;
 }
 
 static OPT_Object OPT_InTProc (int8 mno)
 {
-	OPT_Object _o_result;
 	int32 tag;
 	OPT_Object obj = NIL;
 	tag = OPT_impCtxt.nextTag;
@@ -1174,22 +1138,17 @@ static OPT_Object OPT_InTProc (int8 mno)
 		obj->vis = 0;
 		obj->adr = __ASHL(OPM_SymRInt(), 16);
 	}
-	_o_result = obj;
-	return _o_result;
+	return obj;
 }
 
 static OPT_Struct OPT_InTyp (int32 tag)
 {
-	OPT_Struct _o_result;
 	if (tag == 4) {
-		_o_result = OPT_IntType(OPM_SymRInt());
-		return _o_result;
+		return OPT_IntType(OPM_SymRInt());
 	} else if (tag == 7) {
-		_o_result = OPT_SetType(OPM_SymRInt());
-		return _o_result;
+		return OPT_SetType(OPM_SymRInt());
 	} else {
-		_o_result = OPT_impCtxt.ref[__X(tag, 255)];
-		return _o_result;
+		return OPT_impCtxt.ref[__X(tag, 255)];
 	}
 	__RETCHK;
 }
@@ -1378,7 +1337,6 @@ static void OPT_InStruct (OPT_Struct *typ)
 
 static OPT_Object OPT_InObj (int8 mno)
 {
-	OPT_Object _o_result;
 	int16 i, s;
 	CHAR ch;
 	OPT_Object obj = NIL, old = NIL;
@@ -1475,8 +1433,7 @@ static OPT_Object OPT_InObj (int8 mno)
 			}
 		}
 	}
-	_o_result = obj;
-	return _o_result;
+	return obj;
 }
 
 void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)

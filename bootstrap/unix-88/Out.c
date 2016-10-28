@@ -56,14 +56,12 @@ void Out_Char (CHAR ch)
 
 static int32 Out_Length (CHAR *s, LONGINT s__len)
 {
-	int32 _o_result;
 	int32 l;
 	l = 0;
 	while ((l < s__len && s[__X(l, s__len)] != 0x00)) {
 		l += 1;
 	}
-	_o_result = l;
-	return _o_result;
+	return l;
 }
 
 void Out_String (CHAR *str, LONGINT str__len)
@@ -152,7 +150,6 @@ static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16
 
 LONGREAL Out_Ten (int16 e)
 {
-	LONGREAL _o_result;
 	LONGREAL r, power;
 	r = (LONGREAL)1;
 	power = (LONGREAL)10;
@@ -163,8 +160,7 @@ LONGREAL Out_Ten (int16 e)
 		power = power * power;
 		e = __ASHR(e, 1);
 	}
-	_o_result = r;
-	return _o_result;
+	return r;
 }
 
 static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)

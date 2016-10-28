@@ -124,33 +124,25 @@ void OPM_LogWLn (void)
 
 int64 OPM_SignedMaximum (int32 bytecount)
 {
-	int64 _o_result;
 	int64 result;
 	result = 1;
 	result = __LSH(result, __ASHL(bytecount, 3) - 1, 64);
-	_o_result = result - 1;
-	return _o_result;
+	return result - 1;
 }
 
 int64 OPM_SignedMinimum (int32 bytecount)
 {
-	int64 _o_result;
-	_o_result = -OPM_SignedMaximum(bytecount) - 1;
-	return _o_result;
+	return -OPM_SignedMaximum(bytecount) - 1;
 }
 
 int32 OPM_Longint (int64 n)
 {
-	int32 _o_result;
-	_o_result = __VAL(int32, n);
-	return _o_result;
+	return __VAL(int32, n);
 }
 
 int16 OPM_Integer (int64 n)
 {
-	int16 _o_result;
-	_o_result = __VAL(int16, n);
-	return _o_result;
+	return __VAL(int16, n);
 }
 
 static void OPM_ScanOptions (CHAR *s, LONGINT s__len)
@@ -266,7 +258,6 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len)
 
 BOOLEAN OPM_OpenPar (void)
 {
-	BOOLEAN _o_result;
 	CHAR s[256];
 	if (Platform_ArgCount == 1) {
 		OPM_LogWLn();
@@ -274,7 +265,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWStr(Configuration_versionLong, 75);
 		OPM_LogW('.');
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Based on Ofront by Software Templ OEG.", 39);
+		OPM_LogWStr((CHAR*)"Based on Ofront by J. Templ and Software Templ OEG.", 52);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Further development by Norayr Chilingarian, David Brown and others.", 68);
 		OPM_LogWLn();
@@ -287,7 +278,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWStr((CHAR*)" options {files {options}}.", 28);
 		OPM_LogWLn();
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Where options = [\"-\" {option} ].", 33);
+		OPM_LogWStr((CHAR*)"Options:", 9);
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Run time safety", 18);
@@ -345,7 +336,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -A48   32 bit addresses, 64 bit alignment (e.g. Windows 32 bit on x86, linux 32 bit on arm).", 97);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -A88   66 bit addresses, 64 bit alignment (e.g. 64 bit platforms).", 71);
+		OPM_LogWStr((CHAR*)"    -A88   64 bit addresses, 64 bit alignment (e.g. 64 bit platforms).", 71);
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"All options are off by default, except where noted above.", 58);
@@ -356,8 +347,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Repeating an option toggles its value.", 39);
 		OPM_LogWLn();
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	} else {
 		OPM_AddressSize = 8;
 		OPM_GetAlignment(&OPM_Alignment);
@@ -376,8 +366,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_GlobalAlignment = OPM_Alignment;
 		__COPY(OPM_Model, OPM_GlobalModel, 10);
 		OPM_GlobalOptions = OPM_Options;
-		_o_result = 1;
-		return _o_result;
+		return 1;
 	}
 	__RETCHK;
 }
@@ -741,20 +730,16 @@ void OPM_SymRCh (CHAR *ch)
 
 int32 OPM_SymRInt (void)
 {
-	int32 _o_result;
 	int32 k;
 	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&k, 4);
-	_o_result = k;
-	return _o_result;
+	return k;
 }
 
 int64 OPM_SymRInt64 (void)
 {
-	int64 _o_result;
 	int64 k;
 	Files_ReadNum(&OPM_oldSF, Files_Rider__typ, (void*)&k, 8);
-	_o_result = k;
-	return _o_result;
+	return k;
 }
 
 void OPM_SymRSet (uint64 *s)
@@ -797,9 +782,7 @@ void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done)
 
 BOOLEAN OPM_eofSF (void)
 {
-	BOOLEAN _o_result;
-	_o_result = OPM_oldSF.eof;
-	return _o_result;
+	return OPM_oldSF.eof;
 }
 
 void OPM_SymWCh (CHAR ch)
