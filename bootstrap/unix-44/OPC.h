@@ -37,6 +37,7 @@ import void OPC_Init (void);
 import void OPC_InitTDesc (OPT_Struct typ);
 import void OPC_IntLiteral (int64 n, int32 size);
 import void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim);
+import BOOLEAN OPC_NeedsRetval (OPT_Object proc);
 import int32 OPC_NofPtrs (OPT_Struct typ);
 import void OPC_SetInclude (BOOLEAN exclude);
 import void OPC_TDescDecl (OPT_Struct typ);

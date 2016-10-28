@@ -950,6 +950,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteLn;
   END DefineInter;
 
+  PROCEDURE NeedsRetval*(proc: OPT.Object): BOOLEAN; (* aux. variable __retval needed for return *)
+  BEGIN (* simple rule; ignores DUPlicated value arrays because they use alloca. *)
+    RETURN (proc^.typ # OPT.notyp) & ~proc^.scope^.leaf
+  END NeedsRetval;
+
   PROCEDURE EnterProc* (proc: OPT.Object);
     VAR var, scope: OPT.Object; typ: OPT.Struct; dim: INTEGER;
   BEGIN
@@ -962,6 +967,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       BegStat; OPM.WriteString('struct '); OPM.WriteStringVar (scope^.name);
       OPM.Write(' '); OPM.WriteString(LocalScope); EndStat
     END ;
+    IF NeedsRetval(proc) THEN BegStat; Ident(proc^.typ^.strobj); OPM.WriteString(" __retval"); EndStat END;
     var := proc^.link;
     WHILE var # NIL DO (* declare copy of fixed size value array parameters *)
       IF (var^.typ^.comp = OPT.Array) & (var^.mode = OPT.Var) THEN

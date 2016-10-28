@@ -223,14 +223,17 @@ static BOOLEAN M__8 (CHAR *name, LONGINT name__len, CHAR *mask, LONGINT mask__le
 BOOLEAN Strings_Match (CHAR *string, LONGINT string__len, CHAR *pattern, LONGINT pattern__len)
 {
 	struct Match__7 _s;
+	BOOLEAN __retval;
 	__DUP(string, string__len, CHAR);
 	__DUP(pattern, pattern__len, CHAR);
 	_s.lnk = Match__7_s;
 	Match__7_s = &_s;
+	__retval = M__8((void*)string, string__len, (void*)pattern, pattern__len, Strings_Length(string, string__len) - 1, Strings_Length(pattern, pattern__len) - 1);
 	Match__7_s = _s.lnk;
 	__DEL(string);
 	__DEL(pattern);
-	return M__8((void*)string, string__len, (void*)pattern, pattern__len, Strings_Length(string, string__len) - 1, Strings_Length(pattern, pattern__len) - 1);
+	;
+	return __retval;
 }
 
 

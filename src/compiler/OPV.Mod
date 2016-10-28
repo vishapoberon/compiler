@@ -875,6 +875,16 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      END
       | OPT.Nreturn: IF OPM.level = 0 THEN
                        IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
+                     ELSIF OPC.NeedsRetval(outerProc) THEN
+                       OPM.WriteString("__retval = ");
+                       IF (n^.left^.typ^.form = OPT.Pointer) & (n^.obj^.typ # n^.left^.typ) THEN
+                         OPM.WriteString("(void*)"); expr(n^.left, 10)
+                       ELSE
+                         expr(n^.left, MinPrec)
+                       END ;
+                       OPC.EndStat;
+                       OPC.BegStat; OPC.ExitProc(outerProc, FALSE, FALSE); OPC.EndStat;
+                       OPC.BegStat; OPM.WriteString("return __retval");
                      ELSE
                        OPC.ExitProc(outerProc, FALSE, FALSE);
                        OPM.WriteString("return");

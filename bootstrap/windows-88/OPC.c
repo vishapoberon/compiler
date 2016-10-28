@@ -69,6 +69,7 @@ export void OPC_IntLiteral (int64 n, int32 size);
 export void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim);
 static void OPC_LenList (OPT_Object par, BOOLEAN ansiDefine, BOOLEAN showParamName);
 static int16 OPC_Length (CHAR *s, LONGINT s__len);
+export BOOLEAN OPC_NeedsRetval (OPT_Object proc);
 export int32 OPC_NofPtrs (OPT_Struct typ);
 static int16 OPC_PerfectHash (CHAR *s, LONGINT s__len);
 static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, LONGINT y__len);
@@ -1428,6 +1429,11 @@ void OPC_DefineInter (OPT_Object proc)
 	OPM_WriteLn();
 }
 
+BOOLEAN OPC_NeedsRetval (OPT_Object proc)
+{
+	return (proc->typ != OPT_notyp && !proc->scope->leaf);
+}
+
 void OPC_EnterProc (OPT_Object proc)
 {
 	OPT_Object var = NIL, scope = NIL;
@@ -1446,6 +1452,12 @@ void OPC_EnterProc (OPT_Object proc)
 		OPM_WriteStringVar((void*)scope->name, 256);
 		OPM_Write(' ');
 		OPM_WriteString((CHAR*)"_s", 3);
+		OPC_EndStat();
+	}
+	if (OPC_NeedsRetval(proc)) {
+		OPC_BegStat();
+		OPC_Ident(proc->typ->strobj);
+		OPM_WriteString((CHAR*)" __retval", 10);
 		OPC_EndStat();
 	}
 	var = proc->link;

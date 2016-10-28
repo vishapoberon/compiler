@@ -1490,6 +1490,20 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 					} else {
 						OPM_WriteString((CHAR*)"__ENDMOD", 9);
 					}
+				} else if (OPC_NeedsRetval(outerProc)) {
+					OPM_WriteString((CHAR*)"__retval = ", 12);
+					if ((n->left->typ->form == 11 && n->obj->typ != n->left->typ)) {
+						OPM_WriteString((CHAR*)"(void*)", 8);
+						OPV_expr(n->left, 10);
+					} else {
+						OPV_expr(n->left, -1);
+					}
+					OPC_EndStat();
+					OPC_BegStat();
+					OPC_ExitProc(outerProc, 0, 0);
+					OPC_EndStat();
+					OPC_BegStat();
+					OPM_WriteString((CHAR*)"return __retval", 16);
 				} else {
 					OPC_ExitProc(outerProc, 0, 0);
 					OPM_WriteString((CHAR*)"return", 7);
