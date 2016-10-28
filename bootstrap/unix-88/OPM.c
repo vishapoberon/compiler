@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT int8
 #define INTEGER  int16
@@ -774,6 +774,7 @@ void OPM_SymRLReal (LONGREAL *lr)
 
 void OPM_CloseOldSym (void)
 {
+	Files_Close(Files_Base(&OPM_oldSF, Files_Rider__typ));
 }
 
 void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done)

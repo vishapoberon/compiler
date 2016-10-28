@@ -17,9 +17,9 @@ BEGIN
     WHILE ~R.eot DO
        Texts.Read(R, ch);
        i := Texts.Pos(R);
-       Out.String("pos="); Out.Int(i,0); Out.String(" char="); Out.Char(ch); Out.Ln;
+       Out.String("pos="); Out.Int(i,0); Out.String(" char="); Out.Char(ch); Out.Char(0AX);
        IF i = 21906 THEN
-         Out.String("21906"); Out.Ln;
+         Out.String("21906"); Out.Char(0AX);
          (*Platform.Delay(10000);*)
        END;
     END;

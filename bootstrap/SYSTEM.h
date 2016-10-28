@@ -5,31 +5,14 @@
 // 64 bit system detection
 
 #if (__SIZEOF_POINTER__ == 8) || defined (_LP64) || defined(__LP64__) || defined(_WIN64)
-  #define __o_64
+  #define o__64
 #endif
-
-//  // Temporary while bootstrapping and clearing up SYSTEM.c.
-//
-//  #ifndef LONGINT
-//    #if defined (__o_64)
-//      #define INTEGER int32
-//      #define LONGINT int64
-//      #define SET     uint64
-//    #else
-//      #define INTEGER int16
-//      #define LONGINT int32
-//      #define SET     uint32
-//    #endif
-//  #endif
-
-
-
 
 
 // Declare memcpy in a way compatible with C compilers intrinsic
 // built in implementations.
 
-#if defined (__o_64)
+#if defined (o__64)
   #if defined(_WIN64)
     typedef unsigned long long size_t;
   #else
@@ -43,11 +26,12 @@
 #define _SIZE_T_DEFINED_ // For OpenBSD
 
 void *memcpy(void *dest, const void *source, size_t size);
+void *alloca(size_t size);
 
 
 // Declare fixed size versions of basic intger types
 
-#if defined (__o_64) && !defined(_WIN64)
+#if defined (o__64) && !defined(_WIN64)
   // LP64
   typedef long               int64;
   typedef unsigned long      uint64;
@@ -95,7 +79,7 @@ typedef void*  SYSTEM_PTR;
 
 // 'address' is a synonym for an int of pointer size
 
-#if defined (__o_64)
+#if defined (o__64)
   #define address int64
 #else
   #define address int32
@@ -171,9 +155,13 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 
 #define __COPY(s, d, n) {char*_a=(void*)s,*_b=(void*)d; LONGINT _i=0,_t=n-1; \
                          while(_i<_t&&((_b[_i]=_a[_i])!=0)){_i++;};_b[_i]=0;}
-#define __DUP(x, l, t)  x=(void*)memcpy((void*)Platform_OSAllocate(l*sizeof(t)),x,l*sizeof(t))
 #define __DUPARR(v, t)  v=(void*)memcpy(v##__copy,v,sizeof(t))
-#define __DEL(x)        Platform_OSFree((address)x)
+
+//#define __DUP(x, l, t)  x=(void*)memcpy((void*)Platform_OSAllocate(l*sizeof(t)),x,l*sizeof(t))
+//#define __DEL(x)        Platform_OSFree((address)x)
+
+#define __DUP(x, l, t)  x=(void*)memcpy(alloca(l*sizeof(t)),x,l*sizeof(t))
+#define __DEL(x)
 
 
 /* SYSTEM ops */
