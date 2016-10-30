@@ -97,7 +97,7 @@ PROCEDURE -Entier64(x: LONGREAL): SYSTEM.INT64 "(int64)(x)";
 
 PROCEDURE RealP(x: LONGREAL; n: INTEGER; long: BOOLEAN);
 
-(* LongReal(x, n) writes the long real number x to the end of the output stream using an
+(* RealP(x, n) writes the long real number x to the end of the output stream using an
    exponential form. If the textual representation of x requires m characters (including  a
    three-digit signed exponent), x is right adjusted in a ﬁeld of Max(n, m) characters padded
    with blanks at the left end. A plus sign of the mantissa is not written.

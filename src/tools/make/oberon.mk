@@ -197,6 +197,7 @@ runtime:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Modules.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Strings.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Out.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/In.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/VT100.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Files.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Ffs -O$(MODEL) ../../../src/runtime/Math.Mod
@@ -382,14 +383,15 @@ RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR
 confidence:
 	@printf "\n\n--- Confidence tests ---\n\n"
 	cd src/test/confidence/hello;           $(RUNTEST)
-	cd src/test/confidence/isptest;         $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)
+	cd src/test/confidence/in;              $(RUNTEST)
 	cd src/test/confidence/math;            $(RUNTEST)
 	cd src/test/confidence/intsyntax;       $(RUNTEST)
 	cd src/test/confidence/language;        $(RUNTEST)
+	cd src/test/confidence/arrayassignment; $(RUNTEST)
 	cd src/test/confidence/texts;           $(RUNTEST)
 	cd src/test/confidence/library;         $(RUNTEST)
+	cd src/test/confidence/isptest;         $(RUNTEST)
 	cd src/test/confidence/lola;            $(RUNTEST)
-	cd src/test/confidence/arrayassignment; $(RUNTEST)
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
 	@printf "\n\n--- Confidence tests passed ---\n\n"
