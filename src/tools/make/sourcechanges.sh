@@ -14,8 +14,8 @@
 changes="0"
 for f in $1/*; do
   fn=$(basename $f)
-  egrep -v "(^/\* voc +)|Configuration_|OPM_ResourceDir|__MOVE.* cmd, |OPM_(IntSize|PointerSize|Alignment) =|Strings_Append.+void\*\)(cmd|OPM_OBERON|extTools_comp)" $f  >$fn.old
-  egrep -v "(^/\* voc +)|Configuration_|OPM_ResourceDir|__MOVE.* cmd, |OPM_(IntSize|PointerSize|Alignment) =|Strings_Append.+void\*\)(cmd|OPM_OBERON|extTools_comp)" $fn >$fn.new
+  egrep -v -f ../../src/tools/make/ignore $f  >$fn.old
+  egrep -v -f ../../src/tools/make/ignore $fn >$fn.new
   if ! diff -U 2 -b $fn.old $fn.new >$fn.diff; then
     echo ""
     echo ""
