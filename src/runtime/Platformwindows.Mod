@@ -545,7 +545,7 @@ BEGIN IF l<0 THEN errch('-'); l := -l END; errposint(l) END errint;
 PROCEDURE DisplayHaltCode(code: LONGINT);
 BEGIN
   CASE code OF
-  | -1: errstring("Rider ReadBuf/WriteBuf transfer size longer than buffer.")
+  | -1: errstring("Assertion failure.")
   | -2: errstring("Index out of range.")
   | -3: errstring("Reached end of function without reaching RETURN.")
   | -4: errstring("CASE statement: no matching label and no ELSE.")

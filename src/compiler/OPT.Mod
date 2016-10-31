@@ -1323,13 +1323,12 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("NEW",    sysnewfn);
   EnterProc("MOVE",   movefn);
 
-  syslink := topScope^.right;
+  syslink  := topScope^.right;
   universe := topScope; topScope^.right := NIL;
 
 
   EnterTyp("BOOLEAN",  Bool,   1, booltyp);
   EnterTyp("CHAR",     Char,   1, chartyp);
-(*EnterTyp("SET",      Set,   -1, settyp);*)    (* Size set in Compiler.PropagateElementaryTypeSize *)
   EnterTyp("REAL",     Real,   4, realtyp);
   EnterTyp("LONGREAL", LReal,  8, lrltyp);
   EnterTyp("HUGEINT",  Int,    8, hinttyp);

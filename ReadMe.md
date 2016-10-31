@@ -13,15 +13,15 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 ###### Contents
 
-> [Installation](#installation)  
-> [A 'Hello' application](#a-hello-application)  
-> [Licensing](#licensing)  
-> [Platform support and porting](#platform-support-and-porting)  
-> [Language support and libraries](#language-support-and-libraries)  
-> [History](#history)  
-> [Roadmap](#roadmap)  
-> [Contributors](#contributors)  
-> [Origin of the name "Ѵishap Oberon"](#origin-of-the-name-Ѵishap-oberon)  
+> [Installation](#installation)
+> [A 'Hello' application](#a-hello-application)
+> [Licensing](#licensing)
+> [Platform support and porting](#platform-support-and-porting)
+> [Language support and libraries](#language-support-and-libraries)
+> [History](#history)
+> [Roadmap](#roadmap)
+> [Contributors](#contributors)
+> [Origin of the name "Ѵishap Oberon"](#origin-of-the-name-Ѵishap-oberon)
 > [References](#references)
 
 
@@ -171,16 +171,12 @@ See also [Features](/doc/Features.md).
 
 See [History](/doc/History.md).
 
-## Roadmap
-
-See [Roadmap](/doc/Roadmap.md).
-
 ## Contributors
 
 Joseph Templ developed ofront as a tool to translate Oberon-2 programs into semantically equivalent
-C programs. It was Copyrighted in 1995, and transferred to the Free BSD license in 2012. 
+C programs. It was Copyrighted in 1995, and transferred to the Free BSD license in 2012.
 
-From Joseph's github repository: 
+From Joseph's github repository:
 
 > Design and implementation of ofront is due to Josef Templ ... ofront has been based in part on Regis Crelier's PhD thesis and Stefan Gehring's diploma thesis, both at ETH Zurich, Institute for Computer Systems.
 
