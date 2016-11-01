@@ -11,18 +11,18 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-###### Contents
+#### Contents
 
-> [Installation](#installation)
-> [A 'Hello' application](#a-hello-application)
-> [Licensing](#licensing)
-> [Platform support and porting](#platform-support-and-porting)
-> [Language support and libraries](#language-support-and-libraries)
-> [History](#history)
-> [Roadmap](#roadmap)
-> [Contributors](#contributors)
-> [Origin of the name "Ѵishap Oberon"](#origin-of-the-name-Ѵishap-oberon)
-> [References](#references)
+&nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**A 'Hello' application**](#a-hello-application)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Licensing**](#licensing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Platform support and porting**](#platform-support-and-porting)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Language support and libraries**](#language-support-and-libraries)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**History**](#history)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Roadmap**](#roadmap)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Contributors**](#contributors)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Origin of the name "Ѵishap Oberon"**](#origin-of-the-name-Ѵishap-oberon)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**References**](#references)<br>
 
 
 ## Installation
@@ -37,7 +37,7 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 | Cygwin                 | use setup-x86[_x64] to add packages git, make and gcc-core          |
 | Darwin                 | type 'git' at the command line and accept the prompt to install it. |
 
-More details, including for MingW and MS C, in [Installation](/doc/Installation.md).
+More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
 
 ###### Build and install
 
@@ -59,7 +59,7 @@ by make full, e.g.
 |  Windows  | See [Installation](/doc/Installation.md)                      |
 |  Termux   | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
-Also see [Installation](/doc/Installation.md).
+Also see [**Installation**](/doc/Installation.md).
 
 ## A 'Hello' application
 
@@ -97,7 +97,7 @@ executable binary.
 Execute as usual on Linux ('./hello') or Windows ('hello').
 
 
-Also see [Compiling](/doc/Compiling.md).
+Also see [**Compiling**](/doc/Compiling.md).
 
 ## Licensing
 
@@ -134,7 +134,7 @@ In some cases manual work will be required:
    necessary to implement a new variant of Platform.Mod providing the same
    interface as Platformunix.Mod and Platform Windows.Mod.
 
-For details, see [Porting](/doc/Porting.md).
+For details, see [**Porting**](/doc/Porting.md).
 
 ## Language support and libraries
 
@@ -165,11 +165,8 @@ Oakwood libraries are supported for both -O2 and -OC options, whereas the ULM, O
 Vishap Oberon also supports some features of Oberon-07.
 
 
-See also [Features](/doc/Features.md).
+See also [**Features**](/doc/Features.md).
 
-## History
-
-See [History](/doc/History.md).
 
 ## Contributors
 
