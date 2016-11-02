@@ -202,7 +202,7 @@ extern int64 SYSTEM_ENTIER (double x);
 
 static inline int32 SYSTEM_ABS64(int64 i) {return i >= 0 ? i : -i;}
 static inline int64 SYSTEM_ABS32(int32 i) {return i >= 0 ? i : -i;}
-#define __ABSF(x) ((sizeof(x) <= 4) ? SYSTEM_ABS32(i) : SYSTEM_ABS64(i))
+#define __ABSF(x) ((sizeof(x) <= 4) ? SYSTEM_ABS32(x) : SYSTEM_ABS64(x))
 
 static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __ABSFD(x) SYSTEM_ABSD(x)
