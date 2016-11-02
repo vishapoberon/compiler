@@ -121,20 +121,19 @@ It compiles under gcc, clang and Microsoft Visual C.
 Installation supports GNU/Linux, MAC OSX, BSD and Windows (native and cygwin).
 
 A C program (src/tools/make/configure.c) detects the details of the C compiler
-and operating system on which it is running. In most cases it will automatically
-determine all that is needed for the port to a new platform. and 'make full'
-will just work.
+and operating system on which it is running.
 
-In some cases manual work will be required:
+The following systems are recognised:
 
- - If configure.c cannot recognise the operating system on which it is running
-   a few lines will need to be added to detect and set the make variables
-   correctly.
- - If porting to a system that does not provide a Unix style API, it will be
-   necessary to implement a new variant of Platform.Mod providing the same
-   interface as Platformunix.Mod and Platform Windows.Mod.
+ - Linux, including Ubuntu and Centos derivatives.
+ - The BSDs, including OpenBSD and FreeBSD.
+ - Cygwin under Windows, MingW under Cygwin, Bash on Ubuntu on Windows.
 
-For details, see [**Porting**](/doc/Porting.md).
+Additionally a Windows .cmd is provided for building with Microsoft C.
+
+For details, including how to add support for unrecognised systems, see
+[**Porting**](/doc/Porting.md).
+
 
 ## Language support and libraries
 
@@ -154,9 +153,9 @@ Vishap Oberon supports the Oberon 2 programming language, including type-bound p
 Included libraries ease porting of code from the major Oberon systems:
 
  - Oberon V4 and S3 compatible library set.
- - ooc (optimizing oberon-2 compiler) library port.
+ - Ooc (optimizing oberon-2 compiler) library port.
  - Ulm’s Oberon system library port.
- - Okwood standard libraries.
+ - Oakwood standard libraries.
  - Some other freely redistributable libraries.
 
 Oakwood libraries are supported for both -O2 and -OC options, whereas the ULM, OOC and ETH system 3 libraries are only available on -O2 (default) compilations.
@@ -177,7 +176,7 @@ From Joseph's github repository:
 
 > Design and implementation of ofront is due to Josef Templ ... ofront has been based in part on Regis Crelier's PhD thesis and Stefan Gehring's diploma thesis, both at ETH Zurich, Institute for Computer Systems.
 
-Norayr Chilingarian forked ofront in 2013, porting extensive libraries from [ULM Oberon](http://www.mathematik.uni-ulm.de/oberon/), [OO2C](https://github.com/Spirit-of-Oberon/oo2c) and ETH Oberon System 3, and adding support for more platforms including 64 bit systems, and .
+Norayr Chilingarian forked ofront in 2013, porting extensive libraries from [ULM Oberon](http://www.mathematik.uni-ulm.de/oberon/), [OO2C](https://github.com/Spirit-of-Oberon/oo2c) and ETH Oberon System 3, and adding support for more platforms including 64 bit systems.
 
 David Brown has worked on adding support for more platforms incuding windows using MSC, cygwin or mingw since January 2016. More recently he has generalised basic type support within the compiler to allow e.g. 64 bit LONGINT on 32 bit systems, and 32 bit LONGINT on 64 bit systems.
 
