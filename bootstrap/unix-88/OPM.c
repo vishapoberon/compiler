@@ -710,15 +710,15 @@ void OPM_FPrintReal (INT32 *fp, REAL real)
 {
 	INT16 i;
 	INT32 l;
-	__GET((address)&real, l, INT32);
+	__GET((ADDRESS)&real, l, INT32);
 	OPM_FPrint(&*fp, l);
 }
 
 void OPM_FPrintLReal (INT32 *fp, LONGREAL lr)
 {
 	INT32 l, h;
-	__GET((address)&lr, l, INT32);
-	__GET((address)&lr + 4, h, INT32);
+	__GET((ADDRESS)&lr, l, INT32);
+	__GET((ADDRESS)&lr + 4, h, INT32);
 	OPM_FPrint(&*fp, l);
 	OPM_FPrint(&*fp, h);
 }

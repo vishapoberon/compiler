@@ -814,7 +814,7 @@ static void OPV_expr (OPT_Node n, INT16 prec)
 					OPM_Write(')');
 					break;
 				case 24: 
-					OPM_WriteString((CHAR*)"(address)", 10);
+					OPM_WriteString((CHAR*)"(ADDRESS)", 10);
 					if (l->class == 1) {
 						OPC_CompleteIdent(l->obj);
 					} else {
@@ -830,7 +830,7 @@ static void OPV_expr (OPT_Node n, INT16 prec)
 						OPC_Ident(n->typ->strobj);
 						OPM_Write(')');
 						if (__IN(n->typ->form, 0x1800, 32) || __IN(l->typ->form, 0x1800, 32)) {
-							OPM_WriteString((CHAR*)"(address)", 10);
+							OPM_WriteString((CHAR*)"(ADDRESS)", 10);
 						}
 						OPV_expr(l, exprPrec);
 					} else {
@@ -1204,7 +1204,7 @@ static void OPV_NewArr (OPT_Node d, OPT_Node x)
 			if (x->class == 7) {
 				OPC_IntLiteral(x->conval->intval, OPM_AddressSize);
 			} else {
-				OPM_WriteString((CHAR*)"((address)(", 12);
+				OPM_WriteString((CHAR*)"((ADDRESS)(", 12);
 				OPV_expr(x, 10);
 				OPM_WriteString((CHAR*)"))", 3);
 			}

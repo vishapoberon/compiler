@@ -320,7 +320,7 @@ PROCEDURE -structstats                     "struct stat s";
 PROCEDURE -statdev():              LONGINT "(LONGINT)s.st_dev";
 PROCEDURE -statino():              LONGINT "(LONGINT)s.st_ino";
 PROCEDURE -statmtime():            LONGINT "(LONGINT)s.st_mtime";
-PROCEDURE -statsize():             LONGINT "(address)s.st_size";
+PROCEDURE -statsize():             LONGINT "(ADDRESS)s.st_size";
 
 PROCEDURE Identify*(h: FileHandle; VAR identity: FileIdentity): ErrorCode;
 BEGIN

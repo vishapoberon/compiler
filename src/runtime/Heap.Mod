@@ -162,7 +162,7 @@ MODULE Heap;
   END INCREF;
 
 
-  PROCEDURE -ExternPlatformOSAllocate "extern address Platform_OSAllocate(address size);";
+  PROCEDURE -ExternPlatformOSAllocate "extern ADDRESS Platform_OSAllocate(ADDRESS size);";
   PROCEDURE -OSAllocate(size: S.ADDRESS): S.ADDRESS "Platform_OSAllocate(size)";
 
   PROCEDURE NewChunk(blksz: S.ADDRESS): S.ADDRESS;
@@ -317,25 +317,25 @@ MODULE Heap;
     VAR p, tag, offset, fld, n, tagbits: S.ADDRESS;
   BEGIN
     IF q # 0 THEN
-      S.GET(q - SZA, tagbits);             (* Load the tag for the record at q *)
-      IF ~ODD(tagbits) THEN                         (* If it has not already been marked *)
+      S.GET(q - SZA, tagbits);                 (* Load the tag for the record at q *)
+      IF ~ODD(tagbits) THEN                    (* If it has not already been marked *)
         S.PUT(q - SZA, tagbits + 1);           (* Mark it *)
         p := 0;
-        tag := tagbits + SZA;                       (* Tag addresses first offset *)
+        tag := tagbits + SZA;                  (* Tag addresses first offset *)
         LOOP
           S.GET(tag, offset);                  (* Get next ptr field offset *)
-          IF offset < 0 THEN                        (* Sentinel reached: Value is -8*(#fields+1) *)
+          IF offset < 0 THEN                   (* Sentinel reached: Value is -8*(#fields+1) *)
             S.PUT(q - SZA, tag + offset + 1);  (* Rotate base ptr into tag *)
             IF p = 0 THEN EXIT END ;
             n := q; q := p;
             S.GET(q - SZA, tag); DEC(tag, 1);
             S.GET(tag, offset); fld := q + offset;
             S.GET(fld, p); S.PUT(fld, S.VAL(S.PTR, n))
-          ELSE                                      (* offset references a ptr field *)
-            fld := q + offset;                      (* S.ADDRESS the pointer *)
-            S.GET(fld, n);                 (* Load the pointer *)
-            IF n # 0 THEN                           (* If pointer is not NIL *)
-              S.GET(n - SZA, tagbits);     (* Consider record pointed to by this field *)
+          ELSE                                 (* offset references a ptr field *)
+            fld := q + offset;                 (* S.ADDRESS the pointer *)
+            S.GET(fld, n);                     (* Load the pointer *)
+            IF n # 0 THEN                      (* If pointer is not NIL *)
+              S.GET(n - SZA, tagbits);         (* Consider record pointed to by this field *)
               IF ~ODD(tagbits) THEN
                 S.PUT(n - SZA, tagbits + 1);
                 S.PUT(q - SZA, tag + 1);
@@ -483,7 +483,7 @@ MODULE Heap;
     END
   END FINALL;
 
-  PROCEDURE -ExternMainStackFrame                     "extern address Platform_MainStackFrame;";
+  PROCEDURE -ExternMainStackFrame                "extern ADDRESS Platform_MainStackFrame;";
   PROCEDURE -PlatformMainStackFrame(): S.ADDRESS "Platform_MainStackFrame";
 
   PROCEDURE MarkStack(n: S.ADDRESS; VAR cand: ARRAY OF S.ADDRESS);

@@ -502,7 +502,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.cap:   OPM.WriteString("__CAP("); expr(l, MinPrec); OPM.Write(CloseParen)
                   | OPT.odd:   OPM.WriteString("__ODD("); expr(l, MinPrec); OPM.Write(CloseParen)
-                  | OPT.adr:   OPM.WriteString("(address)");                             (*SYSTEM*)
+                  | OPT.adr:   OPM.WriteString("(ADDRESS)");                             (*SYSTEM*)
                                IF l^.class = OPT.Nvarpar THEN OPC.CompleteIdent(l^.obj)
                                ELSE
                                  IF (l^.typ^.form # OPT.String) & ~(l^.typ^.comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write("&") END ;
@@ -515,7 +515,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                THEN
                                  OPM.Write(OpenParen); OPC.Ident(n^.typ^.strobj); OPM.Write(CloseParen);
                                  IF (n^.typ^.form IN {OPT.Pointer, OPT.ProcTyp}) OR (l^.typ^.form IN {OPT.Pointer, OPT.ProcTyp}) THEN
-                                   OPM.WriteString("(address)")
+                                   OPM.WriteString("(ADDRESS)")
                                  END;
                                  expr(l, exprPrec)
                                ELSE
@@ -736,7 +736,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       IF typ^.comp = OPT.DynArr THEN
         IF x^.class = OPT.Nconst THEN
           OPC.IntLiteral(x.conval.intval, OPM.AddressSize)
-        ELSE OPM.WriteString("((address)("); expr(x, 10); OPM.WriteString("))")
+        ELSE OPM.WriteString("((ADDRESS)("); expr(x, 10); OPM.WriteString("))")
         END ;
         x := x^.link
       ELSE

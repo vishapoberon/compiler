@@ -430,10 +430,10 @@ void writeConfigurationMod() {
 int main(int argc, char *argv[])
 {
   // Make sure SYSTEM.h has set up our core data types correctly.
-  assert(sizeof(int8)  == 1, "sizeof(int8) is not 1.");
-  assert(sizeof(int16) == 2, "sizeof(int16) is not 2.");
-  assert(sizeof(int32) == 4, "sizeof(int32) is not 4.");
-  assert(sizeof(int64) == 8, "sizeof(int64) is not 8.");
+  assert(sizeof(INT8)  == 1, "sizeof(INT8) is not 1.");
+  assert(sizeof(INT16) == 2, "sizeof(INT16) is not 2.");
+  assert(sizeof(INT32) == 4, "sizeof(INT32) is not 4.");
+  assert(sizeof(INT64) == 8, "sizeof(INT64) is not 8.");
 
   oname = getenv("ONAME"); if (!oname) oname = macrotostring(O_NAME);
 

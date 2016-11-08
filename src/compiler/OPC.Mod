@@ -39,7 +39,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   VAR
     indentLevel: INTEGER;
     hashtab:     ARRAY 105 OF SHORTINT;
-    keytab:      ARRAY 60 (*50*), 9 OF CHAR;
+    keytab:      ARRAY 50, 9 OF CHAR;
     GlbPtrs:     BOOLEAN;
     BodyNameExt: ARRAY 13 OF CHAR;
 
@@ -1274,16 +1274,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("UINT32");   (* pseudo keyword used by voc *)
     Enter("UINT64");   (* pseudo keyword used by voc *)
     Enter("UINT8");    (* pseudo keyword used by voc *)
-
-    Enter("address");  (* pseudo keyword used by voc *)
-    Enter("int16");    (* pseudo keyword used by voc *)
-    Enter("int32");    (* pseudo keyword used by voc *)
-    Enter("int64");    (* pseudo keyword used by voc *)
-    Enter("int8");     (* pseudo keyword used by voc *)
-    Enter("uint16");   (* pseudo keyword used by voc *)
-    Enter("uint32");   (* pseudo keyword used by voc *)
-    Enter("uint64");   (* pseudo keyword used by voc *)
-    Enter("uint8");    (* pseudo keyword used by voc *)
 
     Enter("asm");
     Enter("auto");

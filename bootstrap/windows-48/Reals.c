@@ -59,23 +59,23 @@ LONGREAL Reals_TenL (INT16 e)
 INT16 Reals_Expo (REAL x)
 {
 	INT16 i;
-	__GET((address)&x + 2, i, INT16);
+	__GET((ADDRESS)&x + 2, i, INT16);
 	return __MASK(__ASHR(i, 7), -256);
 }
 
 void Reals_SetExpo (REAL *x, INT16 ex)
 {
 	CHAR c;
-	__GET((address)x + 3, c, CHAR);
-	__PUT((address)x + 3, (CHAR)(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
-	__GET((address)x + 2, c, CHAR);
-	__PUT((address)x + 2, (CHAR)(__MASK((INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
+	__GET((ADDRESS)x + 3, c, CHAR);
+	__PUT((ADDRESS)x + 3, (CHAR)(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
+	__GET((ADDRESS)x + 2, c, CHAR);
+	__PUT((ADDRESS)x + 2, (CHAR)(__MASK((INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
 }
 
 INT16 Reals_ExpoL (LONGREAL x)
 {
 	INT16 i;
-	__GET((address)&x + 6, i, INT16);
+	__GET((ADDRESS)&x + 6, i, INT16);
 	return __MASK(__ASHR(i, 4), -2048);
 }
 

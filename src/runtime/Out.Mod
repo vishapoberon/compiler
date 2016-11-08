@@ -93,7 +93,7 @@ BEGIN r := 1.0D0; power := 1.0D1;
   RETURN r
 END Ten;
 
-PROCEDURE -Entier64(x: LONGREAL): SYSTEM.INT64 "(int64)(x)";
+PROCEDURE -Entier64(x: LONGREAL): SYSTEM.INT64 "(INT64)(x)";
 
 PROCEDURE RealP(x: LONGREAL; n: INTEGER; long: BOOLEAN);
 

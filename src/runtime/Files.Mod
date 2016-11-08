@@ -73,7 +73,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   PROCEDURE -IdxTrap "__HALT(-1)";
-  PROCEDURE -ToAdr(x: SYSTEM.INT64): SYSTEM.ADDRESS "(address)x";
+  PROCEDURE -ToAdr(x: SYSTEM.INT64): SYSTEM.ADDRESS "(ADDRESS)x";
 
   PROCEDURE^ Finalize(o: SYSTEM.PTR);
 

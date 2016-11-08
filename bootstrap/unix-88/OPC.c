@@ -13,7 +13,7 @@
 
 static INT16 OPC_indentLevel;
 static INT8 OPC_hashtab[105];
-static CHAR OPC_keytab[60][9];
+static CHAR OPC_keytab[50][9];
 static BOOLEAN OPC_GlbPtrs;
 static CHAR OPC_BodyNameExt[13];
 
@@ -187,7 +187,7 @@ void OPC_Ident (OPT_Object obj)
 		OPM_WriteStringVar((void*)obj->name, 256);
 		h = OPC_PerfectHash((void*)obj->name, 256);
 		if (OPC_hashtab[__X(h, 105)] >= 0) {
-			if (__STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 105)], 60)], obj->name) == 0) {
+			if (__STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 105)], 50)], obj->name) == 0) {
 				OPM_Write('_');
 			}
 		}
@@ -1920,7 +1920,7 @@ static void Enter__47 (CHAR *s, LONGINT s__len)
 	__DUP(s, s__len, CHAR);
 	h = OPC_PerfectHash((void*)s, s__len);
 	OPC_hashtab[__X(h, 105)] = *InitKeywords__46_s->n;
-	__COPY(s, OPC_keytab[__X(*InitKeywords__46_s->n, 60)], 9);
+	__COPY(s, OPC_keytab[__X(*InitKeywords__46_s->n, 50)], 9);
 	*InitKeywords__46_s->n += 1;
 	__DEL(s);
 }
@@ -1947,15 +1947,6 @@ static void OPC_InitKeywords (void)
 	Enter__47((CHAR*)"UINT32", 7);
 	Enter__47((CHAR*)"UINT64", 7);
 	Enter__47((CHAR*)"UINT8", 6);
-	Enter__47((CHAR*)"address", 8);
-	Enter__47((CHAR*)"int16", 6);
-	Enter__47((CHAR*)"int32", 6);
-	Enter__47((CHAR*)"int64", 6);
-	Enter__47((CHAR*)"int8", 5);
-	Enter__47((CHAR*)"uint16", 7);
-	Enter__47((CHAR*)"uint32", 7);
-	Enter__47((CHAR*)"uint64", 7);
-	Enter__47((CHAR*)"uint8", 6);
 	Enter__47((CHAR*)"asm", 4);
 	Enter__47((CHAR*)"auto", 5);
 	Enter__47((CHAR*)"break", 6);

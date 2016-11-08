@@ -27,13 +27,13 @@ export LONGREAL Out_Ten (INT16 e);
 static void Out_digit (INT64 n, CHAR *s, LONGINT s__len, INT16 *i);
 static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, INT16 *i);
 
-#define Out_Entier64(x)	(int64)(x)
+#define Out_Entier64(x)	(INT64)(x)
 
 void Out_Flush (void)
 {
 	INT16 error;
 	if (Out_in > 0) {
-		error = Platform_Write(Platform_StdOut, (address)Out_buf, Out_in);
+		error = Platform_Write(Platform_StdOut, (ADDRESS)Out_buf, Out_in);
 	}
 	Out_in = 0;
 }
@@ -74,9 +74,9 @@ void Out_String (CHAR *str, LONGINT str__len)
 		Out_Flush();
 	}
 	if (l > 128) {
-		error = Platform_Write(Platform_StdOut, (address)str, l);
+		error = Platform_Write(Platform_StdOut, (ADDRESS)str, l);
 	} else {
-		__MOVE((address)str, (address)&Out_buf[__X(Out_in, 128)], l);
+		__MOVE((ADDRESS)str, (ADDRESS)&Out_buf[__X(Out_in, 128)], l);
 		Out_in += (INT16)l;
 	}
 	__DEL(str);

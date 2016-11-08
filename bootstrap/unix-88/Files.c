@@ -109,7 +109,7 @@ export void Files_WriteSet (Files_Rider *R, ADDRESS *R__typ, UINT32 x);
 export void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len);
 
 #define Files_IdxTrap()	__HALT(-1)
-#define Files_ToAdr(x)	(address)x
+#define Files_ToAdr(x)	(ADDRESS)x
 
 static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, INT16 errcode)
 {
@@ -262,7 +262,7 @@ static void Files_Flush (Files_Buffer buf)
 		if (buf->org != f->pos) {
 			error = Platform_Seek(f->fd, buf->org, Platform_SeekSet);
 		}
-		error = Platform_Write(f->fd, (address)buf->data, buf->size);
+		error = Platform_Write(f->fd, (ADDRESS)buf->data, buf->size);
 		if (error != 0) {
 			Files_Err((CHAR*)"error writing file", 19, f, error);
 		}
@@ -645,7 +645,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT x
 		} else {
 			min = n;
 		}
-		__MOVE((address)buf->data + Files_ToAdr(offset), (address)x + Files_ToAdr(xpos), min);
+		__MOVE((ADDRESS)buf->data + Files_ToAdr(offset), (ADDRESS)x + Files_ToAdr(xpos), min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -703,7 +703,7 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT 
 		} else {
 			min = n;
 		}
-		__MOVE((address)x + Files_ToAdr(xpos), (address)buf->data + Files_ToAdr(offset), min);
+		__MOVE((ADDRESS)x + Files_ToAdr(xpos), (ADDRESS)buf->data + Files_ToAdr(offset), min);
 		offset += min;
 		(*r).offset = offset;
 		if (offset > buf->size) {
@@ -760,15 +760,15 @@ void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT
 				__DEL(new);
 				return;
 			}
-			error = Platform_Read(fdold, (address)buf, 4096, &n);
+			error = Platform_Read(fdold, (ADDRESS)buf, 4096, &n);
 			while (n > 0) {
-				error = Platform_Write(fdnew, (address)buf, n);
+				error = Platform_Write(fdnew, (ADDRESS)buf, n);
 				if (error != 0) {
 					ignore = Platform_Close(fdold);
 					ignore = Platform_Close(fdnew);
 					Files_Err((CHAR*)"cannot move file", 17, NIL, error);
 				}
-				error = Platform_Read(fdold, (address)buf, 4096, &n);
+				error = Platform_Read(fdold, (ADDRESS)buf, 4096, &n);
 			}
 			ignore = Platform_Close(fdold);
 			ignore = Platform_Close(fdnew);
@@ -826,7 +826,7 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *de
 			j += 1;
 		}
 	} else {
-		__MOVE((address)src, (address)dest, src__len);
+		__MOVE((ADDRESS)src, (ADDRESS)dest, src__len);
 	}
 }
 
@@ -916,7 +916,7 @@ void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, LONGINT x__
 	}
 	q += (INT64)__ASH((__MASK(b, -64) - __ASHL(__ASHR(b, 6), 6)), s);
 	__ASSERT(x__len <= 8, 0);
-	__MOVE((address)&q, (address)x, x__len);
+	__MOVE((ADDRESS)&q, (ADDRESS)x, x__len);
 }
 
 void Files_WriteBool (Files_Rider *R, ADDRESS *R__typ, BOOLEAN x)
@@ -996,7 +996,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 {
 	Files_File f = NIL;
 	INT32 res;
-	f = (Files_File)(address)o;
+	f = (Files_File)(ADDRESS)o;
 	if (f->fd >= 0) {
 		Files_CloseOSFile(f);
 		if (f->tempFile) {
@@ -1009,7 +1009,7 @@ void Files_SetSearchPath (CHAR *path, LONGINT path__len)
 {
 	__DUP(path, path__len, CHAR);
 	if (Strings_Length(path, path__len) != 0) {
-		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((address)((Strings_Length(path, path__len) + 1))));
+		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((ADDRESS)((Strings_Length(path, path__len) + 1))));
 		__COPY(path, Files_SearchPath->data, Files_SearchPath->len[0]);
 	} else {
 		Files_SearchPath = NIL;

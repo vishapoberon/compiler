@@ -111,7 +111,10 @@ Most Oberon systems have implicitly or explicitly assumed that LONGINT is large 
 machine addresses. With the requirement to support 32 bit LONGINT on 64 bit systems, this is no
 longer possible.
 
-The type SYSTEM.ADDRESS is added, a signed integer type equivalent to either SYSTEM.INT32 or SYSTEM.INT64 according to the system address size.
+The type SYSTEM.ADDRESS is added, a signed integer type equivalent to either SYSTEM.INT32 or SYSTEM.INT64
+according to the system address size. As a general purpose integer type it can be used not just to
+store machine addresses, but also for any arithmetic purpose related to machine addresses, such as
+lengths of memory objects or offsets into memory objects.
 
 The following SYSTEM module predefined functions and procedures now use SYSTEM.ADDRESS instead of LONGINT.
 

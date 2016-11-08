@@ -158,7 +158,7 @@ extern void Heap_InitHeap();
 #define Platform_statdev()	(LONGINT)s.st_dev
 #define Platform_statino()	(LONGINT)s.st_ino
 #define Platform_statmtime()	(LONGINT)s.st_mtime
-#define Platform_statsize()	(address)s.st_size
+#define Platform_statsize()	(ADDRESS)s.st_size
 #define Platform_structstats()	struct stat s
 #define Platform_system(str, str__len)	system((char*)str)
 #define Platform_tmhour()	(LONGINT)time->tm_hour
@@ -227,7 +227,7 @@ void Platform_Init (INT32 argc, INT64 argvadr)
 	Platform_ArgVecPtr av = NIL;
 	Platform_MainStackFrame = argvadr;
 	Platform_ArgCount = __VAL(INT16, argc);
-	av = (Platform_ArgVecPtr)(address)argvadr;
+	av = (Platform_ArgVecPtr)(ADDRESS)argvadr;
 	Platform_ArgVector = (*av)[0];
 	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
@@ -258,7 +258,7 @@ void Platform_GetArg (INT16 n, CHAR *val, LONGINT val__len)
 {
 	Platform_ArgVec av = NIL;
 	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(address)Platform_ArgVector;
+		av = (Platform_ArgVec)(ADDRESS)Platform_ArgVector;
 		__COPY(*(*av)[__X(n, 1024)], val, val__len);
 	}
 }
@@ -488,7 +488,7 @@ INT16 Platform_Read (INT32 h, INT64 p, INT32 l, INT32 *n)
 
 INT16 Platform_ReadBuf (INT32 h, SYSTEM_BYTE *b, LONGINT b__len, INT32 *n)
 {
-	*n = Platform_readfile(h, (address)b, b__len);
+	*n = Platform_readfile(h, (ADDRESS)b, b__len);
 	if (*n < 0) {
 		*n = 0;
 		return Platform_err();
@@ -696,7 +696,7 @@ static void Platform_TestLittleEndian (void)
 {
 	INT16 i;
 	i = 1;
-	__GET((address)&i, Platform_LittleEndian, BOOLEAN);
+	__GET((ADDRESS)&i, Platform_LittleEndian, BOOLEAN);
 }
 
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 12), {-8}};

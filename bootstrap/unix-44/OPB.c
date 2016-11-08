@@ -215,7 +215,7 @@ static void OPB_SetIntType (OPT_Node node)
 static void OPB_SetSetType (OPT_Node node)
 {
 	INT32 i32;
-	__GET((address)&node->conval->setval + 4, i32, INT32);
+	__GET((ADDRESS)&node->conval->setval + 4, i32, INT32);
 	if (i32 == 0) {
 		node->typ = OPT_set32typ;
 	} else {

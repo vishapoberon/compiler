@@ -86,20 +86,6 @@ typedef void*  SYSTEM_PTR;
 #endif
 
 
-// Temporary build support - which changing lowercase int* and address to uppercase
-
-#define int8    INT8
-#define int16   INT16
-#define int32   INT32
-#define int64   INT64
-#define uint8   UINT8
-#define uint16  UINT16
-#define uint32  UINT32
-#define uint64  UINT64
-#define address ADDRESS
-
-
-
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
@@ -179,12 +165,12 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 #define __GET(a, x, t)  x=*(t*)(ADDRESS)(a)
 #define __PUT(a, x, t)  *(t*)(ADDRESS)(a)=x
 
-#define __LSHL(x, n, s) ((int##s)((uint##s)(x)<<(n)))
-#define __LSHR(x, n, s) ((int##s)((uint##s)(x)>>(n)))
+#define __LSHL(x, n, s) ((INT##s)((UINT##s)(x)<<(n)))
+#define __LSHR(x, n, s) ((INT##s)((UINT##s)(x)>>(n)))
 #define __LSH(x, n, s)  ((n)>=0? __LSHL(x, n, s): __LSHR(x, -(n), s))
 
-#define __ROTL(x, n, s) ((int##s)((uint##s)(x)<<(n)|(uint##s)(x)>>(s-(n))))
-#define __ROTR(x, n, s) ((int##s)((uint##s)(x)>>(n)|(uint##s)(x)<<(s-(n))))
+#define __ROTL(x, n, s) ((INT##s)((UINT##s)(x)<<(n)|(UINT##s)(x)>>(s-(n))))
+#define __ROTR(x, n, s) ((INT##s)((UINT##s)(x)>>(n)|(UINT##s)(x)<<(s-(n))))
 #define __ROT(x, n, s)  ((n)>=0? __ROTL(x, n, s): __ROTR(x, -(n), s))
 
 #define __ASHL(x, n)    ((INT64)(x)<<(n))
@@ -222,10 +208,10 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
 
-#define __IN(x, s, size)     (((unsigned int)(x))<size && ((((uint##size)(s))>>(x))&1))
+#define __IN(x, s, size)     (((unsigned int)(x))<size && ((((UINT##size)(s))>>(x))&1))
 // todo tested versions of SETOF and SETRNG: check that x, l and h fit size
-#define __SETOF(x, size)     ((uint##size)1<<(x))
-#define __SETRNG(l, h, size) ((~(uint##size)0<<(l))&~(uint##size)0>>(size-1-(h)))
+#define __SETOF(x, size)     ((UINT##size)1<<(x))
+#define __SETRNG(l, h, size) ((~(UINT##size)0<<(l))&~(UINT##size)0>>(size-1-(h)))
 
 #define __MASK(x, m) ((x)&~(m))
 #define __BIT(x, n)  (*(UINT64*)(x)>>(n)&1)

@@ -105,8 +105,8 @@ static void Heap_Sift (INT64 l, INT64 r, INT64 *a, LONGINT a__len);
 export void Heap_Unlock (void);
 
 extern void *Heap__init();
-extern address Platform_MainStackFrame;
-extern address Platform_OSAllocate(address size);
+extern ADDRESS Platform_MainStackFrame;
+extern ADDRESS Platform_OSAllocate(ADDRESS size);
 #define Heap_HeapModuleInit()	Heap__init()
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)
 #define Heap_PlatformHalt(code)	Platform_Halt(code)
@@ -138,7 +138,7 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 	__COPY(name, m->name, 20);
 	m->refcnt = 0;
 	m->enumPtrs = enumPtrs;
-	m->next = (Heap_Module)(address)Heap_modules;
+	m->next = (Heap_Module)(ADDRESS)Heap_modules;
 	Heap_modules = (SYSTEM_PTR)m;
 	return (void*)m;
 }
@@ -313,7 +313,7 @@ SYSTEM_PTR Heap_NEWREC (INT64 tag)
 	__PUT(adr + 16, 0, INT64);
 	Heap_allocated += blksz;
 	Heap_Unlock();
-	return (SYSTEM_PTR)(address)(adr + 8);
+	return (SYSTEM_PTR)(ADDRESS)(adr + 8);
 }
 
 SYSTEM_PTR Heap_NEWBLK (INT64 size)
@@ -322,12 +322,12 @@ SYSTEM_PTR Heap_NEWBLK (INT64 size)
 	SYSTEM_PTR new;
 	Heap_Lock();
 	blksz = __ASHL(__ASHR(size + 63, 5), 5);
-	new = Heap_NEWREC((address)&blksz);
-	tag = ((INT64)(address)new + blksz) - 24;
+	new = Heap_NEWREC((ADDRESS)&blksz);
+	tag = ((INT64)(ADDRESS)new + blksz) - 24;
 	__PUT(tag - 8, 0, INT64);
 	__PUT(tag, blksz, INT64);
 	__PUT(tag + 8, -8, INT64);
-	__PUT((INT64)(address)new - 8, tag, INT64);
+	__PUT((INT64)(ADDRESS)new - 8, tag, INT64);
 	Heap_Unlock();
 	return new;
 }
@@ -355,7 +355,7 @@ static void Heap_Mark (INT64 q)
 					__GET(tag, offset, INT64);
 					fld = q + offset;
 					__GET(fld, p, INT64);
-					__PUT(fld, (SYSTEM_PTR)(address)n, SYSTEM_PTR);
+					__PUT(fld, (SYSTEM_PTR)(ADDRESS)n, SYSTEM_PTR);
 				} else {
 					fld = q + offset;
 					__GET(fld, n, INT64);
@@ -364,7 +364,7 @@ static void Heap_Mark (INT64 q)
 						if (!__ODD(tagbits)) {
 							__PUT(n - 8, tagbits + 1, INT64);
 							__PUT(q - 8, tag + 1, INT64);
-							__PUT(fld, (SYSTEM_PTR)(address)p, SYSTEM_PTR);
+							__PUT(fld, (SYSTEM_PTR)(ADDRESS)p, SYSTEM_PTR);
 							p = q;
 							q = n;
 							tag = tagbits;
@@ -379,7 +379,7 @@ static void Heap_Mark (INT64 q)
 
 static void Heap_MarkP (SYSTEM_PTR p)
 {
-	Heap_Mark((INT64)(address)p);
+	Heap_Mark((INT64)(ADDRESS)p);
 }
 
 static void Heap_Scan (void)
@@ -548,7 +548,7 @@ static void Heap_Finalize (void)
 			} else {
 				prev->next = n->next;
 			}
-			(*n->finalize)((SYSTEM_PTR)(address)n->obj);
+			(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
 			if (prev == NIL) {
 				n = Heap_fin;
 			} else {
@@ -567,7 +567,7 @@ void Heap_FINALL (void)
 	while (Heap_fin != NIL) {
 		n = Heap_fin;
 		Heap_fin = Heap_fin->next;
-		(*n->finalize)((SYSTEM_PTR)(address)n->obj);
+		(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
 	}
 }
 
@@ -584,9 +584,9 @@ static void Heap_MarkStack (INT64 n, INT64 *cand, LONGINT cand__len)
 	}
 	if (n == 0) {
 		nofcand = 0;
-		sp = (address)&frame;
+		sp = (ADDRESS)&frame;
 		stack0 = Heap_PlatformMainStackFrame();
-		inc = (address)&align.p - (address)&align;
+		inc = (ADDRESS)&align.p - (ADDRESS)&align;
 		if (sp > stack0) {
 			inc = -inc;
 		}
@@ -617,7 +617,7 @@ void Heap_GC (BOOLEAN markStack)
 	INT64 cand[10000];
 	if (Heap_lockdepth == 0 || (Heap_lockdepth == 1 && !markStack)) {
 		Heap_Lock();
-		m = (Heap_Module)(address)Heap_modules;
+		m = (Heap_Module)(ADDRESS)Heap_modules;
 		while (m != NIL) {
 			if (m->enumPtrs != NIL) {
 				(*m->enumPtrs)(Heap_MarkP);
@@ -694,7 +694,7 @@ void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
 {
 	Heap_FinNode f;
 	__NEW(f, Heap_FinDesc);
-	f->obj = (INT64)(address)obj;
+	f->obj = (INT64)(ADDRESS)obj;
 	f->finalize = finalize;
 	f->marked = 1;
 	f->next = Heap_fin;
