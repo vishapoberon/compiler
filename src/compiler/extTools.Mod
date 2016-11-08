@@ -72,6 +72,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(Configuration.libspec,      cmd);
     Strings.Append('-O',                       cmd);
     Strings.Append(OPM.Model,                  cmd);
+    Strings.Append(Configuration.libext,       cmd);
     execute("Assemble and link: ", cmd);
   END LinkMain;
 

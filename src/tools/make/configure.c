@@ -54,6 +54,7 @@ char *version   = macrotostring(O_VER);
 char *objext    = ".o";
 char *objflag   = " -o ";
 char *linkflags = " -L\"";
+char *libext    = "";
 char *oname     = NULL;  // From O_NAME env var if present, or O_NAME macro otherwise.
 
 
@@ -154,7 +155,8 @@ void determineCCompiler() {
     objext    = ".obj";
     objflag   = " -Fe";
     linkflags = " -link -libpath:\"";
-    snprintf(libspec, sizeof(libspec), " lib%s.lib", oname);
+    snprintf(libspec, sizeof(libspec), " lib%s", oname);
+    libext    = ".lib";
   #else
     fail("Unrecognised C compiler.");
   #endif
@@ -412,6 +414,7 @@ void writeConfigurationMod() {
   fprintf(fd, "  objflag*     = '%s';\n", objflag);
   fprintf(fd, "  linkflags*   = '%s';\n", linkflags);
   fprintf(fd, "  libspec*     = '%s';\n", libspec);
+  fprintf(fd, "  libext*      = '%s';\n", libext);
   fprintf(fd, "  compile*     = '%s';\n", cc);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);

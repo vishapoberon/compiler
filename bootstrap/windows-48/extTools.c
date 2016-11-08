@@ -104,6 +104,7 @@ void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN stati
 	Strings_Append((CHAR*)" -l voc", 8, (void*)cmd, 1023);
 	Strings_Append((CHAR*)"-O", 3, (void*)cmd, 1023);
 	Strings_Append(OPM_Model, 10, (void*)cmd, 1023);
+	Strings_Append((CHAR*)"", 1, (void*)cmd, 1023);
 	extTools_execute((CHAR*)"Assemble and link: ", 20, cmd, 1023);
 	__DEL(additionalopts);
 }

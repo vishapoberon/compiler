@@ -11,7 +11,7 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-#### Contents
+### Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**A 'Hello' application**](#a-hello-application)<br>
@@ -30,7 +30,7 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 While pre-built packages are not provided, it is easy to install the Oberon compiler and libraries
 with the following simple steps.
 
-###### 1. Install prerequisites
+#### 1. Install prerequisites
 
 | Platform               | Packages                                                            |
 | ---------              | ------------                                                        |
@@ -42,7 +42,7 @@ with the following simple steps.
 
 More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
 
-###### 2. Build and install the compiler and libraries
+#### 2. Build and install the compiler and libraries
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
@@ -50,7 +50,7 @@ More details, including for MingW and MS C, in [**Installation**](/doc/Installat
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
-###### 3. Stet your PATH environment variable
+#### 3. Stet your PATH environment variable
 
 Set your path to the installed compiler binary location as reported
 by make full, e.g.
@@ -143,7 +143,7 @@ For details, including how to add support for unrecognised systems, see
 
 Vishap Oberon supports the Oberon 2 programming language, including type-bound procedures. SYSTEM.Mod includes additional functionality and some changes for 64 bit support.
 
-##### Integer and set type sizes:
+#### Integer and set type sizes:
 
 | Type     | -O2 option (default) | -OC option |
 | ---      | ---                  | ---        |
@@ -152,7 +152,7 @@ Vishap Oberon supports the Oberon 2 programming language, including type-bound p
 | LONGINT  | 32 bit               | 64 bit     |
 | SET      | 32 bit               | 64 bit     |
 
-##### Libraries
+#### Libraries
 
 Included libraries ease porting of code from the major Oberon systems:
 
@@ -186,7 +186,7 @@ David Brown has worked on adding support for more platforms incuding windows usi
 
 ## Origin of the name "Ѵishap Oberon"
 
-###### Oberon
+#### Oberon
 
 Oberon is a programming language, an operating system and a graphical
 user interface. Originally designed and implemented by by Niklaus Wirth and
@@ -205,7 +205,7 @@ of Einstein and Antoine de Saint-Exupéry:
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  translated by Lewis Galantière.)
 
-###### Ѵishap
+#### Ѵishap
 
 Vishaps are dragons inhabiting the Armenian Highlands.
 We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
