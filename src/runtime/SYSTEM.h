@@ -26,7 +26,7 @@
 #define _SIZE_T_DEFINED_ // For OpenBSD
 
 void *memcpy(void *dest, const void *source, size_t size);
-#if defined _WIN32
+#if defined _MSC_VER
 #define alloca _alloca
 #endif
 void *alloca(size_t size);
