@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPP__h
 #define OPP__h
@@ -9,7 +9,7 @@
 
 
 
-import void OPP_Module (OPT_Node *prog, uint32 opt);
+import void OPP_Module (OPT_Node *prog, UINT32 opt);
 import void *OPP__init(void);
 
 

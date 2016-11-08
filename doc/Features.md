@@ -16,15 +16,15 @@ integer and set types, it is not. Some examples:
    it tries to store the flag value to a file using standard library functions. The Oakwood
    guidelines specify that INTEGER be stored in 16 bits on file regardless of it's size in
    memory*.
- 
+
  - Code that assumes that INTEGER values wrap around at known values will fail. For example
-   i: SHORTINT; ... i := 127; INC(i); will produce -128 on original systems, but +128 on 
-   systems with a larger SHORTINT representation. 
-   
+   i: SHORTINT; ... i := 127; INC(i); will produce -128 on original systems, but +128 on
+   systems with a larger SHORTINT representation.
+
  - Bit manipulation code that uses SYSTEM.VAL to access parts of values will access the
    wrong number of bits. For example, the implementation of REAL and LONGREAL library functions
    use SYSTEM.VAL(SET, realvalue) to access and change the sign, mantissa and exponent of REALs.
-   
+
 Therefore we provide compilation options to select the representation of SHORTINT, INTEGER, LONGINT and SET.
 
 \* It makes sense for Oakwood to insist on fixed sizes for the standard types as this is a pre-requisite
@@ -33,7 +33,7 @@ for stable file exchange between different builds of applications, and between d
 
 #### Compiler options for integer and set sizes.
 
-The -O2 and -OC compiler options select nbetween the two most commonly used integer and set
+The -O2 and -OC compiler options select between the two most commonly used integer and set
 type implementations.
 
 | Type     | -O2 option (default) | -OC option |
@@ -46,18 +46,22 @@ type implementations.
 
 The following Oberon types are independent of compiler size:
 
-| Types    | Size   |
-| -----    | -------|
-| REAL     | 32 bit |
-| LONGREAL | 64 bit |
-| HUGEINT* | 64 bit |
-| CHAR**    | 8 bit  |
+| Types    | Size                                  |
+| -----    | -------                               |
+| REAL     | 32 bit floating point                 |
+| LONGREAL | 64 bit floating point                 |
+| HUGEINT* | 64 bit signed integer                 |
+| BYTE**   | 8 bit signed integer (-OC model only) |
+| CHAR***  | 8 bit character                       |
 
 \* The additional type HUGEINT is predefined as a 64 bit integer, providing 64 bit support even
 in -O2 compilations.
 
-\** No built-in support is provided for the UTF-16 or UCS-2 Unicode encodings. UTF-8 is the recommended Unicode encoding for text. 
- - 16 bits has been insufficient for the Unicode character repetoire for at least 15 years. 
+\** The additional type BYTE is defined for -OC (Component Pascal) model only and is a *signed*
+8 bit integer.
+
+\*** No built-in support is provided for the UTF-16 or UCS-2 Unicode encodings. UTF-8 is the recommended Unicode encoding for text.
+ - 16 bits has been insufficient for the Unicode character repetoire for at least 15 years.
  - Writing systems often require more than one unicode codepoint to represent a single character (and what constitutes a character can vary according to context).
  - UTF-8 is now widely used.
 
@@ -89,11 +93,22 @@ In -O2, where LONGINT is 32 bits, LONG() now accepts a LONGINT value returning a
 
 In -OC, where SHORTINT is 16 bits, SHORT() now accepts a SHORTINT value returning a SYSTEM.INT8 value.
 
+#### ASH()
+
+The Arithmetic shift function is defined by Oberon-2 as follows:
+
+| Name          | Argument types         | Result Type | Function                       |
+| ----          | ---                    | ---         | ---                            |
+| ASH(*x*, *n*) | *x*, *n*: integer type | LONGINT     | arithmetic shift (*x* * 2^*n*) |
+
+For compatability this definition is retained for all integer types up to LONGINT in size.
+Additionally, when *x* is the new HUGEINT type, the result is HUGEINT.
+
 
 #### Pointers and Addresses
 
 Most Oberon systems have implicitly or explicitly assumed that LONGINT is large enough to hold
-machine addresses. With the requirement to support 32 bit LONGINT on 64 bit systems, this is no 
+machine addresses. With the requirement to support 32 bit LONGINT on 64 bit systems, this is no
 longer possible.
 
 The type SYSTEM.ADDRESS is added, a signed integer type equivalent to either SYSTEM.INT32 or SYSTEM.INT64 according to the system address size.

@@ -110,7 +110,7 @@ BEGIN RETURN e = EINTR() END Interrupted;
 
 (* OS memory allocaton *)
 
-PROCEDURE -allocate  (size: SYSTEM.ADDRESS): SYSTEM.ADDRESS "(address)((void*)malloc((size_t)size))";
+PROCEDURE -allocate  (size: SYSTEM.ADDRESS): SYSTEM.ADDRESS "(ADDRESS)((void*)malloc((size_t)size))";
 PROCEDURE OSAllocate*(size: SYSTEM.ADDRESS): SYSTEM.ADDRESS; BEGIN RETURN allocate(size) END OSAllocate;
 
 PROCEDURE -free(address: SYSTEM.ADDRESS) "free((void*)address)";
@@ -193,7 +193,7 @@ END ArgPos;
 
 (* Signals and traps *)
 
-PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (address)h)";
+PROCEDURE -sethandler(s: INTEGER; h: SignalHandler) "SystemSetHandler(s, (ADDRESS)h)";
 
 PROCEDURE SetInterruptHandler*(handler: SignalHandler);
 BEGIN sethandler(2, handler); END SetInterruptHandler;
@@ -373,7 +373,7 @@ END Size;
 
 
 PROCEDURE -readfile (fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): LONGINT
-"(LONGINT)read(fd, (void*)(address)(p), l)";
+"(LONGINT)read(fd, (void*)(ADDRESS)(p), l)";
 
 PROCEDURE Read*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: LONGINT): ErrorCode;
 BEGIN
@@ -390,7 +390,7 @@ END ReadBuf;
 
 
 PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): SYSTEM.ADDRESS
-"write(fd, (void*)(address)(p), l)";
+"write(fd, (void*)(ADDRESS)(p), l)";
 
 PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
   VAR written: SYSTEM.ADDRESS;

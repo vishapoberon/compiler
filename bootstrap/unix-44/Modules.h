@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Modules__h
 #define Modules__h
@@ -28,20 +28,20 @@ typedef
 	struct Modules_ModuleDesc {
 		Modules_Module next;
 		Modules_ModuleName name;
-		int32 refcnt;
+		INT32 refcnt;
 		Modules_Cmd cmds;
-		int32 types;
-		void (*enumPtrs)(void(*)(int32));
+		INT32 types;
+		void (*enumPtrs)(void(*)(INT32));
 		char _prvt0[8];
 	} Modules_ModuleDesc;
 
 
-import int16 Modules_res;
+import INT16 Modules_res;
 import CHAR Modules_resMsg[256];
 import Modules_ModuleName Modules_imported, Modules_importing;
 
-import address *Modules_ModuleDesc__typ;
-import address *Modules_CmdDesc__typ;
+import ADDRESS *Modules_ModuleDesc__typ;
+import ADDRESS *Modules_CmdDesc__typ;
 
 import void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
 import Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);

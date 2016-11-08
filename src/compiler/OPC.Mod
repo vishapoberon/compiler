@@ -39,7 +39,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   VAR
     indentLevel: INTEGER;
     hashtab:     ARRAY 105 OF SHORTINT;
-    keytab:      ARRAY 50, 9 OF CHAR;
+    keytab:      ARRAY 60 (*50*), 9 OF CHAR;
     GlbPtrs:     BOOLEAN;
     BodyNameExt: ARRAY 13 OF CHAR;
 
@@ -112,9 +112,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
     ELSIF (mode = OPT.Typ) & (obj.typ.form IN {OPT.Int, OPT.Set}) THEN
-      IF obj.typ = OPT.adrtyp THEN OPM.WriteString("address")
+      IF obj.typ = OPT.adrtyp THEN OPM.WriteString("ADDRESS")
       ELSE
-        IF obj.typ.form = OPT.Int THEN OPM.WriteString("int") ELSE OPM.WriteString("uint") END;
+        IF obj.typ.form = OPT.Int THEN OPM.WriteString("INT") ELSE OPM.WriteString("UINT") END;
         OPM.WriteInt(obj.typ.size*8)
       END
     ELSE
@@ -568,9 +568,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       DEC(gap, (adr - off) + align);
       BegStat;
       CASE align OF
-      |2: OPM.WriteString("int16")
-      |4: OPM.WriteString("int32")
-      |8: OPM.WriteString("int64")
+      |2: OPM.WriteString("INT16")
+      |4: OPM.WriteString("INT32")
+      |8: OPM.WriteString("INT64")
       ELSE OPM.LogWLn; OPM.LogWStr("Unexpected enclosing alignment in FillGap.")
       END;
       Str1(" _prvt#", n); INC(n); EndStat;
@@ -659,7 +659,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString("LONGINT "); LenList(obj, FALSE, TRUE)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           EndStat; BegStat;
-          OPM.WriteString("address *"); Ident(obj); OPM.WriteString(TagExt);
+          OPM.WriteString("ADDRESS *"); Ident(obj); OPM.WriteString(TagExt);
           base := NIL
         ELSIF (OPM.ptrinit IN OPM.Options) & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
           OPM.WriteString(" = NIL")
@@ -687,7 +687,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString(", LONGINT ");
           LenList(obj, TRUE, showParamNames)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
-          OPM.WriteString(", address *");
+          OPM.WriteString(", ADDRESS *");
           IF showParamNames THEN Ident(obj); OPM.WriteString(TagExt) END
         END ;
         IF (obj^.link = NIL) OR (obj^.link.mode = OPT.TProc) THEN EXIT END ;
@@ -751,7 +751,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         ELSIF (typ^.strobj # NIL) & (typ^.strobj^.mnolev > 0) THEN OPM.WriteString('static ')
         ELSE OPM.WriteString(Export)
         END ;
-        OPM.WriteString("address *"); Andent(typ); OPM.WriteString(DynTypExt);
+        OPM.WriteString("ADDRESS *"); Andent(typ); OPM.WriteString(DynTypExt);
         EndStat
       END ;
       n := n^.link
@@ -823,10 +823,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteLn;
 
     (* Define model dependent type sizes *)
-    OPM.WriteString("#define SHORTINT int");  OPM.WriteInt(OPT.sinttyp.size*8); OPM.WriteLn;
-    OPM.WriteString("#define INTEGER  int");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
-    OPM.WriteString("#define LONGINT  int");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
-    OPM.WriteString("#define SET      uint"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
+    OPM.WriteString("#define SHORTINT INT");  OPM.WriteInt(OPT.sinttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define INTEGER  INT");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
+    OPM.WriteString("#define LONGINT  INT");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define SET      UINT"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
     OPM.WriteLn;
 
     Include(BasicIncludeFile);
@@ -1204,7 +1204,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE IntLiteral*(n: SYSTEM.INT64; size: LONGINT);
   BEGIN
     IF (size > OPM.CIntSize) & (n <= OPM.CIntMax) & (n > OPM.CIntMin) THEN
-      OPM.WriteString("((int"); OPM.WriteInt(size*8); OPM.WriteString(")(");
+      OPM.WriteString("((INT"); OPM.WriteInt(size*8); OPM.WriteString(")(");
       OPM.WriteInt(n); OPM.WriteString("))")
     ELSE
       OPM.WriteInt(n)
@@ -1264,8 +1264,27 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END Enter;
 
   BEGIN n := 0;
-    FOR i := 0 TO 104 DO hashtab[i] := -1 END ;
+    FOR i := 0 TO LEN(hashtab)-1 DO hashtab[i] := -1 END ;
+    Enter("ADDRESS");  (* pseudo keyword used by voc *)
+    Enter("INT16");    (* pseudo keyword used by voc *)
+    Enter("INT32");    (* pseudo keyword used by voc *)
+    Enter("INT64");    (* pseudo keyword used by voc *)
+    Enter("INT8");     (* pseudo keyword used by voc *)
+    Enter("UINT16");   (* pseudo keyword used by voc *)
+    Enter("UINT32");   (* pseudo keyword used by voc *)
+    Enter("UINT64");   (* pseudo keyword used by voc *)
+    Enter("UINT8");    (* pseudo keyword used by voc *)
+
     Enter("address");  (* pseudo keyword used by voc *)
+    Enter("int16");    (* pseudo keyword used by voc *)
+    Enter("int32");    (* pseudo keyword used by voc *)
+    Enter("int64");    (* pseudo keyword used by voc *)
+    Enter("int8");     (* pseudo keyword used by voc *)
+    Enter("uint16");   (* pseudo keyword used by voc *)
+    Enter("uint32");   (* pseudo keyword used by voc *)
+    Enter("uint64");   (* pseudo keyword used by voc *)
+    Enter("uint8");    (* pseudo keyword used by voc *)
+
     Enter("asm");
     Enter("auto");
     Enter("break");
@@ -1287,10 +1306,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("if");
     Enter("import");   (* pseudo keyword used by voc *)
     Enter("int");
-    Enter("int16");    (* pseudo keyword used by voc *)
-    Enter("int32");    (* pseudo keyword used by voc *)
-    Enter("int64");    (* pseudo keyword used by voc *)
-    Enter("int8");     (* pseudo keyword used by voc *)
     Enter("long");
     Enter("register");
     Enter("return");
@@ -1302,10 +1317,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("struct");
     Enter("switch");
     Enter("typedef");
-    Enter("uint16");   (* pseudo keyword used by voc *)
-    Enter("uint32");   (* pseudo keyword used by voc *)
-    Enter("uint64");   (* pseudo keyword used by voc *)
-    Enter("uint8");    (* pseudo keyword used by voc *)
     Enter("union");
     Enter("unsigned");
     Enter("void");

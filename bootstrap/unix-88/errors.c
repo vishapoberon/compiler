@@ -1,9 +1,9 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define SHORTINT int8
-#define INTEGER  int16
-#define LONGINT  int32
-#define SET      uint32
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
 
 #include "SYSTEM.h"
 

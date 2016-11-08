@@ -240,7 +240,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       OPM.WriteInt(OPM.SignedMaximum(to) + 1); OPM.Write(CloseParen)
     ELSE
       IF (n.typ.size # to) & ((n.typ.size > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
-        OPM.WriteString("(int"); OPM.WriteInt(to*8); OPM.WriteString(")")
+        OPM.WriteString("(INT"); OPM.WriteInt(to*8); OPM.WriteString(")")
       END
     END
   END SizeCast;

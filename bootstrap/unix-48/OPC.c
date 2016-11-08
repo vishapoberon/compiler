@@ -1,9 +1,9 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define SHORTINT int8
-#define INTEGER  int16
-#define LONGINT  int32
-#define SET      uint32
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -11,9 +11,9 @@
 #include "OPT.h"
 
 
-static int16 OPC_indentLevel;
-static int8 OPC_hashtab[105];
-static CHAR OPC_keytab[50][9];
+static INT16 OPC_indentLevel;
+static INT8 OPC_hashtab[105];
+static CHAR OPC_keytab[60][9];
 static BOOLEAN OPC_GlbPtrs;
 static CHAR OPC_BodyNameExt[13];
 
@@ -23,12 +23,12 @@ static void OPC_AnsiParamList (OPT_Object obj, BOOLEAN showParamNames);
 export OPT_Object OPC_BaseTProc (OPT_Object obj);
 export void OPC_BegBlk (void);
 export void OPC_BegStat (void);
-static void OPC_CProcDefs (OPT_Object obj, int16 vis);
-export void OPC_Case (int64 caseVal, int16 form);
-static void OPC_CharacterLiteral (int64 c);
-export void OPC_Cmp (int16 rel);
+static void OPC_CProcDefs (OPT_Object obj, INT16 vis);
+export void OPC_Case (INT64 caseVal, INT16 form);
+static void OPC_CharacterLiteral (INT64 c);
+export void OPC_Cmp (INT16 rel);
 export void OPC_CompleteIdent (OPT_Object obj);
-export void OPC_Constant (OPT_Const con, int16 form);
+export void OPC_Constant (OPT_Const con, INT16 form);
 static void OPC_DeclareBase (OPT_Object dcl);
 static void OPC_DeclareObj (OPT_Object dcl, BOOLEAN scopeDef);
 static void OPC_DeclareParams (OPT_Object par, BOOLEAN macro);
@@ -45,45 +45,45 @@ export void OPC_EnterBody (void);
 export void OPC_EnterProc (OPT_Object proc);
 export void OPC_ExitBody (void);
 export void OPC_ExitProc (OPT_Object proc, BOOLEAN eoBlock, BOOLEAN implicitRet);
-static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, int32 *off, int32 *n, int32 *curAlign);
-static void OPC_FillGap (int32 gap, int32 off, int32 align, int32 *n, int32 *curAlign);
+static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, INT32 *off, INT32 *n, INT32 *curAlign);
+static void OPC_FillGap (INT32 gap, INT32 off, INT32 align, INT32 *n, INT32 *curAlign);
 export void OPC_GenBdy (OPT_Node n);
-static void OPC_GenDynTypes (OPT_Node n, int16 vis);
+static void OPC_GenDynTypes (OPT_Node n, INT16 vis);
 export void OPC_GenEnumPtrs (OPT_Object var);
 export void OPC_GenHdr (OPT_Node n);
 export void OPC_GenHdrIncludes (void);
 static void OPC_GenHeaderMsg (void);
-export void OPC_Halt (int32 n);
+export void OPC_Halt (INT32 n);
 export void OPC_Ident (OPT_Object obj);
-static void OPC_IdentList (OPT_Object obj, int16 vis);
+static void OPC_IdentList (OPT_Object obj, INT16 vis);
 static void OPC_Include (CHAR *name, LONGINT name__len);
-static void OPC_IncludeImports (OPT_Object obj, int16 vis);
+static void OPC_IncludeImports (OPT_Object obj, INT16 vis);
 export void OPC_Increment (BOOLEAN decrement);
-export void OPC_Indent (int16 count);
+export void OPC_Indent (INT16 count);
 export void OPC_Init (void);
 static void OPC_InitImports (OPT_Object obj);
 static void OPC_InitKeywords (void);
 export void OPC_InitTDesc (OPT_Struct typ);
 static void OPC_InitTProcs (OPT_Object typ, OPT_Object obj);
-export void OPC_IntLiteral (int64 n, int32 size);
-export void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim);
+export void OPC_IntLiteral (INT64 n, INT32 size);
+export void OPC_Len (OPT_Object obj, OPT_Struct array, INT64 dim);
 static void OPC_LenList (OPT_Object par, BOOLEAN ansiDefine, BOOLEAN showParamName);
-static int16 OPC_Length (CHAR *s, LONGINT s__len);
+static INT16 OPC_Length (CHAR *s, LONGINT s__len);
 export BOOLEAN OPC_NeedsRetval (OPT_Object proc);
-export int32 OPC_NofPtrs (OPT_Struct typ);
-static int16 OPC_PerfectHash (CHAR *s, LONGINT s__len);
+export INT32 OPC_NofPtrs (OPT_Struct typ);
+static INT16 OPC_PerfectHash (CHAR *s, LONGINT s__len);
 static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, LONGINT y__len);
 static void OPC_ProcHeader (OPT_Object proc, BOOLEAN define);
-static void OPC_ProcPredefs (OPT_Object obj, int8 vis);
+static void OPC_ProcPredefs (OPT_Object obj, INT8 vis);
 static void OPC_PutBase (OPT_Struct typ);
-static void OPC_PutPtrOffsets (OPT_Struct typ, int32 adr, int32 *cnt);
+static void OPC_PutPtrOffsets (OPT_Struct typ, INT32 adr, INT32 *cnt);
 static void OPC_RegCmds (OPT_Object obj);
 export void OPC_SetInclude (BOOLEAN exclude);
 static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause);
-static void OPC_Str1 (CHAR *s, LONGINT s__len, int32 x);
-static void OPC_StringLiteral (CHAR *s, LONGINT s__len, int32 l);
+static void OPC_Str1 (CHAR *s, LONGINT s__len, INT32 x);
+static void OPC_StringLiteral (CHAR *s, LONGINT s__len, INT32 l);
 export void OPC_TDescDecl (OPT_Struct typ);
-export void OPC_TypeDefs (OPT_Object obj, int16 vis);
+export void OPC_TypeDefs (OPT_Object obj, INT16 vis);
 export void OPC_TypeOf (OPT_Object ap);
 static BOOLEAN OPC_Undefined (OPT_Object obj);
 
@@ -94,14 +94,14 @@ void OPC_Init (void)
 	__MOVE("__init(void)", OPC_BodyNameExt, 13);
 }
 
-void OPC_Indent (int16 count)
+void OPC_Indent (INT16 count)
 {
 	OPC_indentLevel += count;
 }
 
 void OPC_BegStat (void)
 {
-	int16 i;
+	INT16 i;
 	i = OPC_indentLevel;
 	while (i > 0) {
 		OPM_Write(0x09);
@@ -137,10 +137,10 @@ void OPC_EndBlk0 (void)
 	OPM_Write('}');
 }
 
-static void OPC_Str1 (CHAR *s, LONGINT s__len, int32 x)
+static void OPC_Str1 (CHAR *s, LONGINT s__len, INT32 x)
 {
 	CHAR ch;
-	int16 i;
+	INT16 i;
 	__DUP(s, s__len, CHAR);
 	ch = s[0];
 	i = 0;
@@ -156,9 +156,9 @@ static void OPC_Str1 (CHAR *s, LONGINT s__len, int32 x)
 	__DEL(s);
 }
 
-static int16 OPC_Length (CHAR *s, LONGINT s__len)
+static INT16 OPC_Length (CHAR *s, LONGINT s__len)
 {
-	int16 i;
+	INT16 i;
 	i = 0;
 	while (s[__X(i, s__len)] != 0x00) {
 		i += 1;
@@ -166,13 +166,13 @@ static int16 OPC_Length (CHAR *s, LONGINT s__len)
 	return i;
 }
 
-static int16 OPC_PerfectHash (CHAR *s, LONGINT s__len)
+static INT16 OPC_PerfectHash (CHAR *s, LONGINT s__len)
 {
-	int16 i, h;
+	INT16 i, h;
 	i = 0;
 	h = 0;
 	while ((s[__X(i, s__len)] != 0x00 && i < 5)) {
-		h = 3 * h + (int16)s[__X(i, s__len)];
+		h = 3 * h + (INT16)s[__X(i, s__len)];
 		i += 1;
 	}
 	return (int)__MOD(h, 105);
@@ -180,25 +180,25 @@ static int16 OPC_PerfectHash (CHAR *s, LONGINT s__len)
 
 void OPC_Ident (OPT_Object obj)
 {
-	int16 mode, level, h;
+	INT16 mode, level, h;
 	mode = obj->mode;
 	level = obj->mnolev;
 	if ((__IN(mode, 0x62, 32) && level > 0) || __IN(mode, 0x14, 32)) {
 		OPM_WriteStringVar((void*)obj->name, 256);
 		h = OPC_PerfectHash((void*)obj->name, 256);
 		if (OPC_hashtab[__X(h, 105)] >= 0) {
-			if (__STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 105)], 50)], obj->name) == 0) {
+			if (__STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 105)], 60)], obj->name) == 0) {
 				OPM_Write('_');
 			}
 		}
 	} else if ((mode == 5 && __IN(obj->typ->form, 0x90, 32))) {
 		if (obj->typ == OPT_adrtyp) {
-			OPM_WriteString((CHAR*)"address", 8);
+			OPM_WriteString((CHAR*)"ADDRESS", 8);
 		} else {
 			if (obj->typ->form == 4) {
-				OPM_WriteString((CHAR*)"int", 4);
+				OPM_WriteString((CHAR*)"INT", 4);
 			} else {
-				OPM_WriteString((CHAR*)"uint", 5);
+				OPM_WriteString((CHAR*)"UINT", 5);
 			}
 			OPM_WriteInt(__ASHL(obj->typ->size, 3));
 		}
@@ -224,7 +224,7 @@ void OPC_Ident (OPT_Object obj)
 
 static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause)
 {
-	int16 pointers;
+	INT16 pointers;
 	*openClause = 0;
 	if (((typ->strobj == NIL || typ->strobj->name[0] == 0x00) && typ->comp != 4)) {
 		if (__IN(typ->comp, 0x0c, 32)) {
@@ -260,7 +260,7 @@ static void OPC_DeclareObj (OPT_Object dcl, BOOLEAN scopeDef)
 {
 	OPT_Struct typ = NIL;
 	BOOLEAN varPar, openClause;
-	int16 form, comp;
+	INT16 form, comp;
 	typ = dcl->typ;
 	varPar = ((dcl->mode == 2 && typ->comp != 2) || typ->comp == 3) || scopeDef;
 	OPC_Stars(typ, &openClause);
@@ -324,8 +324,8 @@ static void OPC_DeclareBase (OPT_Object dcl)
 {
 	OPT_Struct typ = NIL, prev = NIL;
 	OPT_Object obj = NIL;
-	int16 nofdims;
-	int32 off, n, dummy;
+	INT16 nofdims;
+	INT32 off, n, dummy;
 	typ = dcl->typ;
 	prev = typ;
 	while ((((((((typ->strobj == NIL || typ->comp == 3) || OPC_Undefined(typ->strobj)) && typ->comp != 4)) && typ->form != 10)) && !((typ->form == 11 && typ->BaseTyp->comp == 3)))) {
@@ -384,11 +384,11 @@ static void OPC_DeclareBase (OPT_Object dcl)
 	}
 }
 
-int32 OPC_NofPtrs (OPT_Struct typ)
+INT32 OPC_NofPtrs (OPT_Struct typ)
 {
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
-	int32 n;
+	INT32 n;
 	if ((typ->form == 11 && typ->sysflag == 0)) {
 		return 1;
 	} else if ((typ->comp == 4 && __MASK(typ->sysflag, -256) == 0)) {
@@ -422,11 +422,11 @@ int32 OPC_NofPtrs (OPT_Struct typ)
 	__RETCHK;
 }
 
-static void OPC_PutPtrOffsets (OPT_Struct typ, int32 adr, int32 *cnt)
+static void OPC_PutPtrOffsets (OPT_Struct typ, INT32 adr, INT32 *cnt)
 {
 	OPT_Object fld = NIL;
 	OPT_Struct btyp = NIL;
-	int32 n, i;
+	INT32 n, i;
 	if ((typ->form == 11 && typ->sysflag == 0)) {
 		OPM_WriteInt(adr);
 		OPM_WriteString((CHAR*)", ", 3);
@@ -502,7 +502,7 @@ static void OPC_PutBase (OPT_Struct typ)
 static void OPC_LenList (OPT_Object par, BOOLEAN ansiDefine, BOOLEAN showParamName)
 {
 	OPT_Struct typ = NIL;
-	int16 dim;
+	INT16 dim;
 	if (showParamName) {
 		OPC_Ident(par);
 		OPM_WriteString((CHAR*)"__len", 6);
@@ -599,7 +599,7 @@ static void OPC_DeclareTProcs (OPT_Object obj, BOOLEAN *empty)
 OPT_Object OPC_BaseTProc (OPT_Object obj)
 {
 	OPT_Struct typ = NIL, base = NIL;
-	int32 mno;
+	INT32 mno;
 	typ = obj->link->typ;
 	if (typ->form == 11) {
 		typ = typ->BaseTyp;
@@ -722,7 +722,7 @@ static void OPC_DefineType (OPT_Struct str)
 
 static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, LONGINT y__len)
 {
-	int16 i;
+	INT16 i;
 	__DUP(y, y__len, CHAR);
 	i = 0;
 	while ((*x)[__X(i + 1, 256)] == y[__X(i, y__len)]) {
@@ -732,14 +732,14 @@ static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, LONGINT y__len)
 	return y[__X(i, y__len)] == 0x00;
 }
 
-static void OPC_CProcDefs (OPT_Object obj, int16 vis)
+static void OPC_CProcDefs (OPT_Object obj, INT16 vis)
 {
-	int16 i;
+	INT16 i;
 	OPT_ConstExt ext = NIL;
-	int16 _for__7;
+	INT16 _for__7;
 	if (obj != NIL) {
 		OPC_CProcDefs(obj->left, vis);
-		if ((((obj->mode == 9 && (int16)obj->vis >= vis)) && obj->adr == 1)) {
+		if ((((obj->mode == 9 && (INT16)obj->vis >= vis)) && obj->adr == 1)) {
 			ext = obj->conval->ext;
 			i = 1;
 			if (((*ext)[1] != '#' && !(OPC_Prefixed(ext, (CHAR*)"extern ", 8) || OPC_Prefixed(ext, (CHAR*)"import ", 8)))) {
@@ -748,7 +748,7 @@ static void OPC_CProcDefs (OPT_Object obj, int16 vis)
 				OPC_DeclareParams(obj->link, 1);
 				OPM_Write(0x09);
 			}
-			_for__7 = (int16)(*obj->conval->ext)[0];
+			_for__7 = (INT16)(*obj->conval->ext)[0];
 			i = i;
 			while (i <= _for__7) {
 				OPM_Write((*obj->conval->ext)[__X(i, 256)]);
@@ -760,7 +760,7 @@ static void OPC_CProcDefs (OPT_Object obj, int16 vis)
 	}
 }
 
-void OPC_TypeDefs (OPT_Object obj, int16 vis)
+void OPC_TypeDefs (OPT_Object obj, INT16 vis)
 {
 	if (obj != NIL) {
 		OPC_TypeDefs(obj->left, vis);
@@ -792,7 +792,7 @@ static void OPC_DefAnonRecs (OPT_Node n)
 
 void OPC_TDescDecl (OPT_Struct typ)
 {
-	int32 nofptrs;
+	INT32 nofptrs;
 	OPT_Object o = NIL;
 	OPC_BegStat();
 	OPM_WriteString((CHAR*)"__TDESC(", 9);
@@ -829,9 +829,9 @@ void OPC_InitTDesc (OPT_Struct typ)
 	}
 }
 
-static void OPC_FillGap (int32 gap, int32 off, int32 align, int32 *n, int32 *curAlign)
+static void OPC_FillGap (INT32 gap, INT32 off, INT32 align, INT32 *n, INT32 *curAlign)
 {
-	int32 adr;
+	INT32 adr;
 	adr = off;
 	OPT_Align(&adr, align);
 	if ((*curAlign < align && gap - (adr - off) >= align)) {
@@ -839,13 +839,13 @@ static void OPC_FillGap (int32 gap, int32 off, int32 align, int32 *n, int32 *cur
 		OPC_BegStat();
 		switch (align) {
 			case 2: 
-				OPM_WriteString((CHAR*)"int16", 6);
+				OPM_WriteString((CHAR*)"INT16", 6);
 				break;
 			case 4: 
-				OPM_WriteString((CHAR*)"int32", 6);
+				OPM_WriteString((CHAR*)"INT32", 6);
 				break;
 			case 8: 
-				OPM_WriteString((CHAR*)"int64", 6);
+				OPM_WriteString((CHAR*)"INT64", 6);
 				break;
 			default: 
 				OPM_LogWLn();
@@ -866,11 +866,11 @@ static void OPC_FillGap (int32 gap, int32 off, int32 align, int32 *n, int32 *cur
 	}
 }
 
-static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, int32 *off, int32 *n, int32 *curAlign)
+static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, INT32 *off, INT32 *n, INT32 *curAlign)
 {
 	OPT_Object fld = NIL;
 	OPT_Struct base = NIL;
-	int32 gap, adr, align, fldAlign;
+	INT32 gap, adr, align, fldAlign;
 	fld = typ->link;
 	align = __MASK(typ->align, -65536);
 	if (typ->BaseTyp != NIL) {
@@ -926,16 +926,16 @@ static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, int32 *off, int32 *n, i
 	}
 }
 
-static void OPC_IdentList (OPT_Object obj, int16 vis)
+static void OPC_IdentList (OPT_Object obj, INT16 vis)
 {
 	OPT_Struct base = NIL;
 	BOOLEAN first;
-	int16 lastvis;
+	INT16 lastvis;
 	base = NIL;
 	first = 1;
 	while ((obj != NIL && obj->mode != 13)) {
 		if ((__IN(vis, 0x05, 32) || (vis == 1 && obj->vis != 0)) || (vis == 3 && !obj->leaf)) {
-			if (obj->typ != base || (int16)obj->vis != lastvis) {
+			if (obj->typ != base || (INT16)obj->vis != lastvis) {
 				if (!first) {
 					OPC_EndStat();
 				}
@@ -974,7 +974,7 @@ static void OPC_IdentList (OPT_Object obj, int16 vis)
 			} else if ((obj->mode == 2 && obj->typ->comp == 4)) {
 				OPC_EndStat();
 				OPC_BegStat();
-				OPM_WriteString((CHAR*)"address *", 10);
+				OPM_WriteString((CHAR*)"ADDRESS *", 10);
 				OPC_Ident(obj);
 				OPM_WriteString((CHAR*)"__typ", 6);
 				base = NIL;
@@ -1011,7 +1011,7 @@ static void OPC_AnsiParamList (OPT_Object obj, BOOLEAN showParamNames)
 				OPM_WriteString((CHAR*)", LONGINT ", 11);
 				OPC_LenList(obj, 1, showParamNames);
 			} else if ((obj->mode == 2 && obj->typ->comp == 4)) {
-				OPM_WriteString((CHAR*)", address *", 12);
+				OPM_WriteString((CHAR*)", ADDRESS *", 12);
 				if (showParamNames) {
 					OPC_Ident(obj);
 					OPM_WriteString((CHAR*)"__typ", 6);
@@ -1044,7 +1044,7 @@ static void OPC_ProcHeader (OPT_Object proc, BOOLEAN define)
 	OPM_WriteLn();
 }
 
-static void OPC_ProcPredefs (OPT_Object obj, int8 vis)
+static void OPC_ProcPredefs (OPT_Object obj, INT8 vis)
 {
 	if (obj != NIL) {
 		OPC_ProcPredefs(obj->left, vis);
@@ -1074,18 +1074,18 @@ static void OPC_Include (CHAR *name, LONGINT name__len)
 	__DEL(name);
 }
 
-static void OPC_IncludeImports (OPT_Object obj, int16 vis)
+static void OPC_IncludeImports (OPT_Object obj, INT16 vis)
 {
 	if (obj != NIL) {
 		OPC_IncludeImports(obj->left, vis);
-		if ((((obj->mode == 11 && obj->mnolev != 0)) && (int16)OPT_GlbMod[__X(-obj->mnolev, 64)]->vis >= vis)) {
+		if ((((obj->mode == 11 && obj->mnolev != 0)) && (INT16)OPT_GlbMod[__X(-obj->mnolev, 64)]->vis >= vis)) {
 			OPC_Include(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, 256);
 		}
 		OPC_IncludeImports(obj->right, vis);
 	}
 }
 
-static void OPC_GenDynTypes (OPT_Node n, int16 vis)
+static void OPC_GenDynTypes (OPT_Node n, INT16 vis)
 {
 	OPT_Struct typ = NIL;
 	while ((n != NIL && n->class == 14)) {
@@ -1099,7 +1099,7 @@ static void OPC_GenDynTypes (OPT_Node n, int16 vis)
 			} else {
 				OPM_WriteString((CHAR*)"export ", 8);
 			}
-			OPM_WriteString((CHAR*)"address *", 10);
+			OPM_WriteString((CHAR*)"ADDRESS *", 10);
 			OPC_Andent(typ);
 			OPM_WriteString((CHAR*)"__typ", 6);
 			OPC_EndStat();
@@ -1134,7 +1134,7 @@ void OPC_GenHdr (OPT_Node n)
 
 static void OPC_GenHeaderMsg (void)
 {
-	int16 i;
+	INT16 i;
 	OPM_WriteString((CHAR*)"/* ", 4);
 	OPM_WriteString((CHAR*)"voc", 4);
 	OPM_Write(' ');
@@ -1222,16 +1222,16 @@ void OPC_GenBdy (OPT_Node n)
 	OPM_currFile = 1;
 	OPC_GenHeaderMsg();
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define SHORTINT int", 21);
+	OPM_WriteString((CHAR*)"#define SHORTINT INT", 21);
 	OPM_WriteInt(__ASHL(OPT_sinttyp->size, 3));
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define INTEGER  int", 21);
+	OPM_WriteString((CHAR*)"#define INTEGER  INT", 21);
 	OPM_WriteInt(__ASHL(OPT_inttyp->size, 3));
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define LONGINT  int", 21);
+	OPM_WriteString((CHAR*)"#define LONGINT  INT", 21);
 	OPM_WriteInt(__ASHL(OPT_linttyp->size, 3));
 	OPM_WriteLn();
-	OPM_WriteString((CHAR*)"#define SET      uint", 22);
+	OPM_WriteString((CHAR*)"#define SET      UINT", 22);
 	OPM_WriteInt(__ASHL(OPT_settyp->size, 3));
 	OPM_WriteLn();
 	OPM_WriteLn();
@@ -1288,7 +1288,7 @@ static void OPC_InitImports (OPT_Object obj)
 void OPC_GenEnumPtrs (OPT_Object var)
 {
 	OPT_Struct typ = NIL;
-	int32 n;
+	INT32 n;
 	OPC_GlbPtrs = 0;
 	while (var != NIL) {
 		typ = var->typ;
@@ -1438,7 +1438,7 @@ void OPC_EnterProc (OPT_Object proc)
 {
 	OPT_Object var = NIL, scope = NIL;
 	OPT_Struct typ = NIL;
-	int16 dim;
+	INT16 dim;
 	if (proc->vis != 1) {
 		OPM_WriteString((CHAR*)"static ", 8);
 	}
@@ -1652,7 +1652,7 @@ void OPC_ExitProc (OPT_Object proc, BOOLEAN eoBlock, BOOLEAN implicitRet)
 
 void OPC_CompleteIdent (OPT_Object obj)
 {
-	int16 comp, level;
+	INT16 comp, level;
 	level = obj->mnolev;
 	if (obj->adr == 1) {
 		if (obj->typ->comp == 4) {
@@ -1681,10 +1681,10 @@ void OPC_CompleteIdent (OPT_Object obj)
 
 void OPC_TypeOf (OPT_Object ap)
 {
-	int16 i;
+	INT16 i;
 	__ASSERT(ap->typ->comp == 4, 0);
 	if (ap->mode == 2) {
-		if ((int16)ap->mnolev != OPM_level) {
+		if ((INT16)ap->mnolev != OPM_level) {
 			OPM_WriteStringVar((void*)ap->scope->name, 256);
 			OPM_WriteString((CHAR*)"_s->", 5);
 			OPC_Ident(ap);
@@ -1700,7 +1700,7 @@ void OPC_TypeOf (OPT_Object ap)
 	}
 }
 
-void OPC_Cmp (int16 rel)
+void OPC_Cmp (INT16 rel)
 {
 	switch (rel) {
 		case 9: 
@@ -1729,7 +1729,7 @@ void OPC_Cmp (int16 rel)
 	}
 }
 
-static void OPC_CharacterLiteral (int64 c)
+static void OPC_CharacterLiteral (INT64 c)
 {
 	if (c < 32 || c > 126) {
 		OPM_WriteString((CHAR*)"0x", 3);
@@ -1744,15 +1744,15 @@ static void OPC_CharacterLiteral (int64 c)
 	}
 }
 
-static void OPC_StringLiteral (CHAR *s, LONGINT s__len, int32 l)
+static void OPC_StringLiteral (CHAR *s, LONGINT s__len, INT32 l)
 {
-	int32 i;
-	int16 c;
+	INT32 i;
+	INT16 c;
 	__DUP(s, s__len, CHAR);
 	OPM_Write('"');
 	i = 0;
 	while (i < l) {
-		c = (int16)s[__X(i, s__len)];
+		c = (INT16)s[__X(i, s__len)];
 		if (c < 32 || c > 126) {
 			OPM_Write('\\');
 			OPM_Write((CHAR)(48 + __ASHR(c, 6)));
@@ -1772,7 +1772,7 @@ static void OPC_StringLiteral (CHAR *s, LONGINT s__len, int32 l)
 	__DEL(s);
 }
 
-void OPC_Case (int64 caseVal, int16 form)
+void OPC_Case (INT64 caseVal, INT16 form)
 {
 	CHAR ch;
 	OPM_WriteString((CHAR*)"case ", 6);
@@ -1810,15 +1810,15 @@ void OPC_Increment (BOOLEAN decrement)
 	}
 }
 
-void OPC_Halt (int32 n)
+void OPC_Halt (INT32 n)
 {
 	OPC_Str1((CHAR*)"__HALT(#)", 10, n);
 }
 
-void OPC_IntLiteral (int64 n, int32 size)
+void OPC_IntLiteral (INT64 n, INT32 size)
 {
 	if ((((size > 4 && n <= 2147483647)) && n > (-2147483647-1))) {
-		OPM_WriteString((CHAR*)"((int", 6);
+		OPM_WriteString((CHAR*)"((INT", 6);
 		OPM_WriteInt(__ASHL(size, 3));
 		OPM_WriteString((CHAR*)")(", 3);
 		OPM_WriteInt(n);
@@ -1828,7 +1828,7 @@ void OPC_IntLiteral (int64 n, int32 size)
 	}
 }
 
-void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
+void OPC_Len (OPT_Object obj, OPT_Struct array, INT64 dim)
 {
 	if (array->comp == 3) {
 		OPC_CompleteIdent(obj);
@@ -1845,11 +1845,11 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, int64 dim)
 	}
 }
 
-void OPC_Constant (OPT_Const con, int16 form)
+void OPC_Constant (OPT_Const con, INT16 form)
 {
-	int16 i;
-	uint64 s;
-	int64 hex;
+	INT16 i;
+	UINT64 s;
+	INT64 hex;
 	BOOLEAN skipLeading;
 	switch (form) {
 		case 1: 
@@ -1908,7 +1908,7 @@ void OPC_Constant (OPT_Const con, int16 form)
 }
 
 static struct InitKeywords__46 {
-	int8 *n;
+	INT8 *n;
 	struct InitKeywords__46 *lnk;
 } *InitKeywords__46_s;
 
@@ -1916,18 +1916,18 @@ static void Enter__47 (CHAR *s, LONGINT s__len);
 
 static void Enter__47 (CHAR *s, LONGINT s__len)
 {
-	int16 h;
+	INT16 h;
 	__DUP(s, s__len, CHAR);
 	h = OPC_PerfectHash((void*)s, s__len);
 	OPC_hashtab[__X(h, 105)] = *InitKeywords__46_s->n;
-	__COPY(s, OPC_keytab[__X(*InitKeywords__46_s->n, 50)], 9);
+	__COPY(s, OPC_keytab[__X(*InitKeywords__46_s->n, 60)], 9);
 	*InitKeywords__46_s->n += 1;
 	__DEL(s);
 }
 
 static void OPC_InitKeywords (void)
 {
-	int8 n, i;
+	INT8 n, i;
 	struct InitKeywords__46 _s;
 	_s.n = &n;
 	_s.lnk = InitKeywords__46_s;
@@ -1938,7 +1938,24 @@ static void OPC_InitKeywords (void)
 		OPC_hashtab[__X(i, 105)] = -1;
 		i += 1;
 	}
+	Enter__47((CHAR*)"ADDRESS", 8);
+	Enter__47((CHAR*)"INT16", 6);
+	Enter__47((CHAR*)"INT32", 6);
+	Enter__47((CHAR*)"INT64", 6);
+	Enter__47((CHAR*)"INT8", 5);
+	Enter__47((CHAR*)"UINT16", 7);
+	Enter__47((CHAR*)"UINT32", 7);
+	Enter__47((CHAR*)"UINT64", 7);
+	Enter__47((CHAR*)"UINT8", 6);
 	Enter__47((CHAR*)"address", 8);
+	Enter__47((CHAR*)"int16", 6);
+	Enter__47((CHAR*)"int32", 6);
+	Enter__47((CHAR*)"int64", 6);
+	Enter__47((CHAR*)"int8", 5);
+	Enter__47((CHAR*)"uint16", 7);
+	Enter__47((CHAR*)"uint32", 7);
+	Enter__47((CHAR*)"uint64", 7);
+	Enter__47((CHAR*)"uint8", 6);
 	Enter__47((CHAR*)"asm", 4);
 	Enter__47((CHAR*)"auto", 5);
 	Enter__47((CHAR*)"break", 6);
@@ -1960,10 +1977,6 @@ static void OPC_InitKeywords (void)
 	Enter__47((CHAR*)"if", 3);
 	Enter__47((CHAR*)"import", 7);
 	Enter__47((CHAR*)"int", 4);
-	Enter__47((CHAR*)"int16", 6);
-	Enter__47((CHAR*)"int32", 6);
-	Enter__47((CHAR*)"int64", 6);
-	Enter__47((CHAR*)"int8", 5);
 	Enter__47((CHAR*)"long", 5);
 	Enter__47((CHAR*)"register", 9);
 	Enter__47((CHAR*)"return", 7);
@@ -1975,10 +1988,6 @@ static void OPC_InitKeywords (void)
 	Enter__47((CHAR*)"struct", 7);
 	Enter__47((CHAR*)"switch", 7);
 	Enter__47((CHAR*)"typedef", 8);
-	Enter__47((CHAR*)"uint16", 7);
-	Enter__47((CHAR*)"uint32", 7);
-	Enter__47((CHAR*)"uint64", 7);
-	Enter__47((CHAR*)"uint8", 6);
 	Enter__47((CHAR*)"union", 6);
 	Enter__47((CHAR*)"unsigned", 9);
 	Enter__47((CHAR*)"void", 5);

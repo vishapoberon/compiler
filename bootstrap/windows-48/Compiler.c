@@ -1,9 +1,9 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
-#define SHORTINT int8
-#define INTEGER  int16
-#define LONGINT  int32
-#define SET      uint32
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
 
 #include "SYSTEM.h"
 #include "Configuration.h"
@@ -26,7 +26,7 @@ static CHAR Compiler_mname[256];
 export void Compiler_Module (BOOLEAN *done);
 static void Compiler_PropagateElementaryTypeSizes (void);
 export void Compiler_Translate (void);
-static void Compiler_Trap (int32 sig);
+static void Compiler_Trap (INT32 sig);
 
 
 void Compiler_Module (BOOLEAN *done)
@@ -147,7 +147,7 @@ void Compiler_Translate (void)
 	}
 }
 
-static void Compiler_Trap (int32 sig)
+static void Compiler_Trap (INT32 sig)
 {
 	Heap_FINALL();
 	if (sig == 3) {

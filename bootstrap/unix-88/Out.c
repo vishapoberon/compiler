@@ -1,37 +1,37 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define SHORTINT int8
-#define INTEGER  int16
-#define LONGINT  int32
-#define SET      uint32
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
 
 #include "SYSTEM.h"
 #include "Platform.h"
 
 
 static CHAR Out_buf[128];
-static int16 Out_in;
+static INT16 Out_in;
 
 
 export void Out_Char (CHAR ch);
 export void Out_Flush (void);
-export void Out_Int (int64 x, int64 n);
-static int32 Out_Length (CHAR *s, LONGINT s__len);
+export void Out_Int (INT64 x, INT64 n);
+static INT32 Out_Length (CHAR *s, LONGINT s__len);
 export void Out_Ln (void);
-export void Out_LongReal (LONGREAL x, int16 n);
+export void Out_LongReal (LONGREAL x, INT16 n);
 export void Out_Open (void);
-export void Out_Real (REAL x, int16 n);
-static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_);
+export void Out_Real (REAL x, INT16 n);
+static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_);
 export void Out_String (CHAR *str, LONGINT str__len);
-export LONGREAL Out_Ten (int16 e);
-static void Out_digit (int64 n, CHAR *s, LONGINT s__len, int16 *i);
-static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16 *i);
+export LONGREAL Out_Ten (INT16 e);
+static void Out_digit (INT64 n, CHAR *s, LONGINT s__len, INT16 *i);
+static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, INT16 *i);
 
 #define Out_Entier64(x)	(int64)(x)
 
 void Out_Flush (void)
 {
-	int16 error;
+	INT16 error;
 	if (Out_in > 0) {
 		error = Platform_Write(1, (address)Out_buf, Out_in);
 	}
@@ -54,9 +54,9 @@ void Out_Char (CHAR ch)
 	}
 }
 
-static int32 Out_Length (CHAR *s, LONGINT s__len)
+static INT32 Out_Length (CHAR *s, LONGINT s__len)
 {
-	int32 l;
+	INT32 l;
 	l = 0;
 	while ((l < s__len && s[__X(l, s__len)] != 0x00)) {
 		l += 1;
@@ -66,8 +66,8 @@ static int32 Out_Length (CHAR *s, LONGINT s__len)
 
 void Out_String (CHAR *str, LONGINT str__len)
 {
-	int32 l;
-	int16 error;
+	INT32 l;
+	INT16 error;
 	__DUP(str, str__len, CHAR);
 	l = Out_Length((void*)str, str__len);
 	if (Out_in + l > 128) {
@@ -77,15 +77,15 @@ void Out_String (CHAR *str, LONGINT str__len)
 		error = Platform_Write(1, (address)str, l);
 	} else {
 		__MOVE((address)str, (address)&Out_buf[__X(Out_in, 128)], l);
-		Out_in += (int16)l;
+		Out_in += (INT16)l;
 	}
 	__DEL(str);
 }
 
-void Out_Int (int64 x, int64 n)
+void Out_Int (INT64 x, INT64 n)
 {
 	CHAR s[22];
-	int16 i;
+	INT16 i;
 	BOOLEAN negative;
 	negative = x < 0;
 	if (x == (-9223372036854775807-1)) {
@@ -108,7 +108,7 @@ void Out_Int (int64 x, int64 n)
 		s[__X(i, 22)] = '-';
 		i += 1;
 	}
-	while (n > (int64)i) {
+	while (n > (INT64)i) {
 		Out_Char(' ');
 		n -= 1;
 	}
@@ -124,22 +124,22 @@ void Out_Ln (void)
 	Out_Flush();
 }
 
-static void Out_digit (int64 n, CHAR *s, LONGINT s__len, int16 *i)
+static void Out_digit (INT64 n, CHAR *s, LONGINT s__len, INT16 *i)
 {
 	*i -= 1;
 	s[__X(*i, s__len)] = (CHAR)(__MOD(n, 10) + 48);
 }
 
-static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16 *i)
+static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, INT16 *i)
 {
-	int16 j;
-	int32 l;
+	INT16 j;
+	INT32 l;
 	__DUP(t, t__len, CHAR);
 	l = Out_Length((void*)t, t__len);
 	if (l > *i) {
 		l = *i;
 	}
-	*i -= (int16)l;
+	*i -= (INT16)l;
 	j = 0;
 	while (j < l) {
 		s[__X(*i + j, s__len)] = t[__X(j, t__len)];
@@ -148,7 +148,7 @@ static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, int16
 	__DEL(t);
 }
 
-LONGREAL Out_Ten (int16 e)
+LONGREAL Out_Ten (INT16 e)
 {
 	LONGREAL r, power;
 	r = (LONGREAL)1;
@@ -163,19 +163,19 @@ LONGREAL Out_Ten (int16 e)
 	return r;
 }
 
-static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)
+static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 {
-	int16 e;
-	int64 f;
+	INT16 e;
+	INT64 f;
 	CHAR s[30];
-	int16 i, el;
+	INT16 i, el;
 	LONGREAL x0;
 	BOOLEAN nn, en;
-	int64 m;
-	int16 d, dr;
-	e = (int16)__MASK(__ASHR((__VAL(int64, x)), 52), -2048);
-	f = __MASK((__VAL(int64, x)), -4503599627370496);
-	nn = (__VAL(int64, x) < 0 && !((e == 2047 && f != 0)));
+	INT64 m;
+	INT16 d, dr;
+	e = (INT16)__MASK(__ASHR((__VAL(INT64, x)), 52), -2048);
+	f = __MASK((__VAL(INT64, x)), -4503599627370496);
+	nn = (__VAL(INT64, x) < 0 && !((e == 2047 && f != 0)));
 	if (nn) {
 		n -= 1;
 	}
@@ -221,7 +221,7 @@ static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)
 			if (nn) {
 				x = -x;
 			}
-			e = (int16)__ASHR((e - 1023) * 77, 8);
+			e = (INT16)__ASHR((e - 1023) * 77, 8);
 			if (e >= 0) {
 				x = x / (LONGREAL)Out_Ten(e);
 			} else {
@@ -291,12 +291,12 @@ static void Out_RealP (LONGREAL x, int16 n, BOOLEAN long_)
 	}
 }
 
-void Out_Real (REAL x, int16 n)
+void Out_Real (REAL x, INT16 n)
 {
 	Out_RealP(x, n, 0);
 }
 
-void Out_LongReal (LONGREAL x, int16 n)
+void Out_LongReal (LONGREAL x, INT16 n)
 {
 	Out_RealP(x, n, 1);
 }

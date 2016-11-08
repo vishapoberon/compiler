@@ -27,7 +27,10 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 ## Installation
 
-###### Prerequisites
+While pre-built packages are not provided, it is easy to install the Oberon compiler and libraries
+with the following simple steps.
+
+###### 1. Install prerequisites
 
 | Platform               | Packages                                                            |
 | ---------              | ------------                                                        |
@@ -39,7 +42,7 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
 
-###### Build and install
+###### 2. Build and install the compiler and libraries
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
@@ -47,7 +50,7 @@ More details, including for MingW and MS C, in [**Installation**](/doc/Installat
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
-###### PATH environment variable
+###### 3. Stet your PATH environment variable
 
 Set your path to the installed compiler binary location as reported
 by make full, e.g.
@@ -60,6 +63,7 @@ by make full, e.g.
 |  Termux   | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
 Also see [**Installation**](/doc/Installation.md).
+
 
 ## A 'Hello' application
 

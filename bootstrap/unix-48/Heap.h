@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. tsSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. tsSfF */
 
 #ifndef Heap__h
 #define Heap__h
@@ -22,7 +22,7 @@ typedef
 
 typedef
 	struct Heap_ModuleDesc {
-		int32 _prvt0;
+		INT32 _prvt0;
 		char _prvt1[44];
 	} Heap_ModuleDesc;
 
@@ -31,21 +31,21 @@ typedef
 
 
 import SYSTEM_PTR Heap_modules;
-import int32 Heap_allocated, Heap_heapsize;
-import int16 Heap_FileCount;
+import INT32 Heap_allocated, Heap_heapsize;
+import INT16 Heap_FileCount;
 
-import address *Heap_ModuleDesc__typ;
+import ADDRESS *Heap_ModuleDesc__typ;
 
 import void Heap_FINALL (void);
 import void Heap_GC (BOOLEAN markStack);
 import void Heap_INCREF (Heap_Module m);
 import void Heap_InitHeap (void);
 import void Heap_Lock (void);
-import SYSTEM_PTR Heap_NEWBLK (int32 size);
-import SYSTEM_PTR Heap_NEWREC (int32 tag);
+import SYSTEM_PTR Heap_NEWBLK (INT32 size);
+import SYSTEM_PTR Heap_NEWREC (INT32 tag);
 import void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd);
 import SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs);
-import void Heap_REGTYP (Heap_Module m, int32 typ);
+import void Heap_REGTYP (Heap_Module m, INT32 typ);
 import void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize);
 import void Heap_Unlock (void);
 import void *Heap__init(void);

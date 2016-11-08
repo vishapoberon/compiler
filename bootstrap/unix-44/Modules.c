@@ -1,9 +1,9 @@
-/* voc 1.95 [2016/10/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
-#define SHORTINT int8
-#define INTEGER  int16
-#define LONGINT  int32
-#define SET      uint32
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
 
 #include "SYSTEM.h"
 #include "Heap.h"
@@ -31,20 +31,20 @@ typedef
 	struct Modules_ModuleDesc {
 		Modules_Module next;
 		Modules_ModuleName name;
-		int32 refcnt;
+		INT32 refcnt;
 		Modules_Cmd cmds;
-		int32 types;
-		void (*enumPtrs)(void(*)(int32));
-		int32 reserved1, reserved2;
+		INT32 types;
+		void (*enumPtrs)(void(*)(INT32));
+		INT32 reserved1, reserved2;
 	} Modules_ModuleDesc;
 
 
-export int16 Modules_res;
+export INT16 Modules_res;
 export CHAR Modules_resMsg[256];
 export Modules_ModuleName Modules_imported, Modules_importing;
 
-export address *Modules_ModuleDesc__typ;
-export address *Modules_CmdDesc__typ;
+export ADDRESS *Modules_ModuleDesc__typ;
+export ADDRESS *Modules_CmdDesc__typ;
 
 static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len);
 export void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
@@ -56,7 +56,7 @@ export Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
 
 static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len)
 {
-	int16 i, j;
+	INT16 i, j;
 	__DUP(b, b__len, CHAR);
 	i = 0;
 	while (a[__X(i, a__len)] != 0x00) {
