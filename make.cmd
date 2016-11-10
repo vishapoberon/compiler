@@ -68,6 +68,7 @@ if errorlevel 1 (
 echo make full - administrator rights required. Please run under an administrator command prompt.
 goto :eof
 )
+call :uninstall  || exit /b
 call :clean      || exit /b
 call :compiler   || exit /b
 call :browsercmd || exit /b
@@ -447,7 +448,7 @@ goto :eof
 
 
 :initlibrary
-del /s /q %BUILDDIR%\%MODEL% >nul 2>nul
+rd /s /q %BUILDDIR%\%MODEL% >nul 2>nul
 mkdir %BUILDDIR%             >nul 2>nul
 mkdir %BUILDDIR%\%MODEL%     >nul 2>nul
 copy src\runtime\*.c %BUILDDIR%\%MODEL% >nul

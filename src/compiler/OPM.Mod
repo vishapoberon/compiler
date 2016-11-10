@@ -76,6 +76,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     BFext = ".c";   (* body file extension *)
     HFext = ".h";   (* header file extension *)
     SFtag = 0F7X;   (* symbol file tag *)
+    SFver = 082X;   (* symbol file version. Increment if symbol file format is changed. *)
 
 
 
@@ -618,13 +619,13 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END CloseOldSym;
 
   PROCEDURE OldSym*(VAR modName: ARRAY OF CHAR; VAR done: BOOLEAN);
-    VAR ch: CHAR; fileName: FileName;
+    VAR tag, ver: CHAR; fileName: FileName;
   BEGIN
     MakeFileName(modName, fileName, SFext);
     oldSFile := Files.Old(fileName); done := oldSFile # NIL;
     IF done THEN
-      Files.Set(oldSF, oldSFile, 0); Files.Read(oldSF, ch);
-      IF ch # SFtag THEN err(-306);  (*possibly a symbol file from another Oberon implementation, e.g. HP-Oberon*)
+      Files.Set(oldSF, oldSFile, 0); Files.Read(oldSF, tag); Files.Read(oldSF, ver);
+      IF (tag # SFtag) OR (ver # SFver) THEN err(-306);  (*possibly a symbol file from another Oberon implementation, e.g. HP-Oberon*)
         CloseOldSym; done := FALSE
       END
     END
@@ -671,7 +672,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     VAR fileName: FileName;
   BEGIN MakeFileName(modName, fileName, SFext);
     newSFile := Files.New(fileName);
-    IF newSFile # NIL THEN Files.Set(newSF, newSFile, 0); Files.Write(newSF, SFtag)
+    IF newSFile # NIL THEN Files.Set(newSF, newSFile, 0);
+      Files.Write(newSF, SFtag); Files.Write(newSF, SFver)
     ELSE err(153)
     END
   END NewSym;

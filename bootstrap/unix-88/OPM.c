@@ -764,15 +764,16 @@ void OPM_CloseOldSym (void)
 
 void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done)
 {
-	CHAR ch;
+	CHAR tag, ver;
 	OPM_FileName fileName;
 	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
 	OPM_oldSFile = Files_Old(fileName, 32);
 	*done = OPM_oldSFile != NIL;
 	if (*done) {
 		Files_Set(&OPM_oldSF, Files_Rider__typ, OPM_oldSFile, 0);
-		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&ch);
-		if (ch != 0xf7) {
+		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&tag);
+		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&ver);
+		if (tag != 0xf7 || ver != 0x82) {
 			OPM_err(-306);
 			OPM_CloseOldSym();
 			*done = 0;
@@ -829,6 +830,7 @@ void OPM_NewSym (CHAR *modName, LONGINT modName__len)
 	if (OPM_newSFile != NIL) {
 		Files_Set(&OPM_newSF, Files_Rider__typ, OPM_newSFile, 0);
 		Files_Write(&OPM_newSF, Files_Rider__typ, 0xf7);
+		Files_Write(&OPM_newSF, Files_Rider__typ, 0x82);
 	} else {
 		OPM_err(153);
 	}
