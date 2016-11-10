@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/10]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -26,7 +26,7 @@ import CHAR Platform_CWD[4096];
 import INT16 Platform_ArgCount;
 import INT64 Platform_ArgVector;
 import INT16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
-import INT32 Platform_StdIn, Platform_StdOut, Platform_StdErr;
+import INT64 Platform_StdIn, Platform_StdOut, Platform_StdErr;
 import CHAR Platform_NL[3];
 
 import ADDRESS *Platform_FileIdentity__typ;
@@ -35,7 +35,7 @@ import BOOLEAN Platform_Absent (INT16 e);
 import INT16 Platform_ArgPos (CHAR *s, LONGINT s__len);
 import void Platform_AssertFail (INT32 code);
 import INT16 Platform_Chdir (CHAR *n, LONGINT n__len);
-import INT16 Platform_Close (INT32 h);
+import INT16 Platform_Close (INT64 h);
 import BOOLEAN Platform_ConnectionFailed (INT16 e);
 import void Platform_Delay (INT32 ms);
 import BOOLEAN Platform_DifferentFilesystems (INT16 e);
@@ -47,36 +47,36 @@ import void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val
 import void Platform_GetIntArg (INT16 n, INT32 *val);
 import void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec);
 import void Platform_Halt (INT32 code);
-import INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
+import INT16 Platform_Identify (INT64 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 import INT16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 import BOOLEAN Platform_Inaccessible (INT16 e);
 import void Platform_Init (INT32 argc, INT64 argvadr);
 import BOOLEAN Platform_Interrupted (INT16 e);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
-import INT16 Platform_New (CHAR *n, LONGINT n__len, INT32 *h);
+import INT16 Platform_New (CHAR *n, LONGINT n__len, INT64 *h);
 import BOOLEAN Platform_NoSuchDirectory (INT16 e);
 import INT64 Platform_OSAllocate (INT64 size);
 import void Platform_OSFree (INT64 address);
-import INT16 Platform_OldRO (CHAR *n, LONGINT n__len, INT32 *h);
-import INT16 Platform_OldRW (CHAR *n, LONGINT n__len, INT32 *h);
-import INT16 Platform_Read (INT32 h, INT64 p, INT32 l, INT32 *n);
-import INT16 Platform_ReadBuf (INT32 h, SYSTEM_BYTE *b, LONGINT b__len, INT32 *n);
+import INT16 Platform_OldRO (CHAR *n, LONGINT n__len, INT64 *h);
+import INT16 Platform_OldRW (CHAR *n, LONGINT n__len, INT64 *h);
+import INT16 Platform_Read (INT64 h, INT64 p, INT32 l, INT32 *n);
+import INT16 Platform_ReadBuf (INT64 h, SYSTEM_BYTE *b, LONGINT b__len, INT32 *n);
 import INT16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len);
 import BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 import BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
-import INT16 Platform_Seek (INT32 h, INT32 o, INT16 r);
+import INT16 Platform_Seek (INT64 h, INT32 o, INT16 r);
 import void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 import void Platform_SetHalt (Platform_HaltProcedure p);
 import void Platform_SetMTime (Platform_FileIdentity *target, ADDRESS *target__typ, Platform_FileIdentity source);
-import INT16 Platform_Size (INT32 h, INT32 *l);
-import INT16 Platform_Sync (INT32 h);
+import INT16 Platform_Size (INT64 h, INT32 *l);
+import INT16 Platform_Sync (INT64 h);
 import INT16 Platform_System (CHAR *cmd, LONGINT cmd__len);
 import INT32 Platform_Time (void);
 import BOOLEAN Platform_TimedOut (INT16 e);
 import BOOLEAN Platform_TooManyFiles (INT16 e);
-import INT16 Platform_Truncate (INT32 h, INT32 limit);
+import INT16 Platform_Truncate (INT64 h, INT32 limit);
 import INT16 Platform_Unlink (CHAR *n, LONGINT n__len);
-import INT16 Platform_Write (INT32 h, INT64 p, INT32 l);
+import INT16 Platform_Write (INT64 h, INT64 p, INT32 l);
 import BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 import void *Platform__init(void);
 

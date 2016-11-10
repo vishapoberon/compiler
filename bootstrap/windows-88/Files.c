@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/11/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -33,7 +33,8 @@ typedef
 		Files_FileName workName, registerName;
 		BOOLEAN tempFile;
 		Platform_FileIdentity identity;
-		INT32 fd, len, pos;
+		INT64 fd;
+		INT32 len, pos;
 		Files_Buffer bufs[4];
 		INT16 swapper, state;
 		Files_File next;
@@ -307,10 +308,6 @@ void Files_Close (Files_File f)
 			Files_Flush(f->bufs[i]);
 			i += 1;
 		}
-		error = Platform_Sync(f->fd);
-		if (error != 0) {
-			Files_Err((CHAR*)"error writing file", 19, f, error);
-		}
 		Files_CloseOSFile(f);
 	}
 }
@@ -422,7 +419,7 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 Files_File Files_Old (CHAR *name, LONGINT name__len)
 {
 	Files_File f = NIL;
-	INT32 fd;
+	INT64 fd;
 	INT16 pos;
 	BOOLEAN done;
 	CHAR dir[256], path[256];
@@ -726,7 +723,8 @@ void Files_Delete (CHAR *name, LONGINT name__len, INT16 *res)
 
 void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT16 *res)
 {
-	INT32 fdold, fdnew, n;
+	INT64 fdold, fdnew;
+	INT32 n;
 	INT16 error, ignore;
 	Platform_FileIdentity oldidentity, newidentity;
 	CHAR buf[4096];

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/08]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/11/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -306,10 +306,6 @@ void Files_Close (Files_File f)
 		while ((i < 4 && f->bufs[i] != NIL)) {
 			Files_Flush(f->bufs[i]);
 			i += 1;
-		}
-		error = Platform_Sync(f->fd);
-		if (error != 0) {
-			Files_Err((CHAR*)"error writing file", 19, f, error);
 		}
 		Files_CloseOSFile(f);
 	}
