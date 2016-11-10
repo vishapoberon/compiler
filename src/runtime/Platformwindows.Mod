@@ -587,13 +587,13 @@ PROCEDURE SetHalt*(p: HaltProcedure);
 BEGIN HaltHandler := p; END SetHalt;
 
 
-PROCEDURE -GetConsoleMode(h: FileHandle; VAR m: SYSTEM.INT32): BOOLEAN "GetConsoleMode((HANDLE)h, m)";
-PROCEDURE -SetConsoleMode(h: FileHandle; m: SYSTEM.INT32) "SetConsoleMode((HANDLE)h, m)";
-PROCEDURE -VTprocessing(): SYSTEM.INT32 "ENABLE_VIRTUAL_TERMINAL_PROCESSING";
+PROCEDURE -GetConsoleMode(h: FileHandle; VAR m: SYSTEM.INT32): BOOLEAN "GetConsoleMode((HANDLE)h, (DWORD*)m)";
+PROCEDURE -SetConsoleMode(h: FileHandle; m: SYSTEM.INT32) "SetConsoleMode((HANDLE)h, (DWORD)m)";
 
 PROCEDURE EnableVT100;
+CONST VTprocessing = 4; (* ENABLE_VIRTUAL_TERMINAL_PROCESSING: value specified by MSDN *)
 VAR mode: SYSTEM.INT32;
-BEGIN IF GetConsoleMode(StdOut, mode) THEN SetConsoleMode(StdOut, mode+VTprocessing()) END
+BEGIN IF GetConsoleMode(StdOut, mode) THEN SetConsoleMode(StdOut, mode+VTprocessing) END
 END EnableVT100;
 
 

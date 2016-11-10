@@ -119,13 +119,12 @@ export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT 
 #define Platform_ERRORWRITEPROTECT()	ERROR_WRITE_PROTECT
 #define Platform_ETIMEDOUT()	WSAETIMEDOUT
 extern void Heap_InitHeap();
-#define Platform_GetConsoleMode(h, m)	GetConsoleMode((HANDLE)h, m)
+#define Platform_GetConsoleMode(h, m)	GetConsoleMode((HANDLE)h, (DWORD*)m)
 #define Platform_GetTickCount()	(LONGINT)(UINT32)GetTickCount()
 #define Platform_HeapInitHeap()	Heap_InitHeap()
-#define Platform_SetConsoleMode(h, m)	SetConsoleMode((HANDLE)h, m)
+#define Platform_SetConsoleMode(h, m)	SetConsoleMode((HANDLE)h, (DWORD)m)
 #define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((ADDRESS)h)
 #define Platform_SetQuitHandler(h)	SystemSetQuitHandler((ADDRESS)h)
-#define Platform_VTprocessing()	ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define Platform_allocate(size)	(ADDRESS)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))
 #define Platform_bhfiIndexHigh()	(LONGINT)bhfi.nFileIndexHigh
 #define Platform_bhfiIndexLow()	(LONGINT)bhfi.nFileIndexLow
@@ -746,7 +745,7 @@ static void Platform_EnableVT100 (void)
 {
 	INT32 mode;
 	if (Platform_GetConsoleMode(Platform_StdOut, &mode)) {
-		Platform_SetConsoleMode(Platform_StdOut, mode + Platform_VTprocessing());
+		Platform_SetConsoleMode(Platform_StdOut, mode + 4);
 	}
 }
 
