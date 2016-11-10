@@ -215,8 +215,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
       WHILE (i < nofbufs) & (f.bufs[i] # NIL) DO Flush(f.bufs[i]); INC(i) END;
+      (* There's no reason to sync this file - we're about to close it. The OS
+         will sync if necessary. Further, sync will fail for a R/O file on Windows.
       error := Platform.Sync(f.fd);
-      IF error # 0 THEN Err("error writing file", f, error) END;
+      IF error # 0 THEN Err("error syncing file", f, error) END;
+      *)
       CloseOSFile(f);
     END
   END Close;

@@ -46,7 +46,7 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
   END Int;
 
   PROCEDURE Ln*;
-  BEGIN Char(0AX);  (* Unix end-of-line *)
+  BEGIN String(Platform.NL);
   END Ln;
 
   PROCEDURE Bool*(b: BOOLEAN);
@@ -75,7 +75,12 @@ MODULE Console;  (* J. Templ, 29-June-96 *)
     VAR i: LONGINT; ch: CHAR;
   BEGIN Flush();
     i := 0; Read(ch);
-    WHILE (i < LEN(line) - 1) & (ch # 0AX) & (ch # 0X) DO line[i] := ch; INC(i); Read(ch) END ;
+    WHILE (i < LEN(line) - 1)
+        & (ch # 0AX)
+        & (ch # 0X) DO
+      line[i] := ch; INC(i); Read(ch)
+    END;
+    IF (i > 0) & (line[i-1] = 0DX) THEN DEC(i) END; (* Swallow CR before LF *)
     line[i] := 0X
   END ReadLine;
 
