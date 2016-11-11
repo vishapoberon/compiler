@@ -642,14 +642,19 @@ Especially Length would become fairly complex.
   END ReadString;
 
   PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR; b : BOOLEAN; pos: LONGINT;
+    VAR i: INTEGER; ch: CHAR; b : BOOLEAN; pos: LONGINT; tail: INTEGER;
   BEGIN
     i := 0;
     b := FALSE;
-    pos := Pos(R);
+    pos  := Pos(R);
+    tail := 0;
     REPEAT
       Read(R, ch);
       IF ((ch = 0X) OR (ch = 0AX) OR (ch = 0DX)) THEN
+        IF (ch = 0X) THEN
+          tail := 1;
+        ELSE
+          tail := Strings.Length(Platform.nl);
         b := TRUE
       ELSE
         x[i] := ch;
@@ -657,7 +662,7 @@ Especially Length would become fairly complex.
       END;
     UNTIL b;
     x[i] := 0X;
-    IF ~R.eof THEN Set(R, R.buf.f, pos + i + 1); END;
+    IF ~R.eof THEN Set(R, R.buf.f, pos + i + tail); END;
   END ReadLine;
 
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
