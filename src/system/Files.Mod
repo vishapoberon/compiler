@@ -634,17 +634,19 @@ Especially Length would become fairly complex.
   END ReadLReal;
 
   PROCEDURE ReadString* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR;
-  BEGIN i := 0;
+    VAR i: INTEGER; ch: CHAR; pos: LONGINT;
+  BEGIN i := 0; pos := Pos(R);
     REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X;
     x[i] := 0X;
+    IF ~R.eof THEN Set(R, R.buf.f, pos + i + 1); END;
   END ReadString;
 
   PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR; b : BOOLEAN;
+    VAR i: INTEGER; ch: CHAR; b : BOOLEAN; pos: LONGINT;
   BEGIN
     i := 0;
     b := FALSE;
+    pos := Pos(R);
     REPEAT
       Read(R, ch);
       IF ((ch = 0X) OR (ch = 0AX) OR (ch = 0DX)) THEN
@@ -655,6 +657,7 @@ Especially Length would become fairly complex.
       END;
     UNTIL b;
     x[i] := 0X;
+    IF ~R.eof THEN Set(R, R.buf.f, pos + i + 1); END;
   END ReadLine;
 
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
