@@ -13,7 +13,7 @@ The following type sizes follow the built compiler size:
 | Types          | 32 bit builds | 64 bit builds |
 | -----          | ------------- | ------------- |
 | INTEGER        | 16 bit        | 32 bit        |
-| LONGINT, SET   | 32 bit        | 16 bit        |
+| LONGINT, SET   | 32 bit        | 64 bit        |
 
 HALT/exit code has been simplified. Exit now just calls the system exit API rather than calling the kill API and passing our own process ID. For runtime errors it now displayes the appropriate error message (e.g. Index out of range).
 
