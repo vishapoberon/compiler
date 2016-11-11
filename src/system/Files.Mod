@@ -636,7 +636,8 @@ Especially Length would become fairly complex.
   PROCEDURE ReadString* (VAR R: Rider; VAR x: ARRAY OF CHAR);
     VAR i: INTEGER; ch: CHAR;
   BEGIN i := 0;
-    REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X
+    REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X;
+    x[i] := 0X;
   END ReadString;
 
   PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
@@ -652,7 +653,8 @@ Especially Length would become fairly complex.
         x[i] := ch;
         INC(i);
       END;
-    UNTIL b
+    UNTIL b;
+    x[i] := 0X;
   END ReadLine;
 
   PROCEDURE ReadNum* (VAR R: Rider; VAR x: LONGINT);
