@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/10]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -38,7 +38,6 @@ export CHAR OPM_objname[64];
 static INT32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
 static Texts_Reader OPM_inR;
 static Texts_Text OPM_Log;
-static Texts_Writer OPM_W;
 static Files_Rider OPM_oldSF, OPM_newSF;
 static Files_Rider OPM_R[3];
 static Files_File OPM_oldSFile, OPM_newSFile, OPM_HFile, OPM_BFile, OPM_HIFile;
@@ -1044,7 +1043,6 @@ static void EnumPtrs(void (*P)(void*))
 {
 	__ENUMR(&OPM_inR, Texts_Reader__typ, 48, 1, P);
 	P(OPM_Log);
-	__ENUMR(&OPM_W, Texts_Writer__typ, 36, 1, P);
 	__ENUMR(&OPM_oldSF, Files_Rider__typ, 20, 1, P);
 	__ENUMR(&OPM_newSF, Files_Rider__typ, 20, 1, P);
 	__ENUMR(OPM_R, Files_Rider__typ, 20, 3, P);
@@ -1080,6 +1078,5 @@ export void *OPM__init(void)
 	OPM_MaxLReal =   1.79769296342094e+308;
 	OPM_MinReal = -OPM_MaxReal;
 	OPM_MinLReal = -OPM_MaxLReal;
-	Texts_OpenWriter(&OPM_W, Texts_Writer__typ);
 	__ENDMOD;
 }

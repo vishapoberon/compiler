@@ -642,19 +642,12 @@ Especially Length would become fairly complex.
   END ReadString;
 
   PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR; b : BOOLEAN;
+  VAR i: INTEGER;
   BEGIN
-    i := 0;
-    b := FALSE;
-    REPEAT
-      Read(R, ch);
-      IF ((ch = 0X) OR (ch = 0AX) OR (ch = 0DX)) THEN
-        b := TRUE
-      ELSE
-        x[i] := ch;
-        INC(i);
-      END;
-    UNTIL b
+    i := 0; REPEAT Read(R, x[i]); INC(i) UNTIL (x[i-1] = 0X) OR (x[i-1] = 0AX);
+    IF x[i-1] = 0AX THEN DEC(i) END;             (* Omit trailing LF *)
+    IF (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END; (* Also omit preceeding trailing CR if present. *)
+    x[i] := 0X;                                  (* Guarantee zero termination. *)
   END ReadLine;
 
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);

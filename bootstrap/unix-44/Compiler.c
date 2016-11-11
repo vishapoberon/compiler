@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/10]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
 #define SHORTINT INT8
 #define INTEGER  INT16

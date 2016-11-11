@@ -112,7 +112,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     lasterrpos:   LONGINT;
     inR:          Texts.Reader;
     Log:          Texts.Text;
-    W:            Texts.Writer;
     oldSF, newSF: Files.Rider;
     R:            ARRAY 3 OF Files.Rider;
 
@@ -811,6 +810,4 @@ BEGIN
   MaxLReal := 1.7976931348623157D307 * 9.999999; (* LONGREAL is 8 bytes, should be 1.7976931348623157D308 *)
   MinReal  := -MaxReal;
   MinLReal := -MaxLReal;
-
-  Texts.OpenWriter(W);
 END OPM.

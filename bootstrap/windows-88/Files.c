@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
+/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. tspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -885,19 +885,18 @@ void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
 void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
 {
 	INT16 i;
-	CHAR ch;
-	BOOLEAN b;
 	i = 0;
-	b = 0;
 	do {
-		Files_Read(&*R, R__typ, (void*)&ch);
-		if ((ch == 0x00 || ch == 0x0a) || ch == 0x0d) {
-			b = 1;
-		} else {
-			x[i] = ch;
-			i += 1;
-		}
-	} while (!b);
+		Files_Read(&*R, R__typ, (void*)&x[i]);
+		i += 1;
+	} while (!(x[i - 1] == 0x00 || x[i - 1] == 0x0a));
+	if (x[i - 1] == 0x0a) {
+		i -= 1;
+	}
+	if ((i > 0 && x[i - 1] == 0x0d)) {
+		i -= 1;
+	}
+	x[i] = 0x00;
 }
 
 void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, LONGINT x__len)
