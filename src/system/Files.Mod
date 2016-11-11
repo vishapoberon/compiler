@@ -655,6 +655,7 @@ Especially Length would become fairly complex.
           tail := 1;
         ELSE
           tail := Strings.Length(Platform.nl);
+        END;
         b := TRUE
       ELSE
         x[i] := ch;
