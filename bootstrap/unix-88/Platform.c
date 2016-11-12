@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -33,7 +33,6 @@ typedef
 
 export BOOLEAN Platform_LittleEndian;
 export INT64 Platform_MainStackFrame;
-export INT32 Platform_HaltCode;
 export INT16 Platform_PID;
 export CHAR Platform_CWD[256];
 export INT16 Platform_ArgCount;
@@ -47,21 +46,18 @@ export ADDRESS *Platform_FileIdentity__typ;
 
 export BOOLEAN Platform_Absent (INT16 e);
 export INT16 Platform_ArgPos (CHAR *s, LONGINT s__len);
-export void Platform_AssertFail (INT32 code);
 export INT16 Platform_Chdir (CHAR *n, LONGINT n__len);
 export INT16 Platform_Close (INT32 h);
 export BOOLEAN Platform_ConnectionFailed (INT16 e);
 export void Platform_Delay (INT32 ms);
 export BOOLEAN Platform_DifferentFilesystems (INT16 e);
-static void Platform_DisplayHaltCode (INT32 code);
 export INT16 Platform_Error (void);
-export void Platform_Exit (INT16 code);
+export void Platform_Exit (INT32 code);
 export void Platform_GetArg (INT16 n, CHAR *val, LONGINT val__len);
 export void Platform_GetClock (INT32 *t, INT32 *d);
 export void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 export void Platform_GetIntArg (INT16 n, INT32 *val);
 export void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec);
-export void Platform_Halt (INT32 code);
 export INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 export INT16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 export BOOLEAN Platform_Inaccessible (INT16 e);
@@ -81,7 +77,6 @@ export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentit
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export INT16 Platform_Seek (INT32 h, INT32 offset, INT16 whence);
 export void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
-export void Platform_SetHalt (Platform_HaltProcedure p);
 export void Platform_SetInterruptHandler (Platform_SignalHandler handler);
 export void Platform_SetMTime (Platform_FileIdentity *target, ADDRESS *target__typ, Platform_FileIdentity source);
 export void Platform_SetQuitHandler (Platform_SignalHandler handler);
@@ -96,10 +91,6 @@ export INT16 Platform_Truncate (INT32 h, INT32 l);
 export INT16 Platform_Unlink (CHAR *n, LONGINT n__len);
 export INT16 Platform_Write (INT32 h, INT64 p, INT32 l);
 static void Platform_YMDHMStoClock (INT32 ye, INT32 mo, INT32 da, INT32 ho, INT32 mi, INT32 se, INT32 *t, INT32 *d);
-static void Platform_errch (CHAR c);
-static void Platform_errint (INT32 l);
-static void Platform_errln (void);
-static void Platform_errposint (INT32 l);
 export BOOLEAN Platform_getEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 
 #include <errno.h>
@@ -131,9 +122,7 @@ extern void Heap_InitHeap();
 #define Platform_chdir(n, n__len)	chdir((char*)n)
 #define Platform_closefile(fd)	close(fd)
 #define Platform_err()	errno
-#define Platform_errc(c)	write(1, &c, 1)
-#define Platform_errstring(s, s__len)	write(1, s, s__len-1)
-#define Platform_exit(code)	exit(code)
+#define Platform_exit(code)	exit((int)code)
 #define Platform_free(address)	free((void*)address)
 #define Platform_fstat(fd)	fstat(fd, &s)
 #define Platform_fsync(fd)	fsync(fd)
@@ -229,7 +218,6 @@ void Platform_Init (INT32 argc, INT64 argvadr)
 	Platform_ArgCount = __VAL(INT16, argc);
 	av = (Platform_ArgVecPtr)(ADDRESS)argvadr;
 	Platform_ArgVector = (*av)[0];
-	Platform_HaltCode = -128;
 	Platform_HeapInitHeap();
 }
 
@@ -571,125 +559,9 @@ INT16 Platform_Rename (CHAR *o, LONGINT o__len, CHAR *n, LONGINT n__len)
 	__RETCHK;
 }
 
-void Platform_Exit (INT16 code)
+void Platform_Exit (INT32 code)
 {
 	Platform_exit(code);
-}
-
-static void Platform_errch (CHAR c)
-{
-	Platform_errc(c);
-}
-
-static void Platform_errln (void)
-{
-	Platform_errch(0x0a);
-}
-
-static void Platform_errposint (INT32 l)
-{
-	if (l > 10) {
-		Platform_errposint(__DIV(l, 10));
-	}
-	Platform_errch((CHAR)(48 + (int)__MOD(l, 10)));
-}
-
-static void Platform_errint (INT32 l)
-{
-	if (l < 0) {
-		Platform_errch('-');
-		l = -l;
-	}
-	Platform_errposint(l);
-}
-
-static void Platform_DisplayHaltCode (INT32 code)
-{
-	switch (code) {
-		case -1: 
-			Platform_errstring((CHAR*)"Assertion failure.", 19);
-			break;
-		case -2: 
-			Platform_errstring((CHAR*)"Index out of range.", 20);
-			break;
-		case -3: 
-			Platform_errstring((CHAR*)"Reached end of function without reaching RETURN.", 49);
-			break;
-		case -4: 
-			Platform_errstring((CHAR*)"CASE statement: no matching label and no ELSE.", 47);
-			break;
-		case -5: 
-			Platform_errstring((CHAR*)"Type guard failed.", 19);
-			break;
-		case -6: 
-			Platform_errstring((CHAR*)"Implicit type guard in record assignment failed.", 49);
-			break;
-		case -7: 
-			Platform_errstring((CHAR*)"Invalid case in WITH statement.", 32);
-			break;
-		case -8: 
-			Platform_errstring((CHAR*)"Value out of range.", 20);
-			break;
-		case -9: 
-			Platform_errstring((CHAR*)"Heap interrupted while locked, but lockdepth = 0 at unlock.", 60);
-			break;
-		case -10: 
-			Platform_errstring((CHAR*)"NIL access.", 12);
-			break;
-		case -11: 
-			Platform_errstring((CHAR*)"Alignment error.", 17);
-			break;
-		case -12: 
-			Platform_errstring((CHAR*)"Divide by zero.", 16);
-			break;
-		case -13: 
-			Platform_errstring((CHAR*)"Arithmetic overflow/underflow.", 31);
-			break;
-		case -14: 
-			Platform_errstring((CHAR*)"Invalid function argument.", 27);
-			break;
-		case -15: 
-			Platform_errstring((CHAR*)"Internal error, e.g. Type descriptor size mismatch.", 52);
-			break;
-		case -20: 
-			Platform_errstring((CHAR*)"Too many, or negative number of, elements in dynamic array.", 60);
-			break;
-		default: 
-			break;
-	}
-}
-
-void Platform_Halt (INT32 code)
-{
-	Platform_HaltCode = code;
-	if (Platform_HaltHandler != NIL) {
-		(*Platform_HaltHandler)(code);
-	}
-	Platform_errstring((CHAR*)"Terminated by Halt(", 20);
-	Platform_errint(code);
-	Platform_errstring((CHAR*)"). ", 4);
-	if (code < 0) {
-		Platform_DisplayHaltCode(code);
-	}
-	Platform_errln();
-	Platform_exit(__VAL(INT16, code));
-}
-
-void Platform_AssertFail (INT32 code)
-{
-	Platform_errstring((CHAR*)"Assertion failure.", 19);
-	if (code != 0) {
-		Platform_errstring((CHAR*)" ASSERT code ", 14);
-		Platform_errint(code);
-		Platform_errstring((CHAR*)".", 2);
-	}
-	Platform_errln();
-	Platform_exit(__VAL(INT16, code));
-}
-
-void Platform_SetHalt (Platform_HaltProcedure p)
-{
-	Platform_HaltHandler = p;
 }
 
 static void Platform_TestLittleEndian (void)
@@ -708,7 +580,6 @@ export void *Platform__init(void)
 	__INITYP(Platform_FileIdentity, Platform_FileIdentity, 0);
 /* BEGIN */
 	Platform_TestLittleEndian();
-	Platform_HaltCode = -128;
 	Platform_HaltHandler = NIL;
 	Platform_TimeStart = 0;
 	Platform_TimeStart = Platform_Time();

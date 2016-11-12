@@ -3,7 +3,7 @@ MODULE Modules;  (* jt 6.1.96 *)
   (* access to list of modules and commands, based on ETH Oberon *)
 
 
-  IMPORT SYSTEM, Heap;
+  IMPORT SYSTEM, Heap, Platform;
 
   CONST
     ModNameLen* = 20;
@@ -92,5 +92,70 @@ MODULE Modules;  (* jt 6.1.96 *)
       END
     END
   END Free;
+
+
+  (* Run time error reporting. *)
+
+  PROCEDURE errch(c: CHAR);  (* Here we favour simplicity over efficiency, so no buffering. *)
+  VAR e: Platform.ErrorCode;
+  BEGIN e := Platform.Write(1, SYSTEM.ADR(c), 1)
+  END errch;
+
+  PROCEDURE errstring*(s: ARRAY OF CHAR);
+  VAR i: LONGINT;
+  BEGIN i := 0;
+    WHILE (i<LEN(s)) & (s[i] # 0X) DO errch(s[i]); INC(i) END
+  END errstring;
+
+  PROCEDURE errposint(l: SYSTEM.INT32);
+  BEGIN IF l>10 THEN errposint(l DIV 10) END; errch(CHR(ORD('0') + (l MOD 10))) END errposint;
+
+  PROCEDURE errint*(l: SYSTEM.INT32);
+  BEGIN IF l<0 THEN errch('-'); l := -l END; errposint(l) END errint;
+
+  PROCEDURE DisplayHaltCode(code: SYSTEM.INT32);
+  BEGIN
+    CASE code OF
+    | -1: errstring("Assertion failure.")
+    | -2: errstring("Index out of range.")
+    | -3: errstring("Reached end of function without reaching RETURN.")
+    | -4: errstring("CASE statement: no matching label and no ELSE.")
+    | -5: errstring("Type guard failed.")
+    | -6: errstring("Implicit type guard in record assignment failed.")
+    | -7: errstring("Invalid case in WITH statement.")
+    | -8: errstring("Value out of range.")
+    | -9: errstring("Heap interrupted while locked, but lockdepth = 0 at unlock.")
+    |-10: errstring("NIL access.");
+    |-11: errstring("Alignment error.");
+    |-12: errstring("Divide by zero.");
+    |-13: errstring("Arithmetic overflow/underflow.");
+    |-14: errstring("Invalid function argument.");
+    |-15: errstring("Internal error, e.g. Type descriptor size mismatch.")
+    |-20: errstring("Too many, or negative number of, elements in dynamic array.")
+    ELSE
+    END
+  END DisplayHaltCode;
+
+  PROCEDURE Halt*(code: SYSTEM.INT32);
+  BEGIN
+    (*IF HaltHandler # NIL THEN HaltHandler(code) END;*)
+    errstring("Terminated by Halt("); errint(code); errstring("). ");
+    IF code < 0 THEN DisplayHaltCode(code) END;
+    errstring(Platform.NL);
+    Platform.Exit(code);
+  END Halt;
+
+  PROCEDURE AssertFail*(code: SYSTEM.INT32);
+  BEGIN
+    errstring("Assertion failure.");
+    IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;
+    errstring(Platform.NL);
+    Platform.Exit(code);
+  END AssertFail;
+
+  (*
+  PROCEDURE SetHalt*(p: HaltProcedure);
+  BEGIN HaltHandler := p; END SetHalt;
+  *)
 
 END Modules.

@@ -122,6 +122,7 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPP.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ssfm    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/Compiler.Mod
 
+	cp src/runtime/*.[ch] $(BUILDDIR)
 	@printf "$(BUILDDIR) filled with compiler C source.\n"
 
 

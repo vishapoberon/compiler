@@ -28,7 +28,6 @@ TYPE
 VAR
   LittleEndian-:   BOOLEAN;
   MainStackFrame-: SYSTEM.ADDRESS;
-  HaltCode-:       LONGINT;
   PID-:            INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:            ARRAY 256 OF CHAR;
   ArgCount-:       INTEGER;
@@ -131,7 +130,6 @@ BEGIN
   ArgCount       := SYSTEM.VAL(INTEGER, argc);
   av             := SYSTEM.VAL(ArgVecPtr, argvadr);
   ArgVector      := av[0];
-  HaltCode       := -128;
 
   (* This function (Platform.Init) is called at program startup BEFORE any
      modules have been initalised. In turn we must initialise the heap
@@ -464,66 +462,8 @@ END Rename;
 
 (* Process termination *)
 
-PROCEDURE -exit(code: INTEGER) "exit(code)";
-PROCEDURE Exit*(code: INTEGER);
-BEGIN exit(code) END Exit;
-
-PROCEDURE -errstring(s: ARRAY OF CHAR) 'write(1, s, s__len-1)';
-PROCEDURE -errc     (c: CHAR)          'write(1, &c, 1)';
-PROCEDURE errch(c: CHAR); BEGIN errc(c) END errch;
-PROCEDURE errln; BEGIN errch(0AX) END errln;
-
-PROCEDURE errposint(l: LONGINT);
-BEGIN IF l>10 THEN errposint(l DIV 10) END; errch(CHR(ORD('0') + (l MOD 10))) END errposint;
-
-PROCEDURE errint(l: LONGINT);
-BEGIN IF l<0 THEN errch('-'); l := -l END; errposint(l) END errint;
-
-PROCEDURE DisplayHaltCode(code: LONGINT);
-BEGIN
-  CASE code OF
-  | -1: errstring("Assertion failure.")
-  | -2: errstring("Index out of range.")
-  | -3: errstring("Reached end of function without reaching RETURN.")
-  | -4: errstring("CASE statement: no matching label and no ELSE.")
-  | -5: errstring("Type guard failed.")
-  | -6: errstring("Implicit type guard in record assignment failed.")
-  | -7: errstring("Invalid case in WITH statement.")
-  | -8: errstring("Value out of range.")
-  | -9: errstring("Heap interrupted while locked, but lockdepth = 0 at unlock.")
-  |-10: errstring("NIL access.");
-  |-11: errstring("Alignment error.");
-  |-12: errstring("Divide by zero.");
-  |-13: errstring("Arithmetic overflow/underflow.");
-  |-14: errstring("Invalid function argument.");
-  |-15: errstring("Internal error, e.g. Type descriptor size mismatch.")
-  |-20: errstring("Too many, or negative number of, elements in dynamic array.")
-  ELSE
-  END
-END DisplayHaltCode;
-
-PROCEDURE Halt*(code: SYSTEM.INT32);
-BEGIN
-  HaltCode := code;
-  IF HaltHandler # NIL THEN HaltHandler(code) END;
-  errstring("Terminated by Halt("); errint(code); errstring("). ");
-  IF code < 0 THEN DisplayHaltCode(code) END;
-  errln;
-  exit(SYSTEM.VAL(INTEGER,code));
-END Halt;
-
-PROCEDURE AssertFail*(code: SYSTEM.INT32);
-BEGIN
-  errstring("Assertion failure.");
-  IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;
-  errln;
-  exit(SYSTEM.VAL(INTEGER,code));
-END AssertFail;
-
-PROCEDURE SetHalt*(p: HaltProcedure);
-BEGIN HaltHandler := p; END SetHalt;
-
-
+PROCEDURE -exit(code: LONGINT) "exit((int)code)";
+PROCEDURE Exit*(code: LONGINT); BEGIN exit(code) END Exit;
 
 
 
@@ -537,7 +477,6 @@ PROCEDURE -getpid(): INTEGER   "(INTEGER)getpid()";
 BEGIN
   TestLittleEndian;
 
-  HaltCode    := -128;
   HaltHandler := NIL;
   TimeStart   := 0;   TimeStart := Time();
   PID         := getpid();

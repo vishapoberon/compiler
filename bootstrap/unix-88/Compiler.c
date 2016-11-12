@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -153,7 +153,7 @@ static void Compiler_Trap (INT32 sig)
 	if (sig == 3) {
 		Platform_Exit(0);
 	} else {
-		if ((sig == 4 && Platform_HaltCode == -15)) {
+		if (sig == 4) {
 			OPM_LogWStr((CHAR*)" --- Oberon compiler internal error", 36);
 			OPM_LogWLn();
 		}

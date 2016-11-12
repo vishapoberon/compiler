@@ -135,9 +135,8 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     IF sig = 3 THEN
       Platform.Exit(0)
     ELSE
-      IF (sig = 4) & (Platform.HaltCode = -15) THEN
-        OPM.LogWStr(" --- Oberon compiler internal error");
-        OPM.LogWLn
+      IF sig = 4 THEN
+        OPM.LogWStr(" --- Oberon compiler internal error"); OPM.LogWLn
       END ;
       Platform.Exit(2)
     END

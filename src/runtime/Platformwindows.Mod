@@ -526,65 +526,8 @@ END Rename;
 
 (* Process termination *)
 
-PROCEDURE -exit(code: INTEGER) "ExitProcess((UINT)code)";
-PROCEDURE Exit*(code: INTEGER);
-BEGIN exit(code) END Exit;
-
-
-PROCEDURE -errstring(s: ARRAY OF CHAR) 'WriteFile((HANDLE)Platform_StdOut, s, s__len-1, 0,0)';
-PROCEDURE -errc     (c: CHAR)          'WriteFile((HANDLE)Platform_StdOut, &c, 1, 0,0)';
-PROCEDURE errch(c: CHAR); BEGIN errc(c) END errch;
-PROCEDURE errln; BEGIN errch(0DX); errch(0AX) END errln;
-
-PROCEDURE errposint(l: LONGINT);
-BEGIN IF l>10 THEN errposint(l DIV 10) END; errch(CHR(ORD('0') + (l MOD 10))) END errposint;
-
-PROCEDURE errint(l: LONGINT);
-BEGIN IF l<0 THEN errch('-'); l := -l END; errposint(l) END errint;
-
-PROCEDURE DisplayHaltCode(code: LONGINT);
-BEGIN
-  CASE code OF
-  | -1: errstring("Assertion failure.")
-  | -2: errstring("Index out of range.")
-  | -3: errstring("Reached end of function without reaching RETURN.")
-  | -4: errstring("CASE statement: no matching label and no ELSE.")
-  | -5: errstring("Type guard failed.")
-  | -6: errstring("Type equality failed.")
-  | -7: errstring("WITH statement type guard failed.")
-  | -8: errstring("SHORT: Value too large for shorter type.")
-  | -9: errstring("Heap interrupted while locked, but lockdepth = 0 at unlock.")
-  |-10: errstring("NIL access.");
-  |-11: errstring("Alignment error.");
-  |-12: errstring("Divide by zero.");
-  |-13: errstring("Arithmetic overflow/underflow.");
-  |-14: errstring("Invalid function argument.");
-  |-15: errstring("Internal error, e.g. Type descriptor size mismatch.")
-  |-20: errstring("Too many, or negative number of, elements in dynamic array.")
-  ELSE
-  END
-END DisplayHaltCode;
-
-PROCEDURE Halt*(code: SYSTEM.INT32);
-BEGIN
-  HaltCode := code;
-  IF HaltHandler # NIL THEN HaltHandler(code) END;
-  errstring("Terminated by Halt("); errint(code); errstring("). ");
-  IF code < 0 THEN DisplayHaltCode(code) END;
-  errln;
-  exit(SYSTEM.VAL(INTEGER,code));
-END Halt;
-
-PROCEDURE AssertFail*(code: SYSTEM.INT32);
-BEGIN
-  errstring("Assertion failure.");
-  IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;
-  errln;
-  exit(SYSTEM.VAL(INTEGER,code));
-END AssertFail;
-
-PROCEDURE SetHalt*(p: HaltProcedure);
-BEGIN HaltHandler := p; END SetHalt;
+PROCEDURE -exit(code: LONGINT) "ExitProcess((UINT)code)";
+PROCEDURE Exit*(code: LONGINT); BEGIN exit(code) END Exit;
 
 
 PROCEDURE -GetConsoleMode(h: FileHandle; VAR m: SYSTEM.INT32): BOOLEAN "GetConsoleMode((HANDLE)h, (DWORD*)m)";

@@ -1,6 +1,6 @@
 MODULE extTools;
 
-IMPORT Strings, Out, Configuration, Platform, OPM;
+IMPORT Strings, Out, Configuration, Platform, Modules, OPM;
 
 VAR CFLAGS: ARRAY 1023 OF CHAR;
 
@@ -24,7 +24,7 @@ BEGIN
     IF (status = 0) & (exitcode = 127) THEN
       Out.String("Is the C compiler in the current command path?"); Out.Ln
     END;
-    IF status # 0 THEN Platform.Halt(status) ELSE Platform.Halt(exitcode) END
+    IF status # 0 THEN Modules.Halt(status) ELSE Modules.Halt(exitcode) END
   END;
 END execute;
 

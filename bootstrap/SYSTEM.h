@@ -103,11 +103,11 @@ extern void    Platform_OSFree     (ADDRESS addr);
 
 // Assertions and Halts
 
-extern void Platform_Halt(INT32 x);
-extern void Platform_AssertFail(INT32 x);
+extern void Modules_Halt(INT32 x);
+extern void Modules_AssertFail(INT32 x);
 
-#define __HALT(x)         Platform_Halt(x)
-#define __ASSERT(cond, x) if (!(cond)) Platform_AssertFail((INT32)(x))
+#define __HALT(x)         Modules_Halt((INT32)(x))
+#define __ASSERT(cond, x) if (!(cond)) Modules_AssertFail((INT32)(x))
 
 
 // Index checking

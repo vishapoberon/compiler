@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Modules__h
 #define Modules__h
@@ -43,9 +43,13 @@ import Modules_ModuleName Modules_imported, Modules_importing;
 import ADDRESS *Modules_ModuleDesc__typ;
 import ADDRESS *Modules_CmdDesc__typ;
 
+import void Modules_AssertFail (INT32 code);
 import void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
+import void Modules_Halt (INT32 code);
 import Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);
 import Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
+import void Modules_errint (INT32 l);
+import void Modules_errstring (CHAR *s, LONGINT s__len);
 import void *Modules__init(void);
 
 #define Modules_modules()	(Modules_Module)Heap_modules

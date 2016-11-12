@@ -10,7 +10,7 @@ Implemented by Bernd Moesli, Seminar for Applied Mathematics,
 Swiss Federal Institute of Technology Z…rich.
 *)
 
-IMPORT SYSTEM, Platform;
+IMPORT SYSTEM, Modules;
 
 (* Bernd Moesli
   Seminar for Applied Mathematics
@@ -50,7 +50,7 @@ BEGIN
     RETURN SHORT(ASH(SYSTEM.VAL(INTEGER, x), -23)) MOD 256
   ELSIF SIZE(LONGINT) = 4 THEN
     RETURN SHORT(ASH(SYSTEM.VAL(LONGINT, x), -23)) MOD 256
-  ELSE Platform.Halt(-15);
+  ELSE Modules.Halt(-15);
   END
 END Expo;
 
@@ -77,7 +77,7 @@ BEGIN
     SYSTEM.GET(SYSTEM.ADR(x), i);
     i := SHORT(ASH(ASH(ASH(i, -31), 8) + e MOD 256, 23) + i MOD ASH(1, 23));
     SYSTEM.PUT(SYSTEM.ADR(x), i)
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END SetExpo;
 
@@ -93,7 +93,7 @@ BEGIN
     SYSTEM.GET(SYSTEM.ADR(x) + H, i);
     i := SHORT(ASH(ASH(ASH(i, -31), 11) + e MOD 2048, 20) + i MOD ASH(1, 20));
     SYSTEM.PUT(SYSTEM.ADR(x) + H, i)
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END SetExpoL;
 
@@ -105,7 +105,7 @@ BEGIN
     SYSTEM.PUT(SYSTEM.ADR(x), h)
   ELSIF SIZE(INTEGER) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(x), SYSTEM.VAL(INTEGER, h))
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END;
   RETURN x
 END Real;
@@ -120,7 +120,7 @@ BEGIN
   ELSIF SIZE(INTEGER) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(x) + H, SYSTEM.VAL(INTEGER, h));
     SYSTEM.PUT(SYSTEM.ADR(x) + L, SYSTEM.VAL(INTEGER, l))
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END;
   RETURN x
 END RealL;
@@ -133,7 +133,7 @@ BEGIN
     SYSTEM.PUT(SYSTEM.ADR(l), x); RETURN l
   ELSIF SIZE(INTEGER) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(i), x); RETURN i
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END Int;
 
@@ -147,7 +147,7 @@ BEGIN
   ELSIF SIZE(INTEGER) = 4 THEN
     SYSTEM.GET(SYSTEM.ADR(x) + H, i); h := i;
     SYSTEM.GET(SYSTEM.ADR(x) + L, i); l := i
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END IntL;
 

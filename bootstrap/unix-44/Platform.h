@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -12,15 +12,11 @@ typedef
 	} Platform_FileIdentity;
 
 typedef
-	void (*Platform_HaltProcedure)(INT32);
-
-typedef
 	void (*Platform_SignalHandler)(INT32);
 
 
 import BOOLEAN Platform_LittleEndian;
 import INT32 Platform_MainStackFrame;
-import INT32 Platform_HaltCode;
 import INT16 Platform_PID;
 import CHAR Platform_CWD[256];
 import INT16 Platform_ArgCount;
@@ -32,20 +28,18 @@ import ADDRESS *Platform_FileIdentity__typ;
 
 import BOOLEAN Platform_Absent (INT16 e);
 import INT16 Platform_ArgPos (CHAR *s, LONGINT s__len);
-import void Platform_AssertFail (INT32 code);
 import INT16 Platform_Chdir (CHAR *n, LONGINT n__len);
 import INT16 Platform_Close (INT32 h);
 import BOOLEAN Platform_ConnectionFailed (INT16 e);
 import void Platform_Delay (INT32 ms);
 import BOOLEAN Platform_DifferentFilesystems (INT16 e);
 import INT16 Platform_Error (void);
-import void Platform_Exit (INT16 code);
+import void Platform_Exit (INT32 code);
 import void Platform_GetArg (INT16 n, CHAR *val, LONGINT val__len);
 import void Platform_GetClock (INT32 *t, INT32 *d);
 import void Platform_GetEnv (CHAR *var, LONGINT var__len, CHAR *val, LONGINT val__len);
 import void Platform_GetIntArg (INT16 n, INT32 *val);
 import void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec);
-import void Platform_Halt (INT32 code);
 import INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 import INT16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 import BOOLEAN Platform_Inaccessible (INT16 e);
@@ -65,7 +59,6 @@ import BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentit
 import BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
 import INT16 Platform_Seek (INT32 h, INT32 offset, INT16 whence);
 import void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
-import void Platform_SetHalt (Platform_HaltProcedure p);
 import void Platform_SetInterruptHandler (Platform_SignalHandler handler);
 import void Platform_SetMTime (Platform_FileIdentity *target, ADDRESS *target__typ, Platform_FileIdentity source);
 import void Platform_SetQuitHandler (Platform_SignalHandler handler);

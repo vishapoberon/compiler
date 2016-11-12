@@ -99,13 +99,13 @@ MODULE Heap;
     INC(lockdepth);
   END Lock;
 
-  PROCEDURE -PlatformHalt(code: LONGINT) "Platform_Halt(code)";
+  PROCEDURE -ModulesHalt(code: LONGINT) "Modules_Halt(code)";
 
   PROCEDURE Unlock*;
   BEGIN
     DEC(lockdepth);
     IF interrupted & (lockdepth = 0) THEN
-      PlatformHalt(-9);
+      ModulesHalt(-9);
     END
   END Unlock;
 

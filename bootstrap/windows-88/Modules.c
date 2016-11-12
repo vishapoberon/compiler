@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -7,6 +7,7 @@
 
 #include "SYSTEM.h"
 #include "Heap.h"
+#include "Platform.h"
 
 typedef
 	struct Modules_CmdDesc *Modules_Cmd;
@@ -47,9 +48,16 @@ export ADDRESS *Modules_ModuleDesc__typ;
 export ADDRESS *Modules_CmdDesc__typ;
 
 static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len);
+export void Modules_AssertFail (INT32 code);
+static void Modules_DisplayHaltCode (INT32 code);
 export void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
+export void Modules_Halt (INT32 code);
 export Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);
 export Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
+static void Modules_errch (CHAR c);
+export void Modules_errint (INT32 l);
+static void Modules_errposint (INT32 l);
+export void Modules_errstring (CHAR *s, LONGINT s__len);
 
 #define Modules_modules()	(Modules_Module)Heap_modules
 #define Modules_setmodules(m)	Heap_modules = m
@@ -155,6 +163,121 @@ void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all)
 	__DEL(name);
 }
 
+static void Modules_errch (CHAR c)
+{
+	INT16 e;
+	e = Platform_Write(1, (ADDRESS)&c, 1);
+}
+
+void Modules_errstring (CHAR *s, LONGINT s__len)
+{
+	INT32 i;
+	__DUP(s, s__len, CHAR);
+	i = 0;
+	while ((i < s__len && s[__X(i, s__len)] != 0x00)) {
+		Modules_errch(s[__X(i, s__len)]);
+		i += 1;
+	}
+	__DEL(s);
+}
+
+static void Modules_errposint (INT32 l)
+{
+	if (l > 10) {
+		Modules_errposint(__DIV(l, 10));
+	}
+	Modules_errch((CHAR)(48 + (int)__MOD(l, 10)));
+}
+
+void Modules_errint (INT32 l)
+{
+	if (l < 0) {
+		Modules_errch('-');
+		l = -l;
+	}
+	Modules_errposint(l);
+}
+
+static void Modules_DisplayHaltCode (INT32 code)
+{
+	switch (code) {
+		case -1: 
+			Modules_errstring((CHAR*)"Assertion failure.", 19);
+			break;
+		case -2: 
+			Modules_errstring((CHAR*)"Index out of range.", 20);
+			break;
+		case -3: 
+			Modules_errstring((CHAR*)"Reached end of function without reaching RETURN.", 49);
+			break;
+		case -4: 
+			Modules_errstring((CHAR*)"CASE statement: no matching label and no ELSE.", 47);
+			break;
+		case -5: 
+			Modules_errstring((CHAR*)"Type guard failed.", 19);
+			break;
+		case -6: 
+			Modules_errstring((CHAR*)"Implicit type guard in record assignment failed.", 49);
+			break;
+		case -7: 
+			Modules_errstring((CHAR*)"Invalid case in WITH statement.", 32);
+			break;
+		case -8: 
+			Modules_errstring((CHAR*)"Value out of range.", 20);
+			break;
+		case -9: 
+			Modules_errstring((CHAR*)"Heap interrupted while locked, but lockdepth = 0 at unlock.", 60);
+			break;
+		case -10: 
+			Modules_errstring((CHAR*)"NIL access.", 12);
+			break;
+		case -11: 
+			Modules_errstring((CHAR*)"Alignment error.", 17);
+			break;
+		case -12: 
+			Modules_errstring((CHAR*)"Divide by zero.", 16);
+			break;
+		case -13: 
+			Modules_errstring((CHAR*)"Arithmetic overflow/underflow.", 31);
+			break;
+		case -14: 
+			Modules_errstring((CHAR*)"Invalid function argument.", 27);
+			break;
+		case -15: 
+			Modules_errstring((CHAR*)"Internal error, e.g. Type descriptor size mismatch.", 52);
+			break;
+		case -20: 
+			Modules_errstring((CHAR*)"Too many, or negative number of, elements in dynamic array.", 60);
+			break;
+		default: 
+			break;
+	}
+}
+
+void Modules_Halt (INT32 code)
+{
+	Modules_errstring((CHAR*)"Terminated by Halt(", 20);
+	Modules_errint(code);
+	Modules_errstring((CHAR*)"). ", 4);
+	if (code < 0) {
+		Modules_DisplayHaltCode(code);
+	}
+	Modules_errstring(Platform_NL, 3);
+	Platform_Exit(code);
+}
+
+void Modules_AssertFail (INT32 code)
+{
+	Modules_errstring((CHAR*)"Assertion failure.", 19);
+	if (code != 0) {
+		Modules_errstring((CHAR*)" ASSERT code ", 14);
+		Modules_errint(code);
+		Modules_errstring((CHAR*)".", 2);
+	}
+	Modules_errstring(Platform_NL, 3);
+	Platform_Exit(code);
+}
+
 __TDESC(Modules_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 64), {0, 32, -24}};
 __TDESC(Modules_CmdDesc, 1, 1) = {__TDFLDS("CmdDesc", 40), {0, -16}};
 
@@ -162,6 +285,7 @@ export void *Modules__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Heap);
+	__MODULE_IMPORT(Platform);
 	__REGMOD("Modules", 0);
 	__INITYP(Modules_ModuleDesc, Modules_ModuleDesc, 0);
 	__INITYP(Modules_CmdDesc, Modules_CmdDesc, 0);

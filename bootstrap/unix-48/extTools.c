@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -7,6 +7,7 @@
 
 #include "SYSTEM.h"
 #include "Configuration.h"
+#include "Modules.h"
 #include "OPM.h"
 #include "Out.h"
 #include "Platform.h"
@@ -53,9 +54,9 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 			Out_Ln();
 		}
 		if (status != 0) {
-			Platform_Halt(status);
+			Modules_Halt(status);
 		} else {
-			Platform_Halt(exitcode);
+			Modules_Halt(exitcode);
 		}
 	}
 	__DEL(title);
@@ -114,6 +115,7 @@ export void *extTools__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Configuration);
+	__MODULE_IMPORT(Modules);
 	__MODULE_IMPORT(OPM);
 	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Platform);
