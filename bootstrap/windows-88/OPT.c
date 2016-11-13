@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/13]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -643,8 +643,11 @@ void OPT_IdFPrint (OPT_Struct typ)
 		typ->idfpdone = 1;
 		idfp = 0;
 		f = typ->form;
-		c = typ->comp;
 		OPM_FPrint(&idfp, f);
+		if (__IN(f, 0x90, 32)) {
+			OPM_FPrint(&idfp, typ->size);
+		}
+		c = typ->comp;
 		OPM_FPrint(&idfp, c);
 		btyp = typ->BaseTyp;
 		strobj = typ->strobj;
@@ -1903,6 +1906,9 @@ static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res)
 	typ->fpdone = 1;
 	typ->idfp = form;
 	typ->idfpdone = 1;
+	if (__IN(form, 0x90, 32)) {
+		OPM_FPrint(&typ->idfp, typ->size);
+	}
 	*res = typ;
 }
 

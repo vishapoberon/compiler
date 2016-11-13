@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/13]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -60,7 +60,9 @@ typedef
 		INT16 ref, sysflag;
 		INT32 n, size, align, txtpos;
 		BOOLEAN allocated, pbused, pvused;
-		char _prvt0[16];
+		char _prvt0[4];
+		INT32 idfp;
+		char _prvt1[8];
 		OPT_Struct BaseTyp;
 		OPT_Object link, strobj;
 	} OPT_StrDesc;

@@ -83,7 +83,7 @@ TYPE
     allocated*:          BOOLEAN;
     pbused*, pvused*:    BOOLEAN;
     fpdone,  idfpdone:   BOOLEAN;
-    idfp, pbfp, pvfp:    LONGINT;
+    idfp*, pbfp, pvfp:   LONGINT;
     BaseTyp*:            Struct;
     link*, strobj*:      Object
   END;
@@ -515,21 +515,23 @@ END FPrintSign;
 PROCEDURE IdFPrint*(typ: Struct);  (* idfp codifies assignment compatibility *)
 VAR btyp: Struct; strobj: Object; idfp: LONGINT; f, c: INTEGER;
 BEGIN
-   IF ~typ^.idfpdone THEN
-      typ^.idfpdone := TRUE;  (* may be recursive, temporary idfp is 0 in that case *)
-      idfp := 0; f := typ^.form; c := typ^.comp; OPM.FPrint(idfp, f); OPM.FPrint(idfp, c);
-      btyp := typ^.BaseTyp; strobj := typ^.strobj;
-      IF (strobj # NIL) & (strobj^.name # "") THEN
-         FPrintName(idfp, GlbMod[typ^.mno]^.name); FPrintName(idfp, strobj^.name)
-      END;
-      IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
-         IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
-      ELSIF c = Array THEN
-         IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
-      ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
-      END;
-      typ^.idfp := idfp
-   END
+  IF ~typ^.idfpdone THEN
+    typ^.idfpdone := TRUE;  (* may be recursive, temporary idfp is 0 in that case *)
+    idfp := 0;
+    f := typ^.form; OPM.FPrint(idfp, f); IF f IN {Int, Set} THEN OPM.FPrint(idfp, typ.size) END;
+    c := typ^.comp; OPM.FPrint(idfp, c);
+    btyp := typ^.BaseTyp; strobj := typ^.strobj;
+    IF (strobj # NIL) & (strobj^.name # "") THEN
+       FPrintName(idfp, GlbMod[typ^.mno]^.name); FPrintName(idfp, strobj^.name)
+    END;
+    IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
+       IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
+    ELSIF c = Array THEN
+       IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
+    ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
+    END;
+    typ^.idfp := idfp
+  END
 END IdFPrint;
 
 PROCEDURE FPrintStr*(typ: Struct);
@@ -1275,7 +1277,9 @@ END Import;
     typ := NewStr(form, Basic); obj^.mode := Typ; obj^.typ := typ; obj^.vis := external;
     typ^.strobj := obj; typ^.size := size; typ^.ref := form; typ^.allocated := TRUE;
     typ^.pbfp := form; typ^.pvfp := form; typ^.fpdone := TRUE;
-    typ^.idfp := form; typ^.idfpdone := TRUE; res := typ
+    typ^.idfp := form; typ^.idfpdone := TRUE;
+    IF form IN {Int, Set} THEN OPM.FPrint(typ.idfp, typ.size) END;
+    res := typ
   END EnterTyp;
 
   PROCEDURE EnterTypeAlias(name: OPS.Name; VAR res: Object);

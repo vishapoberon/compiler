@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/12]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/11/13]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -83,7 +83,11 @@ static void Compiler_PropagateElementaryTypeSizes (void)
 {
 	OPT_Struct adrinttyp = NIL;
 	OPT_sysptrtyp->size = OPM_AddressSize;
+	OPT_sysptrtyp->idfp = OPT_sysptrtyp->form;
+	OPM_FPrint(&OPT_sysptrtyp->idfp, OPT_sysptrtyp->size);
 	OPT_adrtyp->size = OPM_AddressSize;
+	OPT_adrtyp->idfp = OPT_adrtyp->form;
+	OPM_FPrint(&OPT_adrtyp->idfp, OPT_adrtyp->size);
 	adrinttyp = OPT_IntType(OPM_AddressSize);
 	OPT_adrtyp->strobj = adrinttyp->strobj;
 	OPT_sinttyp = OPT_IntType(OPM_ShortintSize);

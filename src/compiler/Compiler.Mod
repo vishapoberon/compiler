@@ -54,7 +54,12 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     VAR adrinttyp: OPT.Struct;
   BEGIN
     OPT.sysptrtyp.size := OPM.AddressSize;
-    OPT.adrtyp.size    := OPM.AddressSize;
+    OPT.sysptrtyp.idfp := OPT.sysptrtyp.form;
+    OPM.FPrint(OPT.sysptrtyp.idfp, OPT.sysptrtyp.size);
+
+    OPT.adrtyp.size := OPM.AddressSize;
+    OPT.adrtyp.idfp := OPT.adrtyp.form;
+    OPM.FPrint(OPT.adrtyp.idfp, OPT.adrtyp.size);
 
     adrinttyp := OPT.IntType(OPM.AddressSize);
     OPT.adrtyp.strobj := adrinttyp.strobj;
