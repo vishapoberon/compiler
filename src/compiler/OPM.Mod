@@ -435,6 +435,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     LogWStr("  ");
 
     IF Errors = NIL THEN NEW(Errors); Texts.Open(Errors, "Errors.Txt") END;
+
     Texts.OpenScanner(S, Errors, 0);
     REPEAT l := S.line; Texts.Scan(S)
     UNTIL (l # S.line) & (S.class = Texts.Int) & (S.i = n)  OR  S.eot;
@@ -442,34 +443,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Texts.Read(S, c);
       WHILE ~S.eot & (c >= ' ') DO Out.Char(c); Texts.Read(S, c) END
     END
-
-
-(* ---
-VAR T: Texts.Text;  S: Texts.Scanner;
-
-PROCEDURE Write*(n: INTEGER);
-  VAR l: INTEGER;  c: CHAR;
-BEGIN
-  IF T = NIL THEN NEW(T); Texts.Open(T, "VishapOberonErrors.txt") END;
-  Texts.OpenScanner(S, T, 0);
-  REPEAT l := S.line; Texts.Scan(S)
-  UNTIL (l # S.line) & (S.class = Texts.Int) & (S.i = n)  OR  S.eot;
-  IF ~S.eot THEN Texts.Read(S, c);
-    WHILE ~S.eot & (c >= ' ') DO Console.Char(c); Texts.Read(S, c) END
-  END
-END Write;
-
-    (*NEW(T); Texts.Open(T, "vocErrors.Text"); Texts.OpenScanner(S, T, 0);
-    REPEAT S.line := 0;
-      REPEAT Texts.Scan(S) UNTIL S.eot OR (S.line # 0)
-    UNTIL S.eot OR (S.class = Texts.Int) & (S.i = n);
-    IF ~S.eot THEN Texts.Read(S, ch); i := 0;
-      WHILE ~S.eot & (ch # 0DX) DO buf[i] := ch; INC(i); Texts.Read(S, ch) END ;
-      buf[i] := 0X; LogWStr(buf);
-    END*)
-    LogWStr(errors.errors[n]);
-
---- *)
   END LogErrMsg;
 
 

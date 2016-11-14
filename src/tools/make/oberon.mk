@@ -371,9 +371,8 @@ library:
 	@printf "\nCompiling lib$(ONAME)-O$(MODEL) sources\n"
 	rm -rf $(BUILDDIR)/$(MODEL)
 	mkdir -p $(BUILDDIR)/$(MODEL)
-	#cp src/runtime/*.[ch] $(BUILDDIR)/$(MODEL)
-	#cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
 	cp $(BUILDDIR)/SYSTEM.[ho] $(BUILDDIR)/$(MODEL)
+	cp $(BUILDDIR)/WindowsWrapper.h $(BUILDDIR)/$(MODEL)
 	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
 	@printf "\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n"
 	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
