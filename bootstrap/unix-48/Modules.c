@@ -55,9 +55,8 @@ export void Modules_Halt (INT32 code);
 export Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);
 export Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
 static void Modules_errch (CHAR c);
-export void Modules_errint (INT32 l);
-static void Modules_errposint (INT32 l);
-export void Modules_errstring (CHAR *s, LONGINT s__len);
+static void Modules_errint (INT32 l);
+static void Modules_errstring (CHAR *s, LONGINT s__len);
 
 #define Modules_modules()	(Modules_Module)Heap_modules
 #define Modules_setmodules(m)	Heap_modules = m
@@ -169,7 +168,7 @@ static void Modules_errch (CHAR c)
 	e = Platform_Write(1, (ADDRESS)&c, 1);
 }
 
-void Modules_errstring (CHAR *s, LONGINT s__len)
+static void Modules_errstring (CHAR *s, LONGINT s__len)
 {
 	INT32 i;
 	__DUP(s, s__len, CHAR);
@@ -181,21 +180,16 @@ void Modules_errstring (CHAR *s, LONGINT s__len)
 	__DEL(s);
 }
 
-static void Modules_errposint (INT32 l)
-{
-	if (l > 10) {
-		Modules_errposint(__DIV(l, 10));
-	}
-	Modules_errch((CHAR)(48 + (int)__MOD(l, 10)));
-}
-
-void Modules_errint (INT32 l)
+static void Modules_errint (INT32 l)
 {
 	if (l < 0) {
 		Modules_errch('-');
 		l = -l;
 	}
-	Modules_errposint(l);
+	if (l >= 10) {
+		Modules_errint(__DIV(l, 10));
+	}
+	Modules_errch((CHAR)((int)__MOD(l, 10) + 48));
 }
 
 static void Modules_DisplayHaltCode (INT32 code)

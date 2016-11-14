@@ -13,7 +13,6 @@
 #include "Strings.h"
 #include "Texts.h"
 #include "VT100.h"
-#include "errors.h"
 
 typedef
 	CHAR OPM_FileName[32];
@@ -37,7 +36,7 @@ export CHAR OPM_modName[32];
 export CHAR OPM_objname[64];
 static INT32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
 static Texts_Reader OPM_inR;
-static Texts_Text OPM_Log;
+static Texts_Text OPM_Log, OPM_Errors;
 static Files_Rider OPM_oldSF, OPM_newSF;
 static Files_Rider OPM_R[3];
 static Files_File OPM_oldSFile, OPM_newSFile, OPM_HFile, OPM_BFile, OPM_HIFile;
@@ -536,11 +535,9 @@ static void OPM_MakeFileName (CHAR *name, LONGINT name__len, CHAR *FName, LONGIN
 
 static void OPM_LogErrMsg (INT16 n)
 {
+	INT16 l;
 	Texts_Scanner S;
-	Texts_Text T = NIL;
-	CHAR ch;
-	INT16 i;
-	CHAR buf[1024];
+	CHAR c;
 	if (n >= 0) {
 		if (!__IN(16, OPM_Options, 32)) {
 			VT100_SetAttr((CHAR*)"31m", 4);
@@ -561,7 +558,22 @@ static void OPM_LogErrMsg (INT16 n)
 	}
 	OPM_LogWNum(n, 1);
 	OPM_LogWStr((CHAR*)"  ", 3);
-	OPM_LogWStr(errors_errors[__X(n, 350)], 128);
+	if (OPM_Errors == NIL) {
+		__NEW(OPM_Errors, Texts_TextDesc);
+		Texts_Open(OPM_Errors, (CHAR*)"Errors.Txt", 11);
+	}
+	Texts_OpenScanner(&S, Texts_Scanner__typ, OPM_Errors, 0);
+	do {
+		l = S.line;
+		Texts_Scan(&S, Texts_Scanner__typ);
+	} while (!((((l != S.line && S.class == 3)) && S.i == n) || S.eot));
+	if (!S.eot) {
+		Texts_Read((void*)&S, Texts_Scanner__typ, &c);
+		while ((!S.eot && c >= ' ')) {
+			Out_Char(c);
+			Texts_Read((void*)&S, Texts_Scanner__typ, &c);
+		}
+	}
 }
 
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos)
@@ -1043,6 +1055,7 @@ static void EnumPtrs(void (*P)(void*))
 {
 	__ENUMR(&OPM_inR, Texts_Reader__typ, 72, 1, P);
 	P(OPM_Log);
+	P(OPM_Errors);
 	__ENUMR(&OPM_oldSF, Files_Rider__typ, 24, 1, P);
 	__ENUMR(&OPM_newSF, Files_Rider__typ, 24, 1, P);
 	__ENUMR(OPM_R, Files_Rider__typ, 24, 3, P);
@@ -1064,7 +1077,6 @@ export void *OPM__init(void)
 	__MODULE_IMPORT(Strings);
 	__MODULE_IMPORT(Texts);
 	__MODULE_IMPORT(VT100);
-	__MODULE_IMPORT(errors);
 	__REGMOD("OPM", EnumPtrs);
 	__REGCMD("CloseFiles", OPM_CloseFiles);
 	__REGCMD("CloseOldSym", OPM_CloseOldSym);

@@ -48,11 +48,7 @@ import void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
 import void Modules_Halt (INT32 code);
 import Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);
 import Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
-import void Modules_errint (INT32 l);
-import void Modules_errstring (CHAR *s, LONGINT s__len);
 import void *Modules__init(void);
 
-#define Modules_modules()	(Modules_Module)Heap_modules
-#define Modules_setmodules(m)	Heap_modules = m
 
 #endif // Modules

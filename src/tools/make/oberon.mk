@@ -61,16 +61,18 @@ assemble:
 
 	cd $(BUILDDIR) && $(COMPILE) -c SYSTEM.c  Configuration.c Platform.c Heap.c
 	cd $(BUILDDIR) && $(COMPILE) -c Out.c     Strings.c       Modules.c  Files.c
-	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         VT100.c    errors.c
+	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         VT100.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
 	cd $(BUILDDIR) && $(COMPILE) $(STATICLINK) Compiler.c -o $(ROOTDIR)/$(OBECOMP) \
-	SYSTEM.o  Configuration.o Platform.o Heap.o    Out.o     Strings.o       Modules.o  Files.o \
-	Reals.o   Texts.o         VT100.o    errors.o  OPM.o     extTools.o      OPS.o      OPT.o \
-	OPC.o     OPV.o           OPB.o      OPP.o
+	SYSTEM.o   Configuration.o Platform.o Heap.o  Out.o   Strings.o  \
+	Modules.o  Files.o 	       Reals.o    Texts.o VT100.o extTools.o \
+	OPM.o      OPS.o           OPT.o      OPC.o   OPV.o   OPB.o    OPP.o
 
 	cp src/runtime/*.[ch] $(BUILDDIR)
+	cp src/runtime/*.Txt  $(BUILDDIR)
+	cp src/runtime/*.Txt  $(ROOTDIR)
 	@printf "$(OBECOMP) created.\n"
 
 
@@ -111,7 +113,6 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Reals.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Texts.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/VT100.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/errors.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPM.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/extTools.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsfFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPS.Mod
@@ -123,6 +124,7 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ssfm    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/Compiler.Mod
 
 	cp src/runtime/*.[ch] $(BUILDDIR)
+	cp src/runtime/*.Txt  $(BUILDDIR)
 	@printf "$(BUILDDIR) filled with compiler C source.\n"
 
 
@@ -134,7 +136,7 @@ browsercmd:
 	@cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Smf -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
 	@cd $(BUILDDIR); $(COMPILE) BrowserCmd.c Oberon.c -o showdef \
 	  Platform.o Texts.o OPT.o Heap.o Out.o SYSTEM.o OPM.o OPS.o OPV.o \
-	  Files.o Reals.o Modules.o VT100.o errors.o Configuration.o Strings.o \
+	  Files.o Reals.o Modules.o VT100.o Configuration.o Strings.o \
 	  OPC.o
 
 
@@ -167,6 +169,9 @@ install:
 	@mkdir -p "$(INSTALLDIR)/2/sym"     && cp $(BUILDDIR)/2/*.sym "$(INSTALLDIR)/2/sym/"
 	@mkdir -p "$(INSTALLDIR)/C/include" && cp $(BUILDDIR)/C/*.h   "$(INSTALLDIR)/C/include/"
 	@mkdir -p "$(INSTALLDIR)/C/sym"     && cp $(BUILDDIR)/C/*.sym "$(INSTALLDIR)/C/sym/"
+
+	@cp $(BUILDDIR)/*.Txt "$(INSTALLDIR)/2/sym/"
+	@cp $(BUILDDIR)/*.Txt "$(INSTALLDIR)/C/sym/"
 
 	@mkdir -p "$(INSTALLDIR)/lib"
 	@cp $(BUILDDIR)/2/lib$(ONAME)* "$(INSTALLDIR)/lib/"
@@ -366,8 +371,9 @@ library:
 	@printf "\nCompiling lib$(ONAME)-O$(MODEL) sources\n"
 	rm -rf $(BUILDDIR)/$(MODEL)
 	mkdir -p $(BUILDDIR)/$(MODEL)
-	cp src/runtime/*.[ch] $(BUILDDIR)/$(MODEL)
-	cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
+	#cp src/runtime/*.[ch] $(BUILDDIR)/$(MODEL)
+	#cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -c SYSTEM.c
+	cp $(BUILDDIR)/SYSTEM.[ho] $(BUILDDIR)/$(MODEL)
 	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
 	@printf "\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n"
 	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o

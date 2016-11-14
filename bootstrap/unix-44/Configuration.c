@@ -19,6 +19,6 @@ export void *Configuration__init(void)
 	__DEFMOD;
 	__REGMOD("Configuration", 0);
 /* BEGIN */
-	__MOVE("1.95 [2016/11/13]. Bootstrapping compiler for address size 8, alignment 8.", Configuration_versionLong, 75);
+	__MOVE("1.95 [2016/11/14]. Bootstrapping compiler for address size 8, alignment 8.", Configuration_versionLong, 75);
 	__ENDMOD;
 }

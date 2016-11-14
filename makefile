@@ -170,6 +170,11 @@ assemble:
 	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
 
 
+compilerfromsavedsource:
+	@make -f src/tools/make/oberon.mk -s compilerfromsavedsource
+
+
+
 # compile: compiler only, without cleaning
 compiler: configuration
 	@make -f src/tools/make/oberon.mk -s translate MODEL=2

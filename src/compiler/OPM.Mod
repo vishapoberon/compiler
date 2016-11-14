@@ -4,7 +4,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   31.1.2007 jt synchronized with BlackBox version, in particular PromoteIntConstToLInt added
 *)
 
-  IMPORT SYSTEM, Texts, Files, Platform, Out, errors, Configuration, VT100, Strings;
+  IMPORT SYSTEM, Texts, Files, Platform, Out, Configuration, VT100, Strings;
 
   CONST
     OptionChar* = "-";
@@ -111,7 +111,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     lasterrpos:   LONGINT;
     inR:          Texts.Reader;
-    Log:          Texts.Text;
+    Log, Errors:  Texts.Text;
     oldSF, newSF: Files.Rider;
     R:            ARRAY 3 OF Files.Rider;
 
@@ -420,10 +420,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
   PROCEDURE LogErrMsg(n: INTEGER);
-    VAR
-      S: Texts.Scanner; T: Texts.Text;
-      ch: CHAR; i: INTEGER;
-      buf: ARRAY 1024 OF CHAR;
+  VAR l: INTEGER; S: Texts.Scanner; c: CHAR;
   BEGIN
     IF n >= 0 THEN
        IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Red) END;
@@ -436,6 +433,32 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END ;
     LogWNum(n, 1);
     LogWStr("  ");
+
+    IF Errors = NIL THEN NEW(Errors); Texts.Open(Errors, "Errors.Txt") END;
+    Texts.OpenScanner(S, Errors, 0);
+    REPEAT l := S.line; Texts.Scan(S)
+    UNTIL (l # S.line) & (S.class = Texts.Int) & (S.i = n)  OR  S.eot;
+    IF ~S.eot THEN
+      Texts.Read(S, c);
+      WHILE ~S.eot & (c >= ' ') DO Out.Char(c); Texts.Read(S, c) END
+    END
+
+
+(* ---
+VAR T: Texts.Text;  S: Texts.Scanner;
+
+PROCEDURE Write*(n: INTEGER);
+  VAR l: INTEGER;  c: CHAR;
+BEGIN
+  IF T = NIL THEN NEW(T); Texts.Open(T, "VishapOberonErrors.txt") END;
+  Texts.OpenScanner(S, T, 0);
+  REPEAT l := S.line; Texts.Scan(S)
+  UNTIL (l # S.line) & (S.class = Texts.Int) & (S.i = n)  OR  S.eot;
+  IF ~S.eot THEN Texts.Read(S, c);
+    WHILE ~S.eot & (c >= ' ') DO Console.Char(c); Texts.Read(S, c) END
+  END
+END Write;
+
     (*NEW(T); Texts.Open(T, "vocErrors.Text"); Texts.OpenScanner(S, T, 0);
     REPEAT S.line := 0;
       REPEAT Texts.Scan(S) UNTIL S.eot OR (S.line # 0)
@@ -445,6 +468,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       buf[i] := 0X; LogWStr(buf);
     END*)
     LogWStr(errors.errors[n]);
+
+--- *)
   END LogErrMsg;
 
 
