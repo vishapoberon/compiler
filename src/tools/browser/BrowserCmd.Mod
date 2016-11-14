@@ -1,7 +1,7 @@
 MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line version jt 4.4.95 *)
 
  IMPORT
-    OPM, OPS, OPT, OPV, Texts, Out, Platform, SYSTEM;
+    OPM, OPS, OPT, OPV, Texts, Out, Oberon, Platform, SYSTEM;
 
 
   CONST
@@ -12,12 +12,20 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
     option: CHAR;
 
   PROCEDURE Ws(s: ARRAY OF CHAR); BEGIN Texts.WriteString(W, s) END Ws;
-  PROCEDURE Wch(ch: CHAR);        BEGIN Texts.Write(W, ch)      END Wch;
+  PROCEDURE Wc(ch: CHAR);         BEGIN Texts.Write(W, ch)      END Wc;
   PROCEDURE Wi(i: SYSTEM.INT64);  BEGIN Texts.WriteInt(W, i, 0) END Wi;
   PROCEDURE Wln;                  BEGIN Texts.WriteLn(W)        END Wln;
 
+  PROCEDURE Wh(i: SYSTEM.INT64);
+  BEGIN
+    IF i >= 16 THEN Wh(i DIV 10H)
+    ELSIF i >= 10 THEN Wc("0") END;
+    i := i MOD 16;
+    IF i < 10 THEN Wc(CHR(i+30H)) ELSE Wc(CHR(i+37H)) END
+  END Wh;
+
   PROCEDURE Indent(i: INTEGER);
-  BEGIN WHILE i > 0 DO Wch(" "); Wch(" "); DEC(i) END
+  BEGIN WHILE i > 0 DO Wc(" "); Wc(" "); DEC(i) END
   END Indent;
 
   PROCEDURE ^Wtype(typ: OPT.Struct);
@@ -28,17 +36,25 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   BEGIN first := TRUE;
     res := (result # NIL) (* hidden mthd *) & (result # OPT.notyp);
     paren := res OR (par # NIL);
-    IF paren THEN Wch("(") END ;
+    IF paren THEN Wc("(") END;
     WHILE par # NIL DO
-      IF ~first THEN Ws("; ") ELSE first := FALSE END ;
-      IF option = "x" THEN Wi(par^.adr); Wch(" ") END ;
-      IF par^.mode = OPT.VarPar THEN Ws("VAR ") END ;
+      IF ~first THEN Ws("; ") ELSE first := FALSE END;
+      IF option = "x" THEN Wi(par^.adr); Wc(" ") END;
+      IF par^.mode = OPT.VarPar THEN Ws("VAR ") END;
       Ws(par^.name); Ws(": "); Wtype(par^.typ);
       par := par^.link
-    END ;
-    IF paren THEN Wch(")") END ;
+    END;
+    IF paren THEN Wc(")") END;
     IF res THEN Ws(": "); Wtype(result) END
   END Wsign;
+
+  PROCEDURE HasForm(obj: OPT.Object; mode: SET): BOOLEAN;
+  BEGIN
+    RETURN (obj # NIL)
+         & (   ((obj.mode IN mode) & (obj.name # ""))
+            OR HasForm(obj.left, mode)
+            OR HasForm(obj.right, mode));
+  END HasForm;
 
   PROCEDURE Objects(obj: OPT.Object; mode: SET);
     VAR i: SYSTEM.INT64; m: INTEGER; s: SYSTEM.SET64; ext: OPT.ConstExt;
@@ -51,58 +67,58 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
                     CASE obj^.typ^.form OF
                     |OPT.Bool:   IF obj^.conval^.intval = 1 THEN Ws("TRUE") ELSE Ws("FALSE") END
                     |OPT.Char:   IF (obj^.conval^.intval >= 32) & (obj^.conval^.intval <= 126) THEN
-                                   Wch(22X); Wch(CHR(obj^.conval^.intval)); Wch(22X)
+                                   Wc(22X); Wc(CHR(obj^.conval^.intval)); Wc(22X)
                                  ELSE
                                    i := obj^.conval^.intval DIV 16;
-                                   IF i > 9 THEN Wch(CHR(55 + i)) ELSE Wch(CHR(48 + i)) END ;
+                                   IF i > 9 THEN Wc(CHR(55 + i)) ELSE Wc(CHR(48 + i)) END;
                                    i := obj^.conval^.intval MOD 16;
-                                   IF i > 9 THEN Wch(CHR(55 + i)) ELSE Wch(CHR(48 + i)) END ;
-                                   Wch("X")
+                                   IF i > 9 THEN Wc(CHR(55 + i)) ELSE Wc(CHR(48 + i)) END;
+                                   Wc("X")
                                  END
                     |OPT.Int:    Wi(obj^.conval^.intval)
-                    |OPT.Set:    Wch("{"); i := 0; s := obj^.conval^.setval;
+                    |OPT.Set:    Wc("{"); i := 0; s := obj^.conval^.setval;
                                  WHILE i <= MAX(SYSTEM.SET64) DO
                                    IF i IN s THEN Wi(i); EXCL(s, i);
                                      IF s # {} THEN Ws(", ") END
-                                   END ;
+                                   END;
                                    INC(i)
-                                 END ;
-                                 Wch("}")
+                                 END;
+                                 Wc("}")
                     |OPT.Real:   Texts.WriteReal(W, SHORT(obj^.conval^.realval), 16)
                     |OPT.LReal:  Texts.WriteLongReal(W, obj^.conval^.realval, 23)
-                    |OPT.String: Ws(obj^.conval^.ext^)
+                    |OPT.String: Wc('"'); Ws(obj^.conval^.ext^); Wc('"')
                     |OPT.NilTyp: Ws("NIL")
                     ELSE (* Ignore other forms *)
-                    END ;
-                    Wch(";"); Wln
+                    END;
+                    Wc(";"); Wln
         |OPT.Typ:   IF obj^.name # "" THEN Indent(2);
                       IF obj^.typ^.strobj = obj THEN  (* canonical name *)
                         Wtype(obj^.typ); Ws(" = "); Wstruct(obj^.typ)
                       ELSE  (* alias *)
                         Ws(obj^.name); Ws(" = "); Wtype(obj^.typ)
-                      END ;
-                      Wch(";"); Wln
+                      END;
+                      Wc(";"); Wln
                     END
         |OPT.Var:   Indent(2); Ws(obj^.name);
-                    IF obj^.vis = OPT.externalR THEN Ws("-: ") ELSE Ws(": ") END ;
-                    Wtype(obj^.typ); Wch(";"); Wln
+                    IF obj^.vis = OPT.externalR THEN Ws("-: ") ELSE Ws(": ") END;
+                    Wtype(obj^.typ); Wc(";"); Wln
         |OPT.XProc,
          OPT.CProc,
          OPT.IProc: Indent(1); Ws("PROCEDURE ");
-                    IF obj^.mode = OPT.IProc THEN Wch("+")
-                    ELSIF obj^.mode = OPT.CProc THEN Wch("-")
-                    END ;
+                    IF obj^.mode = OPT.IProc THEN Wc("+")
+                    ELSIF obj^.mode = OPT.CProc THEN Wc("-")
+                    END;
                     Ws(obj^.name);
                     Wsign(obj^.typ, obj^.link);
                     IF obj^.mode = OPT.CProc THEN
                       ext := obj^.conval^.ext; m := ORD(ext^[0]); i := 1; Ws('  "');
-                      WHILE i <= m DO Wch(ext^[i]); INC(i) END ;
-                      Wch('"');
-                    END ;
-                    Wch(";"); Wln
+                      WHILE i <= m DO Wc(ext^[i]); INC(i) END;
+                      Wc('"');
+                    END;
+                    Wc(";"); Wln
         ELSE (* Ignore other modes *)
         END
-      END ;
+      END;
       Objects(obj^.right, mode)
     END
   END Objects;
@@ -115,17 +131,17 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
       IF (obj^.mode = OPT.TProc) & ((obj^.name # OPM.HdTProcName) OR (option = "x")) THEN
         Indent(3); Ws("PROCEDURE (");
         IF obj^.name # OPM.HdTProcName THEN
-          IF obj^.link^.mode = OPT.VarPar THEN Ws("VAR ") END ;
+          IF obj^.link^.mode = OPT.VarPar THEN Ws("VAR ") END;
           Ws(obj^.link^.name); Ws(": "); Wtype(obj^.link^.typ)
-        END ;
+        END;
         Ws(") "); Ws(obj^.name);
         Wsign(obj^.typ, obj^.link^.link);
-        Wch(";");
+        Wc(";");
         IF option = "x" THEN Indent(1);
           Ws("(* methno: "); Wi(obj^.adr DIV 10000H);  Ws(" *)")
-        END ;
+        END;
         Wln;
-      END ;
+      END;
       Wmthd(obj^.right)
     END
   END Wmthd;
@@ -134,10 +150,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
     VAR fld: OPT.Object;
 
     PROCEDURE SysFlag;
-    BEGIN
-      IF typ^.sysflag # 0 THEN
-        Wch("["); Wi(typ^.sysflag); Ws("] ")
-      END
+    BEGIN IF typ^.sysflag # 0 THEN Wc("["); Wh(typ^.sysflag); Ws("H] ") END
     END SysFlag;
 
   BEGIN
@@ -149,20 +162,20 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
                   |OPT.Array:  Ws("ARRAY "); SysFlag; Wi(typ^.n); Ws(" OF "); Wtype(typ^.BaseTyp)
                   |OPT.DynArr: Ws("ARRAY "); SysFlag; Ws("OF "); Wtype(typ^.BaseTyp)
                   |OPT.Record: Ws("RECORD ");SysFlag;
-                               IF typ^.BaseTyp # NIL THEN Wch("("); Wtype(typ^.BaseTyp); Wch(")") END ;
+                               IF typ^.BaseTyp # NIL THEN Wc("("); Wtype(typ^.BaseTyp); Wc(")") END;
                                Wln; fld := typ^.link;
                                WHILE (fld # NIL) & (fld^.mode = OPT.Fld) DO
                                  IF (option = "x") OR (fld^.name[0] # "@") THEN Indent(3);
-                                   IF option = "x" THEN Wi(fld^.adr); Wch(" ") END ;
+                                   IF option = "x" THEN Wi(fld^.adr); Wc(" ") END;
                                    Ws(fld^.name);
-                                   IF fld^.vis = OPT.externalR THEN Wch("-") END ;
-                                   Ws(": "); Wtype(fld^.typ); Wch(";");
+                                   IF fld^.vis = OPT.externalR THEN Wc("-") END;
+                                   Ws(": "); Wtype(fld^.typ); Wc(";");
                                    Wln
-                                 END ;
+                                 END;
                                  fld := fld^.link
-                               END ;
+                               END;
                                Wmthd(typ^.link);
-                               Indent(2); Ws("END ");
+                               Indent(2); Ws("END");
                                IF option = "x" THEN Indent(1);
                                  Ws("(* size: "); Wi(typ^.size); Ws(" align: "); Wi(typ^.align);
                                  Ws(" nofm: "); Wi(typ^.n); Ws(" *)")
@@ -178,20 +191,23 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   BEGIN
     obj := typ^.strobj;
     IF obj^.name # "" THEN
-      IF typ^.mno # 0 THEN Ws(OPT.GlbMod[typ^.mno].name); Wch(".")
+      IF typ^.mno # 0 THEN Ws(OPT.GlbMod[typ^.mno].name); Wc(".")
       ELSIF (typ = OPT.bytetyp) OR (typ = OPT.sysptrtyp) THEN Ws("SYSTEM.")
-      ELSIF obj^.vis = OPT.internal THEN Wch("#")
-      END ;
+      ELSIF obj^.vis = OPT.internal THEN Wc("#")
+      END;
       Ws(obj^.name)
     ELSE
-      IF (option = "x") & (typ^.ref > OPM.MaxStruct) THEN Wch("#"); Wi(typ^.ref - OPM.MaxStruct); Wch(" ") END ;
+      IF (option = "x") & (typ^.ref > OPM.MaxStruct) THEN Wc("#"); Wi(typ^.ref - OPM.MaxStruct); Wc(" ") END;
       Wstruct(typ)
     END
   END Wtype;
 
   PROCEDURE WModule(name: OPS.Name; T: Texts.Text);
-    VAR i: INTEGER;
-      beg, end: LONGINT; first, done: BOOLEAN;
+    VAR
+      i:           INTEGER;
+      beg, end:    LONGINT;
+      first, done: BOOLEAN;
+      obj:         OPT.Object;
 
     PROCEDURE Header(s: ARRAY OF CHAR);
     BEGIN
@@ -210,21 +226,24 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   BEGIN
     OPT.Import("@notself", name, done);
     IF done THEN
-      Ws("DEFINITION "); Ws(name); Wch(";"); Wln; Wln;
-      Header("IMPORT"); i := 1; first := TRUE;
-      WHILE i < OPT.nofGmod DO
-        IF first THEN first := FALSE; Indent(2) ELSE Ws(", ") END ;
-        Ws(OPT.GlbMod[i].name);
-        INC(i)
-      END ;
-      IF ~first THEN Wch(";"); Wln END ;
+      Ws("DEFINITION "); Ws(name); Wc(";"); Wln;
+
+      IF OPT.nofGmod > 1 THEN
+        Header("IMPORT"); i := 1; first := TRUE;
+        WHILE i < OPT.nofGmod DO
+          IF first THEN first := FALSE; Indent(2) ELSE Ws(", ") END;
+          Ws(OPT.GlbMod[i].name);
+          INC(i)
+        END;
+        IF ~first THEN Wc(";"); Wln END
+      END;
       CheckHeader;
-      Header("CONST"); Objects(OPT.GlbMod[0].right, {OPT.Con}); CheckHeader;
-      Header("TYPE"); Objects(OPT.GlbMod[0].right, {OPT.Typ}); CheckHeader;
-      Header("VAR"); Objects(OPT.GlbMod[0].right, {OPT.Var}); CheckHeader;
-      Objects(OPT.GlbMod[0].right, {OPT.XProc, OPT.IProc, OPT.CProc});
-      Wln;
-      Ws("END "); Ws(name); Wch("."); Wln; Texts.Append(T, W.buf)
+      obj := OPT.GlbMod[0].right;
+      IF HasForm(obj, {OPT.Con}) THEN Header("CONST"); Objects(obj, {OPT.Con}); CheckHeader END;
+      IF HasForm(obj, {OPT.Typ}) THEN Header("TYPE");  Objects(obj, {OPT.Typ}); CheckHeader END;
+      IF HasForm(obj, {OPT.Var}) THEN Header("VAR");   Objects(obj, {OPT.Var}); CheckHeader END;
+      Objects(obj, {OPT.XProc, OPT.IProc, OPT.CProc}); Wln;
+      Ws("END "); Ws(name); Wc("."); Wln; Texts.Append(T, W.buf)
     ELSE
       Texts.WriteString(W, name); Texts.WriteString(W, " -- symbol file not found");
       Texts.WriteLn(W); Texts.Append(T, W.buf)
@@ -232,37 +251,34 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   END WModule;
 
   PROCEDURE Ident(VAR name, first: ARRAY OF CHAR);
-    VAR i, j: INTEGER; ch: CHAR;
+  VAR i, j: INTEGER; ch: CHAR;
   BEGIN i := 0;
-    WHILE name[i] # 0X DO INC(i) END ;
-    WHILE (i >= 0) & (name[i] # "/") DO DEC(i) END ;
+    WHILE name[i] # 0X DO INC(i) END;
+    WHILE (i >= 0) & (name[i] # "/") DO DEC(i) END;
     INC(i); j := 0; ch := name[i];
-    WHILE (ch # ".") & (ch # 0X) DO first[j] := ch; INC(i); INC(j); ch := name[i] END ;
+    WHILE (ch # ".") & (ch # 0X) DO first[j] := ch; INC(i); INC(j); ch := name[i] END;
     first[j] := 0X
   END Ident;
 
   PROCEDURE ShowDef*;
-    VAR T, dummyT: Texts.Text; S, vname, name: OPS.Name; R: Texts.Reader; ch: CHAR;
-      s: ARRAY 1024 OF CHAR; i: INTEGER;
+    VAR S, vname, name: OPS.Name;
   BEGIN
     option := 0X; Platform.GetArg(1, S);
     IF Platform.ArgCount > 2 THEN
       IF S[0] = OptionChar THEN option := S[1]; Platform.GetArg(2, S)
       ELSE Platform.GetArg(2, vname); option := vname[1]
       END
-    END ;
+    END;
     IF Platform.ArgCount >= 2 THEN
       Ident(S, name);
-      NEW(T); Texts.Open(T, "");
-      OPT.Init(name, {}); OPT.SelfName := "AvoidErr154"; WModule(name, T); OPT.Close;
-      Texts.OpenReader(R, T, 0); Texts.Read(R, ch); i := 0;
-      WHILE ~R.eot DO
-        IF ch = 0DX THEN s[i] := 0X; i := 0; Out.String(s); Out.Ln
-        ELSE s[i] := ch; INC(i)
-        END ;
-        Texts.Read(R, ch)
-      END ;
-      s[i] := 0X; Out.String(s)
+      OPT.Init(name, {}); OPT.SelfName := "AvoidErr154";
+      WModule(name, Oberon.Log);
+      OPT.Close;
+    ELSE
+      Texts.WriteString(W, "showdef - Display module's public interface.");       Texts.WriteLn(W);
+      Texts.WriteString(W, "Usage: showdef module");                              Texts.WriteLn(W);
+      Texts.WriteString(W, "Note: module.sym must be in the current directory."); Texts.WriteLn(W);
+      Texts.Append(Oberon.Log, W.buf)
     END
   END ShowDef;
 

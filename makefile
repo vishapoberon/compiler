@@ -184,7 +184,7 @@ sourcechanges:
 
 # browsercmd: build the 'showdef' command
 browsercmd: configuration
-	@make -f src/tools/make/oberon.mk -s browsercmd
+	@make -f src/tools/make/oberon.mk -s browsercmd MODEL=2
 
 
 

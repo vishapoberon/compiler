@@ -36,13 +36,6 @@ MODULE Modules;  (* jt 6.1.96 *)
     imported*, importing*: ModuleName;
 
 
-  PROCEDURE -modules*(): Module
-      "(Modules_Module)Heap_modules";
-
-  PROCEDURE -setmodules*(m: Module)
-      "Heap_modules = m";
-
-
   PROCEDURE Append(VAR a: ARRAY OF CHAR; b: ARRAY OF CHAR);
     VAR i, j: INTEGER;
   BEGIN
@@ -50,6 +43,10 @@ MODULE Modules;  (* jt 6.1.96 *)
     j := 0; WHILE b[j] # 0X DO a[i] := b[j]; INC(i); INC(j) END;
     a[i] := 0X
   END Append;
+
+
+  PROCEDURE -modules(): Module     "(Modules_Module)Heap_modules";
+  PROCEDURE -setmodules(m: Module) "Heap_modules = m";
 
   PROCEDURE ThisMod* (name: ARRAY OF CHAR): Module;
     VAR m: Module; bodyname: ARRAY 64 OF CHAR; body: Command;
@@ -101,17 +98,18 @@ MODULE Modules;  (* jt 6.1.96 *)
   BEGIN e := Platform.Write(1, SYSTEM.ADR(c), 1)
   END errch;
 
-  PROCEDURE errstring*(s: ARRAY OF CHAR);
+  PROCEDURE errstring(s: ARRAY OF CHAR);
   VAR i: LONGINT;
-  BEGIN i := 0;
-    WHILE (i<LEN(s)) & (s[i] # 0X) DO errch(s[i]); INC(i) END
+  BEGIN
+    i := 0; WHILE (i<LEN(s)) & (s[i] # 0X) DO errch(s[i]); INC(i) END
   END errstring;
 
-  PROCEDURE errposint(l: SYSTEM.INT32);
-  BEGIN IF l>10 THEN errposint(l DIV 10) END; errch(CHR(ORD('0') + (l MOD 10))) END errposint;
-
-  PROCEDURE errint*(l: SYSTEM.INT32);
-  BEGIN IF l<0 THEN errch('-'); l := -l END; errposint(l) END errint;
+  PROCEDURE errint(l: SYSTEM.INT32);
+  BEGIN
+    IF l <  0  THEN errch('-'); l := -l END;
+    IF l >= 10 THEN errint(l DIV 10) END;
+    errch(CHR(l MOD 10 + 30H))
+  END errint;
 
   PROCEDURE DisplayHaltCode(code: SYSTEM.INT32);
   BEGIN
