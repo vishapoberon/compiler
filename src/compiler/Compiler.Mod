@@ -25,14 +25,10 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
         IF OPM.noerr THEN
           IF (OPM.mainprog IN OPM.Options) & (OPM.modName # "SYSTEM") THEN
             OPM.DeleteNewSym;
-            IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.Green) END;
-            OPM.LogWStr("  Main program.");
-            IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.ResetAll) END;
+            OPM.LogVT100(VT100.Green); OPM.LogWStr("  Main program."); OPM.LogVT100(VT100.ResetAll);
           ELSE
             IF new THEN
-              IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.Green) END;
-              OPM.LogWStr("  New symbol file.");
-              IF ~(OPM.notcoloroutput IN OPM.Options) THEN VT100.SetAttr(VT100.ResetAll) END;
+              OPM.LogVT100(VT100.Green); OPM.LogWStr("  New symbol file."); OPM.LogVT100(VT100.ResetAll);
 	            OPM.RegisterNewSym
             ELSIF ext THEN
               OPM.LogWStr("  Extended symbol file.");

@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspamSf */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspamS */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -46,22 +46,14 @@ void Compiler_Module (BOOLEAN *done)
 			if (OPM_noerr) {
 				if ((__IN(10, OPM_Options, 32) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
 					OPM_DeleteNewSym();
-					if (!__IN(16, OPM_Options, 32)) {
-						VT100_SetAttr((CHAR*)"32m", 4);
-					}
+					OPM_LogVT100((CHAR*)"32m", 4);
 					OPM_LogWStr((CHAR*)"  Main program.", 16);
-					if (!__IN(16, OPM_Options, 32)) {
-						VT100_SetAttr((CHAR*)"0m", 3);
-					}
+					OPM_LogVT100((CHAR*)"0m", 3);
 				} else {
 					if (new) {
-						if (!__IN(16, OPM_Options, 32)) {
-							VT100_SetAttr((CHAR*)"32m", 4);
-						}
+						OPM_LogVT100((CHAR*)"32m", 4);
 						OPM_LogWStr((CHAR*)"  New symbol file.", 19);
-						if (!__IN(16, OPM_Options, 32)) {
-							VT100_SetAttr((CHAR*)"0m", 3);
-						}
+						OPM_LogVT100((CHAR*)"0m", 3);
 						OPM_RegisterNewSym();
 					} else if (ext) {
 						OPM_LogWStr((CHAR*)"  Extended symbol file.", 24);

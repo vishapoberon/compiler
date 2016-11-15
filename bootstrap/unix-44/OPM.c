@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -59,6 +59,7 @@ export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 export void OPM_InitOptions (void);
 export INT16 OPM_Integer (INT64 n);
 static void OPM_LogErrMsg (INT16 n);
+export void OPM_LogVT100 (CHAR *vt100code, LONGINT vt100code__len);
 export void OPM_LogW (CHAR ch);
 export void OPM_LogWLn (void);
 export void OPM_LogWNum (INT64 i, INT64 len);
@@ -119,6 +120,15 @@ void OPM_LogWNum (INT64 i, INT64 len)
 void OPM_LogWLn (void)
 {
 	Out_Ln();
+}
+
+void OPM_LogVT100 (CHAR *vt100code, LONGINT vt100code__len)
+{
+	__DUP(vt100code, vt100code__len, CHAR);
+	if ((Out_IsConsole && !__IN(16, OPM_Options, 32))) {
+		VT100_SetAttr(vt100code, vt100code__len);
+	}
+	__DEL(vt100code);
 }
 
 INT64 OPM_SignedMaximum (INT32 bytecount)
@@ -540,22 +550,14 @@ static void OPM_LogErrMsg (INT16 n)
 	Texts_Scanner S;
 	CHAR c;
 	if (n >= 0) {
-		if (!__IN(16, OPM_Options, 32)) {
-			VT100_SetAttr((CHAR*)"31m", 4);
-		}
+		OPM_LogVT100((CHAR*)"31m", 4);
 		OPM_LogWStr((CHAR*)"  err ", 7);
-		if (!__IN(16, OPM_Options, 32)) {
-			VT100_SetAttr((CHAR*)"0m", 3);
-		}
+		OPM_LogVT100((CHAR*)"0m", 3);
 	} else {
-		if (!__IN(16, OPM_Options, 32)) {
-			VT100_SetAttr((CHAR*)"35m", 4);
-		}
+		OPM_LogVT100((CHAR*)"35m", 4);
 		OPM_LogWStr((CHAR*)"  warning ", 11);
 		n = -n;
-		if (!__IN(16, OPM_Options, 32)) {
-			VT100_SetAttr((CHAR*)"0m", 3);
-		}
+		OPM_LogVT100((CHAR*)"0m", 3);
 	}
 	OPM_LogWNum(n, 1);
 	OPM_LogWStr((CHAR*)"  ", 3);
@@ -641,13 +643,9 @@ static void OPM_ShowLine (INT64 pos)
 		OPM_LogW(' ');
 		i -= 1;
 	}
-	if (!__IN(16, OPM_Options, 32)) {
-		VT100_SetAttr((CHAR*)"32m", 4);
-	}
+	OPM_LogVT100((CHAR*)"32m", 4);
 	OPM_LogW('^');
-	if (!__IN(16, OPM_Options, 32)) {
-		VT100_SetAttr((CHAR*)"0m", 3);
-	}
+	OPM_LogVT100((CHAR*)"0m", 3);
 	Files_Close(f);
 }
 

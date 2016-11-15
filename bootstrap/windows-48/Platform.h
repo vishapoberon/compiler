@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -47,6 +47,7 @@ import INT16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIden
 import BOOLEAN Platform_Inaccessible (INT16 e);
 import void Platform_Init (INT32 argc, INT32 argvadr);
 import BOOLEAN Platform_Interrupted (INT16 e);
+import BOOLEAN Platform_IsConsole (INT32 h);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
 import INT16 Platform_New (CHAR *n, LONGINT n__len, INT32 *h);
 import BOOLEAN Platform_NoSuchDirectory (INT16 e);

@@ -129,7 +129,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE LogWNum*(i, len: SYSTEM.INT64); BEGIN Out.Int(i, len) END LogWNum;
   PROCEDURE LogWLn*;                        BEGIN Out.Ln          END LogWLn;
 
-  PROCEDURE LogVT100(vt100code: ARRAY OF CHAR);
+  PROCEDURE LogVT100*(vt100code: ARRAY OF CHAR);
   BEGIN
     IF Out.IsConsole & ~(notcoloroutput IN Options) THEN
       VT100.SetAttr(vt100code)

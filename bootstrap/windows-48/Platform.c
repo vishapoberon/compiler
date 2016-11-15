@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -67,6 +67,7 @@ export INT16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIden
 export BOOLEAN Platform_Inaccessible (INT16 e);
 export void Platform_Init (INT32 argc, INT32 argvadr);
 export BOOLEAN Platform_Interrupted (INT16 e);
+export BOOLEAN Platform_IsConsole (INT32 h);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
 export INT16 Platform_New (CHAR *n, LONGINT n__len, INT32 *h);
 export BOOLEAN Platform_NoSuchDirectory (INT16 e);
@@ -620,6 +621,12 @@ static void Platform_EnableVT100 (void)
 	if (Platform_GetConsoleMode(Platform_StdOut, &mode)) {
 		Platform_SetConsoleMode(Platform_StdOut, mode + 4);
 	}
+}
+
+BOOLEAN Platform_IsConsole (INT32 h)
+{
+	INT32 mode;
+	return Platform_GetConsoleMode(Platform_StdOut, &mode);
 }
 
 static void Platform_TestLittleEndian (void)

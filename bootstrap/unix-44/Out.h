@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Out__h
 #define Out__h
@@ -6,6 +6,7 @@
 #include "SYSTEM.h"
 
 
+import BOOLEAN Out_IsConsole;
 
 
 import void Out_Char (CHAR ch);

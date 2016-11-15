@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -9,6 +9,7 @@
 #include "Platform.h"
 
 
+export BOOLEAN Out_IsConsole;
 static CHAR Out_buf[128];
 static INT16 Out_in;
 
@@ -311,6 +312,7 @@ export void *Out__init(void)
 	__REGCMD("Ln", Out_Ln);
 	__REGCMD("Open", Out_Open);
 /* BEGIN */
+	Out_IsConsole = Platform_IsConsole(Platform_StdOut);
 	Out_in = 0;
 	__ENDMOD;
 }

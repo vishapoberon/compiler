@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -63,6 +63,7 @@ export INT16 Platform_IdentifyByName (CHAR *n, LONGINT n__len, Platform_FileIden
 export BOOLEAN Platform_Inaccessible (INT16 e);
 export void Platform_Init (INT32 argc, INT32 argvadr);
 export BOOLEAN Platform_Interrupted (INT16 e);
+export BOOLEAN Platform_IsConsole (INT32 h);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
 export INT16 Platform_New (CHAR *n, LONGINT n__len, INT32 *h);
 export BOOLEAN Platform_NoSuchDirectory (INT16 e);
@@ -131,6 +132,7 @@ extern void Heap_InitHeap();
 #define Platform_getenv(var, var__len)	(Platform_EnvPtr)getenv((char*)var)
 #define Platform_getpid()	(INTEGER)getpid()
 #define Platform_gettimeval()	struct timeval tv; gettimeofday(&tv,0)
+#define Platform_isatty(fd)	isatty(fd)
 #define Platform_lseek(fd, o, w)	lseek(fd, o, w)
 #define Platform_nanosleep(s, ns)	struct timespec req, rem; req.tv_sec = s; req.tv_nsec = ns; nanosleep(&req, &rem)
 #define Platform_opennew(n, n__len)	open((char*)n, O_CREAT | O_TRUNC | O_RDWR, 0664)
@@ -402,6 +404,11 @@ INT16 Platform_Close (INT32 h)
 		return 0;
 	}
 	__RETCHK;
+}
+
+BOOLEAN Platform_IsConsole (INT32 h)
+{
+	return Platform_isatty(h) != 0;
 }
 
 INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ)
