@@ -2172,6 +2172,8 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, INT8 fctno)
 			if (((x->class == 8 || x->class == 9) || __IN(f, 0x0501, 32)) || x->typ->comp == 3) {
 				OPB_err(126);
 			}
+			OPT_TypSize(x->typ);
+			OPT_TypSize(p->typ);
 			if ((x->class != 7 && x->typ->size < p->typ->size)) {
 				OPB_err(-308);
 			}

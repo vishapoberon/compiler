@@ -1226,6 +1226,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      err(126)
                    END;
                    (* Warn if the result type includes memory past the end of the source variable *)
+                   OPT.TypSize(x.typ); OPT.TypSize(p.typ);
                    IF (x.class # OPT.Nconst) & (x.typ.size < p.typ.size) THEN err(-308) END;
 
                    IF (x.class = OPT.Nconst) & (x.typ.form = OPT.Int) & (p.typ.form = OPT.Int) THEN
