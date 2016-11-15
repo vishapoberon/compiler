@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/13]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
+/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. xtspaSfF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -49,10 +49,11 @@ export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
 export void OPM_DeleteNewSym (void);
 export void OPM_FPrint (INT32 *fp, INT64 val);
-export void OPM_FPrintLReal (INT32 *fp, LONGREAL lr);
-export void OPM_FPrintReal (INT32 *fp, REAL real);
-export void OPM_FPrintSet (INT32 *fp, UINT64 set);
+export void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
+export void OPM_FPrintReal (INT32 *fp, REAL val);
+export void OPM_FPrintSet (INT32 *fp, UINT64 val);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
+static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, LONGINT bytes__len);
 export void OPM_Get (CHAR *ch);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 export void OPM_InitOptions (void);
@@ -707,31 +708,37 @@ void OPM_err (INT16 n)
 	OPM_Mark(n, OPM_errpos);
 }
 
-void OPM_FPrint (INT32 *fp, INT64 val)
-{
-	*fp = __ROTL((INT32)((UINT32)*fp ^ __VAL(UINT32, val)), 1, 32);
-}
-
-void OPM_FPrintSet (INT32 *fp, UINT64 set)
-{
-	OPM_FPrint(&*fp, __VAL(INT32, set));
-}
-
-void OPM_FPrintReal (INT32 *fp, REAL real)
+static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, LONGINT bytes__len)
 {
 	INT16 i;
 	INT32 l;
-	__GET((ADDRESS)&real, l, INT32);
-	OPM_FPrint(&*fp, l);
+	__ASSERT(__MASK(bytes__len, -4) == 0, 0);
+	i = 0;
+	while (i < bytes__len) {
+		__GET((ADDRESS)&bytes[__X(i, bytes__len)], l, INT32);
+		*fp = __ROTL((INT32)((UINT32)*fp ^ (UINT32)l), 1, 32);
+		i += 4;
+	}
 }
 
-void OPM_FPrintLReal (INT32 *fp, LONGREAL lr)
+void OPM_FPrint (INT32 *fp, INT64 val)
 {
-	INT32 l, h;
-	__GET((ADDRESS)&lr, l, INT32);
-	__GET((ADDRESS)&lr + 4, h, INT32);
-	OPM_FPrint(&*fp, l);
-	OPM_FPrint(&*fp, h);
+	OPM_FingerprintBytes(&*fp, (void*)&val, 8);
+}
+
+void OPM_FPrintSet (INT32 *fp, UINT64 val)
+{
+	OPM_FingerprintBytes(&*fp, (void*)&val, 8);
+}
+
+void OPM_FPrintReal (INT32 *fp, REAL val)
+{
+	OPM_FingerprintBytes(&*fp, (void*)&val, 4);
+}
+
+void OPM_FPrintLReal (INT32 *fp, LONGREAL val)
+{
+	OPM_FingerprintBytes(&*fp, (void*)&val, 8);
 }
 
 void OPM_SymRCh (CHAR *ch)

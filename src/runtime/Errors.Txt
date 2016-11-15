@@ -175,6 +175,7 @@ Compiler Warnings
 301 implicit type cast
 306 inappropriate symbol file ignored
 307 no ELSE symbol after CASE statement sequence may lead to trap
+308 SYSTEM.VAL result includes memory past end of source variable; use SYSTEM.GET
 
 Run-time Error Messages
  -1 assertion failed, cf. SYSTEM_assert

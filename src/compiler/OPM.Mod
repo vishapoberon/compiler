@@ -542,47 +542,28 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END err;
 
 
-  PROCEDURE FPrint*(VAR fp: LONGINT; val: SYSTEM.INT64);
+  (* ------------------------ Fingerprint hashing ----------------------- *)
+
+  PROCEDURE FingerprintBytes(VAR fp: LONGINT; VAR bytes: ARRAY OF SYSTEM.BYTE);
+  VAR i: INTEGER; l: LONGINT;
   BEGIN
-    fp := SYSTEM.ROT(SYSTEM.VAL(LONGINT, SYSTEM.VAL(SET, fp) / SYSTEM.VAL(SET, val)), 1)
-  END FPrint;
-
-
-  PROCEDURE FPrintSet*(VAR fp: LONGINT; set: SYSTEM.SET64);
-  BEGIN FPrint(fp, SYSTEM.VAL(LONGINT, set))
-  END FPrintSet;
-
-
-  PROCEDURE FPrintReal*(VAR fp: LONGINT; real: REAL);
-    VAR i: INTEGER; l: LONGINT;
-  BEGIN
-    IF SIZE(REAL) = SIZE(INTEGER) THEN
-      SYSTEM.GET(SYSTEM.ADR(real), i); l := i;
-    ELSE
-      SYSTEM.GET(SYSTEM.ADR(real), l);
-    END;
-    FPrint(fp, l)
-  END FPrintReal;
-
-
-  PROCEDURE FPrintLReal*(VAR fp: LONGINT; lr: LONGREAL);
-  VAR l, h: LONGINT;
-  BEGIN
-    IF SIZE(LONGREAL) = SIZE(LONGINT) THEN
-      (* 64 bit LONGINT *)
-      FPrint(fp, SYSTEM.VAL(LONGINT, lr))
-    ELSE
-      (* 32 bit LONGINT *)
-      SYSTEM.GET(SYSTEM.ADR(lr), l); SYSTEM.GET(SYSTEM.ADR(lr)+4, h);
-      FPrint(fp, l); FPrint(fp, h)
+    ASSERT(LEN(bytes) MOD SIZE(LONGINT) = 0);
+    i := 0; WHILE i < LEN(bytes) DO
+      SYSTEM.GET(SYSTEM.ADR(bytes[i]), l);
+      fp := SYSTEM.ROT(SYSTEM.VAL(LONGINT, SYSTEM.VAL(SET, fp) / SYSTEM.VAL(SET, l)), 1);
+      INC(i, SIZE(LONGINT))
     END
-  END FPrintLReal;
+  END FingerprintBytes;
+
+  PROCEDURE FPrint*     (VAR fp: LONGINT; val: HUGEINT);      BEGIN FingerprintBytes(fp, val) END FPrint;
+  PROCEDURE FPrintSet*  (VAR fp: LONGINT; val: SYSTEM.SET64); BEGIN FingerprintBytes(fp, val) END FPrintSet;
+  PROCEDURE FPrintReal* (VAR fp: LONGINT; val: REAL);         BEGIN FingerprintBytes(fp, val) END FPrintReal;
+  PROCEDURE FPrintLReal*(VAR fp: LONGINT; val: LONGREAL);     BEGIN FingerprintBytes(fp, val) END FPrintLReal;
 
 
 
 
   (* ------------------------- Read Symbol File ------------------------- *)
-
 
   PROCEDURE SymRCh*(VAR ch: CHAR);
   BEGIN Files.Read(oldSF, ch)
