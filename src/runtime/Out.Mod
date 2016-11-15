@@ -2,7 +2,13 @@ MODULE Out; (* DCW Brown. 2016-09-27 *)
 
 IMPORT SYSTEM, Platform;
 
-VAR buf: ARRAY 128 OF CHAR; in: INTEGER;
+VAR
+  IsConsole-: BOOLEAN;
+
+  buf: ARRAY 128 OF CHAR;
+  in: INTEGER;
+
+
 
 PROCEDURE Flush*;
 VAR error: Platform.ErrorCode;
@@ -199,5 +205,7 @@ PROCEDURE LongReal*(x: LONGREAL; n: INTEGER);
 BEGIN RealP(x, n, TRUE);
 END LongReal;
 
-BEGIN in := 0
+BEGIN
+  IsConsole := Platform.IsConsole(Platform.StdOut);
+  in := 0
 END Out.

@@ -129,6 +129,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE LogWNum*(i, len: SYSTEM.INT64); BEGIN Out.Int(i, len) END LogWNum;
   PROCEDURE LogWLn*;                        BEGIN Out.Ln          END LogWLn;
 
+  PROCEDURE LogVT100(vt100code: ARRAY OF CHAR);
+  BEGIN
+    IF Out.IsConsole & ~(notcoloroutput IN Options) THEN
+      VT100.SetAttr(vt100code)
+    END
+  END LogVT100;
 
 
 
@@ -423,14 +429,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   VAR l: INTEGER; S: Texts.Scanner; c: CHAR;
   BEGIN
     IF n >= 0 THEN
-       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Red) END;
-       LogWStr("  err ");
-       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.ResetAll) END;
+      LogVT100(VT100.Red); LogWStr("  err "); LogVT100(VT100.ResetAll)
     ELSE
-       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Magenta) END;
-       LogWStr("  warning "); n := -n;
-       IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.ResetAll) END;
-    END ;
+      LogVT100(VT100.Magenta); LogWStr("  warning "); n := -n; LogVT100(VT100.ResetAll)
+    END;
     LogWNum(n, 1);
     LogWStr("  ");
 
@@ -503,9 +505,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     i := SHORT(Longint(pos - ErrorLineStartPos));
     WHILE i > 0 DO LogW(" "); DEC(i) END;
 
-    IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.Green) END;
-    LogW("^");
-    IF ~(notcoloroutput IN Options) THEN VT100.SetAttr(VT100.ResetAll) END;
+    LogVT100(VT100.Green); LogW("^"); LogVT100(VT100.ResetAll);
 
     Files.Close(f);
   END ShowLine;

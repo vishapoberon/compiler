@@ -539,6 +539,11 @@ VAR mode: SYSTEM.INT32;
 BEGIN IF GetConsoleMode(StdOut, mode) THEN SetConsoleMode(StdOut, mode+VTprocessing) END
 END EnableVT100;
 
+PROCEDURE IsConsole*(h: FileHandle): BOOLEAN;
+VAR mode: SYSTEM.INT32;
+BEGIN RETURN GetConsoleMode(StdOut, mode)
+END IsConsole;
+
 
 PROCEDURE TestLittleEndian;
   VAR i: INTEGER;

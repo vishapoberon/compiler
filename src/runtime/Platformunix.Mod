@@ -303,12 +303,18 @@ END New;
 
 
 
-PROCEDURE -closefile (fd: LONGINT): INTEGER "close(fd)";
+PROCEDURE -closefile(fd: LONGINT): INTEGER "close(fd)";
 
 PROCEDURE Close*(h: FileHandle): ErrorCode;
 BEGIN
   IF closefile(h) < 0 THEN RETURN err() ELSE RETURN 0 END
 END Close;
+
+
+PROCEDURE -isatty(fd: LONGINT): INTEGER "isatty(fd)";
+
+PROCEDURE IsConsole*(h: FileHandle): BOOLEAN;
+BEGIN RETURN isatty(h) # 0 END IsConsole;
 
 
 
