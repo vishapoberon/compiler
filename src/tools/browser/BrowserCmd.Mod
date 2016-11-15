@@ -1,8 +1,9 @@
 MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line version jt 4.4.95 *)
 
  IMPORT
-    OPM, OPS, OPT, OPV, Texts, Out, Oberon, Platform, SYSTEM;
-
+    OPM, OPS, OPT, OPV,
+    Texts, Strings, Files, Out,
+    Oberon, Platform, SYSTEM, Configuration;
 
   CONST
     OptionChar = "-";
@@ -275,13 +276,29 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
       WModule(name, Oberon.Log);
       OPT.Close;
     ELSE
-      Texts.WriteString(W, "showdef - Display module's public interface.");       Texts.WriteLn(W);
-      Texts.WriteString(W, "Usage: showdef module");                              Texts.WriteLn(W);
-      Texts.WriteString(W, "Note: module.sym must be in the current directory."); Texts.WriteLn(W);
+      Ws("showdef - Display module's public interface."); Wln;
+      Wln;
+      Ws("Usage: showdef module"); Wln;
+      Wln;
+      Ws("Any path and/or filename extension are stripped from the module name,"); Wln;
+      Ws("and the module is found the same way as it is found by the compiler."); Wln;
+      Wln;
+      Ws("Thus the module .sym file must be in the current directory, or module"); Wln;
+      Ws("must be the name of one of the library modules installed with the compiler."); Wln;
       Texts.Append(Oberon.Log, W.buf)
     END
   END ShowDef;
 
+PROCEDURE SetPath;
+VAR path: ARRAY 256 OF CHAR;
 BEGIN
-  Texts.OpenWriter(W); ShowDef
+  COPY(Configuration.installdir, path);
+  Strings.Append("/2/sym", path);
+  Files.SetSearchPath(path)
+END SetPath;
+
+BEGIN
+  Texts.OpenWriter(W);
+  SetPath;
+  ShowDef
 END BrowserCmd.
