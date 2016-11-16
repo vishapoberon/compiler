@@ -14,10 +14,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   CONST
-    nofbufs = 4;
-    bufsize = 4096;
-    noDesc = -1;
-    notDone = -1;
+    NumBufs = 4;
+    BufSize = 4096;
+    NoDesc = -1;
 
     (* file states *)
     open   = 0;    (* OS File has been opened *)
@@ -40,7 +39,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       identity:     Platform.FileIdentity;
       fd-:          Platform.FileHandle;
       len, pos:     LONGINT;
-      bufs:         ARRAY nofbufs OF Buffer;
+      bufs:         ARRAY NumBufs OF Buffer;
       swapper:      INTEGER;
       state:        INTEGER;
       next:         File;
@@ -51,7 +50,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       chg:  BOOLEAN;
       org:  LONGINT;
       size: LONGINT;
-      data: ARRAY bufsize OF SYSTEM.BYTE
+      data: ARRAY BufSize OF SYSTEM.BYTE
     END;
 
     Rider* =  RECORD
@@ -131,7 +130,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     Out.String(", state = ");         Out.Int(f.state,1);
     Out.Ln;
     *)
-    IF f.fd = noDesc THEN
+    IF f.fd = NoDesc THEN
       IF f.state = create THEN
         GetTempName(f.registerName, f.workName); f.tempFile := TRUE
       ELSIF f.state = close THEN
@@ -203,7 +202,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       IF prev.next # NIL THEN prev.next := f.next END
     END;
     error := Platform.Close(f.fd);
-    f.fd := noDesc; f.state := create; DEC(Heap.FileCount);
+    f.fd := NoDesc; f.state := create; DEC(Heap.FileCount);
   END CloseOSFile;
 
 
@@ -214,7 +213,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   BEGIN
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
-      WHILE (i < nofbufs) & (f.bufs[i] # NIL) DO Flush(f.bufs[i]); INC(i) END;
+      WHILE (i < NumBufs) & (f.bufs[i] # NIL) DO Flush(f.bufs[i]); INC(i) END;
       (* There's no reason to sync this file - we're about to close it. The OS
          will sync if necessary. Further, sync will fail for a R/O file on Windows.
       error := Platform.Sync(f.fd);
@@ -231,7 +230,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR f: File;
   BEGIN
     NEW(f); f.workName := ""; COPY(name, f.registerName);
-    f.fd := noDesc; f.state := create; f.len := 0; f.pos := 0; f.swapper := -1; (*all f.buf[i] = NIL*)
+    f.fd := NoDesc; f.state := create; f.len := 0; f.pos := 0; f.swapper := -1; (*all f.buf[i] = NIL*)
     RETURN f
   END New;
 
@@ -275,7 +274,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     WHILE f # NIL DO
       IF Platform.SameFile(identity, f.identity) THEN
         IF ~Platform.SameFileTime(identity, f.identity) THEN i := 0;
-          WHILE i < nofbufs DO
+          WHILE i < NumBufs DO
             IF f.bufs[i] # NIL THEN f.bufs[i].org := -1; f.bufs[i] := NIL END;
             INC(i)
           END;
@@ -340,11 +339,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Purge* (f: File);
     VAR i: INTEGER;  identity: Platform.FileIdentity;  error: Platform.ErrorCode;
   BEGIN i := 0;
-    WHILE i < nofbufs DO
+    WHILE i < NumBufs DO
       IF f.bufs[i] # NIL THEN f.bufs[i].org := -1; f.bufs[i] := NIL END;
       INC(i)
     END;
-    IF f.fd # noDesc THEN
+    IF f.fd # NoDesc THEN
       error := Platform.Truncate(f.fd, 0);
       error := Platform.Seek(f.fd, 0, Platform.SeekSet)
     END;
@@ -361,7 +360,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   END GetDate;
 
   PROCEDURE Pos* (VAR r: Rider): LONGINT;
-  BEGIN RETURN r.org + r.offset
+  BEGIN
+    ASSERT(r.offset <= BufSize);
+    RETURN r.org + r.offset
   END Pos;
 
   PROCEDURE Set* (VAR r: Rider; f: File; pos: LONGINT);
@@ -376,14 +377,14 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       Out.Ln;
       *)
       IF pos > f.len THEN pos := f.len ELSIF pos < 0 THEN pos := 0 END;
-      offset := pos MOD bufsize; org := pos - offset; i := 0;
-      WHILE (i < nofbufs) & (f.bufs[i] # NIL) & (org # f.bufs[i].org) DO INC(i) END;
-      IF i < nofbufs THEN
+      offset := pos MOD BufSize; org := pos - offset; i := 0;
+      WHILE (i < NumBufs) & (f.bufs[i] # NIL) & (org # f.bufs[i].org) DO INC(i) END;
+      IF i < NumBufs THEN
         IF f.bufs[i] = NIL THEN NEW(buf); buf.chg := FALSE; buf.org := -1; buf.f := f; f.bufs[i] := buf
         ELSE buf := f.bufs[i]
         END
       ELSE
-        f.swapper := (f.swapper + 1) MOD nofbufs;
+        f.swapper := (f.swapper + 1) MOD NumBufs;
         buf := f.bufs[f.swapper];
         Flush(buf)
       END;
@@ -400,6 +401,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       END
     ELSE buf := NIL; org := 0; offset := 0
     END;
+    ASSERT(offset <= BufSize);
     r.buf := buf; r.org := org; r.offset := offset; r.eof := FALSE; r.res := 0
   END Set;
 
@@ -408,6 +410,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   BEGIN
     buf := r.buf; offset := r.offset;
     IF r.org # buf.org THEN Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset END;
+    ASSERT(offset <= buf.size);
     IF (offset < buf.size) THEN
       x := buf.data[offset]; r.offset := offset + 1
     ELSIF r.org + offset < buf.f.len THEN
@@ -424,7 +427,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     IF n > LEN(x) THEN IdxTrap END;
     xpos := 0; buf := r.buf; offset := r.offset;
     WHILE n > 0 DO
-      IF (r.org # buf.org) OR (offset >= bufsize) THEN
+      IF (r.org # buf.org) OR (offset >= BufSize) THEN
         Set(r, buf.f, r.org + offset);
         buf := r.buf; offset := r.offset
       END;
@@ -432,7 +435,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       IF restInBuf = 0 THEN r.res := n; r.eof := TRUE; RETURN
       ELSIF n > restInBuf THEN min := restInBuf ELSE min := n END;
       SYSTEM.MOVE(SYSTEM.ADR(buf.data) + ToAdr(offset), SYSTEM.ADR(x) + ToAdr(xpos), min);
-      INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min)
+      INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min);
+      ASSERT(offset <= BufSize)
     END;
     r.res := 0; r.eof := FALSE
   END ReadBytes;
@@ -445,10 +449,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR buf: Buffer; offset: LONGINT;
   BEGIN
     buf := r.buf; offset := r.offset;
-    IF (r.org # buf.org) OR (offset >= bufsize) THEN
+    ASSERT(offset <= BufSize);
+    IF (r.org # buf.org) OR (offset >= BufSize) THEN
       Set(r, buf.f, r.org + offset);
       buf := r.buf; offset := r.offset
     END;
+    ASSERT(offset < BufSize);
     buf.data[offset] := x;
     buf.chg := TRUE;
     IF offset = buf.size THEN
@@ -463,14 +469,17 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     IF n > LEN(x) THEN IdxTrap END;
     xpos := 0; buf := r.buf; offset := r.offset;
     WHILE n > 0 DO
-      IF (r.org # buf.org) OR (offset >= bufsize) THEN
+      ASSERT(offset <= BufSize);
+      IF (r.org # buf.org) OR (offset >= BufSize) THEN
         Set(r, buf.f, r.org + offset);
         buf := r.buf; offset := r.offset
       END;
-      restInBuf := bufsize - offset;
+      ASSERT(offset <= BufSize);
+      restInBuf := BufSize - offset;
       IF n > restInBuf THEN min := restInBuf ELSE min := n END;
       SYSTEM.MOVE(SYSTEM.ADR(x) + ToAdr(xpos), SYSTEM.ADR(buf.data) + ToAdr(offset), min);
       INC(offset, min); r.offset := offset;
+      ASSERT(offset <= BufSize);
       IF offset > buf.size THEN INC(buf.f.len, offset - buf.size); buf.size := offset END;
       INC(xpos, min); DEC(n, min); buf.chg := TRUE
     END;
@@ -479,14 +488,14 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 (* another solution would be one that is similar to ReadBytes, WriteBytes.
 No code duplication, more symmetric, only two ifs for
-Read and Write in buffer, buf.size replaced by bufsize in Write ops, buf.size and len
+Read and Write in buffer, buf.size replaced by BufSize in Write ops, buf.size and len
 must be made consistent with offset (if offset > buf.size) in a lazy way.
 
 PROCEDURE Write* (VAR r: Rider; x: SYSTEM.BYTE);
   VAR buf: Buffer; offset: LONGINT;
 BEGIN
   buf := r.buf; offset := r.offset;
-  IF (offset >= bufsize) OR (r.org # buf.org) THEN
+  IF (offset >= BufSize) OR (r.org # buf.org) THEN
     Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset;
   END;
   buf.data[offset] := x; r.offset := offset + 1; buf.chg := TRUE
@@ -541,7 +550,7 @@ Especially Length would become fairly complex.
         IF error # 0 THEN res := 2; RETURN END;
         error := Platform.New(new, fdnew);
         IF error # 0 THEN error := Platform.Close(fdold); res := 3; RETURN END;
-        error := Platform.Read(fdold, SYSTEM.ADR(buf), bufsize, n);
+        error := Platform.Read(fdold, SYSTEM.ADR(buf), BufSize, n);
         WHILE n > 0 DO
           error := Platform.Write(fdnew, SYSTEM.ADR(buf), n);
           IF error # 0 THEN
@@ -549,7 +558,7 @@ Especially Length would become fairly complex.
             ignore := Platform.Close(fdnew);
             Err("cannot move file", NIL, error)
           END;
-          error := Platform.Read(fdold, SYSTEM.ADR(buf), bufsize, n);
+          error := Platform.Read(fdold, SYSTEM.ADR(buf), BufSize, n);
         END;
         ignore := Platform.Close(fdold);
         ignore := Platform.Close(fdnew);
