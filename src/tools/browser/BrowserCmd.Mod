@@ -256,6 +256,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   BEGIN i := 0;
     WHILE name[i] # 0X DO INC(i) END;
     WHILE (i >= 0) & (name[i] # "/") DO DEC(i) END;
+    IF i > 0 THEN name[i] := 0X; Files.SetSearchPath(name) END;
     INC(i); j := 0; ch := name[i];
     WHILE (ch # ".") & (ch # 0X) DO first[j] := ch; INC(i); INC(j); ch := name[i] END;
     first[j] := 0X
@@ -280,25 +281,24 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
       Wln;
       Ws("Usage: showdef module"); Wln;
       Wln;
-      Ws("Any path and/or filename extension are stripped from the module name,"); Wln;
-      Ws("and the module is found the same way as it is found by the compiler."); Wln;
-      Wln;
-      Ws("Thus the module .sym file must be in the current directory, or module"); Wln;
-      Ws("must be the name of one of the library modules installed with the compiler."); Wln;
+      Ws("Where <module> is a symbol file name. The .sym may be omitted."); Wln;
+      Ws("If no path is provided, and the module does not exist in the current directory,"); Wln;
+      Ws("then showdef will also look for the module in the installed libraries."); Wln;
       Texts.Append(Oberon.Log, W.buf)
     END
   END ShowDef;
 
-PROCEDURE SetPath;
+PROCEDURE SetDefaultPath;
 VAR path: ARRAY 256 OF CHAR;
 BEGIN
-  COPY(Configuration.installdir, path);
+  path := ".;";
+  Strings.Append(Configuration.installdir, path);
   Strings.Append("/2/sym", path);
   Files.SetSearchPath(path)
-END SetPath;
+END SetDefaultPath;
 
 BEGIN
   Texts.OpenWriter(W);
-  SetPath;
+  SetDefaultPath;
   ShowDef
 END BrowserCmd.
