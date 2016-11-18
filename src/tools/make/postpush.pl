@@ -17,6 +17,7 @@ sub writelog {
   flock(LOG, 2)                    or die "Could not lock postpush.log";
   print LOG sprintf("%s %s\n", strftime("%Y/%m/%d %H.%M.%S", localtime), $msg);
   close(LOG);
+  system "id >> /tmp/postpush.log";
 }
 
 my $postdata = from_json(param('POSTDATA'));
