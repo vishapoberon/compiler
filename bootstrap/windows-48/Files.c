@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/15]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 1.95 [2016/11/18]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -526,6 +526,7 @@ void Files_GetDate (Files_File f, INT32 *t, INT32 *d)
 
 INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ)
 {
+	__ASSERT((*r).offset <= 4096, 0);
 	return (*r).org + (*r).offset;
 }
 
@@ -584,6 +585,7 @@ void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos)
 		org = 0;
 		offset = 0;
 	}
+	__ASSERT(offset <= 4096, 0);
 	(*r).buf = buf;
 	(*r).org = org;
 	(*r).offset = offset;
@@ -602,6 +604,7 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 		buf = (*r).buf;
 		offset = (*r).offset;
 	}
+	__ASSERT(offset <= buf->size, 0);
 	if (offset < buf->size) {
 		*x = buf->data[offset];
 		(*r).offset = offset + 1;
@@ -646,6 +649,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT x
 		(*r).offset = offset;
 		xpos += min;
 		n -= min;
+		__ASSERT(offset <= 4096, 0);
 	}
 	(*r).res = 0;
 	(*r).eof = 0;
@@ -662,11 +666,13 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 	INT32 offset;
 	buf = (*r).buf;
 	offset = (*r).offset;
+	__ASSERT(offset <= 4096, 0);
 	if ((*r).org != buf->org || offset >= 4096) {
 		Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
 		buf = (*r).buf;
 		offset = (*r).offset;
 	}
+	__ASSERT(offset < 4096, 0);
 	buf->data[offset] = x;
 	buf->chg = 1;
 	if (offset == buf->size) {
@@ -688,11 +694,13 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT 
 	buf = (*r).buf;
 	offset = (*r).offset;
 	while (n > 0) {
+		__ASSERT(offset <= 4096, 0);
 		if ((*r).org != buf->org || offset >= 4096) {
 			Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
 			buf = (*r).buf;
 			offset = (*r).offset;
 		}
+		__ASSERT(offset <= 4096, 0);
 		restInBuf = 4096 - offset;
 		if (n > restInBuf) {
 			min = restInBuf;
@@ -702,6 +710,7 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT 
 		__MOVE((ADDRESS)x + Files_ToAdr(xpos), (ADDRESS)buf->data + Files_ToAdr(offset), min);
 		offset += min;
 		(*r).offset = offset;
+		__ASSERT(offset <= 4096, 0);
 		if (offset > buf->size) {
 			buf->f->len += offset - buf->size;
 			buf->size = offset;
