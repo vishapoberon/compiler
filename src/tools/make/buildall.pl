@@ -12,27 +12,16 @@ if (defined($ARGV[0]) && ($ARGV[0] ne "")) {$branch = $ARGV[0]}
 my %machines = (
   "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
   "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
-
-# "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
-#                                                                      . "export CC=i686-w64-mingw32-gcc && make full;"
-#                                                                      . "cd ~;"
-#                                                                      . "sh start64.sh \\\"cd vishaps/voc && git reset --hard && git clean -dfx &&"
-#                                                                                        . "git pull && git checkout $branch && git pull;"
-#                                                                                        . "export CC=gcc && make full;"
-#                                                                                        . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
-
   "cygwin"  => ['-p5932 dave@wax', "",     "oberon/cygwin/voc",        "export CC=gcc && make full;"
                                                                        . "cd ~;"
                                                                        . "sh start64.sh \\\"cd oberon/cygwin/voc && git reset --hard && git clean -dfx &&"
                                                                                          . "git pull && git checkout $branch && git pull;"
                                                                                          . "export CC=gcc && make full;\\\""],
-
   "mingw"   => ['-p5932 dave@wax', "",     "oberon/mingw/voc",         "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
                                                                        . "sh start64.sh \\\"cd oberon/mingw/voc && git reset --hard && git clean -dfx &&"
                                                                                          . "git pull && git checkout $branch && git pull;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full;\\\""],
-
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
   "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
   "lub32"   => ['dave@vim-lub32',  "sudo", "oberon/voc",                 "make full"],
