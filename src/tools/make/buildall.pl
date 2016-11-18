@@ -20,7 +20,11 @@ my %machines = (
                                                                                          . "export CC=gcc && make full;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
-  "lub32"   => ['dave@lub32',      "sudo", "vishap/voc",                 "make full"],
+  "oldlub32"=> ['dave@lub32',      "sudo", "vishap/voc",                 "make full"],
+  "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
+  "lub32"   => ['dave@vim-lub32',  "sudo", "oberon/voc",                 "make full"],
+  "fed64"   => ['dave@vim-fed64',  "sudo", "oberon/voc",                 "make full"],
+  "osu64"   => ['dave@vim-osu64',  "sudo", "oberon/voc",                 "make full"],
   "ob32"    => ['root@nas-ob32',   "",     "vishap/voc",                 "make full"],
   "ce64"    => ['-p5922 obe@www',  "sudo", "vishap/voc",                 "make full"],
   "ub64"    => ['dave@nas-ub64',   "sudo", "vishap/voc",                 "make full"],
