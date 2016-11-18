@@ -1,10 +1,8 @@
 #!/usr/bin/perl -w
 
-
 use strict;
 use warnings;
 use POSIX "strftime";
-
 
 use CGI qw(:standard escapeHTML);
 use JSON;
