@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 1.95 [2016/11/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -176,7 +176,7 @@ extern void Heap_InitHeap();
 #define Platform_ulSec()	(LONGINT)(ul.QuadPart / 1000000LL)
 #define Platform_uluSec()	(LONGINT)(ul.QuadPart % 1000000LL)
 #define Platform_waitForProcess()	(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)
-#define Platform_writefile(fd, p, l)	(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, 0,0)
+#define Platform_writefile(fd, p, l, n)	(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, (DWORD*)n, 0)
 
 BOOLEAN Platform_TooManyFiles (INT16 e)
 {
@@ -525,7 +525,8 @@ INT16 Platform_ReadBuf (INT32 h, SYSTEM_BYTE *b, LONGINT b__len, INT32 *n)
 
 INT16 Platform_Write (INT32 h, INT32 p, INT32 l)
 {
-	if (Platform_writefile(h, p, l) == 0) {
+	INT32 n;
+	if (Platform_writefile(h, p, l, &n) == 0) {
 		return Platform_err();
 	} else {
 		return 0;
