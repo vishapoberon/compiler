@@ -435,12 +435,13 @@ END ReadBuf;
 
 
 
-PROCEDURE -writefile(fd: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): INTEGER
-"(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, 0,0)";
+PROCEDURE -writefile(fd: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: SYSTEM.INT32): INTEGER
+"(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, (DWORD*)n, 0)";
 
 PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
+VAR n: SYSTEM.INT32;
 BEGIN
-  IF writefile(h, p, l) = 0 THEN RETURN err() ELSE RETURN 0 END
+  IF writefile(h, p, l, n) = 0 THEN RETURN err() ELSE RETURN 0 END
 END Write;
 
 
