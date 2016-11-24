@@ -1,6 +1,6 @@
 ### Building the Oberon compiler and libraries on a Windows system
 
-This approach is for Windows systems using 
+This approach is for Windows systems using
  - Cygwin (with or without mingw)
  - Microsoft Visual C
 
@@ -21,9 +21,9 @@ The build process has the following pre-requisites:
   - git
   - make
   - diff
-  
+
 To install these, run the Cygwin setup program (setup-x86.exe or setup-x86_64.exe as appropriate), work
-your way through the initaial questions until you reach the 'Select packages' page, and make sure the 
+your way through the initaial questions until you reach the 'Select packages' page, and make sure the
 following packages are selected:
 
 | Section       | Package    |
@@ -73,21 +73,24 @@ The makefile will:
  - Run a set of confidence tests.
 
 
- Since installation directories are not generally write accessible to normal users, is is necessary to run
- the `make full` command from a root shell, or by using `sudo`.
- 
- #### Installation directories:
- 
- If it succeeds the makefile will end with instructions on how to set your path variable so that the
- compiler (voc) is found.
- 
- The installation will be found at:
- 
-| System                       | Install dir                            |
-| -----------------------      | -------------------------------------- |
-| All types of Linux           | /opt/voc                               |
-| BSD (including Darwin)       | /usr/local/share/voc                   |
-| Termux (android)             | /data/data/com.termux/files/opt/voc    |                                |
+### Build using mingw under cygwin
+
+### Build using Microsft C
+
+
+
+#### Installation directories:
+
+If it succeeds the makefile will end with instructions on how to set your path variable so that the
+compiler (voc) is found.
+
+The installation will be found at:
+
+| Built with      | Install dir                            |
+| --------------- | -------------------------------------- |
+| cygwin          | /opt/voc                               |
+| cygwin + mingw  | %PROGRAMFILES%/voc                     |
+| MSC             | %PROGRAMFILES%/voc                     |
 
 The installation directory contains:
 

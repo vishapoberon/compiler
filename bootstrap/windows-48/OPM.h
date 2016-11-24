@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -9,7 +9,7 @@
 import CHAR OPM_Model[10];
 import INT16 OPM_AddressSize, OPM_Alignment;
 import UINT32 OPM_GlobalOptions, OPM_Options;
-import INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize;
+import INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize;
 import INT64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;

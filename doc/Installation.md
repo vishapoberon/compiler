@@ -2,34 +2,34 @@
 
 The Oberon compiler and libraries may be built and installed on Linux based, BSD based or Windows based systems.
 
-Building on Linux and BSD based systems is reasonably straightforward. First make sure you have he right pre-requites like C compiler and static libraries installed, then clone the repository and run `make full`.
+Building on Linux and BSD based systems is reasonably straightforward. First make sure you have the right pre-requites like a C compiler and static libraries installed, then clone the repository and run `make full`.
 
 Full instructions for a Linux/BSD based build follow in the next section.
 
 
 Bulding on Windows is not so simple largely because there is more than one way to do it:
 
-  -  Install the cygwin project and use Windows from the cygwin bash shell rather like Linux. 
-     With the pre-requisites installed using the cygwin setup.exe gui tool, clone and run make 
-     as on Linux. 
+  -  Install the cygwin project and use Windows from the cygwin bash shell rather like Linux.
+     With the pre-requisites installed using the cygwin setup.exe gui tool, clone and run make
+     as on Linux.
      This builds a compiler that is dependent on the cygwin environment, and which compiles
      Oberon programs to binaries that are themselves dependent on the cygwin environment.
-     
+
   -  Install the cygwin project and the mingw compiler. The Oberon compiler this builds is
      still dependent on the cygwin environment, but programs built with this compiler are
      Windows binaries dependent only on standard Microsoft APIs and libraries.
-     
-  -  Use the Windows 10 Bash on Ubuntu on Windows (aka WSL - Windows Subsystem for Linux). 
-     The Oberon compiler can be built in the WSL using exactly the same procedure 
-     as on a normal Ubuntu environment, and the resulting compiler and user programs will run 
+
+  -  Use the Windows 10 Bash on Ubuntu on Windows (aka WSL - Windows Subsystem for Linux).
+     The Oberon compiler can be built in the WSL using exactly the same procedure
+     as on a normal Ubuntu environment, and the resulting compiler and user programs will run
      within the Windows subsystem for Linux.
-     
+
   -  Build with the Microsoft C compiler generating native windows binaries. A make.cmd script
-     is provided which has been developed for and tested with the free 'Visual C++ build tools' 
+     is provided which has been developed for and tested with the free 'Visual C++ build tools'
      available at http://landinghub.visualstudio.com/visual-cpp-build-tools.
-     
-For building with Cygwin or native Microsoft C environments see [**Cygwin and MSC Installation**](/doc/Winstallation.md)
-     
+
+For full details about building with Cygwin or native Microsoft C environments see [**Cygwin and MSC Installation**](/doc/Winstallation.md)
+
 The following sections provide more details for Linux based builds.
 
 
@@ -39,9 +39,9 @@ This approach is for
  - All Linux based systems
    - includes Android (specifically termux on Android)
    - includes Windows subsystem for Linux (aka Bash on Ubuntu on Windows)
- - All BSD based systems 
+ - All BSD based systems
    - includes macOS (Darwin)
- 
+
 #### 1. Install pre-requisites
 
 The build process has the following pre-requisites:
@@ -106,12 +106,12 @@ The makefile will use either gcc or clang, whichever is installed. If you have b
 
 
 #### Installation directories:
- 
+
 If the makefile succeeds it will end with instructions on how to set your path variable so that the
 compiler (voc) is found.
- 
+
 The installation will be found at:
- 
+
 | System                       | Install dir                            |
 | -----------------------      | -------------------------------------- |
 | All types of Linux           | /opt/voc                               |
@@ -143,12 +143,12 @@ types are as follows:
 | -O2 (default) | `SHORTINT` | `INTEGER`  | `LONGINT` and `SET` | `HUGEINT`           |
 | -OC           | `BYTE`     | `SHORTINT` | `INTEGER`           | `LONGINT` and `SET` |
 
-A convention of many Oberon compilers has been that LONGINT is a suitable integer type for 
+A convention of many Oberon compilers has been that LONGINT is a suitable integer type for
 manipulating addresses. However since the size of pointer types is fixed by the OS and we
 support both 32 and 64 bit operating systems, LONGINT is not always sufficient for us.
 
-Accordingly, the SYSTEM module has been updated to ease the development of platform independent 
-code, with new types such as `SYSTEM.INT8`, `SYSTEM.INT16`, `SYSTEM.INT32`, `SYSTEM.INT64` 
+Accordingly, the SYSTEM module has been updated to ease the development of platform independent
+code, with new types such as `SYSTEM.INT8`, `SYSTEM.INT16`, `SYSTEM.INT32`, `SYSTEM.INT64`
 and `SYSTEM.ADDRESS`.
 
-For details, see [**Features**](doc/Features.md).
+For details, see [**Features**](/doc/Features.md).

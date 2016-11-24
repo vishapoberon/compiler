@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -26,7 +26,7 @@ export INT16 OPM_AddressSize;
 static INT16 OPM_GlobalAlignment;
 export INT16 OPM_Alignment;
 export UINT32 OPM_GlobalOptions, OPM_Options;
-export INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize;
+export INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize;
 export INT64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
@@ -245,10 +245,8 @@ static void OPM_ScanOptions (CHAR *s, LONGINT s__len)
 				__ASSERT(OPM_Alignment == 4 || OPM_Alignment == 8, 0);
 				if (OPM_IntegerSize == 2) {
 					OPM_LongintSize = 4;
-					OPM_SetSize = 4;
 				} else {
 					OPM_LongintSize = 8;
-					OPM_SetSize = 8;
 				}
 				Files_SetSearchPath((CHAR*)"", 1);
 				break;
@@ -395,7 +393,7 @@ static void OPM_VerboseListSizes (void)
 	OPM_LogWNum(OPM_LongintSize, 4);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"SET        ", 12);
-	OPM_LogWNum(OPM_SetSize, 4);
+	OPM_LogWNum(OPM_LongintSize, 4);
 	OPM_LogWLn();
 	OPM_LogWStr((CHAR*)"ADDRESS    ", 12);
 	OPM_LogWNum(OPM_AddressSize, 4);
@@ -432,25 +430,21 @@ void OPM_InitOptions (void)
 			OPM_ShortintSize = 1;
 			OPM_IntegerSize = 2;
 			OPM_LongintSize = 4;
-			OPM_SetSize = 4;
 			break;
 		case 'C': 
 			OPM_ShortintSize = 2;
 			OPM_IntegerSize = 4;
 			OPM_LongintSize = 8;
-			OPM_SetSize = 8;
 			break;
 		case 'V': 
 			OPM_ShortintSize = 1;
 			OPM_IntegerSize = 4;
 			OPM_LongintSize = 8;
-			OPM_SetSize = 8;
 			break;
 		default: 
 			OPM_ShortintSize = 1;
 			OPM_IntegerSize = 2;
 			OPM_LongintSize = 4;
-			OPM_SetSize = 4;
 			break;
 	}
 	if (__IN(18, OPM_Options, 32)) {
