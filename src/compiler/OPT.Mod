@@ -1327,9 +1327,9 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("NEW",    sysnewfn);
   EnterProc("MOVE",   movefn);
 
+
   syslink  := topScope^.right;
   universe := topScope; topScope^.right := NIL;
-
 
   EnterTyp("BOOLEAN",  Bool,   1, booltyp);
   EnterTyp("CHAR",     Char,   1, chartyp);
@@ -1338,6 +1338,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("HUGEINT",  Int,    8, hinttyp);
   EnterTyp("BYTE@",    Int,    1, cpbytetyp);  (* Component Pascal byte type, enabled in Compiler.PropagateElementaryTypeSize *)
 
+  (* Type aliases for standard integer and set types are linked to real types in Compiler.PropagateElementaryTypeSize *)
   EnterTypeAlias("SHORTINT", sintobj);
   EnterTypeAlias("INTEGER",  intobj);
   EnterTypeAlias("LONGINT",  lintobj);

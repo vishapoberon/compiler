@@ -85,15 +85,8 @@ usage:
 	@echo "                       (Needs root access)"
 	@echo ""
 	@echo "Targets for (re)creating and reverting bootstrap C sources:"
-	@echo "  make bootstrap       - Uddate bootstrap C source directories. Always run on 64 bit."
+	@echo "  make bootstrap       - Update bootstrap C source directories."
 	@echo "  make revertbootstrap - Use git checkout to restore bootstrap C source directories"
-	@echo ""
-	@echo ""
-	@echo "Multi-platform coordinated network build:"
-	@echo "  make coordinator   - Start central task to trigger builds and collect logs"
-	@echo "  make auto          - Start machine specific build server"
-	@echo "  make autobuild     - Trigger all machines running 'make auto' to start a build"
-	@echo "  make autobuild     - Terminate 'make auto' on all machines"
 
 
 

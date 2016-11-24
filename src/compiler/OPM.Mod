@@ -92,7 +92,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     GlobalAlignment,   Alignment*:   INTEGER;
     GlobalOptions*,    Options*:     SET;
 
-    ShortintSize*, IntegerSize*, LongintSize*, SetSize*: INTEGER;
+    ShortintSize*, IntegerSize*, LongintSize*: INTEGER;
 
     MaxIndex*: SYSTEM.INT64;
 
@@ -214,13 +214,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
              ASSERT((IntegerSize = 2) OR (IntegerSize = 4));
              ASSERT((AddressSize = 4) OR (AddressSize = 8));
              ASSERT((Alignment   = 4) OR (Alignment   = 8));
-             IF IntegerSize = 2 THEN
-               LongintSize := 4;
-               SetSize     := 4;
-             ELSE
-               LongintSize := 8;
-               SetSize     := 8;
-             END;
+             IF IntegerSize = 2 THEN LongintSize := 4 ELSE LongintSize := 8 END;
              Files.SetSearchPath("")
       ELSE
         LogWStr("  warning: option ");
@@ -317,11 +311,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     LogWLn;
     LogWStr("Type      Size"); LogWLn;
-    LogWStr("SHORTINT   "); LogWNum(ShortintSize, 4); (* LogWNum(SIntAlign,    5); *) LogWLn;
-    LogWStr("INTEGER    "); LogWNum(IntegerSize,  4); (* LogWNum(IntAlign,     5); *) LogWLn;
-    LogWStr("LONGINT    "); LogWNum(LongintSize,  4); (* LogWNum(LIntAlign,    5); *) LogWLn;
-    LogWStr("SET        "); LogWNum(SetSize,      4); (* LogWNum(SetAlign,     5); *) LogWLn;
-    LogWStr("ADDRESS    "); LogWNum(AddressSize,  4); (* LogWNum(PointerAlign, 5); *) LogWLn;
+    LogWStr("SHORTINT   "); LogWNum(ShortintSize, 4); LogWLn;
+    LogWStr("INTEGER    "); LogWNum(IntegerSize,  4); LogWLn;
+    LogWStr("LONGINT    "); LogWNum(LongintSize,  4); LogWLn;
+    LogWStr("SET        "); LogWNum(LongintSize,  4); LogWLn;
+    LogWStr("ADDRESS    "); LogWNum(AddressSize,  4); LogWLn;
     LogWLn;
     LogWStr("Alignment: "); LogWNum(Alignment, 4); LogWLn;
   END VerboseListSizes;
@@ -344,10 +338,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     MaxIndex := SignedMaximum(AddressSize);
     CASE Model[0] OF
-    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4
-    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
-    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8
-    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4
+    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
+    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8
+    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8
+    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
     END;
 
     IF verbose IN Options THEN VerboseListSizes END;

@@ -11,8 +11,6 @@
 #define O_VER 1.95    // Version number to be reported by compiler.
 #define O_NAME voc    // Compiler name used for binary, install dir and references in text.
 
-// #define LARGE     // Define this to get 32 bit INTEGER and 64 bit longints even on 32 bit platforms.
-
 
 #include "SYSTEM.h"
 

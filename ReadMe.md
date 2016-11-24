@@ -32,13 +32,14 @@ with the following simple steps.
 
 #### 1. Install prerequisites
 
-| Platform               | Packages                                                            |
-| ---------              | ------------                                                        |
-| Debian/Ubuntu/Mint ... | `apt-get install git`                                               |
-| Fedora/RHEL/CentOS ... | `yum install git gcc glibc-static`                                  |
-| FreeBSD/OpenBSD/NetBSD | `pkg install git`                                                   |
-| Cygwin                 | use setup-x86[_x64] to add packages git, make and gcc-core          |
-| Darwin                 | type 'git' at the command line and accept the prompt to install it. |
+| Platform               | Packages                                                                      |
+| ---------              | ------------                                                                  |
+| Debian/Ubuntu/Mint ... | `apt-get install git`                                                         |
+| Fedora/RHEL/CentOS ... | `yum install git gcc glibc-static` (`dnf` instead of `yum` on recent Fedoras) |
+| FreeBSD/OpenBSD/NetBSD | `pkg install git`                                                             |
+| OpenSUSE               | `zypper install gcc git-core make glibc-devel-static`                         |
+| Cygwin                 | use setup-x86[_x64] to add packages git, make, diffutils and gcc-core         |
+| Darwin                 | type 'git' at the command line and accept the prompt to install it.           |
 
 More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
 
@@ -50,7 +51,7 @@ More details, including for MingW and MS C, in [**Installation**](/doc/Installat
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
-#### 3. Stet your PATH environment variable
+#### 3. Set your PATH environment variable
 
 Set your path to the installed compiler binary location as reported
 by make full, e.g.

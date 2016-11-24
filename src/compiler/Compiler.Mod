@@ -68,7 +68,6 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     OPT.intobj.typ    := OPT.inttyp;
     OPT.lintobj.typ   := OPT.linttyp;
 
-  (*OPT.settyp.size    := OPM.SetSize;*)
     CASE OPM.LongintSize OF
     |4:  OPT.settyp := OPT.set32typ
     ELSE OPT.settyp := OPT.set64typ
