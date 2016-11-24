@@ -218,12 +218,10 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           END
         END ;
         CheckSym(OPS.colon); Type(typ, OPT.notyp);
-
         IF ((typ.comp = OPT.Array) OR (typ.comp = OPT.Record))
          & (typ.strobj = NIL) THEN
           err(-309)
         END;
-
         IF mode = OPT.Var THEN typ^.pvused := TRUE END ;
         (* typ^.pbused is set when parameter type name is parsed *)
         WHILE first # NIL DO first^.typ := typ; first := first^.link END ;
