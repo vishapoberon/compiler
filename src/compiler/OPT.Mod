@@ -4,7 +4,7 @@ MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
 2002-08-20 jt: NewStr: txtpos remains 0 for structs read from symbol file
 *)
 
-IMPORT OPS, OPM;
+IMPORT OPS, OPM, SYSTEM;
 
 
 (* Constants - value of literals *)
@@ -12,11 +12,11 @@ TYPE
   Const*     = POINTER TO ConstDesc;
   ConstExt*  = POINTER TO OPS.String;
   ConstDesc* = RECORD
-    ext*:      ConstExt; (* string or code for code proc *)
-    intval*:   LONGINT;  (* constant value or adr, proc par size, text position or least case label *)
-    intval2*:  LONGINT;  (* string length, proc var size or larger case label *)
-    setval*:   SET;      (* constant value, procedure body present or "ELSE" present in case *)
-    realval*:  LONGREAL  (* real or longreal constant value *)
+    ext*:      ConstExt;      (* string or code for code proc *)
+    intval*:   SYSTEM.INT64;  (* constant value or adr, proc par size, text position or least case label *)
+    intval2*:  LONGINT;       (* string length, proc var size or larger case label *)
+    setval*:   SYSTEM.SET64;  (* constant value, procedure body present or "ELSE" present in case *)
+    realval*:  LONGREAL       (* real or longreal constant value *)
   END;
 
 CONST
@@ -83,7 +83,7 @@ TYPE
     allocated*:          BOOLEAN;
     pbused*, pvused*:    BOOLEAN;
     fpdone,  idfpdone:   BOOLEAN;
-    idfp, pbfp, pvfp:    LONGINT;
+    idfp*, pbfp, pvfp:   LONGINT;
     BaseTyp*:            Struct;
     link*, strobj*:      Object
   END;
@@ -91,12 +91,12 @@ TYPE
 CONST
   (* Struct.form values *)
   Undef*   = 0;  Byte*    = 1;  Bool*    = 2;  Char*    = 3;
-  SInt*    = 4;  Int*     = 5;  LInt*    = 6;
-  Real*    = 7;  LReal*   = 8;  Set*     = 9;  String*  = 10;
-  NilTyp*  = 11; NoTyp*   = 12; Pointer* = 13; ProcTyp* = 14;
-  Comp*    = 15;
+  Int*     = 4;
+  Real*    = 5;  LReal*   = 6;  Set*     = 7;  String*  = 8;
+  NilTyp*  = 9;  NoTyp*   = 10; Pointer* = 11; ProcTyp* = 12;
+  Comp*    = 13;
 
-  intSet* = {SInt..LInt}; realSet* = {Real, LReal};
+  realSet* = {Real, LReal};
 
   (* Struct.comp - Composite structure forms *)
   Basic* = 1; Array* = 2; DynArr* = 3; Record* = 4;
@@ -149,14 +149,17 @@ CONST
   FirstRef  = Comp + 1;
 
 VAR
-  typSize*:  PROCEDURE(typ: Struct);
   topScope*: Object;
 
-  undftyp*,
-  bytetyp*, booltyp*, chartyp*,
-  sinttyp*, inttyp*, linttyp*,
-  realtyp*, lrltyp*, settyp*, stringtyp*,
-  niltyp*,  notyp*,  sysptrtyp*:            Struct;
+  undftyp*, niltyp*,    notyp*,
+  bytetyp*, cpbytetyp*, booltyp*,  chartyp*,
+  sinttyp*, inttyp*,    linttyp*,  hinttyp*,
+  int8typ*, int16typ*,  int32typ*, int64typ*,
+  settyp*,  set32typ*,  set64typ*,
+  realtyp*, lrltyp*,    stringtyp*,
+  adrtyp*,  sysptrtyp*: Struct;
+
+  sintobj*, intobj*, lintobj*, setobj*: Object;
 
   nofGmod*: SHORTINT;  (*nof imports*)
   GlbMod*:  ARRAY maxImps OF Object;  (* ^.right = first object, ^.name = module import name (not alias) *)
@@ -164,9 +167,9 @@ VAR
   SelfName*:    OPS.Name;  (* name of module being compiled *)
   SYSimported*: BOOLEAN;
 
+
+
 CONST
-
-
 
   (* Symbol file items *)
   Smname* = 16; Send*    = 18; Stype*   = 19; Salias*  = 20; Svar*  = 21;
@@ -201,10 +204,148 @@ VAR
   newsf, findpc:       BOOLEAN;
   extsf, sfpresent:    BOOLEAN;
   symExtended, symNew: BOOLEAN;
+  recno:               LONGINT;  (* number of anonymous record types *)
 
-PROCEDURE err(n: INTEGER);
-BEGIN OPM.err(n)
-END err;
+
+
+PROCEDURE InitRecno*; BEGIN recno := 0 END InitRecno;
+PROCEDURE err(n: INTEGER); BEGIN OPM.err(n) END err;
+
+
+PROCEDURE IntSize*(n: SYSTEM.INT64):INTEGER;
+(* Determines number of bytes required to store signed value n. *)
+  VAR bytes: INTEGER;
+BEGIN
+  IF n < 0 THEN n := -(n+1) END;
+  bytes := 1; WHILE (bytes < 8) & (ASH(n, -(8*bytes-1)) # 0) DO INC(bytes) END;
+  RETURN bytes
+END IntSize;
+
+PROCEDURE IntType*(size: LONGINT): Struct;
+(* Selects smallest standard integer type for given size in bytes *)
+BEGIN
+  IF size <= int8typ.size  THEN RETURN int8typ  END;
+  IF size <= int16typ.size THEN RETURN int16typ END;
+  IF size <= int32typ.size THEN RETURN int32typ END;
+  RETURN int64typ
+END IntType;
+
+PROCEDURE SetType*(size: LONGINT): Struct;
+BEGIN
+  IF size = set32typ.size THEN RETURN set32typ END;
+  RETURN set64typ
+END SetType;
+
+PROCEDURE ShorterOrLongerType*(x: Struct; dir: INTEGER): Struct;
+  VAR i: INTEGER;
+BEGIN
+  ASSERT(x.form = Int);
+  ASSERT(x.BaseTyp = undftyp);
+  ASSERT((dir = 1) OR (dir = -1));
+  IF dir > 0 THEN
+    IF x.size < sinttyp.size THEN RETURN sinttyp END;
+    IF x.size < inttyp.size  THEN RETURN inttyp  END;
+    IF x.size < linttyp.size THEN RETURN linttyp END;
+    RETURN int64typ
+  ELSE
+    IF x.size > linttyp.size THEN RETURN linttyp END;
+    IF x.size > inttyp.size  THEN RETURN inttyp  END;
+    IF x.size > sinttyp.size THEN RETURN sinttyp END;
+    RETURN int8typ
+  END
+END ShorterOrLongerType;
+
+
+PROCEDURE Align*(VAR adr: LONGINT; base: LONGINT);
+BEGIN
+  CASE base OF
+  |  2: INC(adr,   adr  MOD 2)
+  |  4: INC(adr, (-adr) MOD 4)
+  |  8: INC(adr, (-adr) MOD 8)
+  | 16: INC(adr, (-adr) MOD 16)
+  ELSE (*1*) (*OPM.LogWStr("unhandled case at OPC.Align, base = "); OPM.LogWNum(base, 0); OPM.LogWLn;*)
+  END
+END Align;
+
+PROCEDURE SizeAlignment*(size: LONGINT): LONGINT;
+  VAR alignment: LONGINT;
+BEGIN
+  IF size < OPM.Alignment THEN
+    (* Round up to next power of 2 *)
+    alignment := 1; WHILE alignment < size DO alignment := alignment * 2 END;
+  ELSE
+    alignment := OPM.Alignment
+  END;
+  RETURN alignment
+END SizeAlignment;
+
+PROCEDURE BaseAlignment*(typ: Struct): LONGINT;
+  VAR alignment: LONGINT;
+BEGIN
+  IF typ.form = Comp THEN
+    IF typ.comp = Record THEN
+      alignment := typ.align MOD 10000H
+    ELSE
+      alignment := BaseAlignment(typ.BaseTyp)
+    END
+  ELSE
+    alignment := SizeAlignment(typ.size)
+  END;
+  RETURN alignment
+END BaseAlignment;
+
+PROCEDURE TypSize*(typ: Struct);
+  VAR
+    f, c: INTEGER;
+    offset, size, base, fbase, off0: LONGINT;
+    fld: Object; btyp: Struct;
+BEGIN
+  IF typ = undftyp THEN OPM.err(58)
+  ELSIF typ.size = -1 THEN
+    f := typ.form;
+    c := typ.comp;
+    IF c = Record THEN btyp := typ.BaseTyp;
+      IF btyp = NIL THEN offset := 0; base := 1;
+      ELSE TypSize(btyp); offset := btyp.size - btyp.sysflag DIV 100H; base := btyp.align;
+      END;
+      fld := typ.link;
+      WHILE (fld # NIL) & (fld.mode = Fld) DO
+        btyp := fld.typ; TypSize(btyp);
+        size := btyp.size;
+        fbase := BaseAlignment(btyp);
+        Align(offset, fbase);
+        fld.adr := offset; INC(offset, size);
+        IF fbase > base THEN base := fbase END;
+        fld := fld.link
+      END;
+      (* base is now the largest alignment of any field *)
+      off0 := offset;
+      IF offset = 0 THEN offset := 1 END;  (* 1 byte filler to avoid empty struct *)
+      Align(offset, base);
+      IF (typ^.strobj = NIL) & (typ^.align MOD 10000H = 0) THEN INC(recno); INC(base, recno * 10000H) END;
+      typ.size := offset;
+      typ.align := base;
+      (* encode the trailing gap into the symbol table to allow dense packing of extended records *)
+      typ^.sysflag := typ^.sysflag MOD 100H + SHORT((offset - off0)*100H)
+    ELSIF c = Array THEN
+      TypSize(typ.BaseTyp);
+      typ.size := typ.n * typ.BaseTyp.size;
+    ELSIF f = Pointer THEN
+      typ.size := OPM.AddressSize;
+      IF typ.BaseTyp = undftyp THEN OPM.Mark(128, typ.n)
+      ELSE TypSize(typ.BaseTyp)
+      END
+    ELSIF f = ProcTyp THEN
+      typ.size := OPM.AddressSize;
+    ELSIF c = DynArr THEN
+      btyp := typ.BaseTyp; TypSize(btyp);
+      IF btyp.comp = DynArr THEN typ.size := btyp.size + 4  (* describes dim not size *)
+      ELSE typ.size := 8
+      END
+    END
+  END
+END TypSize;
+
 
 PROCEDURE NewConst*(): Const;
   VAR const: Const;
@@ -374,21 +515,23 @@ END FPrintSign;
 PROCEDURE IdFPrint*(typ: Struct);  (* idfp codifies assignment compatibility *)
 VAR btyp: Struct; strobj: Object; idfp: LONGINT; f, c: INTEGER;
 BEGIN
-   IF ~typ^.idfpdone THEN
-      typ^.idfpdone := TRUE;  (* may be recursive, temporary idfp is 0 in that case *)
-      idfp := 0; f := typ^.form; c := typ^.comp; OPM.FPrint(idfp, f); OPM.FPrint(idfp, c);
-      btyp := typ^.BaseTyp; strobj := typ^.strobj;
-      IF (strobj # NIL) & (strobj^.name # "") THEN
-         FPrintName(idfp, GlbMod[typ^.mno]^.name); FPrintName(idfp, strobj^.name)
-      END;
-      IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
-         IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
-      ELSIF c = Array THEN
-         IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
-      ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
-      END;
-      typ^.idfp := idfp
-   END
+  IF ~typ^.idfpdone THEN
+    typ^.idfpdone := TRUE;  (* may be recursive, temporary idfp is 0 in that case *)
+    idfp := 0;
+    f := typ^.form; OPM.FPrint(idfp, f); IF f IN {Int, Set} THEN OPM.FPrint(idfp, typ.size) END;
+    c := typ^.comp; OPM.FPrint(idfp, c);
+    btyp := typ^.BaseTyp; strobj := typ^.strobj;
+    IF (strobj # NIL) & (strobj^.name # "") THEN
+       FPrintName(idfp, GlbMod[typ^.mno]^.name); FPrintName(idfp, strobj^.name)
+    END;
+    IF (f = Pointer) OR (c = Record) & (btyp # NIL) OR (c = DynArr) THEN
+       IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp)
+    ELSIF c = Array THEN
+       IdFPrint(btyp); OPM.FPrint(idfp, btyp^.idfp); OPM.FPrint(idfp, typ^.n)
+    ELSIF f = ProcTyp THEN FPrintSign(idfp, btyp, typ^.link)
+    END;
+    typ^.idfp := idfp
+  END
 END IdFPrint;
 
 PROCEDURE FPrintStr*(typ: Struct);
@@ -484,9 +627,7 @@ BEGIN
       CASE f OF
       | Bool,
         Char,
-        SInt,
-        Int,
-        LInt:   OPM.FPrint(fprint, obj^.conval^.intval)
+        Int:    OPM.FPrint(fprint, obj^.conval^.intval)
       | Set:    OPM.FPrintSet(fprint, obj^.conval^.setval)
       | Real:   rval := SHORT(obj^.conval^.realval); OPM.FPrintReal(fprint, rval)
       | LReal:  OPM.FPrintLReal(fprint, obj^.conval^.realval)
@@ -599,9 +740,7 @@ BEGIN
   | Byte,
     Char,
     Bool:   OPM.SymRCh(ch); conval^.intval := ORD(ch)
-  | SInt,
-    Int,
-    LInt:   conval^.intval := OPM.SymRInt()
+  | Int:    conval^.intval := OPM.SymRInt()
   | Set:    OPM.SymRSet(conval^.setval)
   | Real:   OPM.SymRReal(rval); conval^.realval := rval;
             conval^.intval := OPM.ConstNotAlloc
@@ -670,13 +809,22 @@ BEGIN
   RETURN obj
 END InTProc;
 
+
+PROCEDURE InTyp(tag: LONGINT): Struct;
+BEGIN
+  IF    tag = Int THEN RETURN IntType(OPM.SymRInt())
+  ELSIF tag = Set THEN RETURN SetType(OPM.SymRInt())
+  ELSE RETURN impCtxt.ref[tag]
+  END
+END InTyp;
+
+
 PROCEDURE InStruct(VAR typ: Struct);
   VAR mno: SHORTINT; ref: INTEGER; tag: LONGINT; name: OPS.Name;
       t: Struct; obj, last, fld, old, dummy: Object;
 BEGIN
   tag := OPM.SymRInt();
-  IF tag # Sstruct THEN
-    typ := impCtxt.ref[-tag]
+  IF tag # Sstruct THEN typ := InTyp(-tag)
   ELSE
     ref := impCtxt.nofr; INC(impCtxt.nofr);
     IF ref < impCtxt.minr THEN impCtxt.minr := ref END;
@@ -711,18 +859,18 @@ BEGIN
     tag := OPM.SymRInt();
     IF tag = Ssys THEN typ^.sysflag := SHORT(OPM.SymRInt()); tag := OPM.SymRInt() END;
     CASE tag OF
-    | Sptr:  typ^.form := Pointer; typ^.size := OPM.PointerSize;
+    | Sptr:  typ^.form := Pointer; typ^.size := OPM.AddressSize;
              typ^.n := 0; InStruct(typ^.BaseTyp)
     | Sarr:  typ^.form := Comp; typ^.comp := Array;
              InStruct(typ^.BaseTyp); typ^.n := OPM.SymRInt();
-             typSize(typ) (* no bounds address !! *)
+             TypSize(typ) (* no bounds address !! *)
     | Sdarr: typ^.form := Comp; typ^.comp := DynArr; InStruct(typ^.BaseTyp);
              IF typ^.BaseTyp^.comp = DynArr THEN
                typ^.n := typ^.BaseTyp^.n + 1
              ELSE
                typ^.n := 0
              END;
-             typSize(typ)
+             TypSize(typ)
     | Srec:  typ^.form := Comp; typ^.comp := Record;
              InStruct(typ^.BaseTyp);
              IF typ^.BaseTyp = notyp THEN typ^.BaseTyp := NIL END;
@@ -745,13 +893,13 @@ BEGIN
                InsertImport(fld, typ^.link, dummy);
                impCtxt.nextTag := OPM.SymRInt()
              END
-    | Spro:  typ^.form := ProcTyp; typ^.size := OPM.ProcSize;
+    | Spro:  typ^.form := ProcTyp; typ^.size := OPM.AddressSize;
              InSign(mno, typ^.BaseTyp, typ^.link)
     ELSE     OPM.LogWStr("unhandled case at InStruct, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
     END;
     IF ref = impCtxt.minr THEN
-      WHILE (ref < impCtxt.nofr) (*OR ((ref >= Int8) & (ref <= Int64))*) DO
-        t := impCtxt.ref[ref]; FPrintStr(t);
+      WHILE (ref < impCtxt.nofr) DO
+        t := InTyp(ref); FPrintStr(t);
         obj := t^.strobj;  (* obj^.typ^.strobj = obj, else obj^.fprint differs (alias) *)
         IF obj^.name # "" THEN FPrintObj(obj) END;
         old := impCtxt.old[ref];
@@ -808,7 +956,8 @@ BEGIN
   ELSE
     obj := NewObj(); obj^.mnolev := -mno; obj^.vis := external;
     IF tag <= Pointer THEN  (* Constant *)
-      obj^.mode := Con; obj^.typ := impCtxt.ref[tag]; obj^.conval := NewConst(); InConstant(tag, obj^.conval)
+      obj^.mode := Con; obj^.conval := NewConst(); InConstant(tag, obj^.conval);
+      obj^.typ := InTyp(tag)
     ELSIF tag >= Sxpro THEN
       obj^.conval := NewConst();
       obj^.conval^.intval := -1;
@@ -944,7 +1093,7 @@ END Import;
     END
   END OutFlds;
 
-  PROCEDURE OutSign(result: Struct; par: Object);
+  PROCEDURE OutSign(result: Struct; par: Object);  (* Procedure signature *)
   BEGIN
     OutStr(result);
     WHILE par # NIL DO
@@ -956,7 +1105,7 @@ END Import;
     OPM.SymWInt(Send)
   END OutSign;
 
-  PROCEDURE OutTProcs(typ: Struct; obj: Object);
+  PROCEDURE OutTProcs(typ: Struct; obj: Object); (* Type bound procedures *)
   BEGIN
     IF obj # NIL THEN
       OutTProcs(typ, obj^.left);
@@ -982,7 +1131,8 @@ END Import;
   PROCEDURE OutStr(typ: Struct);  (* OPV.TypeAlloc already applied *)
     VAR strobj: Object;
   BEGIN
-    IF (typ^.ref < expCtxt.ref) (*OR (typ^.ref >= Int8) & (typ^.ref <= Int64)*) THEN OPM.SymWInt(-typ^.ref)
+    IF (typ^.ref < expCtxt.ref) THEN OPM.SymWInt(-typ^.ref);
+      IF typ.ref IN {Int, Set} THEN OPM.SymWInt(typ.size) END
     ELSE
       OPM.SymWInt(Sstruct);
       typ^.ref := expCtxt.ref; INC(expCtxt.ref);
@@ -1027,10 +1177,8 @@ END Import;
     CASE f OF
     | Bool,
       Char:   OPM.SymWCh(CHR(obj^.conval^.intval))
-    | SInt,
-      Int,
-      LInt:   OPM.SymWInt(obj^.conval^.intval)
-    | Set:    OPM.SymWSet(obj^.conval^.setval)
+    | Int:    OPM.SymWInt(obj^.conval^.intval); OPM.SymWInt(obj.typ.size)
+    | Set:    OPM.SymWSet(obj^.conval^.setval); OPM.SymWInt(obj.typ.size)
     | Real:   rval := SHORT(obj^.conval^.realval); OPM.SymWReal(rval)
     | LReal:  OPM.SymWLReal(obj^.conval^.realval)
     | String: OutName(obj^.conval^.ext^)
@@ -1092,10 +1240,8 @@ END Import;
         expCtxt.nofm := 1; expCtxt.locmno[0] := 0;
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END;
         OutObj(topScope^.right);
-        ext := sfpresent & symExtended; new := ~sfpresent OR symNew;
-        IF OPM.forceNewSym THEN
-          new := TRUE
-        END; (* for bootstrapping -- noch *)
+        ext := sfpresent & symExtended;
+        new := ~sfpresent OR symNew OR (OPM.forcenewsym IN OPM.Options);
         IF OPM.noerr & sfpresent & (impCtxt.reffp # expCtxt.reffp) THEN
           new := TRUE;
           IF ~extsf THEN err(155) END
@@ -1112,7 +1258,7 @@ END Import;
 
   PROCEDURE InitStruct(VAR typ: Struct; form: SHORTINT);
   BEGIN
-    typ := NewStr(form, Basic); typ^.ref := form; typ^.size := OPM.ByteSize; typ^.allocated := TRUE;
+    typ := NewStr(form, Basic); typ^.ref := form; typ^.size := 1; typ^.allocated := TRUE;
     typ^.strobj := NewObj(); typ^.pbfp := form; typ^.pvfp := form; typ^.fpdone := TRUE;
     typ^.idfp := form; typ^.idfpdone := TRUE
   END InitStruct;
@@ -1131,8 +1277,17 @@ END Import;
     typ := NewStr(form, Basic); obj^.mode := Typ; obj^.typ := typ; obj^.vis := external;
     typ^.strobj := obj; typ^.size := size; typ^.ref := form; typ^.allocated := TRUE;
     typ^.pbfp := form; typ^.pvfp := form; typ^.fpdone := TRUE;
-    typ^.idfp := form; typ^.idfpdone := TRUE; res := typ
+    typ^.idfp := form; typ^.idfpdone := TRUE;
+    IF form IN {Int, Set} THEN OPM.FPrint(typ.idfp, typ.size) END;
+    res := typ
   END EnterTyp;
+
+  PROCEDURE EnterTypeAlias(name: OPS.Name; VAR res: Object);
+    VAR obj: Object;
+  BEGIN
+    Insert(name, obj); obj^.mode := Typ; obj^.typ := NIL; obj^.vis := external;
+    res := obj
+  END EnterTypeAlias;
 
   PROCEDURE EnterProc(name: OPS.Name; num: INTEGER);
     VAR obj: Object;
@@ -1140,37 +1295,55 @@ END Import;
     obj^.mode := SProc; obj^.typ := notyp; obj^.adr := num
   END EnterProc;
 
+
+
 BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
-  InitStruct(undftyp, Undef); InitStruct(notyp, NoTyp);
-  InitStruct(stringtyp, String); InitStruct(niltyp, NilTyp);
-  undftyp^.BaseTyp := undftyp;
+  InitStruct(undftyp,   Undef);  undftyp^.BaseTyp := undftyp;
+  InitStruct(notyp,     NoTyp);
+  InitStruct(stringtyp, String);
+  InitStruct(niltyp,    NilTyp);
 
   (*initialization of module SYSTEM*)
-  EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp);
-  EnterTyp("PTR", Pointer, OPM.PointerSize, sysptrtyp);
-  EnterProc("ADR", adrfn);
-  EnterProc("CC", ccfn);
-  EnterProc("LSH", lshfn);
-  EnterProc("ROT", rotfn);
-  EnterProc("GET", getfn);
-  EnterProc("PUT", putfn);
+  EnterTyp("BYTE",    Byte,     1, bytetyp);
+  EnterTyp("PTR",     Pointer, -1, sysptrtyp);  (* Size set in Compiler.PropagateElementaryTypeSize *)
+  EnterTyp("ADDRESS", Int,     -1, adrtyp);     (* Size set in Compiler.PropagateElementaryTypeSize *)
+  EnterTyp("INT8",    Int,      1, int8typ);
+  EnterTyp("INT16",   Int,      2, int16typ);
+  EnterTyp("INT32",   Int,      4, int32typ);
+  EnterTyp("INT64",   Int,      8, int64typ);
+  EnterTyp("SET32",   Set,      4, set32typ);
+  EnterTyp("SET64",   Set,      8, set64typ);
+
+  EnterProc("ADR",    adrfn);
+  EnterProc("CC",     ccfn);
+  EnterProc("LSH",    lshfn);
+  EnterProc("ROT",    rotfn);
+  EnterProc("GET",    getfn);
+  EnterProc("PUT",    putfn);
   EnterProc("GETREG", getrfn);
   EnterProc("PUTREG", putrfn);
-  EnterProc("BIT", bitfn);
-  EnterProc("VAL", valfn);
-  EnterProc("NEW", sysnewfn);
-  EnterProc("MOVE", movefn);
-  syslink := topScope^.right;
+  EnterProc("BIT",    bitfn);
+  EnterProc("VAL",    valfn);
+  EnterProc("NEW",    sysnewfn);
+  EnterProc("MOVE",   movefn);
+
+
+  syslink  := topScope^.right;
   universe := topScope; topScope^.right := NIL;
 
-  EnterTyp("BOOLEAN",  Bool,  OPM.BoolSize,  booltyp);
-  EnterTyp("CHAR",     Char,  OPM.CharSize,  chartyp);
-  EnterTyp("SET",      Set,   OPM.SetSize,   settyp);
-  EnterTyp("REAL",     Real,  OPM.RealSize,  realtyp);
-  EnterTyp("INTEGER",  Int,   OPM.IntSize,   inttyp);
-  EnterTyp("LONGINT",  LInt,  OPM.LIntSize,  linttyp);
-  EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp);
-  EnterTyp("SHORTINT", SInt,  OPM.SIntSize,  sinttyp);
+  EnterTyp("BOOLEAN",  Bool,   1, booltyp);
+  EnterTyp("CHAR",     Char,   1, chartyp);
+  EnterTyp("REAL",     Real,   4, realtyp);
+  EnterTyp("LONGREAL", LReal,  8, lrltyp);
+  EnterTyp("HUGEINT",  Int,    8, hinttyp);
+  EnterTyp("BYTE@",    Int,    1, cpbytetyp);  (* Component Pascal byte type, enabled in Compiler.PropagateElementaryTypeSize *)
+
+  (* Type aliases for standard integer and set types are linked to real types in Compiler.PropagateElementaryTypeSize *)
+  EnterTypeAlias("SHORTINT", sintobj);
+  EnterTypeAlias("INTEGER",  intobj);
+  EnterTypeAlias("LONGINT",  lintobj);
+  EnterTypeAlias("SET",      setobj);
+
 
   EnterBoolConst("FALSE", 0);  (* 0 and 1 are compiler internal representation only *)
   EnterBoolConst("TRUE",  1);
@@ -1201,16 +1374,15 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   impCtxt.ref[Byte]    := bytetyp;
   impCtxt.ref[Bool]    := booltyp;
   impCtxt.ref[Char]    := chartyp;
-  impCtxt.ref[SInt]    := sinttyp;
-  impCtxt.ref[Int]     := inttyp;
-  impCtxt.ref[LInt]    := linttyp;
+  impCtxt.ref[Int]     := int32typ;
   impCtxt.ref[Real]    := realtyp;
   impCtxt.ref[LReal]   := lrltyp;
   impCtxt.ref[Set]     := settyp;
   impCtxt.ref[String]  := stringtyp;
   impCtxt.ref[NilTyp]  := niltyp;
   impCtxt.ref[NoTyp]   := notyp;
-  impCtxt.ref[Pointer] := sysptrtyp
+  impCtxt.ref[Pointer] := sysptrtyp;
+
 END OPT.
 
 Objects:
@@ -1240,9 +1412,7 @@ Objects:
     Byte    Basic |
     Bool    Basic |
     Char    Basic |
-    SInt    Basic |
-    Int     Basic |
-    LInt    Basic |
+    Int     Basic |                                                                   size determine SHORT vs LONG
     XInt    Basic | bits
     Real    Basic |
     LReal   Basic |

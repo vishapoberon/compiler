@@ -11,35 +11,39 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-###### Contents
+### Contents
 
-> [Installation](#installation)  
-> [A 'Hello' application](#a-hello-application)  
-> [Licensing](#licensing)  
-> [Platform support and porting](#platform-support-and-porting)  
-> [Language support and libraries](#language-support-and-libraries)  
-> [History](#history)  
-> [Roadmap](#roadmap)  
-> [Contributors](#contributors)  
-> [Origin of the name "Ѵishap Oberon"](#origin-of-the-name-Ѵishap-oberon)  
-> [References](#references)
+&nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**A 'Hello' application**](#a-hello-application)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Licensing**](#licensing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Platform support and porting**](#platform-support-and-porting)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Language support and libraries**](#language-support-and-libraries)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**History**](#history)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Roadmap**](#roadmap)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Contributors**](#contributors)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Origin of the name "Ѵishap Oberon"**](#origin-of-the-name-Ѵishap-oberon)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**References**](#references)<br>
 
 
 ## Installation
 
-###### Prerequisites
+While pre-built packages are not provided, it is easy to install the Oberon compiler and libraries
+with the following simple steps.
 
-| Platform               | Packages                                                            |
-| ---------              | ------------                                                        |
-| Debian/Ubuntu/Mint ... | `apt-get install git`                                               |
-| Fedora/RHEL/CentOS ... | `yum install git gcc glibc-static`                                  |
-| FreeBSD/OpenBSD/NetBSD | `pkg install git`                                                   |
-| Cygwin                 | use setup-x86[_x64] to add packages git, make and gcc-core          |
-| Darwin                 | type 'git' at the command line and accept the prompt to install it. |
+#### 1. Install prerequisites
 
-More details, including for MingW and MS C, in [Installation](/doc/Installation.md).
+| Platform               | Packages                                                                      |
+| ---------              | ------------                                                                  |
+| Debian/Ubuntu/Mint ... | `apt-get install git`                                                         |
+| Fedora/RHEL/CentOS ... | `yum install git gcc glibc-static` (`dnf` instead of `yum` on recent Fedoras) |
+| FreeBSD/OpenBSD/NetBSD | `pkg install git`                                                             |
+| OpenSUSE               | `zypper install gcc git-core make glibc-devel-static`                         |
+| Cygwin                 | use setup-x86[_x64] to add packages git, make, diffutils and gcc-core         |
+| Darwin                 | type 'git' at the command line and accept the prompt to install it.           |
 
-###### Build and install
+More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
+
+#### 2. Build and install the compiler and libraries
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
@@ -47,7 +51,7 @@ More details, including for MingW and MS C, in [Installation](/doc/Installation.
 
 Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
 
-###### PATH environment variable
+#### 3. Set your PATH environment variable
 
 Set your path to the installed compiler binary location as reported
 by make full, e.g.
@@ -59,11 +63,12 @@ by make full, e.g.
 |  Windows  | See [Installation](/doc/Installation.md)                      |
 |  Termux   | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
-Also see [Installation](/doc/Installation.md).
+Also see [**Installation**](/doc/Installation.md).
+
 
 ## A 'Hello' application
 
-Anything appended to Oberon.Log is automatically displayed on the console, so the
+Anything appended to Oberon.Log is automatically written to stdout, so the
 following conventional Oberon program will display 'Hello.':
 
 ```Modula-2
@@ -77,13 +82,13 @@ BEGIN
 END hello.
 ```
 
-Alternatively the Console may be accessed directly as follows:
+Alternatively the Oakwood module Out can be used to write directly to stdout:
 
 ```Modula-2
 MODULE hello;
-  IMPORT Console;
+  IMPORT Out;
 BEGIN
-  Console.String("Hello."); Console.Ln;
+  Out.String("Hello."); Out.Ln;
 END hello.
 ```
 
@@ -97,12 +102,12 @@ executable binary.
 Execute as usual on Linux ('./hello') or Windows ('hello').
 
 
-Also see [Compiling](/doc/Compiling.md).
+Also see [**Compiling**](/doc/Compiling.md).
 
 ## Licensing
 
 Vishap Oberon's frontend and C backend engine is a fork of Josef Templ’s Ofront, which has been released
-under the FreeBSD License. Unlike Ofront, Vishap Oberon does not include the Oberon v4 environment.
+under the FreeBSD License. Unlike Ofront, Vishap Oberon does not include the Oberon v4 GUI environment.
 
 The Ulm Oberon Library  and the Ooc libraries are distributed under GPL. Proprietry code
 using these libraries may not be statically linked.
@@ -121,69 +126,68 @@ It compiles under gcc, clang and Microsoft Visual C.
 Installation supports GNU/Linux, MAC OSX, BSD and Windows (native and cygwin).
 
 A C program (src/tools/make/configure.c) detects the details of the C compiler
-and operating system on which it is running. In most cases it will automatically
-determine all that is needed for the port to a new platform. and 'make full'
-will just work.
+and operating system on which it is running.
 
-In some cases manual work will be required:
+The following systems are recognised:
 
- - If configure.c cannot recognise the operating system on which it is running
-   a few lines will need to be added to detect and set the make variables
-   correctly.
- - If porting to a system that does not provide a Unix style API, it will be
-   necessary to implement a new variant of Platform.Mod providing the same
-   interface as Platformunix.Mod and Platform Windows.Mod.
+ - Linux, including Ubuntu and Centos derivatives.
+ - The BSDs, including OpenBSD and FreeBSD.
+ - Cygwin under Windows, MingW under Cygwin, Bash on Ubuntu on Windows.
 
-For details, see [Porting](/doc/Porting.md).
+Additionally a Windows .cmd is provided for building with Microsoft C.
+
+For details, including how to add support for unrecognised systems, see
+[**Porting**](/doc/Porting.md).
+
 
 ## Language support and libraries
 
-Vishap Oberon supports the Oberon 2 programming language, including type-bound procedures.
+Vishap Oberon supports the Oberon 2 programming language, including type-bound procedures. SYSTEM.Mod includes additional functionality and some changes for 64 bit support.
 
-It also supports some features of Oberon-07.
+#### Integer and set type sizes:
 
-Vishap Oberon comes with libraries easing the porting of code from the major
-Oberon systems:
+| Type     | -O2 option (default) | -OC option |
+| ---      | ---                  | ---        |
+| SHORTINT | 8 bit                | 16 bit     |
+| INTEGER  | 16 bit               | 32 bit     |
+| LONGINT  | 32 bit               | 64 bit     |
+| SET      | 32 bit               | 64 bit     |
+
+#### Libraries
+
+Included libraries ease porting of code from the major Oberon systems:
 
  - Oberon V4 and S3 compatible library set.
-
- - ooc (optimizing oberon-2 compiler) library port.
-
+ - Ooc (optimizing oberon-2 compiler) library port.
  - Ulm’s Oberon system library port.
+ - Oakwood standard libraries.
+ - Some other freely redistributable libraries.
 
-Some other freely redistributable libraries are available as a part of voc distribution.
+Oakwood libraries are supported for both -O2 and -OC options, whereas the ULM, OOC and ETH system 3 libraries are only available on -O2 (default) compilations.
 
-See also [Features](/doc/Features.md).
 
-## History
+Vishap Oberon also supports some features of Oberon-07.
 
-See [History](/doc/History.md).
 
-## Roadmap
+See also [**Features**](/doc/Features.md).
 
-See [Roadmap](/doc/Roadmap.md).
 
 ## Contributors
 
-Originally developed as a cross platform implementation of the
-Oberon system by Joseph Templ.
+Joseph Templ developed ofront as a tool to translate Oberon-2 programs into semantically equivalent
+C programs. It was Copyrighted in 1995, and transferred to the Free BSD license in 2012.
 
-Updated for 64 bit support, refactored as a standalone compiler and brought
-to new platforms by Norayr Chilingarian.
+From Joseph's github repository:
 
-Build process simplified for more platform support and bugs fixed by David
-C W Brown.
+> Design and implementation of ofront is due to Josef Templ ... ofront has been based in part on Regis Crelier's PhD thesis and Stefan Gehring's diploma thesis, both at ETH Zurich, Institute for Computer Systems.
+
+Norayr Chilingarian forked ofront in 2013, porting extensive libraries from [ULM Oberon](http://www.mathematik.uni-ulm.de/oberon/), [OO2C](https://github.com/Spirit-of-Oberon/oo2c) and ETH Oberon System 3, and adding support for more platforms including 64 bit systems.
+
+David Brown has worked on adding support for more platforms incuding windows using MSC, cygwin or mingw since January 2016. More recently he has generalised basic type support within the compiler to allow e.g. 64 bit LONGINT on 32 bit systems, and 32 bit LONGINT on 64 bit systems.
 
 ## Origin of the name "Ѵishap Oberon"
 
-###### Ѵishap
-
-Vishaps are dragons inhabiting the Armenian Highlands.
-We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
-
-Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015/04/27/six-works-of-computer-science-fiction/) refers to some technologies as “computer science fiction”. Among them to Oberon. This brings another meaning, Oberon is like aliens, ghosts. And Vishaps.
-
-###### Oberon - System and Programming Language
+#### Oberon
 
 Oberon is a programming language, an operating system and a graphical
 user interface. Originally designed and implemented by by Niklaus Wirth and
@@ -201,6 +205,13 @@ of Einstein and Antoine de Saint-Exupéry:
 >  Perfection is finally attained not when there is no longer anything to add, but
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  translated by Lewis Galantière.)
+
+#### Ѵishap
+
+Vishaps are dragons inhabiting the Armenian Highlands.
+We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
+
+Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015/04/27/six-works-of-computer-science-fiction/) refers to some technologies as “computer science fiction”. Among them to Oberon. This brings another meaning, Oberon is like aliens, ghosts. And Vishaps.
 
 ## References
 
@@ -224,4 +235,6 @@ of Einstein and Antoine de Saint-Exupéry:
 ###### Links
  - [Niklaus Wirth's personal page at ETH Zurich](https://www.inf.ethz.ch/personal/wirth/)
  - [ETH Zurich's Wirth publications page](http://www.ethoberon.ethz.ch/WirthPubl/)
+ - [Joseph Templ's ofront on github](https://hithub.com/jtempl/ofront)
+ - [Software Templ OG](http://www.software-templ.com)
  - [Oberon: Steps beyond Pascal and Modula](http://fruttenboel.verhoeven272.nl/Oberon/)

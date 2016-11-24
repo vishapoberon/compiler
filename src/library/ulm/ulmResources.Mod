@@ -107,19 +107,11 @@ MODULE ulmResources;
    (* === private procedures ============================================ *)
 
    PROCEDURE GetDisc(resource: Resource; VAR disc: Discipline);
+     VAR d: Disciplines.Discipline;
    BEGIN
-      (*IF ~Disciplines.Seek(resource, discID, disc) THEN*)
-      (* this line causes error
-      err 123  type of actual parameter is not identical with that of formal VAR-parameter
-      because Discipline defined in this module is an extention of the same type in module Disciplines
-      Disciplines.Seek expects Disciplines.Discipline, not the extended type.
-      voc (ofront, OP2, as well as oo2c) behaves right by not allowing this, while Ulm's Oberon system
-      accepts this. 
-      So we introduce here a workaround, which makes usage of this module unsafe;
-
-      noch 
-      *)
-      IF ~Disciplines.Seek(resource, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN (* noch *)
+      IF Disciplines.Seek(resource, discID, d) THEN
+         disc := d(Discipline)
+      ELSE
          NEW(disc); disc.id := discID;
          disc.state := alive; disc.refcnt := 0;
          disc.eventType := NIL;

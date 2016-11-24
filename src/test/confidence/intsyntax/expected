@@ -1,15 +1,15 @@
 IntSyntax.mod  compiling IntSyntax.
 
   14:   i := l;   (* Bad, INTEGER shorter than LONGINT *)
-              [32m^[0m
-    pos   341[31m  err [0m113  incompatible assignment
+              ^
+    pos   341  err 113  incompatible assignment
 
   15:   s := l;   (* Bad, SHORTINT shorter than LONGINT *)
-              [32m^[0m
-    pos   393[31m  err [0m113  incompatible assignment
+              ^
+    pos   393  err 113  incompatible assignment
 
   16:   i := l;   (* Bad, SHORTINT shorter than INTEGER *)
-              [32m^[0m
-    pos   446[31m  err [0m113  incompatible assignment
+              ^
+    pos   446  err 113  incompatible assignment
 
 Module compilation failed.

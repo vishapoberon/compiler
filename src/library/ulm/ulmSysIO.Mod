@@ -30,7 +30,10 @@
 
 MODULE ulmSysIO;
 
-   IMPORT RelatedEvents := ulmRelatedEvents, Sys := ulmSys, SYS := SYSTEM, ulmSYSTEM, SysErrors := ulmSysErrors, SysTypes := ulmSysTypes;
+   IMPORT RelatedEvents := ulmRelatedEvents,
+          Sys := ulmSys, SYS := SYSTEM, ulmSYSTEM,
+          SysErrors := ulmSysErrors, SysTypes := ulmSysTypes,
+          Platform;
 
    CONST
       (* file control options: arguments of Fcntl and Open *)
@@ -86,20 +89,20 @@ MODULE ulmSysIO;
                        retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
       (* the filename must be 0X-terminated *)
       VAR
-         d0, d1: (*INTEGER*)LONGINT;
+         error: Platform.ErrorCode;
    BEGIN
       interrupted := FALSE;
       LOOP
-         IF ulmSYSTEM.UNIXCALL(Sys.open, d0, d1,
-                         SYS.ADR(filename), SYS.VAL(LONGINT, options), protection) THEN
-            fd := d0;
-            RETURN TRUE
+         IF    options * creat         # {} THEN error := Platform.New(filename, fd)
+         ELSIF options * (rdwr+wronly) # {} THEN error := Platform.OldRW(filename, fd)
+         ELSE error := Platform.OldRO(filename, fd) END;
+         IF error = 0 THEN RETURN TRUE
          ELSE
-            IF d0 = SysErrors.intr THEN
+            IF Platform.Interrupted(error) THEN
                interrupted := TRUE;
             END;
-            IF (d0 # SysErrors.intr) OR ~retry THEN
-               SysErrors.Raise(errors, d0, Sys.open, filename);
+            IF ~Platform.Interrupted(error) OR ~retry THEN
+               SysErrors.Raise(errors, error, Sys.open, filename);
                RETURN FALSE
             END;
          END;
@@ -119,21 +122,18 @@ MODULE ulmSysIO;
                    errors: RelatedEvents.Object;
                    retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
-         a0, a1 : LONGINT; (* just to match UNIXCALL interface *)
+         error: Platform.ErrorCode;
    BEGIN
       interrupted := FALSE;
-      a0 := 0; a1 := 0; (* Initialised to disable compiler warning. *)
       LOOP
-         IF ulmSYSTEM.UNIXCALL(Sys.close, d0, d1, fd, a0, a1) THEN
-         (*IF ulmSYSTEM.UNIXCALL(Sys.close, d0, d1, fd) THEN*)
-            RETURN TRUE
+         error := Platform.Close(fd);
+         IF error = 0 THEN RETURN TRUE
          ELSE
-            IF d0 = SysErrors.intr THEN
+            IF Platform.Interrupted(error) THEN
                interrupted := TRUE;
             END;
-            IF (d0 # SysErrors.intr) OR ~retry THEN
-               SysErrors.Raise(errors, d0, Sys.close, "");
+            IF ~Platform.Interrupted(error) OR ~retry THEN
+               SysErrors.Raise(errors, error, Sys.close, "");
                RETURN FALSE
             END;
          END;
@@ -148,18 +148,19 @@ MODULE ulmSysIO;
                          >0: number of bytes read
       *)
       VAR
-         d0, d1: LONGINT;
+         error:     Platform.ErrorCode;
+         bytesread: Count;
    BEGIN
       interrupted := FALSE;
       LOOP
-         IF ulmSYSTEM.UNIXCALL(Sys.read, d0, d1, fd, buf, cnt) THEN
-            RETURN d0
+         error := Platform.Read(fd, buf, cnt, bytesread);
+         IF error = 0 THEN RETURN bytesread
          ELSE
-            IF d0 = SysErrors.intr THEN
+            IF Platform.Interrupted(error) THEN
                interrupted := TRUE;
             END;
-            IF (d0 # SysErrors.intr) OR ~retry THEN
-               SysErrors.Raise(errors, d0, Sys.read, "");
+            IF ~Platform.Interrupted(error) OR ~retry THEN
+               SysErrors.Raise(errors, error, Sys.read, "");
                RETURN -1
             END;
          END;
@@ -173,18 +174,19 @@ MODULE ulmSysIO;
                            >=0: number of bytes written
       *)
       VAR
-         d0, d1: LONGINT;
+         error:        Platform.ErrorCode;
+         byteswritten: Count;
    BEGIN
       interrupted := FALSE;
       LOOP
-         IF ulmSYSTEM.UNIXCALL(Sys.write, d0, d1, fd, buf, cnt) THEN
-            RETURN d0
+         error := Platform.Write(fd, buf, cnt);
+         IF error = 0 THEN RETURN cnt (* todo: Upfate Platform.Write to return actual length written.  *)
          ELSE
-            IF d0 = SysErrors.intr THEN
+            IF Platform.Interrupted(error) THEN
                interrupted := TRUE;
             END;
-            IF (d0 # SysErrors.intr) OR ~retry THEN
-               SysErrors.Raise(errors, d0, Sys.write, "");
+            IF ~Platform.Interrupted(error) OR ~retry THEN
+               SysErrors.Raise(errors, error, Sys.write, "");
                RETURN -1
             END;
          END;
@@ -194,15 +196,22 @@ MODULE ulmSysIO;
    PROCEDURE Seek*(fd: File; offset: Count; whence: Whence;
                   errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
+         error: Platform.ErrorCode; relativity: INTEGER;
    BEGIN
-      IF ulmSYSTEM.UNIXCALL(Sys.lseek, d0, d1, fd, offset, whence) THEN
-         RETURN TRUE
+      CASE whence OF
+      |fromPos: relativity := Platform.SeekCur
+      |fromEnd: relativity := Platform.SeekEnd
+      ELSE      relativity := Platform.SeekSet
+      END;
+      error := Platform.Seek(fd, offset, relativity);
+      IF error = 0 THEN RETURN TRUE
       ELSE
-         SysErrors.Raise(errors, d0, Sys.lseek, "");
+         SysErrors.Raise(errors, error, Sys.lseek, "");
          RETURN FALSE
       END;
    END Seek;
+
+(*
 
    PROCEDURE Tell*(fd: File; VAR offset: Count;
                   errors: RelatedEvents.Object) : BOOLEAN;
@@ -229,7 +238,6 @@ MODULE ulmSysIO;
       (* following system call fails for non-tty's *)
       RETURN ulmSYSTEM.UNIXCALL(Sys.ioctl, d0, d1, fd, tcgeta, SYS.ADR(buf))
    END Isatty;
-
    PROCEDURE Fcntl*(fd: File; request: INTEGER; VAR arg: LONGINT;
                    errors: RelatedEvents.Object;
                    retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
@@ -343,5 +351,6 @@ MODULE ulmSysIO;
          RETURN FALSE
       END;
    END Pipe;
+*)
 
 END ulmSysIO.

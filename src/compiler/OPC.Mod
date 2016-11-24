@@ -7,7 +7,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   IMPORT OPT, OPM, Configuration, SYSTEM;
 
-
   CONST demoVersion = FALSE;
 
 
@@ -39,9 +38,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   VAR
     indentLevel: INTEGER;
-    ptrinit, mainprog, ansi: BOOLEAN;
     hashtab:     ARRAY 105 OF SHORTINT;
-    keytab:      ARRAY 36, 9 OF CHAR;
+    keytab:      ARRAY 50, 9 OF CHAR;
     GlbPtrs:     BOOLEAN;
     BodyNameExt: ARRAY 13 OF CHAR;
 
@@ -49,11 +47,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE Init*;
   BEGIN
     indentLevel := 0;
-    ptrinit := OPM.ptrinit IN OPM.opt;
-    (*mainprog := OPM.mainprog IN OPM.opt;*)
-    mainprog := OPM.mainProg OR OPM.mainLinkStat;
-    ansi := OPM.ansi IN OPM.opt;
-    IF ansi THEN BodyNameExt := "__init(void)" ELSE BodyNameExt := "__init()" END
+    BodyNameExt := "__init(void)"
   END Init;
 
   PROCEDURE Indent* (count: INTEGER);
@@ -116,6 +110,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       h := PerfectHash(obj^.name);
       IF hashtab[h] >= 0 THEN
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
+      END
+    ELSIF (mode = OPT.Typ) & (obj.typ.form IN {OPT.Int, OPT.Set}) THEN
+      IF obj.typ = OPT.adrtyp THEN OPM.WriteString("ADDRESS")
+      ELSE
+        IF obj.typ.form = OPT.Int THEN OPM.WriteString("INT") ELSE OPM.WriteString("UINT") END;
+        OPM.WriteInt(obj.typ.size*8)
       END
     ELSE
       IF (mode # OPT.Typ) OR (obj^.linkadr # PredefinedType) THEN
@@ -186,9 +186,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       ELSIF (form = OPT.ProcTyp) OR (comp IN {OPT.Array, OPT.DynArr}) THEN
         IF openClause THEN OPM.Write(')'); openClause := FALSE END ;
         IF form = OPT.ProcTyp THEN
-          IF ansi THEN OPM.Write(")"); AnsiParamList(typ^.link, FALSE)
-          ELSE OPM.WriteString(")()")
-          END ;
+          OPM.Write(")"); AnsiParamList(typ^.link, FALSE);
           EXIT
         ELSIF comp = OPT.Array THEN
           OPM.Write('['); OPM.WriteInt(typ^.n); OPM.Write(']')
@@ -370,9 +368,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR par: OPT.Object;
   BEGIN
     IF obj^.typ # OPT.notyp THEN DefineType(obj^.typ) END ;
-    IF ansi THEN par := obj^.link;
-      WHILE par # NIL DO DefineType(par^.typ); par := par^.link END
-    END
+    par := obj^.link; WHILE par # NIL DO DefineType(par^.typ); par := par^.link END
   END DefineTProcTypes;
 
   PROCEDURE DeclareTProcs(obj: OPT.Object; VAR empty: BOOLEAN);
@@ -425,11 +421,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         Str1(", #, ", obj^.adr DIV 10000H);
         IF obj^.typ = OPT.notyp THEN OPM.WriteString('void') ELSE Ident(obj^.typ^.strobj) END ;
         OPM.WriteString("(*)");
-        IF ansi THEN
-          AnsiParamList(obj^.link, FALSE);
-        ELSE
-          OPM.WriteString("()");
-        END ;
+        AnsiParamList(obj^.link, FALSE);
         OPM.WriteString(", ");
         DeclareParams(obj^.link, TRUE);
         OPM.Write(")"); OPM.WriteLn
@@ -486,11 +478,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END DefineType;
 
   PROCEDURE Prefixed(x: OPT.ConstExt;  y: ARRAY OF CHAR): BOOLEAN;
-    VAR i: INTEGER;  r: BOOLEAN;
+    VAR i: INTEGER;
   BEGIN i := 0;
-    WHILE x[i+1] = y[i] DO INC(i) END ;
-    r := y[i] = 0X;
-    RETURN r;
+    WHILE x[i+1] = y[i] DO INC(i) END;
+    RETURN y[i] = 0X;
   END Prefixed;
 
   PROCEDURE CProcDefs(obj: OPT.Object; vis: INTEGER);
@@ -549,7 +540,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF typ^.strobj # NIL THEN OPM.WriteStringVar(typ^.strobj^.name) END ;
     OPM.Write(DoubleQuote);
     Str1(', #), {', typ^.size);
-    nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.LIntSize);
+    nofptrs := 0; PutPtrOffsets(typ, 0, nofptrs); Str1("#}}", -(nofptrs + 1) * OPM.AddressSize);
     EndStat
   END TDescDecl;
 
@@ -563,56 +554,25 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF typ^.strobj # NIL THEN InitTProcs(typ^.strobj, typ^.link) END
   END InitTDesc;
 
-  PROCEDURE Align*(VAR adr: LONGINT; base: LONGINT);
-  BEGIN
-    CASE base OF
-    |  2: INC(adr,   adr  MOD 2)
-    |  4: INC(adr, (-adr) MOD 4)
-    |  8: INC(adr, (-adr) MOD 8)
-    | 16: INC(adr, (-adr) MOD 16)
-    ELSE (*1*) (*OPM.LogWStr("unhandled case at OPC.Align, base = "); OPM.LogWNum(base, 0); OPM.LogWLn;*)
-    END
-  END Align;
-
-  PROCEDURE SizeAlignment*(size: LONGINT): LONGINT;
-    VAR alignment: LONGINT;
-  BEGIN
-    IF size < OPM.Alignment THEN
-      (* Round up to next power of 2 *)
-      alignment := 1; WHILE alignment < size DO alignment := alignment * 2 END;
-    ELSE
-      alignment := OPM.Alignment
-    END;
-    RETURN alignment
-  END SizeAlignment;
-
-  PROCEDURE BaseAlignment*(typ: OPT.Struct): LONGINT;
-    VAR alignment: LONGINT;
-  BEGIN
-    IF typ.form = OPT.Comp THEN
-      IF typ.comp = OPT.Record THEN
-        alignment := typ.align MOD 10000H
-      ELSE
-        alignment := BaseAlignment(typ.BaseTyp)
-      END
-    ELSE
-      alignment := SizeAlignment(typ.size)
-    END;
-    RETURN alignment
-  END BaseAlignment;
-
-
   PROCEDURE FillGap(gap, off, align: LONGINT; VAR n, curAlign: LONGINT);
+  (* gap:      Required gap - already calculated based on alignment requirements
+     off:      Current offset - where gap begins
+     align:    Containing record type alignment
+     n:        Next ordinal to use for private field names
+     curAlign: Largest alignment of any field so far
+  *)
     VAR adr: LONGINT;
   BEGIN
-    adr := off; Align(adr, align);
+    adr := off; OPT.Align(adr, align);
     IF (curAlign < align) & (gap - (adr - off) >= align) THEN (* preserve alignment of the enclosing struct! *)
       DEC(gap, (adr - off) + align);
       BegStat;
-      IF    align = OPM.IntSize   THEN OPM.WriteString("INTEGER")
-      ELSIF align = OPM.LIntSize  THEN OPM.WriteString("LONGINT")
-      ELSIF align = OPM.LRealSize THEN OPM.WriteString("LONGREAL")
-      END ;
+      CASE align OF
+      |2: OPM.WriteString("INT16")
+      |4: OPM.WriteString("INT32")
+      |8: OPM.WriteString("INT64")
+      ELSE OPM.LogWLn; OPM.LogWStr("Unexpected enclosing alignment in FillGap.")
+      END;
       Str1(" _prvt#", n); INC(n); EndStat;
       curAlign := align
     END ;
@@ -622,30 +582,44 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE FieldList (typ: OPT.Struct; last: BOOLEAN; VAR off, n, curAlign: LONGINT);
     VAR fld: OPT.Object; base: OPT.Struct; gap, adr, align, fldAlign: LONGINT;
   BEGIN
-    fld := typ.link; align := typ^.align MOD 10000H;
+    fld   := typ.link;
+    align := typ^.align MOD 10000H;
     IF typ.BaseTyp # NIL THEN FieldList(typ.BaseTyp, FALSE, off, n, curAlign)
     ELSE off := 0; n := 0; curAlign := 1
-    END ;
+    END;
+    (* off:      Current offset into record
+       align:    Overall (RECORD) alignment
+       curAlign: Current alignment - largest alignment of any field so far
+       n:        Next ordinal to use for private field names
+    *)
     WHILE (fld # NIL) & (fld.mode = OPT.Fld) DO
-      IF (OPM.currFile = OPM.HeaderFile) & (fld.vis = OPT.internal) OR
-        (OPM.currFile = OPM.BodyFile) & (fld.vis = OPT.internal) & (typ^.mno # 0) THEN
+      IF (OPM.currFile = OPM.HeaderFile) & (fld.vis = OPT.internal)
+      OR (OPM.currFile = OPM.BodyFile)   & (fld.vis = OPT.internal) & (typ^.mno # 0) THEN
+        (* Skip private fields *)
         fld := fld.link;
-        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.vis = OPT.internal) DO fld := fld.link END ;
+        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.vis = OPT.internal) DO fld := fld.link END;
       ELSE
         (* mimic OPV.TypSize to detect gaps caused by private fields *)
-        adr := off; fldAlign := BaseAlignment(fld^.typ); Align(adr, fldAlign);
+        adr := off;
+        fldAlign := OPT.BaseAlignment(fld^.typ);
+        OPT.Align(adr, fldAlign);
         gap := fld.adr - adr;
-        IF fldAlign > curAlign THEN curAlign := fldAlign END ;
-        IF gap > 0 THEN FillGap(gap, off, align, n, curAlign) END ;
+        IF fldAlign > curAlign THEN curAlign := fldAlign END;
+        IF gap > 0 THEN
+          FillGap(gap, off, align, n, curAlign)
+        END;
         BegStat; DeclareBase(fld); OPM.Write(' '); DeclareObj(fld, FALSE);
         off := fld.adr + fld.typ.size; base := fld.typ; fld := fld.link;
-        WHILE (fld # NIL) & (fld.mode = OPT.Fld) & (fld.typ = base) & (fld.adr = off)
+        WHILE (fld # NIL)
+            & (fld.mode = OPT.Fld)
+            & (fld.typ  = base)
+            & (fld.adr  = off)
 (* ?? *)    & ((OPM.currFile = OPM.BodyFile) OR (fld.vis # OPT.internal) OR (fld.typ.strobj = NIL)) DO
           OPM.WriteString(", "); DeclareObj(fld, FALSE); off := fld.adr + fld.typ.size; fld := fld.link
-        END ;
+        END;
         EndStat
       END
-    END ;
+    END;
     IF last THEN
       adr := typ.size - typ^.sysflag DIV 100H;
       IF adr = 0 THEN gap := 1 (* avoid empty struct *) ELSE gap := adr - off END ;
@@ -685,9 +659,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString("LONGINT "); LenList(obj, FALSE, TRUE)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           EndStat; BegStat;
-          OPM.WriteString("LONGINT *"); Ident(obj); OPM.WriteString(TagExt);
+          OPM.WriteString("ADDRESS *"); Ident(obj); OPM.WriteString(TagExt);
           base := NIL
-        ELSIF ptrinit & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
+        ELSIF (OPM.ptrinit IN OPM.Options) & (vis = 0) & (obj^.mnolev > 0) & (obj^.typ^.form = OPT.Pointer) THEN
           OPM.WriteString(" = NIL")
         END
       END ;
@@ -713,7 +687,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString(", LONGINT ");
           LenList(obj, TRUE, showParamNames)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
-          OPM.WriteString(", LONGINT *");
+          OPM.WriteString(", ADDRESS *");
           IF showParamNames THEN Ident(obj); OPM.WriteString(TagExt) END
         END ;
         IF (obj^.link = NIL) OR (obj^.link.mode = OPT.TProc) THEN EXIT END ;
@@ -728,16 +702,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF proc^.typ = OPT.notyp THEN OPM.WriteString('void') ELSE Ident(proc^.typ^.strobj) END ;
     OPM.Write(' '); Ident(proc); OPM.Write(' ');
-    IF ansi THEN
-      AnsiParamList(proc^.link, TRUE);
-      IF ~define THEN OPM.Write(";") END ;
-      OPM.WriteLn;
-    ELSIF define THEN
-      DeclareParams(proc^.link, FALSE);
-      OPM.WriteLn;
-      Indent(1); IdentList(proc^.link, 2(* map REAL to double *)); Indent(-1)
-    ELSE OPM.WriteString("();"); OPM.WriteLn
-    END
+    AnsiParamList(proc^.link, TRUE);
+    IF ~define THEN OPM.Write(";") END ;
+    OPM.WriteLn
   END ProcHeader;
 
   PROCEDURE ProcPredefs (obj: OPT.Object; vis: SHORTINT); (* forward declaration of procedures *)
@@ -784,7 +751,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         ELSIF (typ^.strobj # NIL) & (typ^.strobj^.mnolev > 0) THEN OPM.WriteString('static ')
         ELSE OPM.WriteString(Export)
         END ;
-        OPM.WriteString("LONGINT *"); Andent(typ); OPM.WriteString(DynTypExt);
+        OPM.WriteString("ADDRESS *"); Andent(typ); OPM.WriteString(DynTypExt);
         EndStat
       END ;
       n := n^.link
@@ -804,7 +771,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteStringVar(OPM.modName); OPM.WriteString(BodyNameExt);
     EndStat; OPM.WriteLn;
     CProcDefs(OPT.topScope^.right, 1); OPM.WriteLn;
-    OPM.WriteString("#endif"); OPM.WriteLn
+    OPM.WriteString("#endif // "); OPM.WriteStringVar(OPM.modName); OPM.WriteLn
   END GenHdr;
 
   PROCEDURE GenHeaderMsg;
@@ -813,14 +780,13 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString("/* "); OPM.WriteString(Configuration.name);
     OPM.Write(" "); OPM.WriteString(Configuration.versionLong); OPM.Write (" "); (* noch *)
     FOR i := 0 TO MAX(SET) DO
-      IF i IN OPM.glbopt THEN
+      IF i IN OPM.Options THEN
         CASE i OF  (* c.f. ScanOptions in OPM *)
         | OPM.inxchk:         OPM.Write("x")
         | OPM.ranchk:         OPM.Write("r")
         | OPM.typchk:         OPM.Write("t")
         | OPM.newsf:          OPM.Write("s")
         | OPM.ptrinit:        OPM.Write("p")
-        | OPM.ansi:           OPM.Write("k")
         | OPM.assert:         OPM.Write("a")
         | OPM.extsf:          OPM.Write("e")
         | OPM.mainprog:       OPM.Write("m")
@@ -845,7 +811,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString("#ifndef "); OPM.WriteStringVar(OPM.modName); OPM.WriteString(FlagExt); OPM.WriteLn;
     OPM.WriteString("#define "); OPM.WriteStringVar(OPM.modName); OPM.WriteString(FlagExt); OPM.WriteLn;
     OPM.WriteLn;
-    IF OPM.LIntSize = 8 THEN OPM.WriteString("#define LARGE"); OPM.WriteLn END;
+
     Include(BasicIncludeFile);
     IncludeImports(OPT.topScope^.right, 1); OPM.WriteLn
   END GenHdrIncludes;
@@ -854,7 +820,15 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     OPM.currFile := OPM.BodyFile;
     GenHeaderMsg;
-    IF OPM.LIntSize = 8 THEN OPM.WriteString("#define LARGE"); OPM.WriteLn END;
+    OPM.WriteLn;
+
+    (* Define model dependent type sizes *)
+    OPM.WriteString("#define SHORTINT INT");  OPM.WriteInt(OPT.sinttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define INTEGER  INT");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
+    OPM.WriteString("#define LONGINT  INT");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
+    OPM.WriteString("#define SET      UINT"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
+    OPM.WriteLn;
+
     Include(BasicIncludeFile);
     IncludeImports(OPT.topScope^.right, 0); OPM.WriteLn;
     DefAnonRecs(n);
@@ -899,14 +873,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       typ := var^.typ;
       IF NofPtrs(typ) > 0 THEN
         IF ~GlbPtrs THEN GlbPtrs := TRUE;
-          OPM.WriteString('static ');
-          IF ansi THEN
-            OPM.WriteString("void EnumPtrs(void (*P)(void*))")
-          ELSE
-            OPM.WriteString("void EnumPtrs(P)"); OPM.WriteLn;
-            OPM.Write(Tab); OPM.WriteString("void (*P)();");
-          END ;
-          OPM.WriteLn;
+          OPM.WriteString("static void EnumPtrs(void (*P)(void*))"); OPM.WriteLn;
           BegBlk
         END ;
         BegStat;
@@ -937,27 +904,22 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE EnterBody*;
   BEGIN
     OPM.WriteLn; OPM.WriteString(Export);
-    IF mainprog THEN
-      IF ansi THEN
-        OPM.WriteString("int main(int argc, char **argv)"); OPM.WriteLn;
-      ELSE
-        OPM.WriteString("main(argc, argv)"); OPM.WriteLn;
-        OPM.Write(Tab); OPM.WriteString("int argc; char **argv;"); OPM.WriteLn
-      END
+    IF OPM.mainprog IN OPM.Options THEN
+      OPM.WriteString("int main(int argc, char **argv)"); OPM.WriteLn;
     ELSE
       OPM.WriteString("void *");
       OPM.WriteString(OPM.modName); OPM.WriteString(BodyNameExt); OPM.WriteLn;
     END ;
     BegBlk; BegStat;
-    IF mainprog THEN OPM.WriteString("__INIT(argc, argv)") ELSE OPM.WriteString("__DEFMOD") END ;
+    IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__INIT(argc, argv)") ELSE OPM.WriteString("__DEFMOD") END ;
     EndStat;
-    IF mainprog & demoVersion THEN BegStat;
+    IF (OPM.mainprog IN OPM.Options) & demoVersion THEN BegStat;
       OPM.WriteString('/*don`t do it!*/ printf("DEMO VERSION: DO NOT USE THIS PROGRAM FOR ANY COMMERCIAL PURPOSE\n")');
       EndStat
     END ;
     InitImports(OPT.topScope^.right);
     BegStat;
-    IF mainprog THEN OPM.WriteString('__REGMAIN("') ELSE OPM.WriteString('__REGMOD("') END ;
+    IF OPM.mainprog IN OPM.Options THEN OPM.WriteString('__REGMAIN("') ELSE OPM.WriteString('__REGMOD("') END ;
     OPM.WriteString(OPM.modName);
     IF GlbPtrs THEN OPM.WriteString('", EnumPtrs)') ELSE OPM.WriteString('", 0)') END ;
     EndStat;
@@ -967,7 +929,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE ExitBody*;
   BEGIN
     BegStat;
-    IF mainprog THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
+    IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
     OPM.WriteLn; EndBlk
   END ExitBody;
 
@@ -988,27 +950,24 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteLn;
   END DefineInter;
 
+  PROCEDURE NeedsRetval*(proc: OPT.Object): BOOLEAN; (* aux. variable __retval needed for return *)
+  BEGIN (* simple rule; ignores DUPlicated value arrays because they use alloca. *)
+    RETURN (proc^.typ # OPT.notyp) & ~proc^.scope^.leaf
+  END NeedsRetval;
+
   PROCEDURE EnterProc* (proc: OPT.Object);
     VAR var, scope: OPT.Object; typ: OPT.Struct; dim: INTEGER;
   BEGIN
     IF proc^.vis # OPT.external THEN OPM.WriteString('static ') END ;
     ProcHeader(proc, TRUE);
     BegBlk;
-
-    (* If there will be a result, provide a result variable. *)
-    IF proc^.typ # OPT.notyp THEN
-      BegStat;
-          Ident(proc^.typ^.strobj);
-          OPM.WriteString(" _o_result;");
-          OPM.WriteLn;
-        END;
-
     scope := proc^.scope;
     IdentList(scope^.scope, 0);
     IF ~scope^.leaf THEN (* declare intermediate procedure scope record variable*)
       BegStat; OPM.WriteString('struct '); OPM.WriteStringVar (scope^.name);
       OPM.Write(' '); OPM.WriteString(LocalScope); EndStat
     END ;
+    IF NeedsRetval(proc) THEN BegStat; Ident(proc^.typ^.strobj); OPM.WriteString(" __retval"); EndStat END;
     var := proc^.link;
     WHILE var # NIL DO (* declare copy of fixed size value array parameters *)
       IF (var^.typ^.comp = OPT.Array) & (var^.mode = OPT.Var) THEN
@@ -1018,17 +977,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         EndStat
       END ;
       var := var^.link
-    END ;
-    IF ~ansi THEN
-      var := proc^.link;
-      WHILE var # NIL DO (* "unpromote" value real parameters *)
-        IF (var^.typ^.form = OPT.Real) & (var^.mode = OPT.Var) THEN
-          BegStat;
-          Ident(var^.typ^.strobj); OPM.Write(' '); Ident(var); OPM.WriteString(" = _"); Ident(var);
-          EndStat
-        END ;
-        var := var^.link
-      END
     END ;
     var := proc^.link;
     WHILE var # NIL DO (* copy value array parameters *)
@@ -1185,7 +1133,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END;
   END Cmp;
 
-  PROCEDURE CharacterLiteral(c: LONGINT);
+  PROCEDURE CharacterLiteral(c: SYSTEM.INT64);
   BEGIN
     IF (c < 32) OR (c > 126) THEN
       OPM.WriteString("0x"); OPM.WriteHex(c)
@@ -1225,16 +1173,14 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.Write(DoubleQuote)
   END StringLiteral;
 
-  PROCEDURE Case*(caseVal: LONGINT; form: INTEGER);
+  PROCEDURE Case*(caseVal: SYSTEM.INT64; form: INTEGER);
   VAR
     ch: CHAR;
   BEGIN
     OPM.WriteString('case ');
     CASE form OF
     | OPT.Char: CharacterLiteral(caseVal)
-    | OPT.SInt,
-      OPT.Int,
-      OPT.LInt: OPM.WriteInt(caseVal);
+    | OPT.Int:  OPM.WriteInt(caseVal);
     ELSE OPM.LogWStr("unhandled case in OPC.Case, form = "); OPM.LogWNum(form, 0); OPM.LogWLn;
     END;
     OPM.WriteString(': ');
@@ -1255,33 +1201,41 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Str1("__HALT(#)", n)
   END Halt;
 
-  PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: LONGINT);
+  PROCEDURE IntLiteral*(n: SYSTEM.INT64; size: LONGINT);
+  BEGIN
+    IF (size > OPM.CIntSize) & (n <= OPM.CIntMax) & (n > OPM.CIntMin) THEN
+      OPM.WriteString("((INT"); OPM.WriteInt(size*8); OPM.WriteString(")(");
+      OPM.WriteInt(n); OPM.WriteString("))")
+    ELSE
+      OPM.WriteInt(n)
+    END
+  END IntLiteral;
+
+  PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: SYSTEM.INT64);
   BEGIN
     IF array^.comp = OPT.DynArr THEN
       CompleteIdent(obj); OPM.WriteString(LenExt);
       IF dim # 0 THEN OPM.WriteInt(dim) END
     ELSE (* array *)
-      WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END ;
-      OPM.WriteString("((LONGINT)("); OPM.WriteInt(array^.n); OPM.WriteString("))");
+      WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END;
+      OPM.WriteInt(array.n)
     END
   END Len;
 
   PROCEDURE Constant* (con: OPT.Const; form: INTEGER);
-    VAR i: INTEGER; s: SET;
-      hex: LONGINT; skipLeading: BOOLEAN;
+    VAR i: INTEGER; s: SYSTEM.SET64;
+      hex: SYSTEM.INT64; skipLeading: BOOLEAN;
   BEGIN
     CASE form OF
     | OPT.Byte:   OPM.WriteInt(con^.intval)
     | OPT.Bool:   OPM.WriteInt(con^.intval)
     | OPT.Char:   CharacterLiteral(con.intval)
-    | OPT.SInt,
-      OPT.Int,
-      OPT.LInt:   OPM.WriteInt(con^.intval)
+    | OPT.Int:    OPM.WriteInt(con^.intval)
     | OPT.Real:   OPM.WriteReal(con^.realval, "f")
     | OPT.LReal:  OPM.WriteReal(con^.realval, 0X)
     | OPT.Set:    OPM.WriteString("0x");
                   skipLeading := TRUE;
-                  s := con^.setval; i := MAX(SET) + 1;
+                  s := con^.setval; i := MAX(SYSTEM.SET64) + 1;
                   REPEAT
                     hex := 0;
                     REPEAT
@@ -1310,7 +1264,17 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END Enter;
 
   BEGIN n := 0;
-    FOR i := 0 TO 104 DO hashtab[i] := -1 END ;
+    FOR i := 0 TO LEN(hashtab)-1 DO hashtab[i] := -1 END ;
+    Enter("ADDRESS");  (* pseudo keyword used by voc *)
+    Enter("INT16");    (* pseudo keyword used by voc *)
+    Enter("INT32");    (* pseudo keyword used by voc *)
+    Enter("INT64");    (* pseudo keyword used by voc *)
+    Enter("INT8");     (* pseudo keyword used by voc *)
+    Enter("UINT16");   (* pseudo keyword used by voc *)
+    Enter("UINT32");   (* pseudo keyword used by voc *)
+    Enter("UINT64");   (* pseudo keyword used by voc *)
+    Enter("UINT8");    (* pseudo keyword used by voc *)
+
     Enter("asm");
     Enter("auto");
     Enter("break");
@@ -1324,13 +1288,13 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("else");
     Enter("enum");
     Enter("extern");
-    Enter("export");  (* pseudo keyword used by voc *)
+    Enter("export");   (* pseudo keyword used by voc *)
     Enter("float");
     Enter("for");
     Enter("fortran");
     Enter("goto");
     Enter("if");
-    Enter("import");  (* pseudo keyword used by voc *)
+    Enter("import");   (* pseudo keyword used by voc *)
     Enter("int");
     Enter("long");
     Enter("register");
@@ -1338,6 +1302,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("short");
     Enter("signed");
     Enter("sizeof");
+    Enter("size_t");
     Enter("static");
     Enter("struct");
     Enter("switch");

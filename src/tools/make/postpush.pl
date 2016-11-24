@@ -1,10 +1,8 @@
 #!/usr/bin/perl -w
 
-
 use strict;
 use warnings;
 use POSIX "strftime";
-
 
 use CGI qw(:standard escapeHTML);
 use JSON;
@@ -17,6 +15,7 @@ sub writelog {
   flock(LOG, 2)                    or die "Could not lock postpush.log";
   print LOG sprintf("%s %s\n", strftime("%Y/%m/%d %H.%M.%S", localtime), $msg);
   close(LOG);
+  system "id >> /tmp/postpush.log";
 }
 
 my $postdata = from_json(param('POSTDATA'));
@@ -43,7 +42,7 @@ if ($buildneeded) {
   } else {
     close(STDIN); close(STDOUT); close(STDERR);  # child process
     system 'echo Syncing voc>postpush.log';
-    system '(cd voc; git pull; git checkout -f ' . $branch . '; git pull; git checkout -f) >>postpush.log';
+    system '(cd voc; git reset --hard; git clean -dfx; git pull; git checkout -f ' . $branch . '; git pull; git checkout -f) >>postpush.log';
     exec 'perl voc/src/tools/make/buildall.pl ' . $branch . ' >/tmp/buildall.log';
     exit;
   }

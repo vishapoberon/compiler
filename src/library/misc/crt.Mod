@@ -1,7 +1,6 @@
 MODULE crt;
 
-IMPORT vt100, Platform, Console,
-   Strings; (* strings to remove later ? *)
+IMPORT VT100, Platform, Out, Strings;
 
 CONST
 
@@ -30,27 +29,27 @@ CONST
 
    PROCEDURE EraseDisplay*;
    BEGIN
-      vt100.ED(2);
+      VT100.ED(2);
    END EraseDisplay;
 
    PROCEDURE ClrScr*;
    BEGIN
-      vt100.ED(2);
+      VT100.ED(2);
    END ClrScr;
 
    PROCEDURE ClrEol*;
    BEGIN
-      vt100.EL(0);
+      VT100.EL(0);
    END ClrEol;
 
    PROCEDURE cursoroff*;
    BEGIN
-      vt100.DECTCEMl;
+      VT100.DECTCEMl;
    END cursoroff;
 
    PROCEDURE cursoron*;
    BEGIN
-      vt100.DECTCEMh;
+      VT100.DECTCEMh;
    END cursoron;
 
    PROCEDURE Delay*(ms: INTEGER);
@@ -58,116 +57,116 @@ CONST
 
    PROCEDURE GotoXY* (x, y: INTEGER);
    BEGIN
-      vt100.CUP (y, x);
+      VT100.CUP (y, x);
    END GotoXY;
 
    PROCEDURE HighVideo*;
    VAR tmpstr: ARRAY 5 OF CHAR;
    BEGIN
-      COPY (vt100.CSI, tmpstr);
-      Strings.Append(vt100.Bold, tmpstr);
-      Console.String(tmpstr);
+      COPY (VT100.CSI, tmpstr);
+      Strings.Append(VT100.Bold, tmpstr);
+      Out.String(tmpstr);
    END HighVideo;
-   
+
    PROCEDURE DelLine*;
    BEGIN
-      vt100.EL(2);
+      VT100.EL(2);
    END DelLine;
 
    PROCEDURE InsLine*;
    BEGIN
-      vt100.SCP;
-      Console.Ln;
-      vt100.RCP;
+      VT100.SCP;
+      Out.Ln;
+      VT100.RCP;
    END InsLine;
 
    PROCEDURE LowVideo*;
    VAR tmpstr : ARRAY 7 OF CHAR;
    BEGIN
-      COPY (vt100.CSI, tmpstr);
-      Strings.Append(vt100.ResetBold, tmpstr);
-      Console.String(tmpstr);
+      COPY (VT100.CSI, tmpstr);
+      Strings.Append(VT100.ResetBold, tmpstr);
+      Out.String(tmpstr);
    END LowVideo;
 
    PROCEDURE NormVideo*;
    VAR tmpstr : ARRAY 7 OF CHAR;
    BEGIN
-      COPY(vt100.CSI, tmpstr);
-      Strings.Append(vt100.ResetAll, tmpstr);
-      Console.String(tmpstr);
+      COPY(VT100.CSI, tmpstr);
+      Strings.Append(VT100.ResetAll, tmpstr);
+      Out.String(tmpstr);
    END NormVideo;
 
    PROCEDURE TextBackground*(color : SHORTINT);
    BEGIN
       IF    color = Black THEN
-         vt100.SetAttr(vt100.BBlack)
+         VT100.SetAttr(VT100.BBlack)
       ELSIF color = Blue  THEN
-         vt100.SetAttr(vt100.BBlue)
+         VT100.SetAttr(VT100.BBlue)
       ELSIF color = Green THEN
-         vt100.SetAttr(vt100.BGreen)
+         VT100.SetAttr(VT100.BGreen)
       ELSIF color = Cyan  THEN
-         vt100.SetAttr(vt100.BCyan)
+         VT100.SetAttr(VT100.BCyan)
       ELSIF color = Red   THEN
-         vt100.SetAttr(vt100.BRed)
+         VT100.SetAttr(VT100.BRed)
       ELSIF color = Magenta THEN
-         vt100.SetAttr(vt100.BMagenta)
+         VT100.SetAttr(VT100.BMagenta)
       ELSIF color = Brown   THEN
-         vt100.SetAttr(vt100.BYellow)
+         VT100.SetAttr(VT100.BYellow)
       ELSIF color = LightGray  THEN
-         vt100.SetAttr(vt100.BLightGray)
+         VT100.SetAttr(VT100.BLightGray)
       ELSIF color = DarkGray   THEN
-         vt100.SetAttr(vt100.BDarkGray)
+         VT100.SetAttr(VT100.BDarkGray)
       ELSIF color = LightBlue  THEN
-         vt100.SetAttr(vt100.BLightBlue)
+         VT100.SetAttr(VT100.BLightBlue)
       ELSIF color = LightGreen THEN
-         vt100.SetAttr(vt100.BLightBlue)
+         VT100.SetAttr(VT100.BLightBlue)
       ELSIF color = LightCyan  THEN
-         vt100.SetAttr(vt100.BLightCyan)
+         VT100.SetAttr(VT100.BLightCyan)
       ELSIF color = LightRed THEN
-         vt100.SetAttr(vt100.BLightRed)
+         VT100.SetAttr(VT100.BLightRed)
       ELSIF color = LightMagenta THEN
-         vt100.SetAttr(vt100.BLightMagenta)
+         VT100.SetAttr(VT100.BLightMagenta)
       ELSIF color = Yellow THEN
-         vt100.SetAttr(vt100.BLightYellow)
+         VT100.SetAttr(VT100.BLightYellow)
       ELSIF color = White THEN
-         vt100.SetAttr(vt100.BWhite)
+         VT100.SetAttr(VT100.BWhite)
       END;
    END TextBackground;
 
    PROCEDURE TextColor*(color : SHORTINT);
    BEGIN
       IF    color = Black THEN
-         vt100.SetAttr(vt100.Black)
+         VT100.SetAttr(VT100.Black)
       ELSIF color = Blue  THEN
-         vt100.SetAttr(vt100.Blue)
+         VT100.SetAttr(VT100.Blue)
       ELSIF color = Green THEN
-         vt100.SetAttr(vt100.Green)
+         VT100.SetAttr(VT100.Green)
       ELSIF color = Cyan  THEN
-         vt100.SetAttr(vt100.Cyan)
+         VT100.SetAttr(VT100.Cyan)
       ELSIF color = Red   THEN
-         vt100.SetAttr(vt100.Red)
+         VT100.SetAttr(VT100.Red)
       ELSIF color = Magenta THEN
-         vt100.SetAttr(vt100.Magenta)
+         VT100.SetAttr(VT100.Magenta)
       ELSIF color = Brown   THEN
-         vt100.SetAttr(vt100.Yellow)
+         VT100.SetAttr(VT100.Yellow)
       ELSIF color = LightGray  THEN
-         vt100.SetAttr(vt100.LightGray)
+         VT100.SetAttr(VT100.LightGray)
       ELSIF color = DarkGray   THEN
-         vt100.SetAttr(vt100.DarkGray)
+         VT100.SetAttr(VT100.DarkGray)
       ELSIF color = LightBlue  THEN
-         vt100.SetAttr(vt100.LightBlue)
+         VT100.SetAttr(VT100.LightBlue)
       ELSIF color = LightGreen THEN
-         vt100.SetAttr(vt100.LightBlue)
+         VT100.SetAttr(VT100.LightBlue)
       ELSIF color = LightCyan  THEN
-         vt100.SetAttr(vt100.LightCyan)
+         VT100.SetAttr(VT100.LightCyan)
       ELSIF color = LightRed THEN
-         vt100.SetAttr(vt100.LightRed)
+         VT100.SetAttr(VT100.LightRed)
       ELSIF color = LightMagenta THEN
-         vt100.SetAttr(vt100.LightMagenta)
+         VT100.SetAttr(VT100.LightMagenta)
       ELSIF color = Yellow THEN
-         vt100.SetAttr(vt100.LightYellow)
+         VT100.SetAttr(VT100.LightYellow)
       ELSIF color = White THEN
-         vt100.SetAttr(vt100.White)
+         VT100.SetAttr(VT100.White)
       END;
    END TextColor;
 

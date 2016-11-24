@@ -3,8 +3,7 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 
 MODULE ethZlibBuffers;  (** Stefan Walthert  **)
 
-IMPORT
-  SYSTEM;
+IMPORT SYSTEM;
     (*
       should be portable even if SYSTEM is imported:
       - PUT and GET only with byte sized operands
@@ -13,13 +12,14 @@ IMPORT
 
 TYPE
   (** input/output buffer **)
-  Address = LONGINT;
+  Address = SYSTEM.ADDRESS;
   Buffer* = RECORD
-    avail-: LONGINT;  (** number of bytes that can be produced/consumed **)
-    size-: LONGINT;  (** total number of bytes in buffer memory **)
-    totalOut-, totalIn-: LONGINT;  (** total number of bytes produced/consumed **)
-    next: Address;  (* address of next byte to produce/consume **)
-    adr: Address;  (* buffer memory *)
+    avail-:    LONGINT;  (** number of bytes that can be produced/consumed **)
+    size-:     LONGINT;  (** total number of bytes in buffer memory **)
+    totalOut-: LONGINT;  (** total number of bytes produced **)
+    totalIn-:  LONGINT;  (** total number of bytes consumed **)
+    next:      Address;  (*  address of next byte to produce/consume **)
+    adr:       Address;  (*  buffer memory *)
   END;
 
 
@@ -50,9 +50,9 @@ PROCEDURE ReadBytes* (VAR buf: Buffer; VAR dst: ARRAY OF CHAR; offset, len: LONG
 BEGIN
   ASSERT((0 <= offset) & (0 < len) & (offset + len <= LEN(dst)) & (len <= buf.avail), 100);
   SYSTEM.MOVE(buf.next, SYSTEM.ADR(dst[offset]), len);
-   INC(buf.next, len); DEC(buf.avail, len); INC(buf.totalIn, len)
+  INC(buf.next, len); DEC(buf.avail, len); INC(buf.totalIn, len)
 END ReadBytes;
-  
+
 (** write byte into (output) buffer **)
 PROCEDURE Write* (VAR buf: Buffer; ch: CHAR);
 BEGIN
@@ -89,7 +89,7 @@ PROCEDURE Rewrite* (VAR buf: Buffer);
 BEGIN
   buf.next := buf.adr; buf.avail := buf.size
 END Rewrite;
-  
+
 (** fill input buffer with new bytes to consume **)
 PROCEDURE Fill* (VAR buf: Buffer; VAR src: ARRAY OF CHAR; offset, size: LONGINT);
 BEGIN

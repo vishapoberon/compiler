@@ -11,14 +11,13 @@
 #define O_VER 1.95    // Version number to be reported by compiler.
 #define O_NAME voc    // Compiler name used for binary, install dir and references in text.
 
-// #define LARGE     // Define this to get 32 bit INTEGER and 64 bit longints even on 32 bit platforms.
-
 
 #include "SYSTEM.h"
 
 
 #ifdef _WIN32
   #define strncasecmp _strnicmp
+  char* getcwd(char* buf, size_t size);
 #else
   #include <sys/types.h>
   #include <sys/stat.h>
@@ -53,6 +52,7 @@ char *version   = macrotostring(O_VER);
 char *objext    = ".o";
 char *objflag   = " -o ";
 char *linkflags = " -L\"";
+char *libext    = "";
 char *oname     = NULL;  // From O_NAME env var if present, or O_NAME macro otherwise.
 
 
@@ -68,6 +68,7 @@ int   addressSize = 0;
 int   intsize     = 0;
 int   bsd         = 0;
 int   termux      = 0;
+int   bootstrap   = 0;    // 1 iff generating a bootstrap compiler.
 
 
 
@@ -124,26 +125,27 @@ void determineOS() {
   #endif
 }
 
+#define optimize "" // " -O1"
 
 void determineCCompiler() {
   snprintf(libspec, sizeof(libspec), " -l %s", oname);
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
-      cc = "i686-w64-mingw32-gcc -g";
+      cc = "i686-w64-mingw32-gcc -g" optimize;
     } else {
-      cc = "x86_64-w64-mingw32-gcc -g";
+      cc = "x86_64-w64-mingw32-gcc -g" optimize;
     }
   #elif defined(__clang__)
     compiler = "clang";
-    cc       = "clang -fPIC -g";
+    cc       = "clang -fPIC -g" optimize;
   #elif defined(__GNUC__)
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g";
+      cc = "gcc -g" optimize;
     } else {
-      cc = "gcc -fPIC -g";
+      cc = "gcc -fPIC -g" optimize;
     }
   #elif defined(_MSC_VER)
     compiler  = "MSC";
@@ -151,7 +153,8 @@ void determineCCompiler() {
     objext    = ".obj";
     objflag   = " -Fe";
     linkflags = " -link -libpath:\"";
-    snprintf(libspec, sizeof(libspec), " lib%s.lib", oname);
+    snprintf(libspec, sizeof(libspec), " lib%s", oname);
+    libext    = ".lib";
   #else
     fail("Unrecognised C compiler.");
   #endif
@@ -160,28 +163,32 @@ void determineCCompiler() {
 
 
 void determineInstallDirectory() {
-  char *env = getenv("INSTALLDIR");
-  if (env) {
-    strncpy(installdir, env, sizeof(installdir));
+  if (bootstrap) {
+    installdir[0] = 0;
   } else {
-    #if defined(_MSC_VER) || defined(__MINGW32__)
-      if (sizeof (void*) == 8) {
-        snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles"), oname);
-      } else {
-        snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles(x86)"), oname);
-      }
-      #if defined(__MINGW32__)
-        int i; for(i=0; installdir[i]; i++) if (installdir[i] == '\\') installdir[i] = '/';
+    char *env = getenv("INSTALLDIR");
+    if (env) {
+      strncpy(installdir, env, sizeof(installdir));
+    } else {
+      #if defined(_MSC_VER) || defined(__MINGW32__)
+        if (sizeof (void*) == 8) {
+          snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles"), oname);
+        } else {
+          snprintf(installdir, sizeof(installdir), "%s\\%s", getenv("ProgramFiles(x86)"), oname);
+        }
+        #if defined(__MINGW32__)
+          int i; for(i=0; installdir[i]; i++) if (installdir[i] == '\\') installdir[i] = '/';
+        #endif
+      #else
+        if (bsd) {
+          snprintf(installdir, sizeof(installdir), "/usr/local/share/%s", oname);
+        } else if (termux) {
+          snprintf(installdir, sizeof(installdir), "/data/data/com.termux/files/opt/%s", oname);
+        } else {
+          snprintf(installdir, sizeof(installdir), "/opt/%s", oname);
+        }
       #endif
-    #else
-      if (bsd) {
-        snprintf(installdir, sizeof(installdir), "/usr/local/share/%s", oname);
-      } else if (termux) {
-        snprintf(installdir, sizeof(installdir), "/data/data/com.termux/files/opt/%s", oname);
-      } else {
-        snprintf(installdir, sizeof(installdir), "/opt/%s", oname);
-      }
-    #endif
+    }
   }
 }
 
@@ -212,10 +219,10 @@ void determineBuildDate() {
 
 struct {char ch; CHAR      x;}    c;
 struct {char ch; BOOLEAN   x;}    b;
-struct {char ch; SHORTINT  x;}    si;
-struct {char ch; INTEGER   x;}    i;
-struct {char ch; LONGINT   x;}    li;
-struct {char ch; SET       x;}    s;
+//struct {char ch; SHORTINT  x;}    si;
+//struct {char ch; INTEGER   x;}    i;
+//struct {char ch; LONGINT   x;}    li;
+//struct {char ch; SET       x;}    s;
 struct {char ch; REAL      x;}    r;
 struct {char ch; LONGREAL  x;}    lr;
 struct {char ch; void*     x;}    p;
@@ -246,10 +253,10 @@ void ReportSizesAndAlignments() {
   printf("Type      Size   Align\n");
   printf("CHAR      %4zd    %4td\n", sizeof(CHAR),      (char*)&c.x  - (char*)&c);
   printf("BOOLEAN   %4zd    %4td\n", sizeof(BOOLEAN),   (char*)&b.x  - (char*)&b);
-  printf("SHORTINT  %4zd    %4td\n", sizeof(SHORTINT),  (char*)&si.x - (char*)&si);
-  printf("INTEGER   %4zd    %4td\n", sizeof(INTEGER),   (char*)&i.x  - (char*)&i);
-  printf("LONGINT   %4zd    %4td\n", sizeof(LONGINT),   (char*)&li.x - (char*)&li);
-  printf("SET       %4zd    %4td\n", sizeof(SET),       (char*)&s.x  - (char*)&s);
+//printf("SHORTINT  %4zd    %4td\n", sizeof(SHORTINT),  (char*)&si.x - (char*)&si);
+//printf("INTEGER   %4zd    %4td\n", sizeof(INTEGER),   (char*)&i.x  - (char*)&i);
+//printf("LONGINT   %4zd    %4td\n", sizeof(LONGINT),   (char*)&li.x - (char*)&li);
+//printf("SET       %4zd    %4td\n", sizeof(SET),       (char*)&s.x  - (char*)&s);
   printf("REAL      %4zd    %4td\n", sizeof(REAL),      (char*)&r.x  - (char*)&r);
   printf("LONGREAL  %4zd    %4td\n", sizeof(LONGREAL),  (char*)&lr.x - (char*)&lr);
   printf("void*     %4zd    %4td\n", sizeof(void*),     (char*)&p.x  - (char*)&p);
@@ -311,8 +318,14 @@ void testSystemDotH() {
 
   /* test the __SETRNG macro */
   long x = 0;
-  long y = sizeof(SET)*8 - 1;
-  assert(__SETRNG(x, y) == -1, "SETRNG(0, MAX(SET)) != -1.");
+  long y;
+  y=31; assert(__SETRNG(x, y, 32) == -1, "SETRNG(0, MAX(SET), 32) != -1.");
+  y=63; assert(__SETRNG(x, y, 64) == -1, "SETRNG(0, MAX(SET), 32) != -1.");
+//  long y = sizeof(SET)*8 - 1;
+//  if (sizeof(SET) == 4)
+//    assert(__SETRNG(x, y, 32) == -1, "SETRNG(0, MAX(SET)) != -1.");
+//  else
+//    assert(__SETRNG(x, y, 64) == -1, "SETRNG(0, MAX(SET)) != -1.");
 
   /* test string comparison for extended ascii */
   {char a[10], b[10];
@@ -326,12 +339,12 @@ void testSystemDotH() {
 
   assert(sizeof(CHAR)     == 1, "Size of CHAR not 1.");
   assert(sizeof(BOOLEAN)  == 1, "Size of BOOLEAN not 1.");
-  assert(sizeof(SHORTINT) == 1, "Size of SHORTINT not 1.");
-  assert(sizeof(INTEGER)  == 2
-      || sizeof(INTEGER)  == 4, "Size of INTEGER neither 2 nor 4 bytes.");
-  assert(sizeof(LONGINT)  == 4
-      || sizeof(LONGINT)  == 8, "Size of LONGINT neither 4 nor 8 bytes.");
-  assert(sizeof(SET) == sizeof(LONGINT), "Size of SET differs from size of LONGINT.");
+//assert(sizeof(SHORTINT) == 1, "Size of SHORTINT not 1.");
+//assert(sizeof(INTEGER)  == 2
+//    || sizeof(INTEGER)  == 4, "Size of INTEGER neither 2 nor 4 bytes.");
+//assert(sizeof(LONGINT)  == 4
+//    || sizeof(LONGINT)  == 8, "Size of LONGINT neither 4 nor 8 bytes.");
+//assert(sizeof(SET) == sizeof(LONGINT), "Size of SET differs from size of LONGINT.");
   assert(sizeof(REAL)     == 4, "Size of REAL not 4 bytes.");
   assert(sizeof(LONGREAL) == 8, "Size of LONGREAL not 8 bytes.");
   assert(sizeof(f.x) == sizeof(p.x), "Size of function pointer differs from size of data pointer.");
@@ -340,19 +353,20 @@ void testSystemDotH() {
 
   assert(((char*)&c.x  - (char*)&c)  == 1, "Alignment of CHAR not 1.");
   assert(((char*)&b.x  - (char*)&b)  == 1, "Alignment of BOOLEAN not 1.");
-  assert(((char*)&si.x - (char*)&si) == 1, "Alignment of SHORTINT not 1.");
-  //assert(((char*)&i.x  - (char*)&i)  == 4, "Alignment of INTEGER not 4 bytes.");
+//assert(((char*)&si.x - (char*)&si) == 1, "Alignment of SHORTINT not 1.");
+//assert(((char*)&i.x  - (char*)&i)  == 4, "Alignment of INTEGER not 4 bytes.");
   assert(((char*)&r.x  - (char*)&r)  == 4, "Alignment of REAL not 4 bytes.");
   assert(((char*)&lr.x - (char*)&lr) >= 4, "Alignment of LONGREAL less than 4 bytes.");
-  assert(((char*)&s.x  - (char*)&s)  == MIN(alignment, sizeof(SET)), "Alignment of SET differs from alignmnet of LONGINT.");
+//assert(((char*)&s.x  - (char*)&s)  == MIN(alignment, sizeof(SET)), "Alignment of SET differs from alignmnet of LONGINT.");
   assert(((char*)&p.x  - (char*)&p)  == addressSize, "Alignment of data pointer differs from address size.");
   assert(((char*)&f.x  - (char*)&f)  == addressSize, "Alignment of data pointer differs from address size.");
+  assert(((char*)&lr.x - (char*)&lr) == ((char*)&ll.x - (char*)&ll), "Alignment of LONGREAL differs from alignment of long long.");
 
   assert(sizeof(rec0) ==  1, "CHAR wrapped in record aligns differently to CHAR alone.");
   assert(sizeof(rec2) == 65, "CHAR array wrapped in record aligns differently to CHAR array alone.");
 
-  assert(sizeof(LONGINT) >= sizeof(p.x), "LONGINT should have at least the same size as data pointers.");
-  assert(sizeof(LONGINT) >= sizeof(f.x), "LONGINT should have at least the same size as function pointers.");
+//assert(sizeof(LONGINT) >= sizeof(p.x), "LONGINT should have at least the same size as data pointers.");
+//assert(sizeof(LONGINT) >= sizeof(f.x), "LONGINT should have at least the same size as function pointers.");
 
   if (((sizeof(rec2)==65) == (sizeof(rec0)==1)) && ((sizeof(rec2)-64) != sizeof(rec0)))
     printf("error: unsupported record layout  sizeof(rec0) = %lu  sizeof(rec2) = %lu\n", (long)sizeof(rec0), (long)sizeof(rec2));
@@ -373,7 +387,6 @@ void writeMakeParameters() {
   fprintf(fd, "VERSION=%s\n",    version);
   fprintf(fd, "ONAME=%s\n",      oname);
   fprintf(fd, "DATAMODEL=%s\n",  dataModel);
-  fprintf(fd, "INTSIZE=%d\n",    intsize);
   fprintf(fd, "ADRSIZE=%d\n",    addressSize);
   fprintf(fd, "ALIGNMENT=%d\n",  alignment);
   fprintf(fd, "INSTALLDIR=%s\n", installdir);
@@ -395,15 +408,12 @@ void writeConfigurationMod() {
   fprintf(fd, "MODULE Configuration;\n");
   fprintf(fd, "CONST\n");
   fprintf(fd, "  name*        = '%s';\n", oname);
-  fprintf(fd, "  intsize*     = %d;\n",   intsize);
-  fprintf(fd, "  addressSize* = %d;\n",   addressSize);
-  fprintf(fd, "  alignment*   = %d;\n",   alignment);
   fprintf(fd, "  objext*      = '%s';\n", objext);
   fprintf(fd, "  objflag*     = '%s';\n", objflag);
   fprintf(fd, "  linkflags*   = '%s';\n", linkflags);
   fprintf(fd, "  libspec*     = '%s';\n", libspec);
+  fprintf(fd, "  libext*      = '%s';\n", libext);
   fprintf(fd, "  compile*     = '%s';\n", cc);
-  fprintf(fd, "  dataModel*   = '%s';\n", dataModel);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
   fprintf(fd, "VAR\n");
@@ -420,11 +430,21 @@ void writeConfigurationMod() {
 
 int main(int argc, char *argv[])
 {
+  // Make sure SYSTEM.h has set up our core data types correctly.
+  assert(sizeof(INT8)  == 1, "sizeof(INT8) is not 1.");
+  assert(sizeof(INT16) == 2, "sizeof(INT16) is not 2.");
+  assert(sizeof(INT32) == 4, "sizeof(INT32) is not 4.");
+  assert(sizeof(INT64) == 8, "sizeof(INT64) is not 8.");
+
   oname = getenv("ONAME"); if (!oname) oname = macrotostring(O_NAME);
 
   if (argc>1) {
-    ReportSizesAndAlignments();
-    exit(0);
+    if (strncasecmp(argv[1], "rep", 3) == 0) {
+      ReportSizesAndAlignments();
+      exit(0);
+    } else {
+      bootstrap = 1;
+    }
   }
 
   getcwd(cwd, sizeof(cwd));
@@ -439,9 +459,15 @@ int main(int argc, char *argv[])
 
   testSystemDotH();
 
-  snprintf(versionstring, sizeof(versionstring),
-           "%s [%s] for %s %s on %s",
-           version, builddate, compiler, dataModel, os);
+  if (bootstrap) {
+    snprintf(versionstring, sizeof(versionstring),
+             "%s [%s]. Bootstrapping compiler for address size %d, alignment %d.",
+             version, builddate, addressSize, alignment);
+  } else {
+    snprintf(versionstring, sizeof(versionstring),
+             "%s [%s] for %s %s on %s",
+             version, builddate, compiler, dataModel, os);
+  }
 
   writeConfigurationMod();
   writeMakeParameters();

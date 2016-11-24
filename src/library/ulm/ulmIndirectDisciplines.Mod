@@ -43,23 +43,24 @@ MODULE ulmIndirectDisciplines;
    TYPE
       IndDiscipline = POINTER TO IndDisciplineRec;
       IndDisciplineRec =
-	 RECORD
-	    (DisciplineRec)
-	    forwardTo: Object;
-	 END;
+	      RECORD
+	         (DisciplineRec)
+	         forwardTo: Object;
+	      END;
+
    VAR
       discID: Identifier;
 
    PROCEDURE Forward*(from, to: Object);
       VAR
-	 disc: IndDiscipline;
+	      disc: IndDiscipline;
    BEGIN
       IF to = NIL THEN
-	 Disciplines.Remove(from, discID);
+	      Disciplines.Remove(from, discID);
       ELSE
-	 NEW(disc); disc.id := discID;
-	 disc.forwardTo := to;
-	 Disciplines.Add(from, disc);
+	      NEW(disc); disc.id := discID;
+	      disc.forwardTo := to;
+	      Disciplines.Add(from, disc);
       END;
    END Forward;
 
@@ -70,44 +71,43 @@ MODULE ulmIndirectDisciplines;
 
    PROCEDURE Add*(object: Object; discipline: Discipline);
       VAR
-	 disc: IndDiscipline;
+	      disc: Discipline;
    BEGIN
-      WHILE Disciplines.Seek(object, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) DO
-	 object := disc.forwardTo;
+      WHILE Disciplines.Seek(object, discID, disc) DO
+	      object := disc(IndDiscipline).forwardTo;
       END;
       Disciplines.Add(object, discipline);
    END Add;
 
    PROCEDURE Remove*(object: Object; id: Identifier);
       VAR
-	 dummy: Discipline;
-	 disc: IndDiscipline;
+	      dummy, disc: Discipline;
    BEGIN
       LOOP
-	 IF Disciplines.Seek(object, id, dummy) THEN
-	    Disciplines.Remove(object, id);
-	    EXIT
-	 END;
-	 IF ~Disciplines.Seek(object, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
-	    EXIT
-	 END;
-	 object := disc.forwardTo;
+	      IF Disciplines.Seek(object, id, dummy) THEN
+	         Disciplines.Remove(object, id);
+	         EXIT
+	      END;
+	      IF ~Disciplines.Seek(object, discID, disc) THEN
+	         EXIT
+	      END;
+	      object := disc(IndDiscipline).forwardTo;
       END;
    END Remove;
 
    PROCEDURE Seek*(object: Object; id: Identifier;
-		  VAR discipline: Discipline) : BOOLEAN;
+		             VAR discipline: Discipline) : BOOLEAN;
       VAR
-	 disc: IndDiscipline;
+	      disc: Discipline;
    BEGIN
       LOOP
-	 IF Disciplines.Seek(object, id, discipline) THEN
-	    RETURN TRUE
-	 END;
-	 IF ~Disciplines.Seek(object, discID, SYSTEM.VAL(Disciplines.Discipline, disc)) THEN
-	    RETURN FALSE
-	 END;
-	 object := disc.forwardTo;
+	      IF Disciplines.Seek(object, id, discipline) THEN
+	         RETURN TRUE
+	      END;
+	      IF ~Disciplines.Seek(object, discID, disc) THEN
+	         RETURN FALSE
+	      END;
+	      object := disc(IndDiscipline).forwardTo;
       END;
    END Seek;
 

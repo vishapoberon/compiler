@@ -49,24 +49,27 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
      RETURN oldflag;
   END TAS;
 
+(*
   PROCEDURE UNIXCALL*(syscall: LONGINT; VAR d0, d1: LONGINT; (* in ulm version both LONGINT and INTEGER are 4 byte size *)
-                     arg1, arg2, arg3: LONGINT) : BOOLEAN;  
+                     arg1, arg2, arg3: LONGINT) : BOOLEAN;
   VAR
       n:    LONGINT;
       ch:   CHAR;
       pch:  pchar;
-      pstr: pstring; 
+      pstr: pstring;
       h:    Platform.FileHandle;
       (* pst : pstatus; *)
   BEGIN
-  
+
   IF syscall = Sys.read THEN
-    RETURN Platform.Read(arg1, arg2, arg3, n) = 0;
+    d0 := Platform.Read(arg1, arg2, arg3, n);
+    IF d0 >= 0 THEN d0 := n END;
+    RETURN d0 >= 0;
     (*NEW(pch);
     pch := SYSTEM.VAL(pchar, arg2);
     ch := pch^[0];
     n := read(ch);
-    IF n # 1 THEN 
+    IF n # 1 THEN
        ch := 0X;
        RETURN FALSE
     ELSE
@@ -81,7 +84,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
     n := Write(SYSTEM.VAL(LONGINT, pch), 1);
     IF n # 1 THEN RETURN FALSE ELSE RETURN TRUE END
     *)
-  ELSIF syscall = Sys.open THEN  
+  ELSIF syscall = Sys.open THEN
     pstr := SYSTEM.VAL(pstring, arg1);
     IF SYSTEM.VAL(SET, arg3) * {0,1} # {} THEN
       RETURN Platform.OldRW(pstr^, d0) = 0
@@ -120,7 +123,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
   END
 
   END UNIXCALL;
-
+*)
 
   PROCEDURE UNIXFORK(VAR pid: LONGINT) : BOOLEAN;
   BEGIN
@@ -133,8 +136,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
 
   END UNIXSIGNAL;
 
-  PROCEDURE WMOVE*(from, to, n : LONGINT);
-  VAR l : LONGINT;
+  PROCEDURE WMOVE*(from, to, n : SYSTEM.ADDRESS);
   BEGIN
      SYSTEM.MOVE(from, to, n);
   END WMOVE;

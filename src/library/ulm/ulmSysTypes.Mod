@@ -30,7 +30,7 @@
 
 MODULE ulmSysTypes;
 
-   IMPORT Types := ulmTypes;
+   IMPORT Types := ulmTypes, Platform;
 
    TYPE
       Address* = Types.Address;
@@ -39,17 +39,17 @@ MODULE ulmSysTypes;
       Size* = Types.Size;
       Byte* = Types.Byte;
 
-      File* = (*INTEGER*)LONGINT; (* in ulm's system both INTEGER and LONGINT are 4 bytes long *)
+      File*   = Platform.FileHandle;
       Offset* = LONGINT;
       Device* = LONGINT;
-      Inode* = LONGINT;
-      Time* = LONGINT;
+      Inode*  = LONGINT;
+      Time*   = LONGINT;
 
-      Word* = INTEGER; (* must have the size of C's int-type *)
+      Word*   = INTEGER; (* must have the size of C's int-type *)
 
    (* Note: linux supports wait4 but not waitid, i.e. these
     * constants aren't needed. *)
-   (* 
+   (*
    CONST
       (* possible values of the idtype parameter (4 bytes),
 	 see <sys/procset.h>

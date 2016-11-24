@@ -1,7 +1,7 @@
 # Vishap Oberon master makefile.
 #
 # Makes sure configuration parameters are up to date and then hands off
-# to src/tools/make/vishap.make.
+# to src/tools/make/oberon.mk.
 
 
 
@@ -85,15 +85,8 @@ usage:
 	@echo "                       (Needs root access)"
 	@echo ""
 	@echo "Targets for (re)creating and reverting bootstrap C sources:"
-	@echo "  make bootstrap       - Uddate bootstrap C source directories. Always run on 64 bit."
+	@echo "  make bootstrap       - Update bootstrap C source directories."
 	@echo "  make revertbootstrap - Use git checkout to restore bootstrap C source directories"
-	@echo ""
-	@echo ""
-	@echo "Multi-platform coordinated network build:"
-	@echo "  make coordinator   - Start central task to trigger builds and collect logs"
-	@echo "  make auto          - Start machine specific build server"
-	@echo "  make autobuild     - Trigger all machines running 'make auto' to start a build"
-	@echo "  make autobuild     - Terminate 'make auto' on all machines"
 
 
 
@@ -102,8 +95,16 @@ usage:
 FORCE:
 
 configuration: FORCE
-	@$(CC) -I src/system -o a.o src/tools/make/configure.c
+	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
 	@./a.o
+	@rm a.o
+	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
+	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
+
+
+bootstrapconfiguration: FORCE
+	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
+	@./a.o bootstrap
 	@rm a.o
 	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
 	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
@@ -112,7 +113,7 @@ configuration: FORCE
 
 
 reportsizes: FORCE
-	@$(CC) -I src/system -o a.o src/tools/make/configure.c
+	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
 	@./a.o report
 	@rm a.o
 
@@ -126,102 +127,119 @@ reportsizes: FORCE
 
 # clean - clean out the bulid directory
 clean: configuration
-	@make -f src/tools/make/vishap.make -s clean
+	@make -f src/tools/make/oberon.mk -s clean
 
 
 
 
 # full: Full build of compiler and libarary.
 full: configuration
-	@make -f src/tools/make/vishap.make -s installable
-	@-make -f src/tools/make/vishap.make -s uninstall
-	@make -f src/tools/make/vishap.make -s clean
+	@make -f src/tools/make/oberon.mk -s installable
+	@-make -f src/tools/make/oberon.mk -s uninstall
+	@make -f src/tools/make/oberon.mk -s clean
 # Make bootstrap compiler from source suitable for current data model
 	@printf "\n\n--- Compiler build started ---\n\n"
-	@make -f src/tools/make/vishap.make -s compilerfromsavedsource
+	@make -f src/tools/make/oberon.mk -s compilerfromsavedsource MODEL=2
 # Use bootstrap compiler to make compiler binary from latest compiler sources
-	@make -f src/tools/make/vishap.make -s translate
-	@make -f src/tools/make/vishap.make -s assemble
+	@make -f src/tools/make/oberon.mk -s translate MODEL=2
+	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
 # Use latest compiler to make compiler binary from latest compiler sources
-	@make -f src/tools/make/vishap.make -s translate
-	@make -f src/tools/make/vishap.make -s assemble
+	@make -f src/tools/make/oberon.mk -s translate MODEL=2
+	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
 	@printf "\n\n--- Compiler build successfull ---\n\n"
-	@make -f src/tools/make/vishap.make -s browsercmd
+	@make -f src/tools/make/oberon.mk -s browsercmd MODEL=2
 	@printf "\n\n--- Library build started ---\n\n"
-	@make -f src/tools/make/vishap.make -s library
+	@make -f src/tools/make/oberon.mk -s library MODEL=2
+	@make -f src/tools/make/oberon.mk -s library MODEL=C
 	@printf "\n\n--- Library build successfull ---\n\n"
-	@make -f src/tools/make/vishap.make -s sourcechanges
-	@make -f src/tools/make/vishap.make -s install
+	@make -f src/tools/make/oberon.mk -s sourcechanges
+	@make -f src/tools/make/oberon.mk -s install
 	@printf "\n\n--- Confidence tests started ---\n\n"
-	@make -f src/tools/make/vishap.make -s confidence
-	@make -f src/tools/make/vishap.make -s showpath
+	@make -f src/tools/make/oberon.mk -s confidence MODEL=2
+	@make -f src/tools/make/oberon.mk -s showpath
 
+
+assemble:
+	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
+
+
+compilerfromsavedsource:
+	@make -f src/tools/make/oberon.mk -s compilerfromsavedsource
 
 
 
 # compile: compiler only, without cleaning
 compiler: configuration
-	@make -f src/tools/make/vishap.make -s translate
-	@make -f src/tools/make/vishap.make -s assemble
+	@make -f src/tools/make/oberon.mk -s translate MODEL=2
+	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
 
 
 
 # Report changes to compiler source relative to bootstrap compiler
 sourcechanges:
-	@make -f src/tools/make/vishap.make -s sourcechanges
+	@make -f src/tools/make/oberon.mk -s sourcechanges
 
 
 # browsercmd: build the 'showdef' command
 browsercmd: configuration
-	@make -f src/tools/make/vishap.make -s browsercmd
+	@make -f src/tools/make/oberon.mk -s browsercmd MODEL=2
 
 
 
 
 # library: build all directories under src/library
-library: configuration
-	@make -f src/tools/make/vishap.make -s library
+O2library: configuration
+	@make -f src/tools/make/oberon.mk -s library MODEL=2
+
+OClibrary: configuration
+	@make -f src/tools/make/oberon.mk -s library MODEL=C
+
+
+
 
 # Individual library components
 v4: configuration
-	@make -f src/tools/make/vishap.make -s v4
+	@make -f src/tools/make/oberon.mk -s v4 MODEL=2
 
 ooc2: configuration
-	@make -f src/tools/make/vishap.make -s ooc2
+	@make -f src/tools/make/oberon.mk -s ooc2 MODEL=2
 
 ooc: configuration
-	@make -f src/tools/make/vishap.make -s ooc
+	@make -f src/tools/make/oberon.mk -s ooc MODEL=2
 
 ulm: configuration
-	@make -f src/tools/make/vishap.make -s ulm
+	@make -f src/tools/make/oberon.mk -s ulm MODEL=2
 
 pow32: configuration
-	@make -f src/tools/make/vishap.make -s pow32
+	@make -f src/tools/make/oberon.mk -s pow32 MODEL=2
 
 misc: configuration
-	@make -f src/tools/make/vishap.make -s misc
+	@make -f src/tools/make/oberon.mk -s misc MODEL=2
 
 s3: configuration
-	@make -f src/tools/make/vishap.make -s s3
+	@make -f src/tools/make/oberon.mk -s s3 MODEL=2
 
 
 
 # install: Copy built files to install directory
 install: configuration
-	@make -f src/tools/make/vishap.make -s installable
-	@make -f src/tools/make/vishap.make -s install
-	@make -f src/tools/make/vishap.make -s showpath
+	@make -f src/tools/make/oberon.mk -s installable
+	@make -f src/tools/make/oberon.mk -s install MODEL=2
+	@make -f src/tools/make/oberon.mk -s showpath MODEL=2
 
 uninstall: configuration
-	@make -f src/tools/make/vishap.make -s installable
-	@make -f src/tools/make/vishap.make -s uninstall
+	@make -f src/tools/make/oberon.mk -s installable
+	@make -f src/tools/make/oberon.mk -s uninstall
 
 
 
 
 # confidence: Run a set of confidence tests
 confidence: configuration
-	@make -f src/tools/make/vishap.make -s confidence
+	@make -f src/tools/make/oberon.mk -s confidence MODEL=2
+
+planned-binary-change:
+	@date >src/test/confidence/planned-binary-change
 
 
 
@@ -232,17 +250,27 @@ confidence: configuration
 # bootstrap: Rebuild the bootstrap directories
 # If the bootstrap directories are broken or only partially
 # built then run 'make revertbootstrap' first.
-bootstrap: configuration
-	@make -f src/tools/make/vishap.make -s clean
-	@make -f src/tools/make/vishap.make -s translate
-	@make -f src/tools/make/vishap.make -s assemble
+bootstrap: bootstrapconfiguration
+	@make -f src/tools/make/oberon.mk -s clean
+	@make -f src/tools/make/oberon.mk -s translate MODEL=2
+	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
 	rm -rf bootstrap/*
-	make -f src/tools/make/vishap.make -s translate INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
-	make -f src/tools/make/vishap.make -s translate INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
-	make -f src/tools/make/vishap.make -s translate INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
-	make -f src/tools/make/vishap.make -s translate INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
-	make -f src/tools/make/vishap.make -s translate INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
+	cp src/runtime/*.[ch] bootstrap
 
+
+bootstrapunclean: bootstrapconfiguration
+	rm -rf bootstrap/*
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
+	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
+	cp src/runtime/*.[ch] bootstrap
 
 
 
@@ -261,10 +289,10 @@ revertbootstrap:
 
 # coordinator: Start the test machine coordinator
 coordinator: configuration
-	@make -f src/tools/make/vishap.make -s clean
-	@make -f src/tools/make/vishap.make -s translate
-	@make -f src/tools/make/vishap.make -s assemble
-	@make -f src/tools/make/vishap.make -s testtools
+	@make -f src/tools/make/oberon.mk -s clean
+	@make -f src/tools/make/oberon.mk -s translate
+	@make -f src/tools/make/oberon.mk -s assemble
+	@make -f src/tools/make/oberon.mk -s testtools
 	@rm -f "build/*.log"
 	cd build && ../testcoordinator.exe
 
@@ -273,7 +301,7 @@ coordinator: configuration
 
 # auto: machine specific build server
 auto: configuration
-	@make -f src/tools/make/vishap.make -s auto
+	@make -f src/tools/make/oberon.mk -s auto
 
 
 

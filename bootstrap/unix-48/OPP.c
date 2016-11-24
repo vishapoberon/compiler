@@ -1,4 +1,10 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
+
 #include "SYSTEM.h"
 #include "OPB.h"
 #include "OPM.h"
@@ -6,38 +12,38 @@
 #include "OPT.h"
 
 struct OPP__1 {
-	LONGINT low, high;
+	INT32 low, high;
 };
 
 typedef
 	struct OPP__1 OPP_CaseTable[128];
 
 
-static SHORTINT OPP_sym, OPP_level;
-static INTEGER OPP_LoopLevel;
+static INT8 OPP_sym, OPP_level;
+static INT16 OPP_LoopLevel;
 static OPT_Node OPP_TDinit, OPP_lastTDinit;
-static INTEGER OPP_nofFwdPtr;
+static INT16 OPP_nofFwdPtr;
 static OPT_Struct OPP_FwdPtr[64];
 
-export LONGINT *OPP__1__typ;
+export ADDRESS *OPP__1__typ;
 
 static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq);
-static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP_CaseTable tab);
-static void OPP_CheckMark (SHORTINT *vis);
-static void OPP_CheckSym (INTEGER s);
-static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_);
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, OPP_CaseTable tab);
+static void OPP_CheckMark (INT8 *vis);
+static void OPP_CheckSym (INT16 s);
+static void OPP_CheckSysFlag (INT16 *sysflag, INT16 default_);
 static void OPP_ConstExpression (OPT_Node *x);
 static void OPP_Element (OPT_Node *x);
 static void OPP_Expression (OPT_Node *x);
 static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b);
 static void OPP_Factor (OPT_Node *x);
 static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp);
-export void OPP_Module (OPT_Node *prog, SET opt);
+export void OPP_Module (OPT_Node *prog, UINT32 opt);
 static void OPP_PointerType (OPT_Struct *typ);
 static void OPP_ProcedureDeclaration (OPT_Node *x);
-static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec);
+static void OPP_Receiver (INT8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec);
 static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Sets (OPT_Node *x);
 static void OPP_SimpleExpression (OPT_Node *x);
@@ -46,19 +52,19 @@ static void OPP_StatSeq (OPT_Node *stat);
 static void OPP_Term (OPT_Node *x);
 static void OPP_Type (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned);
-static void OPP_err (INTEGER n);
+static void OPP_err (INT16 n);
 static void OPP_qualident (OPT_Object *id);
 static void OPP_selector (OPT_Node *x);
 
 
-static void OPP_err (INTEGER n)
+static void OPP_err (INT16 n)
 {
 	OPM_err(n);
 }
 
-static void OPP_CheckSym (INTEGER s)
+static void OPP_CheckSym (INT16 s)
 {
-	if ((int)OPP_sym == s) {
+	if ((INT16)OPP_sym == s) {
 		OPS_Get(&OPP_sym);
 	} else {
 		OPM_err(s);
@@ -68,7 +74,7 @@ static void OPP_CheckSym (INTEGER s)
 static void OPP_qualident (OPT_Object *id)
 {
 	OPT_Object obj = NIL;
-	SHORTINT lev;
+	INT8 lev;
 	OPT_Find(&obj);
 	OPS_Get(&OPP_sym);
 	if ((((OPP_sym == 18 && obj != NIL)) && obj->mode == 11)) {
@@ -89,7 +95,7 @@ static void OPP_qualident (OPT_Object *id)
 		obj->adr = 0;
 	} else {
 		lev = obj->mnolev;
-		if ((__IN(obj->mode, 0x06) && lev != OPP_level)) {
+		if ((__IN(obj->mode, 0x06, 32) && lev != OPP_level)) {
 			obj->leaf = 0;
 			if (lev > 0) {
 				OPB_StaticLink(OPP_level - lev);
@@ -104,11 +110,11 @@ static void OPP_ConstExpression (OPT_Node *x)
 	OPP_Expression(&*x);
 	if ((*x)->class != 7) {
 		OPP_err(50);
-		*x = OPB_NewIntConst(((LONGINT)(1)));
+		*x = OPB_NewIntConst(1);
 	}
 }
 
-static void OPP_CheckMark (SHORTINT *vis)
+static void OPP_CheckMark (INT8 *vis)
 {
 	OPS_Get(&OPP_sym);
 	if (OPP_sym == 1 || OPP_sym == 7) {
@@ -126,17 +132,17 @@ static void OPP_CheckMark (SHORTINT *vis)
 	}
 }
 
-static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_)
+static void OPP_CheckSysFlag (INT16 *sysflag, INT16 default_)
 {
 	OPT_Node x = NIL;
-	LONGINT sf;
+	INT64 sf;
 	if (OPP_sym == 31) {
 		OPS_Get(&OPP_sym);
 		if (!OPT_SYSimported) {
 			OPP_err(135);
 		}
 		OPP_ConstExpression(&x);
-		if (__IN(x->typ->form, 0x70)) {
+		if (x->typ->form == 4) {
 			sf = x->conval->intval;
 			if (sf < 0 || sf > 1) {
 				OPP_err(220);
@@ -146,7 +152,7 @@ static void OPP_CheckSysFlag (INTEGER *sysflag, INTEGER default_)
 			OPP_err(51);
 			sf = 0;
 		}
-		*sysflag = (int)sf;
+		*sysflag = OPM_Integer(sf);
 		OPP_CheckSym(23);
 	} else {
 		*sysflag = default_;
@@ -157,8 +163,8 @@ static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPT_Object fld = NIL, first = NIL, last = NIL, base = NIL;
 	OPT_Struct ftyp = NIL;
-	INTEGER sysflag;
-	*typ = OPT_NewStr(15, 4);
+	INT16 sysflag;
+	*typ = OPT_NewStr(13, 4);
 	(*typ)->BaseTyp = NIL;
 	OPP_CheckSysFlag(&sysflag, -1);
 	if (OPP_sym == 30) {
@@ -249,11 +255,11 @@ static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPT_Node x = NIL;
-	LONGINT n;
-	INTEGER sysflag;
+	INT64 n;
+	INT16 sysflag;
 	OPP_CheckSysFlag(&sysflag, 0);
 	if (OPP_sym == 25) {
-		*typ = OPT_NewStr(15, 3);
+		*typ = OPT_NewStr(13, 3);
 		(*typ)->mno = 0;
 		(*typ)->sysflag = sysflag;
 		OPS_Get(&OPP_sym);
@@ -265,10 +271,10 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 			(*typ)->n = 0;
 		}
 	} else {
-		*typ = OPT_NewStr(15, 2);
+		*typ = OPT_NewStr(13, 2);
 		(*typ)->sysflag = sysflag;
 		OPP_ConstExpression(&x);
-		if (__IN(x->typ->form, 0x70)) {
+		if (x->typ->form == 4) {
 			n = x->conval->intval;
 			if (n <= 0 || n > OPM_MaxIndex) {
 				OPP_err(63);
@@ -278,7 +284,7 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 			OPP_err(51);
 			n = 1;
 		}
-		(*typ)->n = n;
+		(*typ)->n = OPM_Longint(n);
 		if (OPP_sym == 25) {
 			OPS_Get(&OPP_sym);
 			OPP_Type(&(*typ)->BaseTyp, &*banned);
@@ -301,26 +307,26 @@ static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_PointerType (OPT_Struct *typ)
 {
 	OPT_Object id = NIL;
-	*typ = OPT_NewStr(13, 1);
+	*typ = OPT_NewStr(11, 1);
 	OPP_CheckSysFlag(&(*typ)->sysflag, 0);
 	OPP_CheckSym(28);
 	if (OPP_sym == 38) {
 		OPT_Find(&id);
 		if (id == NIL) {
 			if (OPP_nofFwdPtr < 64) {
-				OPP_FwdPtr[__X(OPP_nofFwdPtr, ((LONGINT)(64)))] = *typ;
+				OPP_FwdPtr[__X(OPP_nofFwdPtr, 64)] = *typ;
 				OPP_nofFwdPtr += 1;
 			} else {
 				OPP_err(224);
 			}
 			(*typ)->link = OPT_NewObj();
-			__COPY(OPS_name, (*typ)->link->name, ((LONGINT)(256)));
+			__COPY(OPS_name, (*typ)->link->name, 256);
 			(*typ)->BaseTyp = OPT_undftyp;
 			OPS_Get(&OPP_sym);
 		} else {
 			OPP_qualident(&id);
 			if (id->mode == 5) {
-				if (__IN(id->typ->comp, 0x1c)) {
+				if (__IN(id->typ->comp, 0x1c, 32)) {
 					(*typ)->BaseTyp = id->typ;
 				} else {
 					(*typ)->BaseTyp = OPT_undftyp;
@@ -333,7 +339,7 @@ static void OPP_PointerType (OPT_Struct *typ)
 		}
 	} else {
 		OPP_Type(&(*typ)->BaseTyp, &OPT_notyp);
-		if (!__IN((*typ)->BaseTyp->comp, 0x1c)) {
+		if (!__IN((*typ)->BaseTyp->comp, 0x1c, 32)) {
 			(*typ)->BaseTyp = OPT_undftyp;
 			OPP_err(57);
 		}
@@ -342,7 +348,7 @@ static void OPP_PointerType (OPT_Struct *typ)
 
 static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp)
 {
-	SHORTINT mode;
+	INT8 mode;
 	OPT_Object par = NIL, first = NIL, last = NIL, res = NIL;
 	OPT_Struct typ = NIL;
 	first = NIL;
@@ -386,6 +392,9 @@ static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp)
 			}
 			OPP_CheckSym(20);
 			OPP_Type(&typ, &OPT_notyp);
+			if (((typ->comp == 2 || typ->comp == 4) && typ->strobj == NIL)) {
+				OPP_err(-309);
+			}
 			if (mode == 1) {
 				typ->pvused = 1;
 			}
@@ -409,7 +418,7 @@ static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp)
 		if (OPP_sym == 38) {
 			OPP_qualident(&res);
 			if (res->mode == 5) {
-				if (res->typ->form < 15) {
+				if (res->typ->form < 13) {
 					*resTyp = res->typ;
 				} else {
 					OPP_err(54);
@@ -459,7 +468,7 @@ static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned)
 		OPP_PointerType(&*typ);
 	} else if (OPP_sym == 61) {
 		OPS_Get(&OPP_sym);
-		*typ = OPT_NewStr(14, 1);
+		*typ = OPT_NewStr(12, 1);
 		OPP_CheckSysFlag(&(*typ)->sysflag, 0);
 		if (OPP_sym == 30) {
 			OPS_Get(&OPP_sym);
@@ -488,7 +497,7 @@ static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned)
 static void OPP_Type (OPT_Struct *typ, OPT_Struct *banned)
 {
 	OPP_TypeDecl(&*typ, &*banned);
-	if (((((*typ)->form == 13 && (*typ)->BaseTyp == OPT_undftyp)) && (*typ)->strobj == NIL)) {
+	if (((((*typ)->form == 11 && (*typ)->BaseTyp == OPT_undftyp)) && (*typ)->strobj == NIL)) {
 		OPP_err(0);
 	}
 }
@@ -503,7 +512,7 @@ static void OPP_selector (OPT_Node *x)
 		if (OPP_sym == 31) {
 			OPS_Get(&OPP_sym);
 			for (;;) {
-				if (((*x)->typ != NIL && (*x)->typ->form == 13)) {
+				if (((*x)->typ != NIL && (*x)->typ->form == 11)) {
 					OPB_DeRef(&*x);
 				}
 				OPP_Expression(&y);
@@ -518,10 +527,10 @@ static void OPP_selector (OPT_Node *x)
 		} else if (OPP_sym == 18) {
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
-				__COPY(OPS_name, name, ((LONGINT)(256)));
+				__COPY(OPS_name, name, 256);
 				OPS_Get(&OPP_sym);
 				if ((*x)->typ != NIL) {
-					if ((*x)->typ->form == 13) {
+					if ((*x)->typ->form == 11) {
 						OPB_DeRef(&*x);
 					}
 					if ((*x)->typ->comp == 4) {
@@ -543,7 +552,7 @@ static void OPP_selector (OPT_Node *x)
 										OPP_err(75);
 									}
 									typ = y->obj->typ;
-									if (typ->form == 13) {
+									if (typ->form == 11) {
 										typ = typ->BaseTyp;
 									}
 									OPT_FindField((*x)->obj->name, typ->BaseTyp, &proc);
@@ -572,7 +581,7 @@ static void OPP_selector (OPT_Node *x)
 		} else if (OPP_sym == 17) {
 			OPS_Get(&OPP_sym);
 			OPB_DeRef(&*x);
-		} else if ((((((OPP_sym == 30 && (*x)->class < 7)) && (*x)->typ->form != 14)) && ((*x)->obj == NIL || (*x)->obj->mode != 13))) {
+		} else if ((((((OPP_sym == 30 && (*x)->class < 7)) && (*x)->typ->form != 12)) && ((*x)->obj == NIL || (*x)->obj->mode != 13))) {
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
 				OPP_qualident(&obj);
@@ -623,9 +632,9 @@ static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar)
 static void OPP_StandProcCall (OPT_Node *x)
 {
 	OPT_Node y = NIL;
-	SHORTINT m;
-	INTEGER n;
-	m = (int)(*x)->obj->adr;
+	INT8 m;
+	INT16 n;
+	m = (INT8)((INT16)(*x)->obj->adr);
 	n = 0;
 	if (OPP_sym == 30) {
 		OPS_Get(&OPP_sym);
@@ -742,8 +751,8 @@ static void OPP_Factor (OPT_Node *x)
 				*x = OPB_NewRealConst(OPS_lrlval, OPT_lrltyp);
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case in OPP.Factor, OPS.numtyp = ", (LONGINT)44);
-				OPM_LogWNum(OPS_numtyp, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case in OPP.Factor, OPS.numtyp = ", 44);
+				OPM_LogWNum(OPS_numtyp, 0);
 				OPM_LogWLn();
 				break;
 		}
@@ -776,7 +785,7 @@ static void OPP_Factor (OPT_Node *x)
 		*x = NIL;
 	}
 	if (*x == NIL) {
-		*x = OPB_NewIntConst(((LONGINT)(1)));
+		*x = OPB_NewIntConst(1);
 		(*x)->typ = OPT_undftyp;
 	}
 }
@@ -784,7 +793,7 @@ static void OPP_Factor (OPT_Node *x)
 static void OPP_Term (OPT_Node *x)
 {
 	OPT_Node y = NIL;
-	SHORTINT mulop;
+	INT8 mulop;
 	OPP_Factor(&*x);
 	while ((1 <= OPP_sym && OPP_sym <= 5)) {
 		mulop = OPP_sym;
@@ -797,7 +806,7 @@ static void OPP_Term (OPT_Node *x)
 static void OPP_SimpleExpression (OPT_Node *x)
 {
 	OPT_Node y = NIL;
-	SHORTINT addop;
+	INT8 addop;
 	if (OPP_sym == 7) {
 		OPS_Get(&OPP_sym);
 		OPP_Term(&*x);
@@ -821,7 +830,7 @@ static void OPP_Expression (OPT_Node *x)
 {
 	OPT_Node y = NIL;
 	OPT_Object obj = NIL;
-	SHORTINT relation;
+	INT8 relation;
 	OPP_SimpleExpression(&*x);
 	if ((9 <= OPP_sym && OPP_sym <= 14)) {
 		relation = OPP_sym;
@@ -847,7 +856,7 @@ static void OPP_Expression (OPT_Node *x)
 	}
 }
 
-static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec)
+static void OPP_Receiver (INT8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec)
 {
 	OPT_Object obj = NIL;
 	*typ = OPT_undftyp;
@@ -858,7 +867,7 @@ static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_St
 	} else {
 		*mode = 1;
 	}
-	__COPY(OPS_name, name, ((LONGINT)(256)));
+	__COPY(OPS_name, name, 256);
 	OPP_CheckSym(38);
 	OPP_CheckSym(20);
 	if (OPP_sym == 38) {
@@ -871,10 +880,10 @@ static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_St
 		} else {
 			*typ = obj->typ;
 			*rec = *typ;
-			if ((*rec)->form == 13) {
+			if ((*rec)->form == 11) {
 				*rec = (*rec)->BaseTyp;
 			}
-			if (!((((*mode == 1 && (*typ)->form == 13)) && (*rec)->comp == 4) || (*mode == 2 && (*typ)->comp == 4))) {
+			if (!((((*mode == 1 && (*typ)->form == 11)) && (*rec)->comp == 4) || (*mode == 2 && (*typ)->comp == 4))) {
 				OPP_err(70);
 				*rec = NIL;
 			}
@@ -888,15 +897,14 @@ static void OPP_Receiver (SHORTINT *mode, OPS_Name name, OPT_Struct *typ, OPT_St
 	}
 	OPP_CheckSym(22);
 	if (*rec == NIL) {
-		*rec = OPT_NewStr(15, 4);
+		*rec = OPT_NewStr(13, 4);
 		(*rec)->BaseTyp = NIL;
 	}
 }
 
 static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b)
 {
-	BOOLEAN _o_result;
-	if ((b->form == 13 && x->form == 13)) {
+	if ((b->form == 11 && x->form == 11)) {
 		b = b->BaseTyp;
 		x = x->BaseTyp;
 	}
@@ -905,15 +913,14 @@ static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b)
 			x = x->BaseTyp;
 		} while (!(x == NIL || x == b));
 	}
-	_o_result = x == b;
-	return _o_result;
+	return x == b;
 }
 
 static struct ProcedureDeclaration__16 {
 	OPT_Node *x;
 	OPT_Object *proc, *fwd;
 	OPS_Name *name;
-	SHORTINT *mode, *vis;
+	INT8 *mode, *vis;
 	BOOLEAN *forward;
 	struct ProcedureDeclaration__16 *lnk;
 } *ProcedureDeclaration__16_s;
@@ -926,14 +933,14 @@ static void TProcDecl__23 (void);
 static void GetCode__19 (void)
 {
 	OPT_ConstExt ext = NIL;
-	INTEGER n;
-	LONGINT c;
+	INT16 n;
+	INT64 c;
 	ext = OPT_NewExt();
 	(*ProcedureDeclaration__16_s->proc)->conval->ext = ext;
 	n = 0;
 	if (OPP_sym == 37) {
-		while (OPS_str[__X(n, ((LONGINT)(256)))] != 0x00) {
-			(*ext)[__X(n + 1, ((LONGINT)(256)))] = OPS_str[__X(n, ((LONGINT)(256)))];
+		while (OPS_str[__X(n, 256)] != 0x00) {
+			(*ext)[__X(n + 1, 256)] = OPS_str[__X(n, 256)];
 			n += 1;
 		}
 		(*ext)[0] = (CHAR)n;
@@ -949,7 +956,7 @@ static void GetCode__19 (void)
 					n = 1;
 				}
 				OPS_Get(&OPP_sym);
-				(*ext)[__X(n, ((LONGINT)(256)))] = (CHAR)c;
+				(*ext)[__X(n, 256)] = (CHAR)c;
 			}
 			if (OPP_sym == 19) {
 				OPS_Get(&OPP_sym);
@@ -961,7 +968,7 @@ static void GetCode__19 (void)
 			}
 		}
 	}
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1);
+	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,64);
 }
 
 static void GetParams__21 (void)
@@ -991,9 +998,9 @@ static void GetParams__21 (void)
 static void Body__17 (void)
 {
 	OPT_Node procdec = NIL, statseq = NIL;
-	LONGINT c;
+	INT32 c;
 	c = OPM_errpos;
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1);
+	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,64);
 	OPP_CheckSym(39);
 	OPP_Block(&procdec, &statseq);
 	OPB_Enter(&procdec, statseq, *ProcedureDeclaration__16_s->proc);
@@ -1014,7 +1021,7 @@ static void TProcDecl__23 (void)
 {
 	OPT_Object baseProc = NIL;
 	OPT_Struct objTyp = NIL, recTyp = NIL;
-	SHORTINT objMode;
+	INT8 objMode;
 	OPS_Name objName;
 	OPS_Get(&OPP_sym);
 	*ProcedureDeclaration__16_s->mode = 13;
@@ -1023,7 +1030,7 @@ static void TProcDecl__23 (void)
 	}
 	OPP_Receiver(&objMode, objName, &objTyp, &recTyp);
 	if (OPP_sym == 38) {
-		__COPY(OPS_name, *ProcedureDeclaration__16_s->name, ((LONGINT)(256)));
+		__COPY(OPS_name, *ProcedureDeclaration__16_s->name, 256);
 		OPP_CheckMark(&*ProcedureDeclaration__16_s->vis);
 		OPT_FindField(*ProcedureDeclaration__16_s->name, recTyp, &*ProcedureDeclaration__16_s->fwd);
 		OPT_FindField(*ProcedureDeclaration__16_s->name, recTyp->BaseTyp, &baseProc);
@@ -1036,7 +1043,7 @@ static void TProcDecl__23 (void)
 		if ((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mnolev != OPP_level)) {
 			*ProcedureDeclaration__16_s->fwd = NIL;
 		}
-		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval))) {
+		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval, 64))) {
 			*ProcedureDeclaration__16_s->proc = OPT_NewObj();
 			(*ProcedureDeclaration__16_s->proc)->leaf = 1;
 			if ((*ProcedureDeclaration__16_s->fwd)->vis != *ProcedureDeclaration__16_s->vis) {
@@ -1070,7 +1077,7 @@ static void TProcDecl__23 (void)
 			if ((((((baseProc->vis == 1 && (*ProcedureDeclaration__16_s->proc)->vis == 0)) && recTyp->strobj != NIL)) && recTyp->strobj->vis == 1)) {
 				OPP_err(109);
 			}
-			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2);
+			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2,64);
 		}
 		if (!*ProcedureDeclaration__16_s->forward) {
 			Body__17();
@@ -1086,7 +1093,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 {
 	OPT_Object proc = NIL, fwd = NIL;
 	OPS_Name name;
-	SHORTINT mode, vis;
+	INT8 mode, vis;
 	BOOLEAN forward;
 	struct ProcedureDeclaration__16 _s;
 	_s.x = x;
@@ -1113,7 +1120,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		} else {
 			OPP_err(38);
 		}
-		if ((__IN(mode, 0x0600) && !OPT_SYSimported)) {
+		if ((__IN(mode, 0x0600, 32) && !OPT_SYSimported)) {
 			OPP_err(135);
 		}
 		OPS_Get(&OPP_sym);
@@ -1122,7 +1129,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		TProcDecl__23();
 	} else if (OPP_sym == 38) {
 		OPT_Find(&fwd);
-		__COPY(OPS_name, name, ((LONGINT)(256)));
+		__COPY(OPS_name, name, 256);
 		OPP_CheckMark(&vis);
 		if ((vis != 0 && mode == 6)) {
 			mode = 7;
@@ -1130,7 +1137,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		if ((fwd != NIL && (fwd->mnolev != OPP_level || fwd->mode == 8))) {
 			fwd = NIL;
 		}
-		if ((((fwd != NIL && __IN(fwd->mode, 0xc0))) && !__IN(1, fwd->conval->setval))) {
+		if ((((fwd != NIL && __IN(fwd->mode, 0xc0, 32))) && !__IN(1, fwd->conval->setval, 64))) {
 			proc = OPT_NewObj();
 			proc->leaf = 1;
 			if (fwd->vis != vis) {
@@ -1163,34 +1170,34 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 	ProcedureDeclaration__16_s = _s.lnk;
 }
 
-static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP_CaseTable tab)
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, OPP_CaseTable tab)
 {
 	OPT_Node x = NIL, y = NIL, lastlab = NIL;
-	INTEGER i, f;
-	LONGINT xval, yval;
+	INT16 i, f;
+	INT32 xval, yval;
 	*lab = NIL;
 	lastlab = NIL;
 	for (;;) {
 		OPP_ConstExpression(&x);
 		f = x->typ->form;
-		if (__IN(f, 0x78)) {
-			xval = x->conval->intval;
+		if (__IN(f, 0x18, 32)) {
+			xval = OPM_Longint(x->conval->intval);
 		} else {
 			OPP_err(61);
 			xval = 1;
 		}
-		if (__IN(f, 0x70)) {
-			if (LabelForm < f) {
+		if (f == 4) {
+			if (!(LabelTyp->form == 4) || LabelTyp->size < x->typ->size) {
 				OPP_err(60);
 			}
-		} else if (LabelForm != f) {
+		} else if ((INT16)LabelTyp->form != f) {
 			OPP_err(60);
 		}
 		if (OPP_sym == 21) {
 			OPS_Get(&OPP_sym);
 			OPP_ConstExpression(&y);
-			yval = y->conval->intval;
-			if (((int)y->typ->form != f && !((__IN(f, 0x70) && __IN(y->typ->form, 0x70))))) {
+			yval = OPM_Longint(y->conval->intval);
+			if (((INT16)y->typ->form != f && !((f == 4 && y->typ->form == 4)))) {
 				OPP_err(60);
 			}
 			if (yval < xval) {
@@ -1207,17 +1214,17 @@ static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP
 				if (i == 0) {
 					break;
 				}
-				if (tab[__X(i - 1, ((LONGINT)(128)))].low <= yval) {
-					if (tab[__X(i - 1, ((LONGINT)(128)))].high >= xval) {
+				if (tab[__X(i - 1, 128)].low <= yval) {
+					if (tab[__X(i - 1, 128)].high >= xval) {
 						OPP_err(62);
 					}
 					break;
 				}
-				tab[__X(i, ((LONGINT)(128)))] = tab[__X(i - 1, ((LONGINT)(128)))];
+				tab[__X(i, 128)] = tab[__X(i - 1, 128)];
 				i -= 1;
 			}
-			tab[__X(i, ((LONGINT)(128)))].low = xval;
-			tab[__X(i, ((LONGINT)(128)))].high = yval;
+			tab[__X(i, 128)].low = xval;
+			tab[__X(i, 128)].high = yval;
 			*n += 1;
 		} else {
 			OPP_err(213);
@@ -1234,7 +1241,7 @@ static void OPP_CaseLabelList (OPT_Node *lab, INTEGER LabelForm, INTEGER *n, OPP
 }
 
 static struct StatSeq__30 {
-	LONGINT *pos;
+	INT32 *pos;
 	struct StatSeq__30 *lnk;
 } *StatSeq__30_s;
 
@@ -1244,8 +1251,8 @@ static void SetPos__35 (OPT_Node x);
 
 static void CasePart__31 (OPT_Node *x)
 {
-	INTEGER n;
-	LONGINT low, high;
+	INT16 n;
+	INT32 low, high;
 	BOOLEAN e;
 	OPP_CaseTable tab;
 	OPT_Node cases = NIL, lab = NIL, y = NIL, lastcase = NIL;
@@ -1253,7 +1260,7 @@ static void CasePart__31 (OPT_Node *x)
 	*StatSeq__30_s->pos = OPM_errpos;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
-	} else if (!__IN((*x)->typ->form, 0x78)) {
+	} else if (!__IN((*x)->typ->form, 0x18, 32)) {
 		OPP_err(125);
 	}
 	OPP_CheckSym(25);
@@ -1262,7 +1269,7 @@ static void CasePart__31 (OPT_Node *x)
 	n = 0;
 	for (;;) {
 		if (OPP_sym < 40) {
-			OPP_CaseLabelList(&lab, (*x)->typ->form, &n, tab);
+			OPP_CaseLabelList(&lab, (*x)->typ, &n, tab);
 			OPP_CheckSym(20);
 			OPP_StatSeq(&y);
 			OPB_Construct(17, &lab, y);
@@ -1276,7 +1283,7 @@ static void CasePart__31 (OPT_Node *x)
 	}
 	if (n > 0) {
 		low = tab[0].low;
-		high = tab[__X(n - 1, ((LONGINT)(128)))].high;
+		high = tab[__X(n - 1, 128)].high;
 		if (high - low > 512) {
 			OPP_err(209);
 		}
@@ -1328,7 +1335,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 	OPT_Struct idtyp = NIL;
 	BOOLEAN e;
 	OPT_Node s = NIL, x = NIL, y = NIL, z = NIL, apar = NIL, last = NIL, lastif = NIL;
-	LONGINT pos;
+	INT32 pos;
 	OPS_Name name;
 	struct StatSeq__30 _s;
 	_s.pos = &pos;
@@ -1439,7 +1446,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
 				OPP_qualident(&id);
-				if (!__IN(id->typ->form, 0x70)) {
+				if (!(id->typ->form == 4)) {
 					OPP_err(68);
 				}
 				OPP_CheckSym(34);
@@ -1471,7 +1478,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					SetPos__35(z);
 					OPB_Link(&*stat, &last, z);
 					y = OPB_NewLeaf(t);
-				} else if (y->typ->form < 4 || y->typ->form > x->left->typ->form) {
+				} else if (!(y->typ->form == 4) || y->typ->size > x->left->typ->size) {
 					OPP_err(113);
 				}
 				OPB_Link(&*stat, &last, x);
@@ -1479,7 +1486,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					OPS_Get(&OPP_sym);
 					OPP_ConstExpression(&z);
 				} else {
-					z = OPB_NewIntConst(((LONGINT)(1)));
+					z = OPB_NewIntConst(1);
 				}
 				pos = OPM_errpos;
 				x = OPB_NewLeaf(id);
@@ -1526,7 +1533,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				if (OPP_sym == 38) {
 					OPP_qualident(&id);
 					y = OPB_NewLeaf(id);
-					if ((((id != NIL && id->typ->form == 13)) && (id->mode == 2 || !id->leaf))) {
+					if ((((id != NIL && id->typ->form == 11)) && (id->mode == 2 || !id->leaf))) {
 						OPP_err(245);
 					}
 					OPP_CheckSym(20);
@@ -1621,7 +1628,7 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 	OPT_Struct typ = NIL;
 	OPT_Object obj = NIL, first = NIL, last = NIL;
 	OPT_Node x = NIL, lastdec = NIL;
-	INTEGER i;
+	INT16 i;
 	first = NIL;
 	last = NIL;
 	OPP_nofFwdPtr = 0;
@@ -1642,7 +1649,7 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 					OPP_ConstExpression(&x);
 				} else {
 					OPP_err(9);
-					x = OPB_NewIntConst(((LONGINT)(1)));
+					x = OPB_NewIntConst(1);
 				}
 				obj->mode = 3;
 				obj->typ = x->typ;
@@ -1670,10 +1677,10 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 				if (obj->typ->strobj == NIL) {
 					obj->typ->strobj = obj;
 				}
-				if (__IN(obj->typ->comp, 0x1c)) {
+				if (__IN(obj->typ->comp, 0x1c, 32)) {
 					i = 0;
 					while (i < OPP_nofFwdPtr) {
-						typ = OPP_FwdPtr[__X(i, ((LONGINT)(64)))];
+						typ = OPP_FwdPtr[__X(i, 64)];
 						i += 1;
 						if (__STRCMP(typ->link->name, obj->name) == 0) {
 							typ->BaseTyp = obj->typ;
@@ -1735,10 +1742,10 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 	}
 	i = 0;
 	while (i < OPP_nofFwdPtr) {
-		if (OPP_FwdPtr[__X(i, ((LONGINT)(64)))]->link->name[0] != 0x00) {
+		if (OPP_FwdPtr[__X(i, 64)]->link->name[0] != 0x00) {
 			OPP_err(128);
 		}
-		OPP_FwdPtr[__X(i, ((LONGINT)(64)))] = NIL;
+		OPP_FwdPtr[__X(i, 64)] = NIL;
 		i += 1;
 	}
 	OPT_topScope->adr = OPM_errpos;
@@ -1770,11 +1777,11 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 	OPP_CheckSym(41);
 }
 
-void OPP_Module (OPT_Node *prog, SET opt)
+void OPP_Module (OPT_Node *prog, UINT32 opt)
 {
 	OPS_Name impName, aliasName;
 	OPT_Node procdec = NIL, statseq = NIL;
-	LONGINT c;
+	INT32 c;
 	BOOLEAN done;
 	OPS_Init();
 	OPP_LoopLevel = 0;
@@ -1784,28 +1791,28 @@ void OPP_Module (OPT_Node *prog, SET opt)
 		OPS_Get(&OPP_sym);
 	} else {
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Unexpected symbol found when MODULE expected:", (LONGINT)46);
+		OPM_LogWStr((CHAR*)"Unexpected symbol found when MODULE expected:", 46);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  sym:        ", (LONGINT)15);
-		OPM_LogWNum(OPP_sym, ((LONGINT)(1)));
+		OPM_LogWStr((CHAR*)"  sym:        ", 15);
+		OPM_LogWNum(OPP_sym, 1);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.name:   ", (LONGINT)15);
-		OPM_LogWStr(OPS_name, ((LONGINT)(256)));
+		OPM_LogWStr((CHAR*)"  OPS.name:   ", 15);
+		OPM_LogWStr(OPS_name, 256);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.str:    ", (LONGINT)15);
-		OPM_LogWStr(OPS_str, ((LONGINT)(256)));
+		OPM_LogWStr((CHAR*)"  OPS.str:    ", 15);
+		OPM_LogWStr(OPS_str, 256);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.numtyp: ", (LONGINT)15);
-		OPM_LogWNum(OPS_numtyp, ((LONGINT)(1)));
+		OPM_LogWStr((CHAR*)"  OPS.numtyp: ", 15);
+		OPM_LogWNum(OPS_numtyp, 1);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.intval: ", (LONGINT)15);
-		OPM_LogWNum(OPS_intval, ((LONGINT)(1)));
+		OPM_LogWStr((CHAR*)"  OPS.intval: ", 15);
+		OPM_LogWNum(OPS_intval, 1);
 		OPM_LogWLn();
 		OPP_err(16);
 	}
 	if (OPP_sym == 38) {
-		OPM_LogWStr((CHAR*)"compiling ", (LONGINT)11);
-		OPM_LogWStr(OPS_name, ((LONGINT)(256)));
+		OPM_LogWStr((CHAR*)"compiling ", 11);
+		OPM_LogWStr(OPS_name, 256);
 		OPM_LogW('.');
 		OPT_Init(OPS_name, opt);
 		OPS_Get(&OPP_sym);
@@ -1814,13 +1821,13 @@ void OPP_Module (OPT_Node *prog, SET opt)
 			OPS_Get(&OPP_sym);
 			for (;;) {
 				if (OPP_sym == 38) {
-					__COPY(OPS_name, aliasName, ((LONGINT)(256)));
-					__COPY(aliasName, impName, ((LONGINT)(256)));
+					__COPY(OPS_name, aliasName, 256);
+					__COPY(aliasName, impName, 256);
 					OPS_Get(&OPP_sym);
 					if (OPP_sym == 34) {
 						OPS_Get(&OPP_sym);
 						if (OPP_sym == 38) {
-							__COPY(OPS_name, impName, ((LONGINT)(256)));
+							__COPY(OPS_name, impName, 256);
 							OPS_Get(&OPP_sym);
 						} else {
 							OPP_err(38);

@@ -1,6 +1,6 @@
 (* Test that interrupt and quit are handled correctly. *)
 MODULE SignalTest;
-IMPORT Console, Platform, Files;
+IMPORT Console, Platform, Files, SYSTEM;
 
 VAR result: Files.File; rider: Files.Rider;
 
@@ -24,7 +24,7 @@ BEGIN
 END wi;
 
 
-PROCEDURE handle(signal: INTEGER);
+PROCEDURE handle(signal: SYSTEM.INT32);
 BEGIN
   Console.Ln; Console.String("Signal: "); Console.Int(signal,1); Console.Ln;
   ws("Signal "); wi(signal); wl;

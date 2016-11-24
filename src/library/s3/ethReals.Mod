@@ -3,14 +3,14 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 
 MODULE ethReals;  (** portable *)
 
-(** Implementation of the non-portable components of IEEE REAL and 
-LONGREAL manipulation. The routines here are required to do conversion 
-of reals to strings and back. 
-Implemented by Bernd Moesli, Seminar for Applied Mathematics, 
+(** Implementation of the non-portable components of IEEE REAL and
+LONGREAL manipulation. The routines here are required to do conversion
+of reals to strings and back.
+Implemented by Bernd Moesli, Seminar for Applied Mathematics,
 Swiss Federal Institute of Technology Z…rich.
 *)
 
-IMPORT SYSTEM, Platform, Configuration;
+IMPORT SYSTEM, Modules;
 
 (* Bernd Moesli
   Seminar for Applied Mathematics
@@ -50,7 +50,7 @@ BEGIN
     RETURN SHORT(ASH(SYSTEM.VAL(INTEGER, x), -23)) MOD 256
   ELSIF SIZE(LONGINT) = 4 THEN
     RETURN SHORT(ASH(SYSTEM.VAL(LONGINT, x), -23)) MOD 256
-  ELSE Platform.Halt(-15);
+  ELSE Modules.Halt(-15);
   END
 END Expo;
 
@@ -77,7 +77,7 @@ BEGIN
     SYSTEM.GET(SYSTEM.ADR(x), i);
     i := SHORT(ASH(ASH(ASH(i, -31), 8) + e MOD 256, 23) + i MOD ASH(1, 23));
     SYSTEM.PUT(SYSTEM.ADR(x), i)
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END SetExpo;
 
@@ -93,19 +93,19 @@ BEGIN
     SYSTEM.GET(SYSTEM.ADR(x) + H, i);
     i := SHORT(ASH(ASH(ASH(i, -31), 11) + e MOD 2048, 20) + i MOD ASH(1, 20));
     SYSTEM.PUT(SYSTEM.ADR(x) + H, i)
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END SetExpoL;
 
 (** Convert hexadecimal to REAL. *)
 PROCEDURE Real* (h: LONGINT): REAL;
   VAR x: REAL;
-BEGIN 
+BEGIN
   IF SIZE(LONGINT) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(x), h)
   ELSIF SIZE(INTEGER) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(x), SYSTEM.VAL(INTEGER, h))
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END;
   RETURN x
 END Real;
@@ -113,14 +113,14 @@ END Real;
 (** Convert hexadecimal to LONGREAL. h and l are the high and low parts.*)
 PROCEDURE RealL* (h, l: LONGINT): LONGREAL;
   VAR x: LONGREAL;
-BEGIN 
+BEGIN
   IF SIZE(LONGINT) = 4 THEN
-    SYSTEM.PUT(SYSTEM.ADR(x) + H, h); 
+    SYSTEM.PUT(SYSTEM.ADR(x) + H, h);
     SYSTEM.PUT(SYSTEM.ADR(x) + L, l)
   ELSIF SIZE(INTEGER) = 4 THEN
-    SYSTEM.PUT(SYSTEM.ADR(x) + H, SYSTEM.VAL(INTEGER, h)); 
+    SYSTEM.PUT(SYSTEM.ADR(x) + H, SYSTEM.VAL(INTEGER, h));
     SYSTEM.PUT(SYSTEM.ADR(x) + L, SYSTEM.VAL(INTEGER, l))
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END;
   RETURN x
 END RealL;
@@ -128,26 +128,26 @@ END RealL;
 (** Convert REAL to hexadecimal. *)
 PROCEDURE Int* (x: REAL): LONGINT;
   VAR i: INTEGER; l: LONGINT;
-BEGIN 
+BEGIN
   IF SIZE(LONGINT) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(l), x); RETURN l
   ELSIF SIZE(INTEGER) = 4 THEN
     SYSTEM.PUT(SYSTEM.ADR(i), x); RETURN i
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END Int;
 
 (** Convert LONGREAL to hexadecimal. h and l are the high and low parts. *)
 PROCEDURE IntL* (x: LONGREAL; VAR h, l: LONGINT);
   VAR i: INTEGER;
-BEGIN 
+BEGIN
   IF SIZE(LONGINT) = 4 THEN
-    SYSTEM.GET(SYSTEM.ADR(x) + H, h); 
+    SYSTEM.GET(SYSTEM.ADR(x) + H, h);
     SYSTEM.GET(SYSTEM.ADR(x) + L, l)
   ELSIF SIZE(INTEGER) = 4 THEN
-    SYSTEM.GET(SYSTEM.ADR(x) + H, i); h := i; 
+    SYSTEM.GET(SYSTEM.ADR(x) + H, i); h := i;
     SYSTEM.GET(SYSTEM.ADR(x) + L, i); l := i
-  ELSE Platform.Halt(-15)
+  ELSE Modules.Halt(-15)
   END
 END IntL;
 
@@ -218,69 +218,63 @@ BEGIN
 END SetFCR;
 *)
 
-PROCEDURE RealX (h, l: LONGINT; adr: LONGINT);
-BEGIN 
-  IF SIZE(LONGINT) = 4 THEN
-    SYSTEM.PUT(adr + H, h); SYSTEM.PUT(adr + L, l); 
-  ELSIF SIZE(INTEGER) = 4 THEN
-    SYSTEM.PUT(adr + H, SYSTEM.VAL(INTEGER, h)); 
-    SYSTEM.PUT(adr + L, SYSTEM.VAL(INTEGER, l)); 
-  ELSE Platform.Halt(-15)
-  END
+
+PROCEDURE RealX (v: HUGEINT; VAR lr: LONGREAL);
+BEGIN lr := SYSTEM.VAL(LONGREAL, v)
 END RealX;
 
 BEGIN
-  RealX(03FF00000H, 000000000H, SYSTEM.ADR(tene[0]));
-  RealX(040240000H, 000000000H, SYSTEM.ADR(tene[1]));  (*  1 *)
-  RealX(040590000H, 000000000H, SYSTEM.ADR(tene[2]));  (*  2 *)
-  RealX(0408F4000H, 000000000H, SYSTEM.ADR(tene[3]));  (*  3 *)
-  RealX(040C38800H, 000000000H, SYSTEM.ADR(tene[4]));  (*  4 *)
-  RealX(040F86A00H, 000000000H, SYSTEM.ADR(tene[5]));  (*  5 *)
-  RealX(0412E8480H, 000000000H, SYSTEM.ADR(tene[6]));  (*  6 *)
-  RealX(0416312D0H, 000000000H, SYSTEM.ADR(tene[7]));  (*  7 *)
-  RealX(04197D784H, 000000000H, SYSTEM.ADR(tene[8]));  (*  8 *)
-  RealX(041CDCD65H, 000000000H, SYSTEM.ADR(tene[9]));  (*  9 *)
-  RealX(04202A05FH, 020000000H, SYSTEM.ADR(tene[10])); (* 10 *)
-  RealX(042374876H, 0E8000000H, SYSTEM.ADR(tene[11])); (* 11 *)
-  RealX(0426D1A94H, 0A2000000H, SYSTEM.ADR(tene[12])); (* 12 *)
-  RealX(042A2309CH, 0E5400000H, SYSTEM.ADR(tene[13])); (* 13 *)
-  RealX(042D6BCC4H, 01E900000H, SYSTEM.ADR(tene[14])); (* 14 *)
-  RealX(0430C6BF5H, 026340000H, SYSTEM.ADR(tene[15])); (* 15 *)
-  RealX(04341C379H, 037E08000H, SYSTEM.ADR(tene[16])); (* 16 *)
-  RealX(043763457H, 085D8A000H, SYSTEM.ADR(tene[17])); (* 17 *)
-  RealX(043ABC16DH, 0674EC800H, SYSTEM.ADR(tene[18])); (* 18 *)
-  RealX(043E158E4H, 060913D00H, SYSTEM.ADR(tene[19])); (* 19 *)
-  RealX(04415AF1DH, 078B58C40H, SYSTEM.ADR(tene[20])); (* 20 *)
-  RealX(0444B1AE4H, 0D6E2EF50H, SYSTEM.ADR(tene[21])); (* 21 *)
-  RealX(04480F0CFH, 0064DD592H, SYSTEM.ADR(tene[22])); (* 22 *)
-  
-  RealX(00031FA18H, 02C40C60DH, SYSTEM.ADR(ten[0]));  (* -307 *)
-  RealX(004F7CAD2H, 03DE82D7BH, SYSTEM.ADR(ten[1]));  (* -284 *)
-  RealX(009BF7D22H, 08322BAF5H, SYSTEM.ADR(ten[2]));  (* -261 *)
-  RealX(00E84D669H, 05B193BF8H, SYSTEM.ADR(ten[3]));  (* -238 *)
-  RealX(0134B9408H, 0EEFEA839H, SYSTEM.ADR(ten[4]));  (* -215 *)
-  RealX(018123FF0H, 06EEA847AH, SYSTEM.ADR(ten[5]));  (* -192 *)
-  RealX(01CD82742H, 091C6065BH, SYSTEM.ADR(ten[6]));  (* -169 *)
-  RealX(0219FF779H, 0FD329CB9H, SYSTEM.ADR(ten[7]));  (* -146 *)
-  RealX(02665275EH, 0D8D8F36CH, SYSTEM.ADR(ten[8]));  (* -123 *)
-  RealX(02B2BFF2EH, 0E48E0530H, SYSTEM.ADR(ten[9]));  (* -100 *)
-  RealX(02FF286D8H, 00EC190DCH, SYSTEM.ADR(ten[10])); (*  -77 *)
-  RealX(034B8851AH, 00B548EA4H, SYSTEM.ADR(ten[11])); (*  -54 *)
-  RealX(0398039D6H, 065896880H, SYSTEM.ADR(ten[12])); (*  -31 *)
-  RealX(03E45798EH, 0E2308C3AH, SYSTEM.ADR(ten[13])); (*   -8 *)
-  RealX(0430C6BF5H, 026340000H, SYSTEM.ADR(ten[14])); (*   15 *)
-  RealX(047D2CED3H, 02A16A1B1H, SYSTEM.ADR(ten[15])); (*   38 *)
-  RealX(04C98E45EH, 01DF3B015H, SYSTEM.ADR(ten[16])); (*   61 *)
-  RealX(0516078E1H, 011C3556DH, SYSTEM.ADR(ten[17])); (*   84 *)
-  RealX(05625CCFEH, 03D35D80EH, SYSTEM.ADR(ten[18])); (*  107 *)
-  RealX(05AECDA62H, 0055B2D9EH, SYSTEM.ADR(ten[19])); (*  130 *)
-  RealX(05FB317E5H, 0EF3AB327H, SYSTEM.ADR(ten[20])); (*  153 *)
-  RealX(064794514H, 05230B378H, SYSTEM.ADR(ten[21])); (*  176 *)
-  RealX(06940B8E0H, 0ACAC4EAFH, SYSTEM.ADR(ten[22])); (*  199 *)
-  RealX(06E0621B1H, 0C28AC20CH, SYSTEM.ADR(ten[23])); (*  222 *)
-  RealX(072CD4A7BH, 0EBFA31ABH, SYSTEM.ADR(ten[24])); (*  245 *)
-  RealX(077936214H, 09CBD3226H, SYSTEM.ADR(ten[25])); (*  268 *)
-  RealX(07C59A742H, 0461887F6H, SYSTEM.ADR(ten[26])); (*  291 *)
+  RealX(03FF0000000000000H, tene[0]);
+  RealX(04024000000000000H, tene[1]);    (*  1 *)
+  RealX(04059000000000000H, tene[2]);    (*  2 *)
+  RealX(0408F400000000000H, tene[3]);    (*  3 *)
+  RealX(040C3880000000000H, tene[4]);    (*  4 *)
+  RealX(040F86A0000000000H, tene[5]);    (*  5 *)
+  RealX(0412E848000000000H, tene[6]);    (*  6 *)
+  RealX(0416312D000000000H, tene[7]);    (*  7 *)
+  RealX(04197D78400000000H, tene[8]);    (*  8 *)
+  RealX(041CDCD6500000000H, tene[9]);    (*  9 *)
+  RealX(04202A05F20000000H, tene[10]);   (* 10 *)
+  RealX(042374876E8000000H, tene[11]);   (* 11 *)
+  RealX(0426D1A94A2000000H, tene[12]);   (* 12 *)
+  RealX(042A2309CE5400000H, tene[13]);   (* 13 *)
+  RealX(042D6BCC41E900000H, tene[14]);   (* 14 *)
+  RealX(0430C6BF526340000H, tene[15]);   (* 15 *)
+  RealX(04341C37937E08000H, tene[16]);   (* 16 *)
+  RealX(04376345785D8A000H, tene[17]);   (* 17 *)
+  RealX(043ABC16D674EC800H, tene[18]);   (* 18 *)
+  RealX(043E158E460913D00H, tene[19]);   (* 19 *)
+  RealX(04415AF1D78B58C40H, tene[20]);   (* 20 *)
+  RealX(0444B1AE4D6E2EF50H, tene[21]);   (* 21 *)
+  RealX(04480F0CF064DD592H, tene[22]);   (* 22 *)
+
+  RealX(00031FA182C40C60DH, ten[0]);    (* -307 *)
+  RealX(004F7CAD23DE82D7BH, ten[1]);    (* -284 *)
+  RealX(009BF7D228322BAF5H, ten[2]);    (* -261 *)
+  RealX(00E84D6695B193BF8H, ten[3]);    (* -238 *)
+  RealX(0134B9408EEFEA839H, ten[4]);    (* -215 *)
+  RealX(018123FF06EEA847AH, ten[5]);    (* -192 *)
+  RealX(01CD8274291C6065BH, ten[6]);    (* -169 *)
+  RealX(0219FF779FD329CB9H, ten[7]);    (* -146 *)
+  RealX(02665275ED8D8F36CH, ten[8]);    (* -123 *)
+  RealX(02B2BFF2EE48E0530H, ten[9]);    (* -100 *)
+  RealX(02FF286D80EC190DCH, ten[10]);   (*  -77 *)
+  RealX(034B8851A0B548EA4H, ten[11]);   (*  -54 *)
+  RealX(0398039D665896880H, ten[12]);   (*  -31 *)
+  RealX(03E45798EE2308C3AH, ten[13]);   (*   -8 *)
+  RealX(0430C6BF526340000H, ten[14]);   (*   15 *)
+  RealX(047D2CED32A16A1B1H, ten[15]);   (*   38 *)
+  RealX(04C98E45E1DF3B015H, ten[16]);   (*   61 *)
+  RealX(0516078E111C3556DH, ten[17]);   (*   84 *)
+  RealX(05625CCFE3D35D80EH, ten[18]);   (*  107 *)
+  RealX(05AECDA62055B2D9EH, ten[19]);   (*  130 *)
+  RealX(05FB317E5EF3AB327H, ten[20]);   (*  153 *)
+  RealX(0647945145230B378H, ten[21]);   (*  176 *)
+  RealX(06940B8E0ACAC4EAFH, ten[22]);   (*  199 *)
+  RealX(06E0621B1C28AC20CH, ten[23]);   (*  222 *)
+  RealX(072CD4A7BEBFA31ABH, ten[24]);   (*  245 *)
+  RealX(0779362149CBD3226H, ten[25]);   (*  268 *)
+  RealX(07C59A742461887F6H, ten[26]);   (*  291 *)
 
   eq[0]:= {0, 3, 4, 5, 9, 16, 23, 25, 26, 28, 31};
   eq[1]:= {2, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 27, 28, 29, 30, 31};

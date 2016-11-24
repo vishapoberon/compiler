@@ -50,15 +50,8 @@ MODULE ulmTypes;
    IMPORT SYS := SYSTEM;
 
    TYPE
-      Address* = LONGINT (*SYS.ADDRESS*);
-      (* ulm compiler can accept 
-         VAR p : SYSTEM.ADDRESS; // SYSTEM.PTR in ETH and V4 versions
-         ...
-         p := SYSTEM.ADR(something);
-         and this is how it is used in ulm oberon system library,
-         while SYSTEM.ADR returns LONGINT in ETH and V4 versions.
-         Thus I leave it as LONGINT for now, before coming up with better solution -- noch *)      
-     
+      Address* = SYS.ADDRESS;
+
       UntracedAddress*      = POINTER[1] TO UntracedAddressDesc; (*SYS.UNTRACEDADDRESS;*)
       UntracedAddressDesc* = RECORD[1] END;
 

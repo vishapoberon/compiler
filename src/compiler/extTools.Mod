@@ -1,42 +1,55 @@
 MODULE extTools;
 
-IMPORT Strings, Console, Configuration, Platform, OPM;
+IMPORT Strings, Out, Configuration, Platform, Modules, OPM;
 
-VAR compilationOptions, CFLAGS: ARRAY 1023 OF CHAR;
+VAR CFLAGS: ARRAY 1023 OF CHAR;
 
 
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
   VAR r, status, exitcode: INTEGER;
 BEGIN
-  IF OPM.Verbose THEN Console.String(title); Console.String(cmd); Console.Ln END;
+  IF OPM.verbose IN OPM.Options THEN
+    Out.String(title); Out.String(cmd); Out.Ln
+  END;
   r := Platform.System(cmd);
   status := r MOD 128;
   exitcode := r DIV 256;
   IF exitcode > 127 THEN exitcode := exitcode - 256 END; (* Handle signed exit code *)
 
   IF r # 0 THEN
-    Console.String(title); Console.String(cmd); Console.Ln;
-    Console.String("-- failed: status "); Console.Int(status,1);
-    Console.String(", exitcode ");        Console.Int(exitcode,1);
-    Console.String("."); Console.Ln;
+    Out.String(title); Out.String(cmd); Out.Ln;
+    Out.String("-- failed: status "); Out.Int(status,1);
+    Out.String(", exitcode ");        Out.Int(exitcode,1);
+    Out.String("."); Out.Ln;
     IF (status = 0) & (exitcode = 127) THEN
-      Console.String("Is the C compiler in the current command path?"); Console.Ln
+      Out.String("Is the C compiler in the current command path?"); Out.Ln
     END;
-    IF status # 0 THEN Platform.Halt(status) ELSE Platform.Halt(exitcode) END
+    IF status # 0 THEN Modules.Halt(status) ELSE Modules.Halt(exitcode) END
   END;
 END execute;
+
+
+PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR);
+BEGIN
+  COPY(Configuration.compile, s);
+  Strings.Append(' -I "', s);
+  Strings.Append(OPM.ResourceDir, s);
+  Strings.Append('/include" ', s);
+  Platform.GetEnv("CFLAGS", CFLAGS);
+  Strings.Append (CFLAGS, s);
+  Strings.Append (" ", s);
+END InitialiseCompilerCommand;
 
 
 PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
   VAR
     cmd: ARRAY 1023 OF CHAR;
   BEGIN
-    cmd := Configuration.compile;
-    Strings.Append(compilationOptions, cmd);
-    Strings.Append("-c ",              cmd);
-    Strings.Append(moduleName,         cmd);
-    Strings.Append(".c",               cmd);
-    execute("Assemble: ", cmd);
+    InitialiseCompilerCommand(cmd);
+    Strings.Append("-c ",      cmd);
+    Strings.Append(moduleName, cmd);
+    Strings.Append(".c",       cmd);
+    execute("Assemble: ",      cmd);
   END Assemble;
 
 
@@ -44,9 +57,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
   VAR
     cmd: ARRAY 1023 OF CHAR;
   BEGIN
-    cmd := Configuration.compile;
-    Strings.Append(" ",                        cmd);
-    Strings.Append(compilationOptions,         cmd);
+    InitialiseCompilerCommand(cmd);
     Strings.Append(moduleName,                 cmd);
     Strings.Append(".c ",                      cmd);
     Strings.Append(additionalopts,             cmd);
@@ -59,16 +70,11 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(Configuration.installdir,   cmd);
     Strings.Append('/lib"',                    cmd);
     Strings.Append(Configuration.libspec,      cmd);
-
+    Strings.Append('-O',                       cmd);
+    Strings.Append(OPM.Model,                  cmd);
+    Strings.Append(Configuration.libext,       cmd);
     execute("Assemble and link: ", cmd);
   END LinkMain;
 
 
-BEGIN
-  Strings.Append(' -I "',                  compilationOptions);
-  Strings.Append(Configuration.installdir, compilationOptions);
-  Strings.Append('/include" ',             compilationOptions);
-  Platform.GetEnv("CFLAGS", CFLAGS);
-  Strings.Append (CFLAGS,                  compilationOptions);
-  Strings.Append (" ",                     compilationOptions);
 END extTools.

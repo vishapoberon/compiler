@@ -87,7 +87,7 @@ MODULE Printer;  (*UNIX version: JT 11.5.90, RC 2.7.93,  JS 29.4.94, JT 14.4.95 
     VAR family: ARRAY 7 OF CHAR;
   BEGIN
     COPY(fname, family);
-    Ch(fontR, "/"); Str(fontR, fname); 
+    Ch(fontR, "/"); Str(fontR, fname);
     IF family = "Syntax" THEN Str(fontR, " DefineSMapFont") ELSE Str(fontR, " DefineMapFont") END;
     Ln(fontR); Ln(fontR);
   END SetMappedFont;
@@ -161,7 +161,7 @@ MODULE Printer;  (*UNIX version: JT 11.5.90, RC 2.7.93,  JS 29.4.94, JT 14.4.95 
       | 92:  Str(fontR, "backslash")
       | 93: Str(fontR, "bracketright")
       | 94: Str(fontR, "arrowup")
-      | 95: Str(fontR, "underscore") 
+      | 95: Str(fontR, "underscore")
       | 96: Str(fontR, "grave")
       | 97..122: Ch(fontR, CHR(m))
       | 123: Str(fontR, "braceleft")
@@ -205,8 +205,8 @@ MODULE Printer;  (*UNIX version: JT 11.5.90, RC 2.7.93,  JS 29.4.94, JT 14.4.95 
     Str(fontR, "% Conversion of the Oberon font "); Str(fontR, fd.name); Ln(fontR);
     Files.Read(R, ch);
     IF ch = fontFileId THEN
-      Files.Read(R, ch); Str(fontR, "% abstraction: "); Int(fontR, ORD(ch)); 
-      Files.Read(R, ch); Str(fontR, ", family: "); Ch(fontR, ch); 
+      Files.Read(R, ch); Str(fontR, "% abstraction: "); Int(fontR, ORD(ch));
+      Files.Read(R, ch); Str(fontR, ", family: "); Ch(fontR, ch);
       Files.Read(R, ch); Str(fontR, ", variant: "); Int(fontR, ORD(ch)); Ln(fontR);
       Files.ReadInt(R, height); Str(fontR, "% height: "); Int(fontR, height); Ln(fontR); Ln(fontR);
       Files.ReadInt(R, minX); Files.ReadInt(R, maxX);
@@ -223,7 +223,7 @@ MODULE Printer;  (*UNIX version: JT 11.5.90, RC 2.7.93,  JS 29.4.94, JT 14.4.95 
       Str(fontR, "/FontMatrix [ 72 "); Int(fontR, pRes); Str(fontR, " div "); Str(fontR, " .24 div 0 0 ");
       Str(fontR, "72 "); Int(fontR, pRes); Str(fontR, " div "); Str(fontR, " .24 div 0 0");
       Str(fontR, "] def"); Ln(fontR);
-      Str(fontR, "/FontBBox [");  
+      Str(fontR, "/FontBBox [");
       Int(fontR, minX); Ch(fontR, " ");
       Int(fontR, minY); Ch(fontR, " ");
       Int(fontR, maxX); Ch(fontR, " ");
@@ -339,7 +339,7 @@ END;
       Error("file not found", headerFileName)
     END
   END Open;
-  
+
   PROCEDURE UseListFont*(VAR name: ARRAY OF CHAR);
   BEGIN
     COPY(name, listFont); curFont := -1
@@ -368,7 +368,7 @@ END;
     IF fname = listFont THEN fontname := "Courier8.Scn.Fnt" ELSE COPY(fname, fontname) END ;
     IF (curFont < 0) OR (fontTable[curFont].name # fontname) THEN
       COPY(fontname, fontTable[fontIndex+1].name);
-      i := 0; WHILE i < 8 DO fontTable[fontIndex+1].used[i] := {}; INC(i) END;    
+      i := 0; WHILE i < 8 DO fontTable[fontIndex+1].used[i] := {}; INC(i) END;
       fNo := 0;
       WHILE fontTable[fNo].name # fontname DO INC(fNo) END;
       IF fNo > fontIndex THEN (* DefineFont(fontname); *) fontIndex := fNo END;
@@ -394,7 +394,7 @@ END;
     END;
     Str(bodyR, ") s"); Ln(bodyR)
   END ContString;
-  
+
   PROCEDURE String*(x, y: INTEGER; VAR s, fname: ARRAY OF CHAR);
   BEGIN
     Int(bodyR, x); Ch(bodyR, " ");
@@ -410,7 +410,7 @@ END;
     Int(bodyR, col); Str(bodyR, " b"); Ln(bodyR);
   END ReplPattern;
 
-  PROCEDURE Picture*(x, y, w, h, mode: INTEGER; adr: LONGINT);
+  PROCEDURE Picture*(x, y, w, h, mode: INTEGER; adr: SYSTEM.ADDRESS);
     VAR n, i, v: INTEGER; ch: CHAR;
   BEGIN
     Int(bodyR, x); Ch(bodyR, " ");
@@ -517,7 +517,7 @@ END;
     a[i] := 2.0*b[i-1] + hn; d[i] := d1 + dn;
     w[i] := 1.0; i := 0;
     WHILE i < n-2 DO c[i] := c[i]/a[i]; a[i+1] := a[i+1] - c[i]*b[i]; INC(i) END ;
-    SolveTriDiag(a, b, c, d, n-1); SolveTriDiag(a, b, c, w, n-1); 
+    SolveTriDiag(a, b, c, d, n-1); SolveTriDiag(a, b, c, w, n-1);
     d1 := (d[0] + d[i])/(w[0] + w[i] + x[i+1] - x[i]); i := 0;
     WHILE i < n-1 DO d[i] := d[i] - d1*w[i]; INC(i) END ;
     d[i] := d[0]
@@ -582,7 +582,7 @@ END;
   END Spline;
 
   PROCEDURE Page*(nofcopies: INTEGER);
-  BEGIN 
+  BEGIN
     curR := 0; curG := 0; curB := 0; curFont := -1;
     INC(pno); ppos := Files.Pos(bodyR); PrintCopies := nofcopies;
     IF PrintMode[1] # ":" THEN
@@ -639,7 +639,7 @@ END;
     IF PrinterName # "none" THEN Files.Write(printR, 4X) (*force reset postscript*) END ;
     Files.Register(printF);
     IF PrinterName # "none" THEN
-      cmd := "lp -c -s "; 
+      cmd := "lp -c -s ";
       IF PrinterName # "Pluto" THEN Append(cmd, "-d "); Append(cmd, PrinterName) END ;
       Append(cmd, " "); Append(cmd, printFileName);
       i := Platform.System(cmd);

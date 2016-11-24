@@ -6,22 +6,29 @@ use Cwd;
 
 my $branch = "master";
 
+
 if (defined($ARGV[0]) && ($ARGV[0] ne "")) {$branch = $ARGV[0]}
 
 my %machines = (
   "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
   "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
-  "wind"    => ['-p5932 dave@wax', "",     "vishaps/voc",                "export CC=gcc && make full;"
-                                                                       . "export CC=i686-w64-mingw32-gcc && make full;"
+  "cygwin"  => ['-p5932 dave@wax', "",     "oberon/cygwin/voc",        "export CC=gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd vishaps/voc && git pull && git checkout $branch && git pull;"
-                                                                                         . "export CC=gcc && make full;"
-                                                                                         . "export CC=x86_64-w64-mingw32-gcc && make full\\\""],
+                                                                       . "sh start64.sh \\\"cd oberon/cygwin/voc && git reset --hard && git clean -dfx &&"
+                                                                                         . "git pull && git checkout $branch && git pull;"
+                                                                                         . "export CC=gcc && make full;\\\""],
+  "mingw"   => ['-p5932 dave@wax', "",     "oberon/mingw/voc",         "export CC=i686-w64-mingw32-gcc && make full;"
+                                                                       . "cd ~;"
+                                                                       . "sh start64.sh \\\"cd oberon/mingw/voc && git reset --hard && git clean -dfx &&"
+                                                                                         . "git pull && git checkout $branch && git pull;"
+                                                                                         . "export CC=x86_64-w64-mingw32-gcc && make full;\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
-  "lub32"   => ['dave@lub32',      "sudo", "vishap/voc",                 "make full"],
+  "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
+  "lub32"   => ['dave@vim-lub32',  "sudo", "oberon/voc",                 "make full"],
+  "fed64"   => ['dave@vim-fed64',  "sudo", "oberon/voc",                 "make full"],
+  "osu64"   => ['dave@vim-osu64',  "sudo", "oberon/voc",                 "make full"],
   "ob32"    => ['root@nas-ob32',   "",     "vishap/voc",                 "make full"],
   "ce64"    => ['-p5922 obe@www',  "sudo", "vishap/voc",                 "make full"],
-  "ub64"    => ['dave@nas-ub64',   "sudo", "vishap/voc",                 "make full"],
   "fb64"    => ['root@oberon',     "",     "vishap/voc",                 "make full"]
 );
 
@@ -55,7 +62,8 @@ unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && $sudo git pull && $sudo git checkout -f $branch && $sudo git pull && $sudo $mkcmd\" ";
+  my $cmd = "ssh $login \"cd $dir && $sudo git reset --hard && $sudo git clean -dfx &&"
+          . "$sudo git pull && $sudo git checkout -f $branch && $sudo git pull && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 

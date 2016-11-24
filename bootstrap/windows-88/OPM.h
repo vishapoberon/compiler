@@ -1,66 +1,71 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
 
-#define LARGE
 #include "SYSTEM.h"
 
 
-import INTEGER OPM_Alignment, OPM_ByteSize, OPM_CharSize, OPM_BoolSize, OPM_SIntSize, OPM_IntSize, OPM_LIntSize, OPM_SetSize, OPM_RealSize, OPM_LRealSize, OPM_PointerSize, OPM_ProcSize, OPM_RecSize, OPM_MaxSet;
-import LONGINT OPM_MaxIndex;
+import CHAR OPM_Model[10];
+import INT16 OPM_AddressSize, OPM_Alignment;
+import UINT32 OPM_GlobalOptions, OPM_Options;
+import INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize;
+import INT64 OPM_MaxIndex;
 import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;
-import LONGINT OPM_curpos, OPM_errpos, OPM_breakpc;
-import INTEGER OPM_currFile, OPM_level, OPM_pc, OPM_entno;
+import INT32 OPM_curpos, OPM_errpos, OPM_breakpc;
+import INT16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 import CHAR OPM_modName[32];
 import CHAR OPM_objname[64];
-import SET OPM_opt, OPM_glbopt;
-import BOOLEAN OPM_dontAsm, OPM_dontLink, OPM_mainProg, OPM_mainLinkStat, OPM_notColorOutput, OPM_forceNewSym, OPM_Verbose;
+import CHAR OPM_ResourceDir[1024];
 
 
 import void OPM_CloseFiles (void);
 import void OPM_CloseOldSym (void);
 import void OPM_DeleteNewSym (void);
-import void OPM_FPrint (LONGINT *fp, LONGINT val);
-import void OPM_FPrintLReal (LONGINT *fp, LONGREAL lr);
-import void OPM_FPrintReal (LONGINT *fp, REAL real);
-import void OPM_FPrintSet (LONGINT *fp, SET set);
+import void OPM_FPrint (INT32 *fp, INT64 val);
+import void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
+import void OPM_FPrintReal (INT32 *fp, REAL val);
+import void OPM_FPrintSet (INT32 *fp, UINT64 val);
 import void OPM_Get (CHAR *ch);
 import void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
 import void OPM_InitOptions (void);
+import INT16 OPM_Integer (INT64 n);
+import void OPM_LogVT100 (CHAR *vt100code, LONGINT vt100code__len);
 import void OPM_LogW (CHAR ch);
 import void OPM_LogWLn (void);
-import void OPM_LogWNum (LONGINT i, LONGINT len);
+import void OPM_LogWNum (INT64 i, INT64 len);
 import void OPM_LogWStr (CHAR *s, LONGINT s__len);
-import void OPM_Mark (INTEGER n, LONGINT pos);
+import INT32 OPM_Longint (INT64 n);
+import void OPM_Mark (INT16 n, INT32 pos);
 import void OPM_NewSym (CHAR *modName, LONGINT modName__len);
 import void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
 import void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
 import BOOLEAN OPM_OpenPar (void);
 import void OPM_RegisterNewSym (void);
-import LONGINT OPM_SignedMaximum (LONGINT bytecount);
-import LONGINT OPM_SignedMinimum (LONGINT bytecount);
+import INT64 OPM_SignedMaximum (INT32 bytecount);
+import INT64 OPM_SignedMinimum (INT32 bytecount);
 import void OPM_SymRCh (CHAR *ch);
-import LONGINT OPM_SymRInt (void);
+import INT32 OPM_SymRInt (void);
+import INT64 OPM_SymRInt64 (void);
 import void OPM_SymRLReal (LONGREAL *lr);
 import void OPM_SymRReal (REAL *r);
-import void OPM_SymRSet (SET *s);
+import void OPM_SymRSet (UINT64 *s);
 import void OPM_SymWCh (CHAR ch);
-import void OPM_SymWInt (LONGINT i);
+import void OPM_SymWInt (INT64 i);
 import void OPM_SymWLReal (LONGREAL lr);
 import void OPM_SymWReal (REAL r);
-import void OPM_SymWSet (SET s);
+import void OPM_SymWSet (UINT64 s);
 import void OPM_Write (CHAR ch);
-import void OPM_WriteHex (LONGINT i);
-import void OPM_WriteInt (LONGINT i);
+import void OPM_WriteHex (INT64 i);
+import void OPM_WriteInt (INT64 i);
 import void OPM_WriteLn (void);
 import void OPM_WriteReal (LONGREAL r, CHAR suffx);
 import void OPM_WriteString (CHAR *s, LONGINT s__len);
 import void OPM_WriteStringVar (CHAR *s, LONGINT s__len);
 import BOOLEAN OPM_eofSF (void);
-import void OPM_err (INTEGER n);
+import void OPM_err (INT16 n);
 import void *OPM__init(void);
 
 
-#endif
+#endif // OPM

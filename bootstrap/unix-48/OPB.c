@@ -1,18 +1,23 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin xtspkaSfF */
+/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
+
 #include "SYSTEM.h"
 #include "OPM.h"
 #include "OPS.h"
 #include "OPT.h"
 
 
-export void (*OPB_typSize)(OPT_Struct);
-static INTEGER OPB_exp;
-static LONGINT OPB_maxExp;
+static INT16 OPB_exp;
+static INT64 OPB_maxExp;
 
 
 export void OPB_Assign (OPT_Node *x, OPT_Node y);
-static void OPB_BindNodes (SHORTINT class, OPT_Struct typ, OPT_Node *x, OPT_Node y);
-static LONGINT OPB_BoolToInt (BOOLEAN b);
+static void OPB_BindNodes (INT8 class, OPT_Struct typ, OPT_Node *x, OPT_Node y);
+static INT16 OPB_BoolToInt (BOOLEAN b);
 export void OPB_Call (OPT_Node *x, OPT_Node apar, OPT_Object fp);
 static void OPB_CharToString (OPT_Node n);
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode);
@@ -20,10 +25,10 @@ static void OPB_CheckLeaf (OPT_Node x, BOOLEAN dynArrToo);
 export void OPB_CheckParameters (OPT_Object fp, OPT_Object ap, BOOLEAN checkNames);
 static void OPB_CheckProc (OPT_Struct x, OPT_Object y);
 static void OPB_CheckPtr (OPT_Node x, OPT_Node y);
-static void OPB_CheckRealType (INTEGER f, INTEGER nr, OPT_Const x);
+static void OPB_CheckRealType (INT16 f, INT16 nr, OPT_Const x);
 static void OPB_CheckReceiver (OPT_Node *x, OPT_Object fp);
-static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y);
-export void OPB_Construct (SHORTINT class, OPT_Node *x, OPT_Node y);
+static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y);
+export void OPB_Construct (INT8 class, OPT_Node *x, OPT_Node y);
 static void OPB_Convert (OPT_Node *x, OPT_Struct typ);
 export void OPB_DeRef (OPT_Node *x);
 static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpar);
@@ -33,19 +38,17 @@ export void OPB_Field (OPT_Node *x, OPT_Object y);
 export void OPB_In (OPT_Node *x, OPT_Node y);
 export void OPB_Index (OPT_Node *x, OPT_Node y);
 export void OPB_Inittd (OPT_Node *inittd, OPT_Node *last, OPT_Struct typ);
-static BOOLEAN OPB_IntToBool (LONGINT i);
-static OPT_Struct OPB_IntType (LONGINT size);
+static BOOLEAN OPB_IntToBool (INT64 i);
 export void OPB_Link (OPT_Node *x, OPT_Node *last, OPT_Node y);
-static LONGINT OPB_LongerSize (LONGINT i);
-export void OPB_MOp (SHORTINT op, OPT_Node *x);
+export void OPB_MOp (INT8 op, OPT_Node *x);
 export OPT_Node OPB_NewBoolConst (BOOLEAN boolval);
-export OPT_Node OPB_NewIntConst (LONGINT intval);
+export OPT_Node OPB_NewIntConst (INT64 intval);
 export OPT_Node OPB_NewLeaf (OPT_Object obj);
 export OPT_Node OPB_NewRealConst (LONGREAL realval, OPT_Struct typ);
-export OPT_Node OPB_NewString (OPS_String str, LONGINT len);
+export OPT_Node OPB_NewString (OPS_String str, INT64 len);
 export OPT_Node OPB_Nil (void);
 static BOOLEAN OPB_NotVar (OPT_Node x);
-export void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y);
+export void OPB_Op (INT8 op, OPT_Node *x, OPT_Node y);
 export void OPB_OptIf (OPT_Node *x);
 export void OPB_Param (OPT_Node ap, OPT_Object fp);
 export void OPB_PrepCall (OPT_Node *x, OPT_Object *fpar);
@@ -53,26 +56,24 @@ export void OPB_Return (OPT_Node *x, OPT_Object proc);
 export void OPB_SetElem (OPT_Node *x);
 static void OPB_SetIntType (OPT_Node node);
 export void OPB_SetRange (OPT_Node *x, OPT_Node y);
-static LONGINT OPB_ShorterSize (LONGINT i);
-static INTEGER OPB_SignedByteSize (LONGINT n);
-export void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno);
-export void OPB_StPar0 (OPT_Node *par0, INTEGER fctno);
-export void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno);
-export void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n);
-export void OPB_StaticLink (SHORTINT dlev);
+static void OPB_SetSetType (OPT_Node node);
+export void OPB_StFct (OPT_Node *par0, INT8 fctno, INT16 parno);
+export void OPB_StPar0 (OPT_Node *par0, INT16 fctno);
+export void OPB_StPar1 (OPT_Node *par0, OPT_Node x, INT8 fctno);
+export void OPB_StParN (OPT_Node *par0, OPT_Node x, INT16 fctno, INT16 n);
+export void OPB_StaticLink (INT8 dlev);
 export void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard);
-static void OPB_err (INTEGER n);
-static LONGINT OPB_log (LONGINT x);
+static void OPB_err (INT16 n);
+static INT64 OPB_log (INT64 x);
 
 
-static void OPB_err (INTEGER n)
+static void OPB_err (INT16 n)
 {
 	OPM_err(n);
 }
 
 OPT_Node OPB_NewLeaf (OPT_Object obj)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	switch (obj->mode) {
 		case 1: 
@@ -100,11 +101,10 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 	}
 	node->obj = obj;
 	node->typ = obj->typ;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
-void OPB_Construct (SHORTINT class, OPT_Node *x, OPT_Node y)
+void OPB_Construct (INT8 class, OPT_Node *x, OPT_Node y)
 {
 	OPT_Node node = NIL;
 	node = OPT_NewNode(class);
@@ -127,42 +127,29 @@ void OPB_Link (OPT_Node *x, OPT_Node *last, OPT_Node y)
 	*last = y;
 }
 
-static LONGINT OPB_BoolToInt (BOOLEAN b)
+static INT16 OPB_BoolToInt (BOOLEAN b)
 {
-	LONGINT _o_result;
 	if (b) {
-		_o_result = 1;
-		return _o_result;
+		return 1;
 	} else {
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
-static BOOLEAN OPB_IntToBool (LONGINT i)
+static BOOLEAN OPB_IntToBool (INT64 i)
 {
-	BOOLEAN _o_result;
-	if (i == 0) {
-		_o_result = 0;
-		return _o_result;
-	} else {
-		_o_result = 1;
-		return _o_result;
-	}
-	__RETCHK;
+	return i != 0;
 }
 
 OPT_Node OPB_NewBoolConst (BOOLEAN boolval)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->typ = OPT_booltyp;
 	x->conval = OPT_NewConst();
 	x->conval->intval = OPB_BoolToInt(boolval);
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 void OPB_OptIf (OPT_Node *x)
@@ -202,130 +189,72 @@ void OPB_OptIf (OPT_Node *x)
 
 OPT_Node OPB_Nil (void)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->typ = OPT_niltyp;
 	x->conval = OPT_NewConst();
 	x->conval->intval = 0;
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 OPT_Node OPB_EmptySet (void)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->typ = OPT_settyp;
 	x->conval = OPT_NewConst();
 	x->conval->setval = 0x0;
-	_o_result = x;
-	return _o_result;
-}
-
-static INTEGER OPB_SignedByteSize (LONGINT n)
-{
-	INTEGER _o_result;
-	INTEGER b;
-	if (n < 0) {
-		n = -(n + 1);
-	}
-	b = 1;
-	while ((b < 8 && __ASH(n, -(__ASHL(b, 3) - 1)) != 0)) {
-		b += 1;
-	}
-	_o_result = b;
-	return _o_result;
-}
-
-static LONGINT OPB_ShorterSize (LONGINT i)
-{
-	LONGINT _o_result;
-	if (i >= (int)OPM_LIntSize) {
-		_o_result = OPM_IntSize;
-		return _o_result;
-	} else {
-		_o_result = OPM_SIntSize;
-		return _o_result;
-	}
-	__RETCHK;
-}
-
-static LONGINT OPB_LongerSize (LONGINT i)
-{
-	LONGINT _o_result;
-	if (i <= (int)OPM_SIntSize) {
-		_o_result = OPM_IntSize;
-		return _o_result;
-	} else {
-		_o_result = OPM_LIntSize;
-		return _o_result;
-	}
-	__RETCHK;
-}
-
-static OPT_Struct OPB_IntType (LONGINT size)
-{
-	OPT_Struct _o_result;
-	OPT_Struct result = NIL;
-	if (size <= OPT_sinttyp->size) {
-		result = OPT_sinttyp;
-	} else if (size <= OPT_inttyp->size) {
-		result = OPT_inttyp;
-	} else {
-		result = OPT_linttyp;
-	}
-	if (size > OPT_linttyp->size) {
-		OPB_err(203);
-	}
-	_o_result = result;
-	return _o_result;
+	return x;
 }
 
 static void OPB_SetIntType (OPT_Node node)
 {
-	node->typ = OPB_IntType(OPB_SignedByteSize(node->conval->intval));
+	node->typ = OPT_IntType(OPT_IntSize(node->conval->intval));
 }
 
-OPT_Node OPB_NewIntConst (LONGINT intval)
+static void OPB_SetSetType (OPT_Node node)
 {
-	OPT_Node _o_result;
+	INT32 i32;
+	__GET((ADDRESS)&node->conval->setval + 4, i32, INT32);
+	if (i32 == 0) {
+		node->typ = OPT_set32typ;
+	} else {
+		node->typ = OPT_set64typ;
+	}
+}
+
+OPT_Node OPB_NewIntConst (INT64 intval)
+{
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->conval = OPT_NewConst();
 	x->conval->intval = intval;
 	OPB_SetIntType(x);
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
 OPT_Node OPB_NewRealConst (LONGREAL realval, OPT_Struct typ)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->conval = OPT_NewConst();
 	x->conval->realval = realval;
 	x->typ = typ;
 	x->conval->intval = -1;
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
-OPT_Node OPB_NewString (OPS_String str, LONGINT len)
+OPT_Node OPB_NewString (OPS_String str, INT64 len)
 {
-	OPT_Node _o_result;
 	OPT_Node x = NIL;
 	x = OPT_NewNode(7);
 	x->conval = OPT_NewConst();
 	x->typ = OPT_stringtyp;
 	x->conval->intval = -1;
-	x->conval->intval2 = len;
+	x->conval->intval2 = OPM_Longint(len);
 	x->conval->ext = OPT_NewExt();
-	__COPY(str, *x->conval->ext, ((LONGINT)(256)));
-	_o_result = x;
-	return _o_result;
+	__COPY(str, *x->conval->ext, 256);
+	return x;
 }
 
 static void OPB_CharToString (OPT_Node n)
@@ -345,7 +274,7 @@ static void OPB_CharToString (OPT_Node n)
 	n->obj = NIL;
 }
 
-static void OPB_BindNodes (SHORTINT class, OPT_Struct typ, OPT_Node *x, OPT_Node y)
+static void OPB_BindNodes (INT8 class, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 {
 	OPT_Node node = NIL;
 	node = OPT_NewNode(class);
@@ -357,9 +286,7 @@ static void OPB_BindNodes (SHORTINT class, OPT_Struct typ, OPT_Node *x, OPT_Node
 
 static BOOLEAN OPB_NotVar (OPT_Node x)
 {
-	BOOLEAN _o_result;
-	_o_result = (x->class >= 7 && ((x->class != 11 || x->subcl != 29) || x->left->class >= 7));
-	return _o_result;
+	return (x->class >= 7 && ((x->class != 11 || x->subcl != 29) || x->left->class >= 7));
 }
 
 void OPB_DeRef (OPT_Node *x)
@@ -369,7 +296,7 @@ void OPB_DeRef (OPT_Node *x)
 	typ = (*x)->typ;
 	if ((*x)->class >= 7) {
 		OPB_err(78);
-	} else if (typ->form == 13) {
+	} else if (typ->form == 11) {
 		if (typ == OPT_sysptrtyp) {
 			OPB_err(57);
 		}
@@ -387,18 +314,18 @@ void OPB_DeRef (OPT_Node *x)
 
 void OPB_Index (OPT_Node *x, OPT_Node y)
 {
-	INTEGER f;
+	INT16 f;
 	OPT_Struct typ = NIL;
 	f = y->typ->form;
 	if ((*x)->class >= 7) {
 		OPB_err(79);
-	} else if (!__IN(f, 0x70) || __IN(y->class, 0x0300)) {
+	} else if (f != 4 || __IN(y->class, 0x0300, 32)) {
 		OPB_err(80);
 		y->typ = OPT_inttyp;
 	}
 	if ((*x)->typ->comp == 2) {
 		typ = (*x)->typ->BaseTyp;
-		if ((y->class == 7 && (y->conval->intval < 0 || y->conval->intval >= (*x)->typ->n))) {
+		if ((y->class == 7 && (y->conval->intval < 0 || y->conval->intval >= (INT64)(*x)->typ->n))) {
 			OPB_err(81);
 		}
 	} else if ((*x)->typ->comp == 3) {
@@ -419,7 +346,7 @@ void OPB_Field (OPT_Node *x, OPT_Object y)
 	if ((*x)->class >= 7) {
 		OPB_err(77);
 	}
-	if ((y != NIL && __IN(y->mode, 0x2010))) {
+	if ((y != NIL && __IN(y->mode, 0x2010, 32))) {
 		OPB_BindNodes(2, y->typ, &*x, NIL);
 		(*x)->obj = y;
 		(*x)->readonly = (*x)->left->readonly || (y->vis == 2 && y->mnolev < 0);
@@ -429,16 +356,16 @@ void OPB_Field (OPT_Node *x, OPT_Object y)
 	}
 }
 
-static struct TypTest__61 {
+static struct TypTest__58 {
 	OPT_Node *x;
 	OPT_Object *obj;
 	BOOLEAN *guard;
-	struct TypTest__61 *lnk;
-} *TypTest__61_s;
+	struct TypTest__58 *lnk;
+} *TypTest__58_s;
 
-static void GTT__62 (OPT_Struct t0, OPT_Struct t1);
+static void GTT__59 (OPT_Struct t0, OPT_Struct t1);
 
-static void GTT__62 (OPT_Struct t0, OPT_Struct t1)
+static void GTT__59 (OPT_Struct t0, OPT_Struct t1)
 {
 	OPT_Node node = NIL;
 	OPT_Struct t = NIL;
@@ -451,54 +378,54 @@ static void GTT__62 (OPT_Struct t0, OPT_Struct t1)
 			t1 = t1->BaseTyp;
 		}
 		if (t1 == t0 || t0->form == 0) {
-			if (*TypTest__61_s->guard) {
-				OPB_BindNodes(5, NIL, &*TypTest__61_s->x, NIL);
-				(*TypTest__61_s->x)->readonly = (*TypTest__61_s->x)->left->readonly;
+			if (*TypTest__58_s->guard) {
+				OPB_BindNodes(5, NIL, &*TypTest__58_s->x, NIL);
+				(*TypTest__58_s->x)->readonly = (*TypTest__58_s->x)->left->readonly;
 			} else {
 				node = OPT_NewNode(11);
 				node->subcl = 16;
-				node->left = *TypTest__61_s->x;
-				node->obj = *TypTest__61_s->obj;
-				*TypTest__61_s->x = node;
+				node->left = *TypTest__58_s->x;
+				node->obj = *TypTest__58_s->obj;
+				*TypTest__58_s->x = node;
 			}
 		} else {
 			OPB_err(85);
 		}
 	} else if (t0 != t1) {
 		OPB_err(85);
-	} else if (!*TypTest__61_s->guard) {
-		if ((*TypTest__61_s->x)->class == 5) {
+	} else if (!*TypTest__58_s->guard) {
+		if ((*TypTest__58_s->x)->class == 5) {
 			node = OPT_NewNode(11);
 			node->subcl = 16;
-			node->left = *TypTest__61_s->x;
-			node->obj = *TypTest__61_s->obj;
-			*TypTest__61_s->x = node;
+			node->left = *TypTest__58_s->x;
+			node->obj = *TypTest__58_s->obj;
+			*TypTest__58_s->x = node;
 		} else {
-			*TypTest__61_s->x = OPB_NewBoolConst(1);
+			*TypTest__58_s->x = OPB_NewBoolConst(1);
 		}
 	}
 }
 
 void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard)
 {
-	struct TypTest__61 _s;
+	struct TypTest__58 _s;
 	_s.x = x;
 	_s.obj = &obj;
 	_s.guard = &guard;
-	_s.lnk = TypTest__61_s;
-	TypTest__61_s = &_s;
+	_s.lnk = TypTest__58_s;
+	TypTest__58_s = &_s;
 	if (OPB_NotVar(*x)) {
 		OPB_err(112);
-	} else if ((*x)->typ->form == 13) {
+	} else if ((*x)->typ->form == 11) {
 		if (((*x)->typ->BaseTyp->comp != 4 && (*x)->typ != OPT_sysptrtyp)) {
 			OPB_err(85);
-		} else if (obj->typ->form == 13) {
-			GTT__62((*x)->typ->BaseTyp, obj->typ->BaseTyp);
+		} else if (obj->typ->form == 11) {
+			GTT__59((*x)->typ->BaseTyp, obj->typ->BaseTyp);
 		} else {
 			OPB_err(86);
 		}
 	} else if (((((*x)->typ->comp == 4 && (*x)->class == 1)) && obj->typ->comp == 4)) {
-		GTT__62((*x)->typ, obj->typ);
+		GTT__59((*x)->typ, obj->typ);
 	} else {
 		OPB_err(87);
 	}
@@ -507,23 +434,23 @@ void OPB_TypTest (OPT_Node *x, OPT_Object obj, BOOLEAN guard)
 	} else {
 		(*x)->typ = OPT_booltyp;
 	}
-	TypTest__61_s = _s.lnk;
+	TypTest__58_s = _s.lnk;
 }
 
 void OPB_In (OPT_Node *x, OPT_Node y)
 {
-	INTEGER f;
-	LONGINT k;
+	INT16 f;
+	INT64 k;
 	f = (*x)->typ->form;
 	if ((((*x)->class == 8 || (*x)->class == 9) || y->class == 8) || y->class == 9) {
 		OPB_err(126);
-	} else if ((__IN(f, 0x70) && y->typ->form == 9)) {
+	} else if ((f == 4 && y->typ->form == 7)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (k < 0 || k > (int)OPM_MaxSet) {
+			if (k < 0 || k >= (INT64)__ASHL(y->typ->size, 3)) {
 				OPB_err(202);
 			} else if (y->class == 7) {
-				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval));
+				(*x)->conval->intval = OPB_BoolToInt(__IN(k, y->conval->setval, 64));
 				(*x)->obj = NIL;
 			} else {
 				OPB_BindNodes(12, OPT_booltyp, &*x, y);
@@ -539,9 +466,8 @@ void OPB_In (OPT_Node *x, OPT_Node y)
 	(*x)->typ = OPT_booltyp;
 }
 
-static LONGINT OPB_log (LONGINT x)
+static INT64 OPB_log (INT64 x)
 {
-	LONGINT _o_result;
 	OPB_exp = 0;
 	if (x > 0) {
 		while (!__ODD(x)) {
@@ -549,14 +475,13 @@ static LONGINT OPB_log (LONGINT x)
 			OPB_exp += 1;
 		}
 	}
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
-static void OPB_CheckRealType (INTEGER f, INTEGER nr, OPT_Const x)
+static void OPB_CheckRealType (INT16 f, INT16 nr, OPT_Const x)
 {
 	LONGREAL min, max, r;
-	if (f == 7) {
+	if (f == 5) {
 		min = OPM_MinReal;
 		max = OPM_MaxReal;
 	} else {
@@ -567,38 +492,36 @@ static void OPB_CheckRealType (INTEGER f, INTEGER nr, OPT_Const x)
 	if (r > max || r < min) {
 		OPB_err(nr);
 		x->realval = (LONGREAL)1;
-	} else if (f == 7) {
+	} else if (f == 5) {
 		x->realval = x->realval;
 	}
 	x->intval = -1;
 }
 
-static struct MOp__30 {
-	struct MOp__30 *lnk;
-} *MOp__30_s;
+static struct MOp__28 {
+	struct MOp__28 *lnk;
+} *MOp__28_s;
 
-static OPT_Node NewOp__31 (SHORTINT op, OPT_Struct typ, OPT_Node z);
+static OPT_Node NewOp__29 (INT8 op, OPT_Struct typ, OPT_Node z);
 
-static OPT_Node NewOp__31 (SHORTINT op, OPT_Struct typ, OPT_Node z)
+static OPT_Node NewOp__29 (INT8 op, OPT_Struct typ, OPT_Node z)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	node = OPT_NewNode(11);
 	node->subcl = op;
 	node->typ = typ;
 	node->left = z;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
-void OPB_MOp (SHORTINT op, OPT_Node *x)
+void OPB_MOp (INT8 op, OPT_Node *x)
 {
-	INTEGER f;
+	INT16 f;
 	OPT_Struct typ = NIL;
 	OPT_Node z = NIL;
-	struct MOp__30 _s;
-	_s.lnk = MOp__30_s;
-	MOp__30_s = &_s;
+	struct MOp__28 _s;
+	_s.lnk = MOp__28_s;
+	MOp__28_s = &_s;
 	z = *x;
 	if (z->class == 8 || z->class == 9) {
 		OPB_err(126);
@@ -612,45 +535,49 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 						z->conval->intval = OPB_BoolToInt(!OPB_IntToBool(z->conval->intval));
 						z->obj = NIL;
 					} else {
-						z = NewOp__31(op, typ, z);
+						z = NewOp__29(op, typ, z);
 					}
 				} else {
 					OPB_err(98);
 				}
 				break;
 			case 6: 
-				if (!__IN(f, 0x01f0)) {
+				if (!__IN(f, 0x70, 32)) {
 					OPB_err(96);
 				}
 				break;
 			case 7: 
-				if (__IN(f, 0x03f0)) {
+				if (__IN(f, 0xf0, 32)) {
 					if (z->class == 7) {
-						if (__IN(f, 0x70)) {
-							if (z->conval->intval == (-2147483647-1)) {
+						if (f == 4) {
+							if (z->conval->intval == (-9223372036854775807-1)) {
 								OPB_err(203);
 							} else {
 								z->conval->intval = -z->conval->intval;
 								OPB_SetIntType(z);
 							}
-						} else if (__IN(f, 0x0180)) {
+						} else if (__IN(f, 0x60, 32)) {
 							z->conval->realval = -z->conval->realval;
 						} else {
-							z->conval->setval = ~z->conval->setval;
+							if (z->typ->size == 8) {
+								z->conval->setval = ~z->conval->setval;
+							} else {
+								z->conval->setval = z->conval->setval ^ 0xffffffff;
+							}
 						}
 						z->obj = NIL;
 					} else {
-						z = NewOp__31(op, typ, z);
+						z = NewOp__29(op, typ, z);
 					}
 				} else {
 					OPB_err(97);
 				}
 				break;
 			case 21: 
-				if (__IN(f, 0x01f0)) {
+				if (__IN(f, 0x70, 32)) {
 					if (z->class == 7) {
-						if (__IN(f, 0x70)) {
-							if (z->conval->intval == (-2147483647-1)) {
+						if (f == 4) {
+							if (z->conval->intval == (-9223372036854775807-1)) {
 								OPB_err(203);
 							} else {
 								z->conval->intval = __ABS(z->conval->intval);
@@ -661,7 +588,7 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 						}
 						z->obj = NIL;
 					} else {
-						z = NewOp__31(op, typ, z);
+						z = NewOp__29(op, typ, z);
 					}
 				} else {
 					OPB_err(111);
@@ -670,10 +597,10 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 			case 22: 
 				if (f == 3) {
 					if (z->class == 7) {
-						z->conval->intval = (int)__CAP((CHAR)z->conval->intval);
+						z->conval->intval = (INT16)__CAP((CHAR)z->conval->intval);
 						z->obj = NIL;
 					} else {
-						z = NewOp__31(op, typ, z);
+						z = NewOp__29(op, typ, z);
 					}
 				} else {
 					OPB_err(111);
@@ -681,12 +608,12 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 				}
 				break;
 			case 23: 
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if (z->class == 7) {
 						z->conval->intval = OPB_BoolToInt(__ODD(z->conval->intval));
 						z->obj = NIL;
 					} else {
-						z = NewOp__31(op, typ, z);
+						z = NewOp__29(op, typ, z);
 					}
 				} else {
 					OPB_err(111);
@@ -696,19 +623,19 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 			case 24: 
 				if ((((z->class == 7 && f == 3)) && z->conval->intval >= 32)) {
 					OPB_CharToString(z);
-					f = 10;
+					f = 8;
 				}
-				if (z->class < 7 || f == 10) {
-					z = NewOp__31(op, typ, z);
+				if (z->class < 7 || f == 8) {
+					z = NewOp__29(op, typ, z);
 				} else {
 					OPB_err(127);
 				}
-				z->typ = OPT_linttyp;
+				z->typ = OPT_adrtyp;
 				break;
 			case 25: 
-				if ((__IN(f, 0x70) && z->class == 7)) {
+				if ((f == 4 && z->class == 7)) {
 					if ((0 <= z->conval->intval && z->conval->intval <= -1)) {
-						z = NewOp__31(op, typ, z);
+						z = NewOp__29(op, typ, z);
 					} else {
 						OPB_err(219);
 					}
@@ -718,22 +645,22 @@ void OPB_MOp (SHORTINT op, OPT_Node *x)
 				z->typ = OPT_booltyp;
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case in OPB.MOp, op = ", (LONGINT)33);
-				OPM_LogWNum(op, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case in OPB.MOp, op = ", 33);
+				OPM_LogWNum(op, 0);
 				OPM_LogWLn();
 				break;
 		}
 	}
 	*x = z;
-	MOp__30_s = _s.lnk;
+	MOp__28_s = _s.lnk;
 }
 
 static void OPB_CheckPtr (OPT_Node x, OPT_Node y)
 {
-	INTEGER g;
+	INT16 g;
 	OPT_Struct p = NIL, q = NIL, t = NIL;
 	g = y->typ->form;
-	if (g == 13) {
+	if (g == 11) {
 		p = x->typ->BaseTyp;
 		q = y->typ->BaseTyp;
 		if ((p->comp == 4 && q->comp == 4)) {
@@ -751,7 +678,7 @@ static void OPB_CheckPtr (OPT_Node x, OPT_Node y)
 		} else {
 			OPB_err(100);
 		}
-	} else if (g != 11) {
+	} else if (g != 9) {
 		OPB_err(100);
 	}
 }
@@ -768,7 +695,7 @@ void OPB_CheckParameters (OPT_Object fp, OPT_Object ap, BOOLEAN checkNames)
 				at = at->BaseTyp;
 			}
 			if (ft != at) {
-				if ((ft->form == 14 && at->form == 14)) {
+				if ((ft->form == 12 && at->form == 12)) {
 					if (ft->BaseTyp == at->BaseTyp) {
 						OPB_CheckParameters(ft->link, at->link, 0);
 					} else {
@@ -794,7 +721,7 @@ void OPB_CheckParameters (OPT_Object fp, OPT_Object ap, BOOLEAN checkNames)
 
 static void OPB_CheckProc (OPT_Struct x, OPT_Object y)
 {
-	if (__IN(y->mode, 0x04c0)) {
+	if (__IN(y->mode, 0x04c0, 32)) {
 		if (y->mode == 6) {
 			if (y->mnolev == 0) {
 				y->mode = 7;
@@ -814,22 +741,21 @@ static void OPB_CheckProc (OPT_Struct x, OPT_Object y)
 
 static struct ConstOp__13 {
 	OPT_Node *x;
-	INTEGER *f;
+	INT16 *f;
 	OPT_Const *xval, *yval;
 	struct ConstOp__13 *lnk;
 } *ConstOp__13_s;
 
-static INTEGER ConstCmp__14 (void);
+static INT16 ConstCmp__14 (void);
 
-static INTEGER ConstCmp__14 (void)
+static INT16 ConstCmp__14 (void)
 {
-	INTEGER _o_result;
-	INTEGER res;
+	INT16 res;
 	switch (*ConstOp__13_s->f) {
 		case 0: 
 			res = 9;
 			break;
-		case 1: case 3: case 4: case 5: case 6: 
+		case 1: case 3: case 4: 
 			if ((*ConstOp__13_s->xval)->intval < (*ConstOp__13_s->yval)->intval) {
 				res = 11;
 			} else if ((*ConstOp__13_s->xval)->intval > (*ConstOp__13_s->yval)->intval) {
@@ -838,7 +764,7 @@ static INTEGER ConstCmp__14 (void)
 				res = 9;
 			}
 			break;
-		case 7: case 8: 
+		case 5: case 6: 
 			if ((*ConstOp__13_s->xval)->realval < (*ConstOp__13_s->yval)->realval) {
 				res = 11;
 			} else if ((*ConstOp__13_s->xval)->realval > (*ConstOp__13_s->yval)->realval) {
@@ -854,14 +780,14 @@ static INTEGER ConstCmp__14 (void)
 				res = 9;
 			}
 			break;
-		case 9: 
+		case 7: 
 			if ((*ConstOp__13_s->xval)->setval != (*ConstOp__13_s->yval)->setval) {
 				res = 10;
 			} else {
 				res = 9;
 			}
 			break;
-		case 10: 
+		case 8: 
 			if (__STRCMP(*(*ConstOp__13_s->xval)->ext, *(*ConstOp__13_s->yval)->ext) < 0) {
 				res = 11;
 			} else if (__STRCMP(*(*ConstOp__13_s->xval)->ext, *(*ConstOp__13_s->yval)->ext) > 0) {
@@ -870,7 +796,7 @@ static INTEGER ConstCmp__14 (void)
 				res = 9;
 			}
 			break;
-		case 11: case 13: case 14: 
+		case 9: case 11: case 12: 
 			if ((*ConstOp__13_s->xval)->intval != (*ConstOp__13_s->yval)->intval) {
 				res = 10;
 			} else {
@@ -878,21 +804,20 @@ static INTEGER ConstCmp__14 (void)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstCmp, f = ", (LONGINT)37);
-			OPM_LogWNum(*ConstOp__13_s->f, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstCmp, f = ", 37);
+			OPM_LogWNum(*ConstOp__13_s->f, 0);
 			OPM_LogWLn();
 			break;
 	}
 	(*ConstOp__13_s->x)->typ = OPT_booltyp;
-	_o_result = res;
-	return _o_result;
+	return res;
 }
 
-static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
+static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 {
-	INTEGER f, g;
+	INT16 f, g;
 	OPT_Const xval = NIL, yval = NIL;
-	LONGINT xv, yv;
+	INT64 xv, yv;
 	BOOLEAN temp;
 	struct ConstOp__13 _s;
 	_s.x = &x;
@@ -908,7 +833,7 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 	if (f != g) {
 		switch (f) {
 			case 3: 
-				if (g == 10) {
+				if (g == 8) {
 					OPB_CharToString(x);
 				} else {
 					OPB_err(100);
@@ -916,17 +841,17 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 					__GUARDEQP(yval, OPT_ConstDesc) = *xval;
 				}
 				break;
-			case 4: case 5: case 6: 
-				if (__IN(g, 0x70)) {
+			case 4: 
+				if (g == 4) {
 					if (x->typ->size <= y->typ->size) {
 						x->typ = y->typ;
 					} else {
-						x->typ = OPB_IntType(x->typ->size);
+						x->typ = OPT_IntType(x->typ->size);
 					}
-				} else if (g == 7) {
+				} else if (g == 5) {
 					x->typ = OPT_realtyp;
 					xval->realval = xval->intval;
-				} else if (g == 8) {
+				} else if (g == 6) {
 					x->typ = OPT_lrltyp;
 					xval->realval = xval->intval;
 				} else {
@@ -935,11 +860,11 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 					__GUARDEQP(yval, OPT_ConstDesc) = *xval;
 				}
 				break;
-			case 7: 
-				if (__IN(g, 0x70)) {
+			case 5: 
+				if (g == 4) {
 					y->typ = x->typ;
 					yval->realval = yval->intval;
-				} else if (g == 8) {
+				} else if (g == 6) {
 					x->typ = OPT_lrltyp;
 				} else {
 					OPB_err(100);
@@ -947,11 +872,11 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 					__GUARDEQP(yval, OPT_ConstDesc) = *xval;
 				}
 				break;
-			case 8: 
-				if (__IN(g, 0x70)) {
+			case 6: 
+				if (g == 4) {
 					y->typ = x->typ;
 					yval->realval = yval->intval;
-				} else if (g == 7) {
+				} else if (g == 5) {
 					y->typ = OPT_lrltyp;
 				} else {
 					OPB_err(100);
@@ -959,26 +884,26 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 					__GUARDEQP(yval, OPT_ConstDesc) = *xval;
 				}
 				break;
-			case 10: 
+			case 8: 
 				if (g == 3) {
 					OPB_CharToString(y);
-					g = 10;
+					g = 8;
 				} else {
 					OPB_err(100);
 					y->typ = x->typ;
 					__GUARDEQP(yval, OPT_ConstDesc) = *xval;
 				}
 				break;
-			case 11: 
-				if (!__IN(g, 0x6000)) {
+			case 9: 
+				if (!__IN(g, 0x1800, 32)) {
 					OPB_err(100);
 				}
 				break;
-			case 13: 
+			case 11: 
 				OPB_CheckPtr(x, y);
 				break;
-			case 14: 
-				if (g != 11) {
+			case 12: 
+				if (g != 9) {
 					OPB_err(100);
 				}
 				break;
@@ -992,16 +917,16 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 	}
 	switch (op) {
 		case 1: 
-			if (__IN(f, 0x70)) {
+			if (f == 4) {
 				xv = xval->intval;
 				yv = yval->intval;
-				if (((((xv == 0 || yv == 0) || (((xv > 0 && yv > 0)) && yv <= __DIV(2147483647, xv))) || (((xv > 0 && yv < 0)) && yv >= __DIV((-2147483647-1), xv))) || (((xv < 0 && yv > 0)) && xv >= __DIV((-2147483647-1), yv))) || (((((((xv < 0 && yv < 0)) && xv != (-2147483647-1))) && yv != (-2147483647-1))) && -xv <= __DIV(2147483647, -yv))) {
+				if (((((xv == 0 || yv == 0) || (((xv > 0 && yv > 0)) && yv <= __DIV(9223372036854775807, xv))) || (((xv > 0 && yv < 0)) && yv >= __DIV((-9223372036854775807-1), xv))) || (((xv < 0 && yv > 0)) && xv >= __DIV((-9223372036854775807-1), yv))) || (((((((xv < 0 && yv < 0)) && xv != (-9223372036854775807-1))) && yv != (-9223372036854775807-1))) && -xv <= __DIV(9223372036854775807, -yv))) {
 					xval->intval = xv * yv;
 					OPB_SetIntType(x);
 				} else {
 					OPB_err(204);
 				}
-			} else if (__IN(f, 0x0180)) {
+			} else if (__IN(f, 0x60, 32)) {
 				temp = __ABS(yval->realval) <= (LONGREAL)1;
 				if (temp || __ABS(xval->realval) <=   1.79769296342094e+308 / (LONGREAL)__ABS(yval->realval)) {
 					xval->realval = xval->realval * yval->realval;
@@ -1009,23 +934,24 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 				} else {
 					OPB_err(204);
 				}
-			} else if (f == 9) {
+			} else if (f == 7) {
 				xval->setval = (xval->setval & yval->setval);
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(101);
 			}
 			break;
 		case 2: 
-			if (__IN(f, 0x70)) {
+			if (f == 4) {
 				if (yval->intval != 0) {
 					xval->realval = xval->intval / (REAL)yval->intval;
-					OPB_CheckRealType(7, 205, xval);
+					OPB_CheckRealType(5, 205, xval);
 				} else {
 					OPB_err(205);
 					xval->realval = (LONGREAL)1;
 				}
 				x->typ = OPT_realtyp;
-			} else if (__IN(f, 0x0180)) {
+			} else if (__IN(f, 0x60, 32)) {
 				temp = __ABS(yval->realval) >= (LONGREAL)1;
 				if (temp || __ABS(xval->realval) <=   1.79769296342094e+308 * __ABS(yval->realval)) {
 					xval->realval = xval->realval / yval->realval;
@@ -1033,14 +959,15 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 				} else {
 					OPB_err(205);
 				}
-			} else if (f == 9) {
+			} else if (f == 7) {
 				xval->setval = xval->setval ^ yval->setval;
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(102);
 			}
 			break;
 		case 3: 
-			if (__IN(f, 0x70)) {
+			if (f == 4) {
 				if (yval->intval != 0) {
 					xval->intval = __DIV(xval->intval, yval->intval);
 					OPB_SetIntType(x);
@@ -1052,7 +979,7 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 			}
 			break;
 		case 4: 
-			if (__IN(f, 0x70)) {
+			if (f == 4) {
 				if (yval->intval != 0) {
 					xval->intval = __MOD(xval->intval, yval->intval);
 					OPB_SetIntType(x);
@@ -1071,15 +998,15 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 			}
 			break;
 		case 6: 
-			if (__IN(f, 0x70)) {
-				temp = (yval->intval >= 0 && xval->intval <= 2147483647 - yval->intval);
-				if (temp || (yval->intval < 0 && xval->intval >= (-2147483647-1) - yval->intval)) {
+			if (f == 4) {
+				temp = (yval->intval >= 0 && xval->intval <= 9223372036854775807 - yval->intval);
+				if (temp || (yval->intval < 0 && xval->intval >= (-9223372036854775807-1) - yval->intval)) {
 					xval->intval += yval->intval;
 					OPB_SetIntType(x);
 				} else {
 					OPB_err(206);
 				}
-			} else if (__IN(f, 0x0180)) {
+			} else if (__IN(f, 0x60, 32)) {
 				temp = (yval->realval >= (LONGREAL)0 && xval->realval <=   1.79769296342094e+308 - yval->realval);
 				if (temp || (yval->realval < (LONGREAL)0 && xval->realval >=  -1.79769296342094e+308 - yval->realval)) {
 					xval->realval = xval->realval + yval->realval;
@@ -1087,21 +1014,22 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 				} else {
 					OPB_err(206);
 				}
-			} else if (f == 9) {
+			} else if (f == 7) {
 				xval->setval = xval->setval | yval->setval;
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(105);
 			}
 			break;
 		case 7: 
-			if (__IN(f, 0x70)) {
-				if ((yval->intval >= 0 && xval->intval >= (-2147483647-1) + yval->intval) || (yval->intval < 0 && xval->intval <= 2147483647 + yval->intval)) {
+			if (f == 4) {
+				if ((yval->intval >= 0 && xval->intval >= (-9223372036854775807-1) + yval->intval) || (yval->intval < 0 && xval->intval <= 9223372036854775807 + yval->intval)) {
 					xval->intval -= yval->intval;
 					OPB_SetIntType(x);
 				} else {
 					OPB_err(207);
 				}
-			} else if (__IN(f, 0x0180)) {
+			} else if (__IN(f, 0x60, 32)) {
 				temp = (yval->realval >= (LONGREAL)0 && xval->realval >=  -1.79769296342094e+308 + yval->realval);
 				if (temp || (yval->realval < (LONGREAL)0 && xval->realval <=   1.79769296342094e+308 + yval->realval)) {
 					xval->realval = xval->realval - yval->realval;
@@ -1109,8 +1037,9 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 				} else {
 					OPB_err(207);
 				}
-			} else if (f == 9) {
+			} else if (f == 7) {
 				xval->setval = (xval->setval & ~yval->setval);
+				OPB_SetSetType(x);
 			} else if (f != 0) {
 				OPB_err(106);
 			}
@@ -1129,36 +1058,36 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 			xval->intval = OPB_BoolToInt(ConstCmp__14() != 9);
 			break;
 		case 11: 
-			if (__IN(f, 0x2a04)) {
+			if (__IN(f, 0x0a84, 32)) {
 				OPB_err(108);
 			} else {
 				xval->intval = OPB_BoolToInt(ConstCmp__14() == 11);
 			}
 			break;
 		case 12: 
-			if (__IN(f, 0x2a04)) {
+			if (__IN(f, 0x0a84, 32)) {
 				OPB_err(108);
 			} else {
 				xval->intval = OPB_BoolToInt(ConstCmp__14() != 13);
 			}
 			break;
 		case 13: 
-			if (__IN(f, 0x2a04)) {
+			if (__IN(f, 0x0a84, 32)) {
 				OPB_err(108);
 			} else {
 				xval->intval = OPB_BoolToInt(ConstCmp__14() == 13);
 			}
 			break;
 		case 14: 
-			if (__IN(f, 0x2a04)) {
+			if (__IN(f, 0x0a84, 32)) {
 				OPB_err(108);
 			} else {
 				xval->intval = OPB_BoolToInt(ConstCmp__14() != 11);
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstOp, op = ", (LONGINT)37);
-			OPM_LogWNum(op, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.ConstOp, op = ", 37);
+			OPM_LogWNum(op, 0);
 			OPM_LogWLn();
 			break;
 	}
@@ -1168,22 +1097,28 @@ static void OPB_ConstOp (INTEGER op, OPT_Node x, OPT_Node y)
 static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 {
 	OPT_Node node = NIL;
-	INTEGER f, g;
-	LONGINT k;
+	INT16 f, g;
+	INT64 k;
 	LONGREAL r;
 	f = (*x)->typ->form;
 	g = typ->form;
 	if ((*x)->class == 7) {
-		if (__IN(f, 0x70)) {
-			if (__IN(g, 0x70)) {
-				if (f > g) {
+		if ((((f == 7 && g == 7)) && (*x)->typ->size > typ->size)) {
+			OPB_SetSetType(*x);
+			if ((*x)->typ->size > typ->size) {
+				OPB_err(203);
+				(*x)->conval->setval = 0x0;
+			}
+		} else if (f == 4) {
+			if (g == 4) {
+				if ((*x)->typ->size > typ->size) {
 					OPB_SetIntType(*x);
-					if ((int)(*x)->typ->form > g) {
+					if ((*x)->typ->size > typ->size) {
 						OPB_err(203);
 						(*x)->conval->intval = 1;
 					}
 				}
-			} else if (__IN(g, 0x0180)) {
+			} else if (__IN(g, 0x60, 32)) {
 				(*x)->conval->realval = (*x)->conval->intval;
 				(*x)->conval->intval = -1;
 			} else {
@@ -1192,21 +1127,21 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 					OPB_err(220);
 				}
 			}
-		} else if (__IN(f, 0x0180)) {
-			if (__IN(g, 0x0180)) {
+		} else if (__IN(f, 0x60, 32)) {
+			if (__IN(g, 0x60, 32)) {
 				OPB_CheckRealType(g, 203, (*x)->conval);
 			} else {
 				r = (*x)->conval->realval;
-				if (r <  -2.14748364800000e+009 || r >   2.14748364700000e+009) {
+				if (r <  -9.22337203685478e+018 || r >   9.22337203685478e+018) {
 					OPB_err(203);
 					r = (LONGREAL)1;
 				}
-				(*x)->conval->intval = (int)__ENTIER(r);
+				(*x)->conval->intval = (INT32)__ENTIER(r);
 				OPB_SetIntType(*x);
 			}
 		}
 		(*x)->obj = NIL;
-	} else if (((((*x)->class == 11 && (*x)->subcl == 20)) && ((int)(*x)->left->typ->form < f || f > g))) {
+	} else if (((((*x)->class == 11 && (*x)->subcl == 20)) && ((INT16)(*x)->left->typ->form < f || f > g))) {
 		if ((*x)->left->typ == typ) {
 			*x = (*x)->left;
 		}
@@ -1219,15 +1154,15 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 	(*x)->typ = typ;
 }
 
-static struct Op__40 {
-	INTEGER *f, *g;
-	struct Op__40 *lnk;
-} *Op__40_s;
+static struct Op__38 {
+	INT16 *f, *g;
+	struct Op__38 *lnk;
+} *Op__38_s;
 
-static void NewOp__41 (SHORTINT op, OPT_Struct typ, OPT_Node *x, OPT_Node y);
-static BOOLEAN strings__43 (OPT_Node *x, OPT_Node *y);
+static void NewOp__39 (INT8 op, OPT_Struct typ, OPT_Node *x, OPT_Node y);
+static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y);
 
-static void NewOp__41 (SHORTINT op, OPT_Struct typ, OPT_Node *x, OPT_Node y)
+static void NewOp__39 (INT8 op, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 {
 	OPT_Node node = NIL;
 	node = OPT_NewNode(12);
@@ -1238,50 +1173,48 @@ static void NewOp__41 (SHORTINT op, OPT_Struct typ, OPT_Node *x, OPT_Node y)
 	*x = node;
 }
 
-static BOOLEAN strings__43 (OPT_Node *x, OPT_Node *y)
+static BOOLEAN strings__41 (OPT_Node *x, OPT_Node *y)
 {
-	BOOLEAN _o_result;
 	BOOLEAN ok, xCharArr, yCharArr;
-	xCharArr = (__IN((*x)->typ->comp, 0x0c) && (*x)->typ->BaseTyp->form == 3) || *Op__40_s->f == 10;
-	yCharArr = (__IN((*y)->typ->comp, 0x0c) && (*y)->typ->BaseTyp->form == 3) || *Op__40_s->g == 10;
-	if ((((xCharArr && *Op__40_s->g == 3)) && (*y)->class == 7)) {
+	xCharArr = (__IN((*x)->typ->comp, 0x0c, 32) && (*x)->typ->BaseTyp->form == 3) || *Op__38_s->f == 8;
+	yCharArr = (__IN((*y)->typ->comp, 0x0c, 32) && (*y)->typ->BaseTyp->form == 3) || *Op__38_s->g == 8;
+	if ((((xCharArr && *Op__38_s->g == 3)) && (*y)->class == 7)) {
 		OPB_CharToString(*y);
-		*Op__40_s->g = 10;
+		*Op__38_s->g = 8;
 		yCharArr = 1;
 	}
-	if ((((yCharArr && *Op__40_s->f == 3)) && (*x)->class == 7)) {
+	if ((((yCharArr && *Op__38_s->f == 3)) && (*x)->class == 7)) {
 		OPB_CharToString(*x);
-		*Op__40_s->f = 10;
+		*Op__38_s->f = 8;
 		xCharArr = 1;
 	}
 	ok = (xCharArr && yCharArr);
 	if (ok) {
-		if ((*Op__40_s->f == 10 && (*x)->conval->intval2 == 1)) {
+		if ((*Op__38_s->f == 8 && (*x)->conval->intval2 == 1)) {
 			(*x)->typ = OPT_chartyp;
 			(*x)->conval->intval = 0;
-			OPB_Index(&*y, OPB_NewIntConst(((LONGINT)(0))));
-		} else if ((*Op__40_s->g == 10 && (*y)->conval->intval2 == 1)) {
+			OPB_Index(&*y, OPB_NewIntConst(0));
+		} else if ((*Op__38_s->g == 8 && (*y)->conval->intval2 == 1)) {
 			(*y)->typ = OPT_chartyp;
 			(*y)->conval->intval = 0;
-			OPB_Index(&*x, OPB_NewIntConst(((LONGINT)(0))));
+			OPB_Index(&*x, OPB_NewIntConst(0));
 		}
 	}
-	_o_result = ok;
-	return _o_result;
+	return ok;
 }
 
-void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
+void OPB_Op (INT8 op, OPT_Node *x, OPT_Node y)
 {
-	INTEGER f, g;
+	INT16 f, g;
 	OPT_Node t = NIL, z = NIL;
 	OPT_Struct typ = NIL;
 	BOOLEAN do_;
-	LONGINT val;
-	struct Op__40 _s;
+	INT64 val;
+	struct Op__38 _s;
 	_s.f = &f;
 	_s.g = &g;
-	_s.lnk = Op__40_s;
-	Op__40_s = &_s;
+	_s.lnk = Op__38_s;
+	Op__38_s = &_s;
 	z = *x;
 	if (((z->class == 8 || z->class == 9) || y->class == 8) || y->class == 9) {
 		OPB_err(126);
@@ -1299,49 +1232,58 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 						OPB_err(100);
 					}
 					break;
-				case 4: case 5: case 6: 
-					if ((__IN(g, 0x70) && y->typ->size < z->typ->size)) {
+				case 4: 
+					if ((g == 4 && y->typ->size < z->typ->size)) {
 						OPB_Convert(&y, z->typ);
-					} else if (__IN(g, 0x01f0)) {
+					} else if (__IN(g, 0x70, 32)) {
 						OPB_Convert(&z, y->typ);
 					} else {
 						OPB_err(100);
 					}
 					break;
 				case 7: 
-					if (__IN(g, 0x70)) {
+					if ((g == 7 && y->typ->size < z->typ->size)) {
 						OPB_Convert(&y, z->typ);
-					} else if (__IN(g, 0x0180)) {
+					} else if (g == 7) {
 						OPB_Convert(&z, y->typ);
 					} else {
 						OPB_err(100);
 					}
 					break;
-				case 8: 
-					if (__IN(g, 0x01f0)) {
+				case 5: 
+					if (g == 4) {
 						OPB_Convert(&y, z->typ);
-					} else if (__IN(g, 0x0180)) {
+					} else if (__IN(g, 0x60, 32)) {
+						OPB_Convert(&z, y->typ);
+					} else {
+						OPB_err(100);
+					}
+					break;
+				case 6: 
+					if (__IN(g, 0x70, 32)) {
+						OPB_Convert(&y, z->typ);
+					} else if (__IN(g, 0x60, 32)) {
 						OPB_Convert(&y, z->typ);
 					} else {
 						OPB_err(100);
 					}
 					break;
-				case 11: 
-					if (!__IN(g, 0x6000)) {
+				case 9: 
+					if (!__IN(g, 0x1800, 32)) {
 						OPB_err(100);
 					}
 					break;
-				case 13: 
+				case 11: 
 					OPB_CheckPtr(z, y);
 					break;
-				case 14: 
-					if (g != 11) {
+				case 12: 
+					if (g != 9) {
 						OPB_err(100);
 					}
 					break;
-				case 10: 
+				case 8: 
 					break;
-				case 15: 
+				case 13: 
 					if (z->typ->comp == 4) {
 						OPB_err(100);
 					}
@@ -1357,7 +1299,7 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 		switch (op) {
 			case 1: 
 				do_ = 1;
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if (z->class == 7) {
 						val = z->conval->intval;
 						if (val == 1) {
@@ -1388,35 +1330,35 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 							y->obj = NIL;
 						}
 					}
-				} else if (!__IN(f, 0x0381)) {
+				} else if (!__IN(f, 0xe1, 32)) {
 					OPB_err(105);
 					typ = OPT_undftyp;
 				}
 				if (do_) {
-					NewOp__41(op, typ, &z, y);
+					NewOp__39(op, typ, &z, y);
 				}
 				break;
 			case 2: 
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if ((y->class == 7 && y->conval->intval == 0)) {
 						OPB_err(205);
 					}
 					OPB_Convert(&z, OPT_realtyp);
 					OPB_Convert(&y, OPT_realtyp);
 					typ = OPT_realtyp;
-				} else if (__IN(f, 0x0180)) {
+				} else if (__IN(f, 0x60, 32)) {
 					if ((y->class == 7 && y->conval->realval == (LONGREAL)0)) {
 						OPB_err(205);
 					}
-				} else if ((f != 9 && f != 0)) {
+				} else if ((f != 7 && f != 0)) {
 					OPB_err(102);
 					typ = OPT_undftyp;
 				}
-				NewOp__41(op, typ, &z, y);
+				NewOp__39(op, typ, &z, y);
 				break;
 			case 3: 
 				do_ = 1;
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if (y->class == 7) {
 						val = y->conval->intval;
 						if (val == 0) {
@@ -1435,11 +1377,11 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 					typ = OPT_undftyp;
 				}
 				if (do_) {
-					NewOp__41(op, typ, &z, y);
+					NewOp__39(op, typ, &z, y);
 				}
 				break;
 			case 4: 
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if (y->class == 7) {
 						if (y->conval->intval == 0) {
 							OPB_err(205);
@@ -1453,7 +1395,7 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 					OPB_err(104);
 					typ = OPT_undftyp;
 				}
-				NewOp__41(op, typ, &z, y);
+				NewOp__39(op, typ, &z, y);
 				break;
 			case 5: 
 				if (f == 2) {
@@ -1463,7 +1405,7 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 						}
 					} else if ((y->class == 7 && OPB_IntToBool(y->conval->intval))) {
 					} else {
-						NewOp__41(op, typ, &z, y);
+						NewOp__39(op, typ, &z, y);
 					}
 				} else if (f != 0) {
 					OPB_err(94);
@@ -1471,12 +1413,12 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 				}
 				break;
 			case 6: 
-				if (!__IN(f, 0x03f1)) {
+				if (!__IN(f, 0xf1, 32)) {
 					OPB_err(105);
 					typ = OPT_undftyp;
 				}
 				do_ = 1;
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if ((z->class == 7 && z->conval->intval == 0)) {
 						do_ = 0;
 						z = y;
@@ -1486,16 +1428,16 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 					}
 				}
 				if (do_) {
-					NewOp__41(op, typ, &z, y);
+					NewOp__39(op, typ, &z, y);
 				}
 				break;
 			case 7: 
-				if (!__IN(f, 0x03f1)) {
+				if (!__IN(f, 0xf1, 32)) {
 					OPB_err(106);
 					typ = OPT_undftyp;
 				}
-				if ((!__IN(f, 0x70) || y->class != 7) || y->conval->intval != 0) {
-					NewOp__41(op, typ, &z, y);
+				if ((f != 4 || y->class != 7) || y->conval->intval != 0) {
+					NewOp__39(op, typ, &z, y);
 				}
 				break;
 			case 8: 
@@ -1506,7 +1448,7 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 						}
 					} else if ((y->class == 7 && !OPB_IntToBool(y->conval->intval))) {
 					} else {
-						NewOp__41(op, typ, &z, y);
+						NewOp__39(op, typ, &z, y);
 					}
 				} else if (f != 0) {
 					OPB_err(95);
@@ -1514,61 +1456,62 @@ void OPB_Op (SHORTINT op, OPT_Node *x, OPT_Node y)
 				}
 				break;
 			case 9: case 10: 
-				if (__IN(f, 0x6bff) || strings__43(&z, &y)) {
+				if (__IN(f, 0x1aff, 32) || strings__41(&z, &y)) {
 					typ = OPT_booltyp;
 				} else {
 					OPB_err(107);
 					typ = OPT_undftyp;
 				}
-				NewOp__41(op, typ, &z, y);
+				NewOp__39(op, typ, &z, y);
 				break;
 			case 11: case 12: case 13: case 14: 
-				if (__IN(f, 0x01f9) || strings__43(&z, &y)) {
+				if (__IN(f, 0x79, 32) || strings__41(&z, &y)) {
 					typ = OPT_booltyp;
 				} else {
 					OPM_LogWLn();
-					OPM_LogWStr((CHAR*)"ELSE in Op()", (LONGINT)13);
+					OPM_LogWStr((CHAR*)"ELSE in Op()", 13);
 					OPM_LogWLn();
 					OPB_err(108);
 					typ = OPT_undftyp;
 				}
-				NewOp__41(op, typ, &z, y);
+				NewOp__39(op, typ, &z, y);
 				break;
 			default: 
-				OPM_LogWStr((CHAR*)"unhandled case in OPB.Op, op = ", (LONGINT)32);
-				OPM_LogWNum(op, ((LONGINT)(0)));
+				OPM_LogWStr((CHAR*)"unhandled case in OPB.Op, op = ", 32);
+				OPM_LogWNum(op, 0);
 				OPM_LogWLn();
 				break;
 		}
 	}
 	*x = z;
-	Op__40_s = _s.lnk;
+	Op__38_s = _s.lnk;
 }
 
 void OPB_SetRange (OPT_Node *x, OPT_Node y)
 {
-	LONGINT k, l;
+	INT64 k, l;
 	if ((((*x)->class == 8 || (*x)->class == 9) || y->class == 8) || y->class == 9) {
 		OPB_err(126);
-	} else if ((__IN((*x)->typ->form, 0x70) && __IN(y->typ->form, 0x70))) {
+	} else if (((*x)->typ->form == 4 && y->typ->form == 4)) {
 		if ((*x)->class == 7) {
 			k = (*x)->conval->intval;
-			if (0 > k || k > (int)OPM_MaxSet) {
+			if (0 > k || k > 63) {
 				OPB_err(202);
 			}
 		}
 		if (y->class == 7) {
 			l = y->conval->intval;
-			if (0 > l || l > (int)OPM_MaxSet) {
+			if (0 > l || l > 63) {
 				OPB_err(202);
 			}
 		}
 		if (((*x)->class == 7 && y->class == 7)) {
 			if (k <= l) {
-				(*x)->conval->setval = __SETRNG(k, l);
+				(*x)->conval->setval = __SETRNG(k, l, 32);
+				OPB_SetSetType(*x);
 			} else {
 				OPB_err(201);
-				(*x)->conval->setval = __SETRNG(l, k);
+				(*x)->conval->setval = __SETRNG(l, k, 32);
 			}
 			(*x)->obj = NIL;
 		} else {
@@ -1582,86 +1525,69 @@ void OPB_SetRange (OPT_Node *x, OPT_Node y)
 
 void OPB_SetElem (OPT_Node *x)
 {
-	LONGINT k;
+	INT64 k;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPB_err(126);
-	} else if (!__IN((*x)->typ->form, 0x70)) {
+	} else if ((*x)->typ->form != 4) {
 		OPB_err(93);
 	} else if ((*x)->class == 7) {
 		k = (*x)->conval->intval;
-		if ((0 <= k && k <= (int)OPM_MaxSet)) {
-			(*x)->conval->setval = __SETOF(k);
+		if ((0 <= k && k <= 63)) {
+			(*x)->conval->setval = 0x0;
+			(*x)->conval->setval |= __SETOF(k,64);
 		} else {
 			OPB_err(202);
 		}
+		OPB_SetSetType(*x);
 		(*x)->obj = NIL;
 	} else {
 		OPB_Convert(&*x, OPT_settyp);
+		(*x)->typ = OPT_settyp;
 	}
-	(*x)->typ = OPT_settyp;
 }
 
 static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 {
 	OPT_Struct y = NIL;
-	INTEGER f, g;
+	INT16 f, g;
 	OPT_Struct p = NIL, q = NIL;
-	if (OPM_Verbose) {
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"PROCEDURE CheckAssign", (LONGINT)22);
-		OPM_LogWLn();
-	}
 	y = ynode->typ;
 	f = x->form;
 	g = y->form;
-	if (OPM_Verbose) {
-		OPM_LogWStr((CHAR*)"y.form = ", (LONGINT)10);
-		OPM_LogWNum(y->form, ((LONGINT)(0)));
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"f = ", (LONGINT)5);
-		OPM_LogWNum(f, ((LONGINT)(0)));
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"g = ", (LONGINT)5);
-		OPM_LogWNum(g, ((LONGINT)(0)));
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"ynode.typ.syze = ", (LONGINT)18);
-		OPM_LogWNum(ynode->typ->size, ((LONGINT)(0)));
-		OPM_LogWLn();
-	}
-	if (ynode->class == 8 || (ynode->class == 9 && f != 14)) {
+	if (ynode->class == 8 || (ynode->class == 9 && f != 12)) {
 		OPB_err(126);
 	}
 	switch (f) {
-		case 0: case 10: 
+		case 0: case 8: 
 			break;
 		case 1: 
-			if (!((__IN(g, 0x7a) && y->size == 1))) {
+			if (!((__IN(g, 0x1a, 32) && y->size == 1))) {
 				OPB_err(113);
 			}
 			break;
-		case 2: case 3: case 9: 
+		case 2: case 3: 
 			if (g != f) {
 				OPB_err(113);
 			}
 			break;
-		case 4: case 5: case 6: 
-			if (!__IN(g, 0x70) || x->size < y->size) {
+		case 4: case 7: 
+			if (g != f || x->size < y->size) {
 				OPB_err(113);
 			}
 			break;
-		case 7: 
-			if (!__IN(g, 0xf0)) {
+		case 5: 
+			if (!__IN(g, 0x30, 32)) {
 				OPB_err(113);
 			}
 			break;
-		case 8: 
-			if (!__IN(g, 0x01f0)) {
+		case 6: 
+			if (!__IN(g, 0x70, 32)) {
 				OPB_err(113);
 			}
 			break;
-		case 13: 
-			if ((x == y || g == 11) || (x == OPT_sysptrtyp && g == 13)) {
-			} else if (g == 13) {
+		case 11: 
+			if ((x == y || g == 9) || (x == OPT_sysptrtyp && g == 11)) {
+			} else if (g == 11) {
 				p = x->BaseTyp;
 				q = y->BaseTyp;
 				if ((p->comp == 4 && q->comp == 4)) {
@@ -1678,32 +1604,32 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 				OPB_err(113);
 			}
 			break;
-		case 14: 
+		case 12: 
 			if (ynode->class == 9) {
 				OPB_CheckProc(x, ynode->obj);
-			} else if (x == y || g == 11) {
+			} else if (x == y || g == 9) {
 			} else {
 				OPB_err(113);
 			}
 			break;
-		case 12: case 11: 
+		case 10: case 9: 
 			OPB_err(113);
 			break;
-		case 15: 
+		case 13: 
 			x->pvused = 1;
 			if (x->comp == 2) {
 				if ((ynode->class == 7 && g == 3)) {
 					OPB_CharToString(ynode);
 					y = ynode->typ;
-					g = 10;
+					g = 8;
 				}
 				if (x == y) {
 				} else if (x->BaseTyp == OPT_chartyp) {
-					if (g == 10) {
+					if (g == 8) {
 						if (ynode->conval->intval2 > x->n) {
 							OPB_err(114);
 						}
-					} else if ((__IN(y->comp, 0x0c) && y->BaseTyp == OPT_chartyp)) {
+					} else if ((__IN(y->comp, 0x0c, 32) && y->BaseTyp == OPT_chartyp)) {
 					} else {
 						OPB_err(113);
 					}
@@ -1711,7 +1637,7 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 					OPB_err(113);
 				}
 			} else if ((x->comp == 3 && x->BaseTyp == OPT_chartyp)) {
-				if ((__IN(y->comp, 0x0c) && y->BaseTyp == OPT_chartyp)) {
+				if ((__IN(y->comp, 0x0c, 32) && y->BaseTyp == OPT_chartyp)) {
 				} else {
 					OPB_err(113);
 				}
@@ -1733,12 +1659,12 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.CheckAssign, f = ", (LONGINT)40);
-			OPM_LogWNum(f, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.CheckAssign, f = ", 40);
+			OPM_LogWNum(f, 0);
 			OPM_LogWLn();
 			break;
 	}
-	if ((((((ynode->class == 7 && g < f)) && __IN(g, 0xf0))) && __IN(f, 0x01e0))) {
+	if ((((((ynode->class == 7 && g < f)) && __IN(g, 0x30, 32))) && __IN(f, 0x70, 32))) {
 		OPB_Convert(&ynode, x);
 	}
 }
@@ -1747,16 +1673,16 @@ static void OPB_CheckLeaf (OPT_Node x, BOOLEAN dynArrToo)
 {
 }
 
-void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
+void OPB_StPar0 (OPT_Node *par0, INT16 fctno)
 {
-	INTEGER f;
+	INT16 f;
 	OPT_Struct typ = NIL;
 	OPT_Node x = NIL;
 	x = *par0;
 	f = x->typ->form;
 	switch (fctno) {
 		case 0: 
-			if ((__IN(f, 0x70) && x->class == 7)) {
+			if ((f == 4 && x->class == 7)) {
 				if ((0 <= x->conval->intval && x->conval->intval <= 255)) {
 					OPB_BindNodes(28, OPT_notyp, &x, x);
 				} else {
@@ -1771,12 +1697,12 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 			typ = OPT_notyp;
 			if (OPB_NotVar(x)) {
 				OPB_err(112);
-			} else if (f == 13) {
+			} else if (f == 11) {
 				if (x->readonly) {
 					OPB_err(76);
 				}
 				f = x->typ->BaseTyp->comp;
-				if (__IN(f, 0x1c)) {
+				if (__IN(f, 0x1c, 32)) {
 					if (f == 3) {
 						typ = x->typ->BaseTyp;
 					}
@@ -1809,7 +1735,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 5: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x0180)) {
+			} else if (__IN(f, 0x60, 32)) {
 				OPB_Convert(&x, OPT_linttyp);
 			} else {
 				OPB_err(111);
@@ -1826,20 +1752,20 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 						x = OPB_NewBoolConst(0);
 						break;
 					case 3: 
-						x = OPB_NewIntConst(((LONGINT)(0)));
+						x = OPB_NewIntConst(0);
 						x->typ = OPT_chartyp;
 						break;
-					case 4: case 5: case 6: 
+					case 4: 
 						x = OPB_NewIntConst(OPM_SignedMinimum(x->typ->size));
 						break;
-					case 9: 
-						x = OPB_NewIntConst(((LONGINT)(0)));
+					case 7: 
+						x = OPB_NewIntConst(0);
 						x->typ = OPT_inttyp;
 						break;
-					case 7: 
+					case 5: 
 						x = OPB_NewRealConst(OPM_MinReal, OPT_realtyp);
 						break;
-					case 8: 
+					case 6: 
 						x = OPB_NewRealConst(OPM_MinLReal, OPT_lrltyp);
 						break;
 					default: 
@@ -1857,20 +1783,20 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 						x = OPB_NewBoolConst(1);
 						break;
 					case 3: 
-						x = OPB_NewIntConst(((LONGINT)(255)));
+						x = OPB_NewIntConst(255);
 						x->typ = OPT_chartyp;
 						break;
-					case 4: case 5: case 6: 
+					case 4: 
 						x = OPB_NewIntConst(OPM_SignedMaximum(x->typ->size));
 						break;
-					case 9: 
-						x = OPB_NewIntConst(OPM_MaxSet);
+					case 7: 
+						x = OPB_NewIntConst(__ASHL(x->typ->size, 3) - 1);
 						x->typ = OPT_inttyp;
 						break;
-					case 7: 
+					case 5: 
 						x = OPB_NewRealConst(OPM_MaxReal, OPT_realtyp);
 						break;
-					case 8: 
+					case 6: 
 						x = OPB_NewRealConst(OPM_MaxLReal, OPT_lrltyp);
 						break;
 					default: 
@@ -1884,7 +1810,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 9: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x71)) {
+			} else if (__IN(f, 0x11, 32)) {
 				OPB_Convert(&x, OPT_chartyp);
 			} else {
 				OPB_err(111);
@@ -1894,9 +1820,14 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 10: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((__IN(f, 0x70) && x->typ->size > (int)OPM_SIntSize)) {
-				OPB_Convert(&x, OPB_IntType(OPB_ShorterSize(x->typ->size)));
-			} else if (f == 8) {
+			} else if (f == 4) {
+				typ = OPT_ShorterOrLongerType(x->typ, -1);
+				if (typ == NIL) {
+					OPB_err(111);
+				} else {
+					OPB_Convert(&x, typ);
+				}
+			} else if (f == 6) {
 				OPB_Convert(&x, OPT_realtyp);
 			} else {
 				OPB_err(111);
@@ -1905,9 +1836,14 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 11: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((__IN(f, 0x70) && x->typ->size < (int)OPM_LIntSize)) {
-				OPB_Convert(&x, OPB_IntType(OPB_LongerSize(x->typ->size)));
-			} else if (f == 7) {
+			} else if (f == 4) {
+				typ = OPT_ShorterOrLongerType(x->typ, 1);
+				if (typ == NIL) {
+					OPB_err(111);
+				} else {
+					OPB_Convert(&x, typ);
+				}
+			} else if (f == 5) {
 				OPB_Convert(&x, OPT_lrltyp);
 			} else if (f == 3) {
 				OPB_Convert(&x, OPT_linttyp);
@@ -1918,7 +1854,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 13: case 14: 
 			if (OPB_NotVar(x)) {
 				OPB_err(112);
-			} else if (!__IN(f, 0x70)) {
+			} else if (f != 4) {
 				OPB_err(111);
 			} else if (x->readonly) {
 				OPB_err(76);
@@ -1927,7 +1863,7 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 15: case 16: 
 			if (OPB_NotVar(x)) {
 				OPB_err(112);
-			} else if (x->typ != OPT_settyp) {
+			} else if (x->typ->form != 7) {
 				OPB_err(111);
 				x->typ = OPT_settyp;
 			} else if (x->readonly) {
@@ -1935,26 +1871,26 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 			}
 			break;
 		case 17: 
-			if (!__IN(x->typ->comp, 0x0c)) {
+			if (!__IN(x->typ->comp, 0x0c, 32)) {
 				OPB_err(131);
 			}
 			break;
 		case 18: 
 			if ((x->class == 7 && f == 3)) {
 				OPB_CharToString(x);
-				f = 10;
+				f = 8;
 			}
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (((!__IN(x->typ->comp, 0x0c) || x->typ->BaseTyp->form != 3) && f != 10)) {
+			} else if (((!__IN(x->typ->comp, 0x0c, 32) || x->typ->BaseTyp->form != 3) && f != 8)) {
 				OPB_err(111);
 			}
 			break;
 		case 19: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x70)) {
-				if (x->typ->size != (int)OPM_LIntSize) {
+			} else if (f == 4) {
+				if (x->typ->size < OPT_linttyp->size) {
 					OPB_Convert(&x, OPT_linttyp);
 				}
 			} else {
@@ -1969,14 +1905,14 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 12: 
 			if (x->class != 8) {
 				OPB_err(110);
-				x = OPB_NewIntConst(((LONGINT)(1)));
-			} else if (__IN(f, 0x63fe) || __IN(x->typ->comp, 0x14)) {
-				(*OPB_typSize)(x->typ);
+				x = OPB_NewIntConst(1);
+			} else if (__IN(f, 0x18fe, 32) || __IN(x->typ->comp, 0x14, 32)) {
+				OPT_TypSize(x->typ);
 				x->typ->pvused = 1;
 				x = OPB_NewIntConst(x->typ->size);
 			} else {
 				OPB_err(111);
-				x = OPB_NewIntConst(((LONGINT)(1)));
+				x = OPB_NewIntConst(1);
 			}
 			break;
 		case 21: 
@@ -1985,22 +1921,22 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 22: case 23: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (!__IN(f, 0x027a)) {
+			} else if (!__IN(f, 0x9a, 32)) {
 				OPB_err(111);
 			}
 			break;
 		case 24: case 25: case 28: case 31: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((((x->class == 7 && __IN(f, 0x70))) && x->typ->size < OPT_linttyp->size)) {
-				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x2070) && x->typ->size == (int)OPM_PointerSize))) {
+			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_adrtyp->size)) {
+				OPB_Convert(&x, OPT_adrtyp);
+			} else if (!((__IN(x->typ->form, 0x0810, 32) && x->typ->size == OPM_AddressSize))) {
 				OPB_err(111);
-				x->typ = OPT_linttyp;
+				x->typ = OPT_adrtyp;
 			}
 			break;
 		case 26: case 27: 
-			if ((__IN(f, 0x70) && x->class == 7)) {
+			if ((f == 4 && x->class == 7)) {
 				if (x->conval->intval < 0 || x->conval->intval > -1) {
 					OPB_err(220);
 				}
@@ -2011,14 +1947,14 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 		case 29: 
 			if (x->class != 8) {
 				OPB_err(110);
-			} else if (__IN(f, 0x1401) || x->typ->comp == 3) {
+			} else if (__IN(f, 0x0501, 32) || x->typ->comp == 3) {
 				OPB_err(111);
 			}
 			break;
 		case 30: 
 			if (OPB_NotVar(x)) {
 				OPB_err(112);
-			} else if (f == 13) {
+			} else if (f == 11) {
 			} else {
 				OPB_err(111);
 			}
@@ -2035,40 +1971,38 @@ void OPB_StPar0 (OPT_Node *par0, INTEGER fctno)
 			}
 			break;
 		default: 
-			OPM_LogWStr((CHAR*)"unhandled case in OPB.StPar0, fctno = ", (LONGINT)39);
-			OPM_LogWNum(fctno, ((LONGINT)(0)));
+			OPM_LogWStr((CHAR*)"unhandled case in OPB.StPar0, fctno = ", 39);
+			OPM_LogWNum(fctno, 0);
 			OPM_LogWLn();
 			break;
 	}
 	*par0 = x;
 }
 
-static struct StPar1__56 {
-	struct StPar1__56 *lnk;
-} *StPar1__56_s;
+static struct StPar1__53 {
+	struct StPar1__53 *lnk;
+} *StPar1__53_s;
 
-static OPT_Node NewOp__57 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right);
+static OPT_Node NewOp__54 (INT8 class, INT8 subcl, OPT_Node left, OPT_Node right);
 
-static OPT_Node NewOp__57 (SHORTINT class, SHORTINT subcl, OPT_Node left, OPT_Node right)
+static OPT_Node NewOp__54 (INT8 class, INT8 subcl, OPT_Node left, OPT_Node right)
 {
-	OPT_Node _o_result;
 	OPT_Node node = NIL;
 	node = OPT_NewNode(class);
 	node->subcl = subcl;
 	node->left = left;
 	node->right = right;
-	_o_result = node;
-	return _o_result;
+	return node;
 }
 
-void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
+void OPB_StPar1 (OPT_Node *par0, OPT_Node x, INT8 fctno)
 {
-	INTEGER f, L;
+	INT16 f, L;
 	OPT_Struct typ = NIL;
 	OPT_Node p = NIL, t = NIL;
-	struct StPar1__56 _s;
-	_s.lnk = StPar1__56_s;
-	StPar1__56_s = &_s;
+	struct StPar1__53 _s;
+	_s.lnk = StPar1__53_s;
+	StPar1__53_s = &_s;
 	p = *par0;
 	f = x->typ->form;
 	switch (fctno) {
@@ -2078,40 +2012,40 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 				p->typ = OPT_notyp;
 			} else {
 				if (x->typ != p->typ) {
-					if ((x->class == 7 && __IN(f, 0x70))) {
+					if ((f == 4 && (x->class == 7 || (p->typ->form == 4 && x->typ->size <= p->typ->size)))) {
 						OPB_Convert(&x, p->typ);
 					} else {
 						OPB_err(111);
 					}
 				}
-				p = NewOp__57(19, fctno, p, x);
+				p = NewOp__54(19, fctno, p, x);
 				p->typ = OPT_notyp;
 			}
 			break;
 		case 15: case 16: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x70)) {
-				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval > (int)OPM_MaxSet))) {
+			} else if (f == 4) {
+				if ((x->class == 7 && (0 > x->conval->intval || x->conval->intval >= (INT64)__ASHL(p->typ->size, 3)))) {
 					OPB_err(202);
 				}
-				p = NewOp__57(19, fctno, p, x);
+				p = NewOp__54(19, fctno, p, x);
 			} else {
 				OPB_err(111);
 			}
 			p->typ = OPT_notyp;
 			break;
 		case 17: 
-			if (!__IN(f, 0x70) || x->class != 7) {
+			if (!(f == 4) || x->class != 7) {
 				OPB_err(69);
 			} else if (x->typ->size == 1) {
-				L = (int)x->conval->intval;
+				L = OPM_Integer(x->conval->intval);
 				typ = p->typ;
-				while ((L > 0 && __IN(typ->comp, 0x0c))) {
+				while ((L > 0 && __IN(typ->comp, 0x0c, 32))) {
 					typ = typ->BaseTyp;
 					L -= 1;
 				}
-				if (L != 0 || !__IN(typ->comp, 0x0c)) {
+				if (L != 0 || !__IN(typ->comp, 0x0c, 32)) {
 					OPB_err(132);
 				} else {
 					x->obj = NIL;
@@ -2120,7 +2054,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 							p = p->left;
 							x->conval->intval += 1;
 						}
-						p = NewOp__57(12, 19, p, x);
+						p = NewOp__54(12, 19, p, x);
 						p->typ = OPT_linttyp;
 					} else {
 						p = x;
@@ -2135,14 +2069,14 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 		case 18: 
 			if (OPB_NotVar(x)) {
 				OPB_err(112);
-			} else if ((__IN(x->typ->comp, 0x0c) && x->typ->BaseTyp->form == 3)) {
+			} else if ((__IN(x->typ->comp, 0x0c, 32) && x->typ->BaseTyp->form == 3)) {
 				if (x->readonly) {
 					OPB_err(76);
 				}
 				t = x;
 				x = p;
 				p = t;
-				p = NewOp__57(19, 18, p, x);
+				p = NewOp__54(19, 18, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2151,14 +2085,14 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 		case 19: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x70)) {
+			} else if (f == 4) {
 				if ((p->class == 7 && x->class == 7)) {
 					if (-OPB_maxExp > x->conval->intval || x->conval->intval > OPB_maxExp) {
 						OPB_err(208);
 						p->conval->intval = 1;
 					} else if (x->conval->intval >= 0) {
-						if (__ABS(p->conval->intval) <= __DIV(2147483647, __ASH(1, x->conval->intval))) {
-							p->conval->intval = p->conval->intval * __ASH(1, x->conval->intval);
+						if (__ABS(p->conval->intval) <= __DIV(9223372036854775807, (INT64)__ASH(1, x->conval->intval))) {
+							p->conval->intval = p->conval->intval * (INT64)__ASH(1, x->conval->intval);
 						} else {
 							OPB_err(208);
 							p->conval->intval = 1;
@@ -2168,8 +2102,8 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 					}
 					p->obj = NIL;
 				} else {
-					p = NewOp__57(12, 17, p, x);
-					p->typ = OPT_linttyp;
+					p = NewOp__54(12, 17, p, x);
+					p->typ = p->left->typ;
 				}
 			} else {
 				OPB_err(111);
@@ -2179,7 +2113,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
 			} else if (p->typ->comp == 3) {
-				if (__IN(f, 0x70)) {
+				if (f == 4) {
 					if ((x->class == 7 && (x->conval->intval <= 0 || x->conval->intval > OPM_MaxIndex))) {
 						OPB_err(63);
 					}
@@ -2195,13 +2129,13 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 		case 22: case 23: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (!__IN(f, 0x70)) {
+			} else if (f != 4) {
 				OPB_err(111);
 			} else {
 				if (fctno == 22) {
-					p = NewOp__57(12, 27, p, x);
+					p = NewOp__54(12, 27, p, x);
 				} else {
-					p = NewOp__57(12, 28, p, x);
+					p = NewOp__54(12, 28, p, x);
 				}
 				p->typ = p->left->typ;
 			}
@@ -2209,7 +2143,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 		case 24: case 25: case 26: case 27: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x63ff)) {
+			} else if (__IN(f, 0x18ff, 32)) {
 				if (fctno == 24 || fctno == 26) {
 					if (OPB_NotVar(x)) {
 						OPB_err(112);
@@ -2218,7 +2152,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 					x = p;
 					p = t;
 				}
-				p = NewOp__57(19, fctno, p, x);
+				p = NewOp__54(19, fctno, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2227,32 +2161,38 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 		case 28: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x70)) {
-				p = NewOp__57(12, 26, p, x);
+			} else if (f == 4) {
+				p = NewOp__54(12, 26, p, x);
 			} else {
 				OPB_err(111);
 			}
 			p->typ = OPT_booltyp;
 			break;
 		case 29: 
-			if (((x->class == 8 || x->class == 9) || __IN(f, 0x1401)) || x->typ->comp == 3) {
+			if (((x->class == 8 || x->class == 9) || __IN(f, 0x0501, 32)) || x->typ->comp == 3) {
 				OPB_err(126);
 			}
-			if (x->typ->size < p->typ->size) {
+			OPT_TypSize(x->typ);
+			OPT_TypSize(p->typ);
+			if ((x->class != 7 && x->typ->size < p->typ->size)) {
 				OPB_err(-308);
 			}
-			t = OPT_NewNode(11);
-			t->subcl = 29;
-			t->left = x;
-			x = t;
-			x->typ = p->typ;
+			if ((((x->class == 7 && x->typ->form == 4)) && p->typ->form == 4)) {
+				OPB_Convert(&x, p->typ);
+			} else {
+				t = OPT_NewNode(11);
+				t->subcl = 29;
+				t->left = x;
+				x = t;
+				x->typ = p->typ;
+			}
 			p = x;
 			break;
 		case 30: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if (__IN(f, 0x70)) {
-				p = NewOp__57(19, 30, p, x);
+			} else if (f == 4) {
+				p = NewOp__54(19, 30, p, x);
 			} else {
 				OPB_err(111);
 			}
@@ -2261,16 +2201,16 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 		case 31: 
 			if (x->class == 8 || x->class == 9) {
 				OPB_err(126);
-			} else if ((((x->class == 7 && __IN(f, 0x70))) && x->typ->size < OPT_linttyp->size)) {
-				OPB_Convert(&x, OPT_linttyp);
-			} else if (!((__IN(x->typ->form, 0x2070) && x->typ->size == (int)OPM_PointerSize))) {
+			} else if ((((x->class == 7 && f == 4)) && x->typ->size < OPT_adrtyp->size)) {
+				OPB_Convert(&x, OPT_adrtyp);
+			} else if (!((__IN(x->typ->form, 0x0810, 32) && x->typ->size == OPM_AddressSize))) {
 				OPB_err(111);
-				x->typ = OPT_linttyp;
+				x->typ = OPT_adrtyp;
 			}
 			p->link = x;
 			break;
 		case 32: 
-			if ((__IN(f, 0x70) && x->class == 7)) {
+			if ((f == 4 && x->class == 7)) {
 				if ((0 <= x->conval->intval && x->conval->intval <= 255)) {
 					OPB_BindNodes(28, OPT_notyp, &x, x);
 					x->conval = OPT_NewConst();
@@ -2298,13 +2238,13 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, SHORTINT fctno)
 			break;
 	}
 	*par0 = p;
-	StPar1__56_s = _s.lnk;
+	StPar1__53_s = _s.lnk;
 }
 
-void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)
+void OPB_StParN (OPT_Node *par0, OPT_Node x, INT16 fctno, INT16 n)
 {
 	OPT_Node node = NIL;
-	INTEGER f;
+	INT16 f;
 	OPT_Node p = NIL;
 	p = *par0;
 	f = x->typ->form;
@@ -2313,7 +2253,7 @@ void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)
 			OPB_err(126);
 		} else if (p->typ->comp != 3) {
 			OPB_err(64);
-		} else if (__IN(f, 0x70)) {
+		} else if (f == 4) {
 			if ((x->class == 7 && (x->conval->intval <= 0 || x->conval->intval > OPM_MaxIndex))) {
 				OPB_err(63);
 			}
@@ -2329,7 +2269,7 @@ void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)
 	} else if ((fctno == 31 && n == 2)) {
 		if (x->class == 8 || x->class == 9) {
 			OPB_err(126);
-		} else if (__IN(f, 0x70)) {
+		} else if (f == 4) {
 			node = OPT_NewNode(19);
 			node->subcl = 31;
 			node->right = p;
@@ -2346,9 +2286,9 @@ void OPB_StParN (OPT_Node *par0, OPT_Node x, INTEGER fctno, INTEGER n)
 	*par0 = p;
 }
 
-void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
+void OPB_StFct (OPT_Node *par0, INT8 fctno, INT16 parno)
 {
-	INTEGER dim;
+	INT16 dim;
 	OPT_Node x = NIL, p = NIL;
 	p = *par0;
 	if (fctno <= 19) {
@@ -2363,7 +2303,7 @@ void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
 			}
 		} else {
 			if (((fctno == 13 || fctno == 14) && parno == 1)) {
-				OPB_BindNodes(19, OPT_notyp, &p, OPB_NewIntConst(((LONGINT)(1))));
+				OPB_BindNodes(19, OPT_notyp, &p, OPB_NewIntConst(1));
 				p->subcl = fctno;
 				p->right->typ = p->left->typ;
 			} else if ((fctno == 17 && parno == 1)) {
@@ -2385,7 +2325,7 @@ void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
 	} else if (fctno == 32) {
 		if (parno == 1) {
 			x = NIL;
-			OPB_BindNodes(28, OPT_notyp, &x, OPB_NewIntConst(((LONGINT)(0))));
+			OPB_BindNodes(28, OPT_notyp, &x, OPB_NewIntConst(0));
 			x->conval = OPT_NewConst();
 			x->conval->intval = OPM_errpos;
 			OPB_Construct(15, &p, x);
@@ -2412,21 +2352,21 @@ void OPB_StFct (OPT_Node *par0, SHORTINT fctno, INTEGER parno)
 
 static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpar)
 {
-	INTEGER f;
+	INT16 f;
 	f = atyp->comp;
 	ftyp = ftyp->BaseTyp;
 	atyp = atyp->BaseTyp;
 	if ((fvarpar && ftyp == OPT_bytetyp)) {
-		if (!__IN(f, 0x0c) || !((__IN(atyp->form, 0x7e) && atyp->size == 1))) {
-			if (__IN(18, OPM_opt)) {
+		if (!__IN(f, 0x0c, 32) || !((__IN(atyp->form, 0x1e, 32) && atyp->size == 1))) {
+			if (__IN(18, OPM_Options, 32)) {
 				OPB_err(-301);
 			}
 		}
-	} else if (__IN(f, 0x0c)) {
+	} else if (__IN(f, 0x0c, 32)) {
 		if (ftyp->comp == 3) {
 			OPB_DynArrParCheck(ftyp, atyp, fvarpar);
 		} else if (ftyp != atyp) {
-			if ((((!fvarpar && ftyp->form == 13)) && atyp->form == 13)) {
+			if ((((!fvarpar && ftyp->form == 11)) && atyp->form == 11)) {
 				ftyp = ftyp->BaseTyp;
 				atyp = atyp->BaseTyp;
 				if ((ftyp->comp == 4 && atyp->comp == 4)) {
@@ -2450,7 +2390,7 @@ static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpa
 
 static void OPB_CheckReceiver (OPT_Node *x, OPT_Object fp)
 {
-	if (fp->typ->form == 13) {
+	if (fp->typ->form == 11) {
 		if ((*x)->class == 3) {
 			*x = (*x)->left;
 		} else {
@@ -2461,13 +2401,13 @@ static void OPB_CheckReceiver (OPT_Node *x, OPT_Object fp)
 
 void OPB_PrepCall (OPT_Node *x, OPT_Object *fpar)
 {
-	if (((*x)->obj != NIL && __IN((*x)->obj->mode, 0x22c0))) {
+	if (((*x)->obj != NIL && __IN((*x)->obj->mode, 0x22c0, 32))) {
 		*fpar = (*x)->obj->link;
 		if ((*x)->obj->mode == 13) {
 			OPB_CheckReceiver(&(*x)->left, *fpar);
 			*fpar = (*fpar)->link;
 		}
-	} else if (((((*x)->class != 8 && (*x)->typ != NIL)) && (*x)->typ->form == 14)) {
+	} else if (((((*x)->class != 8 && (*x)->typ != NIL)) && (*x)->typ->form == 12)) {
 		*fpar = (*x)->typ->link;
 	} else {
 		OPB_err(121);
@@ -2499,17 +2439,17 @@ void OPB_Param (OPT_Node ap, OPT_Object fp)
 				if (q == NIL) {
 					OPB_err(111);
 				}
-			} else if ((fp->typ == OPT_sysptrtyp && ap->typ->form == 13)) {
-			} else if ((ap->typ != fp->typ && !((fp->typ->form == 1 && ((__IN(ap->typ->form, 0x7e) && ap->typ->size == 1)))))) {
+			} else if ((fp->typ == OPT_sysptrtyp && ap->typ->form == 11)) {
+			} else if ((ap->typ != fp->typ && !((((fp->typ->form == 1 && __IN(ap->typ->form, 0x1e, 32))) && ap->typ->size == 1)))) {
 				OPB_err(123);
-			} else if ((fp->typ->form == 13 && ap->class == 5)) {
+			} else if ((fp->typ->form == 11 && ap->class == 5)) {
 				OPB_err(123);
 			}
 		} else if (fp->typ->comp == 3) {
 			if ((ap->class == 7 && ap->typ->form == 3)) {
 				OPB_CharToString(ap);
 			}
-			if ((ap->typ->form == 10 && fp->typ->BaseTyp->form == 3)) {
+			if ((ap->typ->form == 8 && fp->typ->BaseTyp->form == 3)) {
 			} else if (ap->class >= 7) {
 				OPB_err(59);
 			} else {
@@ -2521,13 +2461,13 @@ void OPB_Param (OPT_Node ap, OPT_Object fp)
 	}
 }
 
-void OPB_StaticLink (SHORTINT dlev)
+void OPB_StaticLink (INT8 dlev)
 {
 	OPT_Object scope = NIL;
 	scope = OPT_topScope;
 	while (dlev > 0) {
 		dlev -= 1;
-		scope->link->conval->setval |= __SETOF(3);
+		scope->link->conval->setval |= __SETOF(3,64);
 		scope = scope->left;
 	}
 }
@@ -2536,7 +2476,7 @@ void OPB_Call (OPT_Node *x, OPT_Node apar, OPT_Object fp)
 {
 	OPT_Struct typ = NIL;
 	OPT_Node p = NIL;
-	SHORTINT lev;
+	INT8 lev;
 	if ((*x)->class == 9) {
 		typ = (*x)->typ;
 		lev = (*x)->obj->mnolev;
@@ -2596,7 +2536,7 @@ void OPB_Return (OPT_Node *x, OPT_Object proc)
 void OPB_Assign (OPT_Node *x, OPT_Node y)
 {
 	OPT_Node z = NIL;
-	SHORTINT subcl;
+	INT8 subcl;
 	if ((*x)->class >= 7) {
 		OPB_err(56);
 	}
@@ -2617,12 +2557,12 @@ void OPB_Assign (OPT_Node *x, OPT_Node y)
 			OPB_BindNodes(6, (*x)->typ, &z, NIL);
 			*x = z;
 		}
-	} else if (((((((*x)->typ->comp == 2 && (*x)->typ->BaseTyp == OPT_chartyp)) && y->typ->form == 10)) && y->conval->intval2 == 1)) {
+	} else if (((((((*x)->typ->comp == 2 && (*x)->typ->BaseTyp == OPT_chartyp)) && y->typ->form == 8)) && y->conval->intval2 == 1)) {
 		y->typ = OPT_chartyp;
 		y->conval->intval = 0;
-		OPB_Index(&*x, OPB_NewIntConst(((LONGINT)(0))));
+		OPB_Index(&*x, OPB_NewIntConst(0));
 	}
-	if ((((((__IN((*x)->typ->comp, 0x0c) && (*x)->typ->BaseTyp == OPT_chartyp)) && __IN(y->typ->comp, 0x0c))) && y->typ->BaseTyp == OPT_chartyp)) {
+	if ((((((__IN((*x)->typ->comp, 0x0c, 32) && (*x)->typ->BaseTyp == OPT_chartyp)) && __IN(y->typ->comp, 0x0c, 32))) && y->typ->BaseTyp == OPT_chartyp)) {
 		subcl = 18;
 	} else {
 		subcl = 0;
@@ -2655,7 +2595,7 @@ export void *OPB__init(void)
 	__MODULE_IMPORT(OPT);
 	__REGMOD("OPB", 0);
 /* BEGIN */
-	OPB_maxExp = OPB_log(1073741824);
+	OPB_maxExp = OPB_log(4611686018427387904);
 	OPB_maxExp = OPB_exp;
 	__ENDMOD;
 }

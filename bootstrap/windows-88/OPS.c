@@ -1,5 +1,10 @@
-/* voc 1.95 [2016/08/23] for gcc LP64 on cygwin tspkaSfF */
-#define LARGE
+/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+
+#define SHORTINT INT8
+#define INTEGER  INT16
+#define LONGINT  INT32
+#define SET      UINT32
+
 #include "SYSTEM.h"
 #include "OPM.h"
 
@@ -12,29 +17,29 @@ typedef
 
 export OPS_Name OPS_name;
 export OPS_String OPS_str;
-export INTEGER OPS_numtyp;
-export LONGINT OPS_intval;
+export INT16 OPS_numtyp;
+export INT64 OPS_intval;
 export REAL OPS_realval;
 export LONGREAL OPS_lrlval;
 static CHAR OPS_ch;
 
 
-export void OPS_Get (SHORTINT *sym);
-static void OPS_Identifier (SHORTINT *sym);
+export void OPS_Get (INT8 *sym);
+static void OPS_Identifier (INT8 *sym);
 export void OPS_Init (void);
 static void OPS_Number (void);
-static void OPS_Str (SHORTINT *sym);
-static void OPS_err (INTEGER n);
+static void OPS_Str (INT8 *sym);
+static void OPS_err (INT16 n);
 
 
-static void OPS_err (INTEGER n)
+static void OPS_err (INT16 n)
 {
 	OPM_err(n);
 }
 
-static void OPS_Str (SHORTINT *sym)
+static void OPS_Str (INT8 *sym)
 {
-	INTEGER i;
+	INT16 i;
 	CHAR och;
 	i = 0;
 	och = OPS_ch;
@@ -60,15 +65,15 @@ static void OPS_Str (SHORTINT *sym)
 	if (OPS_intval == 2) {
 		*sym = 35;
 		OPS_numtyp = 1;
-		OPS_intval = (int)OPS_str[0];
+		OPS_intval = (INT16)OPS_str[0];
 	} else {
 		*sym = 37;
 	}
 }
 
-static void OPS_Identifier (SHORTINT *sym)
+static void OPS_Identifier (INT8 *sym)
 {
-	INTEGER i;
+	INT16 i;
 	i = 0;
 	do {
 		OPS_name[i] = OPS_ch;
@@ -87,12 +92,11 @@ static struct Number__6 {
 	struct Number__6 *lnk;
 } *Number__6_s;
 
-static INTEGER Ord__7 (CHAR ch, BOOLEAN hex);
-static LONGREAL Ten__9 (INTEGER e);
+static INT16 Ord__7 (CHAR ch, BOOLEAN hex);
+static LONGREAL Ten__9 (INT16 e);
 
-static LONGREAL Ten__9 (INTEGER e)
+static LONGREAL Ten__9 (INT16 e)
 {
-	LONGREAL _o_result;
 	LONGREAL x, p;
 	x = (LONGREAL)1;
 	p = (LONGREAL)10;
@@ -105,30 +109,25 @@ static LONGREAL Ten__9 (INTEGER e)
 			p = p * p;
 		}
 	}
-	_o_result = x;
-	return _o_result;
+	return x;
 }
 
-static INTEGER Ord__7 (CHAR ch, BOOLEAN hex)
+static INT16 Ord__7 (CHAR ch, BOOLEAN hex)
 {
-	INTEGER _o_result;
 	if (ch <= '9') {
-		_o_result = (int)ch - 48;
-		return _o_result;
+		return (INT16)ch - 48;
 	} else if (hex) {
-		_o_result = ((int)ch - 65) + 10;
-		return _o_result;
+		return ((INT16)ch - 65) + 10;
 	} else {
 		OPS_err(2);
-		_o_result = 0;
-		return _o_result;
+		return 0;
 	}
 	__RETCHK;
 }
 
 static void OPS_Number (void)
 {
-	INTEGER i, m, n, d, e, maxHdig;
+	INT16 i, m, n, d, e;
 	CHAR dig[24];
 	LONGREAL f;
 	CHAR expCh;
@@ -174,7 +173,7 @@ static void OPS_Number (void)
 				OPS_numtyp = 1;
 				if (n <= 2) {
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (SYSTEM_INT64)Ord__7(dig[i], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[i], 1);
 						i += 1;
 					}
 				} else {
@@ -183,13 +182,12 @@ static void OPS_Number (void)
 			} else if (OPS_ch == 'H') {
 				OPM_Get(&OPS_ch);
 				OPS_numtyp = 2;
-				maxHdig = 16;
-				if (n <= maxHdig) {
-					if ((n == maxHdig && dig[0] > '7')) {
+				if (n <= 16) {
+					if ((n == 16 && dig[0] > '7')) {
 						OPS_intval = -1;
 					}
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (SYSTEM_INT64)Ord__7(dig[i], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[i], 1);
 						i += 1;
 					}
 				} else {
@@ -200,8 +198,8 @@ static void OPS_Number (void)
 				while (i < n) {
 					d = Ord__7(dig[i], 0);
 					i += 1;
-					if (OPS_intval <= __DIV(9223372036854775807 - (SYSTEM_INT64)d, 10)) {
-						OPS_intval = OPS_intval * 10 + (SYSTEM_INT64)d;
+					if (OPS_intval <= __DIV(9223372036854775807 - (INT64)d, 10)) {
+						OPS_intval = OPS_intval * 10 + (INT64)d;
 					} else {
 						OPS_err(203);
 					}
@@ -232,7 +230,7 @@ static void OPS_Number (void)
 				do {
 					n = Ord__7(OPS_ch, 0);
 					OPM_Get(&OPS_ch);
-					if (e <= __DIV(2147483647 - n, 10)) {
+					if (e <= __DIV(32767 - n, 10)) {
 						e = e * 10 + n;
 					} else {
 						OPS_err(203);
@@ -310,9 +308,9 @@ static void Comment__2 (void)
 	}
 }
 
-void OPS_Get (SHORTINT *sym)
+void OPS_Get (INT8 *sym)
 {
-	SHORTINT s;
+	INT8 s;
 	struct Get__1 _s;
 	_s.lnk = Get__1_s;
 	Get__1_s = &_s;
@@ -320,6 +318,7 @@ void OPS_Get (SHORTINT *sym)
 	while (OPS_ch <= ' ') {
 		if (OPS_ch == 0x00) {
 			*sym = 64;
+			Get__1_s = _s.lnk;
 			return;
 		} else {
 			OPM_Get(&OPS_ch);
