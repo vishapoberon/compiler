@@ -144,5 +144,3 @@ HALT displays the message 'Terminated by Halt(n)'. For negative values that corr
 
 Bear in mind that both Linux and Windows generally treat the return code as a signed 8 bit value, ignoring higher order bits. Therefore it is best to restrict HALT and ASSERT codes to the range -128 .. 127.
 
-A client application may register a halt handler by calling Platform.SetHalt(p) where p: PROCEDURE(n: SYSTEM.INT32). This procedure will be called before Halt displays it's message. The procedure may suppress the Halt message by calling Platform.Exit(code: INTEGER) directly.
-

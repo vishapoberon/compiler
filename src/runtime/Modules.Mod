@@ -151,9 +151,4 @@ MODULE Modules;  (* jt 6.1.96 *)
     Platform.Exit(code);
   END AssertFail;
 
-  (*
-  PROCEDURE SetHalt*(p: HaltProcedure);
-  BEGIN HaltHandler := p; END SetHalt;
-  *)
-
 END Modules.
