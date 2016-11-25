@@ -248,7 +248,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       typ := typ^.BaseTyp^.BaseTyp; nofdims := 1;
       WHILE typ^.comp = OPT.DynArr DO INC(nofdims); typ := typ^.BaseTyp END ;
       OPM.WriteString('struct '); BegBlk;
-      BegStat; Str1("LONGINT len[#]", nofdims); EndStat;
+      BegStat; Str1("ADDRESS len[#]", nofdims); EndStat;
       BegStat; NEW(obj); NEW(obj.typ);  (* aux. object for easy declaration *)
       obj.typ.form := OPT.Comp; obj.typ.comp := OPT.Array; obj.typ.n := 1; obj.typ.BaseTyp := typ; obj.mode := OPT.Fld; obj.name := "data";
       obj.linkadr := UndefinedType; DeclareBase(obj); OPM.Write(' ');  DeclareObj(obj, FALSE);
@@ -335,7 +335,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF showParamName THEN Ident(par); OPM.WriteString(LenExt) END ;
     dim := 1; typ := par^.typ^.BaseTyp;
     WHILE typ^.comp = OPT.DynArr DO
-      IF ansiDefine THEN OPM.WriteString(", LONGINT ") ELSE OPM.WriteString(', ') END ;
+      IF ansiDefine THEN OPM.WriteString(", ADDRESS ") ELSE OPM.WriteString(', ') END ;
       IF showParamName THEN Ident(par); OPM.WriteString(LenExt); OPM.WriteInt(dim) END ;
       typ := typ^.BaseTyp; INC(dim)
     END
@@ -656,7 +656,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         IF obj^.typ^.comp = OPT.DynArr THEN (* declare len parameter(s) *)
           EndStat; BegStat;
           base := OPT.linttyp;
-          OPM.WriteString("LONGINT "); LenList(obj, FALSE, TRUE)
+          OPM.WriteString("ADDRESS "); LenList(obj, FALSE, TRUE)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           EndStat; BegStat;
           OPM.WriteString("ADDRESS *"); Ident(obj); OPM.WriteString(TagExt);
@@ -684,7 +684,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           COPY(obj^.name, name);  obj^.name := ""; DeclareObj(obj, FALSE); COPY(name, obj^.name)
         END ;
         IF obj^.typ^.comp = OPT.DynArr THEN
-          OPM.WriteString(", LONGINT ");
+          OPM.WriteString(", ADDRESS ");
           LenList(obj, TRUE, showParamNames)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           OPM.WriteString(", ADDRESS *");
