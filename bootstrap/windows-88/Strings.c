@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -10,18 +10,18 @@
 
 
 
-export void Strings_Append (CHAR *extra, LONGINT extra__len, CHAR *dest, LONGINT dest__len);
-export void Strings_Cap (CHAR *s, LONGINT s__len);
-export void Strings_Delete (CHAR *s, LONGINT s__len, INT16 pos, INT16 n);
-export void Strings_Extract (CHAR *source, LONGINT source__len, INT16 pos, INT16 n, CHAR *dest, LONGINT dest__len);
-export void Strings_Insert (CHAR *source, LONGINT source__len, INT16 pos, CHAR *dest, LONGINT dest__len);
-export INT16 Strings_Length (CHAR *s, LONGINT s__len);
-export BOOLEAN Strings_Match (CHAR *string, LONGINT string__len, CHAR *pattern, LONGINT pattern__len);
-export INT16 Strings_Pos (CHAR *pattern, LONGINT pattern__len, CHAR *s, LONGINT s__len, INT16 pos);
-export void Strings_Replace (CHAR *source, LONGINT source__len, INT16 pos, CHAR *dest, LONGINT dest__len);
+export void Strings_Append (CHAR *extra, ADDRESS extra__len, CHAR *dest, ADDRESS dest__len);
+export void Strings_Cap (CHAR *s, ADDRESS s__len);
+export void Strings_Delete (CHAR *s, ADDRESS s__len, INT16 pos, INT16 n);
+export void Strings_Extract (CHAR *source, ADDRESS source__len, INT16 pos, INT16 n, CHAR *dest, ADDRESS dest__len);
+export void Strings_Insert (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len);
+export INT16 Strings_Length (CHAR *s, ADDRESS s__len);
+export BOOLEAN Strings_Match (CHAR *string, ADDRESS string__len, CHAR *pattern, ADDRESS pattern__len);
+export INT16 Strings_Pos (CHAR *pattern, ADDRESS pattern__len, CHAR *s, ADDRESS s__len, INT16 pos);
+export void Strings_Replace (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len);
 
 
-INT16 Strings_Length (CHAR *s, LONGINT s__len)
+INT16 Strings_Length (CHAR *s, ADDRESS s__len)
 {
 	INT32 i;
 	__DUP(s, s__len, CHAR);
@@ -39,7 +39,7 @@ INT16 Strings_Length (CHAR *s, LONGINT s__len)
 	__RETCHK;
 }
 
-void Strings_Append (CHAR *extra, LONGINT extra__len, CHAR *dest, LONGINT dest__len)
+void Strings_Append (CHAR *extra, ADDRESS extra__len, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 n1, n2, i;
 	__DUP(extra, extra__len, CHAR);
@@ -56,7 +56,7 @@ void Strings_Append (CHAR *extra, LONGINT extra__len, CHAR *dest, LONGINT dest__
 	__DEL(extra);
 }
 
-void Strings_Insert (CHAR *source, LONGINT source__len, INT16 pos, CHAR *dest, LONGINT dest__len)
+void Strings_Insert (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 n1, n2, i;
 	__DUP(source, source__len, CHAR);
@@ -87,7 +87,7 @@ void Strings_Insert (CHAR *source, LONGINT source__len, INT16 pos, CHAR *dest, L
 	__DEL(source);
 }
 
-void Strings_Delete (CHAR *s, LONGINT s__len, INT16 pos, INT16 n)
+void Strings_Delete (CHAR *s, ADDRESS s__len, INT16 pos, INT16 n)
 {
 	INT16 len, i;
 	len = Strings_Length(s, s__len);
@@ -110,7 +110,7 @@ void Strings_Delete (CHAR *s, LONGINT s__len, INT16 pos, INT16 n)
 	}
 }
 
-void Strings_Replace (CHAR *source, LONGINT source__len, INT16 pos, CHAR *dest, LONGINT dest__len)
+void Strings_Replace (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len)
 {
 	__DUP(source, source__len, CHAR);
 	Strings_Delete((void*)dest, dest__len, pos, pos + Strings_Length(source, source__len));
@@ -118,7 +118,7 @@ void Strings_Replace (CHAR *source, LONGINT source__len, INT16 pos, CHAR *dest, 
 	__DEL(source);
 }
 
-void Strings_Extract (CHAR *source, LONGINT source__len, INT16 pos, INT16 n, CHAR *dest, LONGINT dest__len)
+void Strings_Extract (CHAR *source, ADDRESS source__len, INT16 pos, INT16 n, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 len, destLen, i;
 	__DUP(source, source__len, CHAR);
@@ -143,7 +143,7 @@ void Strings_Extract (CHAR *source, LONGINT source__len, INT16 pos, INT16 n, CHA
 	__DEL(source);
 }
 
-INT16 Strings_Pos (CHAR *pattern, LONGINT pattern__len, CHAR *s, LONGINT s__len, INT16 pos)
+INT16 Strings_Pos (CHAR *pattern, ADDRESS pattern__len, CHAR *s, ADDRESS s__len, INT16 pos)
 {
 	INT16 n1, n2, i, j;
 	__DUP(pattern, pattern__len, CHAR);
@@ -175,7 +175,7 @@ INT16 Strings_Pos (CHAR *pattern, LONGINT pattern__len, CHAR *s, LONGINT s__len,
 	return -1;
 }
 
-void Strings_Cap (CHAR *s, LONGINT s__len)
+void Strings_Cap (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	i = 0;
@@ -191,9 +191,9 @@ static struct Match__7 {
 	struct Match__7 *lnk;
 } *Match__7_s;
 
-static BOOLEAN M__8 (CHAR *name, LONGINT name__len, CHAR *mask, LONGINT mask__len, INT16 n, INT16 m);
+static BOOLEAN M__8 (CHAR *name, ADDRESS name__len, CHAR *mask, ADDRESS mask__len, INT16 n, INT16 m);
 
-static BOOLEAN M__8 (CHAR *name, LONGINT name__len, CHAR *mask, LONGINT mask__len, INT16 n, INT16 m)
+static BOOLEAN M__8 (CHAR *name, ADDRESS name__len, CHAR *mask, ADDRESS mask__len, INT16 n, INT16 m)
 {
 	while ((((n >= 0 && m >= 0)) && mask[__X(m, mask__len)] != '*')) {
 		if (name[__X(n, name__len)] != mask[__X(m, mask__len)]) {
@@ -220,7 +220,7 @@ static BOOLEAN M__8 (CHAR *name, LONGINT name__len, CHAR *mask, LONGINT mask__le
 	return 0;
 }
 
-BOOLEAN Strings_Match (CHAR *string, LONGINT string__len, CHAR *pattern, LONGINT pattern__len)
+BOOLEAN Strings_Match (CHAR *string, ADDRESS string__len, CHAR *pattern, ADDRESS pattern__len)
 {
 	struct Match__7 _s;
 	BOOLEAN __retval;

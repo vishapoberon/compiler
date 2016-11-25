@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Texts__h
 #define Texts__h
@@ -131,7 +131,7 @@ import ADDRESS *Texts_Writer__typ;
 
 import void Texts_Append (Texts_Text T, Texts_Buffer B);
 import void Texts_ChangeLooks (Texts_Text T, INT32 beg, INT32 end, UINT32 sel, Texts_FontsFont fnt, INT8 col, INT8 voff);
-import void Texts_Close (Texts_Text T, CHAR *name, LONGINT name__len);
+import void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len);
 import void Texts_Copy (Texts_Buffer SB, Texts_Buffer DB);
 import void Texts_CopyElem (Texts_Elem SE, Texts_Elem DE);
 import void Texts_Delete (Texts_Text T, INT32 beg, INT32 end);
@@ -139,7 +139,7 @@ import Texts_Text Texts_ElemBase (Texts_Elem E);
 import INT32 Texts_ElemPos (Texts_Elem E);
 import void Texts_Insert (Texts_Text T, INT32 pos, Texts_Buffer B);
 import void Texts_Load (Files_Rider *r, ADDRESS *r__typ, Texts_Text T);
-import void Texts_Open (Texts_Text T, CHAR *name, LONGINT name__len);
+import void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len);
 import void Texts_OpenBuf (Texts_Buffer B);
 import void Texts_OpenReader (Texts_Reader *R, ADDRESS *R__typ, Texts_Text T, INT32 pos);
 import void Texts_OpenScanner (Texts_Scanner *S, ADDRESS *S__typ, Texts_Text T, INT32 pos);
@@ -166,7 +166,7 @@ import void Texts_WriteLongRealHex (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x
 import void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n);
 import void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT16 k);
 import void Texts_WriteRealHex (Texts_Writer *W, ADDRESS *W__typ, REAL x);
-import void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, LONGINT s__len);
+import void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len);
 import void *Texts__init(void);
 
 

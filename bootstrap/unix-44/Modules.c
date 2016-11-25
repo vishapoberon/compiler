@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -47,21 +47,21 @@ export Modules_ModuleName Modules_imported, Modules_importing;
 export ADDRESS *Modules_ModuleDesc__typ;
 export ADDRESS *Modules_CmdDesc__typ;
 
-static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len);
+static void Modules_Append (CHAR *a, ADDRESS a__len, CHAR *b, ADDRESS b__len);
 export void Modules_AssertFail (INT32 code);
 static void Modules_DisplayHaltCode (INT32 code);
-export void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all);
+export void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all);
 export void Modules_Halt (INT32 code);
-export Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len);
-export Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len);
+export Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, ADDRESS name__len);
+export Modules_Module Modules_ThisMod (CHAR *name, ADDRESS name__len);
 static void Modules_errch (CHAR c);
 static void Modules_errint (INT32 l);
-static void Modules_errstring (CHAR *s, LONGINT s__len);
+static void Modules_errstring (CHAR *s, ADDRESS s__len);
 
 #define Modules_modules()	(Modules_Module)Heap_modules
 #define Modules_setmodules(m)	Heap_modules = m
 
-static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len)
+static void Modules_Append (CHAR *a, ADDRESS a__len, CHAR *b, ADDRESS b__len)
 {
 	INT16 i, j;
 	__DUP(b, b__len, CHAR);
@@ -79,7 +79,7 @@ static void Modules_Append (CHAR *a, LONGINT a__len, CHAR *b, LONGINT b__len)
 	__DEL(b);
 }
 
-Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len)
+Modules_Module Modules_ThisMod (CHAR *name, ADDRESS name__len)
 {
 	Modules_Module m = NIL;
 	CHAR bodyname[64];
@@ -103,7 +103,7 @@ Modules_Module Modules_ThisMod (CHAR *name, LONGINT name__len)
 	return m;
 }
 
-Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT name__len)
+Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, ADDRESS name__len)
 {
 	Modules_Cmd c = NIL;
 	__DUP(name, name__len, CHAR);
@@ -130,7 +130,7 @@ Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, LONGINT nam
 	__RETCHK;
 }
 
-void Modules_Free (CHAR *name, LONGINT name__len, BOOLEAN all)
+void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all)
 {
 	Modules_Module m = NIL, p = NIL;
 	__DUP(name, name__len, CHAR);
@@ -168,7 +168,7 @@ static void Modules_errch (CHAR c)
 	e = Platform_Write(1, (ADDRESS)&c, 1);
 }
 
-static void Modules_errstring (CHAR *s, LONGINT s__len)
+static void Modules_errstring (CHAR *s, ADDRESS s__len)
 {
 	INT32 i;
 	__DUP(s, s__len, CHAR);

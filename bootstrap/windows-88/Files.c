@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -53,7 +53,7 @@ static Files_File Files_files;
 static INT16 Files_tempno;
 static CHAR Files_HOME[1024];
 static struct {
-	LONGINT len[1];
+	ADDRESS len[1];
 	CHAR data[1];
 } *Files_SearchPath;
 
@@ -63,56 +63,56 @@ export ADDRESS *Files_Rider__typ;
 
 export Files_File Files_Base (Files_Rider *r, ADDRESS *r__typ);
 static Files_File Files_CacheEntry (Platform_FileIdentity identity);
-export void Files_ChangeDirectory (CHAR *path, LONGINT path__len, INT16 *res);
+export void Files_ChangeDirectory (CHAR *path, ADDRESS path__len, INT16 *res);
 export void Files_Close (Files_File f);
 static void Files_CloseOSFile (Files_File f);
 static void Files_Create (Files_File f);
-export void Files_Delete (CHAR *name, LONGINT name__len, INT16 *res);
-static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, INT16 errcode);
+export void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
+static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode);
 static void Files_Finalize (SYSTEM_PTR o);
-static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *dest, LONGINT dest__len);
+static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *dest, ADDRESS dest__len);
 static void Files_Flush (Files_Buffer buf);
 export void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
-export void Files_GetName (Files_File f, CHAR *name, LONGINT name__len);
-static void Files_GetTempName (CHAR *finalName, LONGINT finalName__len, CHAR *name, LONGINT name__len);
-static BOOLEAN Files_HasDir (CHAR *name, LONGINT name__len);
+export void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
+static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len);
+static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len);
 export INT32 Files_Length (Files_File f);
-static void Files_MakeFileName (CHAR *dir, LONGINT dir__len, CHAR *name, LONGINT name__len, CHAR *dest, LONGINT dest__len);
-export Files_File Files_New (CHAR *name, LONGINT name__len);
-export Files_File Files_Old (CHAR *name, LONGINT name__len);
+static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len);
+export Files_File Files_New (CHAR *name, ADDRESS name__len);
+export Files_File Files_Old (CHAR *name, ADDRESS name__len);
 export INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ);
 export void Files_Purge (Files_File f);
 export void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x);
 export void Files_ReadBool (Files_Rider *R, ADDRESS *R__typ, BOOLEAN *x);
-export void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT x__len, INT32 n);
+export void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n);
 export void Files_ReadInt (Files_Rider *R, ADDRESS *R__typ, INT16 *x);
 export void Files_ReadLInt (Files_Rider *R, ADDRESS *R__typ, INT32 *x);
 export void Files_ReadLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL *x);
-export void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len);
-export void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, LONGINT x__len);
+export void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
+export void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__len);
 export void Files_ReadReal (Files_Rider *R, ADDRESS *R__typ, REAL *x);
 export void Files_ReadSet (Files_Rider *R, ADDRESS *R__typ, UINT32 *x);
-export void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len);
+export void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
 export void Files_Register (Files_File f);
-export void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT16 *res);
-static void Files_ScanPath (INT16 *pos, CHAR *dir, LONGINT dir__len);
+export void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res);
+static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len);
 export void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos);
-export void Files_SetSearchPath (CHAR *path, LONGINT path__len);
+export void Files_SetSearchPath (CHAR *path, ADDRESS path__len);
 export void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x);
 export void Files_WriteBool (Files_Rider *R, ADDRESS *R__typ, BOOLEAN x);
-export void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT x__len, INT32 n);
+export void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n);
 export void Files_WriteInt (Files_Rider *R, ADDRESS *R__typ, INT16 x);
 export void Files_WriteLInt (Files_Rider *R, ADDRESS *R__typ, INT32 x);
 export void Files_WriteLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL x);
 export void Files_WriteNum (Files_Rider *R, ADDRESS *R__typ, INT64 x);
 export void Files_WriteReal (Files_Rider *R, ADDRESS *R__typ, REAL x);
 export void Files_WriteSet (Files_Rider *R, ADDRESS *R__typ, UINT32 x);
-export void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len);
+export void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
 
 #define Files_IdxTrap()	__HALT(-1)
 #define Files_ToAdr(x)	(ADDRESS)x
 
-static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, INT16 errcode)
+static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 {
 	__DUP(s, s__len, CHAR);
 	Out_Ln();
@@ -139,7 +139,7 @@ static void Files_Err (CHAR *s, LONGINT s__len, Files_File f, INT16 errcode)
 	__DEL(s);
 }
 
-static void Files_MakeFileName (CHAR *dir, LONGINT dir__len, CHAR *name, LONGINT name__len, CHAR *dest, LONGINT dest__len)
+static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 i, j;
 	__DUP(dir, dir__len, CHAR);
@@ -164,7 +164,7 @@ static void Files_MakeFileName (CHAR *dir, LONGINT dir__len, CHAR *name, LONGINT
 	__DEL(name);
 }
 
-static void Files_GetTempName (CHAR *finalName, LONGINT finalName__len, CHAR *name, LONGINT name__len)
+static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len)
 {
 	INT32 n, i, j;
 	__DUP(finalName, finalName__len, CHAR);
@@ -317,7 +317,7 @@ INT32 Files_Length (Files_File f)
 	return f->len;
 }
 
-Files_File Files_New (CHAR *name, LONGINT name__len)
+Files_File Files_New (CHAR *name, ADDRESS name__len)
 {
 	Files_File f = NIL;
 	__DUP(name, name__len, CHAR);
@@ -333,7 +333,7 @@ Files_File Files_New (CHAR *name, LONGINT name__len)
 	return f;
 }
 
-static void Files_ScanPath (INT16 *pos, CHAR *dir, LONGINT dir__len)
+static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len)
 {
 	INT16 i;
 	CHAR ch;
@@ -376,7 +376,7 @@ static void Files_ScanPath (INT16 *pos, CHAR *dir, LONGINT dir__len)
 	dir[i] = 0x00;
 }
 
-static BOOLEAN Files_HasDir (CHAR *name, LONGINT name__len)
+static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len)
 {
 	INT16 i;
 	CHAR ch;
@@ -416,7 +416,7 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 	return NIL;
 }
 
-Files_File Files_Old (CHAR *name, LONGINT name__len)
+Files_File Files_Old (CHAR *name, ADDRESS name__len)
 {
 	Files_File f = NIL;
 	INT64 fd;
@@ -619,7 +619,7 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 	}
 }
 
-void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT x__len, INT32 n)
+void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n)
 {
 	INT32 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
@@ -684,7 +684,7 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 	(*r).res = 0;
 }
 
-void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT x__len, INT32 n)
+void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n)
 {
 	INT32 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
@@ -723,14 +723,14 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, LONGINT 
 	(*r).res = 0;
 }
 
-void Files_Delete (CHAR *name, LONGINT name__len, INT16 *res)
+void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res)
 {
 	__DUP(name, name__len, CHAR);
 	*res = Platform_Unlink((void*)name, name__len);
 	__DEL(name);
 }
 
-void Files_Rename (CHAR *old, LONGINT old__len, CHAR *new, LONGINT new__len, INT16 *res)
+void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res)
 {
 	INT64 fdold, fdnew;
 	INT32 n;
@@ -814,14 +814,14 @@ void Files_Register (Files_File f)
 	}
 }
 
-void Files_ChangeDirectory (CHAR *path, LONGINT path__len, INT16 *res)
+void Files_ChangeDirectory (CHAR *path, ADDRESS path__len, INT16 *res)
 {
 	__DUP(path, path__len, CHAR);
 	*res = Platform_Chdir((void*)path, path__len);
 	__DEL(path);
 }
 
-static void Files_FlipBytes (SYSTEM_BYTE *src, LONGINT src__len, SYSTEM_BYTE *dest, LONGINT dest__len)
+static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *dest, ADDRESS dest__len)
 {
 	INT32 i, j;
 	if (!Platform_LittleEndian) {
@@ -879,7 +879,7 @@ void Files_ReadLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL *x)
 	Files_FlipBytes((void*)b, 8, (void*)&*x, 8);
 }
 
-void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
+void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
 	INT16 i;
 	CHAR ch;
@@ -891,7 +891,7 @@ void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
 	} while (!(ch == 0x00));
 }
 
-void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
+void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
 	INT16 i;
 	i = 0;
@@ -908,7 +908,7 @@ void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
 	x[i] = 0x00;
 }
 
-void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, LONGINT x__len)
+void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__len)
 {
 	INT8 s, b;
 	INT64 q;
@@ -974,7 +974,7 @@ void Files_WriteLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL x)
 	Files_WriteBytes(&*R, R__typ, (void*)b, 8, 8);
 }
 
-void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, LONGINT x__len)
+void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
 	INT16 i;
 	i = 0;
@@ -993,7 +993,7 @@ void Files_WriteNum (Files_Rider *R, ADDRESS *R__typ, INT64 x)
 	Files_Write(&*R, R__typ, (CHAR)__MASK(x, -128));
 }
 
-void Files_GetName (Files_File f, CHAR *name, LONGINT name__len)
+void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len)
 {
 	__COPY(f->workName, name, name__len);
 }
@@ -1011,7 +1011,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 	}
 }
 
-void Files_SetSearchPath (CHAR *path, LONGINT path__len)
+void Files_SetSearchPath (CHAR *path, ADDRESS path__len)
 {
 	__DUP(path, path__len, CHAR);
 	if (Strings_Length(path, path__len) != 0) {

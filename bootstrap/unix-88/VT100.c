@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -27,23 +27,23 @@ export void VT100_DECTCEMl (void);
 export void VT100_DSR (INT16 n);
 export void VT100_ED (INT16 n);
 export void VT100_EL (INT16 n);
-static void VT100_EscSeq (INT16 n, CHAR *letter, LONGINT letter__len);
-static void VT100_EscSeq0 (CHAR *letter, LONGINT letter__len);
-static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, LONGINT letter__len);
-static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, LONGINT letter__len);
+static void VT100_EscSeq (INT16 n, CHAR *letter, ADDRESS letter__len);
+static void VT100_EscSeq0 (CHAR *letter, ADDRESS letter__len);
+static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, ADDRESS letter__len);
+static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, ADDRESS letter__len);
 export void VT100_HVP (INT16 n, INT16 m);
-export void VT100_IntToStr (INT32 int_, CHAR *str, LONGINT str__len);
+export void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len);
 export void VT100_RCP (void);
-static void VT100_Reverse0 (CHAR *str, LONGINT str__len, INT16 start, INT16 end);
+static void VT100_Reverse0 (CHAR *str, ADDRESS str__len, INT16 start, INT16 end);
 export void VT100_SCP (void);
 export void VT100_SD (INT16 n);
 export void VT100_SGR (INT16 n);
 export void VT100_SGR2 (INT16 n, INT16 m);
 export void VT100_SU (INT16 n);
-export void VT100_SetAttr (CHAR *attr, LONGINT attr__len);
+export void VT100_SetAttr (CHAR *attr, ADDRESS attr__len);
 
 
-static void VT100_Reverse0 (CHAR *str, LONGINT str__len, INT16 start, INT16 end)
+static void VT100_Reverse0 (CHAR *str, ADDRESS str__len, INT16 start, INT16 end)
 {
 	CHAR h;
 	while (start < end) {
@@ -55,7 +55,7 @@ static void VT100_Reverse0 (CHAR *str, LONGINT str__len, INT16 start, INT16 end)
 	}
 }
 
-void VT100_IntToStr (INT32 int_, CHAR *str, LONGINT str__len)
+void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len)
 {
 	CHAR b[21];
 	INT16 s, e;
@@ -84,7 +84,7 @@ void VT100_IntToStr (INT32 int_, CHAR *str, LONGINT str__len)
 	__COPY(b, str, str__len);
 }
 
-static void VT100_EscSeq0 (CHAR *letter, LONGINT letter__len)
+static void VT100_EscSeq0 (CHAR *letter, ADDRESS letter__len)
 {
 	CHAR cmd[9];
 	__DUP(letter, letter__len, CHAR);
@@ -94,7 +94,7 @@ static void VT100_EscSeq0 (CHAR *letter, LONGINT letter__len)
 	__DEL(letter);
 }
 
-static void VT100_EscSeq (INT16 n, CHAR *letter, LONGINT letter__len)
+static void VT100_EscSeq (INT16 n, CHAR *letter, ADDRESS letter__len)
 {
 	CHAR nstr[2];
 	CHAR cmd[7];
@@ -107,7 +107,7 @@ static void VT100_EscSeq (INT16 n, CHAR *letter, LONGINT letter__len)
 	__DEL(letter);
 }
 
-static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, LONGINT letter__len)
+static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, ADDRESS letter__len)
 {
 	CHAR nstr[2];
 	CHAR cmd[7];
@@ -120,7 +120,7 @@ static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, LONGINT letter__len)
 	__DEL(letter);
 }
 
-static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, LONGINT letter__len)
+static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, ADDRESS letter__len)
 {
 	CHAR nstr[5], mstr[5];
 	CHAR cmd[12];
@@ -236,7 +236,7 @@ void VT100_DECTCEMh (void)
 	VT100_EscSeq0((CHAR*)"\?25h", 5);
 }
 
-void VT100_SetAttr (CHAR *attr, LONGINT attr__len)
+void VT100_SetAttr (CHAR *attr, ADDRESS attr__len)
 {
 	CHAR tmpstr[16];
 	__DUP(attr, attr__len, CHAR);

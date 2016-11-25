@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -17,13 +17,13 @@
 static CHAR extTools_CFLAGS[1023];
 
 
-export void extTools_Assemble (CHAR *moduleName, LONGINT moduleName__len);
-static void extTools_InitialiseCompilerCommand (CHAR *s, LONGINT s__len);
-export void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN statically, CHAR *additionalopts, LONGINT additionalopts__len);
-static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGINT cmd__len);
+export void extTools_Assemble (CHAR *moduleName, ADDRESS moduleName__len);
+static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len);
+export void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN statically, CHAR *additionalopts, ADDRESS additionalopts__len);
+static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRESS cmd__len);
 
 
-static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGINT cmd__len)
+static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRESS cmd__len)
 {
 	INT16 r, status, exitcode;
 	__DUP(title, title__len, CHAR);
@@ -63,7 +63,7 @@ static void extTools_execute (CHAR *title, LONGINT title__len, CHAR *cmd, LONGIN
 	__DEL(cmd);
 }
 
-static void extTools_InitialiseCompilerCommand (CHAR *s, LONGINT s__len)
+static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len)
 {
 	__COPY("gcc -g", s, s__len);
 	Strings_Append((CHAR*)" -I \"", 6, (void*)s, s__len);
@@ -74,7 +74,7 @@ static void extTools_InitialiseCompilerCommand (CHAR *s, LONGINT s__len)
 	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
 }
 
-void extTools_Assemble (CHAR *moduleName, LONGINT moduleName__len)
+void extTools_Assemble (CHAR *moduleName, ADDRESS moduleName__len)
 {
 	CHAR cmd[1023];
 	__DUP(moduleName, moduleName__len, CHAR);
@@ -86,7 +86,7 @@ void extTools_Assemble (CHAR *moduleName, LONGINT moduleName__len)
 	__DEL(moduleName);
 }
 
-void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN statically, CHAR *additionalopts, LONGINT additionalopts__len)
+void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN statically, CHAR *additionalopts, ADDRESS additionalopts__len)
 {
 	CHAR cmd[1023];
 	__DUP(additionalopts, additionalopts__len, CHAR);

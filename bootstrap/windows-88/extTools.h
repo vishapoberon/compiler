@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef extTools__h
 #define extTools__h
@@ -8,8 +8,8 @@
 
 
 
-import void extTools_Assemble (CHAR *moduleName, LONGINT moduleName__len);
-import void extTools_LinkMain (CHAR *moduleName, LONGINT moduleName__len, BOOLEAN statically, CHAR *additionalopts, LONGINT additionalopts__len);
+import void extTools_Assemble (CHAR *moduleName, ADDRESS moduleName__len);
+import void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN statically, CHAR *additionalopts, ADDRESS additionalopts__len);
 import void *extTools__init(void);
 
 

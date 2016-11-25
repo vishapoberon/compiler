@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -17,16 +17,16 @@ static INT16 Out_in;
 export void Out_Char (CHAR ch);
 export void Out_Flush (void);
 export void Out_Int (INT64 x, INT64 n);
-static INT32 Out_Length (CHAR *s, LONGINT s__len);
+static INT32 Out_Length (CHAR *s, ADDRESS s__len);
 export void Out_Ln (void);
 export void Out_LongReal (LONGREAL x, INT16 n);
 export void Out_Open (void);
 export void Out_Real (REAL x, INT16 n);
 static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_);
-export void Out_String (CHAR *str, LONGINT str__len);
+export void Out_String (CHAR *str, ADDRESS str__len);
 export LONGREAL Out_Ten (INT16 e);
-static void Out_digit (INT64 n, CHAR *s, LONGINT s__len, INT16 *i);
-static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, INT16 *i);
+static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i);
+static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16 *i);
 
 #define Out_Entier64(x)	(INT64)(x)
 
@@ -55,7 +55,7 @@ void Out_Char (CHAR ch)
 	}
 }
 
-static INT32 Out_Length (CHAR *s, LONGINT s__len)
+static INT32 Out_Length (CHAR *s, ADDRESS s__len)
 {
 	INT32 l;
 	l = 0;
@@ -65,7 +65,7 @@ static INT32 Out_Length (CHAR *s, LONGINT s__len)
 	return l;
 }
 
-void Out_String (CHAR *str, LONGINT str__len)
+void Out_String (CHAR *str, ADDRESS str__len)
 {
 	INT32 l;
 	INT16 error;
@@ -125,13 +125,13 @@ void Out_Ln (void)
 	Out_Flush();
 }
 
-static void Out_digit (INT64 n, CHAR *s, LONGINT s__len, INT16 *i)
+static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)
 {
 	*i -= 1;
 	s[__X(*i, s__len)] = (CHAR)(__MOD(n, 10) + 48);
 }
 
-static void Out_prepend (CHAR *t, LONGINT t__len, CHAR *s, LONGINT s__len, INT16 *i)
+static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16 *i)
 {
 	INT16 j;
 	INT32 l;

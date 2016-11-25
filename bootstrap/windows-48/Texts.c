@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -187,20 +187,20 @@ export void Texts_Append (Texts_Text T, Texts_Buffer B);
 export void Texts_ChangeLooks (Texts_Text T, INT32 beg, INT32 end, UINT32 sel, Texts_FontsFont fnt, INT8 col, INT8 voff);
 static Texts_Elem Texts_CloneElem (Texts_Elem e);
 static Texts_Piece Texts_ClonePiece (Texts_Piece p);
-export void Texts_Close (Texts_Text T, CHAR *name, LONGINT name__len);
+export void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len);
 export void Texts_Copy (Texts_Buffer SB, Texts_Buffer DB);
 export void Texts_CopyElem (Texts_Elem SE, Texts_Elem DE);
 export void Texts_Delete (Texts_Text T, INT32 beg, INT32 end);
 export Texts_Text Texts_ElemBase (Texts_Elem E);
 export INT32 Texts_ElemPos (Texts_Elem E);
 static void Texts_Find (Texts_Text T, INT32 *pos, Texts_Run *u, INT32 *org, INT32 *off);
-static Texts_FontsFont Texts_FontsThis (CHAR *name, LONGINT name__len);
+static Texts_FontsFont Texts_FontsThis (CHAR *name, ADDRESS name__len);
 static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, ADDRESS *msg__typ);
 export void Texts_Insert (Texts_Text T, INT32 pos, Texts_Buffer B);
 export void Texts_Load (Files_Rider *r, ADDRESS *r__typ, Texts_Text T);
 static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T);
 static void Texts_Merge (Texts_Text T, Texts_Run u, Texts_Run *v);
-export void Texts_Open (Texts_Text T, CHAR *name, LONGINT name__len);
+export void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len);
 export void Texts_OpenBuf (Texts_Buffer B);
 export void Texts_OpenReader (Texts_Reader *R, ADDRESS *R__typ, Texts_Text T, INT32 pos);
 export void Texts_OpenScanner (Texts_Scanner *S, ADDRESS *S__typ, Texts_Text T, INT32 pos);
@@ -229,10 +229,10 @@ export void Texts_WriteLongRealHex (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x
 export void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n);
 export void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT16 k);
 export void Texts_WriteRealHex (Texts_Writer *W, ADDRESS *W__typ, REAL x);
-export void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, LONGINT s__len);
+export void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len);
 
 
-static Texts_FontsFont Texts_FontsThis (CHAR *name, LONGINT name__len)
+static Texts_FontsFont Texts_FontsThis (CHAR *name, ADDRESS name__len)
 {
 	Texts_FontsFont F = NIL;
 	__NEW(F, Texts_FontDesc);
@@ -1027,7 +1027,7 @@ void Texts_WriteLn (Texts_Writer *W, ADDRESS *W__typ)
 	Texts_Write(&*W, W__typ, 0x0d);
 }
 
-void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, LONGINT s__len)
+void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	__DUP(s, s__len, CHAR);
@@ -1539,7 +1539,7 @@ void Texts_Load (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	Texts_Load0(&*r, r__typ, T);
 }
 
-void Texts_Open (Texts_Text T, CHAR *name, LONGINT name__len)
+void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
 {
 	Files_File f = NIL;
 	Files_Rider r;
@@ -1755,7 +1755,7 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	Store__39_s = _s.lnk;
 }
 
-void Texts_Close (Texts_Text T, CHAR *name, LONGINT name__len)
+void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len)
 {
 	Files_File f = NIL;
 	Files_Rider r;

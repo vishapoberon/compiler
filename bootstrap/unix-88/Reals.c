@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -10,11 +10,11 @@
 
 
 
-static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LONGINT d__len);
-export void Reals_Convert (REAL x, INT16 n, CHAR *d, LONGINT d__len);
-export void Reals_ConvertH (REAL y, CHAR *d, LONGINT d__len);
-export void Reals_ConvertHL (LONGREAL x, CHAR *d, LONGINT d__len);
-export void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, LONGINT d__len);
+static void Reals_BytesToHex (SYSTEM_BYTE *b, ADDRESS b__len, SYSTEM_BYTE *d, ADDRESS d__len);
+export void Reals_Convert (REAL x, INT16 n, CHAR *d, ADDRESS d__len);
+export void Reals_ConvertH (REAL y, CHAR *d, ADDRESS d__len);
+export void Reals_ConvertHL (LONGREAL x, CHAR *d, ADDRESS d__len);
+export void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, ADDRESS d__len);
 export INT16 Reals_Expo (REAL x);
 export INT16 Reals_ExpoL (LONGREAL x);
 export void Reals_SetExpo (REAL *x, INT16 ex);
@@ -79,7 +79,7 @@ INT16 Reals_ExpoL (LONGREAL x)
 	return __MASK(__ASHR(i, 4), -2048);
 }
 
-void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, LONGINT d__len)
+void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, ADDRESS d__len)
 {
 	INT32 i, j, k;
 	if (x < (LONGREAL)0) {
@@ -107,7 +107,7 @@ void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, LONGINT d__len)
 	}
 }
 
-void Reals_Convert (REAL x, INT16 n, CHAR *d, LONGINT d__len)
+void Reals_Convert (REAL x, INT16 n, CHAR *d, ADDRESS d__len)
 {
 	Reals_ConvertL(x, n, (void*)d, d__len);
 }
@@ -122,7 +122,7 @@ static CHAR Reals_ToHex (INT16 i)
 	__RETCHK;
 }
 
-static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LONGINT d__len)
+static void Reals_BytesToHex (SYSTEM_BYTE *b, ADDRESS b__len, SYSTEM_BYTE *d, ADDRESS d__len)
 {
 	INT16 i;
 	INT32 l;
@@ -137,12 +137,12 @@ static void Reals_BytesToHex (SYSTEM_BYTE *b, LONGINT b__len, SYSTEM_BYTE *d, LO
 	}
 }
 
-void Reals_ConvertH (REAL y, CHAR *d, LONGINT d__len)
+void Reals_ConvertH (REAL y, CHAR *d, ADDRESS d__len)
 {
 	Reals_BytesToHex((void*)&y, 4, (void*)d, d__len * 1);
 }
 
-void Reals_ConvertHL (LONGREAL x, CHAR *d, LONGINT d__len)
+void Reals_ConvertHL (LONGREAL x, CHAR *d, ADDRESS d__len)
 {
 	Reals_BytesToHex((void*)&x, 8, (void*)d, d__len * 1);
 }

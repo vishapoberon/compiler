@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -53,26 +53,26 @@ export void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 export void OPM_FPrintReal (INT32 *fp, REAL val);
 export void OPM_FPrintSet (INT32 *fp, UINT64 val);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
-static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, LONGINT bytes__len);
+static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
-export void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
+export void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len);
 export void OPM_InitOptions (void);
 export INT16 OPM_Integer (INT64 n);
 static void OPM_LogErrMsg (INT16 n);
-export void OPM_LogVT100 (CHAR *vt100code, LONGINT vt100code__len);
+export void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len);
 export void OPM_LogW (CHAR ch);
 export void OPM_LogWLn (void);
 export void OPM_LogWNum (INT64 i, INT64 len);
-export void OPM_LogWStr (CHAR *s, LONGINT s__len);
+export void OPM_LogWStr (CHAR *s, ADDRESS s__len);
 export INT32 OPM_Longint (INT64 n);
-static void OPM_MakeFileName (CHAR *name, LONGINT name__len, CHAR *FName, LONGINT FName__len, CHAR *ext, LONGINT ext__len);
+static void OPM_MakeFileName (CHAR *name, ADDRESS name__len, CHAR *FName, ADDRESS FName__len, CHAR *ext, ADDRESS ext__len);
 export void OPM_Mark (INT16 n, INT32 pos);
-export void OPM_NewSym (CHAR *modName, LONGINT modName__len);
-export void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
-export void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
+export void OPM_NewSym (CHAR *modName, ADDRESS modName__len);
+export void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done);
+export void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len);
 export BOOLEAN OPM_OpenPar (void);
 export void OPM_RegisterNewSym (void);
-static void OPM_ScanOptions (CHAR *s, LONGINT s__len);
+static void OPM_ScanOptions (CHAR *s, ADDRESS s__len);
 static void OPM_ShowLine (INT64 pos);
 export INT64 OPM_SignedMaximum (INT32 bytecount);
 export INT64 OPM_SignedMinimum (INT32 bytecount);
@@ -93,8 +93,8 @@ export void OPM_WriteHex (INT64 i);
 export void OPM_WriteInt (INT64 i);
 export void OPM_WriteLn (void);
 export void OPM_WriteReal (LONGREAL r, CHAR suffx);
-export void OPM_WriteString (CHAR *s, LONGINT s__len);
-export void OPM_WriteStringVar (CHAR *s, LONGINT s__len);
+export void OPM_WriteString (CHAR *s, ADDRESS s__len);
+export void OPM_WriteStringVar (CHAR *s, ADDRESS s__len);
 export BOOLEAN OPM_eofSF (void);
 export void OPM_err (INT16 n);
 
@@ -105,7 +105,7 @@ void OPM_LogW (CHAR ch)
 	Out_Char(ch);
 }
 
-void OPM_LogWStr (CHAR *s, LONGINT s__len)
+void OPM_LogWStr (CHAR *s, ADDRESS s__len)
 {
 	__DUP(s, s__len, CHAR);
 	Out_String(s, s__len);
@@ -122,7 +122,7 @@ void OPM_LogWLn (void)
 	Out_Ln();
 }
 
-void OPM_LogVT100 (CHAR *vt100code, LONGINT vt100code__len)
+void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len)
 {
 	__DUP(vt100code, vt100code__len, CHAR);
 	if ((Out_IsConsole && !__IN(16, OPM_Options, 32))) {
@@ -154,7 +154,7 @@ INT16 OPM_Integer (INT64 n)
 	return __VAL(INT16, n);
 }
 
-static void OPM_ScanOptions (CHAR *s, LONGINT s__len)
+static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	__DUP(s, s__len, CHAR);
@@ -465,7 +465,7 @@ void OPM_InitOptions (void)
 	Files_SetSearchPath(searchpath, 1024);
 }
 
-void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len)
+void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len)
 {
 	Texts_Text T = NIL;
 	INT32 beg, end, time;
@@ -514,7 +514,7 @@ void OPM_Get (CHAR *ch)
 	}
 }
 
-static void OPM_MakeFileName (CHAR *name, LONGINT name__len, CHAR *FName, LONGINT FName__len, CHAR *ext, LONGINT ext__len)
+static void OPM_MakeFileName (CHAR *name, ADDRESS name__len, CHAR *FName, ADDRESS FName__len, CHAR *ext, ADDRESS ext__len)
 {
 	INT16 i, j;
 	CHAR ch;
@@ -700,7 +700,7 @@ void OPM_err (INT16 n)
 	OPM_Mark(n, OPM_errpos);
 }
 
-static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, LONGINT bytes__len)
+static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len)
 {
 	INT16 i;
 	INT32 l;
@@ -772,7 +772,7 @@ void OPM_CloseOldSym (void)
 	Files_Close(Files_Base(&OPM_oldSF, Files_Rider__typ));
 }
 
-void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done)
+void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done)
 {
 	CHAR tag, ver;
 	OPM_FileName fileName;
@@ -832,7 +832,7 @@ void OPM_DeleteNewSym (void)
 {
 }
 
-void OPM_NewSym (CHAR *modName, LONGINT modName__len)
+void OPM_NewSym (CHAR *modName, ADDRESS modName__len)
 {
 	OPM_FileName fileName;
 	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
@@ -851,7 +851,7 @@ void OPM_Write (CHAR ch)
 	Files_Write(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, ch);
 }
 
-void OPM_WriteString (CHAR *s, LONGINT s__len)
+void OPM_WriteString (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	i = 0;
@@ -861,7 +861,7 @@ void OPM_WriteString (CHAR *s, LONGINT s__len)
 	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
 }
 
-void OPM_WriteStringVar (CHAR *s, LONGINT s__len)
+void OPM_WriteStringVar (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	i = 0;
@@ -986,7 +986,7 @@ static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F)
 	}
 }
 
-void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len)
+void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len)
 {
 	CHAR FName[32];
 	__COPY(moduleName, OPM_modName, 32);

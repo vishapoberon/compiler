@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -28,19 +28,19 @@ import void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 import void OPM_FPrintReal (INT32 *fp, REAL val);
 import void OPM_FPrintSet (INT32 *fp, UINT64 val);
 import void OPM_Get (CHAR *ch);
-import void OPM_Init (BOOLEAN *done, CHAR *mname, LONGINT mname__len);
+import void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len);
 import void OPM_InitOptions (void);
 import INT16 OPM_Integer (INT64 n);
-import void OPM_LogVT100 (CHAR *vt100code, LONGINT vt100code__len);
+import void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len);
 import void OPM_LogW (CHAR ch);
 import void OPM_LogWLn (void);
 import void OPM_LogWNum (INT64 i, INT64 len);
-import void OPM_LogWStr (CHAR *s, LONGINT s__len);
+import void OPM_LogWStr (CHAR *s, ADDRESS s__len);
 import INT32 OPM_Longint (INT64 n);
 import void OPM_Mark (INT16 n, INT32 pos);
-import void OPM_NewSym (CHAR *modName, LONGINT modName__len);
-import void OPM_OldSym (CHAR *modName, LONGINT modName__len, BOOLEAN *done);
-import void OPM_OpenFiles (CHAR *moduleName, LONGINT moduleName__len);
+import void OPM_NewSym (CHAR *modName, ADDRESS modName__len);
+import void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done);
+import void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len);
 import BOOLEAN OPM_OpenPar (void);
 import void OPM_RegisterNewSym (void);
 import INT64 OPM_SignedMaximum (INT32 bytecount);
@@ -61,8 +61,8 @@ import void OPM_WriteHex (INT64 i);
 import void OPM_WriteInt (INT64 i);
 import void OPM_WriteLn (void);
 import void OPM_WriteReal (LONGREAL r, CHAR suffx);
-import void OPM_WriteString (CHAR *s, LONGINT s__len);
-import void OPM_WriteStringVar (CHAR *s, LONGINT s__len);
+import void OPM_WriteString (CHAR *s, ADDRESS s__len);
+import void OPM_WriteStringVar (CHAR *s, ADDRESS s__len);
 import BOOLEAN OPM_eofSF (void);
 import void OPM_err (INT16 n);
 import void *OPM__init(void);

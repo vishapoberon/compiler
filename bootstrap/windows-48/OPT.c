@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -120,7 +120,7 @@ static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res)
 static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res);
 export void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
 export void OPT_FPrintErr (OPT_Object obj, INT16 errcode);
-static void OPT_FPrintName (INT32 *fp, CHAR *name, LONGINT name__len);
+static void OPT_FPrintName (INT32 *fp, CHAR *name, ADDRESS name__len);
 export void OPT_FPrintObj (OPT_Object obj);
 static void OPT_FPrintSign (INT32 *fp, OPT_Struct result, OPT_Object par);
 export void OPT_FPrintStr (OPT_Struct typ);
@@ -132,7 +132,7 @@ export void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
 static void OPT_InConstant (INT32 f, OPT_Const conval);
 static OPT_Object OPT_InFld (void);
 static void OPT_InMod (INT8 *mno);
-static void OPT_InName (CHAR *name, LONGINT name__len);
+static void OPT_InName (CHAR *name, ADDRESS name__len);
 static OPT_Object OPT_InObj (INT8 mno);
 static void OPT_InSign (INT8 mno, OPT_Struct *res, OPT_Object *par);
 static void OPT_InStruct (OPT_Struct *typ);
@@ -155,7 +155,7 @@ static void OPT_OutConstant (OPT_Object obj);
 static void OPT_OutFlds (OPT_Object fld, INT32 adr, BOOLEAN visible);
 static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, INT32 adr);
 static void OPT_OutMod (INT16 mno);
-static void OPT_OutName (CHAR *name, LONGINT name__len);
+static void OPT_OutName (CHAR *name, ADDRESS name__len);
 static void OPT_OutObj (OPT_Object obj);
 static void OPT_OutSign (OPT_Struct result, OPT_Object par);
 static void OPT_OutStr (OPT_Struct typ);
@@ -576,7 +576,7 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 	*obj = ob1;
 }
 
-static void OPT_FPrintName (INT32 *fp, CHAR *name, LONGINT name__len)
+static void OPT_FPrintName (INT32 *fp, CHAR *name, ADDRESS name__len)
 {
 	INT16 i;
 	CHAR ch;
@@ -957,7 +957,7 @@ void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old)
 	}
 }
 
-static void OPT_InName (CHAR *name, LONGINT name__len)
+static void OPT_InName (CHAR *name, ADDRESS name__len)
 {
 	INT16 i;
 	CHAR ch;
@@ -1483,7 +1483,7 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 	}
 }
 
-static void OPT_OutName (CHAR *name, LONGINT name__len)
+static void OPT_OutName (CHAR *name, ADDRESS name__len)
 {
 	INT16 i;
 	CHAR ch;

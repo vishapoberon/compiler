@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef VT100__h
 #define VT100__h
@@ -23,14 +23,14 @@ import void VT100_DSR (INT16 n);
 import void VT100_ED (INT16 n);
 import void VT100_EL (INT16 n);
 import void VT100_HVP (INT16 n, INT16 m);
-import void VT100_IntToStr (INT32 int_, CHAR *str, LONGINT str__len);
+import void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len);
 import void VT100_RCP (void);
 import void VT100_SCP (void);
 import void VT100_SD (INT16 n);
 import void VT100_SGR (INT16 n);
 import void VT100_SGR2 (INT16 n, INT16 m);
 import void VT100_SU (INT16 n);
-import void VT100_SetAttr (CHAR *attr, LONGINT attr__len);
+import void VT100_SetAttr (CHAR *attr, ADDRESS attr__len);
 import void *VT100__init(void);
 
 

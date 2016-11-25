@@ -1,4 +1,4 @@
-/* voc 1.95 [2016/11/24]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -85,14 +85,14 @@ static void Heap_ExtendHeap (INT64 blksz);
 export void Heap_FINALL (void);
 static void Heap_Finalize (void);
 export void Heap_GC (BOOLEAN markStack);
-static void Heap_HeapSort (INT64 n, INT64 *a, LONGINT a__len);
+static void Heap_HeapSort (INT64 n, INT64 *a, ADDRESS a__len);
 export void Heap_INCREF (Heap_Module m);
 export void Heap_InitHeap (void);
 export void Heap_Lock (void);
 static void Heap_Mark (INT64 q);
-static void Heap_MarkCandidates (INT64 n, INT64 *cand, LONGINT cand__len);
+static void Heap_MarkCandidates (INT64 n, INT64 *cand, ADDRESS cand__len);
 static void Heap_MarkP (SYSTEM_PTR p);
-static void Heap_MarkStack (INT64 n, INT64 *cand, LONGINT cand__len);
+static void Heap_MarkStack (INT64 n, INT64 *cand, ADDRESS cand__len);
 export SYSTEM_PTR Heap_NEWBLK (INT64 size);
 export SYSTEM_PTR Heap_NEWREC (INT64 tag);
 static INT64 Heap_NewChunk (INT64 blksz);
@@ -101,7 +101,7 @@ export SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs);
 export void Heap_REGTYP (Heap_Module m, INT64 typ);
 export void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize);
 static void Heap_Scan (void);
-static void Heap_Sift (INT64 l, INT64 r, INT64 *a, LONGINT a__len);
+static void Heap_Sift (INT64 l, INT64 r, INT64 *a, ADDRESS a__len);
 export void Heap_Unlock (void);
 
 extern void *Heap__init();
@@ -445,7 +445,7 @@ static void Heap_Scan (void)
 	}
 }
 
-static void Heap_Sift (INT64 l, INT64 r, INT64 *a, LONGINT a__len)
+static void Heap_Sift (INT64 l, INT64 r, INT64 *a, ADDRESS a__len)
 {
 	INT64 i, j, x;
 	j = l;
@@ -464,7 +464,7 @@ static void Heap_Sift (INT64 l, INT64 r, INT64 *a, LONGINT a__len)
 	a[i] = x;
 }
 
-static void Heap_HeapSort (INT64 n, INT64 *a, LONGINT a__len)
+static void Heap_HeapSort (INT64 n, INT64 *a, ADDRESS a__len)
 {
 	INT64 l, r, x;
 	l = __ASHR(n, 1);
@@ -482,7 +482,7 @@ static void Heap_HeapSort (INT64 n, INT64 *a, LONGINT a__len)
 	}
 }
 
-static void Heap_MarkCandidates (INT64 n, INT64 *cand, LONGINT cand__len)
+static void Heap_MarkCandidates (INT64 n, INT64 *cand, ADDRESS cand__len)
 {
 	INT64 chnk, adr, tag, next, lim, lim1, i, ptr, size;
 	chnk = Heap_heap;
@@ -571,7 +571,7 @@ void Heap_FINALL (void)
 	}
 }
 
-static void Heap_MarkStack (INT64 n, INT64 *cand, LONGINT cand__len)
+static void Heap_MarkStack (INT64 n, INT64 *cand, ADDRESS cand__len)
 {
 	SYSTEM_PTR frame;
 	INT64 inc, nofcand, sp, p, stack0;
