@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/27]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -269,7 +269,11 @@ void Modules_AssertFail (INT32 code)
 		Modules_errstring((CHAR*)".", 2);
 	}
 	Modules_errstring(Platform_NL, 3);
-	Platform_Exit(code);
+	if (code > 0) {
+		Platform_Exit(code);
+	} else {
+		Platform_Exit(-1);
+	}
 }
 
 __TDESC(Modules_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 48), {0, 28, -12}};

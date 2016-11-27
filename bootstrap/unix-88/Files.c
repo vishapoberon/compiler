@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/25]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/11/27]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -60,6 +60,7 @@ export ADDRESS *Files_FileDesc__typ;
 export ADDRESS *Files_BufDesc__typ;
 export ADDRESS *Files_Rider__typ;
 
+static void Files_Assert (BOOLEAN truth);
 export Files_File Files_Base (Files_Rider *r, ADDRESS *r__typ);
 static Files_File Files_CacheEntry (Platform_FileIdentity identity);
 export void Files_ChangeDirectory (CHAR *path, ADDRESS path__len, INT16 *res);
@@ -110,6 +111,14 @@ export void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS
 
 #define Files_IdxTrap()	__HALT(-1)
 #define Files_ToAdr(x)	(ADDRESS)x
+
+static void Files_Assert (BOOLEAN truth)
+{
+	if (!truth) {
+		Out_Ln();
+		__ASSERT(truth, 0);
+	}
+}
 
 static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 {
@@ -526,7 +535,7 @@ void Files_GetDate (Files_File f, INT32 *t, INT32 *d)
 
 INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ)
 {
-	__ASSERT((*r).offset <= 4096, 0);
+	Files_Assert((*r).offset <= 4096);
 	return (*r).org + (*r).offset;
 }
 
@@ -585,7 +594,7 @@ void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos)
 		org = 0;
 		offset = 0;
 	}
-	__ASSERT(offset <= 4096, 0);
+	Files_Assert(offset <= 4096);
 	(*r).buf = buf;
 	(*r).org = org;
 	(*r).offset = offset;
@@ -604,7 +613,7 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 		buf = (*r).buf;
 		offset = (*r).offset;
 	}
-	__ASSERT(offset <= buf->size, 0);
+	Files_Assert(offset <= buf->size);
 	if (offset < buf->size) {
 		*x = buf->data[offset];
 		(*r).offset = offset + 1;
@@ -649,7 +658,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 		(*r).offset = offset;
 		xpos += min;
 		n -= min;
-		__ASSERT(offset <= 4096, 0);
+		Files_Assert(offset <= 4096);
 	}
 	(*r).res = 0;
 	(*r).eof = 0;
@@ -666,13 +675,13 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 	INT32 offset;
 	buf = (*r).buf;
 	offset = (*r).offset;
-	__ASSERT(offset <= 4096, 0);
+	Files_Assert(offset <= 4096);
 	if ((*r).org != buf->org || offset >= 4096) {
 		Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
 		buf = (*r).buf;
 		offset = (*r).offset;
 	}
-	__ASSERT(offset < 4096, 0);
+	Files_Assert(offset < 4096);
 	buf->data[offset] = x;
 	buf->chg = 1;
 	if (offset == buf->size) {
@@ -694,13 +703,13 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 	buf = (*r).buf;
 	offset = (*r).offset;
 	while (n > 0) {
-		__ASSERT(offset <= 4096, 0);
+		Files_Assert(offset <= 4096);
 		if ((*r).org != buf->org || offset >= 4096) {
 			Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
 			buf = (*r).buf;
 			offset = (*r).offset;
 		}
-		__ASSERT(offset <= 4096, 0);
+		Files_Assert(offset <= 4096);
 		restInBuf = 4096 - offset;
 		if (n > restInBuf) {
 			min = restInBuf;
@@ -710,7 +719,7 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 		__MOVE((ADDRESS)x + Files_ToAdr(xpos), (ADDRESS)buf->data + Files_ToAdr(offset), min);
 		offset += min;
 		(*r).offset = offset;
-		__ASSERT(offset <= 4096, 0);
+		Files_Assert(offset <= 4096);
 		if (offset > buf->size) {
 			buf->f->len += offset - buf->size;
 			buf->size = offset;
@@ -919,7 +928,7 @@ void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__
 		Files_Read(&*R, R__typ, (void*)&b);
 	}
 	q += (INT64)__ASH((__MASK(b, -64) - __ASHL(__ASHR(b, 6), 6)), s);
-	__ASSERT(x__len <= 8, 0);
+	Files_Assert(x__len <= 8);
 	__MOVE((ADDRESS)&q, (ADDRESS)x, x__len);
 }
 
