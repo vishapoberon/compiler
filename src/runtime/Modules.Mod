@@ -148,7 +148,7 @@ MODULE Modules;  (* jt 6.1.96 *)
     errstring("Assertion failure.");
     IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;
     errstring(Platform.NL);
-    Platform.Exit(code);
+    IF code > 0 THEN Platform.Exit(code) ELSE Platform.Exit(-1) END;
   END AssertFail;
 
 END Modules.

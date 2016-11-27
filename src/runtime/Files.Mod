@@ -76,6 +76,11 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   PROCEDURE^ Finalize(o: SYSTEM.PTR);
 
+  PROCEDURE Assert(truth: BOOLEAN);
+  BEGIN
+    IF ~truth THEN Out.Ln; ASSERT(truth) END
+  END Assert;
+
   PROCEDURE Err(s: ARRAY OF CHAR; f: File; errcode: Platform.ErrorCode);
   BEGIN
     Out.Ln; Out.String("-- "); Out.String(s); Out.String(": ");
@@ -361,7 +366,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   PROCEDURE Pos* (VAR r: Rider): LONGINT;
   BEGIN
-    ASSERT(r.offset <= BufSize);
+    Assert(r.offset <= BufSize);
     RETURN r.org + r.offset
   END Pos;
 
@@ -401,7 +406,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       END
     ELSE buf := NIL; org := 0; offset := 0
     END;
-    ASSERT(offset <= BufSize);
+    Assert(offset <= BufSize);
     r.buf := buf; r.org := org; r.offset := offset; r.eof := FALSE; r.res := 0
   END Set;
 
@@ -410,7 +415,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   BEGIN
     buf := r.buf; offset := r.offset;
     IF r.org # buf.org THEN Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset END;
-    ASSERT(offset <= buf.size);
+    Assert(offset <= buf.size);
     IF (offset < buf.size) THEN
       x := buf.data[offset]; r.offset := offset + 1
     ELSIF r.org + offset < buf.f.len THEN
@@ -436,7 +441,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       ELSIF n > restInBuf THEN min := restInBuf ELSE min := n END;
       SYSTEM.MOVE(SYSTEM.ADR(buf.data) + ToAdr(offset), SYSTEM.ADR(x) + ToAdr(xpos), min);
       INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min);
-      ASSERT(offset <= BufSize)
+      Assert(offset <= BufSize)
     END;
     r.res := 0; r.eof := FALSE
   END ReadBytes;
@@ -449,12 +454,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR buf: Buffer; offset: LONGINT;
   BEGIN
     buf := r.buf; offset := r.offset;
-    ASSERT(offset <= BufSize);
+    Assert(offset <= BufSize);
     IF (r.org # buf.org) OR (offset >= BufSize) THEN
       Set(r, buf.f, r.org + offset);
       buf := r.buf; offset := r.offset
     END;
-    ASSERT(offset < BufSize);
+    Assert(offset < BufSize);
     buf.data[offset] := x;
     buf.chg := TRUE;
     IF offset = buf.size THEN
@@ -469,17 +474,17 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     IF n > LEN(x) THEN IdxTrap END;
     xpos := 0; buf := r.buf; offset := r.offset;
     WHILE n > 0 DO
-      ASSERT(offset <= BufSize);
+      Assert(offset <= BufSize);
       IF (r.org # buf.org) OR (offset >= BufSize) THEN
         Set(r, buf.f, r.org + offset);
         buf := r.buf; offset := r.offset
       END;
-      ASSERT(offset <= BufSize);
+      Assert(offset <= BufSize);
       restInBuf := BufSize - offset;
       IF n > restInBuf THEN min := restInBuf ELSE min := n END;
       SYSTEM.MOVE(SYSTEM.ADR(x) + ToAdr(xpos), SYSTEM.ADR(buf.data) + ToAdr(offset), min);
       INC(offset, min); r.offset := offset;
-      ASSERT(offset <= BufSize);
+      Assert(offset <= BufSize);
       IF offset > buf.size THEN INC(buf.f.len, offset - buf.size); buf.size := offset END;
       INC(xpos, min); DEC(n, min); buf.chg := TRUE
     END;
@@ -664,7 +669,7 @@ Especially Length would become fairly complex.
   BEGIN s := 0; q := 0; Read(R, b);
     WHILE b < 0 DO INC(q, ASH(b+128, s)); INC(s, 7); Read(R, b) END;
     INC(q, ASH(b MOD 64 - b DIV 64 * 64, s));
-    ASSERT(LEN(x) <= 8);
+    Assert(LEN(x) <= 8);
     SYSTEM.MOVE(SYSTEM.ADR(q), SYSTEM.ADR(x), LEN(x))  (* Assumes little endian representation of q and x. *)
   END ReadNum;
 
