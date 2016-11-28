@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/27]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1659,9 +1659,9 @@ void OPC_CompleteIdent (OPT_Object obj)
 			OPC_Ident(obj);
 			OPM_WriteString((CHAR*)"__", 3);
 		} else {
-			OPM_WriteString((CHAR*)"((", 3);
+			OPM_WriteString((CHAR*)"(*(", 4);
 			OPC_Ident(obj->typ->strobj);
-			OPM_Write(')');
+			OPM_WriteString((CHAR*)"*)&", 4);
 			OPC_Ident(obj);
 			OPM_Write(')');
 		}

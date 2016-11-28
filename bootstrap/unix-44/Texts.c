@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/27]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -390,27 +390,27 @@ static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, ADDRESS *msg__t
 			if (__IS(msg__typ, Texts_CopyMsg, 1)) {
 				Texts_CopyMsg *msg__ = (void*)msg;
 				__NEW(e, Texts__1);
-				Texts_CopyElem((void*)((Texts_Alien)E), (void*)e);
-				e->file = ((Texts_Alien)E)->file;
-				e->org = ((Texts_Alien)E)->org;
-				e->span = ((Texts_Alien)E)->span;
-				__COPY(((Texts_Alien)E)->mod, e->mod, 32);
-				__COPY(((Texts_Alien)E)->proc, e->proc, 32);
+				Texts_CopyElem((void*)(*(Texts_Alien*)&E), (void*)e);
+				e->file = (*(Texts_Alien*)&E)->file;
+				e->org = (*(Texts_Alien*)&E)->org;
+				e->span = (*(Texts_Alien*)&E)->span;
+				__COPY((*(Texts_Alien*)&E)->mod, e->mod, 32);
+				__COPY((*(Texts_Alien*)&E)->proc, e->proc, 32);
 				(*msg__).e = (Texts_Elem)e;
 			} else __WITHCHK;
 		} else if (__IS(msg__typ, Texts_IdentifyMsg, 1)) {
 			if (__IS(msg__typ, Texts_IdentifyMsg, 1)) {
 				Texts_IdentifyMsg *msg__ = (void*)msg;
-				__COPY(((Texts_Alien)E)->mod, (*msg__).mod, 32);
-				__COPY(((Texts_Alien)E)->proc, (*msg__).proc, 32);
+				__COPY((*(Texts_Alien*)&E)->mod, (*msg__).mod, 32);
+				__COPY((*(Texts_Alien*)&E)->proc, (*msg__).proc, 32);
 				(*msg__).mod[31] = 0x01;
 			} else __WITHCHK;
 		} else if (__IS(msg__typ, Texts_FileMsg, 1)) {
 			if (__IS(msg__typ, Texts_FileMsg, 1)) {
 				Texts_FileMsg *msg__ = (void*)msg;
 				if ((*msg__).id == 1) {
-					Files_Set(&r, Files_Rider__typ, ((Texts_Alien)E)->file, ((Texts_Alien)E)->org);
-					i = ((Texts_Alien)E)->span;
+					Files_Set(&r, Files_Rider__typ, (*(Texts_Alien*)&E)->file, (*(Texts_Alien*)&E)->org);
+					i = (*(Texts_Alien*)&E)->span;
 					while (i > 0) {
 						Files_Read(&r, Files_Rider__typ, (void*)&ch);
 						Files_Write(&(*msg__).r, Files_Rider__typ, ch);
@@ -646,7 +646,7 @@ void Texts_Read (Texts_Reader *R, ADDRESS *R__typ, CHAR *ch)
 		u = u->next;
 		if (__ISP(u, Texts_PieceDesc, 1)) {
 			if (__ISP(u, Texts_PieceDesc, 1)) {
-				Files_Set(&(*R).rider, Files_Rider__typ, ((Texts_Piece)u)->file, ((Texts_Piece)u)->org);
+				Files_Set(&(*R).rider, Files_Rider__typ, (*(Texts_Piece*)&u)->file, (*(Texts_Piece*)&u)->org);
 			} else __WITHCHK;
 		}
 		(*R).run = u;
@@ -673,7 +673,7 @@ void Texts_ReadElem (Texts_Reader *R, ADDRESS *R__typ)
 		(*R).elem = __GUARDP(u, Texts_ElemDesc, 1);
 		if (__ISP(un, Texts_PieceDesc, 1)) {
 			if (__ISP(un, Texts_PieceDesc, 1)) {
-				Files_Set(&(*R).rider, Files_Rider__typ, ((Texts_Piece)un)->file, ((Texts_Piece)un)->org);
+				Files_Set(&(*R).rider, Files_Rider__typ, (*(Texts_Piece*)&un)->file, (*(Texts_Piece*)&un)->org);
 			} else __WITHCHK;
 		}
 	} else {
@@ -1715,9 +1715,9 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	while (u != T->head) {
 		if (__ISP(u, Texts_PieceDesc, 1)) {
 			if (__ISP(u, Texts_PieceDesc, 1)) {
-				if (((Texts_Piece)u)->ascii) {
-					Files_Set(&r1, Files_Rider__typ, ((Texts_Piece)u)->file, ((Texts_Piece)u)->org);
-					delta = ((Texts_Piece)u)->len;
+				if ((*(Texts_Piece*)&u)->ascii) {
+					Files_Set(&r1, Files_Rider__typ, (*(Texts_Piece*)&u)->file, (*(Texts_Piece*)&u)->org);
+					delta = (*(Texts_Piece*)&u)->len;
 					while (delta > 0) {
 						Files_Read(&r1, Files_Rider__typ, (void*)&ch);
 						delta -= 1;
@@ -1728,8 +1728,8 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 						}
 					}
 				} else {
-					Files_Set(&r1, Files_Rider__typ, ((Texts_Piece)u)->file, ((Texts_Piece)u)->org);
-					delta = ((Texts_Piece)u)->len;
+					Files_Set(&r1, Files_Rider__typ, (*(Texts_Piece*)&u)->file, (*(Texts_Piece*)&u)->org);
+					delta = (*(Texts_Piece*)&u)->len;
 					while (delta > 1024) {
 						Files_ReadBytes(&r1, Files_Rider__typ, (void*)block, 1024, 1024);
 						Files_WriteBytes(&msg.r, Files_Rider__typ, (void*)block, 1024, 1024);

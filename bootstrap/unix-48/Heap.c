@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/27]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/11/28]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -68,7 +68,7 @@ static INT32 Heap_freeList[10];
 static INT32 Heap_bigBlocks;
 export INT32 Heap_allocated;
 static BOOLEAN Heap_firstTry;
-static INT32 Heap_heap, Heap_heapend;
+static INT32 Heap_heap, Heap_heapNegMin, Heap_heapNegMax, Heap_heapPosMin, Heap_heapPosMax;
 export INT32 Heap_heapsize;
 static Heap_FinNode Heap_fin;
 static INT16 Heap_lockdepth;
@@ -170,16 +170,33 @@ void Heap_INCREF (Heap_Module m)
 
 static INT32 Heap_NewChunk (INT32 blksz)
 {
-	INT32 chnk;
+	INT32 chnk, blk, end;
 	chnk = Heap_OSAllocate(blksz + 12);
 	if (chnk != 0) {
-		__PUT(chnk + 4, chnk + (12 + blksz), INT32);
-		__PUT(chnk + 12, chnk + 16, INT32);
-		__PUT(chnk + 16, blksz, INT32);
-		__PUT(chnk + 20, -4, INT32);
-		__PUT(chnk + 24, Heap_bigBlocks, INT32);
-		Heap_bigBlocks = chnk + 12;
+		blk = chnk + 12;
+		end = blk + blksz;
+		__PUT(chnk + 4, end, INT32);
+		__PUT(blk, blk + 4, INT32);
+		__PUT(blk + 4, blksz, INT32);
+		__PUT(blk + 8, -4, INT32);
+		__PUT(blk + 12, Heap_bigBlocks, INT32);
+		Heap_bigBlocks = blk;
 		Heap_heapsize += blksz;
+		if (chnk > 0) {
+			if (chnk < Heap_heapPosMin) {
+				Heap_heapPosMin = blk + 4;
+			}
+			if (end > Heap_heapPosMax) {
+				Heap_heapPosMax = end;
+			}
+		} else {
+			if (chnk < Heap_heapNegMin) {
+				Heap_heapNegMin = blk + 4;
+			}
+			if (end > Heap_heapNegMax) {
+				Heap_heapNegMax = end;
+			}
+		}
 	}
 	return chnk;
 }
@@ -206,9 +223,6 @@ static void Heap_ExtendHeap (INT32 blksz)
 			}
 			__PUT(chnk, next, INT32);
 			__PUT(j, chnk, INT32);
-		}
-		if (next == 0) {
-			__GET(chnk + 4, Heap_heapend, INT32);
 		}
 	}
 }
@@ -592,7 +606,7 @@ static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len)
 		}
 		while (sp != stack0) {
 			__GET(sp, p, INT32);
-			if ((p > Heap_heap && p < Heap_heapend)) {
+			if ((((p > 0 && p >= Heap_heapPosMin)) && p < Heap_heapPosMax) || (((p < 0 && p >= Heap_heapNegMin)) && p < Heap_heapNegMax)) {
 				if (nofcand == cand__len) {
 					Heap_HeapSort(nofcand, (void*)cand, cand__len);
 					Heap_MarkCandidates(nofcand, (void*)cand, cand__len);
@@ -703,16 +717,20 @@ void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
 
 void Heap_InitHeap (void)
 {
-	Heap_heap = Heap_NewChunk(128000);
-	__GET(Heap_heap + 4, Heap_heapend, INT32);
-	__PUT(Heap_heap, 0, INT32);
+	Heap_heap = 0;
+	Heap_heapsize = 0;
 	Heap_allocated = 0;
+	Heap_lockdepth = 0;
+	Heap_heapPosMin = 2147483647;
+	Heap_heapPosMax = 0;
+	Heap_heapNegMin = 0;
+	Heap_heapNegMax = (-2147483647-1);
+	Heap_heap = Heap_NewChunk(128000);
+	__PUT(Heap_heap, 0, INT32);
 	Heap_firstTry = 1;
 	Heap_freeList[9] = 1;
-	Heap_lockdepth = 0;
 	Heap_FileCount = 0;
 	Heap_modules = NIL;
-	Heap_heapsize = 0;
 	Heap_bigBlocks = 0;
 	Heap_fin = NIL;
 	Heap_interrupted = 0;
