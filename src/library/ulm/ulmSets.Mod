@@ -40,14 +40,14 @@ MODULE ulmSets;
       setsize* = MAX(SET) + 1;
 
    TYPE
-      CharSet* = ARRAY ORD(MAX(CHAR)) + 1 DIV setsize OF SET;
+      CharSet* = ARRAY (ORD(MAX(CHAR)) + 1) DIV setsize OF SET;
 
    PROCEDURE InitSet*(VAR set: ARRAY OF SET);
       VAR i: LONGINT;
    BEGIN
       i := 0;
       WHILE i < LEN(set) DO
-	 set[i] := {}; INC(i);
+         set[i] := {}; INC(i);
       END;
    END InitSet;
 
@@ -56,7 +56,7 @@ MODULE ulmSets;
    BEGIN
       i := 0;
       WHILE i < LEN(set) DO
-	 set[i] := - set[i]; INC(i);
+         set[i] := - set[i]; INC(i);
       END;
    END Complement;
 
@@ -92,115 +92,115 @@ MODULE ulmSets;
 
    PROCEDURE Intersection*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
       VAR
-	 index: INTEGER;
+         index: INTEGER;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
       WHILE index < LEN(result) DO
-	 result[index] := set1[index] * set2[index];
-	 INC(index);
+         result[index] := set1[index] * set2[index];
+         INC(index);
       END;
    END Intersection;
 
    PROCEDURE SymDifference*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
       VAR
-	 index: INTEGER;
+         index: INTEGER;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
       WHILE index < LEN(result) DO
-	 result[index] := set1[index] / set2[index];
-	 INC(index);
+         result[index] := set1[index] / set2[index];
+         INC(index);
       END;
    END SymDifference;
 
    PROCEDURE Union*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
       VAR
-	 index: INTEGER;
+         index: INTEGER;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
       WHILE index < LEN(result) DO
-	 result[index] := set1[index] + set2[index];
-	 INC(index);
+         result[index] := set1[index] + set2[index];
+         INC(index);
       END;
    END Union;
 
    PROCEDURE Difference*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
       VAR
-	 index: INTEGER;
+         index: INTEGER;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
       WHILE index < LEN(result) DO
-	 result[index] := set1[index] - set2[index];
-	 INC(index);
+         result[index] := set1[index] - set2[index];
+         INC(index);
       END;
    END Difference;
 
    PROCEDURE Equal*(set1, set2: ARRAY OF SET) : BOOLEAN;
       VAR
-	 index: INTEGER;
+         index: INTEGER;
    BEGIN
       index := 0;
       WHILE (index < LEN(set1)) & (index < LEN(set2)) DO
-	 IF set1[index] # set2[index] THEN
-	    RETURN FALSE
-	 END;
-	 INC(index);
+         IF set1[index] # set2[index] THEN
+            RETURN FALSE
+         END;
+         INC(index);
       END;
       WHILE index < LEN(set1) DO
-	 IF set1[index] # {} THEN
-	    RETURN FALSE
-	 END;
-	 INC(index);
+         IF set1[index] # {} THEN
+            RETURN FALSE
+         END;
+         INC(index);
       END;
       WHILE index < LEN(set2) DO
-	 IF set2[index] # {} THEN
-	    RETURN FALSE
-	 END;
-	 INC(index);
+         IF set2[index] # {} THEN
+            RETURN FALSE
+         END;
+         INC(index);
       END;
       RETURN TRUE
    END Equal;
 
    PROCEDURE Subset*(set1, set2: ARRAY OF SET) : BOOLEAN;
       VAR
-	 index: INTEGER;
+         index: INTEGER;
    BEGIN
       index := 0;
       WHILE (index < LEN(set1)) & (index < LEN(set2)) DO
-	 IF set1[index] - set2[index] # {} THEN
-	    RETURN FALSE
-	 END;
-	 INC(index);
+         IF set1[index] - set2[index] # {} THEN
+            RETURN FALSE
+         END;
+         INC(index);
       END;
       WHILE index < LEN(set1) DO
-	 IF set1[index] # {} THEN
-	    RETURN FALSE
-	 END;
-	 INC(index);
+         IF set1[index] # {} THEN
+            RETURN FALSE
+         END;
+         INC(index);
       END;
       RETURN TRUE
    END Subset;
 
    PROCEDURE Card*(set: ARRAY OF SET) : INTEGER;
       VAR
-	 index: INTEGER;
-	 i: INTEGER;
-	 card: INTEGER;
+         index: INTEGER;
+         i: INTEGER;
+         card: INTEGER;
    BEGIN
       card := 0;
       index := 0;
       WHILE index < LEN(set) DO
-	 i := 0;
-	 WHILE i <= MAX(SET) DO
-	    IF i IN set[index] THEN
-	       INC(card);
-	    END;
-	    INC(i);
-	 END;
-	 INC(index);
+         i := 0;
+         WHILE i <= MAX(SET) DO
+            IF i IN set[index] THEN
+               INC(card);
+            END;
+            INC(i);
+         END;
+         INC(index);
       END;
       RETURN card
    END Card;

@@ -22,7 +22,7 @@ MODULE Heap;
   (* heap chunks *)
     nextChnkOff = S.VAL(S.ADDRESS, 0);      (* next heap chunk, sorted ascendingly! *)
     endOff      = S.VAL(S.ADDRESS, SZA);    (* end of heap chunk *)
-    blkOff      = S.VAL(S.ADDRESS, 3*SZA);  (* first block in a chunk *)
+    blkOff      = S.VAL(S.ADDRESS, 3*SZA);  (* first block in a chunk, starts with tag *)
 
   (* heap blocks *)
     tagOff      = S.VAL(S.ADDRESS, 0);      (* block starts with tag *)
@@ -79,9 +79,12 @@ MODULE Heap;
     firstTry:   BOOLEAN;
 
     (* extensible heap *)
-    heap:      S.ADDRESS;  (* the sorted list of heap chunks *)
-    heapend:   S.ADDRESS;  (* max possible pointer value (used for stack collection) *)
-    heapsize*: S.ADDRESS;  (* the sum of all heap chunk sizes *)
+    heap:       S.ADDRESS;  (* the sorted list of heap chunks *)
+    heapNegMin: S.ADDRESS;  (* Range of pointer values, used for stack collection *)
+    heapNegMax: S.ADDRESS;
+    heapPosMin: S.ADDRESS;
+    heapPosMax: S.ADDRESS;
+    heapsize*:  S.ADDRESS;  (* the sum of all heap chunk sizes *)
 
     (* finalization candidates *)
     fin: FinNode;
@@ -166,18 +169,28 @@ MODULE Heap;
   PROCEDURE -OSAllocate(size: S.ADDRESS): S.ADDRESS "Platform_OSAllocate(size)";
 
   PROCEDURE NewChunk(blksz: S.ADDRESS): S.ADDRESS;
-    VAR chnk: S.ADDRESS;
+    VAR chnk, blk, end: S.ADDRESS;
   BEGIN
     chnk := OSAllocate(blksz + blkOff);
     IF chnk # 0 THEN
-      S.PUT(chnk + endOff,             chnk + (blkOff + blksz));
-      S.PUT(chnk + blkOff,             chnk + (blkOff + sizeOff));
-      S.PUT(chnk + (blkOff + sizeOff), blksz);
-      S.PUT(chnk + (blkOff + sntlOff), NoPtrSntl);
-      S.PUT(chnk + (blkOff + nextOff), bigBlocks);
-      bigBlocks := chnk + blkOff;
-      INC(heapsize, blksz)
-    END ;
+      blk := chnk + blkOff; (* Heap chunk consists of a single block *)
+      end := blk  + blksz;
+      S.PUT(chnk + endOff,   end);
+      S.PUT(blk  + tagOff,   blk + sizeOff);
+      S.PUT(blk  + sizeOff,  blksz);
+      S.PUT(blk  + sntlOff,  NoPtrSntl);
+      S.PUT(blk  + nextOff,  bigBlocks);
+      bigBlocks := blk;  (* Prepend block to list of big blocks *)
+      INC(heapsize, blksz);
+      (* Maintain heap range limits *)
+      IF chnk > 0 THEN
+        IF chnk < heapPosMin THEN heapPosMin := blk + SZA END;
+        IF end  > heapPosMax THEN heapPosMax := end       END
+      ELSE (* chnk < 0 *)
+        IF chnk < heapNegMin THEN heapNegMin := blk + SZA END;
+        IF end  > heapNegMax THEN heapNegMax := end       END
+      END
+    END;
     RETURN chnk
   END NewChunk;
 
@@ -199,8 +212,7 @@ MODULE Heap;
           S.GET(j, next)
         END;
         S.PUT(chnk, next); S.PUT(j, chnk)
-      END ;
-      IF next = 0 THEN S.GET(chnk+endOff, heapend) END
+      END
     END
   END ExtendHeap;
 
@@ -504,7 +516,8 @@ MODULE Heap;
       IF sp > stack0 THEN inc := -inc END ;
       WHILE sp # stack0 DO
         S.GET(sp, p);
-        IF (p > heap) & (p < heapend) THEN
+        IF (p > 0) & (p >= heapPosMin) & (p < heapPosMax)
+        OR (p < 0) & (p >= heapNegMin) & (p < heapNegMax) THEN
           IF nofcand = LEN(cand) THEN HeapSort(nofcand, cand); MarkCandidates(nofcand, cand); nofcand := 0 END ;
           cand[nofcand] := p; INC(nofcand)
         END ;
@@ -565,11 +578,25 @@ PROCEDURE -HeapModuleInit 'Heap__init()';
   (* InitHeap is called by Platform.init before any module bodies have been
      initialised, to enable NEW, S.NEW *)
   BEGIN
-    heap    := NewChunk(heapSize0);
-    S.GET(heap + endOff, heapend);
-    S.PUT(heap, AddressZero);
-    allocated := 0; firstTry := TRUE; freeList[nofLists] := 1; lockdepth := 0;
-    FileCount := 0; modules := NIL; heapsize := 0; bigBlocks := 0; fin := NIL;
+    heap       := 0;
+    heapsize   := 0;
+    allocated  := 0;
+    lockdepth  := 0;
+    heapPosMin := MAX(S.ADDRESS);
+    heapPosMax := 0;
+    heapNegMin := 0;
+    heapNegMax := MIN(S.ADDRESS);
+
+    heap := NewChunk(heapSize0);
+    S.PUT(heap + nextChnkOff, AddressZero);
+
+    firstTry    := TRUE;
+    freeList[nofLists] := 1;
+
+    FileCount   := 0;
+    modules     := NIL;
+     bigBlocks   := 0;
+    fin         := NIL;
     interrupted := FALSE;
 
     HeapModuleInit;
