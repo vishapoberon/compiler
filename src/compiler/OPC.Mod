@@ -1091,7 +1091,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF obj^.adr = 1 THEN  (* WITH-variable *)
       IF obj^.typ^.comp = OPT.Record THEN Ident(obj); OPM.WriteString("__")
       ELSE (* cast with guard pointer type *)
-        OPM.WriteString("(("); Ident(obj^.typ^.strobj); OPM.Write(")"); Ident(obj); OPM.Write(")")
+        OPM.WriteString("(*("); Ident(obj^.typ^.strobj); OPM.WriteString("*)&"); Ident(obj); OPM.Write(")")
       END
     ELSIF (level # OPM.level) & (level > 0) THEN (* intermediate var *)
       comp := obj^.typ^.comp;
