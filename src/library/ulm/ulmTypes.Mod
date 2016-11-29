@@ -55,13 +55,13 @@ MODULE ulmTypes;
       UntracedAddress*      = POINTER[1] TO UntracedAddressDesc; (*SYS.UNTRACEDADDRESS;*)
       UntracedAddressDesc* = RECORD[1] END;
 
-      Count*      = LONGINT;
+      Count*      = SYS.INT32;
       Size*       = Count;
       Byte*       = SYS.BYTE;
       IntAddress* = LONGINT;
-      Int8*       = SHORTINT;
-      Int16*      = INTEGER; (* No real 16 bit integer type *)
-      Int32*      = INTEGER;
+      Int8*       = SYS.INT8;
+      Int16*      = SYS.INT16;
+      Int32*      = SYS.INT32;
       Real32*     = REAL;
       Real64*     = LONGREAL;
 

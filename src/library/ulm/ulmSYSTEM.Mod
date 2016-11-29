@@ -8,7 +8,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
       TYPE bytearray* = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
           pbytearray* = POINTER TO bytearray;
       TYPE longrealarray* = ARRAY SIZE(LONGREAL) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
-          plongrealarray* = POINTER TO bytearray;
+          plongrealarray* = POINTER TO longrealarray;
 
    PROCEDURE LongToByteArr* ( l : LONGINT; VAR bar : bytearray); (* noch *)
    VAR b : SYSTEM.BYTE;
@@ -23,23 +23,25 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
 
    PROCEDURE LRealToByteArr* ( l : LONGREAL; VAR lar : longrealarray); (* noch *)
    VAR b : SYSTEM.BYTE;
+       (*adr: SYSTEM.ADDRESS;*)
        p : plongrealarray;
        i : LONGINT;
    BEGIN
       p := SYSTEM.VAL(plongrealarray, SYSTEM.ADR(l));
       FOR i := 0 TO SIZE(LONGREAL) -1 DO
-         b := p^[i]; lar[i] := b;
+         b := p^[i]; 
+		 lar[i] := b;
       END
+	  (*
+	  adr := SYSTEM.ADR(l);
+	  i := 0;
+	  REPEAT
+        SYSTEM.GET(adr + i, b);
+        lar[i] := b;
+	    INC(i)
+	  UNTIL i = SIZE(LONGREAL);*)
    END LRealToByteArr;
 
-
-(*
-        PROCEDURE -Write(adr, n: LONGINT): LONGINT
-	  "write(1/*stdout*/, adr, n)";
-
-	PROCEDURE -read(VAR ch: CHAR): LONGINT
-	  "read(0/*stdin*/, ch, 1)";
-*)
 
   PROCEDURE TAS*(VAR flag:BOOLEAN): BOOLEAN; (* added for compatibility with ulmSYSTEM module; noch *)
   VAR oldflag : BOOLEAN;
