@@ -136,7 +136,7 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE Halt*(code: SYSTEM.INT32);
   BEGIN
-    (*IF HaltHandler # NIL THEN HaltHandler(code) END;*)
+    Heap.FINALL;
     errstring("Terminated by Halt("); errint(code); errstring("). ");
     IF code < 0 THEN DisplayHaltCode(code) END;
     errstring(Platform.NL);
@@ -145,6 +145,7 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE AssertFail*(code: SYSTEM.INT32);
   BEGIN
+    Heap.FINALL;
     errstring("Assertion failure.");
     IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;
     errstring(Platform.NL);

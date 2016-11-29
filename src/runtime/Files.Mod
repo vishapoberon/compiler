@@ -18,14 +18,15 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     BufSize = 4096;
     NoDesc = -1;
 
-    (* file states *)
+    (* No file states, used when FileDesc.fd = NoDesc *)
     open   = 0;    (* OS File has been opened *)
     create = 1;    (* OS file needs to be created *)
-    close  = 2;    (* Register telling Create to use registerName directly:
-                      i.e. since we're closing and all data is still in
-                      buffers bypass writing to temp file and then renaming
-                      and just write directly to fianl register name *)
-
+    close  = 2;    (* Flag used by Files.Register to tell Create to create the
+                      file using it's registerName directly, rather than to
+                      create a temporary file: i.e. since we're closing and all
+                      data is still in buffers bypass writing to temp file and
+                      then renaming and just write directly to final register
+                      name *)
 
   TYPE
     FileName = ARRAY 101 OF CHAR;
@@ -37,7 +38,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       registerName: FileName;
       tempFile:     BOOLEAN;
       identity:     Platform.FileIdentity;
-      fd-:          Platform.FileHandle;
+      fd:           Platform.FileHandle;
       len, pos:     LONGINT;
       bufs:         ARRAY NumBufs OF Buffer;
       swapper:      INTEGER;
@@ -63,7 +64,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   VAR
-    files:      File;   (* List of files that have an OS file handle/descriptor assigned  *)
+    files:      File;   (* List of files backed by an OS file, whether open, registered or temporary. *)
     tempno:     INTEGER;
     HOME:       ARRAY 1024 OF CHAR;
     SearchPath: POINTER TO ARRAY OF CHAR;
@@ -122,6 +123,10 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   END GetTempName;
 
   PROCEDURE Create(f: File);
+  (* Makes sure there is an OS file backing this Oberon file.
+     Used when more data has been written to an unregistered new file than
+     buffers can hold, or when registering a new file whose data is all in
+     buffers. *)
     VAR
       identity:  Platform.FileIdentity;
       done:  BOOLEAN;
@@ -137,16 +142,20 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     *)
     IF f.fd = NoDesc THEN
       IF f.state = create THEN
+        (* New file with enough data written to exceed buffers, so we need to
+           create a temporary file to back it. *)
         GetTempName(f.registerName, f.workName); f.tempFile := TRUE
-      ELSIF f.state = close THEN
+      ELSE
+        ASSERT(f.state = close);
+        (* New file with all data in buffers being registered. No need for a
+           temp file, will just write the buffers to the registerName. *)
         f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
       END;
       error := Platform.Unlink(f.workName);  (*unlink first to avoid stale NFS handles and to avoid reuse of inodes*)
-
       error := Platform.New(f.workName, f.fd);
       done := error = 0;
       IF done THEN
-        f.next := files;  files := f;
+        f.next := files;  files := f;  (* Link this file into the list of OS bakced files. *)
         INC(Heap.FileCount);
         Heap.RegisterFinalizer(f, Finalize);
         f.state := open;
@@ -186,29 +195,10 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       IF error # 0 THEN Err("error writing file", f, error) END;
       f.pos := buf.org + buf.size;
       buf.chg := FALSE;
-      error := Platform.Identify(f.fd, f.identity);
+      error := Platform.Identify(f.fd, f.identity); (* Update identity with new modification time. *)
       IF error # 0 THEN Err("error identifying file", f, error) END;
-      (*
-        error := Platform.Identify(f.fd, identity);
-        f.identity.mtime := identity.mtime;
-      *)
     END
   END Flush;
-
-
-  PROCEDURE CloseOSFile(f: File);
-  (* Close the OS file handle and remove f from 'files' *)
-    VAR prev: File; error: Platform.ErrorCode;
-  BEGIN
-    IF files = f THEN files := f.next
-    ELSE
-      prev := files;
-      WHILE (prev # NIL) & (prev.next # f) DO prev := prev.next END;
-      IF prev.next # NIL THEN prev.next := f.next END
-    END;
-    error := Platform.Close(f.fd);
-    f.fd := NoDesc; f.state := create; DEC(Heap.FileCount);
-  END CloseOSFile;
 
 
   PROCEDURE Close* (f: File);
@@ -219,12 +209,6 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
       WHILE (i < NumBufs) & (f.bufs[i] # NIL) DO Flush(f.bufs[i]); INC(i) END;
-      (* There's no reason to sync this file - we're about to close it. The OS
-         will sync if necessary. Further, sync will fail for a R/O file on Windows.
-      error := Platform.Sync(f.fd);
-      IF error # 0 THEN Err("error syncing file", f, error) END;
-      *)
-      CloseOSFile(f);
     END
   END Close;
 
@@ -323,7 +307,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
           error := Platform.Identify(fd, identity);
           f := CacheEntry(identity);
           IF f # NIL THEN
-            (* error := Platform.Close(fd); DCWB: Either this should be removed or should call CloseOSFile. *)
+            error := Platform.Close(fd); (* fd not needed - we'll be using f.fd. *)
             RETURN f
           ELSE NEW(f); Heap.RegisterFinalizer(f, Finalize);
             f.fd := fd; f.state := open; f.pos := 0; f.swapper := -1; (*all f.buf[i] = NIL*)
@@ -579,7 +563,7 @@ Especially Length would become fairly complex.
   END Rename;
 
   PROCEDURE Register* (f: File);
-    VAR idx, errcode: INTEGER; f1: File; file: ARRAY 104 OF CHAR;
+    VAR idx, errcode: INTEGER; f1: File;
   BEGIN
     (*
     Out.String("Files.Register f.registerName = "); Out.String(f.registerName);
@@ -595,7 +579,7 @@ Especially Length would become fairly complex.
       Out.String(" to registerName ");              Out.String(f.registerName);
       Out.String(" errorcode = ");                  Out.Int(errcode,1); Out.Ln;
       *)
-      IF errcode # 0 THEN COPY(f.registerName, file); HALT(99) END;
+      IF errcode # 0 THEN Err("Couldn't rename temp name as register name", f, errcode) END;
       f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
     END
   END Register;
@@ -724,6 +708,20 @@ Especially Length would become fairly complex.
   BEGIN
      COPY (f.workName, name);
   END GetName;
+
+  PROCEDURE CloseOSFile(f: File);
+  (* Close the OS file handle and remove f from 'files' *)
+    VAR prev: File; error: Platform.ErrorCode;
+  BEGIN
+    IF files = f THEN files := f.next
+    ELSE
+      prev := files;
+      WHILE (prev # NIL) & (prev.next # f) DO prev := prev.next END;
+      IF prev.next # NIL THEN prev.next := f.next END
+    END;
+    error := Platform.Close(f.fd);
+    f.fd := NoDesc; f.state := create; DEC(Heap.FileCount);
+  END CloseOSFile;
 
   PROCEDURE Finalize(o: SYSTEM.PTR);
     VAR f: File; res: LONGINT;

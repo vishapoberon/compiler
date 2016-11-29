@@ -500,8 +500,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     WHILE i > 0 DO LogW(" "); DEC(i) END;
 
     LogVT100(VT100.Green); LogW("^"); LogVT100(VT100.ResetAll);
-
-    Files.Close(f);
   END ShowLine;
 
 
@@ -597,7 +595,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     oldSFile := Files.Old(fileName); done := oldSFile # NIL;
     IF done THEN
       Files.Set(oldSF, oldSFile, 0); Files.Read(oldSF, tag); Files.Read(oldSF, ver);
-      IF (tag # SFtag) OR (ver # SFver) THEN err(-306);  (*possibly a symbol file from another Oberon implementation, e.g. HP-Oberon*)
+      IF (tag # SFtag) OR (ver # SFver) THEN
+        err(-306);  (*possibly a symbol file from another Oberon implementation, e.g. HP-Oberon*)
         CloseOldSym; done := FALSE
       END
     END

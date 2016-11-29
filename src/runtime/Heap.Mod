@@ -530,7 +530,8 @@ MODULE Heap;
   PROCEDURE GC*(markStack: BOOLEAN);
     VAR
       m: Module;
-      i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: S.ADDRESS;
+      i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,  i8,  i9,  i10, i11,
+      i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: S.ADDRESS;
       cand: ARRAY 10000 OF S.ADDRESS;
   BEGIN
     IF (lockdepth = 0) OR (lockdepth = 1) & ~markStack THEN
