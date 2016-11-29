@@ -40,7 +40,7 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE ulmTypes;
+MODULE Types;
 
    (* compiler-dependent type definitions;
       this version works for Ulm's Oberon Compilers on
@@ -51,24 +51,23 @@ MODULE ulmTypes;
 
    TYPE
       Address* = SYS.ADDRESS;
+      UntracedAddress* = POINTER[1] TO UntracedAddressDesc;
+	  UntracedAddressDesc* = RECORD[1] END;
 
-      UntracedAddress*      = POINTER[1] TO UntracedAddressDesc; (*SYS.UNTRACEDADDRESS;*)
-      UntracedAddressDesc* = RECORD[1] END;
-
-      Count*      = SYS.INT32;
-      Size*       = Count;
-      Byte*       = SYS.BYTE;
-      IntAddress* = LONGINT;
-      Int8*       = SYS.INT8;
-      Int16*      = SYS.INT16;
-      Int32*      = SYS.INT32;
-      Real32*     = REAL;
-      Real64*     = LONGREAL;
+      Count* = SYS.INT32;
+      Size* = Count;
+      Byte* = SYS.BYTE;
+      IntAddress* = SYS.INT32;
+      Int8* = SYS.INT8;
+      Int16* = SYS.INT16;
+      Int32* = SYS.INT32;
+      Real32* = LONGREAL;
+      Real64* = LONGREAL;
 
    CONST
-      bigEndian*    = 0;    (* SPARC, M68K etc *)
+      bigEndian* = 0;    (* SPARC, M68K etc *)
       littleEndian* = 1; (* Intel 80x86, VAX etc *)
-      byteorder*    = littleEndian; (* machine-dependent constant *)
+      byteorder* = littleEndian; (* machine-dependent constant *)
    TYPE
       ByteOrder* = SHORTINT; (* bigEndian or littleEndian *)
 
@@ -77,14 +76,27 @@ MODULE ulmTypes;
       to allow for bit operations on INTEGER values
    *)
    TYPE
-      SetInt* = LONGINT; (* INTEGER type that corresponds to SET *)
-   VAR msb* : SET;
-   msbIsMax*, msbIs0*: SHORTINT;
-   msbindex*, lsbindex*, nofbits*: LONGINT;
+      SetInt* = INTEGER; (* INTEGER type that corresponds to SET *)
+   CONST
+      msb* = SYS.VAL(SET, MIN(SetInt));
+	 (* most significant bit, converted to a SET *)
+      (* we expect msbIsMax XOR msbIs0 to be 1;
+	 this is checked for by an assertion
+      *)
+      msbIsMax* = SYS.VAL(SHORTINT, (msb = {MAX(SET)}));
+	 (* is 1, if msb equals {MAX(SET)} *)
+      msbIs0* = SYS.VAL(SHORTINT, (msb = {0}));
+	 (* is 0, if msb equals {0} *)
+      msbindex* = msbIsMax * MAX(SET);
+	 (* set element that corresponds to the most-significant-bit *)
+      lsbindex* = MAX(SET) - msbindex;
+	 (* set element that corresponds to the lowest-significant-bit *)
+      nofbits* = MAX(SET) + 1;
+	 (* number of elements in SETs *)
 
    PROCEDURE ToInt8*(int: LONGINT) : Int8;
    BEGIN
-      RETURN SYS.VAL(SHORTINT, int)
+      RETURN SHORT(SHORT(int))
    END ToInt8;
 
    PROCEDURE ToInt16*(int: LONGINT) : Int16;
@@ -94,7 +106,7 @@ MODULE ulmTypes;
 
    PROCEDURE ToInt32*(int: LONGINT) : Int32;
    BEGIN
-      RETURN SYS.VAL(INTEGER, int)
+      RETURN int
    END ToInt32;
 
    PROCEDURE ToReal32*(real: LONGREAL) : Real32;
@@ -104,25 +116,9 @@ MODULE ulmTypes;
 
    PROCEDURE ToReal64*(real: LONGREAL) : Real64;
    BEGIN
-      RETURN real
+      RETURN SHORT(real)
    END ToReal64;
 
 BEGIN
-      msb := SYS.VAL(SET, MIN(SetInt));
-	 (* most significant bit, converted to a SET *)
-      (* we expect msbIsMax XOR msbIs0 to be 1;
-	 this is checked for by an assertion
-      *)
-      msbIsMax := SYS.VAL(SHORTINT, (msb = {MAX(SET)}));
-	 (* is 1, if msb equals {MAX(SET)} *)
-      msbIs0 := SYS.VAL(SHORTINT, (msb = {0}));
-	 (* is 0, if msb equals {0} *)
-      msbindex := msbIsMax * MAX(SET);
-	 (* set element that corresponds to the most-significant-bit *)
-      lsbindex := MAX(SET) - msbindex;
-	 (* set element that corresponds to the lowest-significant-bit *)
-      nofbits := MAX(SET) + 1;
-	 (* number of elements in SETs *)
-
    ASSERT((msbIs0 = 1) & (msbIsMax = 0) OR (msbIs0 = 0) & (msbIsMax = 1));
-END ulmTypes.
+END Types.

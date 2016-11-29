@@ -19,7 +19,7 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
       i := 0;
 	  REPEAT
         SYSTEM.GET(adr + i, b);
-		lar[i] := b;
+		bar[i] := b;
 		INC(i)
 	  UNTIL i = SIZE(LONGINT)
    END LongToByteArr;
@@ -138,4 +138,5 @@ TYPE pchar = POINTER TO ARRAY 1 OF CHAR;
   BEGIN
      SYSTEM.MOVE(from, to, n);
   END WMOVE;
+
 END ulmSYSTEM.
