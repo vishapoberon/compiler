@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/28]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/11/29]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -250,6 +250,7 @@ static void Modules_DisplayHaltCode (INT32 code)
 
 void Modules_Halt (INT32 code)
 {
+	Heap_FINALL();
 	Modules_errstring((CHAR*)"Terminated by Halt(", 20);
 	Modules_errint(code);
 	Modules_errstring((CHAR*)"). ", 4);
@@ -262,6 +263,7 @@ void Modules_Halt (INT32 code)
 
 void Modules_AssertFail (INT32 code)
 {
+	Heap_FINALL();
 	Modules_errstring((CHAR*)"Assertion failure.", 19);
 	if (code != 0) {
 		Modules_errstring((CHAR*)" ASSERT code ", 14);

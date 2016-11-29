@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/28]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/11/29]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -233,7 +233,8 @@ static void Files_Create (Files_File f)
 		if (f->state == 1) {
 			Files_GetTempName(f->registerName, 101, (void*)f->workName, 101);
 			f->tempFile = 1;
-		} else if (f->state == 2) {
+		} else {
+			__ASSERT(f->state == 2, 0);
 			__COPY(f->registerName, f->workName, 101);
 			f->registerName[0] = 0x00;
 			f->tempFile = 0;
@@ -285,27 +286,6 @@ static void Files_Flush (Files_Buffer buf)
 	}
 }
 
-static void Files_CloseOSFile (Files_File f)
-{
-	Files_File prev = NIL;
-	INT16 error;
-	if (Files_files == f) {
-		Files_files = f->next;
-	} else {
-		prev = Files_files;
-		while ((prev != NIL && prev->next != f)) {
-			prev = prev->next;
-		}
-		if (prev->next != NIL) {
-			prev->next = f->next;
-		}
-	}
-	error = Platform_Close(f->fd);
-	f->fd = -1;
-	f->state = 1;
-	Heap_FileCount -= 1;
-}
-
 void Files_Close (Files_File f)
 {
 	INT32 i;
@@ -317,7 +297,6 @@ void Files_Close (Files_File f)
 			Files_Flush(f->bufs[i]);
 			i += 1;
 		}
-		Files_CloseOSFile(f);
 	}
 }
 
@@ -466,6 +445,7 @@ Files_File Files_Old (CHAR *name, ADDRESS name__len)
 				error = Platform_Identify(fd, &identity, Platform_FileIdentity__typ);
 				f = Files_CacheEntry(identity);
 				if (f != NIL) {
+					error = Platform_Close(fd);
 					__DEL(name);
 					return f;
 				} else {
@@ -806,7 +786,6 @@ void Files_Register (Files_File f)
 {
 	INT16 idx, errcode;
 	Files_File f1 = NIL;
-	CHAR file[104];
 	if ((f->state == 1 && f->registerName[0] != 0x00)) {
 		f->state = 2;
 	}
@@ -814,8 +793,7 @@ void Files_Register (Files_File f)
 	if (f->registerName[0] != 0x00) {
 		Files_Rename(f->workName, 101, f->registerName, 101, &errcode);
 		if (errcode != 0) {
-			__COPY(f->registerName, file, 104);
-			__HALT(99);
+			Files_Err((CHAR*)"Couldn't rename temp name as register name", 43, f, errcode);
 		}
 		__COPY(f->registerName, f->workName, 101);
 		f->registerName[0] = 0x00;
@@ -1005,6 +983,27 @@ void Files_WriteNum (Files_Rider *R, ADDRESS *R__typ, INT64 x)
 void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len)
 {
 	__COPY(f->workName, name, name__len);
+}
+
+static void Files_CloseOSFile (Files_File f)
+{
+	Files_File prev = NIL;
+	INT16 error;
+	if (Files_files == f) {
+		Files_files = f->next;
+	} else {
+		prev = Files_files;
+		while ((prev != NIL && prev->next != f)) {
+			prev = prev->next;
+		}
+		if (prev->next != NIL) {
+			prev->next = f->next;
+		}
+	}
+	error = Platform_Close(f->fd);
+	f->fd = -1;
+	f->state = 1;
+	Heap_FileCount -= 1;
 }
 
 static void Files_Finalize (SYSTEM_PTR o)

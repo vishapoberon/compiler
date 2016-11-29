@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/28]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/11/29]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #ifndef Files__h
 #define Files__h
@@ -10,9 +10,8 @@ typedef
 
 typedef
 	struct Files_FileDesc {
-		char _prvt0[224];
-		INT64 fd;
-		char _prvt1[56];
+		INT64 _prvt0;
+		char _prvt1[280];
 	} Files_FileDesc;
 
 typedef
