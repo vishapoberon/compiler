@@ -136,11 +136,42 @@ The following SYSTEM module predefined functions and procedures now use SYSTEM.A
 Note that the standard function LEN() still returns LONGINT.
 
 
+#### Files.Mod - Oberon System file semantics on Linux and Windows
+
+The oberon system has a simpler approach to files than most contemporary operating systems: the data part is manipulated entirely independently of the directory of file names. While Linux has inodes and directories, it does not expose them as independently as Oberon does.
+
+In particular a file is created in Oberon without touching the directory. Only when a program is ready to expose it in the directory does it call the OS to 'Register' the file.
+
+In order to mimic this behaviour on Windows and Linux, a new file goes through a number of stages:
+
+  1. Files.New returns a Files.File, which is an opaque pointer to a file descriptor record. No OS file is created at this stage.
+  2. As the first data is written to the file, it is buffered. Still no OS file is created at this stage.
+  3. As more data is written to the file more buffers are allocated. Still no OS file is created.
+  4. After a limit is reached (currently 4 buffers of 4KB each), a temporary OS file is created, and a buffer reclaimed by flushing it to the temporary file.
+  5. Data continues to be written to buffers, with buffers being flushed to the temporary file as necessary to maintain the limit of 4 buffers per file.
+  6. Finally, when the client program calls Register, any active buffers are flushed to disk, and the temporary file is renamed to the client specified registration name.
+  
+##### OS file handle lifetime
+
+Once an OS file has been opened, either by Files.Old, or by sufficient data written to a new file, or by Files.Register, it wil remain open. The client program can Files.Set a new rider on the file at any time. 
+
+Only if the Files.File becomes inaccessible will the garbage collector (eventually) recover the space used by the file descriptor, and only at this time will the OS file handle be closed.
+
+As in Oberon, Files.Close is only a mechanism to flush buffers, the file remains accessible and may be passed successfully to Files.Set.
+
+##### Rename and Delete
+
+Note that on a real Oberon system, it is possible to call rename and delete on files that are currently accessible through a Files.File pointer. For example a program could register a Files.File, and then call Files.Delete passing the same filename - the Files.File remains valid, containing the same data, only the directory entry is removed.
+
+Such behaviour is not supported on Unix/Windows - an attempt to delete a file that is registered and in use by the program will fail.
+
+
+
 #### Runtime error and exit handling
 
 When passed FALSE, ASSERT displays the message 'Assertion failure.'. If a second, nonzero value is passed to ASSERT it will also be displayed. ASSERT then exits to the OS passing the assert value or zero.
 
 HALT displays the message 'Terminated by Halt(n)'. For negative values that correspond to a standard runtime error a descriptive string is also printed. Finally Halt exits to the oprerating system passing the error code.
 
-Bear in mind that both Linux and Windows generally treat the return code as a signed 8 bit value, ignoring higher order bits. Therefore it is best to restrict HALT and ASSERT codes to the range -128 .. 127.
+Bear in mind that both Unix and Windows generally treat the return code as a signed 8 bit value, ignoring higher order bits. Therefore it is best to restrict HALT and ASSERT codes to the range -128 .. 127.
 

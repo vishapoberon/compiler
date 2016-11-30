@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/29]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -36,7 +36,7 @@ typedef
 		INT32 fd, len, pos;
 		Files_Buffer bufs[4];
 		INT16 swapper, state;
-		Files_File next;
+		struct Files_FileDesc *next;
 	} Files_FileDesc;
 
 typedef
@@ -48,7 +48,7 @@ typedef
 	} Files_Rider;
 
 
-static Files_File Files_files;
+static Files_FileDesc *Files_files;
 static INT16 Files_tempno;
 static CHAR Files_HOME[1024];
 static struct {
@@ -380,7 +380,7 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 {
 	Files_File f = NIL;
 	INT16 i, error;
-	f = Files_files;
+	f = (Files_File)Files_files;
 	while (f != NIL) {
 		if (Platform_SameFile(identity, f->identity)) {
 			if (!Platform_SameFileTime(identity, f->identity)) {
@@ -398,7 +398,7 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 			}
 			return f;
 		}
-		f = f->next;
+		f = (Files_File)f->next;
 	}
 	return NIL;
 }
@@ -987,12 +987,12 @@ static void Files_CloseOSFile (Files_File f)
 {
 	Files_File prev = NIL;
 	INT16 error;
-	if (Files_files == f) {
+	if (Files_files == (void *) f) {
 		Files_files = f->next;
 	} else {
-		prev = Files_files;
-		while ((prev != NIL && prev->next != f)) {
-			prev = prev->next;
+		prev = (Files_File)Files_files;
+		while ((prev != NIL && prev->next != (void *) f)) {
+			prev = (Files_File)prev->next;
 		}
 		if (prev->next != NIL) {
 			prev->next = f->next;
@@ -1031,11 +1031,10 @@ void Files_SetSearchPath (CHAR *path, ADDRESS path__len)
 
 static void EnumPtrs(void (*P)(void*))
 {
-	P(Files_files);
 	P(Files_SearchPath);
 }
 
-__TDESC(Files_FileDesc, 1, 5) = {__TDFLDS("FileDesc", 280), {232, 240, 248, 256, 272, -48}};
+__TDESC(Files_FileDesc, 1, 4) = {__TDFLDS("FileDesc", 280), {232, 240, 248, 256, -40}};
 __TDESC(Files_BufDesc, 1, 1) = {__TDFLDS("BufDesc", 4120), {0, -16}};
 __TDESC(Files_Rider, 1, 1) = {__TDFLDS("Rider", 24), {8, -16}};
 

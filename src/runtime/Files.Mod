@@ -43,7 +43,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       bufs:         ARRAY NumBufs OF Buffer;
       swapper:      INTEGER;
       state:        INTEGER;
-      next:         File;
+      next:         POINTER [1] TO FileDesc;
     END;
 
     BufDesc = RECORD
@@ -64,7 +64,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   VAR
-    files:      File;   (* List of files backed by an OS file, whether open, registered or temporary. *)
+    files:      POINTER [1] TO FileDesc;   (* List of files backed by an OS file, whether open, registered or temporary. *)
     tempno:     INTEGER;
     HOME:       ARRAY 1024 OF CHAR;
     SearchPath: POINTER TO ARRAY OF CHAR;
