@@ -38,7 +38,7 @@ MODULE ulmSysConversions;
    (* convert Oberon records to/from C structures *)
 
    IMPORT Events := ulmEvents, Objects := ulmObjects, Priorities := ulmPriorities, Streams := ulmStreams, Strings := ulmStrings,
-      SYS := SYSTEM, SysTypes := ulmSysTypes, Texts := ulmTexts;
+      SYS := SYSTEM, SysTypes := ulmSysTypes, Texts := ulmTexts, Types := ulmTypes;
 
    TYPE
       Address* = SysTypes.Address;
@@ -66,10 +66,10 @@ MODULE ulmSysConversions;
       b: SYS.BYTE
       B: BOOLEAN
       c: CHAR
-      s: SHORTINT
-      i: INTEGER
-      l: LONGINT
-      S: SET
+      s: Types.Int8
+      i: Types.Int32
+      l: Types.Int32
+      S: Types.Set
 
       C data types:
 
@@ -90,10 +90,10 @@ MODULE ulmSysConversions;
 
 	 Rec =
 	    RECORD
-	       a, b: INTEGER;
+	       a, b: Types.Int32;
 	       c: CHAR;
-	       s: SET;
-	       f: ARRAY 3 OF INTEGER;
+	       s: Types.Set;
+	       f: ARRAY 3 OF Types.Int32;
 	    END;
 
       to
@@ -118,7 +118,7 @@ MODULE ulmSysConversions;
       unsigned = 0;		(* suppress sign extension *)
       boolean = 1;		(* convert anything # 0 to 1 *)
    TYPE
-      Flags = SET;
+      Flags = Types.Set;
       Event* = POINTER TO EventRec;
       EventRec* =
 	 RECORD
@@ -134,9 +134,9 @@ MODULE ulmSysConversions;
 	    (* 1: Oberon type
 	       2: C type
 	    *)
-	    type1, type2: CHAR; length: INTEGER; left: INTEGER;
+	    type1, type2: CHAR; length: Types.Int32; left: Types.Int32;
 	    offset1, offset2: Address;
-	    size1, size2: Address; elementsleft: INTEGER; flags: Flags;
+	    size1, size2: Address; elementsleft: Types.Int32; flags: Flags;
 	 END;
 
       Format* = POINTER TO FormatRec;
@@ -192,7 +192,7 @@ MODULE ulmSysConversions;
       RETURN (ch >= "0") & (ch <= "9")
    END IsDigit;
 
-   PROCEDURE ReadInt(cv: ConvStream; VAR i: INTEGER);
+   PROCEDURE ReadInt(cv: ConvStream; VAR i: Types.Int32);
    BEGIN
       i := 0;
       REPEAT
@@ -219,10 +219,10 @@ MODULE ulmSysConversions;
 
    PROCEDURE ScanConv(cv: ConvStream;
 		      VAR type1, type2: CHAR;
-		      VAR length: INTEGER) : BOOLEAN;
+		      VAR length: Types.Int32) : BOOLEAN;
       VAR
-	 i: INTEGER;
-	 factor: INTEGER;
+	 i: Types.Int32;
+	 factor: Types.Int32;
    BEGIN
       IF cv.left > 0 THEN
 	 type1 := cv.type1;
@@ -274,8 +274,8 @@ MODULE ulmSysConversions;
 
    PROCEDURE Align(VAR offset: Address; boundary: Address);
    BEGIN
-      IF SYS.VAL (INTEGER, offset) MOD SYS.VAL (INTEGER, boundary) # 0 THEN
-	 offset := SYS.VAL (INTEGER, offset) + (SYS.VAL (INTEGER, boundary) - SYS.VAL (INTEGER, offset) MOD SYS.VAL (INTEGER, boundary));
+      IF SYS.VAL (Types.Int32, offset) MOD SYS.VAL (Types.Int32, boundary) # 0 THEN
+	 offset := SYS.VAL (Types.Int32, offset) + (SYS.VAL (Types.Int32, boundary) - SYS.VAL (Types.Int32, offset) MOD SYS.VAL (Types.Int32, boundary));
       END;
    END Align;
 
@@ -285,28 +285,28 @@ MODULE ulmSysConversions;
 		      VAR flags: Flags) : BOOLEAN;
       VAR
 	 type1, type2: CHAR;
-	 length: INTEGER;
+	 length: Types.Int32;
 	 align: BOOLEAN;
-	 boundary: INTEGER;
+	 boundary: Types.Int32;
    BEGIN
       IF cv.elementsleft > 0 THEN
 	 DEC(cv.elementsleft);
 
 	 (* Oberon type *)
 	 IF size1 > SIZE(SYS.BYTE) THEN
-	    Align(cv.offset1, SIZE(INTEGER));
+	    Align(cv.offset1, SIZE(Types.Int32));
 	 END;
-	 offset1 := cv.offset1; cv.offset1 := SYS.VAL (INTEGER, cv.offset1) + size1;
+	 offset1 := cv.offset1; cv.offset1 := SYS.VAL (Types.Int32, cv.offset1) + size1;
 	 size1 := cv.size1; size2 := cv.size2; flags := cv.flags;
 	 IF (size1 > 0) & (cv.elementsleft = 0) THEN
-	    Align(cv.offset1, SIZE(INTEGER));
+	    Align(cv.offset1, SIZE(Types.Int32));
 	 END;
 
 	 (* C type *)
 	 IF size2 > 1 THEN
 	    Align(cv.offset2, 2);
 	 END;
-	 offset2 := cv.offset2; cv.offset2 := SYS.VAL (INTEGER, cv.offset2) + SYS.VAL (INTEGER, size2);
+	 offset2 := cv.offset2; cv.offset2 := SYS.VAL (Types.Int32, cv.offset2) + SYS.VAL (Types.Int32, size2);
 
 	 RETURN TRUE
       END;
@@ -318,21 +318,21 @@ MODULE ulmSysConversions;
 	 | "b":   size1 := SIZE(SYS.BYTE);     INCL(flags, unsigned);
 	 | "B":   size1 := SIZE(BOOLEAN);  INCL(flags, boolean);
 	 | "c":   size1 := SIZE(CHAR);     INCL(flags, unsigned);
-	 | "s":   size1 := SIZE(SHORTINT);
-	 | "i":   size1 := SIZE(INTEGER);
-	 | "l":   size1 := SIZE(LONGINT);
-	 | "S":   size1 := SIZE(SET);      INCL(flags, unsigned);
+	 | "s":   size1 := SIZE(Types.Int8);
+	 | "i":   size1 := SIZE(Types.Int32);
+	 | "l":   size1 := SIZE(Types.Int32);
+	 | "S":   size1 := SIZE(Types.Set);      INCL(flags, unsigned);
 	 | "-":   size1 := 0;
 	 ELSE     Error(cv, "bad Oberon type specifier"); RETURN FALSE
 	 END;
 	 IF size1 > 0 THEN
 	    IF length > 0 THEN
-	       Align(cv.offset1, SIZE(INTEGER));
+	       Align(cv.offset1, SIZE(Types.Int32));
 	    ELSIF size1 > SIZE(SYS.BYTE) THEN
-	       Align(cv.offset1, SIZE(INTEGER));
+	       Align(cv.offset1, SIZE(Types.Int32));
 	    END;
 	 END;
-	 offset1 := cv.offset1; cv.offset1 := SYS.VAL (INTEGER, cv.offset1) + size1;
+	 offset1 := cv.offset1; cv.offset1 := SYS.VAL (Types.Int32, cv.offset1) + size1;
 
 	 (* C type *)
 	 CASE type2 OF
@@ -352,7 +352,7 @@ MODULE ulmSysConversions;
 	 IF size2 > 1 THEN
 	    Align(cv.offset2, size2);
 	 END;
-	 offset2 := cv.offset2; cv.offset2 := SYS.VAL (INTEGER, cv.offset2) + SYS.VAL (INTEGER, size2);
+	 offset2 := cv.offset2; cv.offset2 := SYS.VAL (Types.Int32, cv.offset2) + SYS.VAL (Types.Int32, size2);
 
 	 cv.size1 := size1; cv.size2 := size2;
 	 IF length > 0 THEN
@@ -371,7 +371,7 @@ MODULE ulmSysConversions;
 	 Pointer = POINTER TO Bytes;
       VAR
 	 dest, source: Pointer;
-	 dindex, sindex: INTEGER;
+	 dindex, sindex: Types.Int32;
 	 nonzero: BOOLEAN;
 	 fill : CHAR;
    BEGIN
@@ -383,7 +383,7 @@ MODULE ulmSysConversions;
 	    nonzero := FALSE;
 	    WHILE ssize > 0 DO
 	       nonzero := nonzero OR (source[sindex] # 0X);
-	       INC(sindex); ssize := SYS.VAL (INTEGER, ssize) - 1;
+	       INC(sindex); ssize := SYS.VAL (Types.Int32, ssize) - 1;
 	    END;
 	    IF dsize > 0 THEN
 	       IF nonzero THEN
@@ -395,12 +395,12 @@ MODULE ulmSysConversions;
 	    END;
 	    WHILE dsize > 0 DO
 	       dest[dindex] := 0X;
-	       dsize := SYS.VAL (INTEGER, dsize) - 1; INC(dindex);
+	       dsize := SYS.VAL (Types.Int32, dsize) - 1; INC(dindex);
 	    END;
 	 ELSE
 	    WHILE (dsize > 0) & (ssize > 0) DO
 	       dest[dindex] := source[sindex];
-	       ssize := SYS.VAL (INTEGER, ssize) - 1;
+	       ssize := SYS.VAL (Types.Int32, ssize) - 1;
 	       dsize := dsize - 1;
 	       INC(dindex); INC(sindex);
 	    END;
@@ -415,7 +415,7 @@ MODULE ulmSysConversions;
 	    END;
 	    WHILE dsize > 0 DO
 	       dest[dindex] := fill;
-	       dsize := SYS.VAL (INTEGER, dsize) - 1; INC(dindex);
+	       dsize := SYS.VAL (Types.Int32, dsize) - 1; INC(dindex);
 	    END;
 	 END;
       END;
@@ -475,7 +475,7 @@ MODULE ulmSysConversions;
       WHILE ReadConv(cv, offset1, offset2, size1, size2, flags) DO END;
       Close(cv);
       size := offset1 + size1;
-      Align(size, SIZE(INTEGER));
+      Align(size, SIZE(Types.Int32));
       RETURN size
    END OberonSize;
 

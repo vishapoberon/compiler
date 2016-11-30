@@ -35,7 +35,7 @@
    ----------------------------------------------------------------------------
 *)
 
-MODULE Print;
+MODULE ulmPrint;
 
    (* formatted printing;
       Print.F[0-9] prints to Streams.stdout
@@ -44,7 +44,7 @@ MODULE Print;
    *)
 
    IMPORT Events := ulmEvents, IEEE := ulmIEEE, Priorities := ulmPriorities, Reals := ulmReals, RelatedEvents := ulmRelatedEvents, StreamDisciplines := ulmStreamDisciplines,
-      Streams := ulmStreams, SYS := SYSTEM;
+      Streams := ulmStreams, SYS := SYSTEM, Types := ulmTypes;
 
    CONST
       tooManyArgs* = 0; (* too many arguments given *)
@@ -54,15 +54,15 @@ MODULE Print;
       errors* = 4;
    TYPE
       FormatString* = ARRAY 128 OF CHAR;
-      ErrorCode* = SHORTINT;
+      ErrorCode* = Types.Int8;
       ErrorEvent* = POINTER TO ErrorEventRec;
       ErrorEventRec* =
 	 RECORD
 	    (Events.EventRec)
 	    errorcode*: ErrorCode;
 	    format*: FormatString;
-	    errpos*: LONGINT;
-	    nargs*: INTEGER;
+	    errpos*: Types.Int32;
+	    nargs*: Types.Int32;
 	 END;
    VAR
       error*: Events.EventType;
@@ -80,20 +80,20 @@ MODULE Print;
 	 "size of argument doesn't conform to the corresponding format element";
    END InitErrorHandling;
 
-   PROCEDURE Out(out: Streams.Stream; VAR fmt: ARRAY OF CHAR; nargs: INTEGER;
-		 VAR p1,p2,p3,p4,p5,p6,p7,p8,p9: ARRAY OF BYTE;
+   PROCEDURE Out(out: Streams.Stream; VAR fmt: ARRAY OF CHAR; nargs: Types.Int32;
+		 VAR p1,p2,p3,p4,p5,p6,p7,p8,p9: ARRAY OF SYS.BYTE;
 		 errors: RelatedEvents.Object);
       CONST
 	 maxargs = 9;	(* maximal number of arguments *)
-	 maxargsize = SIZE(LONGREAL); (* maximal arg size (except strings) *)
+	 maxargsize = SIZE(Types.Real64); (* maximal arg size (except strings) *)
 	 fmtcmd = "%";
 	 escape = "\";
       VAR
-	 arglen: ARRAY maxargs OF LONGINT;
-	 nextarg: INTEGER;
-	 fmtindex: LONGINT;
+	 arglen: ARRAY maxargs OF Types.Int32;
+	 nextarg: Types.Int32;
+	 fmtindex: Types.Int32;
 	 fmtchar: CHAR;
-	 hexcharval: LONGINT;
+	 hexcharval: Types.Int32;
 
       PROCEDURE Error(errorcode: ErrorCode);
 	 VAR
@@ -133,7 +133,7 @@ MODULE Print;
 	 END;
       END Unget;
 
-      PROCEDURE Write(byte: BYTE);
+      PROCEDURE Write(byte: SYS.BYTE);
       BEGIN
 	 IF Streams.WriteByte(out, byte) THEN
 	    INC(out.count);
@@ -143,7 +143,7 @@ MODULE Print;
       PROCEDURE WriteLn;
 	 VAR
 	    lineterm: StreamDisciplines.LineTerminator;
-	    i: INTEGER;
+	    i: Types.Int32;
       BEGIN
 	 StreamDisciplines.GetLineTerm(out, lineterm);
 	 Write(lineterm[0]);
@@ -153,7 +153,7 @@ MODULE Print;
 	 END;
       END WriteLn;
 
-      PROCEDURE Int(VAR int: LONGINT; base: INTEGER) : BOOLEAN;
+      PROCEDURE Int(VAR int: Types.Int32; base: Types.Int32) : BOOLEAN;
 
 	 PROCEDURE ValidDigit(ch: CHAR) : BOOLEAN;
 	 BEGIN
@@ -179,7 +179,7 @@ MODULE Print;
 
       PROCEDURE SetSize;
 	 VAR
-	    index: INTEGER;
+	    index: Types.Int32;
       BEGIN
 	 index := 0;
 	 WHILE index < nargs DO
@@ -193,12 +193,13 @@ MODULE Print;
 	    | 6: arglen[index] := LEN(p7);
 	    | 7: arglen[index] := LEN(p8);
 	    | 8: arglen[index] := LEN(p9);
+		ELSE
 	    END;
 	    INC(index);
 	 END;
       END SetSize;
 
-      PROCEDURE Access(par: INTEGER; at: LONGINT) : BYTE;
+      PROCEDURE Access(par: Types.Int32; at: Types.Int32) : SYS.BYTE;
       BEGIN
 	 CASE par OF
 	 | 0: RETURN p1[at]
@@ -210,11 +211,12 @@ MODULE Print;
 	 | 6: RETURN p7[at]
 	 | 7: RETURN p8[at]
 	 | 8: RETURN p9[at]
+	 ELSE
 	 END;
       END Access;
 
-      PROCEDURE Convert(from: INTEGER; VAR to: ARRAY OF BYTE);
-	 VAR i: INTEGER;
+      PROCEDURE Convert(from: Types.Int32; VAR to: ARRAY OF SYS.BYTE);
+	 VAR i: Types.Int32;
       BEGIN
 	 i := 0;
 	 WHILE i < arglen[from] DO
@@ -222,23 +224,23 @@ MODULE Print;
 	 END;
       END Convert;
 
-      PROCEDURE GetInt(index: INTEGER; VAR long: LONGINT) : BOOLEAN;
+      PROCEDURE GetInt(index: Types.Int32; VAR long: Types.Int32) : BOOLEAN;
 	 (* access index-th parameter (counted from 0);
-	    fails if arglen[index] > SYS.SIZE(LONGINT)
+	    fails if arglen[index] > SYS.SIZE(Types.Int32)
 	 *)
 	 VAR
-	    short: SHORTINT;
+	    short: Types.Int8;
 	    int16: SYS.INT16;
-	    int: INTEGER;
+	    int: Types.Int32;
 	 
       BEGIN
-	 IF arglen[index] = SIZE(SHORTINT) THEN
+	 IF arglen[index] = SIZE(Types.Int8) THEN
 	    Convert(index, short); long := short;
 	 ELSIF arglen[index] = SIZE(SYS.INT16) THEN
 	    Convert(index, int16); long := int16;
-	 ELSIF arglen[index] = SIZE(INTEGER) THEN
+	 ELSIF arglen[index] = SIZE(Types.Int32) THEN
 	    Convert(index, int); long := int;
-	 ELSIF arglen[index] = SIZE(LONGINT) THEN
+	 ELSIF arglen[index] = SIZE(Types.Int32) THEN
 	    Convert(index, long);
 	 ELSE
 	    Error(badArgumentSize);
@@ -254,9 +256,9 @@ MODULE Print;
 	    insert: BOOLEAN;		(* insert between sign and 1st digit *)
 	    sign: BOOLEAN;		(* sign even positive values *)
 	    leftaligned: BOOLEAN;	(* output left aligned *)
-	    width, scale: LONGINT;
+	    width, scale: Types.Int32;
 
-	 PROCEDURE NextArg(VAR index: INTEGER) : BOOLEAN;
+	 PROCEDURE NextArg(VAR index: Types.Int32) : BOOLEAN;
 	 BEGIN
 	    IF nextarg < nargs THEN
 	       index := nextarg; INC(nextarg); RETURN TRUE
@@ -284,9 +286,9 @@ MODULE Print;
 	    RETURN FALSE (* unexpected end *)
 	 END Flags;
 
-	 PROCEDURE FetchInt(VAR int: LONGINT) : BOOLEAN;
+	 PROCEDURE FetchInt(VAR int: Types.Int32) : BOOLEAN;
 	    VAR
-	       index: INTEGER;
+	       index: Types.Int32;
 	 BEGIN
 	    RETURN (fmtchar = "*") & Next() &
 		   NextArg(index) & GetInt(index, int) OR
@@ -321,9 +323,9 @@ MODULE Print;
 
 	 PROCEDURE Conversion() : BOOLEAN;
 
-	    PROCEDURE Fill(cnt: LONGINT);
+	    PROCEDURE Fill(cnt: Types.Int32);
 	       (* cnt: space used by normal output *)
-	       VAR i: LONGINT;
+	       VAR i: Types.Int32;
 	    BEGIN
 	       IF cnt < width THEN
 		  i := width - cnt;
@@ -334,14 +336,14 @@ MODULE Print;
 	       END;
 	    END Fill;
 
-	    PROCEDURE FillLeft(cnt: LONGINT);
+	    PROCEDURE FillLeft(cnt: Types.Int32);
 	    BEGIN
 	       IF ~leftaligned THEN
 		  Fill(cnt);
 	       END;
 	    END FillLeft;
 
-	    PROCEDURE FillRight(cnt: LONGINT);
+	    PROCEDURE FillRight(cnt: Types.Int32);
 	    BEGIN
 	       IF leftaligned THEN
 		  Fill(cnt);
@@ -349,10 +351,10 @@ MODULE Print;
 	    END FillRight;
 
 	    PROCEDURE WriteBool(true, false: ARRAY OF CHAR) : BOOLEAN;
-	       VAR index: INTEGER; val: LONGINT;
+	       VAR index: Types.Int32; val: Types.Int32;
 
 	       PROCEDURE WriteString(VAR s: ARRAY OF CHAR);
-		  VAR i, len: INTEGER;
+		  VAR i, len: Types.Int32;
 	       BEGIN
 		  len := 0;
 		  WHILE (len < LEN(s)) & (s[len] # 0X) DO
@@ -379,8 +381,8 @@ MODULE Print;
 
 	    PROCEDURE WriteChar() : BOOLEAN;
 	       VAR
-		  val: LONGINT;
-		  index: INTEGER;
+		  val: Types.Int32;
+		  index: Types.Int32;
 	    BEGIN
 	       IF NextArg(index) & GetInt(index, val) &
 		  (val >= 0) & (val <= ORD(MAX(CHAR))) THEN
@@ -392,21 +394,21 @@ MODULE Print;
 	       RETURN FALSE
 	    END WriteChar;
 
-	    PROCEDURE WriteInt(base: INTEGER) : BOOLEAN;
+	    PROCEDURE WriteInt(base: Types.Int32) : BOOLEAN;
 	       VAR
-		  index: INTEGER;
-		  val: LONGINT;
+		  index: Types.Int32;
+		  val: Types.Int32;
 		  neg: BOOLEAN; (* set by Convert *)
 		  buf: ARRAY 12 OF CHAR; (* filled by Convert *)
-		  i: INTEGER;
-		  len: INTEGER; (* space needed for val *)
-		  signcnt: INTEGER; (* =1 if sign printed; else 0 *)
+		  i: Types.Int32;
+		  len: Types.Int32; (* space needed for val *)
+		  signcnt: Types.Int32; (* =1 if sign printed; else 0 *)
 		  signch: CHAR;
 
 	       PROCEDURE Convert;
 		  VAR
-		     index: INTEGER;
-		     digit: LONGINT;
+		     index: Types.Int32;
+		     digit: Types.Int32;
 	       BEGIN
 		  neg := val < 0;
 		  index := 0;
@@ -462,36 +464,36 @@ MODULE Print;
 	       CONST
 		  defaultscale = 6;
 	       VAR
-		  index: INTEGER;
-		  lr: LONGREAL;
-		  r: REAL;
-		  shortint: SHORTINT; int: INTEGER; longint: LONGINT;
+		  index: Types.Int32;
+		  lr: Types.Real64;
+		  r: Types.Real32;
+		  shortint: Types.Int8; int: Types.Int32; longint: Types.Int32;
 		  int16: SYS.INT16;
 		  long: BOOLEAN;
-		  exponent: INTEGER;
-		  mantissa: LONGREAL;
+		  exponent: Types.Int32;
+		  mantissa: Types.Real64;
 		  digits: ARRAY Reals.maxlongdignum OF CHAR;
 		  neg: BOOLEAN;
-		  ndigits: INTEGER;
-		  decpt: INTEGER;
+		  ndigits: Types.Int32;
+		  decpt: Types.Int32;
 
-	       PROCEDURE Print(decpt: INTEGER; withexp: BOOLEAN; exp: INTEGER);
+	       PROCEDURE Print(decpt: Types.Int32; withexp: BOOLEAN; exp: Types.Int32);
 		  (* decpt: position of decimal point
 			    = 0: just before the digits
 			    > 0: after decpt digits
 			    < 0: ABS(decpt) zeroes before digits needed
 		  *)
 		  VAR
-		     needed: INTEGER; (* space needed *)
-		     index: INTEGER;
-		     count: LONGINT;
+		     needed: Types.Int32; (* space needed *)
+		     index: Types.Int32;
+		     count: Types.Int32;
 
-		  PROCEDURE WriteExp(exp: INTEGER);
+		  PROCEDURE WriteExp(exp: Types.Int32);
 		     CONST
 			base = 10;
 		     VAR
-			power: INTEGER;
-			digit: INTEGER;
+			power: Types.Int32;
+			digit: Types.Int32;
 		  BEGIN
 		     IF long THEN
 			Write("D");
@@ -581,18 +583,18 @@ MODULE Print;
 
 	    BEGIN (* WriteReal *)
 	       IF NextArg(index) THEN
-		  IF arglen[index] = SIZE(LONGREAL) THEN
+		  IF arglen[index] = SIZE(Types.Real64) THEN
 		     long := TRUE;
 		     Convert(index, lr);
-		  ELSIF arglen[index] = SIZE(REAL) THEN
+		  ELSIF arglen[index] = SIZE(Types.Real32) THEN
 		     long := FALSE;
 		     Convert(index, r);
 		     lr := r;
-		  ELSIF arglen[index] = SIZE(LONGINT) THEN
+		  ELSIF arglen[index] = SIZE(Types.Int32) THEN
 		     long := FALSE;
 		     Convert(index, longint);
 		     lr := longint;
-		  ELSIF arglen[index] = SIZE(INTEGER) THEN
+		  ELSIF arglen[index] = SIZE(Types.Int32) THEN
 		     long := FALSE;
 		     Convert(index, int);
 		     lr := int;
@@ -600,7 +602,7 @@ MODULE Print;
 		     long := FALSE;
 		     Convert(index, int16);
 		     lr := int16;
-		  ELSIF arglen[index] = SIZE(SHORTINT) THEN
+		  ELSIF arglen[index] = SIZE(Types.Int8) THEN
 		     long := FALSE;
 		     Convert(index, shortint);
 		     lr := shortint;
@@ -634,6 +636,7 @@ MODULE Print;
 			      ndigits := 1;
 			   END;
 		  | "g":   ndigits := SHORT(scale);
+		  ELSE
 		  END;
 		  Reals.Digits(mantissa, 10, digits, neg,
 			       (* force = *) format # "g", ndigits);
@@ -654,6 +657,7 @@ MODULE Print;
 			      END;
 			      Print(decpt, (* withexp = *) FALSE, 0);
 			   END;
+		  ELSE
 		  END;
 		  RETURN TRUE
 	       ELSE
@@ -663,16 +667,16 @@ MODULE Print;
 
 	    PROCEDURE WriteString() : BOOLEAN;
 	       VAR
-		  index: INTEGER;
-		  i: LONGINT;
-		  byte: BYTE;
-		  len: LONGINT;
+		  index: Types.Int32;
+		  i: Types.Int32;
+		  byte: SYS.BYTE;
+		  len: Types.Int32;
 	    BEGIN
 	       IF NextArg(index) THEN
 		  len := 0;
 		  WHILE (len < arglen[index]) &
 			((scale = -1) OR (len < scale)) &
-		        (CHR(Access(index, len)) # 0X) DO
+		        ((*CHR*)SYS.VAL(CHAR, Access(index, len)) # 0X) DO
 		     INC(len);
 		  END;
 		  FillLeft(len);
@@ -755,205 +759,205 @@ MODULE Print;
 
    (* === public part ============================================== *)
 
-   PROCEDURE F(fmt: ARRAY OF CHAR);
-      VAR x: INTEGER;
+   PROCEDURE F*(fmt: ARRAY OF CHAR);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 0,  x,x,x,x,x,x,x,x,x, NIL);
    END F;
 
-   PROCEDURE F1(fmt: ARRAY OF CHAR; p1: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F1*(fmt: ARRAY OF CHAR; p1: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 1, p1, x,x,x,x,x,x,x,x, NIL);
    END F1;
 
-   PROCEDURE F2(fmt: ARRAY OF CHAR; p1, p2: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F2*(fmt: ARRAY OF CHAR; p1, p2: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 2, p1,p2, x,x,x,x,x,x,x, NIL);
    END F2;
 
-   PROCEDURE F3(fmt: ARRAY OF CHAR; p1, p2, p3: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F3*(fmt: ARRAY OF CHAR; p1, p2, p3: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 3, p1,p2,p3, x,x,x,x,x,x, NIL);
    END F3;
 
-   PROCEDURE F4(fmt: ARRAY OF CHAR; p1, p2, p3, p4: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F4*(fmt: ARRAY OF CHAR; p1, p2, p3, p4: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 4, p1,p2,p3,p4, x,x,x,x,x, NIL);
    END F4;
 
-   PROCEDURE F5(fmt: ARRAY OF CHAR; p1, p2, p3, p4, p5: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F5*(fmt: ARRAY OF CHAR; p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 5, p1,p2,p3,p4,p5, x,x,x,x, NIL);
    END F5;
 
-   PROCEDURE F6(fmt: ARRAY OF CHAR; p1, p2, p3, p4, p5, p6: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F6*(fmt: ARRAY OF CHAR; p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 6, p1,p2,p3,p4,p5,p6, x,x,x, NIL);
    END F6;
 
-   PROCEDURE F7(fmt: ARRAY OF CHAR; p1, p2, p3, p4, p5, p6, p7: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F7*(fmt: ARRAY OF CHAR; p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 7, p1,p2,p3,p4,p5,p6,p7, x,x, NIL);
    END F7;
 
-   PROCEDURE F8(fmt: ARRAY OF CHAR;
-		p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE F8*(fmt: ARRAY OF CHAR;
+		p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(Streams.stdout, fmt, 8, p1,p2,p3,p4,p5,p6,p7,p8, x, NIL);
    END F8;
 
-   PROCEDURE F9(fmt: ARRAY OF CHAR;
-		p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF BYTE);
+   PROCEDURE F9*(fmt: ARRAY OF CHAR;
+		p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE);
    BEGIN
       Out(Streams.stdout, fmt, 9, p1,p2,p3,p4,p5,p6,p7,p8,p9, NIL);
    END F9;
 
 
-   PROCEDURE S(out: Streams.Stream; fmt: ARRAY OF CHAR);
-      VAR x: INTEGER;
+   PROCEDURE S*(out: Streams.Stream; fmt: ARRAY OF CHAR);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 0, x,x,x,x,x,x,x,x,x, NIL);
    END S;
 
-   PROCEDURE S1(out: Streams.Stream; fmt: ARRAY OF CHAR; p1: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S1*(out: Streams.Stream; fmt: ARRAY OF CHAR; p1: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 1, p1, x,x,x,x,x,x,x,x, NIL);
    END S1;
 
-   PROCEDURE S2(out: Streams.Stream; fmt: ARRAY OF CHAR; p1, p2: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S2*(out: Streams.Stream; fmt: ARRAY OF CHAR; p1, p2: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 2, p1,p2, x,x,x,x,x,x,x, NIL);
    END S2;
 
-   PROCEDURE S3(out: Streams.Stream; fmt: ARRAY OF CHAR; p1, p2, p3: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S3*(out: Streams.Stream; fmt: ARRAY OF CHAR; p1, p2, p3: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 3, p1,p2,p3, x,x,x,x,x,x, NIL);
    END S3;
 
-   PROCEDURE S4(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S4*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 4, p1,p2,p3,p4, x,x,x,x,x, NIL);
    END S4;
 
-   PROCEDURE S5(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S5*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 5, p1,p2,p3,p4,p5, x,x,x,x, NIL);
    END S5;
 
-   PROCEDURE S6(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S6*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 6, p1,p2,p3,p4,p5,p6, x,x,x, NIL);
    END S6;
 
-   PROCEDURE S7(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S7*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 7, p1,p2,p3,p4,p5,p6,p7, x,x, NIL);
    END S7;
 
-   PROCEDURE S8(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF BYTE);
-      VAR x: INTEGER;
+   PROCEDURE S8*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE);
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 8, p1,p2,p3,p4,p5,p6,p7,p8, x, NIL);
    END S8;
 
-   PROCEDURE S9(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF BYTE);
+   PROCEDURE S9*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE);
    BEGIN
       Out(out, fmt, 9, p1,p2,p3,p4,p5,p6,p7,p8,p9, NIL);
    END S9;
 
 
-   PROCEDURE SE(out: Streams.Stream; fmt: ARRAY OF CHAR;
+   PROCEDURE SE*(out: Streams.Stream; fmt: ARRAY OF CHAR;
 	        errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 0, x,x,x,x,x,x,x,x,x, NIL);
    END SE;
 
-   PROCEDURE SE1(out: Streams.Stream; fmt: ARRAY OF CHAR; p1: ARRAY OF BYTE;
+   PROCEDURE SE1*(out: Streams.Stream; fmt: ARRAY OF CHAR; p1: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 1, p1, x,x,x,x,x,x,x,x, errors);
    END SE1;
 
-   PROCEDURE SE2(out: Streams.Stream; fmt: ARRAY OF CHAR; p1, p2: ARRAY OF BYTE;
+   PROCEDURE SE2*(out: Streams.Stream; fmt: ARRAY OF CHAR; p1, p2: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 2, p1,p2, x,x,x,x,x,x,x, errors);
    END SE2;
 
-   PROCEDURE SE3(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3: ARRAY OF BYTE;
+   PROCEDURE SE3*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 3, p1,p2,p3, x,x,x,x,x,x, errors);
    END SE3;
 
-   PROCEDURE SE4(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4: ARRAY OF BYTE;
+   PROCEDURE SE4*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 4, p1,p2,p3,p4, x,x,x,x,x, errors);
    END SE4;
 
-   PROCEDURE SE5(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5: ARRAY OF BYTE;
+   PROCEDURE SE5*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 5, p1,p2,p3,p4,p5, x,x,x,x, errors);
    END SE5;
 
-   PROCEDURE SE6(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6: ARRAY OF BYTE;
+   PROCEDURE SE6*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 6, p1,p2,p3,p4,p5,p6, x,x,x, errors);
    END SE6;
 
-   PROCEDURE SE7(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7: ARRAY OF BYTE;
+   PROCEDURE SE7*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6, p7: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 7, p1,p2,p3,p4,p5,p6,p7, x,x, errors);
    END SE7;
 
-   PROCEDURE SE8(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF BYTE;
+   PROCEDURE SE8*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6, p7, p8: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
-      VAR x: INTEGER;
+      VAR x: Types.Int32;
    BEGIN
       Out(out, fmt, 8, p1,p2,p3,p4,p5,p6,p7,p8, x, errors);
    END SE8;
 
-   PROCEDURE SE9(out: Streams.Stream; fmt: ARRAY OF CHAR;
-		 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF BYTE;
+   PROCEDURE SE9*(out: Streams.Stream; fmt: ARRAY OF CHAR;
+		 p1, p2, p3, p4, p5, p6, p7, p8, p9: ARRAY OF SYS.BYTE;
                  errors: RelatedEvents.Object);
    BEGIN
       Out(out, fmt, 9, p1,p2,p3,p4,p5,p6,p7,p8,p9, errors);
@@ -961,4 +965,4 @@ MODULE Print;
 
 BEGIN
    InitErrorHandling;
-END Print.
+END ulmPrint.

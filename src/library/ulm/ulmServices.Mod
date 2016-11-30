@@ -31,7 +31,7 @@
 
 MODULE ulmServices;
 
-  IMPORT Disciplines := ulmDisciplines, Objects := ulmObjects;
+  IMPORT Disciplines := ulmDisciplines, Objects := ulmObjects, Types := ulmTypes;
 
   TYPE
     Type* = POINTER TO TypeRec;
@@ -84,9 +84,9 @@ MODULE ulmServices;
     bufsize = 512; (* length of a name buffer in bytes *)
     tabsize = 1171;
   TYPE
-    BufferPosition = INTEGER;
-    Length = LONGINT;
-    HashValue = INTEGER;
+    BufferPosition = Types.Int32;
+    Length = Types.Int32;
+    HashValue = Types.Int32;
     Buffer = ARRAY bufsize OF CHAR;
     NameList = POINTER TO NameListRec;
     NameListRec =
@@ -116,14 +116,14 @@ MODULE ulmServices;
 
   (* ==== name table management ======================================== *)
 
-  PROCEDURE Hash(name: ARRAY OF CHAR; length: LONGINT) : HashValue;
+  PROCEDURE Hash(name: ARRAY OF CHAR; length: Types.Int32) : HashValue;
     CONST
       shift = 4;
     VAR
-      index: LONGINT;
-      val: LONGINT;
+      index: Types.Int32;
+      val: Types.Int32;
       ch: CHAR;
-      ordval: INTEGER;
+      ordval: Types.Int32;
   BEGIN
     index := 0; val := length;
     WHILE index < length DO
@@ -150,9 +150,9 @@ MODULE ulmServices;
     currentPos := 0;
   END CreateBuf;
 
-  PROCEDURE StringLength(string: ARRAY OF CHAR) : LONGINT;
+  PROCEDURE StringLength(string: ARRAY OF CHAR) : Types.Int32;
     VAR
-      index: LONGINT;
+      index: Types.Int32;
   BEGIN
     index := 0;
     WHILE (index < LEN(string)) & (string[index] # 0X) DO
@@ -163,7 +163,7 @@ MODULE ulmServices;
 
   PROCEDURE InitName(name: Type; string: ARRAY OF CHAR);
     VAR
-      index, length: LONGINT;
+      index, length: Types.Int32;
       firstbuf, buf: NameList;
       startpos: BufferPosition;
   BEGIN
@@ -195,9 +195,9 @@ MODULE ulmServices;
   PROCEDURE EqualName(name: Type; string: ARRAY OF CHAR) : BOOLEAN;
     (* precondition: both have the same length *)
     VAR
-      index: LONGINT;
+      index: Types.Int32;
       buf: NameList;
-      pos: INTEGER;
+      pos: Types.Int32;
   BEGIN
     buf := name.begin; pos := name.pos;
     index := 0;
@@ -216,7 +216,7 @@ MODULE ulmServices;
 
   PROCEDURE SeekName(string: ARRAY OF CHAR; VAR name: Type) : BOOLEAN;
     VAR
-      length: LONGINT;
+      length: Types.Int32;
       hashval: HashValue;
       p: Type;
   BEGIN
@@ -232,9 +232,9 @@ MODULE ulmServices;
 
   PROCEDURE ExtractName(name: Type; VAR string: ARRAY OF CHAR);
     VAR
-      index: LONGINT;
+      index: Types.Int32;
       buf: NameList;
-      pos: INTEGER;
+      pos: Types.Int32;
   BEGIN
     buf := name.begin; pos := name.pos;
     index := 0;
@@ -331,7 +331,7 @@ MODULE ulmServices;
   PROCEDURE GetModule(name: ARRAY OF CHAR; VAR module: ARRAY OF CHAR);
     (* get the name of the module where 'name' was defined *)
     VAR
-      index: INTEGER;
+      index: Types.Int32;
   BEGIN
     index := 0;
     WHILE (name[index] # ".") & (name[index] # 0X) &

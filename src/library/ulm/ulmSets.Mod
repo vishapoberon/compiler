@@ -35,15 +35,16 @@
 *)
 
 MODULE ulmSets;
+IMPORT Types := ulmTypes;
 
    CONST
-      setsize* = MAX(SET) + 1;
+      setsize* = MAX(Types.Set) + 1;
 
    TYPE
-      CharSet* = ARRAY (ORD(MAX(CHAR)) + 1) DIV setsize OF SET;
+      CharSet* = ARRAY (ORD(MAX(CHAR)) + 1) DIV setsize OF Types.Set;
 
-   PROCEDURE InitSet*(VAR set: ARRAY OF SET);
-      VAR i: LONGINT;
+   PROCEDURE InitSet*(VAR set: ARRAY OF Types.Set);
+      VAR i: Types.Int32;
    BEGIN
       i := 0;
       WHILE i < LEN(set) DO
@@ -51,8 +52,8 @@ MODULE ulmSets;
       END;
    END InitSet;
 
-   PROCEDURE Complement*(VAR set: ARRAY OF SET);
-      VAR i: LONGINT;
+   PROCEDURE Complement*(VAR set: ARRAY OF Types.Set);
+      VAR i: Types.Int32;
    BEGIN
       i := 0;
       WHILE i < LEN(set) DO
@@ -60,17 +61,17 @@ MODULE ulmSets;
       END;
    END Complement;
 
-   PROCEDURE In*(VAR set: ARRAY OF SET; i: LONGINT) : BOOLEAN;
+   PROCEDURE In*(VAR set: ARRAY OF Types.Set; i: Types.Int32) : BOOLEAN;
    BEGIN
       RETURN (i MOD setsize) IN set[i DIV setsize]
    END In;
 
-   PROCEDURE Incl*(VAR set: ARRAY OF SET; i: LONGINT);
+   PROCEDURE Incl*(VAR set: ARRAY OF Types.Set; i: Types.Int32);
    BEGIN
       INCL(set[i DIV setsize], i MOD setsize);
    END Incl;
 
-   PROCEDURE Excl*(VAR set: ARRAY OF SET; i: LONGINT);
+   PROCEDURE Excl*(VAR set: ARRAY OF Types.Set; i: Types.Int32);
    BEGIN
       EXCL(set[i DIV setsize], i MOD setsize);
    END Excl;
@@ -90,9 +91,9 @@ MODULE ulmSets;
       EXCL(charset[ORD(ch) DIV setsize], ORD(ch) MOD setsize);
    END ExclChar;
 
-   PROCEDURE Intersection*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
+   PROCEDURE Intersection*(set1, set2: ARRAY OF Types.Set; VAR result: ARRAY OF Types.Set);
       VAR
-         index: INTEGER;
+         index: Types.Int32;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
@@ -102,9 +103,9 @@ MODULE ulmSets;
       END;
    END Intersection;
 
-   PROCEDURE SymDifference*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
+   PROCEDURE SymDifference*(set1, set2: ARRAY OF Types.Set; VAR result: ARRAY OF Types.Set);
       VAR
-         index: INTEGER;
+         index: Types.Int32;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
@@ -114,9 +115,9 @@ MODULE ulmSets;
       END;
    END SymDifference;
 
-   PROCEDURE Union*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
+   PROCEDURE Union*(set1, set2: ARRAY OF Types.Set; VAR result: ARRAY OF Types.Set);
       VAR
-         index: INTEGER;
+         index: Types.Int32;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
@@ -126,9 +127,9 @@ MODULE ulmSets;
       END;
    END Union;
 
-   PROCEDURE Difference*(set1, set2: ARRAY OF SET; VAR result: ARRAY OF SET);
+   PROCEDURE Difference*(set1, set2: ARRAY OF Types.Set; VAR result: ARRAY OF Types.Set);
       VAR
-         index: INTEGER;
+         index: Types.Int32;
    BEGIN
       ASSERT((LEN(result) = LEN(set1)) & (LEN(result) = LEN(set2)));
       index := 0;
@@ -138,9 +139,9 @@ MODULE ulmSets;
       END;
    END Difference;
 
-   PROCEDURE Equal*(set1, set2: ARRAY OF SET) : BOOLEAN;
+   PROCEDURE Equal*(set1, set2: ARRAY OF Types.Set) : BOOLEAN;
       VAR
-         index: INTEGER;
+         index: Types.Int32;
    BEGIN
       index := 0;
       WHILE (index < LEN(set1)) & (index < LEN(set2)) DO
@@ -164,9 +165,9 @@ MODULE ulmSets;
       RETURN TRUE
    END Equal;
 
-   PROCEDURE Subset*(set1, set2: ARRAY OF SET) : BOOLEAN;
+   PROCEDURE Subset*(set1, set2: ARRAY OF Types.Set) : BOOLEAN;
       VAR
-         index: INTEGER;
+         index: Types.Int32;
    BEGIN
       index := 0;
       WHILE (index < LEN(set1)) & (index < LEN(set2)) DO
@@ -184,17 +185,17 @@ MODULE ulmSets;
       RETURN TRUE
    END Subset;
 
-   PROCEDURE Card*(set: ARRAY OF SET) : INTEGER;
+   PROCEDURE Card*(set: ARRAY OF Types.Set) : Types.Int32;
       VAR
-         index: INTEGER;
-         i: INTEGER;
-         card: INTEGER;
+         index: Types.Int32;
+         i: Types.Int32;
+         card: Types.Int32;
    BEGIN
       card := 0;
       index := 0;
       WHILE index < LEN(set) DO
          i := 0;
-         WHILE i <= MAX(SET) DO
+         WHILE i <= MAX(Types.Set) DO
             IF i IN set[index] THEN
                INC(card);
             END;

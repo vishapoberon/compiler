@@ -40,7 +40,7 @@ MODULE ulmSysStat;
    (* examine inode: stat(2) and fstat(2) *)
 
    IMPORT RelatedEvents := ulmRelatedEvents, Sys := ulmSys, SYS := SYSTEM, uSYS := ulmSYSTEM, SysConversions := ulmSysConversions, SysErrors := ulmSysErrors,
-      SysTypes := ulmSysTypes;
+      SysTypes := ulmSysTypes, Types := ulmTypes;
 
    CONST
       (* file mode:
@@ -96,17 +96,17 @@ MODULE ulmSysStat;
         device*:  SysTypes.Device; (* ID of device containing a directory entry 
                                       for this file *)
         inode*:   SysTypes.Inode;  (* inode number *)
-        mode*:    SET;             (* file mode; see mknod(2) *)
-        nlinks*:  LONGINT;         (* number of links *)
-        uid*:     LONGINT;         (* user id of the file's owner *)
-        gid*:     LONGINT;         (* group id of the file's group *)
+        mode*:    Types.Set;             (* file mode; see mknod(2) *)
+        nlinks*:  Types.Int32;         (* number of links *)
+        uid*:     Types.Int32;         (* user id of the file's owner *)
+        gid*:     Types.Int32;         (* group id of the file's group *)
         rdev*:    SysTypes.Device; (* ID of device. this entry is defined only for
                                       character special or block special files *)
         size*:    SysTypes.Offset; (* file size in bytes *)
         
         (* Blocks and blksize are not available on all platforms.
-        blksize*: LONGINT;         (* preferred blocksize *)
-        blocks*:  LONGINT;         (* # of blocks allocated *)
+        blksize*: Types.Int32;         (* preferred blocksize *)
+        blocks*:  Types.Int32;         (* # of blocks allocated *)
         *)
         
         atime*:   SysTypes.Time;   (* time of last access *)
@@ -119,27 +119,27 @@ MODULE ulmSysStat;
    PROCEDURE -Aerrno           '#include <errno.h>';
 
    PROCEDURE -structstats            "struct stat s";
-   PROCEDURE -statdev():     LONGINT "(LONGINT)s.st_dev";
-   PROCEDURE -statino():     LONGINT "(LONGINT)s.st_ino";
-   PROCEDURE -statmode():    LONGINT "(LONGINT)s.st_mode";
-   PROCEDURE -statnlink():   LONGINT "(LONGINT)s.st_nlink";
-   PROCEDURE -statuid():     LONGINT "(LONGINT)s.st_uid";
-   PROCEDURE -statgid():     LONGINT "(LONGINT)s.st_gid";
-   PROCEDURE -statrdev():    LONGINT "(LONGINT)s.st_rdev";
-   PROCEDURE -statsize():    LONGINT "(LONGINT)s.st_size";
-   PROCEDURE -statatime():   LONGINT "(LONGINT)s.st_atime";
-   PROCEDURE -statmtime():   LONGINT "(LONGINT)s.st_mtime";
-   PROCEDURE -statctime():   LONGINT "(LONGINT)s.st_ctime";
+   PROCEDURE -statdev():     Types.Int32 "(INT32)s.st_dev";
+   PROCEDURE -statino():     Types.Int32 "(INT32)s.st_ino";
+   PROCEDURE -statmode():    Types.Int32 "(INT32)s.st_mode";
+   PROCEDURE -statnlink():   Types.Int32 "(INT32)s.st_nlink";
+   PROCEDURE -statuid():     Types.Int32 "(INT32)s.st_uid";
+   PROCEDURE -statgid():     Types.Int32 "(INT32)s.st_gid";
+   PROCEDURE -statrdev():    Types.Int32 "(INT32)s.st_rdev";
+   PROCEDURE -statsize():    Types.Int32 "(INT32)s.st_size";
+   PROCEDURE -statatime():   Types.Int32 "(INT32)s.st_atime";
+   PROCEDURE -statmtime():   Types.Int32 "(INT32)s.st_mtime";
+   PROCEDURE -statctime():   Types.Int32 "(INT32)s.st_ctime";
    
    (* Blocks and blksize are not available on all platforms.
-   PROCEDURE -statblksize(): LONGINT "(LONGINT)s.st_blksize";
-   PROCEDURE -statblocks():  LONGINT "(LONGINT)s.st_blocks";
+   PROCEDURE -statblksize(): Types.Int32 "(Types.Int32)s.st_blksize";
+   PROCEDURE -statblocks():  Types.Int32 "(Types.Int32)s.st_blocks";
    *)
 
-   PROCEDURE -fstat(fd: LONGINT):      INTEGER "fstat(fd, &s)";
-   PROCEDURE -stat (n: ARRAY OF CHAR): INTEGER "stat((char*)n, &s)";
+   PROCEDURE -fstat(fd: Types.Int32):      Types.Int32 "fstat(fd, &s)";
+   PROCEDURE -stat (n: ARRAY OF CHAR): Types.Int32 "stat((char*)n, &s)";
 
-   PROCEDURE -err(): INTEGER "errno";
+   PROCEDURE -err(): Types.Int32 "errno";
 
    PROCEDURE Stat*(path: ARRAY OF CHAR; VAR buf: StatRec; errors: RelatedEvents.Object): BOOLEAN;
    BEGIN
@@ -147,7 +147,7 @@ MODULE ulmSysStat;
       IF stat(path) < 0 THEN SysErrors.Raise(errors, err(), Sys.newstat, path); RETURN FALSE END;
       buf.device  := SYS.VAL(SysTypes.Device, statdev());
       buf.inode   := SYS.VAL(SysTypes.Inode,  statino());
-      buf.mode    := SYS.VAL(SET,             statmode());
+      buf.mode    := SYS.VAL(Types.Set,             statmode());
       buf.nlinks  := statnlink();
       buf.uid     := statuid();
       buf.gid     := statgid();
@@ -166,10 +166,10 @@ MODULE ulmSysStat;
    PROCEDURE Fstat*(fd: SysTypes.File; VAR buf: StatRec; errors: RelatedEvents.Object): BOOLEAN;
    BEGIN
       structstats;
-      IF fstat(SYS.VAL(LONGINT, fd)) < 0 THEN SysErrors.Raise(errors, err(), Sys.newfstat, ""); RETURN FALSE END;
+      IF fstat(SYS.VAL(Types.Int32, fd)) < 0 THEN SysErrors.Raise(errors, err(), Sys.newfstat, ""); RETURN FALSE END;
       buf.device  := SYS.VAL(SysTypes.Device, statdev());
       buf.inode   := SYS.VAL(SysTypes.Inode,  statino());
-      buf.mode    := SYS.VAL(SET,             statmode());
+      buf.mode    := SYS.VAL(Types.Set,             statmode());
       buf.nlinks  := statnlink();
       buf.uid     := statuid();
       buf.gid     := statgid();

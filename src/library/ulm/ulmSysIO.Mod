@@ -33,7 +33,7 @@ MODULE ulmSysIO;
    IMPORT RelatedEvents := ulmRelatedEvents,
           Sys := ulmSys, SYS := SYSTEM, ulmSYSTEM,
           SysErrors := ulmSysErrors, SysTypes := ulmSysTypes,
-          Platform;
+          Platform, Types := ulmTypes;
 
    CONST
       (* file control options: arguments of Fcntl and Open *)
@@ -79,11 +79,11 @@ MODULE ulmSysIO;
       File* = SysTypes.File; (* file descriptor *)
       Address* = SysTypes.Address;
       Count* = SysTypes.Count;
-      Protection* = LONGINT;
-      Whence* = LONGINT;
+      Protection* = Types.Int32;
+      Whence* = Types.Int32;
 
    PROCEDURE OpenCreat*(VAR fd: File;
-                       filename: ARRAY OF CHAR; options: SET;
+                       filename: ARRAY OF CHAR; options: Types.Set;
                        protection: Protection;
                        errors: RelatedEvents.Object;
                        retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
@@ -110,7 +110,7 @@ MODULE ulmSysIO;
    END OpenCreat;
 
    PROCEDURE Open*(VAR fd: File;
-                  filename: ARRAY OF CHAR; options: SET;
+                  filename: ARRAY OF CHAR; options: Types.Set;
                   errors: RelatedEvents.Object;
                   retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
       (* the filename must be 0X-terminated *)
@@ -196,7 +196,7 @@ MODULE ulmSysIO;
    PROCEDURE Seek*(fd: File; offset: Count; whence: Whence;
                   errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         error: Platform.ErrorCode; relativity: INTEGER;
+         error: Platform.ErrorCode; relativity: Types.Int16;
    BEGIN
       CASE whence OF
       |fromPos: relativity := Platform.SeekCur
@@ -216,7 +216,7 @@ MODULE ulmSysIO;
    PROCEDURE Tell*(fd: File; VAR offset: Count;
                   errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
+         d0, d1: Types.Int32;
    BEGIN
       IF ulmSYSTEM.UNIXCALL(Sys.lseek, d0, d1, fd, 0, fromPos) THEN
          offset := d0;
@@ -232,17 +232,17 @@ MODULE ulmSysIO;
          sizeofStructTermIO = 18;
          tcgeta = 00005405H;
       VAR
-         d0, d1: LONGINT;
+         d0, d1: Types.Int32;
          buf: ARRAY 32 OF SYS.BYTE;  (* Should be more than sufficient *)
    BEGIN
       (* following system call fails for non-tty's *)
       RETURN ulmSYSTEM.UNIXCALL(Sys.ioctl, d0, d1, fd, tcgeta, SYS.ADR(buf))
    END Isatty;
-   PROCEDURE Fcntl*(fd: File; request: INTEGER; VAR arg: LONGINT;
+   PROCEDURE Fcntl*(fd: File; request: Types.Int32; VAR arg: Types.Int32;
                    errors: RelatedEvents.Object;
                    retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
+         d0, d1: Types.Int32;
    BEGIN
       interrupted := FALSE;
       LOOP
@@ -261,15 +261,15 @@ MODULE ulmSysIO;
       END;
    END Fcntl;
 
-   PROCEDURE FcntlSet*(fd: File; request: INTEGER; flags: SET;
+   PROCEDURE FcntlSet*(fd: File; request: Types.Int32; flags: Types.Set;
                       errors: RelatedEvents.Object;
                       retry: BOOLEAN; VAR interrupted: BOOLEAN) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
+         d0, d1: Types.Int32;
    BEGIN
       interrupted := FALSE;
       LOOP
-         IF ulmSYSTEM.UNIXCALL(Sys.fcntl, d0, d1, fd, request, SYS.VAL(LONGINT, flags)) THEN
+         IF ulmSYSTEM.UNIXCALL(Sys.fcntl, d0, d1, fd, request, SYS.VAL(Types.Int32, flags)) THEN
             RETURN TRUE
          ELSE
             IF d0 = SysErrors.intr THEN
@@ -283,10 +283,10 @@ MODULE ulmSysIO;
       END;
    END FcntlSet;
 
-   PROCEDURE FcntlGet*(fd: File; request: INTEGER; VAR flags: SET;
+   PROCEDURE FcntlGet*(fd: File; request: Types.Int32; VAR flags: Types.Set;
                       errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
+         d0, d1: Types.Int32;
    BEGIN
       IF ulmSYSTEM.UNIXCALL(Sys.fcntl, d0, d1, fd, request, 0) THEN
          ulmSYSTEM.WMOVE(SYS.ADR(d0), SYS.ADR(flags), 1);
@@ -300,8 +300,8 @@ MODULE ulmSysIO;
    PROCEDURE Dup*(fd: File; VAR newfd: File;
                  errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
-         a0, a1: LONGINT;
+         d0, d1: Types.Int32;
+         a0, a1: Types.Int32;
    BEGIN
       a0 := 0; a1 := 0; (* Initialised to disable compiler warning. *)
       IF ulmSYSTEM.UNIXCALL(Sys.dup, d0, d1, fd, a0, a1) THEN
@@ -315,8 +315,8 @@ MODULE ulmSysIO;
 
    PROCEDURE Dup2*(fd, newfd: File; errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
-         a0, a1: LONGINT;
+         d0, d1: Types.Int32;
+         a0, a1: Types.Int32;
          fd2: File;
          interrupted: BOOLEAN;
    BEGIN
@@ -338,9 +338,9 @@ MODULE ulmSysIO;
    PROCEDURE Pipe*(VAR readfd, writefd: File;
                   errors: RelatedEvents.Object) : BOOLEAN;
       VAR
-         d0, d1: LONGINT;
-         a0, a1: LONGINT;
-         fds : ARRAY 2 OF (*File*)INTEGER; (* it needs int pipefd[2], and int is 4 bytes long on x86_64 -- noch *)
+         d0, d1: Types.Int32;
+         a0, a1: Types.Int32;
+         fds : ARRAY 2 OF (*File*)Types.Int32; (* it needs int pipefd[2], and int is 4 bytes long on x86_64 -- noch *)
    BEGIN
       a0 := 0; a1 := 0; (* Initialised to disable compiler warning. *)
       IF ulmSYSTEM.UNIXCALL(Sys.pipe, d0, d1, SYS.ADR (fds), a0, a1) THEN

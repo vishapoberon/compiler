@@ -36,7 +36,8 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     Events            := ulmEvents,            NetIO        := ulmNetIO,
     PersistentObjects := ulmPersistentObjects, Random       := ulmRandomGenerators,
     RelatedEvents     := ulmRelatedEvents,     Services     := ulmServices,
-    Streams           := ulmStreams,           SYS          := SYSTEM;
+    Streams           := ulmStreams,           SYS          := SYSTEM,
+    Types := ulmTypes;
 
   CONST
     M = 16; (* size of an element of CC(M) [ring of Circular Convolution] *)
@@ -59,8 +60,8 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
 
   TYPE
     (* an element out of CC(M) *)
-    CCMElement = SET;
-    Exponent = ARRAY MaxVar OF SHORTINT;
+    CCMElement = Types.Set;
+    Exponent = ARRAY MaxVar OF Types.Int8;
 
   TYPE
     (* a polynomial with coefficients out of CC(M) *)
@@ -161,7 +162,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     ErrorEvent = POINTER TO ErrorEventRec;
     ErrorEventRec = RECORD
       (Events.EventRec)
-      errorcode : SHORTINT;
+      errorcode : Types.Int8;
     END;
 
   VAR
@@ -176,7 +177,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     PolFeld : ARRAY MaxTerms OF Polynom;  (* used for sorting purposes *)
     PreEvalArg : ARRAY M OF TCryptInput;  (* precomputed values to speed
         up evaluation of a polynomial *)
-    k : SHORTINT;  (* simple counter during initialisation *)
+    k : Types.Int8;  (* simple counter during initialisation *)
     error : Events.EventType;
     errormsg : ARRAY errorcodes OF Events.Message;
 
@@ -191,7 +192,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     errormsg[notRegular] := "element isn't regular";
   END InitErrorHandling;
 
-  PROCEDURE Error(s: Streams.Stream; errorcode: SHORTINT);
+  PROCEDURE Error(s: Streams.Stream; errorcode: Types.Int8);
     VAR
       event: ErrorEvent;
   BEGIN
@@ -208,7 +209,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* tests x for regularity [a regular CCMElement contains an odd number of
       set bits]; returns TRUE when x is regular, FALSE otherwise *)
     VAR
-      res, i : SHORTINT;
+      res, i : Types.Int8;
   BEGIN
     i := 0;
     res := 0;
@@ -225,7 +226,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* compares x and y for equality; if x and y are equal TRUE is returned,
       FALSE otherwise *)
     VAR
-      i : SHORTINT;
+      i : Types.Int8;
   BEGIN
     i := 0;
     WHILE i < M DO
@@ -240,7 +241,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE AddCCM (x, y: CCMElement; VAR z: CCMElement);
     (* add x and y in CC(M) *)
     VAR
-      i : SHORTINT;
+      i : Types.Int8;
   BEGIN
     z := NullCCM;
     i := 0;
@@ -255,8 +256,8 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE MulCCM (x, y: CCMElement; VAR z: CCMElement);
     (* multiply x and y in CC(M) *)
     VAR
-      i, j, diff : SHORTINT;
-      tmp : INTEGER;
+      i, j, diff : Types.Int8;
+      tmp : Types.Int32;
   BEGIN
     z := NullCCM;
     i := 0;
@@ -283,7 +284,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     UNTIL i>=M;
   END MulCCM;
 
-  PROCEDURE PowerCCM (x: CCMElement; exp: INTEGER; VAR z: CCMElement);
+  PROCEDURE PowerCCM (x: CCMElement; exp: Types.Int32; VAR z: CCMElement);
     (* raises x to the power exp in CC(M) *)
     VAR
       tmp : CCMElement;
@@ -320,12 +321,12 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     UNTIL exp < 1;
   END PowerCCM;
 
-  PROCEDURE CreateCCM (VAR x: CCMElement; mode: SHORTINT);
+  PROCEDURE CreateCCM (VAR x: CCMElement; mode: Types.Int8);
     (* creates a random element out of CC(M) depending on mode which
       can be reg, sing or random;
       the result is in any case different from the zero *)
     VAR
-      i, SetBits: SHORTINT;
+      i, SetBits: Types.Int8;
   BEGIN
     x := NullCCM;
     REPEAT
@@ -361,10 +362,10 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
 
   (* ***** arithmetic functions for polynomials over CC(M) ***** *)
 
-  PROCEDURE LengthPolynom(p: Polynom) : INTEGER;
+  PROCEDURE LengthPolynom(p: Polynom) : Types.Int32;
     (* returns the number of terms which make up the polynomial p *)
     VAR
-      i : INTEGER;
+      i : Types.Int32;
   BEGIN
     i := 0;
     WHILE p # NIL DO
@@ -378,7 +379,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* tests the regularity of a polynomial [a polynomial is regular
       iff the # of regular coefficients is odd] *)
     VAR
-      regkoeffs : SHORTINT;
+      regkoeffs : Types.Int8;
   BEGIN
     regkoeffs := 0;
     WHILE p # NIL DO
@@ -391,16 +392,16 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     RETURN (regkoeffs MOD 2) = 1;
   END RegulaerPolynom;
 
-  PROCEDURE CmpExp (exp1, exp2: Exponent) : SHORTINT;
+  PROCEDURE CmpExp (exp1, exp2: Exponent) : Types.Int8;
     (* compares two exponent vectors and returns 0 on equality, a
       positive value if exp1>exp2 and a negative value if exp1<exp2;
       the absolute value can be 1 or 2 : 2 if the sums of the
       vectors differ, 1 otherwise; this distinction isn't used, but
       it could be useful for later versions *)
     VAR
-      i : SHORTINT;
-      e1, e2: INTEGER; diff: BOOLEAN; cmp: SHORTINT;
-      sum1, sum2 : INTEGER;
+      i : Types.Int8;
+      e1, e2: Types.Int32; diff: BOOLEAN; cmp: Types.Int8;
+      sum1, sum2 : Types.Int32;
   BEGIN
     i := 0;
     sum1 := 0; sum2 := 0; diff := FALSE; cmp := 0;
@@ -431,19 +432,19 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* arrange a polynomial according to the order given by CmpExp *)
     VAR
       r : Polynom;
-      cnt : INTEGER;
+      cnt : Types.Int32;
 
-    PROCEDURE SortPolynom(left, right: INTEGER);
+    PROCEDURE SortPolynom(left, right: Types.Int32);
       (* sort the global field PolFeld with the quicksort algorithm *)
       VAR
-        mid : INTEGER;
+        mid : Types.Int32;
 
-      PROCEDURE Partition(l, r: INTEGER) : INTEGER;
+      PROCEDURE Partition(l, r: Types.Int32) : Types.Int32;
         VAR
           koeff : CCMElement;
           exp : Exponent;
           cmp : Exponent;
-          i, j : INTEGER;
+          i, j : Types.Int32;
       BEGIN
         cmp := PolFeld[(l+r) DIV 2].exp;
         i := l-1;
@@ -528,7 +529,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
       term1, term2 : Polynom;
       last : Polynom;                (* the last term of the result *)
       tmp : Polynom;
-      cmpres : SHORTINT;
+      cmpres : Types.Int8;
   BEGIN
     IF (p = NIL) & (q = NIL) THEN
       r := NIL;
@@ -606,7 +607,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* add two exponent vetors; addition is modulo M *)
     PROCEDURE AddExp (exp1, exp2 : Exponent; VAR res: Exponent);
       VAR
-        i : SHORTINT;
+        i : Types.Int8;
     BEGIN
       i := 0;
       WHILE i<MaxVar DO
@@ -681,7 +682,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* inverts a regular polynomial; if p is illegal (NIL) or singular the
       result is NIL *)
     VAR
-      exp : SHORTINT;
+      exp : Types.Int8;
       tmp : Polynom;
   BEGIN
     IF (p = NIL) OR ~RegulaerPolynom(p) THEN
@@ -706,7 +707,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* evaluate p; a precomputed list of all the powers of the argument can
       be found in the global variable PreEvalArg *)
     VAR
-      i : SHORTINT;
+      i : Types.Int8;
       pow, prod : CCMElement;
   BEGIN
     res := NullCCM;
@@ -730,7 +731,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE CreateExp (VAR exp: Exponent);
     (* creates a random vector of exponents *)
     VAR
-      i : SHORTINT;
+      i : Types.Int8;
   BEGIN
     i := 0;
     WHILE i<MaxVar DO
@@ -742,7 +743,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE CreateExpList (VAR explist : ListExp);
     (* create a list of MaxNrExp different exponents *)
     VAR
-      i : SHORTINT;
+      i : Types.Int8;
   BEGIN
     i := 0;
     WHILE i < MaxNrExp DO
@@ -751,7 +752,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     END;
   END CreateExpList;
 
-  PROCEDURE CreatePolynom (VAR p: Polynom; terms: SHORTINT; mode: SHORTINT;
+  PROCEDURE CreatePolynom (VAR p: Polynom; terms: Types.Int8; mode: Types.Int8;
                    UseList: BOOLEAN; explist: ListExp);
     (* creates a random polynomial depending on mode (can be reg,
       sing or random);
@@ -760,8 +761,8 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
       created entirely randomly but will be chosen form a list of
       precomputed exponents *)
     VAR
-      regkoeffs, i : SHORTINT;
-      expindex : SHORTINT;
+      regkoeffs, i : Types.Int8;
+      expindex : Types.Int8;
       proot, tmp : Polynom;
       doubleexp : BOOLEAN;
 
@@ -851,11 +852,11 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     AddPolynom(mul1, mul2, res);
   END DetMatrix;
 
-  PROCEDURE ChangeCol (mat: MatPolynom; vek: VektorPolynom; col: INTEGER;
+  PROCEDURE ChangeCol (mat: MatPolynom; vek: VektorPolynom; col: Types.Int32;
                 VAR res: MatPolynom);
     (* replaces the column #col in mat with vek *)
     VAR
-      dx, dy : INTEGER;
+      dx, dy : Types.Int32;
   BEGIN
     dx := 0;
     WHILE dx < Dim DO
@@ -875,7 +876,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE ChooseInitialMatrix(VAR mat: MatPolynom);
     (* choose an initial matrix for the recursion *)
     VAR
-      dx, dy : SHORTINT;
+      dx, dy : Types.Int8;
   BEGIN
     (* the starting matrix consists only of regular components *)
     dy := 0;
@@ -911,7 +912,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE MulMatrix (mat: MatCCM; col: VektorCCM; VAR res: VektorCCM);
     (* multiplies the matrix mat with the vector col *)
     VAR
-      x, y : SHORTINT;
+      x, y : Types.Int8;
       addres, mulres : CCMElement;
   BEGIN
     x := 0;
@@ -945,9 +946,9 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     (* create random but suiting maps phi, psi and eta for a pair of
       public and private keys *)
   VAR
-    r, d, idx : SHORTINT;
-    regindex, singindex : SHORTINT;
-    dx, dy : SHORTINT;
+    r, d, idx : Types.Int8;
+    regindex, singindex : Types.Int8;
+    dx, dy : Types.Int8;
     A : ChainPolynom;
     E : ARRAY Rounds OF MatPolynom;
     num : ChainPolynom;
@@ -1070,7 +1071,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE PreComputeArgs(arg: TCryptInput);
     (* used for preevaluation of a polynomial argument *)
     VAR
-      k, i, kk, ii : INTEGER;
+      k, i, kk, ii : Types.Int32;
       tmp : CCMElement;
   BEGIN
     i := 0;
@@ -1111,7 +1112,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
       argument arg *)
     VAR
       res : TCryptTmp;
-      r, d : SHORTINT;
+      r, d : Types.Int8;
   BEGIN
     NEW(res);
     PreComputeArgs(arg);
@@ -1136,7 +1137,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
       num, denom, inv : CCMElement;
       vek : VektorCCM;
       A : ChainCCM;
-      r, d : SHORTINT;
+      r, d : Types.Int8;
   BEGIN
     (* first correct the input with the correlating inverts *)
     MulCCM(arg.denominator[0], data.korrDenom[0], denom);
@@ -1178,7 +1179,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE EvaluateEta (arg: TCryptInput; data: Eta) : TCryptRes;
     (* evaluate the public function eta (composition of phi and psi) *)
     VAR
-      l, d : SHORTINT;
+      l, d : Types.Int8;
       res : TCryptRes;
   BEGIN
     NEW(res);
@@ -1204,10 +1205,10 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   END Eof;
 
   PROCEDURE Encrypt (msg: Streams.Stream; key: Ciphers.Cipher;
-               length: INTEGER; s: Streams.Stream) : BOOLEAN;
+               length: Types.Int32; s: Streams.Stream) : BOOLEAN;
     (* interface procedure for Ciphers.Encrypt *)
     VAR
-      i, j : SHORTINT;
+      i, j : Types.Int8;
       ccmarg : TCryptInput;
       ccmres : TCryptTmp;
       wholeStream : BOOLEAN;
@@ -1260,10 +1261,10 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   END Encrypt;
 
   PROCEDURE Decrypt (msg: Streams.Stream; key: Ciphers.Cipher;
-               length: INTEGER; s: Streams.Stream) : BOOLEAN;
+               length: Types.Int32; s: Streams.Stream) : BOOLEAN;
     (* interface procedure for Ciphers.Decrypt *)
     VAR
-      i, j : SHORTINT;
+      i, j : Types.Int8;
       inNum, inDenom, out : ARRAY (M DIV 8) OF SYS.BYTE;
       ccmarg : TCryptTmp;
       ccmres : TCryptRes;
@@ -1313,10 +1314,10 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   END Decrypt;
 
   PROCEDURE ComposedEncrypt (msg: Streams.Stream; key: Ciphers.Cipher;
-                    length: INTEGER; s: Streams.Stream) : BOOLEAN;
+                    length: Types.Int32; s: Streams.Stream) : BOOLEAN;
     (* interface procedure for AsymmetricCiphers.ComposedEncrypt *)
     VAR
-      i, j : SHORTINT;
+      i, j : Types.Int8;
       ccmarg : TCryptInput;
       ccmres : TCryptRes;
       in, out : ARRAY (M DIV 8) OF SYS.BYTE;
@@ -1365,7 +1366,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     VAR
       ccm : CCMElement;
       bytes : ARRAY M DIV 8 OF SYS.BYTE;
-      i : INTEGER;
+      i : Types.Int32;
   BEGIN
     i := 0;
     WHILE i < MaxVar DO
@@ -1445,7 +1446,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     CONST
       index = M DIV 8;
     VAR
-      nrOfTerms, i : INTEGER;
+      nrOfTerms, i : Types.Int32;
       bytes : ARRAY index OF SYS.BYTE;
   BEGIN
     nrOfTerms := LengthPolynom(p);
@@ -1474,7 +1475,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     CONST
       index = M DIV 8;
     VAR
-      nrOfTerms, i : INTEGER;
+      nrOfTerms, i : Types.Int32;
       pol : Polynom;
       bytes : ARRAY index OF SYS.BYTE;
   BEGIN
@@ -1506,7 +1507,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE PhiWrite (s: Streams.Stream; data: Phi) : BOOLEAN;
     (* writes the data structure for the public function phi onto a stream *)
     VAR
-      r, d, k : INTEGER;
+      r, d, k : Types.Int32;
   BEGIN
     r := 0;
     WHILE r < Rounds DO
@@ -1528,7 +1529,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE PhiRead (s: Streams.Stream; VAR data: Phi) : BOOLEAN;
     (* reads the data structure for the public function phi from a stream *)
     VAR
-      r, d, k : INTEGER;
+      r, d, k : Types.Int32;
   BEGIN
     NEW(data);
     r := 0;
@@ -1553,7 +1554,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     CONST
       index = M DIV 8;
     VAR
-      dx, dy, r, d : INTEGER;
+      dx, dy, r, d : Types.Int32;
       bytes : ARRAY index OF SYS.BYTE;
   BEGIN
     dy := 0;
@@ -1589,7 +1590,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
     CONST
       index = M DIV 8;
     VAR
-      dy, dx, r, d : INTEGER;
+      dy, dx, r, d : Types.Int32;
       bytes : ARRAY index OF SYS.BYTE;
   BEGIN
     dy := 0;
@@ -1623,7 +1624,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE EtaWrite (s: Streams.Stream; data: Eta) : BOOLEAN;
     (* writes the data structure for the public function eta onto a stream *)
     VAR
-      l, d : INTEGER;
+      l, d : Types.Int32;
   BEGIN
     l := 0;
     WHILE l < LastRounds DO
@@ -1642,7 +1643,7 @@ MODULE ulmTCrypt; (* Michael Szczuka *)
   PROCEDURE EtaRead (s: Streams.Stream; VAR data: Eta) : BOOLEAN;
     (* reads the data structure for the public function eta from a stream *)
     VAR
-      l, d : INTEGER;
+      l, d : Types.Int32;
   BEGIN
     NEW(data);
     l := 0;

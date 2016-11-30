@@ -64,17 +64,17 @@ MODULE ulmNetIO;
     ReadBooleanProc* =
       PROCEDURE (s: Streams.Stream; VAR boolean: BOOLEAN) : BOOLEAN;
     ReadShortIntProc* =
-      PROCEDURE (s: Streams.Stream; VAR shortint: SHORTINT) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; VAR shortint: Types.Int8) : BOOLEAN;
     ReadIntegerProc* =
-      PROCEDURE (s: Streams.Stream; VAR integer: INTEGER) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; VAR integer: Types.Int32) : BOOLEAN;
     ReadLongIntProc* =
-      PROCEDURE (s: Streams.Stream; VAR longint: LONGINT) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; VAR longint: Types.Int32) : BOOLEAN;
     ReadRealProc* =
-      PROCEDURE (s: Streams.Stream; VAR real: REAL) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; VAR real: Types.Real32) : BOOLEAN;
     ReadLongRealProc* =
-      PROCEDURE (s: Streams.Stream; VAR longreal: LONGREAL) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; VAR longreal: Types.Real64) : BOOLEAN;
     ReadSetProc* =
-      PROCEDURE (s: Streams.Stream; VAR set: SET) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; VAR set: Types.Set) : BOOLEAN;
     ReadStringProc* =
       PROCEDURE (s: Streams.Stream; VAR string: ARRAY OF CHAR) : BOOLEAN;
     ReadConstStringProc* =
@@ -88,17 +88,17 @@ MODULE ulmNetIO;
     WriteBooleanProc* =
       PROCEDURE (s: Streams.Stream; boolean: BOOLEAN) : BOOLEAN;
     WriteShortIntProc* =
-      PROCEDURE (s: Streams.Stream; shortint: SHORTINT) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; shortint: Types.Int8) : BOOLEAN;
     WriteIntegerProc* =
-      PROCEDURE (s: Streams.Stream; integer: INTEGER) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; integer: Types.Int32) : BOOLEAN;
     WriteLongIntProc* =
-      PROCEDURE (s: Streams.Stream; longint: LONGINT) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; longint: Types.Int32) : BOOLEAN;
     WriteRealProc* =
-      PROCEDURE (s: Streams.Stream; real: REAL) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; real: Types.Real32) : BOOLEAN;
     WriteLongRealProc* =
-      PROCEDURE (s: Streams.Stream; longreal: LONGREAL) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; longreal: Types.Real64) : BOOLEAN;
     WriteSetProc* =
-      PROCEDURE (s: Streams.Stream; set: SET) : BOOLEAN;
+      PROCEDURE (s: Streams.Stream; set: Types.Set) : BOOLEAN;
     WriteStringProc* =
       PROCEDURE (s: Streams.Stream; string: ARRAY OF CHAR) : BOOLEAN;
     WriteConstStringProc* =
@@ -154,7 +154,7 @@ MODULE ulmNetIO;
 
   PROCEDURE Swap (VAR a : ARRAY OF SYS.BYTE);
     VAR
-      i,j : LONGINT;
+      i,j : Types.Int32;
       tmp : SYS.BYTE;
   BEGIN
     i := 0; j := LEN (a) - 1;
@@ -166,8 +166,8 @@ MODULE ulmNetIO;
 
   PROCEDURE BitSwap (VAR a : ARRAY OF SYS.BYTE);
     VAR
-      i,old, bit : LONGINT;
-      new : LONGINT;
+      i,old, bit : Types.Int32;
+      new : Types.Int32;
 
   BEGIN
     i := 0;
@@ -266,7 +266,7 @@ MODULE ulmNetIO;
     END;
   END ReadBoolean;
 
-  PROCEDURE ReadShortInt*(s: Streams.Stream; VAR shortint: SHORTINT) : BOOLEAN;
+  PROCEDURE ReadShortInt*(s: Streams.Stream; VAR shortint: Types.Int8) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -277,7 +277,7 @@ MODULE ulmNetIO;
     END;
   END ReadShortInt;
 
-  PROCEDURE ReadInteger*(s: Streams.Stream; VAR integer: INTEGER) : BOOLEAN;
+  PROCEDURE ReadInteger*(s: Streams.Stream; VAR integer: Types.Int32) : BOOLEAN;
     VAR
       disc: Discipline;
       ret : BOOLEAN;
@@ -293,7 +293,7 @@ MODULE ulmNetIO;
     END;
   END ReadInteger;
 
-  PROCEDURE ReadLongInt*(s: Streams.Stream; VAR longint: LONGINT) : BOOLEAN;
+  PROCEDURE ReadLongInt*(s: Streams.Stream; VAR longint: Types.Int32) : BOOLEAN;
     VAR
       disc: Discipline;
       ret : BOOLEAN;
@@ -309,7 +309,7 @@ MODULE ulmNetIO;
     END;
   END ReadLongInt;
 
-  PROCEDURE ReadReal*(s: Streams.Stream; VAR real: REAL) : BOOLEAN;
+  PROCEDURE ReadReal*(s: Streams.Stream; VAR real: Types.Real32) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -320,7 +320,7 @@ MODULE ulmNetIO;
     END;
   END ReadReal;
 
-  PROCEDURE ReadLongReal*(s: Streams.Stream; VAR longreal: LONGREAL) : BOOLEAN;
+  PROCEDURE ReadLongReal*(s: Streams.Stream; VAR longreal: Types.Real64) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -331,7 +331,7 @@ MODULE ulmNetIO;
     END;
   END ReadLongReal;
 
-  PROCEDURE ReadSet*(s: Streams.Stream; VAR set: SET) : BOOLEAN;
+  PROCEDURE ReadSet*(s: Streams.Stream; VAR set: Types.Set) : BOOLEAN;
     VAR
       disc: Discipline;
       ret : BOOLEAN;
@@ -350,7 +350,7 @@ MODULE ulmNetIO;
   PROCEDURE ReadString*(s: Streams.Stream; VAR string: ARRAY OF CHAR) : BOOLEAN;
     VAR
       disc: Discipline;
-      ch: CHAR; index: LONGINT;
+      ch: CHAR; index: Types.Int32;
   BEGIN
     IF Seek(s, discID, disc) THEN
       RETURN disc.if.readString(s, string)
@@ -372,7 +372,7 @@ MODULE ulmNetIO;
     CONST
       bufsize = 512;
     VAR
-      length: LONGINT;
+      length: Types.Int32;
       buf: Streams.Stream;
       ch: CHAR;
       disc: Discipline;
@@ -442,7 +442,7 @@ MODULE ulmNetIO;
     END;
   END WriteBoolean;
 
-  PROCEDURE WriteShortInt*(s: Streams.Stream; shortint: SHORTINT) : BOOLEAN;
+  PROCEDURE WriteShortInt*(s: Streams.Stream; shortint: Types.Int8) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -453,7 +453,7 @@ MODULE ulmNetIO;
     END;
   END WriteShortInt;
 
-  PROCEDURE WriteInteger*(s: Streams.Stream; integer: INTEGER) : BOOLEAN;
+  PROCEDURE WriteInteger*(s: Streams.Stream; integer: Types.Int32) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -467,7 +467,7 @@ MODULE ulmNetIO;
     END;
   END WriteInteger;
 
-  PROCEDURE WriteLongInt*(s: Streams.Stream; longint: LONGINT) : BOOLEAN;
+  PROCEDURE WriteLongInt*(s: Streams.Stream; longint: Types.Int32) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -481,7 +481,7 @@ MODULE ulmNetIO;
     END;
   END WriteLongInt;
 
-  PROCEDURE WriteReal*(s: Streams.Stream; real: REAL) : BOOLEAN;
+  PROCEDURE WriteReal*(s: Streams.Stream; real: Types.Real32) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -492,7 +492,7 @@ MODULE ulmNetIO;
     END;
   END WriteReal;
 
-  PROCEDURE WriteLongReal*(s: Streams.Stream; longreal: LONGREAL) : BOOLEAN;
+  PROCEDURE WriteLongReal*(s: Streams.Stream; longreal: Types.Real64) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN
@@ -503,7 +503,7 @@ MODULE ulmNetIO;
     END;
   END WriteLongReal;
 
-  PROCEDURE WriteSet*(s: Streams.Stream; set: SET) : BOOLEAN;
+  PROCEDURE WriteSet*(s: Streams.Stream; set: Types.Set) : BOOLEAN;
     VAR
       disc: Discipline;
   BEGIN

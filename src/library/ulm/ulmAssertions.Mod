@@ -35,7 +35,7 @@ MODULE ulmAssertions;
 
    (* general error handling of library routines *)
 
-   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, IO := ulmIO, Priorities := ulmPriorities, RelatedEvents := ulmRelatedEvents, Services := ulmServices;
+   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, IO := ulmIO, Priorities := ulmPriorities, RelatedEvents := ulmRelatedEvents, Services := ulmServices, Types := ulmTypes;
 
    TYPE
       Object = Disciplines.Object;

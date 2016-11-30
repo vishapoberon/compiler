@@ -144,10 +144,10 @@ MODULE ulmStreams;
     Address* = Types.Address;
     Count* = Types.Count;
     Byte* = Types.Byte;
-    Whence* = SHORTINT; (* Whence = (fromStart, fromPos, fromEnd); *)
-    CapabilitySet* = SET; (* OF Capability; *)
-    BufMode* = SHORTINT;
-    ErrorCode* = SHORTINT;
+    Whence* = Types.Int8; (* Whence = (fromStart, fromPos, fromEnd); *)
+    CapabilitySet* = Types.Set; (* OF Capability; *)
+    BufMode* = Types.Int8;
+    ErrorCode* = Types.Int8;
     Stream* = POINTER TO StreamRec;
     Message* = RECORD (Objects.ObjectRec) END;
 
@@ -185,8 +185,8 @@ MODULE ulmStreams;
     BufferPool = POINTER TO BufferPoolRec;
     BufferPoolRec =
       RECORD
-        maxbuf: INTEGER; (* maximal number of buffers to be used *)
-        nbuf: INTEGER; (* number of buffers in use *)
+        maxbuf: Types.Int32; (* maximal number of buffers to be used *)
+        nbuf: Types.Int32; (* number of buffers in use *)
         bucket: BucketTable;
         (* list of all buffers sorted after the last access time;
           tail points to the buffer most recently accessed
@@ -230,7 +230,7 @@ MODULE ulmStreams;
         (Services.ObjectRec)
         (* following components are set after i/o-operations *)
         count*: Count; (* resulting count of last operation *)
-        errors*: INTEGER; (* incremented for each error; may be set to 0 *)
+        errors*: Types.Int32; (* incremented for each error; may be set to 0 *)
         error*: BOOLEAN; (* last operation successful? *)
         lasterror*: ErrorCode; (* error code of last error *)
         eof*: BOOLEAN; (* last read-operation with count=0 returned *)
@@ -367,7 +367,7 @@ MODULE ulmStreams;
 
   PROCEDURE InitBufPool(s: Stream);
     VAR
-      index: INTEGER;
+      index: Types.Int32;
   BEGIN
     s.bufpool.maxbuf := 16; (* default size *)
     s.bufpool.nbuf := 0; (* currently, no buffers are allocated *)
@@ -379,7 +379,7 @@ MODULE ulmStreams;
     END;
   END InitBufPool;
 
-  PROCEDURE HashValue(pos: Count) : INTEGER;
+  PROCEDURE HashValue(pos: Count) : Types.Int32;
     (* HashValue returns a hash value for pos *)
   BEGIN
     RETURN SHORT(pos DIV bufsize) MOD hashtabsize
@@ -387,7 +387,7 @@ MODULE ulmStreams;
 
   PROCEDURE FindBuffer(s: Stream; pos: Count; VAR buf: Buffer) : BOOLEAN;
     VAR
-      index: INTEGER;
+      index: Types.Int32;
       bp: Buffer;
   BEGIN
     index := HashValue(pos);
@@ -410,11 +410,11 @@ MODULE ulmStreams;
       buf: Buffer;
       pos: Count; (* buffer boundary for s.pos *)
       posindex: Count; (* buf[posindex] corresponds to s.pos *)
-      index: INTEGER; (* index into bucket table of the buffer pool *)
+      index: Types.Int32; (* index into bucket table of the buffer pool *)
 
     PROCEDURE InitBuf(buf: Buffer);
       VAR
-        index: INTEGER; (* of bucket table *)
+        index: Types.Int32; (* of bucket table *)
     BEGIN
       buf.ok := TRUE;
       buf.pos := pos;
@@ -612,7 +612,7 @@ MODULE ulmStreams;
     in.tiedStream := out;
   END Tie;
 
-  PROCEDURE SetBufferPoolSize*(s: Stream; nbuf: INTEGER);
+  PROCEDURE SetBufferPoolSize*(s: Stream; nbuf: Types.Int32);
   BEGIN
     s.error := FALSE;
     IF SYS.TAS(s.lock) THEN
@@ -624,7 +624,7 @@ MODULE ulmStreams;
     s.lock := FALSE;
   END SetBufferPoolSize;
 
-  PROCEDURE GetBufferPoolSize*(s: Stream; VAR nbuf: INTEGER);
+  PROCEDURE GetBufferPoolSize*(s: Stream; VAR nbuf: Types.Int32);
   BEGIN
     s.error := FALSE;
     CASE s.bufmode OF

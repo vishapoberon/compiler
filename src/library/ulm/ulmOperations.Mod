@@ -44,22 +44,22 @@ MODULE ulmOperations;
 
   (* generic support of arithmetic operations *)
 
-  IMPORT Events := ulmEvents, Objects := ulmObjects, PersistentDisciplines := ulmPersistentDisciplines, PersistentObjects := ulmPersistentObjects, Services := ulmServices;
+  IMPORT Events := ulmEvents, Objects := ulmObjects, PersistentDisciplines := ulmPersistentDisciplines, PersistentObjects := ulmPersistentObjects, Services := ulmServices, Types := ulmTypes;
 
   CONST
     add* = 0; sub* = 1; mul* = 2; div* = 3; cmp* = 4;
   TYPE
-    Operation* = SHORTINT; (* add..cmp *)
+    Operation* = Types.Int8; (* add..cmp *)
     Operand* = POINTER TO OperandRec;
 
   TYPE
-    CapabilitySet* = SET; (* SET OF [add..cmp] *)
+    CapabilitySet* = Types.Set; (* Types.Set OF [add..cmp] *)
     CreateProc* = PROCEDURE (VAR op: Operand);
       (* should call Operations.Init for op *)
     OperatorProc* = PROCEDURE (op: Operation; op1, op2: Operand;
                       VAR result: Operand);
     AssignProc* = PROCEDURE (VAR target: Operand; source: Operand);
-    CompareProc* = PROCEDURE (op1, op2: Operand) : INTEGER;
+    CompareProc* = PROCEDURE (op1, op2: Operand) : Types.Int32;
     Interface* = POINTER TO InterfaceRec;
     InterfaceRec* =
       RECORD
@@ -194,7 +194,7 @@ MODULE ulmOperations;
     Op(div, op1, op2, result);
   END Div3;
 
-  PROCEDURE Compare*(op1, op2: Operand) : INTEGER;
+  PROCEDURE Compare*(op1, op2: Operand) : Types.Int32;
   BEGIN
     ASSERT(op1.if = op2.if);
     ASSERT(cmp IN op1.caps);

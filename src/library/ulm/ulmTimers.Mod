@@ -38,7 +38,7 @@
 MODULE ulmTimers;
 
   IMPORT Clocks := ulmClocks, Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Op := ulmOperations, Priorities := ulmPriorities,
-    SYS := ulmSYSTEM, RelatedEvents := ulmRelatedEvents, Scales := ulmScales, Times := ulmTimes;
+    SYS := ulmSYSTEM, RelatedEvents := ulmRelatedEvents, Scales := ulmScales, Times := ulmTimes, Types := ulmTypes;
 
   TYPE
     Queue = POINTER TO QueueRec;
@@ -88,7 +88,7 @@ MODULE ulmTimers;
     ErrorEventRec* =
       RECORD
         (Events.EventRec)
-        errorcode*: SHORTINT;
+        errorcode*: Types.Int8;
       END;
   VAR
     errormsg*: ARRAY errorcodes OF Events.Message;
@@ -102,7 +102,7 @@ MODULE ulmTimers;
     Events.Define(error); Events.SetPriority(error, Priorities.liberrors);
   END InitErrorHandling;
 
-  PROCEDURE Error(errors: RelatedEvents.Object; code: SHORTINT);
+  PROCEDURE Error(errors: RelatedEvents.Object; code: Types.Int8);
     VAR
       event: ErrorEvent;
   BEGIN

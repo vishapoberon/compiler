@@ -30,13 +30,13 @@ MODULE ulmAsymmetricCiphers; (* Michael Szczuka *)
 
    (* abstraction for the use of public key ciphers *)
 
-   IMPORT BlockCiphers := ulmBlockCiphers, Ciphers := ulmCiphers, NetIO := ulmNetIO, PersistentObjects := ulmPersistentObjects, Services := ulmServices, Streams := ulmStreams;
+   IMPORT BlockCiphers := ulmBlockCiphers, Ciphers := ulmCiphers, NetIO := ulmNetIO, PersistentObjects := ulmPersistentObjects, Services := ulmServices, Streams := ulmStreams, Types := ulmTypes;
 
    CONST
       composed* = 0; isPrivateKey* = 1;
 
    TYPE 
-      CapabilitySet* = SET;
+      CapabilitySet* = Types.Set;
 
    TYPE
       Cipher* = POINTER TO CipherRec;
@@ -66,13 +66,13 @@ MODULE ulmAsymmetricCiphers; (* Michael Szczuka *)
    (* need to have this in case anyone wants to decrypt something with
       a public cipher ... *)
    PROCEDURE Identity(in: Streams.Stream; key: Ciphers.Cipher;
-		      length: INTEGER; out: Streams.Stream) : BOOLEAN;
+		      length: Types.Int32; out: Streams.Stream) : BOOLEAN;
    BEGIN
       RETURN Streams.Copy(in, out, length);
    END Identity;
 
    PROCEDURE Init* (key: Cipher; if: Interface; 
-		   cap: CapabilitySet; inLength, outLength: INTEGER);
+		   cap: CapabilitySet; inLength, outLength: Types.Int32);
    BEGIN
       IF if.decrypt = NIL THEN
 	 (* decrypt is not defined, so we have only the public part of a cipher;
@@ -122,7 +122,7 @@ MODULE ulmAsymmetricCiphers; (* Michael Szczuka *)
    END ComposedEncrypt;
 
    PROCEDURE ComposedEncryptPart* (in: Streams.Stream; key: Cipher; 
-				  length: INTEGER;
+				  length: Types.Int32;
 				  out: Streams.Stream) : BOOLEAN;
    BEGIN
       RETURN key.asymIf.compencrypt(in, key, length, out);
@@ -131,7 +131,7 @@ MODULE ulmAsymmetricCiphers; (* Michael Szczuka *)
    PROCEDURE ComposedEncryptBlock* (in: Streams.Stream; key: Cipher; 
 				   out: Streams.Stream) : BOOLEAN;
    VAR
-      length : INTEGER;
+      length : Types.Int32;
    BEGIN
       length := BlockCiphers.GetInLength(key);
       RETURN key.asymIf.compencrypt(in, key, length, out);

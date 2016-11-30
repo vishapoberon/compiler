@@ -36,7 +36,7 @@
 
 MODULE ulmProcess;
 
-   IMPORT Events := ulmEvents, Priorities := ulmPriorities;
+   IMPORT Events := ulmEvents, Priorities := ulmPriorities, Types := ulmTypes;
 
    (* user readable name of our process *)
    TYPE
@@ -48,7 +48,7 @@ MODULE ulmProcess;
 
    (* exit codes *)
    TYPE
-      ExitCode* = INTEGER;
+      ExitCode* = Types.Int32;
    VAR
       indicateSuccess*: ExitCode;
       indicateFailure*: ExitCode;
@@ -83,7 +83,7 @@ MODULE ulmProcess;
    (* private declarations *)
    VAR
       handlers: Interface;
-      nestlevel: INTEGER;
+      nestlevel: Types.Int32;
 
    PROCEDURE SetHandlers*(if: Interface);
    BEGIN

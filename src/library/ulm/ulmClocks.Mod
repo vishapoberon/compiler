@@ -37,7 +37,7 @@
 MODULE ulmClocks;
 
    IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Op := ulmOperations, Priorities := ulmPriorities,
-      RelatedEvents := ulmRelatedEvents, Services := ulmServices, Times := ulmTimes;
+      RelatedEvents := ulmRelatedEvents, Services := ulmServices, Times := ulmTimes, Types := ulmTypes;
 
    TYPE
       Clock* = POINTER TO ClockRec;
@@ -45,7 +45,7 @@ MODULE ulmClocks;
    CONST
       settime* = 0; timer* = 1; passed* = 2;
    TYPE
-      CapabilitySet* = SET; (* OF [settime..passed] *)
+      CapabilitySet* = Types.Set; (* OF [settime..passed] *)
    TYPE
       GetTimeProc* = PROCEDURE (clock: Clock; VAR time: Times.Time);
       SetTimeProc* = PROCEDURE (clock: Clock; time: Times.Time);
@@ -102,13 +102,13 @@ MODULE ulmClocks;
       ErrorEventRec* =
 	 RECORD
 	    (Events.EventRec)
-	    errorcode*: SHORTINT;
+	    errorcode*: Types.Int8;
 	 END;
    VAR
       errormsg*: ARRAY errorcodes OF Events.Message;
       error*: Events.EventType;
 
-   PROCEDURE Error(clock: Clock; code: SHORTINT);
+   PROCEDURE Error(clock: Clock; code: Types.Int8);
       VAR
 	 event: ErrorEvent;
    BEGIN

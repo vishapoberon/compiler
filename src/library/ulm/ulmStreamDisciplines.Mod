@@ -35,7 +35,7 @@ MODULE ulmStreamDisciplines;
 
   (* definition of general-purpose disciplines for streams *)
 
-  IMPORT ASCII := ulmASCII, Disciplines := ulmIndirectDisciplines, Events := ulmEvents, Sets := ulmSets, Streams := ulmStreams, SYSTEM;
+  IMPORT ASCII := ulmASCII, Disciplines := ulmIndirectDisciplines, Events := ulmEvents, Sets := ulmSets, Streams := ulmStreams, SYSTEM, Types := ulmTypes;
 
   TYPE
     LineTerminator* = ARRAY 4 OF CHAR;
@@ -51,7 +51,7 @@ MODULE ulmStreamDisciplines;
         fieldseps: Sets.CharSet;
         fieldsep: CHAR; (* one of them *)
         whitespace: Sets.CharSet;
-        indentwidth: INTEGER;
+        indentwidth: Types.Int32;
       END;
 
   VAR
@@ -61,7 +61,7 @@ MODULE ulmStreamDisciplines;
     defaultFieldSep: CHAR;
     defaultLineTerm: LineTerminator;
     defaultWhiteSpace: Sets.CharSet;
-    defaultIndentWidth: INTEGER;
+    defaultIndentWidth: Types.Int32;
 
   PROCEDURE InitDiscipline(VAR disc: Disciplines.Discipline);
     VAR
@@ -194,7 +194,7 @@ MODULE ulmStreamDisciplines;
     Disciplines.Add(s, disc);
   END SetWhiteSpace;
 
-  PROCEDURE SetIndentationWidth*(s: Streams.Stream; indentwidth: INTEGER);
+  PROCEDURE SetIndentationWidth*(s: Streams.Stream; indentwidth: Types.Int32);
     VAR
       disc: Disciplines.Discipline;
   BEGIN
@@ -207,7 +207,7 @@ MODULE ulmStreamDisciplines;
     END;
   END SetIndentationWidth;
 
-  PROCEDURE GetIndentationWidth*(s: Streams.Stream; VAR indentwidth: INTEGER);
+  PROCEDURE GetIndentationWidth*(s: Streams.Stream; VAR indentwidth: Types.Int32);
     VAR
       disc: Disciplines.Discipline;
   BEGIN
@@ -218,7 +218,7 @@ MODULE ulmStreamDisciplines;
     END;
   END GetIndentationWidth;
 
-  PROCEDURE IncrIndentationWidth*(s: Streams.Stream; incr: INTEGER);
+  PROCEDURE IncrIndentationWidth*(s: Streams.Stream; incr: Types.Int32);
     VAR
       disc: Disciplines.Discipline;
   BEGIN

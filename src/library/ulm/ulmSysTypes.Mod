@@ -40,12 +40,12 @@ MODULE ulmSysTypes;
       Byte* = Types.Byte;
 
       File*   = Platform.FileHandle;
-      Offset* = LONGINT;
-      Device* = LONGINT;
-      Inode*  = LONGINT;
-      Time*   = LONGINT;
+      Offset* = Types.Int32;
+      Device* = Types.Int32;
+      Inode*  = Types.Int32;
+      Time*   = Types.Int32;
 
-      Word*   = INTEGER; (* must have the size of C's int-type *)
+      Word*   = Types.Int32; (* must have the size of C's int-type *)
 
    (* Note: linux supports wait4 but not waitid, i.e. these
     * constants aren't needed. *)
@@ -64,7 +64,7 @@ MODULE ulmSysTypes;
       idAll = 7; (* all processes *)
       idLwpid = 8; (* an LWP identifier *)
    TYPE
-      IdType = INTEGER; (* idPid .. idLwpid *)
+      IdType = Types.Int32; (* idPid .. idLwpid *)
    *)
 
 END ulmSysTypes.

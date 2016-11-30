@@ -33,14 +33,14 @@
 
 MODULE ulmReals;
 
-   IMPORT IEEE := ulmIEEE, MC68881 := ulmMC68881;
+   IMPORT IEEE := ulmIEEE, MC68881 := ulmMC68881, Types := ulmTypes;
 
    CONST
-      (* for REAL *)
+      (* for Types.Real32 *)
       maxexp* = 309;
       minexp* = -323;
       maxdignum* = 16;
-      (* for LONGREAL *)
+      (* for Types.Real64 *)
       (*
       maxlongexp = 4932;
       minlongexp = -4951;
@@ -55,30 +55,30 @@ MODULE ulmReals;
    TYPE
       PowerRec =
 	 RECORD
-	    p10: LONGREAL;
-	    n: INTEGER;
+	    p10: Types.Real64;
+	    n: Types.Int32;
 	 END;
    VAR
       powtab: ARRAY powers OF PowerRec;
-      sigdigits: ARRAY maxbase+1 OF INTEGER; (* valid range: [2..maxbase] *)
+      sigdigits: ARRAY maxbase+1 OF Types.Int32; (* valid range: [2..maxbase] *)
 
-   PROCEDURE ExpAndMan*(r: LONGREAL; long: BOOLEAN; base: INTEGER;
-		       VAR exponent: INTEGER; VAR mantissa: LONGREAL);
+   PROCEDURE ExpAndMan*(r: Types.Real64; long: BOOLEAN; base: Types.Int32;
+		       VAR exponent: Types.Int32; VAR mantissa: Types.Real64);
       (* get exponent and mantissa from `r':
 
 	 (1.0 >= ABS(mantissa)) & (ABS(mantissa) < base)
 
 	 r = mantissa * base^exponent
 
-	 long should be false if a REAL-value is passed to `r'
+	 long should be false if a Types.Real32-value is passed to `r'
 	 valid values of base: 2, 8, 10, and 16
       *)
       VAR
 	 neg: BOOLEAN;
-	 index: INTEGER;
-	 roundoff: LONGREAL;
-	 i: INTEGER;
-	 ndigits: INTEGER;
+	 index: Types.Int32;
+	 roundoff: Types.Real64;
+	 i: Types.Int32;
+	 ndigits: Types.Int32;
    BEGIN
       IF r = 0.0 THEN
 	 exponent := 0; mantissa := 0; RETURN
@@ -164,10 +164,10 @@ MODULE ulmReals;
       END;
    END ExpAndMan;
 
-   PROCEDURE Power*(base: LONGREAL; exp: INTEGER) : LONGREAL;
+   PROCEDURE Power*(base: Types.Real64; exp: Types.Int32) : Types.Real64;
       (* efficient calculation of base^exp *)
       VAR
-	 r, res: LONGREAL;
+	 r, res: Types.Real64;
 	 neg: BOOLEAN; (* negative exponent? *)
    BEGIN 
       IF MC68881.available & (base = 10) THEN
@@ -197,10 +197,10 @@ MODULE ulmReals;
       END;
    END Power;
 
-   PROCEDURE Digits*(mantissa: LONGREAL; base: INTEGER;
+   PROCEDURE Digits*(mantissa: Types.Real64; base: Types.Int32;
 		    VAR buf: ARRAY OF CHAR;
 		    VAR neg: BOOLEAN;
-		    force: BOOLEAN; VAR ndigits: INTEGER);
+		    force: BOOLEAN; VAR ndigits: Types.Int32);
       (* PRE:
 	    mantissa holds the post-condition of ExpAndMan;
 	    valid values for base are 2, 8, 10, and 16
@@ -216,11 +216,11 @@ MODULE ulmReals;
 	       ndigits is unchanged
       *)
       VAR
-	 index: INTEGER; (* of buf *)
-	 i: INTEGER; roundoff: LONGREAL;
-	 lastnz: INTEGER; (* last index with buf[index] # "0" *)
+	 index: Types.Int32; (* of buf *)
+	 i: Types.Int32; roundoff: Types.Real64;
+	 lastnz: Types.Int32; (* last index with buf[index] # "0" *)
 	 ch: CHAR;
-	 digit: LONGINT;
+	 digit: Types.Int32;
 	 maxdig: CHAR; (* base-1 converted *)
 
    BEGIN
@@ -269,14 +269,14 @@ MODULE ulmReals;
       buf[index] := 0X; ndigits := index;
    END Digits;
 
-   PROCEDURE Convert*(digits: ARRAY OF CHAR; base: INTEGER; neg: BOOLEAN;
-		     VAR mantissa: LONGREAL);
+   PROCEDURE Convert*(digits: ARRAY OF CHAR; base: Types.Int32; neg: BOOLEAN;
+		     VAR mantissa: Types.Real64);
       (* convert normalized `digits' (decimal point after 1st digit)
 	 into `mantissa'
       *)
       VAR
-	 index: INTEGER;
-	 factor: LONGREAL;
+	 index: Types.Int32;
+	 factor: Types.Real64;
    BEGIN
       IF digits = "0" THEN
 	 mantissa := 0;
@@ -304,7 +304,7 @@ BEGIN
    powtab[4].p10 :=  1.0D2; powtab[4].n :=  2;
    powtab[5].p10 :=  1.0D1; powtab[5].n :=  1;
 
-   (* for LONGREAL *)
+   (* for Types.Real64 *)
    sigdigits[2] := 64;  sigdigits[3] := 40;  sigdigits[4] := 32;
    sigdigits[5] := 27;  sigdigits[6] := 24;  sigdigits[7] := 22;
    sigdigits[8] := 21;  sigdigits[9] := 20;  sigdigits[10] := 19;
