@@ -122,16 +122,51 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     name[i] := 0X
   END GetTempName;
 
+  (* When registering a file, it may turn out that the name we want to use
+     is aready in use by another File. E.g. the compiler opens and reads
+     an existing symbol file if present before creating an updated one.
+     When this happens on Windows, creation of the new file will be blocked
+     by the presence of the old one because it is in a open state. Further,
+     on both Unix and Windows systems we want behaviour to match that of
+     a real Oberon system, where registering the new file has the effect of
+     unregistering the old file. To simulate this we need to change the old
+     Files.File back to a temp file. *)
+  PROCEDURE Deregister(name: ARRAY OF CHAR);
+  VAR
+    identity: Platform.FileIdentity;
+    osfile:   File;
+    error:    Platform.ErrorCode;
+  BEGIN
+    IF Platform.IdentifyByName(name, identity) = 0 THEN
+      (* The name we are registering is an already existing file. *)
+      osfile := files;
+      WHILE (osfile # NIL) & ~Platform.SameFile(osfile.identity, identity) DO osfile := osfile.next END;
+      IF osfile # NIL THEN
+        (* osfile is the FileDesc corresponding to the file name we are hoping
+           to register. Turn it into a temporary file. *)
+        ASSERT(~osfile.tempFile); ASSERT(osfile.fd >= 0);
+        osfile.registerName := osfile.workName;
+        GetTempName(osfile.registerName, osfile.workName);
+        osfile.tempFile := TRUE;
+        osfile.state := open;
+        error := Platform.Rename(osfile.registerName, osfile.workName);
+        IF error # 0 THEN
+          Err("Couldn't rename previous version of file being registered", osfile, error)
+        END
+      END
+    END
+  END Deregister;
+
+
   PROCEDURE Create(f: File);
   (* Makes sure there is an OS file backing this Oberon file.
      Used when more data has been written to an unregistered new file than
      buffers can hold, or when registering a new file whose data is all in
      buffers. *)
     VAR
-      identity:  Platform.FileIdentity;
-      done:  BOOLEAN;
-      error: Platform.ErrorCode;
-      err:   ARRAY 32 OF CHAR;
+      done:     BOOLEAN;
+      error:    Platform.ErrorCode;
+      err:      ARRAY 32 OF CHAR;
   BEGIN
     (*
     Out.String("Files.Create fd = "); Out.Int(f.fd,1);
@@ -149,6 +184,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
         ASSERT(f.state = close);
         (* New file with all data in buffers being registered. No need for a
            temp file, will just write the buffers to the registerName. *)
+        Deregister(f.registerName);
         f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
       END;
       error := Platform.Unlink(f.workName);  (*unlink first to avoid stale NFS handles and to avoid reuse of inodes*)
@@ -509,7 +545,10 @@ Especially Length would become fairly complex.
 *)
 
   PROCEDURE Delete*(name: ARRAY OF CHAR; VAR res: INTEGER);
-  BEGIN res := Platform.Unlink(name) END Delete;
+  BEGIN
+    Deregister(name);
+    res := Platform.Unlink(name)
+  END Delete;
 
   PROCEDURE Rename* (old, new: ARRAY OF CHAR; VAR res: INTEGER);
     VAR
@@ -531,6 +570,8 @@ Especially Length would become fairly complex.
       END;
       error := Platform.Rename(old, new);
       (* Out.String("Platform.Rename error code "); Out.Int(error,1); Out.Ln; *)
+      (* TODO, if we already have a FileDesc for old, it ought to be updated
+         with the new workname. *)
       IF ~Platform.DifferentFilesystems(error) THEN
         res := error; RETURN
       ELSE
@@ -572,6 +613,7 @@ Especially Length would become fairly complex.
     IF (f.state = create) & (f.registerName # "") THEN f.state := close (* shortcut renaming *) END;
     Close(f);
     IF f.registerName # "" THEN
+      Deregister(f.registerName);
       Rename(f.workName, f.registerName, errcode);
       (*
       Out.String("Renamed (for register) f.fd = "); Out.Int(f.fd,1);

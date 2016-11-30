@@ -69,6 +69,7 @@ export void Files_Close (Files_File f);
 static void Files_CloseOSFile (Files_File f);
 static void Files_Create (Files_File f);
 export void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
+static void Files_Deregister (CHAR *name, ADDRESS name__len);
 static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode);
 static void Files_Finalize (SYSTEM_PTR o);
 static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *dest, ADDRESS dest__len);
@@ -223,9 +224,35 @@ static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *na
 	__DEL(finalName);
 }
 
-static void Files_Create (Files_File f)
+static void Files_Deregister (CHAR *name, ADDRESS name__len)
 {
 	Platform_FileIdentity identity;
+	Files_File osfile = NIL;
+	INT16 error;
+	__DUP(name, name__len, CHAR);
+	if (Platform_IdentifyByName(name, name__len, &identity, Platform_FileIdentity__typ) == 0) {
+		osfile = (Files_File)Files_files;
+		while ((osfile != NIL && !Platform_SameFile(osfile->identity, identity))) {
+			osfile = (Files_File)osfile->next;
+		}
+		if (osfile != NIL) {
+			__ASSERT(!osfile->tempFile, 0);
+			__ASSERT(osfile->fd >= 0, 0);
+			__COPY(osfile->workName, osfile->registerName, 101);
+			Files_GetTempName(osfile->registerName, 101, (void*)osfile->workName, 101);
+			osfile->tempFile = 1;
+			osfile->state = 0;
+			error = Platform_Rename((void*)osfile->registerName, 101, (void*)osfile->workName, 101);
+			if (error != 0) {
+				Files_Err((CHAR*)"Couldn't rename previous version of file being registered", 58, osfile, error);
+			}
+		}
+	}
+	__DEL(name);
+}
+
+static void Files_Create (Files_File f)
+{
 	BOOLEAN done;
 	INT16 error;
 	CHAR err[32];
@@ -235,6 +262,7 @@ static void Files_Create (Files_File f)
 			f->tempFile = 1;
 		} else {
 			__ASSERT(f->state == 2, 0);
+			Files_Deregister(f->registerName, 101);
 			__COPY(f->registerName, f->workName, 101);
 			f->registerName[0] = 0x00;
 			f->tempFile = 0;
@@ -715,6 +743,7 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res)
 {
 	__DUP(name, name__len, CHAR);
+	Files_Deregister(name, name__len);
 	*res = Platform_Unlink((void*)name, name__len);
 	__DEL(name);
 }
@@ -791,6 +820,7 @@ void Files_Register (Files_File f)
 	}
 	Files_Close(f);
 	if (f->registerName[0] != 0x00) {
+		Files_Deregister(f->registerName, 101);
 		Files_Rename(f->workName, 101, f->registerName, 101, &errcode);
 		if (errcode != 0) {
 			Files_Err((CHAR*)"Couldn't rename temp name as register name", 43, f, errcode);
