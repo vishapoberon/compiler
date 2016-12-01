@@ -495,8 +495,8 @@ MODULE Heap;
     END
   END FINALL;
 
-  PROCEDURE -ExternMainStackFrame                "extern ADDRESS Platform_MainStackFrame;";
-  PROCEDURE -PlatformMainStackFrame(): S.ADDRESS "Platform_MainStackFrame";
+  PROCEDURE -ExternMainStackFrame               "extern ADDRESS Modules_MainStackFrame;";
+  PROCEDURE -ModulesMainStackFrame(): S.ADDRESS "Modules_MainStackFrame";
 
   PROCEDURE MarkStack(n: S.ADDRESS; VAR cand: ARRAY OF S.ADDRESS);
     VAR
@@ -510,7 +510,7 @@ MODULE Heap;
     END ;
     IF n = 0 THEN
       nofcand := 0; sp := S.ADR(frame);
-      stack0 := PlatformMainStackFrame();
+      stack0 := ModulesMainStackFrame();
       (* check for minimum alignment of pointers *)
       inc := S.ADR(align.p) - S.ADR(align);
       IF sp > stack0 THEN inc := -inc END ;
@@ -572,8 +572,8 @@ MODULE Heap;
   END RegisterFinalizer;
 
 
-PROCEDURE -ExternHeapInit "extern void *Heap__init();";
-PROCEDURE -HeapModuleInit 'Heap__init()';
+  PROCEDURE -ExternHeapInit "extern void *Heap__init();";
+  PROCEDURE -HeapModuleInit 'Heap__init()';
 
   PROCEDURE InitHeap*;
   (* InitHeap is called by Platform.init before any module bodies have been
@@ -596,7 +596,7 @@ PROCEDURE -HeapModuleInit 'Heap__init()';
 
     FileCount   := 0;
     modules     := NIL;
-     bigBlocks   := 0;
+    bigBlocks   := 0;
     fin         := NIL;
     interrupted := FALSE;
 

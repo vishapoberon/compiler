@@ -3,7 +3,7 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
  IMPORT
     OPM, OPS, OPT, OPV,
     Texts, Strings, Files, Out,
-    Oberon, Platform, SYSTEM, Configuration;
+    Oberon, Modules, SYSTEM, Configuration;
 
   CONST
     OptionChar = "-";
@@ -265,13 +265,13 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
   PROCEDURE ShowDef*;
     VAR S, vname, name: OPS.Name;
   BEGIN
-    option := 0X; Platform.GetArg(1, S);
-    IF Platform.ArgCount > 2 THEN
-      IF S[0] = OptionChar THEN option := S[1]; Platform.GetArg(2, S)
-      ELSE Platform.GetArg(2, vname); option := vname[1]
+    option := 0X; Modules.GetArg(1, S);
+    IF Modules.ArgCount > 2 THEN
+      IF S[0] = OptionChar THEN option := S[1]; Modules.GetArg(2, S)
+      ELSE Modules.GetArg(2, vname); option := vname[1]
       END
     END;
-    IF Platform.ArgCount >= 2 THEN
+    IF Modules.ArgCount >= 2 THEN
       Ident(S, name);
       OPT.Init(name, {}); OPT.SelfName := "AvoidErr154";
       WModule(name, Oberon.Log);

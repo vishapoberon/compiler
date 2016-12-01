@@ -2,7 +2,7 @@ MODULE Oberon;
 
 (* this version should not have dependency on graphics -- noch *)
 
-  IMPORT Platform, Texts, Out;
+  IMPORT Platform, Modules, Texts, Out;
 
   TYPE
     ParList* = POINTER TO ParRec;
@@ -38,11 +38,11 @@ PROCEDURE PopulateParams;
 BEGIN
   Texts.OpenWriter(W);
   i := 1; (* skip program name *)
-  WHILE i < Platform.ArgCount DO
-    Platform.GetArg(i, str); Texts.WriteString(W, str); Texts.Write(W, " ");
+  WHILE i < Modules.ArgCount DO
+    Modules.GetArg(i, str); Texts.WriteString(W, str); Texts.Write(W, " ");
     INC(i)
   END;
-  Texts.Append (Par^.text, W.buf);
+  Texts.Append(Par^.text, W.buf);
 END PopulateParams;
 
 PROCEDURE GetSelection*(VAR text: Texts.Text; VAR beg, end, time: LONGINT);

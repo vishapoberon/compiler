@@ -7,7 +7,6 @@ CONST
   StdErr- = 2;
 
 TYPE
-  HaltProcedure = PROCEDURE(n: SYSTEM.INT32);
   SignalHandler = PROCEDURE(signal: SYSTEM.INT32);
 
   ErrorCode*  = INTEGER;
@@ -19,21 +18,13 @@ TYPE
     mtime:  LONGINT;  (* File modification time, value is system dependent *)
   END;
 
-  EnvPtr    = POINTER TO ARRAY 1024 OF CHAR;
-  ArgPtr    = POINTER TO ARRAY 1024 OF CHAR;
-  ArgVec    = POINTER TO ARRAY 1024 OF ArgPtr;
-  ArgVecPtr = POINTER TO ARRAY 1 OF SYSTEM.ADDRESS;
-
-
 VAR
   LittleEndian-:   BOOLEAN;
-  MainStackFrame-: SYSTEM.ADDRESS;
   PID-:            INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:            ARRAY 256 OF CHAR;
   ArgCount-:       INTEGER;
 
   ArgVector-:      SYSTEM.ADDRESS;
-  HaltHandler:     HaltProcedure;
   TimeStart:       LONGINT;
 
   SeekSet-:        INTEGER;
@@ -118,72 +109,24 @@ PROCEDURE OSFree*(address: SYSTEM.ADDRESS); BEGIN free(address) END OSFree;
 
 
 
-(* Program startup *)
-
-PROCEDURE -ExternInitHeap  "extern void Heap_InitHeap();";
-PROCEDURE -HeapInitHeap()  "Heap_InitHeap()";
-
-PROCEDURE Init*(argc: SYSTEM.INT32; argvadr: SYSTEM.ADDRESS);
-VAR av: ArgVecPtr;
-BEGIN
-  MainStackFrame := argvadr;
-  ArgCount       := SYSTEM.VAL(INTEGER, argc);
-  av             := SYSTEM.VAL(ArgVecPtr, argvadr);
-  ArgVector      := av[0];
-
-  (* This function (Platform.Init) is called at program startup BEFORE any
-     modules have been initalised. In turn we must initialise the heap
-     before module startup (xxx__init) code is run. *)
-  HeapInitHeap();
-END Init;
-
-
-
-
 (* Program arguments and environment access *)
 
-PROCEDURE -getenv(var: ARRAY OF CHAR): EnvPtr "(Platform_EnvPtr)getenv((char*)var)";
+PROCEDURE -getenv(var: ARRAY OF CHAR): SYSTEM.ADDRESS "getenv((char*)var)";
 
 PROCEDURE getEnv*(var: ARRAY OF CHAR; VAR val: ARRAY OF CHAR): BOOLEAN;
-  VAR p: EnvPtr;
+TYPE EnvPtr = POINTER TO ARRAY 1024 OF CHAR;
+VAR  p: EnvPtr;
 BEGIN
-  p := getenv(var);
+  p := SYSTEM.VAL(EnvPtr, getenv(var));
   IF p # NIL THEN COPY(p^, val) END;
   RETURN p # NIL;
 END getEnv;
 
 PROCEDURE GetEnv*(var: ARRAY OF CHAR; VAR val: ARRAY OF CHAR);
 BEGIN
-  IF ~ getEnv(var, val) THEN val[0] := 0X END;
+  IF ~getEnv(var, val) THEN val[0] := 0X END;
 END GetEnv;
 
-PROCEDURE GetArg*(n: INTEGER; VAR val: ARRAY OF CHAR);
-  VAR av: ArgVec;
-BEGIN
-  IF n < ArgCount THEN
-    av := SYSTEM.VAL(ArgVec,ArgVector);
-    COPY(av[n]^, val)
-  END
-END GetArg;
-
-PROCEDURE GetIntArg*(n: INTEGER; VAR val: LONGINT);
-  VAR s: ARRAY 64 OF CHAR; k, d, i: LONGINT;
-BEGIN
-  s := ""; GetArg(n, s); i := 0;
-  IF s[0] = "-" THEN i := 1 END ;
-  k := 0; d := ORD(s[i]) - ORD("0");
-  WHILE (d >= 0 ) & (d <= 9) DO k := k*10 + d; INC(i); d := ORD(s[i]) - ORD("0") END ;
-  IF s[0] = "-" THEN k := -k; DEC(i) END ;
-  IF i > 0 THEN val := k END
-END GetIntArg;
-
-PROCEDURE ArgPos*(s: ARRAY OF CHAR): INTEGER;
-  VAR i: INTEGER; arg: ARRAY 256 OF CHAR;
-BEGIN
-  i := 0; GetArg(i, arg);
-  WHILE (i < ArgCount) & (s # arg) DO INC(i); GetArg(i, arg) END ;
-  RETURN i
-END ArgPos;
 
 
 

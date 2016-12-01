@@ -4,7 +4,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   31.1.2007 jt synchronized with BlackBox version, in particular PromoteIntConstToLInt added
 *)
 
-  IMPORT SYSTEM, Texts, Files, Platform, Out, Configuration, VT100, Strings;
+  IMPORT SYSTEM, Texts, Files, Platform, Modules, Out, Configuration, VT100, Strings;
 
   CONST
     OptionChar* = "-";
@@ -233,7 +233,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE OpenPar*(): BOOLEAN;  (* prepare for a sequence of translations *)
     VAR s: ARRAY 256 OF CHAR;
   BEGIN
-    IF Platform.ArgCount = 1 THEN
+    IF Modules.ArgCount = 1 THEN
       LogWLn;
       LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
       LogWStr("Based on Ofront by J. Templ and Software Templ OEG.");                                              LogWLn;
@@ -290,10 +290,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Options := {inxchk, typchk, ptrinit, assert};  (* Default options *)
 
       (* Pick up global option changes from start of command line *)
-      S:=1; s:=""; Platform.GetArg(S, s);
+      S:=1; s:=""; Modules.GetArg(S, s);
       WHILE s[0] = OptionChar DO
         ScanOptions(s);
-        INC(S); s:=""; Platform.GetArg(S, s)
+        INC(S); s:=""; Modules.GetArg(S, s)
       END;
 
       (* Record global option settings for this command line *)
@@ -328,10 +328,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     Options := GlobalOptions; Model:=GlobalModel; Alignment := GlobalAlignment; AddressSize := GlobalAddressSize;
 
-    s:=""; Platform.GetArg(S, s);
+    s:=""; Modules.GetArg(S, s);
     WHILE s[0] = OptionChar DO
       ScanOptions(s);
-      INC(S); s:=""; Platform.GetArg(S, s)
+      INC(S); s:=""; Modules.GetArg(S, s)
     END;
 
     IF mainlinkstat IN Options THEN INCL(Options, mainprog) END;
@@ -369,9 +369,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     done := FALSE;
     curpos := 0;
-    IF S >= Platform.ArgCount THEN RETURN END ;
+    IF S >= Modules.ArgCount THEN RETURN END ;
 
-    s:=""; Platform.GetArg(S, s);
+    s:=""; Modules.GetArg(S, s);
 
     NEW(T); Texts.Open(T, s);
     LogWStr(s); LogWStr("  ");
