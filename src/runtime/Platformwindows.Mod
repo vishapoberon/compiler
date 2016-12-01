@@ -35,8 +35,6 @@ VAR
   StdOut-:          FileHandle;
   StdErr-:          FileHandle;
 
-  InterruptHandler: SignalHandler;
-
   NL-:              ARRAY 3 OF CHAR;  (* Platform specific newline representation *)
 
 

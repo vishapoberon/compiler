@@ -1,6 +1,6 @@
 (* Test that interrupt and quit are handled correctly. *)
 MODULE SignalTest;
-IMPORT Console, Platform, Files, SYSTEM;
+IMPORT Console, Platform, Modules, Files, SYSTEM;
 
 VAR result: Files.File; rider: Files.Rider;
 
@@ -42,7 +42,7 @@ END Take5;
 BEGIN
   result := Files.New("result");
   Files.Set(rider, result, 0);
-  IF Platform.ArgCount > 1 THEN
+  IF Modules.ArgCount > 1 THEN
     Platform.SetInterruptHandler(handle);
     Platform.SetQuitHandler(handle)
   END;

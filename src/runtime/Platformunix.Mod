@@ -22,9 +22,6 @@ VAR
   LittleEndian-:   BOOLEAN;
   PID-:            INTEGER;    (* Note: Must be updated by Fork implementation *)
   CWD-:            ARRAY 256 OF CHAR;
-  ArgCount-:       INTEGER;
-
-  ArgVector-:      SYSTEM.ADDRESS;
   TimeStart:       LONGINT;
 
   SeekSet-:        INTEGER;
@@ -426,7 +423,6 @@ PROCEDURE -getpid(): INTEGER   "(INTEGER)getpid()";
 BEGIN
   TestLittleEndian;
 
-  HaltHandler := NIL;
   TimeStart   := 0;   TimeStart := Time();
   PID         := getpid();
   IF getcwd(CWD) = NIL THEN CWD := "" END;
