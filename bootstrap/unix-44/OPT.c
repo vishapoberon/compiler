@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -434,8 +434,8 @@ void OPT_Init (OPS_Name name, UINT32 opt)
 	OPT_topScope = OPT_universe;
 	OPT_OpenScope(0, NIL);
 	OPT_SYSimported = 0;
-	__COPY(name, OPT_SelfName, 256);
-	__COPY(name, OPT_topScope->name, 256);
+	__MOVE(name, OPT_SelfName, 256);
+	__MOVE(name, OPT_topScope->name, 256);
 	OPT_GlbMod[0] = OPT_topScope;
 	OPT_nofGmod = 1;
 	OPT_newsf = __IN(4, opt, 32);
@@ -1186,7 +1186,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 			}
 			*typ = OPT_NewStr(0, 1);
 		} else {
-			__COPY(name, obj->name, 256);
+			__MOVE(name, obj->name, 256);
 			OPT_InsertImport(obj, &OPT_GlbMod[__X(mno, 64)]->right, &old);
 			if (old != NIL) {
 				OPT_FPrintObj(old);

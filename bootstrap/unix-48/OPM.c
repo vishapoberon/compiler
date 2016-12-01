@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -8,6 +8,7 @@
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Files.h"
+#include "Modules.h"
 #include "Out.h"
 #include "Platform.h"
 #include "Strings.h"
@@ -266,7 +267,7 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 BOOLEAN OPM_OpenPar (void)
 {
 	CHAR s[256];
-	if (Platform_ArgCount == 1) {
+	if (Modules_ArgCount == 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);
 		OPM_LogWStr(Configuration_versionLong, 75);
@@ -362,16 +363,16 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_Options = 0xa9;
 		OPM_S = 1;
 		s[0] = 0x00;
-		Platform_GetArg(OPM_S, (void*)s, 256);
+		Modules_GetArg(OPM_S, (void*)s, 256);
 		while (s[0] == '-') {
 			OPM_ScanOptions(s, 256);
 			OPM_S += 1;
 			s[0] = 0x00;
-			Platform_GetArg(OPM_S, (void*)s, 256);
+			Modules_GetArg(OPM_S, (void*)s, 256);
 		}
 		OPM_GlobalAddressSize = OPM_AddressSize;
 		OPM_GlobalAlignment = OPM_Alignment;
-		__COPY(OPM_Model, OPM_GlobalModel, 10);
+		__MOVE(OPM_Model, OPM_GlobalModel, 10);
 		OPM_GlobalOptions = OPM_Options;
 		return 1;
 	}
@@ -410,16 +411,16 @@ void OPM_InitOptions (void)
 	CHAR searchpath[1024], modules[1024];
 	CHAR MODULES[1024];
 	OPM_Options = OPM_GlobalOptions;
-	__COPY(OPM_GlobalModel, OPM_Model, 10);
+	__MOVE(OPM_GlobalModel, OPM_Model, 10);
 	OPM_Alignment = OPM_GlobalAlignment;
 	OPM_AddressSize = OPM_GlobalAddressSize;
 	s[0] = 0x00;
-	Platform_GetArg(OPM_S, (void*)s, 256);
+	Modules_GetArg(OPM_S, (void*)s, 256);
 	while (s[0] == '-') {
 		OPM_ScanOptions(s, 256);
 		OPM_S += 1;
 		s[0] = 0x00;
-		Platform_GetArg(OPM_S, (void*)s, 256);
+		Modules_GetArg(OPM_S, (void*)s, 256);
 	}
 	if (__IN(15, OPM_Options, 32)) {
 		OPM_Options |= __SETOF(10,32);
@@ -472,11 +473,11 @@ void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len)
 	CHAR s[256];
 	*done = 0;
 	OPM_curpos = 0;
-	if (OPM_S >= Platform_ArgCount) {
+	if (OPM_S >= Modules_ArgCount) {
 		return;
 	}
 	s[0] = 0x00;
-	Platform_GetArg(OPM_S, (void*)s, 256);
+	Modules_GetArg(OPM_S, (void*)s, 256);
 	__NEW(T, Texts_TextDesc);
 	Texts_Open(T, s, 256);
 	OPM_LogWStr(s, 256);
@@ -1070,6 +1071,7 @@ export void *OPM__init(void)
 	__DEFMOD;
 	__MODULE_IMPORT(Configuration);
 	__MODULE_IMPORT(Files);
+	__MODULE_IMPORT(Modules);
 	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Strings);

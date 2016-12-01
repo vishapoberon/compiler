@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -163,7 +163,7 @@ static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exporte
 				}
 				scope = obj->scope;
 				scope->leaf = 1;
-				__COPY(obj->name, scope->name, 256);
+				__MOVE(obj->name, scope->name, 256);
 				OPV_Stamp(scope->name);
 				if (mode == 9) {
 					obj->adr = 1;
@@ -1286,7 +1286,17 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 							OPM_WriteString((CHAR*)", ", 3);
 							if (r->typ == OPT_stringtyp) {
 								OPM_WriteInt(r->conval->intval2);
+							} else if (r->typ->comp == 3) {
+								OPM_WriteString((CHAR*)"__X(", 5);
+								OPC_Len(r->obj, r->typ, 0);
+								OPM_WriteString((CHAR*)" * ", 4);
+								OPM_WriteInt(r->typ->BaseTyp->size);
+								OPM_WriteString((CHAR*)", ", 3);
+								OPM_WriteInt(l->typ->size);
+								OPM_Write(')');
 							} else {
+								__ASSERT(r->typ->comp == 2, 0);
+								__ASSERT(r->typ->size <= l->typ->size, 0);
 								OPM_WriteInt(r->typ->size);
 							}
 							OPM_Write(')');

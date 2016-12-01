@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -253,7 +253,7 @@ OPT_Node OPB_NewString (OPS_String str, INT64 len)
 	x->conval->intval = -1;
 	x->conval->intval2 = OPM_Longint(len);
 	x->conval->ext = OPT_NewExt();
-	__COPY(str, *x->conval->ext, 256);
+	__MOVE(str, *x->conval->ext, 256);
 	return x;
 }
 
@@ -1624,20 +1624,16 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 					g = 8;
 				}
 				if (x == y) {
+				} else if ((((y->comp == 2 && y->BaseTyp == x->BaseTyp)) && y->n <= x->n)) {
+				} else if ((y->comp == 3 && y->BaseTyp == x->BaseTyp)) {
 				} else if (x->BaseTyp == OPT_chartyp) {
 					if (g == 8) {
 						if (ynode->conval->intval2 > x->n) {
 							OPB_err(114);
 						}
-					} else if ((__IN(y->comp, 0x0c, 32) && y->BaseTyp == OPT_chartyp)) {
 					} else {
 						OPB_err(113);
 					}
-				} else {
-					OPB_err(113);
-				}
-			} else if ((x->comp == 3 && x->BaseTyp == OPT_chartyp)) {
-				if ((__IN(y->comp, 0x0c, 32) && y->BaseTyp == OPT_chartyp)) {
 				} else {
 					OPB_err(113);
 				}
@@ -2536,7 +2532,6 @@ void OPB_Return (OPT_Node *x, OPT_Object proc)
 void OPB_Assign (OPT_Node *x, OPT_Node y)
 {
 	OPT_Node z = NIL;
-	INT8 subcl;
 	if ((*x)->class >= 7) {
 		OPB_err(56);
 	}
@@ -2562,13 +2557,8 @@ void OPB_Assign (OPT_Node *x, OPT_Node y)
 		y->conval->intval = 0;
 		OPB_Index(&*x, OPB_NewIntConst(0));
 	}
-	if ((((((__IN((*x)->typ->comp, 0x0c, 32) && (*x)->typ->BaseTyp == OPT_chartyp)) && __IN(y->typ->comp, 0x0c, 32))) && y->typ->BaseTyp == OPT_chartyp)) {
-		subcl = 18;
-	} else {
-		subcl = 0;
-	}
 	OPB_BindNodes(19, OPT_notyp, &*x, y);
-	(*x)->subcl = subcl;
+	(*x)->subcl = 0;
 }
 
 void OPB_Inittd (OPT_Node *inittd, OPT_Node *last, OPT_Struct typ)

@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -16,18 +16,14 @@ typedef
 
 
 import BOOLEAN Platform_LittleEndian;
-import INT64 Platform_MainStackFrame;
 import INT16 Platform_PID;
 import CHAR Platform_CWD[256];
-import INT16 Platform_ArgCount;
-import INT64 Platform_ArgVector;
 import INT16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 import CHAR Platform_NL[3];
 
 import ADDRESS *Platform_FileIdentity__typ;
 
 import BOOLEAN Platform_Absent (INT16 e);
-import INT16 Platform_ArgPos (CHAR *s, ADDRESS s__len);
 import INT16 Platform_Chdir (CHAR *n, ADDRESS n__len);
 import INT16 Platform_Close (INT32 h);
 import BOOLEAN Platform_ConnectionFailed (INT16 e);
@@ -35,15 +31,12 @@ import void Platform_Delay (INT32 ms);
 import BOOLEAN Platform_DifferentFilesystems (INT16 e);
 import INT16 Platform_Error (void);
 import void Platform_Exit (INT32 code);
-import void Platform_GetArg (INT16 n, CHAR *val, ADDRESS val__len);
 import void Platform_GetClock (INT32 *t, INT32 *d);
 import void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len);
-import void Platform_GetIntArg (INT16 n, INT32 *val);
 import void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec);
 import INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 import INT16 Platform_IdentifyByName (CHAR *n, ADDRESS n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 import BOOLEAN Platform_Inaccessible (INT16 e);
-import void Platform_Init (INT32 argc, INT64 argvadr);
 import BOOLEAN Platform_Interrupted (INT16 e);
 import BOOLEAN Platform_IsConsole (INT32 h);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);

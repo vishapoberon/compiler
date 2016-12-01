@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -237,7 +237,7 @@ static void Files_Deregister (CHAR *name, ADDRESS name__len)
 		if (osfile != NIL) {
 			__ASSERT(!osfile->tempFile, 0);
 			__ASSERT(osfile->fd >= 0, 0);
-			__COPY(osfile->workName, osfile->registerName, 101);
+			__MOVE(osfile->workName, osfile->registerName, 101);
 			Files_GetTempName(osfile->registerName, 101, (void*)osfile->workName, 101);
 			osfile->tempFile = 1;
 			osfile->state = 0;
@@ -262,7 +262,7 @@ static void Files_Create (Files_File f)
 		} else {
 			__ASSERT(f->state == 2, 0);
 			Files_Deregister(f->registerName, 101);
-			__COPY(f->registerName, f->workName, 101);
+			__MOVE(f->registerName, f->workName, 101);
 			f->registerName[0] = 0x00;
 			f->tempFile = 0;
 		}
@@ -823,7 +823,7 @@ void Files_Register (Files_File f)
 		if (errcode != 0) {
 			Files_Err((CHAR*)"Couldn't rename temp name as register name", 43, f, errcode);
 		}
-		__COPY(f->registerName, f->workName, 101);
+		__MOVE(f->registerName, f->workName, 101);
 		f->registerName[0] = 0x00;
 		f->tempFile = 0;
 	}

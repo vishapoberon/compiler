@@ -258,10 +258,10 @@ extern void       Heap_INCREF();
 
 // Main module initialisation, registration and finalisation
 
-extern void Platform_Init(INT32 argc, ADDRESS argv);
+extern void Modules_Init(INT32 argc, ADDRESS argv);
 extern void Heap_FINALL();
 
-#define __INIT(argc, argv)    static void *m; Platform_Init(argc, (ADDRESS)&argv);
+#define __INIT(argc, argv)    static void *m; Modules_Init(argc, (ADDRESS)&argv);
 #define __REGMAIN(name, enum) m = Heap_REGMOD((CHAR*)name,enum)
 #define __FINI                Heap_FINALL(); return 0
 

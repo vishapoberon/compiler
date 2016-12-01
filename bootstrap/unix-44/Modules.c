@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -43,23 +43,104 @@ typedef
 export INT16 Modules_res;
 export CHAR Modules_resMsg[256];
 export Modules_ModuleName Modules_imported, Modules_importing;
+export INT32 Modules_MainStackFrame;
+export INT16 Modules_ArgCount;
+export INT32 Modules_ArgVector;
 
 export ADDRESS *Modules_ModuleDesc__typ;
 export ADDRESS *Modules_CmdDesc__typ;
 
 static void Modules_Append (CHAR *a, ADDRESS a__len, CHAR *b, ADDRESS b__len);
+export INT16 Modules_ArgPos (CHAR *s, ADDRESS s__len);
 export void Modules_AssertFail (INT32 code);
 static void Modules_DisplayHaltCode (INT32 code);
 export void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all);
+export void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len);
+export void Modules_GetIntArg (INT16 n, INT32 *val);
 export void Modules_Halt (INT32 code);
+export void Modules_Init (INT32 argc, INT32 argvadr);
 export Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, ADDRESS name__len);
 export Modules_Module Modules_ThisMod (CHAR *name, ADDRESS name__len);
 static void Modules_errch (CHAR c);
 static void Modules_errint (INT32 l);
 static void Modules_errstring (CHAR *s, ADDRESS s__len);
 
+extern void Heap_InitHeap();
+extern void *Modules__init(void);
+#define Modules_InitHeap()	Heap_InitHeap()
+#define Modules_ModulesInit()	Modules__init()
 #define Modules_modules()	(Modules_Module)Heap_modules
 #define Modules_setmodules(m)	Heap_modules = m
+
+typedef
+	INT32 (*ArgVecPtr__14)[1];
+
+void Modules_Init (INT32 argc, INT32 argvadr)
+{
+	ArgVecPtr__14 av = NIL;
+	Modules_MainStackFrame = argvadr;
+	Modules_ArgCount = __VAL(INT16, argc);
+	av = (ArgVecPtr__14)(ADDRESS)argvadr;
+	Modules_ArgVector = (*av)[0];
+	Modules_InitHeap();
+	Modules_ModulesInit();
+}
+
+typedef
+	CHAR (*ArgPtr__9)[1024];
+
+typedef
+	ArgPtr__9 (*ArgVec__10)[1024];
+
+void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len)
+{
+	ArgVec__10 av = NIL;
+	if (n < Modules_ArgCount) {
+		av = (ArgVec__10)(ADDRESS)Modules_ArgVector;
+		__COPY(*(*av)[__X(n, 1024)], val, val__len);
+	}
+}
+
+void Modules_GetIntArg (INT16 n, INT32 *val)
+{
+	CHAR s[64];
+	INT32 k, d, i;
+	s[0] = 0x00;
+	Modules_GetArg(n, (void*)s, 64);
+	i = 0;
+	if (s[0] == '-') {
+		i = 1;
+	}
+	k = 0;
+	d = (INT16)s[__X(i, 64)] - 48;
+	while ((d >= 0 && d <= 9)) {
+		k = k * 10 + d;
+		i += 1;
+		d = (INT16)s[__X(i, 64)] - 48;
+	}
+	if (s[0] == '-') {
+		k = -k;
+		i -= 1;
+	}
+	if (i > 0) {
+		*val = k;
+	}
+}
+
+INT16 Modules_ArgPos (CHAR *s, ADDRESS s__len)
+{
+	INT16 i;
+	CHAR arg[256];
+	__DUP(s, s__len, CHAR);
+	i = 0;
+	Modules_GetArg(i, (void*)arg, 256);
+	while ((i < Modules_ArgCount && __STRCMP(s, arg) != 0)) {
+		i += 1;
+		Modules_GetArg(i, (void*)arg, 256);
+	}
+	__DEL(s);
+	return i;
+}
 
 static void Modules_Append (CHAR *a, ADDRESS a__len, CHAR *b, ADDRESS b__len)
 {

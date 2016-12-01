@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -8,36 +8,17 @@
 #include "SYSTEM.h"
 
 typedef
-	CHAR (*Platform_ArgPtr)[1024];
-
-typedef
-	Platform_ArgPtr (*Platform_ArgVec)[1024];
-
-typedef
-	INT32 (*Platform_ArgVecPtr)[1];
-
-typedef
-	CHAR (*Platform_EnvPtr)[1024];
-
-typedef
 	struct Platform_FileIdentity {
 		INT32 volume, index, mtime;
 	} Platform_FileIdentity;
-
-typedef
-	void (*Platform_HaltProcedure)(INT32);
 
 typedef
 	void (*Platform_SignalHandler)(INT32);
 
 
 export BOOLEAN Platform_LittleEndian;
-export INT32 Platform_MainStackFrame;
 export INT16 Platform_PID;
 export CHAR Platform_CWD[256];
-export INT16 Platform_ArgCount;
-export INT32 Platform_ArgVector;
-static Platform_HaltProcedure Platform_HaltHandler;
 static INT32 Platform_TimeStart;
 export INT16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 export CHAR Platform_NL[3];
@@ -45,7 +26,6 @@ export CHAR Platform_NL[3];
 export ADDRESS *Platform_FileIdentity__typ;
 
 export BOOLEAN Platform_Absent (INT16 e);
-export INT16 Platform_ArgPos (CHAR *s, ADDRESS s__len);
 export INT16 Platform_Chdir (CHAR *n, ADDRESS n__len);
 export INT16 Platform_Close (INT32 h);
 export BOOLEAN Platform_ConnectionFailed (INT16 e);
@@ -53,15 +33,12 @@ export void Platform_Delay (INT32 ms);
 export BOOLEAN Platform_DifferentFilesystems (INT16 e);
 export INT16 Platform_Error (void);
 export void Platform_Exit (INT32 code);
-export void Platform_GetArg (INT16 n, CHAR *val, ADDRESS val__len);
 export void Platform_GetClock (INT32 *t, INT32 *d);
 export void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len);
-export void Platform_GetIntArg (INT16 n, INT32 *val);
 export void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec);
 export INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 export INT16 Platform_IdentifyByName (CHAR *n, ADDRESS n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 export BOOLEAN Platform_Inaccessible (INT16 e);
-export void Platform_Init (INT32 argc, INT32 argvadr);
 export BOOLEAN Platform_Interrupted (INT16 e);
 export BOOLEAN Platform_IsConsole (INT32 h);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
@@ -117,8 +94,6 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_EROFS()	EROFS
 #define Platform_ETIMEDOUT()	ETIMEDOUT
 #define Platform_EXDEV()	EXDEV
-extern void Heap_InitHeap();
-#define Platform_HeapInitHeap()	Heap_InitHeap()
 #define Platform_allocate(size)	(ADDRESS)((void*)malloc((size_t)size))
 #define Platform_chdir(n, n__len)	chdir((char*)n)
 #define Platform_closefile(fd)	close(fd)
@@ -129,7 +104,7 @@ extern void Heap_InitHeap();
 #define Platform_fsync(fd)	fsync(fd)
 #define Platform_ftruncate(fd, l)	ftruncate(fd, l)
 #define Platform_getcwd(cwd, cwd__len)	getcwd((char*)cwd, cwd__len)
-#define Platform_getenv(var, var__len)	(Platform_EnvPtr)getenv((char*)var)
+#define Platform_getenv(var, var__len)	getenv((char*)var)
 #define Platform_getpid()	(INTEGER)getpid()
 #define Platform_gettimeval()	struct timeval tv; gettimeofday(&tv,0)
 #define Platform_isatty(fd)	isatty(fd)
@@ -213,21 +188,14 @@ void Platform_OSFree (INT32 address)
 	Platform_free(address);
 }
 
-void Platform_Init (INT32 argc, INT32 argvadr)
-{
-	Platform_ArgVecPtr av = NIL;
-	Platform_MainStackFrame = argvadr;
-	Platform_ArgCount = __VAL(INT16, argc);
-	av = (Platform_ArgVecPtr)(ADDRESS)argvadr;
-	Platform_ArgVector = (*av)[0];
-	Platform_HeapInitHeap();
-}
+typedef
+	CHAR (*EnvPtr__78)[1024];
 
 BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	Platform_EnvPtr p = NIL;
+	EnvPtr__78 p = NIL;
 	__DUP(var, var__len, CHAR);
-	p = Platform_getenv(var, var__len);
+	p = (EnvPtr__78)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
 		__COPY(*p, val, val__len);
 	}
@@ -242,56 +210,6 @@ void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 		val[0] = 0x00;
 	}
 	__DEL(var);
-}
-
-void Platform_GetArg (INT16 n, CHAR *val, ADDRESS val__len)
-{
-	Platform_ArgVec av = NIL;
-	if (n < Platform_ArgCount) {
-		av = (Platform_ArgVec)(ADDRESS)Platform_ArgVector;
-		__COPY(*(*av)[__X(n, 1024)], val, val__len);
-	}
-}
-
-void Platform_GetIntArg (INT16 n, INT32 *val)
-{
-	CHAR s[64];
-	INT32 k, d, i;
-	s[0] = 0x00;
-	Platform_GetArg(n, (void*)s, 64);
-	i = 0;
-	if (s[0] == '-') {
-		i = 1;
-	}
-	k = 0;
-	d = (INT16)s[__X(i, 64)] - 48;
-	while ((d >= 0 && d <= 9)) {
-		k = k * 10 + d;
-		i += 1;
-		d = (INT16)s[__X(i, 64)] - 48;
-	}
-	if (s[0] == '-') {
-		k = -k;
-		i -= 1;
-	}
-	if (i > 0) {
-		*val = k;
-	}
-}
-
-INT16 Platform_ArgPos (CHAR *s, ADDRESS s__len)
-{
-	INT16 i;
-	CHAR arg[256];
-	__DUP(s, s__len, CHAR);
-	i = 0;
-	Platform_GetArg(i, (void*)arg, 256);
-	while ((i < Platform_ArgCount && __STRCMP(s, arg) != 0)) {
-		i += 1;
-		Platform_GetArg(i, (void*)arg, 256);
-	}
-	__DEL(s);
-	return i;
 }
 
 void Platform_SetInterruptHandler (Platform_SignalHandler handler)
@@ -587,7 +505,6 @@ export void *Platform__init(void)
 	__INITYP(Platform_FileIdentity, Platform_FileIdentity, 0);
 /* BEGIN */
 	Platform_TestLittleEndian();
-	Platform_HaltHandler = NIL;
 	Platform_TimeStart = 0;
 	Platform_TimeStart = Platform_Time();
 	Platform_PID = Platform_getpid();

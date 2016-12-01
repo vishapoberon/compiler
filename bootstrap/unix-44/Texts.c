@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -394,8 +394,8 @@ static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, ADDRESS *msg__t
 				e->file = (*(Texts_Alien*)&E)->file;
 				e->org = (*(Texts_Alien*)&E)->org;
 				e->span = (*(Texts_Alien*)&E)->span;
-				__COPY((*(Texts_Alien*)&E)->mod, e->mod, 32);
-				__COPY((*(Texts_Alien*)&E)->proc, e->proc, 32);
+				__MOVE((*(Texts_Alien*)&E)->mod, e->mod, 32);
+				__MOVE((*(Texts_Alien*)&E)->proc, e->proc, 32);
 				(*msg__).e = (Texts_Elem)e;
 			} else __WITHCHK;
 		} else if (__IS(msg__typ, Texts_IdentifyMsg, 1)) {

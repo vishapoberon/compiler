@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -527,7 +527,7 @@ static void OPP_selector (OPT_Node *x)
 		} else if (OPP_sym == 18) {
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
-				__COPY(OPS_name, name, 256);
+				__MOVE(OPS_name, name, 256);
 				OPS_Get(&OPP_sym);
 				if ((*x)->typ != NIL) {
 					if ((*x)->typ->form == 11) {
@@ -867,7 +867,7 @@ static void OPP_Receiver (INT8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct
 	} else {
 		*mode = 1;
 	}
-	__COPY(OPS_name, name, 256);
+	__MOVE(OPS_name, name, 256);
 	OPP_CheckSym(38);
 	OPP_CheckSym(20);
 	if (OPP_sym == 38) {
@@ -1030,7 +1030,7 @@ static void TProcDecl__23 (void)
 	}
 	OPP_Receiver(&objMode, objName, &objTyp, &recTyp);
 	if (OPP_sym == 38) {
-		__COPY(OPS_name, *ProcedureDeclaration__16_s->name, 256);
+		__MOVE(OPS_name, *ProcedureDeclaration__16_s->name, 256);
 		OPP_CheckMark(&*ProcedureDeclaration__16_s->vis);
 		OPT_FindField(*ProcedureDeclaration__16_s->name, recTyp, &*ProcedureDeclaration__16_s->fwd);
 		OPT_FindField(*ProcedureDeclaration__16_s->name, recTyp->BaseTyp, &baseProc);
@@ -1129,7 +1129,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		TProcDecl__23();
 	} else if (OPP_sym == 38) {
 		OPT_Find(&fwd);
-		__COPY(OPS_name, name, 256);
+		__MOVE(OPS_name, name, 256);
 		OPP_CheckMark(&vis);
 		if ((vis != 0 && mode == 6)) {
 			mode = 7;

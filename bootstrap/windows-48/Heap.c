@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/11/30]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -105,12 +105,12 @@ static void Heap_Sift (INT32 l, INT32 r, INT32 *a, ADDRESS a__len);
 export void Heap_Unlock (void);
 
 extern void *Heap__init();
-extern ADDRESS Platform_MainStackFrame;
+extern ADDRESS Modules_MainStackFrame;
 extern ADDRESS Platform_OSAllocate(ADDRESS size);
 #define Heap_HeapModuleInit()	Heap__init()
 #define Heap_ModulesHalt(code)	Modules_Halt(code)
+#define Heap_ModulesMainStackFrame()	Modules_MainStackFrame
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)
-#define Heap_PlatformMainStackFrame()	Platform_MainStackFrame
 
 void Heap_Lock (void)
 {
@@ -599,7 +599,7 @@ static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len)
 	if (n == 0) {
 		nofcand = 0;
 		sp = (ADDRESS)&frame;
-		stack0 = Heap_PlatformMainStackFrame();
+		stack0 = Heap_ModulesMainStackFrame();
 		inc = (ADDRESS)&align.p - (ADDRESS)&align;
 		if (sp > stack0) {
 			inc = -inc;
