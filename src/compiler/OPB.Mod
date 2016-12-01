@@ -891,20 +891,26 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                     IF x^.comp = OPT.Array THEN
                       IF (ynode^.class = OPT.Nconst) & (g = OPT.Char) THEN CharToString(ynode); y := ynode^.typ; g := OPT.String END ;
                       IF x = y THEN (* ok *)
+                      ELSIF (y.comp = OPT.Array) & (y.BaseTyp = x.BaseTyp) & (y.n <= x.n) THEN (* OK by Oberon-07/2013 *)
+                      ELSIF (y.comp = OPT.DynArr) & (y.BaseTyp = x.BaseTyp) THEN (* OK by Oberon-07/2013, length tested at runtime *)
                       ELSIF x^.BaseTyp = OPT.chartyp THEN (* Assign to (static) ARRAY OF CHAR *)
                         IF g = OPT.String THEN (*check length of string*)
                           IF ynode^.conval^.intval2 > x^.n THEN err(114) END
+                        (* Todo: implement Oberon-07/2013 array assignment
                         ELSIF (y.comp IN {OPT.DynArr, OPT.Array}) & (y.BaseTyp = OPT.chartyp) THEN
                           (* Assignment from ARRAY OF CHAR is good.*)
+                        *)
                         ELSE err(113)
                         END
                       ELSE err(113)
                       END
+                    (* Todo: implement Oberon-07/2013 array assignment
                     ELSIF (x.comp = OPT.DynArr) & (x^.BaseTyp = OPT.chartyp) THEN (* Assign to dynamic ARRAY OF CHAR*)
                       IF (y.comp IN {OPT.DynArr, OPT.Array}) & (y.BaseTyp = OPT.chartyp) THEN
                         (* Assignment from ARRAY OF CHAR is good.*)
                       ELSE err(113)
                       END
+                    *)
                     ELSIF x^.comp = OPT.Record THEN
                       IF x = y THEN (* ok *)
                       ELSIF y^.comp = OPT.Record THEN
@@ -913,7 +919,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                         IF q = NIL THEN err(113) END
                       ELSE err(113)
                       END
-                    ELSE err(113)
+                    ELSE (* Assign to dynamic array *) err(113)
                     END
     ELSE            OPM.LogWStr("unhandled case in OPB.CheckAssign, f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
     END ;
@@ -1464,7 +1470,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   END Return;
 
   PROCEDURE Assign*(VAR x: OPT.Node; y: OPT.Node);
-    VAR z: OPT.Node; subcl: SHORTINT;
+    VAR z: OPT.Node;
   BEGIN
     IF x^.class >= OPT.Nconst THEN err(56) END ;
     CheckAssign(x^.typ, y);
@@ -1481,15 +1487,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         (y^.typ^.form = OPT.String) & (y^.conval^.intval2 = 1) THEN  (* replace array := "" with array[0] := 0X *)
       y^.typ := OPT.chartyp; y^.conval^.intval := 0;
       Index(x, NewIntConst(0))
-    END ;
-    IF (x.typ.comp IN {OPT.Array, OPT.DynArr}) & (x.typ.BaseTyp = OPT.chartyp)
-     & (y.typ.comp IN {OPT.Array, OPT.DynArr}) & (y.typ.BaseTyp = OPT.chartyp) THEN
-      subcl := OPT.copyfn
-    ELSE
-      subcl := OPT.assign
     END;
     BindNodes(OPT.Nassign, OPT.notyp, x, y);
-    x^.subcl := subcl;
+    x^.subcl := OPT.assign;
   END Assign;
 
   PROCEDURE Inittd*(VAR inittd, last: OPT.Node; typ: OPT.Struct);

@@ -785,8 +785,17 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                         OPM.WriteString(MoveFunc);
                                         expr(r, MinPrec); OPM.WriteString(Comma); expr(l, MinPrec); OPM.WriteString(Comma);
                                         IF r^.typ = OPT.stringtyp THEN OPM.WriteInt(r^.conval^.intval2)
-                                        ELSE OPM.WriteInt(r^.typ^.size)
-                                        END ;
+                                        ELSIF r.typ.comp = OPT.DynArr THEN
+                                          (* Dynamic array to array copy *)
+                                          OPM.WriteString("__X(");
+                                          OPC.Len(r.obj, r.typ, 0); OPM.WriteString(" * "); OPM.WriteInt(r.typ.BaseTyp.size);
+                                          OPM.WriteString(", ");
+                                          OPM.WriteInt(l.typ.size);
+                                          OPM.Write(")")
+                                        ELSE (* Array to array copy. *)
+                                          ASSERT(r.typ.comp = OPT.Array); ASSERT(r.typ.size <= l.typ.size);
+                                          OPM.WriteInt(r^.typ^.size)
+                                        END;
                                         OPM.Write(CloseParen)
                                       ELSE
                                         IF (l^.typ^.form = OPT.Pointer) & (l^.obj # NIL) & (l^.obj^.adr = 1) & (l^.obj^.mode = OPT.Var) THEN

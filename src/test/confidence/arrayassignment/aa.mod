@@ -19,8 +19,5 @@ BEGIN
   COPY(a30, a10);    Console.String("a10: "); Console.String(a10); Console.Ln;
                      Console.String("a20: "); Console.String(a20); Console.Ln;
   Console.Ln;
-  a10 := a30;        Console.String("a10: "); Console.String(a10); Console.Ln;
-                     Console.String("a20: "); Console.String(a20); Console.Ln;
-  Console.Ln;
   Console.String("Array assignment test complete."); Console.Ln;
 END aa.
