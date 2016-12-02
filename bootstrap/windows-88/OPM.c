@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -893,7 +893,7 @@ void OPM_WriteHex (INT64 i)
 
 void OPM_WriteInt (INT64 i)
 {
-	CHAR s[24];
+	CHAR s[26];
 	INT64 i1, k;
 	if ((i == OPM_SignedMinimum(2) || i == OPM_SignedMinimum(4)) || i == OPM_SignedMinimum(8)) {
 		OPM_Write('(');
@@ -901,21 +901,27 @@ void OPM_WriteInt (INT64 i)
 		OPM_WriteString((CHAR*)"-1)", 4);
 	} else {
 		i1 = __ABS(i);
-		s[0] = (CHAR)(__MOD(i1, 10) + 48);
+		if (i1 <= 2147483647) {
+			k = 0;
+		} else {
+			__MOVE("LL", s, 3);
+			k = 2;
+		}
+		s[__X(k, 26)] = (CHAR)(__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
-		k = 1;
+		k += 1;
 		while (i1 > 0) {
-			s[__X(k, 24)] = (CHAR)(__MOD(i1, 10) + 48);
+			s[__X(k, 26)] = (CHAR)(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
 		if (i < 0) {
-			s[__X(k, 24)] = '-';
+			s[__X(k, 26)] = '-';
 			k += 1;
 		}
 		while (k > 0) {
 			k -= 1;
-			OPM_Write(s[__X(k, 24)]);
+			OPM_Write(s[__X(k, 26)]);
 		}
 	}
 }

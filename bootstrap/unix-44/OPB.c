@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -550,7 +550,7 @@ void OPB_MOp (INT8 op, OPT_Node *x)
 				if (__IN(f, 0xf0, 32)) {
 					if (z->class == 7) {
 						if (f == 4) {
-							if (z->conval->intval == (-9223372036854775807-1)) {
+							if (z->conval->intval == (-9223372036854775807LL-1)) {
 								OPB_err(203);
 							} else {
 								z->conval->intval = -z->conval->intval;
@@ -577,7 +577,7 @@ void OPB_MOp (INT8 op, OPT_Node *x)
 				if (__IN(f, 0x70, 32)) {
 					if (z->class == 7) {
 						if (f == 4) {
-							if (z->conval->intval == (-9223372036854775807-1)) {
+							if (z->conval->intval == (-9223372036854775807LL-1)) {
 								OPB_err(203);
 							} else {
 								z->conval->intval = __ABS(z->conval->intval);
@@ -920,7 +920,7 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 			if (f == 4) {
 				xv = xval->intval;
 				yv = yval->intval;
-				if (((((xv == 0 || yv == 0) || (((xv > 0 && yv > 0)) && yv <= __DIV(9223372036854775807, xv))) || (((xv > 0 && yv < 0)) && yv >= __DIV((-9223372036854775807-1), xv))) || (((xv < 0 && yv > 0)) && xv >= __DIV((-9223372036854775807-1), yv))) || (((((((xv < 0 && yv < 0)) && xv != (-9223372036854775807-1))) && yv != (-9223372036854775807-1))) && -xv <= __DIV(9223372036854775807, -yv))) {
+				if (((((xv == 0 || yv == 0) || (((xv > 0 && yv > 0)) && yv <= __DIV(9223372036854775807LL, xv))) || (((xv > 0 && yv < 0)) && yv >= __DIV((-9223372036854775807LL-1), xv))) || (((xv < 0 && yv > 0)) && xv >= __DIV((-9223372036854775807LL-1), yv))) || (((((((xv < 0 && yv < 0)) && xv != (-9223372036854775807LL-1))) && yv != (-9223372036854775807LL-1))) && -xv <= __DIV(9223372036854775807LL, -yv))) {
 					xval->intval = xv * yv;
 					OPB_SetIntType(x);
 				} else {
@@ -999,8 +999,8 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 			break;
 		case 6: 
 			if (f == 4) {
-				temp = (yval->intval >= 0 && xval->intval <= 9223372036854775807 - yval->intval);
-				if (temp || (yval->intval < 0 && xval->intval >= (-9223372036854775807-1) - yval->intval)) {
+				temp = (yval->intval >= 0 && xval->intval <= 9223372036854775807LL - yval->intval);
+				if (temp || (yval->intval < 0 && xval->intval >= (-9223372036854775807LL-1) - yval->intval)) {
 					xval->intval += yval->intval;
 					OPB_SetIntType(x);
 				} else {
@@ -1023,7 +1023,7 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 			break;
 		case 7: 
 			if (f == 4) {
-				if ((yval->intval >= 0 && xval->intval >= (-9223372036854775807-1) + yval->intval) || (yval->intval < 0 && xval->intval <= 9223372036854775807 + yval->intval)) {
+				if ((yval->intval >= 0 && xval->intval >= (-9223372036854775807LL-1) + yval->intval) || (yval->intval < 0 && xval->intval <= 9223372036854775807LL + yval->intval)) {
 					xval->intval -= yval->intval;
 					OPB_SetIntType(x);
 				} else {
@@ -2087,7 +2087,7 @@ void OPB_StPar1 (OPT_Node *par0, OPT_Node x, INT8 fctno)
 						OPB_err(208);
 						p->conval->intval = 1;
 					} else if (x->conval->intval >= 0) {
-						if (__ABS(p->conval->intval) <= __DIV(9223372036854775807, (INT64)__ASH(1, x->conval->intval))) {
+						if (__ABS(p->conval->intval) <= __DIV(9223372036854775807LL, (INT64)__ASH(1, x->conval->intval))) {
 							p->conval->intval = p->conval->intval * (INT64)__ASH(1, x->conval->intval);
 						} else {
 							OPB_err(208);
@@ -2585,7 +2585,7 @@ export void *OPB__init(void)
 	__MODULE_IMPORT(OPT);
 	__REGMOD("OPB", 0);
 /* BEGIN */
-	OPB_maxExp = OPB_log(4611686018427387904);
+	OPB_maxExp = OPB_log(4611686018427387904LL);
 	OPB_maxExp = OPB_exp;
 	__ENDMOD;
 }

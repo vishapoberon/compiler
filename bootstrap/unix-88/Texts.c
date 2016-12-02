@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1046,7 +1046,7 @@ void Texts_WriteInt (Texts_Writer *W, ADDRESS *W__typ, INT64 x, INT64 n)
 	CHAR a[24];
 	i = 0;
 	if (x < 0) {
-		if (x == (-9223372036854775807-1)) {
+		if (x == (-9223372036854775807LL-1)) {
 			Texts_WriteString(&*W, W__typ, (CHAR*)" -9223372036854775808", 22);
 			return;
 		} else {

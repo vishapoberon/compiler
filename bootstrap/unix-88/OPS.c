@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -198,7 +198,7 @@ static void OPS_Number (void)
 				while (i < n) {
 					d = Ord__7(dig[i], 0);
 					i += 1;
-					if (OPS_intval <= __DIV(9223372036854775807 - (INT64)d, 10)) {
+					if (OPS_intval <= __DIV(9223372036854775807LL - (INT64)d, 10)) {
 						OPS_intval = OPS_intval * 10 + (INT64)d;
 					} else {
 						OPS_err(203);

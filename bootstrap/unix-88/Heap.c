@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/01]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -721,10 +721,10 @@ void Heap_InitHeap (void)
 	Heap_heapsize = 0;
 	Heap_allocated = 0;
 	Heap_lockdepth = 0;
-	Heap_heapPosMin = 9223372036854775807;
+	Heap_heapPosMin = 9223372036854775807LL;
 	Heap_heapPosMax = 0;
 	Heap_heapNegMin = 0;
-	Heap_heapNegMax = (-9223372036854775807-1);
+	Heap_heapNegMax = (-9223372036854775807LL-1);
 	Heap_heap = Heap_NewChunk(256000);
 	__PUT(Heap_heap, 0, INT64);
 	Heap_firstTry = 1;
