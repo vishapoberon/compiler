@@ -28,7 +28,7 @@
 
 MODULE ulmPlotters;
 
-   IMPORT Events := ulmEvents, Objects := ulmObjects, Resources := ulmResources, Services := ulmServices, SYS := ulmSYSTEM;
+   IMPORT Events := ulmEvents, Objects := ulmObjects, Resources := ulmResources, Services := ulmServices, SYS := ulmSYSTEM, Types := ulmTypes;
 
    TYPE
       Plotter* = POINTER TO PlotterRec;
@@ -41,7 +41,7 @@ MODULE ulmPlotters;
       longdashed* = 4;
       lineModes* = 5;
    TYPE
-      LineMode* = SHORTINT; (* solid ... *)
+      LineMode* = Types.Int8; (* solid ... *)
 
    CONST
       setspace* = 0;
@@ -50,34 +50,34 @@ MODULE ulmPlotters;
       linemodes* = 3;
       linewidth* = 4;
    TYPE
-      CapabilitySet* = SET; (* OF setspace, erase ... *)
+      CapabilitySet* = Types.Set; (* OF setspace, erase ... *)
 
    TYPE
       Description* = POINTER TO DescriptionRec;
       DescriptionRec* =
 	 RECORD
 	    (Objects.ObjectRec)
-	    xmin*, ymin, xmax, ymax: INTEGER; (* maximal supported range *)
+	    xmin*, ymin, xmax, ymax: Types.Int32; (* maximal supported range *)
 	 END;
 
    TYPE
       GetSpaceProc* = PROCEDURE (
 	 plotter: Plotter;
-	 VAR xmin, ymin, xmax, ymax: INTEGER);
+	 VAR xmin, ymin, xmax, ymax: Types.Int32);
       SetSpaceProc* = PROCEDURE (
 	 plotter: Plotter;
-	 xmin, ymin, xmax, ymax: INTEGER);
+	 xmin, ymin, xmax, ymax: Types.Int32);
       EraseProc* = PROCEDURE (plotter: Plotter);
-      MoveProc* = PROCEDURE (plotter: Plotter; xto, yto: INTEGER);
-      LineProc* = PROCEDURE (plotter: Plotter; xfrom, yfrom, xto, yto: INTEGER);
+      MoveProc* = PROCEDURE (plotter: Plotter; xto, yto: Types.Int32);
+      LineProc* = PROCEDURE (plotter: Plotter; xfrom, yfrom, xto, yto: Types.Int32);
       ArcProc* = PROCEDURE (
 	 plotter: Plotter;
-	 xcenter, ycenter, xstart, ystart, xend, yend: INTEGER);
+	 xcenter, ycenter, xstart, ystart, xend, yend: Types.Int32);
       CircleProc* = PROCEDURE (
-         plotter: Plotter; xcenter, ycenter, radius: INTEGER);
+         plotter: Plotter; xcenter, ycenter, radius: Types.Int32);
       StringProc* = PROCEDURE (plotter: Plotter; str: ARRAY OF CHAR);
       SetLineModeProc* = PROCEDURE (plotter: Plotter; mode: LineMode);
-      SetLineWidthProc* = PROCEDURE (plotter: Plotter; width: INTEGER);
+      SetLineWidthProc* = PROCEDURE (plotter: Plotter; width: Types.Int32);
       CloseProc* = PROCEDURE (plotter: Plotter);
    TYPE
       Interface* = POINTER TO InterfaceRec;
@@ -105,7 +105,7 @@ MODULE ulmPlotters;
 	    if: Interface;
 	    caps: CapabilitySet;
 	    desc: Description;
-	    xmin, ymin, xmax, ymax: INTEGER; (* current range *)
+	    xmin, ymin, xmax, ymax: Types.Int32; (* current range *)
 	    terminated: BOOLEAN;
 	 END;
    VAR
@@ -162,7 +162,7 @@ MODULE ulmPlotters;
 
    PROCEDURE GetSpace*(plotter: Plotter;
                       VAR xmin, ymin,
-		      xmax, ymax: INTEGER);
+		      xmax, ymax: Types.Int32);
    BEGIN
       xmin := plotter.xmin;
       xmax := plotter.xmax;
@@ -172,7 +172,7 @@ MODULE ulmPlotters;
 
    PROCEDURE GetMaxSpace*(plotter: Plotter;
                          VAR xmin, ymin,
-		         xmax, ymax: INTEGER);
+		         xmax, ymax: Types.Int32);
    BEGIN
       xmin := plotter.desc.xmin;
       xmax := plotter.desc.xmax;
@@ -182,7 +182,7 @@ MODULE ulmPlotters;
 
    PROCEDURE SetSpace*(plotter: Plotter;
                       xmin, ymin,
-		      xmax, ymax: INTEGER);
+		      xmax, ymax: Types.Int32);
    BEGIN
       ASSERT((xmin < xmax) & (ymin < ymax));
       ASSERT((xmin >= plotter.desc.xmin) &
@@ -203,33 +203,33 @@ MODULE ulmPlotters;
       plotter.if.erase(plotter);
    END Erase;
 
-   PROCEDURE Move*(plotter: Plotter; xto, yto: INTEGER);
+   PROCEDURE Move*(plotter: Plotter; xto, yto: Types.Int32);
    BEGIN
       plotter.if.move(plotter, xto, yto);
    END Move;
 
-   PROCEDURE Cont*(plotter: Plotter; xto, yto: INTEGER);
+   PROCEDURE Cont*(plotter: Plotter; xto, yto: Types.Int32);
    BEGIN
       plotter.if.cont(plotter, xto, yto);
    END Cont;
 
-   PROCEDURE Point*(plotter: Plotter; xpoint, ypoint: INTEGER);
+   PROCEDURE Point*(plotter: Plotter; xpoint, ypoint: Types.Int32);
    BEGIN
       plotter.if.point(plotter, xpoint, ypoint);
    END Point;
 
-   PROCEDURE Line*(plotter: Plotter; xfrom, yfrom, xto, yto: INTEGER);
+   PROCEDURE Line*(plotter: Plotter; xfrom, yfrom, xto, yto: Types.Int32);
    BEGIN
       plotter.if.line(plotter, xfrom, yfrom, xto, yto);
    END Line;
 
    PROCEDURE Arc*(plotter: Plotter;
-                 xcenter, ycenter, xstart, ystart, xend, yend: INTEGER);
+                 xcenter, ycenter, xstart, ystart, xend, yend: Types.Int32);
    BEGIN
       plotter.if.arc(plotter, xcenter, ycenter, xstart, ystart, xend, yend);
    END Arc;
 
-   PROCEDURE Circle*(plotter: Plotter; xcenter, ycenter, radius: INTEGER);
+   PROCEDURE Circle*(plotter: Plotter; xcenter, ycenter, radius: Types.Int32);
    BEGIN
       plotter.if.circle(plotter, xcenter, ycenter, radius);
    END Circle;
@@ -246,7 +246,7 @@ MODULE ulmPlotters;
       plotter.if.setLineMode(plotter, mode);
    END SetLineMode;
 
-   PROCEDURE SetLineWidth*(plotter: Plotter; width: INTEGER);
+   PROCEDURE SetLineWidth*(plotter: Plotter; width: Types.Int32);
    BEGIN
       ASSERT((linewidth IN plotter.caps) & (width > 0));
       plotter.if.setLineWidth(plotter, width);

@@ -49,7 +49,7 @@ MODULE ulmPriorities;
       - gap defines the minimum distance between two priority regions
 	defined in this module
    *)
-
+   IMPORT Types := ulmTypes;
    CONST
       region* = 10;
       gap* = 10;
@@ -59,7 +59,7 @@ MODULE ulmPriorities;
 				*)
 
    TYPE
-      Priority* = INTEGER;
+      Priority* = Types.Int32;
 
    VAR
       (* current priority at begin of execution (after init of Events);

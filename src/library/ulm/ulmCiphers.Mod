@@ -30,14 +30,14 @@
 MODULE ulmCiphers;
 
 IMPORT Objects := ulmObjects, PersistentObjects := ulmPersistentObjects, PersistentDisciplines := ulmPersistentDisciplines, Services := ulmServices,
-       Streams := ulmStreams, Write := ulmWrite;
+       Streams := ulmStreams, Write := ulmWrite, Types := ulmTypes;
 
 TYPE
    Cipher* = POINTER TO CipherRec;
 
 TYPE
    CryptProc* = PROCEDURE (in: Streams.Stream; key: Cipher;
-                          length: INTEGER; out: Streams.Stream) : BOOLEAN;
+                          length: Types.Int32; out: Streams.Stream) : BOOLEAN;
 
 TYPE
    Interface* = POINTER TO InterfaceRec;
@@ -77,13 +77,13 @@ BEGIN
 END Decrypt;
 
 PROCEDURE EncryptPart*(in: Streams.Stream; key: Cipher;
-                      length: INTEGER; out: Streams.Stream) : BOOLEAN;
+                      length: Types.Int32; out: Streams.Stream) : BOOLEAN;
 BEGIN
    RETURN key.if.encrypt(in, key, length, out);
 END EncryptPart;
 
 PROCEDURE DecryptPart*(in: Streams.Stream; key: Cipher;
-                      length: INTEGER; out: Streams.Stream) : BOOLEAN;
+                      length: Types.Int32; out: Streams.Stream) : BOOLEAN;
 BEGIN
    RETURN key.if.decrypt(in, key, length, out);
 END DecryptPart;

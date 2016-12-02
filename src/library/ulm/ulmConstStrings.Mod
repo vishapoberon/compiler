@@ -49,8 +49,7 @@ MODULE ulmConstStrings;
 
    (* WORM-device for strings *)
 
-   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Process := ulmProcess, Services := ulmServices, Streams := ulmStreams, Strings := ulmStrings,
-      Texts := ulmTexts, Types := ulmTypes;
+   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Process := ulmProcess, Services := ulmServices, Streams := ulmStreams, Strings := ulmStrings, Texts := ulmTexts, Types := ulmTypes;
 
    CONST
       tabsize = 1031;		(* should be a prime number *)
@@ -65,7 +64,7 @@ MODULE ulmConstStrings;
       BufferRec =
 	 RECORD
 	    buf: ARRAY bufsize OF CHAR;
-	    free: INTEGER; (* buf[free..bufsize-1] is unused *)
+	    free: Types.Int32; (* buf[free..bufsize-1] is unused *)
 	    next: Buffer;
 	 END;
 
@@ -74,17 +73,17 @@ MODULE ulmConstStrings;
 	 RECORD
 	    (Disciplines.ObjectRec)
 	    (* read-only *)
-	    len-: Streams.Count;	(* length of string in bytes *)
-	    hashval-: LONGINT;	(* hash value *)
+	    len*: Streams.Count;	(* length of string in bytes *)
+	    hashval*: Types.Int32;	(* hash value *)
 	    (* private part *)
 	    domain: Domain;
 	    length: Streams.Count; (* private copy of length *)
 	    buf: Buffer;	(* first buffer containing the string *)
-	    offset: INTEGER;	(* offset into buf *)
+	    offset: Types.Int32;	(* offset into buf *)
 	    next: String;	(* list of strings with same hash value *)
 	 END;
 
-  TYPE
+   TYPE
       DomainRec* =
 	 RECORD
 	    (Disciplines.ObjectRec)
@@ -108,7 +107,7 @@ MODULE ulmConstStrings;
 	    (Streams.StreamRec)
 	    string: String;
 	    buf: Buffer;	(* current buffer *)
-	    offset: INTEGER;	(* index in current buffer *)
+	    offset: Types.Int32;	(* index in current buffer *)
 	    pos: Streams.Count;	(* current position *)
 	 END;
 
@@ -121,7 +120,7 @@ MODULE ulmConstStrings;
    (* === internal procedures =========================================== *)
 
    PROCEDURE HashVal(s: Streams.Stream; len: Streams.Count;
-		     VAR hashval, orighashval: LONGINT);
+		     VAR hashval, orighashval: Types.Int32);
       (* compute the hash value of the first `len' bytes of `s';
 	 the hash value is returned in two variants:
 	    hashval:      hash value MOD tabsize
@@ -130,7 +129,7 @@ MODULE ulmConstStrings;
       CONST
 	 shift = 4;
       VAR
-	 ordval: INTEGER;
+	 ordval: Types.Int32;
 	 ch: CHAR;
 	 index: Streams.Count;
 
@@ -159,7 +158,7 @@ MODULE ulmConstStrings;
       *)
       VAR
 	 ch: CHAR;
-	 buf: Buffer; offset: INTEGER;
+	 buf: Buffer; offset: Types.Int32;
 	 index: Streams.Count;
    BEGIN
       Streams.SetPos(s, 0);
@@ -183,7 +182,7 @@ MODULE ulmConstStrings;
    END Equal;
 
    PROCEDURE Allocate(domain: Domain; len: Streams.Count;
-		      VAR buf: Buffer; VAR offset: INTEGER);
+		      VAR buf: Buffer; VAR offset: Types.Int32);
       (* allocate space for `len' bytes;
          `buf' and `offset' are returned, designating the
 	 begin of the allocated area; note that
@@ -214,9 +213,9 @@ MODULE ulmConstStrings;
       offset := buf.free;
       WHILE len > 0 DO
 	 IF len <= bufsize - domain.tail.free THEN
-	    INC(domain.tail.free, SHORT(len)); len := 0;
+	    INC(domain.tail.free, len); len := 0;
 	 ELSE
-	    DEC(len, bufsize - LONG(domain.tail.free));
+	    DEC(len, bufsize - domain.tail.free);
 	    domain.tail.free := bufsize;
 	    NewBuffer;
 	 END;
@@ -224,7 +223,7 @@ MODULE ulmConstStrings;
    END Allocate;
 
    PROCEDURE CopyString(s: Streams.Stream; length: Streams.Count;
-			buf: Buffer; offset: INTEGER);
+			buf: Buffer; offset: Types.Int32);
       (* copy `length' bytes from `s' to `buf' at the given offset
 	 and its subsequent buffers
       *)
@@ -254,7 +253,7 @@ MODULE ulmConstStrings;
 			     VAR string: String);
       (* common part of CloseD and CreateD *)
       VAR
-	 orighashval, hashval: LONGINT;
+	 orighashval, hashval: Types.Int32;
 	 str: String;
    BEGIN
       HashVal(s, length, hashval, orighashval);
@@ -358,7 +357,7 @@ MODULE ulmConstStrings;
       s := rs;
    END Open;
 
-   PROCEDURE Compare*(string1, string2: String) : INTEGER;
+   PROCEDURE Compare*(string1, string2: String) : Types.Int32;
       (* returns < 0: if string1 < string2
 		 = 0: if string1 = string2 (see note above)
 		 > 0: if string1 > string2
@@ -366,10 +365,10 @@ MODULE ulmConstStrings;
       VAR
 	 ch1, ch2: CHAR;
 	 buf1, buf2: Buffer;
-	 offset1, offset2: INTEGER;
+	 offset1, offset2: Types.Int32;
 	 len1, len2: Streams.Count;
 
-      PROCEDURE Next(VAR buf: Buffer; VAR offset: INTEGER; VAR ch: CHAR);
+      PROCEDURE Next(VAR buf: Buffer; VAR offset: Types.Int32; VAR ch: CHAR);
       BEGIN
 	 ch := buf.buf[offset];
 	 INC(offset);
@@ -409,7 +408,7 @@ MODULE ulmConstStrings;
       VAR
 	 len: Streams.Count;
 	 buf: Buffer;
-	 offset: INTEGER;
+	 offset: Types.Int32;
 	 count: Streams.Count;
 	 bytes: Streams.Count;
    BEGIN
@@ -427,7 +426,7 @@ MODULE ulmConstStrings;
 	    INC(count, s.count);
 	    EXIT
 	 END;
-	 INC(count, bytes); DEC(len, bytes); INC(offset, SHORT(bytes));
+	 INC(count, bytes); DEC(len, bytes); INC(offset, bytes);
 	 IF offset >= bufsize THEN
 	    buf := buf.next;
 	    offset := 0;
@@ -441,7 +440,7 @@ MODULE ulmConstStrings;
       VAR
 	 len: Streams.Count;
 	 buf: Buffer;
-	 offset: INTEGER;
+	 offset: Types.Int32;
 	 index: Streams.Count;
    BEGIN
       len := string.length;
@@ -480,7 +479,7 @@ MODULE ulmConstStrings;
       END;
    END ReadByte;
 
-   PROCEDURE ReadBuf(s: Streams.Stream; VAR buf: ARRAY OF Types.Byte(*BYTE*);
+   PROCEDURE ReadBuf(s: Streams.Stream; VAR buf: ARRAY OF Types.Byte;
                      off, cnt: Streams.Count) : Streams.Count;
       VAR
          bytes, max: Streams.Count;
@@ -520,7 +519,6 @@ MODULE ulmConstStrings;
 	 | Streams.fromStart: realpos := cnt;
 	 | Streams.fromPos:   realpos := s.pos + cnt;
 	 | Streams.fromEnd:   realpos := s.string.length + cnt;
-    ELSE
 	 END;
 	 IF (realpos < 0) OR (realpos > s.string.length) THEN
 	    RETURN FALSE
@@ -531,10 +529,10 @@ MODULE ulmConstStrings;
 	    END;
 	    WHILE s.pos < realpos DO
 	       IF realpos - s.pos < bufsize - s.offset THEN
-		  INC(s.offset, SHORT(realpos - s.pos));
+		  INC(s.offset, realpos - s.pos);
 		  s.pos := realpos;
 	       ELSE
-		  INC(s.pos, LONG(bufsize - s.offset));
+		  INC(s.pos, bufsize - s.offset);
 		  s.offset := 0;
 		  s.buf := s.buf.next;
 	       END;

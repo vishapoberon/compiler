@@ -72,7 +72,7 @@ MODULE ulmPersistentObjects;
 
   IMPORT ASCII := ulmASCII, ConstStrings := ulmConstStrings, Disciplines := ulmDisciplines, Errors := ulmErrors, Events := ulmEvents, Forwarders := ulmForwarders,
     IndirectDisciplines := ulmIndirectDisciplines, Loader := ulmLoader, NetIO := ulmNetIO, Objects := ulmObjects, Priorities := ulmPriorities,
-    RelatedEvents := ulmRelatedEvents, Services := ulmServices, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, Strings := ulmStrings, Texts := ulmTexts, SYS := SYSTEM;
+    RelatedEvents := ulmRelatedEvents, Services := ulmServices, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, Strings := ulmStrings, Texts := ulmTexts, SYS := SYSTEM, Types := ulmTypes;
 
   CONST
     maxNameLen = 128; (* max length of data type names *)
@@ -123,8 +123,8 @@ MODULE ulmPersistentObjects;
     maxF = 13; (* maximal valid form code *)
 
   TYPE
-    Mode* = SHORTINT;
-    Form = SHORTINT;
+    Mode* = Types.Int8;
+    Form = Types.Int8;
 
     Object* = POINTER TO ObjectRec;
     Type = POINTER TO TypeRec;
@@ -160,7 +160,7 @@ MODULE ulmPersistentObjects;
     TypeEntry = POINTER TO TypeEntryRec;
     TypeEntryRec =
       RECORD
-        code: LONGINT;
+        code: Types.Int32;
         type: Type;
         next: TypeEntry;
       END;
@@ -185,7 +185,7 @@ MODULE ulmPersistentObjects;
         baseType: Type;      (* the next non-abstract base type *)
         if: Interface;       (* may be = NIL for abstract types *)
         ifs: InterfaceList;  (* list of interfaces in reverse order *)
-        code: LONGINT;       (* unique number *)
+        code: Types.Int32;       (* unique number *)
       END;
 
     (* this list is used for storing the base type list of an object during
@@ -201,7 +201,7 @@ MODULE ulmPersistentObjects;
     (* each error causes an event; the error number is stored in
       event.errorcode; the associated text can be taken from event.message
     *)
-    ErrorCode = SHORTINT;
+    ErrorCode = Types.Int8;
     Event = POINTER TO EventRec;
     EventRec* =
       RECORD
@@ -230,7 +230,7 @@ MODULE ulmPersistentObjects;
 
   VAR
     id: Disciplines.Identifier;
-    nextTypeCode: LONGINT; (* for the generation of unique numbers *)
+    nextTypeCode: Types.Int32; (* for the generation of unique numbers *)
     potype: Services.Type;
 
     errormsg*: ARRAY errorcodes OF Events.Message;
@@ -298,7 +298,7 @@ MODULE ulmPersistentObjects;
     PROCEDURE WriteLn(s: Streams.Stream) : BOOLEAN;
       VAR
         lineterm: StreamDisciplines.LineTerminator;
-        width: INTEGER;
+        width: Types.Int32;
     BEGIN
       StreamDisciplines.GetLineTerm(s, lineterm);
       IF ~WriteString(s, lineterm) THEN RETURN FALSE END;
@@ -383,7 +383,7 @@ MODULE ulmPersistentObjects;
   (* encoding scheme:
 
     Object = Form Type Size ObjectInfo .
-    Form = SHORTINT;
+    Form = Types.Int8;
     Type = Code (* codeF *) |
          Code TypeName (* incrF *) |
          TypeName (* nameF *) |
@@ -397,8 +397,8 @@ MODULE ulmPersistentObjects;
   PROCEDURE DecodeForm(form: Form;
                 VAR nameGiven, codeGiven, hier, size: BOOLEAN);
     VAR
-      typeform: SHORTINT;
-      sizeform: SHORTINT;
+      typeform: Types.Int8;
+      sizeform: Types.Int8;
   BEGIN
     typeform := form MOD maskF; sizeform := form DIV maskF;
     nameGiven := typeform IN {incrF, nameF, hierF, incrhierF};
@@ -410,7 +410,7 @@ MODULE ulmPersistentObjects;
   PROCEDURE GetModule(name: ARRAY OF CHAR; VAR module: ARRAY OF CHAR);
     (* get the name of the module where 'name' was defined *)
     VAR
-      index: INTEGER;
+      index: Types.Int32;
   BEGIN
     index := 0;
     WHILE (name[index] # ".") & (name[index] # 0X) &
@@ -471,7 +471,7 @@ MODULE ulmPersistentObjects;
     PROCEDURE ReadType(s: Streams.Stream; VAR type: Type;
                  VAR sentinelFound, unknownTypeFound: BOOLEAN) : BOOLEAN;
       VAR
-        code: LONGINT;
+        code: Types.Int32;
         entry: TypeEntry;
         typeName: TypeName;
         btype: Type;
@@ -755,7 +755,7 @@ MODULE ulmPersistentObjects;
       baseType: Services.Type;
       member: InterfaceList;
       bt: Type;
-      ifval: INTEGER;
+      ifval: Types.Int32;
   BEGIN
     (* check the parameters *)
     ASSERT(name[0] # 0X);

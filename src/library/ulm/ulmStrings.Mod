@@ -64,7 +64,7 @@ MODULE ulmStrings;
       posOutside* = 3;		(* trunc failure: position beyond trunc pos *)
       errorcodes* = 4;
    TYPE
-      ErrorCode* = SHORTINT;
+      ErrorCode* = Types.Int8;
       Event* = POINTER TO EventRec;
       EventRec* =
 	 RECORD
@@ -91,13 +91,13 @@ MODULE ulmStrings;
    (* ======= string to stream operations =========================== *)
 
    PROCEDURE WritePart*(stream: Streams.Stream; string: ARRAY OF CHAR;
-		       sourceIndex: LONGINT);
+		       sourceIndex: Types.Int32);
       (* seek to position 0 of `stream' and
 	 copy string[sourceIndex..] to it;
 	 the file pointer of `stream' is left on position 0
       *)
       VAR
-	 index: LONGINT;
+	 index: Types.Int32;
    BEGIN
       IF ~Streams.Seek(stream, 0, Streams.fromStart) OR
 	 ~Streams.Trunc(stream, 0) THEN
@@ -122,12 +122,12 @@ MODULE ulmStrings;
 
    (* ======= stream to string operations =========================== *)
 
-   PROCEDURE ReadPart*(VAR string: ARRAY OF CHAR; destIndex: LONGINT;
+   PROCEDURE ReadPart*(VAR string: ARRAY OF CHAR; destIndex: Types.Int32;
 		      stream: Streams.Stream);
       (* like `Read' but fill string[destIndex..] *)
       VAR
-	 len: LONGINT;
-	 endIndex: LONGINT;
+	 len: Types.Int32;
+	 endIndex: Types.Int32;
    BEGIN
       len := LEN(string);
       IF Streams.Seek(stream, 0, Streams.fromStart) & (destIndex < len) THEN
@@ -160,8 +160,8 @@ MODULE ulmStrings;
    PROCEDURE Copy*(VAR destination: ARRAY OF CHAR;
 		  source: ARRAY OF CHAR);
       VAR
-	 index: LONGINT;
-	 minlen: LONGINT;
+	 index: Types.Int32;
+	 minlen: Types.Int32;
    BEGIN
       minlen := LEN(destination);
       IF minlen > LEN(source) THEN
@@ -180,8 +180,8 @@ MODULE ulmStrings;
       destination[index] := 0X;
    END Copy;
 
-   PROCEDURE PartCopy*(VAR destination: ARRAY OF CHAR; destIndex: LONGINT;
-		      source: ARRAY OF CHAR; sourceIndex: LONGINT);
+   PROCEDURE PartCopy*(VAR destination: ARRAY OF CHAR; destIndex: Types.Int32;
+		      source: ARRAY OF CHAR; sourceIndex: Types.Int32);
       (* copy source[sourceIndex..] to destination[destIndex..] *)
    BEGIN
       WHILE (destIndex+1 < LEN(destination)) &
@@ -195,10 +195,10 @@ MODULE ulmStrings;
       END;
    END PartCopy;
 
-   PROCEDURE Len*(string: ARRAY OF CHAR) : LONGINT;
+   PROCEDURE Len*(string: ARRAY OF CHAR) : Types.Int32;
       (* returns the number of characters (without terminating 0X) *)
       VAR
-	 len: LONGINT;
+	 len: Types.Int32;
    BEGIN
       len := 0;
       WHILE (len < LEN(string)) & (string[len] # 0X) DO
@@ -316,7 +316,7 @@ MODULE ulmStrings;
 
    PROCEDURE Flush(s: Streams.Stream) : BOOLEAN;
       VAR
-	 len: LONGINT;
+	 len: Types.Int32;
 	 ch: CHAR;
    BEGIN
       WITH s: Stream DO

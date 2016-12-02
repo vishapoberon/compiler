@@ -39,7 +39,7 @@
 MODULE ulmScales;
 
   IMPORT Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Operations := ulmOperations, PersistentObjects := ulmPersistentObjects,
-    RelatedEvents := ulmRelatedEvents, Services := ulmServices, SYS := SYSTEM;
+    RelatedEvents := ulmRelatedEvents, Services := ulmServices, SYS := SYSTEM, Types := ulmTypes;
 
   TYPE
     Scale* = POINTER TO ScaleRec;
@@ -88,25 +88,25 @@ MODULE ulmScales;
       RECORD
         (Operations.OperandRec)
         scale: Scale;
-        type: SHORTINT; (* absolute or relative? *)
+        type: Types.Int8; (* absolute or relative? *)
       END;
   VAR
     measureType: Services.Type;
 
   TYPE
-    Value* = LONGINT;
+    Value* = Types.Int32;
 
   CONST
     add* = Operations.add; sub* = Operations.sub;
   TYPE
-    Operation* = SHORTINT; (* add or sub *)
+    Operation* = Types.Int8; (* add or sub *)
   TYPE
     CreateProc* = PROCEDURE (scale: Scale; VAR measure: Measure; abs: BOOLEAN);
     GetValueProc* = PROCEDURE (measure: Measure; unit: Unit; VAR value: Value);
     SetValueProc* = PROCEDURE (measure: Measure; unit: Unit; value: Value);
     AssignProc* = PROCEDURE (target: Measure; source: Measure);
     OperatorProc* = PROCEDURE (op: Operation; op1, op2, result: Measure);
-    CompareProc* = PROCEDURE (op1, op2: Measure) : INTEGER;
+    CompareProc* = PROCEDURE (op1, op2: Measure) : Types.Int32;
     ConvertProc* = PROCEDURE (from, to: Measure);
 
     InterfaceRec* =
@@ -183,7 +183,7 @@ MODULE ulmScales;
     scale.tail := listp;
   END InitUnit;
 
-  PROCEDURE CreateMeasure*(scale: Scale; VAR measure: Measure; type: SHORTINT);
+  PROCEDURE CreateMeasure*(scale: Scale; VAR measure: Measure; type: Types.Int8);
   BEGIN
     scale.if.create(scale, measure, type = absolute);
     Operations.Init(measure, opif, opcaps);
@@ -295,7 +295,7 @@ MODULE ulmScales;
     RETURN measure.type = relative
   END IsRelative;
 
-  PROCEDURE MeasureType*(measure: Measure) : SHORTINT;
+  PROCEDURE MeasureType*(measure: Measure) : Types.Int8;
   BEGIN
     RETURN measure.type
   END MeasureType;
@@ -372,10 +372,10 @@ MODULE ulmScales;
   PROCEDURE Op(op: Operations.Operation; op1, op2: Operations.Operand;
            VAR result: Operations.Operand);
     VAR
-      restype: SHORTINT; (* type of result -- set by CheckTypes *)
+      restype: Types.Int8; (* type of result -- set by CheckTypes *)
       m1, m2: Measure;
 
-    PROCEDURE CheckTypes(VAR restype: SHORTINT);
+    PROCEDURE CheckTypes(VAR restype: Types.Int8);
       (* check operands for correct typing;
         sets restype to the correct result type;
       *)
@@ -419,7 +419,7 @@ MODULE ulmScales;
     END;
   END Op;
 
-  PROCEDURE Compare(op1, op2: Operations.Operand) : INTEGER;
+  PROCEDURE Compare(op1, op2: Operations.Operand) : Types.Int32;
     VAR
       m1, m2: Measure;
   BEGIN

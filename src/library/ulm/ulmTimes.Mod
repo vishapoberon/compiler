@@ -38,7 +38,7 @@
 MODULE ulmTimes;
 
   IMPORT NetIO := ulmNetIO, Objects := ulmObjects, Operations := ulmOperations, PersistentObjects := ulmPersistentObjects, Scales := ulmScales,
-    Services := ulmServices, Streams := ulmStreams;
+    Services := ulmServices, Streams := ulmStreams, Types := ulmTypes;
 
   CONST
     relative* = Scales.relative;
@@ -86,7 +86,7 @@ MODULE ulmTimes;
     UnitRec =
       RECORD
         (Scales.UnitRec)
-        index: SHORTINT; (* epochUnit..usecUnit *)
+        index: Types.Int8; (* epochUnit..usecUnit *)
       END;
 
   VAR
@@ -94,7 +94,7 @@ MODULE ulmTimes;
     family*: Scales.Family; (* family of time scales *)
     if: Scales.Interface;
 
-  PROCEDURE Create*(VAR time: Time; type: SHORTINT);
+  PROCEDURE Create*(VAR time: Time; type: Types.Int8);
     (* type = absolute or relative *)
     VAR
       m: Scales.Measure;
@@ -157,7 +157,7 @@ MODULE ulmTimes;
     END;
   END SetValue;
 
-  PROCEDURE CreateAndSet*(VAR time: Time; type: SHORTINT;
+  PROCEDURE CreateAndSet*(VAR time: Time; type: Types.Int8;
                   epoch, second, usec: Scales.Value);
     VAR
       timeval: TimeValueRec;
@@ -285,9 +285,9 @@ MODULE ulmTimes;
     END; END;
   END Op;
 
-  PROCEDURE Compare(op1, op2: Scales.Measure) : INTEGER;
+  PROCEDURE Compare(op1, op2: Scales.Measure) : Types.Int32;
 
-    PROCEDURE ReturnVal(val1, val2: Scales.Value) : INTEGER;
+    PROCEDURE ReturnVal(val1, val2: Scales.Value) : Types.Int32;
     BEGIN
           IF val1 < val2 THEN
             RETURN -1
@@ -370,7 +370,7 @@ MODULE ulmTimes;
     VAR
       poif: PersistentObjects.Interface;
 
-    PROCEDURE InitUnit(unitIndex: SHORTINT; name: Scales.UnitName);
+    PROCEDURE InitUnit(unitIndex: Types.Int8; name: Scales.UnitName);
       VAR
         unit: Unit;
     BEGIN

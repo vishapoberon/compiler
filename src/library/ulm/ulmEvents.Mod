@@ -39,7 +39,7 @@
 
 MODULE ulmEvents;
 
-   IMPORT Objects := ulmObjects, Priorities := ulmPriorities, Services := ulmServices, SYS := ulmSYSTEM;
+   IMPORT Objects := ulmObjects, Priorities := ulmPriorities, Services := ulmServices, SYS := ulmSYSTEM, Types := ulmTypes;
 
    TYPE
       EventType* = POINTER TO EventTypeRec;
@@ -51,7 +51,7 @@ MODULE ulmEvents;
       funcs* = 2;               (* call associated event handlers *)
 
    TYPE
-      Reaction* = INTEGER;      (* one of default, ignore, or funcs *)
+      Reaction* = Types.Int32;      (* one of default, ignore, or funcs *)
       Message* = ARRAY 80 OF CHAR;
       Event* = POINTER TO EventRec;
       EventRec* =
@@ -69,7 +69,7 @@ MODULE ulmEvents;
       *)
       EventManager = PROCEDURE (type: EventType; reaction: Reaction);
 
-      Priority = INTEGER; (* must be non-negative *)
+      Priority = Types.Int32; (* must be non-negative *)
 
       (* every event with reaction `funcs' has a handler list;
          the list is in calling order which is reverse to
@@ -104,7 +104,7 @@ MODULE ulmEvents;
       Queue = POINTER TO QueueRec;
       QueueRec =
          RECORD
-            priority: INTEGER;          (* queue for this priority *)
+            priority: Types.Int32;          (* queue for this priority *)
             head, tail: Event;
             next: Queue;                (* queue with lower priority *)
          END;
@@ -125,8 +125,8 @@ MODULE ulmEvents;
             (* private part *)
             currentPriority: Priority;
             priotab: ARRAY priotabsize OF Priority;
-            priotop: INTEGER;
-            overflow: INTEGER;  (* of priority table *)
+            priotop: Types.Int32;
+            overflow: Types.Int32;  (* of priority table *)
          END;
 
    CONST
@@ -141,7 +141,7 @@ MODULE ulmEvents;
       ErrorEventRec* =
          RECORD
             (EventRec)
-            errorcode*: SHORTINT;
+            errorcode*: Types.Int8;
          END;
 
    VAR
@@ -151,7 +151,7 @@ MODULE ulmEvents;
    VAR
       (* private part *)
       abort, log, queueHandler: EventHandler;
-      nestlevel: INTEGER;       (* of Raise calls *)
+      nestlevel: Types.Int32;       (* of Raise calls *)
       queue: Queue;
       lock: BOOLEAN;            (* lock critical operations *)
       psys: PrioritySystem;     (* current priority system *)
@@ -173,7 +173,7 @@ MODULE ulmEvents;
          "negative priority given to Events.SetPriority";
    END InitErrorHandling;
 
-   PROCEDURE Error(code: SHORTINT);
+   PROCEDURE Error(code: Types.Int8);
       VAR event: ErrorEvent;
    BEGIN
       NEW(event); event.type := error;
@@ -301,10 +301,10 @@ MODULE ulmEvents;
 (* now QueueHandler will translate partly like
         BOOLEAN b;
         handler_EventHandler tmphandler;
-        LONGINT i, j;
-        i = (LONGINT)handler;
+        Types.Int32 i, j;
+        i = (Types.Int32)handler;
         tmphandler = handler_NilHandler;
-        j = (LONGINT)tmphandler;
+        j = (Types.Int32)tmphandler;
         b = i != j;
 *)
 (* changed because voc cannot compara handler and NilHandler -- noch *)
@@ -316,12 +316,12 @@ MODULE ulmEvents;
       *)
       VAR b : BOOLEAN; (* noch *)
       tmphandler : EventHandler;
-      (*i,j : LONGINT;*)
+      (*i,j : Types.Int32;*)
    BEGIN
-      (*i := SYSTEM.VAL(LONGINT, handler);*)
+      (*i := SYSTEM.VAL(Types.Int32, handler);*)
       tmphandler := NilHandler;
       (*b := tmphandler = handler;*)
-      (*j := SYSTEM.VAL(LONGINT, tmphandler);
+      (*j := SYSTEM.VAL(Types.Int32, tmphandler);
       b := i # j;*)
       b := handler # tmphandler;
       (*ASSERT (handler # NilHandler);*)

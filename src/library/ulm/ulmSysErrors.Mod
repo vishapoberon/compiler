@@ -1,6 +1,6 @@
 MODULE ulmSysErrors;
 
-   IMPORT Errors := ulmErrors, Events := ulmEvents, Priorities := ulmPriorities, RelatedEvents := ulmRelatedEvents, Streams := ulmStreams, Strings := ulmStrings, Sys := ulmSys;
+   IMPORT Errors := ulmErrors, Events := ulmEvents, Priorities := ulmPriorities, RelatedEvents := ulmRelatedEvents, Streams := ulmStreams, Strings := ulmStrings, Sys := ulmSys, Types := ulmTypes;
 
    CONST
       perm*		= 1;
@@ -138,8 +138,8 @@ MODULE ulmSysErrors;
       EventRec* =
 	 RECORD
 	    (Events.EventRec)
-	    errno*: (*INTEGER*)LONGINT;
-	    syscall*: (*INTEGER*)LONGINT; (* number of system call *)
+	    errno*: (*Types.Int32*)Types.Int32;
+	    syscall*: (*Types.Int32*)Types.Int32; (* number of system call *)
 	    text*: ARRAY textlen OF CHAR;
 	 END;
 
@@ -150,7 +150,7 @@ MODULE ulmSysErrors;
       syserror*: ARRAY ncodes OF Events.EventType;
 
    PROCEDURE Raise*(errors: RelatedEvents.Object;
-		   errno, syscall: (*INTEGER*)LONGINT; text: ARRAY OF CHAR); (* in ulm's system INTEGER and LONGINT have the same size *)
+		   errno, syscall: (*Types.Int32*)Types.Int32; text: ARRAY OF CHAR); (* in ulm's system Types.Int32 and Types.Int32 have the same size *)
       (* raises the events syserrors and syserrors[syscall];
 	 `text' contains additional information (e.g. filenames);
 	 further, the syserrors[syscall] event is passed to
@@ -192,9 +192,9 @@ MODULE ulmSysErrors;
 	 IF ~Streams.WriteByte(s, ch) THEN END;
       END Write;
 
-      PROCEDURE WriteInt(intval: LONGINT);
+      PROCEDURE WriteInt(intval: Types.Int32);
 	 VAR
-	    rest: LONGINT;
+	    rest: Types.Int32;
       BEGIN
 	 rest := intval DIV 10;
 	 IF rest > 0 THEN
@@ -231,7 +231,7 @@ MODULE ulmSysErrors;
 
    PROCEDURE InitEvents;
       VAR
-	 errno: INTEGER;
+	 errno: Types.Int32;
    BEGIN
       syserror[0] := NIL;
       errno := 1;
@@ -447,11 +447,11 @@ BEGIN
    message[netdown] := "Network is down";
    name[netunreach] := "ENETUNREACH";
    message[netunreach] := "Network is unreachable";
-   name[netreset] := "ENETRESET";
+   name[netreset] := "ENETRETypes.Set";
    message[netreset] := "Network dropped connection because of reset";
    name[connaborted] := "ECONNABORTED";
    message[connaborted] := "Software caused connection abort";
-   name[connreset] := "ECONNRESET";
+   name[connreset] := "ECONNRETypes.Set";
    message[connreset] := "Connection reset by peer";
    name[nobufs] := "ENOBUFS";
    message[nobufs] := "No buffer space available";

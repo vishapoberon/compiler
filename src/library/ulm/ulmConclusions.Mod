@@ -39,22 +39,22 @@ MODULE ulmConclusions;
    *)
 
    IMPORT Errors := ulmErrors, Events := ulmEvents, Process := ulmProcess, RelatedEvents := ulmRelatedEvents, StreamDisciplines := ulmStreamDisciplines,
-      Streams := ulmStreams, Strings := ulmStrings, Write := ulmWrite;
+      Streams := ulmStreams, Strings := ulmStrings, Write := ulmWrite, Types := ulmTypes;
 
    VAR
       handlerSet*: Errors.HandlerSet;
-      errors*: INTEGER; (* number of errors *)
-      fatalcode*: INTEGER; (* exit code on fatal events *)
+      errors*: Types.Int32; (* number of errors *)
+      fatalcode*: Types.Int32; (* exit code on fatal events *)
 
       (* private variables *)
       cmdName: Process.Name; (* should be sufficient for a base name *)
-      cmdNameLen: INTEGER; (* Strings.Len(cmdName) *)
+      cmdNameLen: Types.Int32; (* Strings.Len(cmdName) *)
 
    (* private procedures *)
 
    PROCEDURE GeneralHandler(event: Events.Event; kind: Errors.Kind);
       VAR
-	 width: INTEGER;
+	 width: Types.Int32;
    BEGIN
       IF event # NIL THEN
 	 Write.IndentS(Streams.stderr);
@@ -114,7 +114,7 @@ MODULE ulmConclusions;
 		       text: ARRAY OF CHAR);
       VAR
 	 queue: RelatedEvents.Queue;
-	 width: INTEGER;
+	 width: Types.Int32;
 
       PROCEDURE ReverseQueue(VAR queue: RelatedEvents.Queue);
 	 VAR

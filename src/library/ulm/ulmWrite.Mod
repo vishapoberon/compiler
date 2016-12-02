@@ -33,31 +33,31 @@
 
 MODULE ulmWrite;
 
-   IMPORT ASCII := ulmASCII, Print := ulmPrint, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, SYSTEM, SYS := ulmSYSTEM;
+   IMPORT ASCII := ulmASCII, Print := ulmPrint, StreamDisciplines := ulmStreamDisciplines, Streams := ulmStreams, SYSTEM, SYS := ulmSYSTEM, Types := ulmTypes;
   (* 
-      TYPE barr = ARRAY SIZE(LONGINT) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
+      TYPE barr = ARRAY SIZE(Types.Int32) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly Types.Int32 to ARRAY OF BYTE; -- noch *)
           pbarr = POINTER TO barr;
-      TYPE lrarr = ARRAY SIZE(LONGREAL) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly LONGINT to ARRAY OF BYTE; -- noch *)
+      TYPE lrarr = ARRAY SIZE(Types.Real64) OF SYSTEM.BYTE; (* need this because voc does not convert implicitly Types.Int32 to ARRAY OF BYTE; -- noch *)
           plrarr = POINTER TO barr;
 	      
-   PROCEDURE LongToByteArr ( l : LONGINT; VAR bar : barr); (* noch *)
+   PROCEDURE LongToByteArr ( l : Types.Int32; VAR bar : barr); (* noch *)
    VAR b : SYSTEM.BYTE;
        p : pbarr;
-       i : LONGINT;
+       i : Types.Int32;
    BEGIN
       p := SYSTEM.VAL(pbarr, SYSTEM.ADR(l));
-      FOR i := 0 TO SIZE(LONGINT) -1 DO
+      FOR i := 0 TO SIZE(Types.Int32) -1 DO
          b := p^[i]; bar[i] := b;
       END
    END LongToByteArr;
 
-   PROCEDURE LRealToByteArr ( l : LONGREAL; VAR lar : lrarr); (* noch *)
+   PROCEDURE LRealToByteArr ( l : Types.Real64; VAR lar : lrarr); (* noch *)
    VAR b : SYSTEM.BYTE;
        p : plrarr;
-       i : LONGINT;
+       i : Types.Int32;
    BEGIN
       p := SYSTEM.VAL(plrarr, SYSTEM.ADR(l));
-      FOR i := 0 TO SIZE(LONGREAL) -1 DO
+      FOR i := 0 TO SIZE(Types.Real64) -1 DO
          b := p^[i]; lar[i] := b;
       END
    END LRealToByteArr;
@@ -65,7 +65,7 @@ MODULE ulmWrite;
 
 *)
 
-   PROCEDURE IntS*(s: Streams.Stream; int: LONGINT; width: LONGINT);
+   PROCEDURE IntS*(s: Streams.Stream; int: Types.Int32; width: Types.Int32);
    VAR b, b0 : SYS.bytearray; 
    BEGIN
       SYS.LongToByteArr(int, b);
@@ -73,7 +73,7 @@ MODULE ulmWrite;
       Print.S2(s, "%*d", b0, b);
    END IntS;
 
-   PROCEDURE RealS*(s: Streams.Stream; real: LONGREAL; width: LONGINT);
+   PROCEDURE RealS*(s: Streams.Stream; real: Types.Real64; width: Types.Int32);
    VAR b : SYS.bytearray; lr : SYS.longrealarray;
    BEGIN
       SYS.LRealToByteArr(real, lr);
@@ -93,11 +93,11 @@ MODULE ulmWrite;
 
    PROCEDURE LineS*(s: Streams.Stream; str: ARRAY OF CHAR);
       VAR
-	 count: LONGINT;
+	 count: Types.Int32;
 	 nlOK: BOOLEAN;
-	 cnt: LONGINT;
+	 cnt: Types.Int32;
 	 lineterm: StreamDisciplines.LineTerminator;
-	 len: INTEGER; i: INTEGER;
+	 len: Types.Int32; i: Types.Int32;
    BEGIN
       cnt := 0;
       WHILE (cnt < LEN(str)) & (str[cnt] # 0X) DO
@@ -141,7 +141,7 @@ MODULE ulmWrite;
    PROCEDURE LnS*(s: Streams.Stream);
       VAR
 	 lineterm: StreamDisciplines.LineTerminator;
-	 len: INTEGER;
+	 len: Types.Int32;
    BEGIN
       StreamDisciplines.GetLineTerm(s, lineterm);
       IF lineterm[1] = 0X THEN
@@ -157,7 +157,7 @@ MODULE ulmWrite;
 
    PROCEDURE StringS*(s: Streams.Stream; str: ARRAY OF CHAR);
       VAR
-	 cnt: LONGINT;
+	 cnt: Types.Int32;
    BEGIN
       cnt := 0;
       WHILE (cnt < LEN(str)) & (str[cnt] # 0X) DO
@@ -168,7 +168,7 @@ MODULE ulmWrite;
 
    PROCEDURE IndentS*(s: Streams.Stream);
       VAR
-	 indentwidth: INTEGER;
+	 indentwidth: Types.Int32;
    BEGIN
       StreamDisciplines.GetIndentationWidth(s, indentwidth);
       WHILE (indentwidth > 0) & Streams.WriteByte(s, " ") DO
@@ -180,12 +180,12 @@ MODULE ulmWrite;
 
    (* procedures writing to Streams.stdout *)
 
-   PROCEDURE Int*(int: LONGINT; width: LONGINT);
+   PROCEDURE Int*(int: Types.Int32; width: Types.Int32);
    BEGIN
       IntS(Streams.stdout, int, width);
    END Int;
 
-   PROCEDURE Real*(real: LONGREAL; width: LONGINT);
+   PROCEDURE Real*(real: Types.Real64; width: Types.Int32);
       (* write real in exponential format *)
    BEGIN
       RealS(Streams.stdout, real, width);

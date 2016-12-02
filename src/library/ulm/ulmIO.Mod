@@ -1,6 +1,6 @@
 MODULE ulmIO;
 
-  IMPORT SYS := ulmSYSTEM, SYSTEM, Platform;
+  IMPORT SYS := ulmSYSTEM, SYSTEM, Platform, Types := ulmTypes;
 
   CONST nl = 0AX;
 
@@ -11,7 +11,7 @@ MODULE ulmIO;
     dec = 1;
     hex = 2;
   TYPE
-    Basetype = SHORTINT; (* oct..hex *)
+    Basetype = Types.Int8; (* oct..hex *)
 
   (* basic IO *)
 
@@ -22,7 +22,7 @@ MODULE ulmIO;
 
   (* ==================== conversions ================================= *)
 
-  PROCEDURE ConvertNumber(num, len: LONGINT; btyp: Basetype; neg: BOOLEAN;
+  PROCEDURE ConvertNumber(num, len: Types.Int32; btyp: Basetype; neg: BOOLEAN;
     VAR str: ARRAY OF CHAR);
 
     (* conversion of a number into a string of characters *)
@@ -36,13 +36,13 @@ MODULE ulmIO;
     VAR
     (*digits    : ARRAY NumberLen+1 OF CHAR;*)
       digits    : POINTER TO ARRAY OF CHAR;
-      base      : INTEGER;
-      cnt, ix   : INTEGER;
-      maxlen    : LONGINT;
-      dig       : LONGINT;
-      NumberLen : SHORTINT;
+      base      : Types.Int32;
+      cnt, ix   : Types.Int32;
+      maxlen    : Types.Int32;
+      dig       : Types.Int32;
+      NumberLen : Types.Int8;
   BEGIN
-    IF  SIZE(LONGINT) = 8 THEN
+    IF  SIZE(Types.Int32) = 8 THEN
       NumberLen := 21
     ELSE
       NumberLen := 11 (* default value, corresponds to 32 bit *)
@@ -107,7 +107,7 @@ MODULE ulmIO;
     END;
   END ConvertNumber;
 
-  PROCEDURE ConvertInteger(num: LONGINT; len: INTEGER; VAR str: ARRAY OF
+  PROCEDURE ConvertInteger(num: Types.Int32; len: Types.Int32; VAR str: ARRAY OF
     CHAR);
   (* conversion of an integer decimal number to a string *)
   BEGIN
@@ -119,8 +119,8 @@ MODULE ulmIO;
 (*
   PROCEDURE ReadChar(VAR ch: CHAR) : BOOLEAN;
     CONST read = 3;
-    (*VAR r0, r1: INTEGER;*)
-    VAR r0, r1: LONGINT; (* in ulm system INTEGER and LONGINT have the same 4 byte size; -- noch *)
+    (*VAR r0, r1: Types.Int32;*)
+    VAR r0, r1: Types.Int32; (* in ulm system Types.Int32 and Types.Int32 have the same 4 byte size; -- noch *)
   BEGIN
     RETURN SYS.UNIXCALL(read, r0, r1, 0, SYSTEM.ADR(ch), 1) & (r0 > 0)
   END ReadChar;
@@ -128,7 +128,7 @@ MODULE ulmIO;
 
   PROCEDURE ReadChar(VAR ch: CHAR) : BOOLEAN;
   (* Read one byte, returning success flag *)
-    VAR error: Platform.ErrorCode; readcount: LONGINT;
+    VAR error: Platform.ErrorCode; readcount: Types.Int32;
   BEGIN
     error := Platform.ReadBuf(Platform.StdIn, ch, readcount);
     RETURN readcount > 0
@@ -137,8 +137,8 @@ MODULE ulmIO;
 (*
   PROCEDURE WriteChar(ch: CHAR) : BOOLEAN;
     CONST write = 4;
-    (*VAR r0, r1: INTEGER;*)
-    VAR r0, r1: LONGINT;     (* same here *)
+    (*VAR r0, r1: Types.Int32;*)
+    VAR r0, r1: Types.Int32;     (* same here *)
   BEGIN
     RETURN SYS.UNIXCALL(write, r0, r1, 1, SYSTEM.ADR(ch), 1)
   END WriteChar;
@@ -186,7 +186,7 @@ MODULE ulmIO;
   END WriteLn;
 
   PROCEDURE WriteString*(s: ARRAY OF CHAR);
-    VAR i: INTEGER;
+    VAR i: Types.Int32;
   BEGIN
     i := 0;
     WHILE (i < LEN(s)) & (s[i] # 0X) DO
@@ -201,14 +201,14 @@ MODULE ulmIO;
     Done := TRUE;
   END InitIO;
 
-  PROCEDURE WriteInt*(arg: LONGINT);
+  PROCEDURE WriteInt*(arg: Types.Int32);
     VAR field: ARRAY 23 OF CHAR;
   BEGIN (* the field size should be big enough to hold the long number. it was 12 to hold just 32 bit numbers, now it can hold 64 bit numbers; need to be more for 128bit numbers; -- noch *)
     ConvertInteger(arg, 1, field);
     WriteString(field);
   END WriteInt;
 
-  PROCEDURE ReadInt*(VAR arg: LONGINT);
+  PROCEDURE ReadInt*(VAR arg: Types.Int32);
     VAR ch: CHAR;
        minus: BOOLEAN;
   BEGIN
@@ -236,7 +236,7 @@ MODULE ulmIO;
 
   PROCEDURE ReadLine*(VAR string: ARRAY OF CHAR);
     VAR
-      index: INTEGER;
+      index: Types.Int32;
       ch: CHAR;
       ok: BOOLEAN;
   BEGIN

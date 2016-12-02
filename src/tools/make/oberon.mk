@@ -273,6 +273,7 @@ oocX11:
 
 ulm:
 	@printf "\nMaking ulm library for -O$(MODEL)\n"
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmTypes.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmObjects.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmPriorities.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmDisciplines.Mod
@@ -284,7 +285,6 @@ ulm:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmResources.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmForwarders.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmRelatedEvents.Mod
-	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmTypes.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmStreams.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmStrings.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmSysTypes.Mod

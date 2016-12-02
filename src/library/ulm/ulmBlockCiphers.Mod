@@ -30,7 +30,7 @@ MODULE ulmBlockCiphers; (* Michael Szczuka *)
 
    (* abstraction for the use of block ciphers *)
 
-   IMPORT Ciphers := ulmCiphers, NetIO := ulmNetIO, PersistentObjects := ulmPersistentObjects, Services := ulmServices, Streams := ulmStreams;
+   IMPORT Ciphers := ulmCiphers, NetIO := ulmNetIO, PersistentObjects := ulmPersistentObjects, Services := ulmServices, Streams := ulmStreams, Types := ulmTypes;
 
    TYPE 
       Cipher* = POINTER TO CipherRec;
@@ -38,8 +38,8 @@ MODULE ulmBlockCiphers; (* Michael Szczuka *)
       CipherRec* = RECORD
 	 (Ciphers.CipherRec)
 	 (* private *)
-	 inLength: INTEGER;
-	 outLength: INTEGER;
+	 inLength: Types.Int32;
+	 outLength: Types.Int32;
       END;
 
    VAR
@@ -47,7 +47,7 @@ MODULE ulmBlockCiphers; (* Michael Szczuka *)
       if : PersistentObjects.Interface;
 
    PROCEDURE Init* (key: Cipher; if: Ciphers.Interface; 
-		   inLength, outLength: INTEGER);
+		   inLength, outLength: Types.Int32);
       (* init a block cipher with its special interface *)
    BEGIN
       Ciphers.Init(key, if);
@@ -57,13 +57,13 @@ MODULE ulmBlockCiphers; (* Michael Szczuka *)
       key.outLength := outLength;
    END Init;
 
-   PROCEDURE GetInLength* (key: Cipher) : INTEGER;
+   PROCEDURE GetInLength* (key: Cipher) : Types.Int32;
       (* returns the input block length of a block cipher *)
    BEGIN
       RETURN key.inLength;
    END GetInLength;
 
-   PROCEDURE GetOutLength* (key: Cipher) : INTEGER;
+   PROCEDURE GetOutLength* (key: Cipher) : Types.Int32;
       (* returns the output block length of a block cipher *)
    BEGIN
       RETURN key.outLength;
@@ -72,7 +72,7 @@ MODULE ulmBlockCiphers; (* Michael Szczuka *)
    PROCEDURE EncryptBlock* (in: Streams.Stream; key: Cipher; 
 			   out: Streams.Stream) : BOOLEAN;
       VAR
-	 length : INTEGER;
+	 length : Types.Int32;
    BEGIN
       length := GetInLength(key);
       RETURN Ciphers.EncryptPart(in, key, length, out);
@@ -81,7 +81,7 @@ MODULE ulmBlockCiphers; (* Michael Szczuka *)
    PROCEDURE DecryptBlock* (in: Streams.Stream; key: Cipher; 
 			   out: Streams.Stream) : BOOLEAN;
       VAR
-	 length : INTEGER;
+	 length : Types.Int32;
    BEGIN
       length := GetOutLength(key);
       RETURN Ciphers.DecryptPart(in, key, length, out);

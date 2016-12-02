@@ -43,16 +43,16 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
 
    TYPE
       CapabilitySet* = Operations.CapabilitySet;
-         (* SET of [Operations.add..shift] *)
+         (* Types.Set of [Operations.add..shift] *)
       IsLargeEnoughForProc* = PROCEDURE (op: Operations.Operand;
-                                        n: LONGINT): BOOLEAN;
+                                        n: Types.Int32): BOOLEAN;
       UnsignedProc* = PROCEDURE (op: Operations.Operand): BOOLEAN;
       IntToOpProc* = PROCEDURE (int32: Types.Int32; VAR op: Operations.Operand);
       OpToIntProc* = PROCEDURE (op: Operations.Operand; VAR int32: Types.Int32);
-      Log2Proc* = PROCEDURE (op: Operations.Operand): LONGINT;
+      Log2Proc* = PROCEDURE (op: Operations.Operand): Types.Int32;
       OddProc* = PROCEDURE (op: Operations.Operand): BOOLEAN;
       ShiftProc* = PROCEDURE (op: Operations.Operand;
-                             n: INTEGER): Operations.Operand;
+                             n: Types.Int32): Operations.Operand;
       IntOperatorProc* = PROCEDURE(op: Operation;
                                   op1, op2, op3: Operations.Operand;
                                   VAR result: Operations.Operand);
@@ -95,7 +95,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END Capabilities;
 
 
-   PROCEDURE IsLargeEnoughFor*(op: Operations.Operand; n: LONGINT): BOOLEAN;
+   PROCEDURE IsLargeEnoughFor*(op: Operations.Operand; n: Types.Int32): BOOLEAN;
    BEGIN
       WITH op: Operand DO
          RETURN op.if.isLargeEnoughFor(op, n)
@@ -130,7 +130,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END OpToInt;
 
 
-   PROCEDURE Log2*(op: Operations.Operand): LONGINT;
+   PROCEDURE Log2*(op: Operations.Operand): Types.Int32;
    BEGIN
       WITH op: Operand DO
          RETURN op.if.log2(op)
@@ -167,7 +167,7 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END Op;
 
 
-   PROCEDURE Shift*(op1: Operations.Operand; n: INTEGER): Operations.Operand;
+   PROCEDURE Shift*(op1: Operations.Operand; n: Types.Int32): Operations.Operand;
    BEGIN
       WITH op1: Operand DO
          ASSERT(shift IN op1.caps);
@@ -176,14 +176,14 @@ MODULE ulmIntOperations; (* Frank B.J. Fischer *)
    END Shift;
 
 
-   PROCEDURE Shift2*(VAR op1: Operations.Operand; n: INTEGER);
+   PROCEDURE Shift2*(VAR op1: Operations.Operand; n: Types.Int32);
    BEGIN
       op1 := Shift(op1, n);
    END Shift2;
 
 
    PROCEDURE Shift3*(VAR result: Operations.Operand; op1: Operations.Operand;
-                    n : INTEGER);
+                    n : Types.Int32);
       VAR
          tmpresult: Operations.Operand;
    BEGIN

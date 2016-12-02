@@ -60,12 +60,12 @@
 MODULE ulmConditions;
 
    IMPORT Clocks := ulmClocks, Disciplines := ulmDisciplines, Events := ulmEvents, Objects := ulmObjects, Op := ulmOperations,
-      Priorities := ulmPriorities, Process := ulmProcess, RelatedEvents := ulmRelatedEvents, Scales := ulmScales, Timers := ulmTimers, Times := ulmTimes, SYSTEM;
+      Priorities := ulmPriorities, Process := ulmProcess, RelatedEvents := ulmRelatedEvents, Scales := ulmScales, Timers := ulmTimers, Times := ulmTimes, SYSTEM, Types := ulmTypes;
 
    CONST
       tags = 64;
    TYPE
-      Tag = INTEGER; (* 0..tags-1 *)
+      Tag = Types.Int32; (* 0..tags-1 *)
 	 (* tags are used for the hashs *)
    VAR
       nextTag: Tag; (* 0..tags-1, 0..tags-1, ... *)
@@ -95,16 +95,16 @@ MODULE ulmConditions;
       ConditionSetRec* =
 	 RECORD
 	    (Objects.ObjectRec)
-	    cardinality: INTEGER;
+	    cardinality: Types.Int32;
 	    bucket: BucketTable;
 	    (* for the iterator *)
-	    next: ConditionList; i: INTEGER;
+	    next: ConditionList; i: Types.Int32;
 	 END;
 
    CONST
       select* = 0; timelimit* = 1; async* = 2; timecond* = 3; preconditions* = 4;
    TYPE
-      CapabilitySet* = SET; (* OF [select..preconditions] *)
+      CapabilitySet* = Types.Set; (* OF [select..preconditions] *)
    TYPE
       SelectProc* = PROCEDURE (domain: Domain; conditionSet: ConditionSet;
 			      time: Times.Time;
@@ -159,7 +159,7 @@ MODULE ulmConditions;
 	 END;
 
    TYPE
-      GetTimeOfNextTryProc* = PROCEDURE (iteration: INTEGER;
+      GetTimeOfNextTryProc* = PROCEDURE (iteration: Types.Int32;
 					VAR time: Times.Time);
 	 (* return a relative time measure *)
    VAR
@@ -188,7 +188,7 @@ MODULE ulmConditions;
       getTimeOfNextTry := p;
    END SetGetTimeOfNextTryProc;
 
-   PROCEDURE GetTimeOfNextTry(iteration: INTEGER; VAR time: Times.Time);
+   PROCEDURE GetTimeOfNextTry(iteration: Types.Int32; VAR time: Times.Time);
    BEGIN
       Times.CreateAndSet(time, Times.relative, 0, 1, 0);
       iteration := iteration DIV 5;
@@ -203,7 +203,7 @@ MODULE ulmConditions;
 
    PROCEDURE CreateSet*(VAR conditionSet: ConditionSet);
       VAR
-	 i: INTEGER;
+	 i: Types.Int32;
 	 cset: ConditionSet;
    BEGIN
       NEW(cset);
@@ -226,7 +226,7 @@ MODULE ulmConditions;
       VAR
 	 listp: ConditionList;
 	 new: ConditionList;
-	 i: INTEGER;
+	 i: Types.Int32;
    BEGIN
       (* check if condition is already present in conditionSet *)
       i := condition.tag;
@@ -245,7 +245,7 @@ MODULE ulmConditions;
    PROCEDURE Excl*(conditionSet: ConditionSet; condition: Condition);
       VAR
 	 prev, listp: ConditionList;
-	 i: INTEGER;
+	 i: Types.Int32;
    BEGIN
       i := condition.tag;
       listp := conditionSet.bucket[i]; prev := NIL;
@@ -282,8 +282,8 @@ MODULE ulmConditions;
       VAR
 	 listp: ConditionList;
 	 newelem, newelems: ConditionList;
-	 count: INTEGER; (* # of added elements in newelems *)
-	 i: INTEGER;
+	 count: Types.Int32; (* # of added elements in newelems *)
+	 i: Types.Int32;
    BEGIN
       count := 0;
       i := 0;
@@ -320,7 +320,7 @@ MODULE ulmConditions;
       CreateSet(result); Union(result, set1); Union(result, set2);
    END Union3;
 
-   PROCEDURE Card*(conditionSet: ConditionSet) : INTEGER;
+   PROCEDURE Card*(conditionSet: ConditionSet) : Types.Int32;
    BEGIN
       RETURN conditionSet.cardinality
    END Card;
@@ -334,7 +334,7 @@ MODULE ulmConditions;
    PROCEDURE GetNextCondition*(conditionSet: ConditionSet;
 			      VAR condition: Condition) : BOOLEAN;
       VAR
-	 i: INTEGER;
+	 i: Types.Int32;
    BEGIN
       IF conditionSet.next = NIL THEN
 	 i := conditionSet.i;
@@ -380,7 +380,7 @@ MODULE ulmConditions;
 			  VAR domain: Domain) : BOOLEAN;
       VAR
 	 dom: Domain;
-	 i: INTEGER;
+	 i: Types.Int32;
 	 listp: ConditionList;
    BEGIN
       dom := NIL;
@@ -448,7 +448,7 @@ MODULE ulmConditions;
 
 	 VAR
 	    listp: ConditionList;
-	    i: INTEGER;
+	    i: Types.Int32;
 
 	 PROCEDURE CreateList(VAR list: List);
 	 BEGIN
@@ -555,7 +555,7 @@ MODULE ulmConditions;
       PROCEDURE SetupAsyncEvents(list: List) : BOOLEAN;
 	 VAR
 	    elp: Element;
-	    listp: ConditionList; i: INTEGER;
+	    listp: ConditionList; i: Types.Int32;
 	    wakeupEvent: WakeupEvent;
 	    sendevent: SendEventProc;
 	    anythingTrue: BOOLEAN;
@@ -603,7 +603,7 @@ MODULE ulmConditions;
 	    queue: RelatedEvents.Queue; (* queue of waitErrors *)
 	    busyLoop: BOOLEAN; (* TRUE if we have to resort to a busy loop *)
 	    wakeupEvent: Events.Event; (* iteration event for busy loops *)
-	    loopCnt: INTEGER; (* number of iterations *)
+	    loopCnt: Types.Int32; (* number of iterations *)
 	    nextTime: Times.Time;
 	    minTime: Times.Time;
 	    minTimeCond: Condition;
@@ -679,7 +679,7 @@ MODULE ulmConditions;
 				       VAR setOfTrueConditions: ConditionSet;
 				       errors: RelatedEvents.Object) : BOOLEAN;
 		  VAR
-		     listp: ConditionList; i: INTEGER;
+		     listp: ConditionList; i: Types.Int32;
 		     condition: Condition;
 		     anythingTrue: BOOLEAN;
 	       BEGIN (* TestAndSelect *)
@@ -728,7 +728,7 @@ MODULE ulmConditions;
 	    PROCEDURE TestAsyncList(list: List) : BOOLEAN;
 	       VAR
 		  element: Element;
-		  listp: ConditionList; i: INTEGER;
+		  listp: ConditionList; i: Types.Int32;
 		  condition: Condition;
 		  anythingFound: BOOLEAN;
 	    BEGIN
@@ -872,7 +872,7 @@ MODULE ulmConditions;
 		     VAR setOfTrueConditions: ConditionSet;
 		     errors: RelatedEvents.Object);
       VAR
-	 listp: ConditionList; i: INTEGER;
+	 listp: ConditionList; i: Types.Int32;
 	 testSet: ConditionSet;
 	 preconds: ConditionSet;
 	 domain: Domain;
@@ -881,7 +881,7 @@ MODULE ulmConditions;
 
       PROCEDURE PretestClosure(testSet, preconds: ConditionSet);
 	 VAR
-	    listp: ConditionList; i: INTEGER;
+	    listp: ConditionList; i: Types.Int32;
 	    domain: Domain;
 	    morePreconditions: ConditionSet;
 	    evenMorePreconditions: ConditionSet;

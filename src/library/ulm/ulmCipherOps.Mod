@@ -30,18 +30,18 @@ MODULE ulmCipherOps; (* Michael Szczuka *)
 
   (* useful functions for stream ciphers *)
 
-  IMPORT Streams := ulmStreams, SYS := SYSTEM, Write := ulmWrite;
+  IMPORT Streams := ulmStreams, SYS := SYSTEM, Write := ulmWrite, Types := ulmTypes;
 
   PROCEDURE XorByte* (b1, b2: SYS.BYTE) : SYS.BYTE;
     (* adds two bytes bitwise modulo 2 *)
   BEGIN
-  (*RETURN SYS.VAL(SYS.BYTE, SYS.VAL(SET, LONG(b1)) / SYS.VAL(SET, LONG(b2)))*)
-    RETURN SYS.VAL(SYS.BYTE, SYS.VAL(SET, LONG(LONG(SYS.VAL(SHORTINT, b1))))
-                           / SYS.VAL(SET, LONG(LONG(SYS.VAL(SHORTINT, b2)))))
+  (*RETURN SYS.VAL(SYS.BYTE, SYS.VAL(Types.Set, LONG(b1)) / SYS.VAL(Types.Set, LONG(b2)))*)
+    RETURN SYS.VAL(SYS.BYTE, SYS.VAL(Types.Set, LONG(LONG(SYS.VAL(Types.Int8, b1))))
+                           / SYS.VAL(Types.Set, LONG(LONG(SYS.VAL(Types.Int8, b2)))))
   END XorByte;
 
   PROCEDURE XorStream* (in1, in2, out: Streams.Stream;
-                length: INTEGER) : BOOLEAN;
+                length: Types.Int32) : BOOLEAN;
     (* adds two streams bitwise modulo 2; restricted to length bytes *)
     VAR
       b1, b2, res : SYS.BYTE;

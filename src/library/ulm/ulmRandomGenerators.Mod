@@ -74,7 +74,7 @@ MODULE ulmRandomGenerators;
     Sequence* = POINTER TO SequenceRec;
 
     Int32ValSProc* = PROCEDURE (sequence: Sequence): Types.Int32;
-    LongRealValSProc* = PROCEDURE (sequence: Sequence): LONGREAL;
+    LongRealValSProc* = PROCEDURE (sequence: Sequence): Types.Real64;
     RewindSequenceProc* = PROCEDURE (sequence: Sequence);
     RestartSequenceProc* = PROCEDURE (sequence, seed: Sequence);
     SetValSProc* = PROCEDURE (sequence: Sequence; value: Operations.Operand);
@@ -83,7 +83,7 @@ MODULE ulmRandomGenerators;
     int32ValS* = 0; longRealValS* = 1; rewindSequence* = 2; restartSequence* = 3;
 
   TYPE
-    CapabilitySet* = SET;             (* of [int32ValS..restartSequence] *)
+    CapabilitySet* = Types.Set;             (* of [int32ValS..restartSequence] *)
     Interface* = POINTER TO InterfaceRec;
     InterfaceRec* =
       RECORD
@@ -127,8 +127,8 @@ MODULE ulmRandomGenerators;
     DefaultSequenceRec =
       RECORD
         (SequenceRec)
-        seed1, seed2: LONGINT;
-        value1, value2: LONGINT;
+        seed1, seed2: Types.Int32;
+        value1, value2: Types.Int32;
       END;
 
     ServiceDiscipline = POINTER TO ServiceDisciplineRec;
@@ -146,9 +146,9 @@ MODULE ulmRandomGenerators;
 
   (* ----- bug workaround ----- *)
 
-  PROCEDURE Entier(value: LONGREAL): LONGINT;
+  PROCEDURE Entier(value: Types.Real64): Types.Int32;
     VAR
-      result: LONGINT;
+      result: Types.Int32;
   BEGIN
     result := ENTIER(value);
     IF result > value THEN
@@ -193,12 +193,12 @@ MODULE ulmRandomGenerators;
     sequence.if.restartSequence(sequence, seed);
   END RestartSequence;
 
-  PROCEDURE ^ LongRealValS*(sequence: Sequence): LONGREAL;
+  PROCEDURE ^ LongRealValS*(sequence: Sequence): Types.Real64;
 
   PROCEDURE Int32ValS*(sequence: Sequence): Types.Int32;
     (* get random 32-bit value from sequence *)
     VAR
-      real: LONGREAL;
+      real: Types.Real64;
   BEGIN
     IF int32ValS IN sequence.caps THEN
       RETURN sequence.if.int32ValS(sequence)
@@ -214,7 +214,7 @@ MODULE ulmRandomGenerators;
     RETURN Int32ValS(std);
   END Int32Val;
 
-  PROCEDURE LongRealValS*(sequence: Sequence): LONGREAL;
+  PROCEDURE LongRealValS*(sequence: Sequence): Types.Real64;
     (* get a uniformly distributed longreal value in [0..1) *)
   BEGIN
     IF longRealValS IN sequence.caps THEN
@@ -225,32 +225,32 @@ MODULE ulmRandomGenerators;
     END;
   END LongRealValS;
 
-  PROCEDURE LongRealVal*(): LONGREAL;
+  PROCEDURE LongRealVal*(): Types.Real64;
     (* get a uniformly distributed longreal value in [0..1) *)
   BEGIN
     RETURN LongRealValS(std)
   END LongRealVal;
 
-  PROCEDURE RealValS*(sequence: Sequence): REAL;
+  PROCEDURE RealValS*(sequence: Sequence): Types.Real32;
     (* get a uniformly distributed real value in [0..1) *)
   BEGIN
     RETURN SHORT(LongRealValS(sequence))
   END RealValS;
 
-  PROCEDURE RealVal*(): REAL;
+  PROCEDURE RealVal*(): Types.Real32;
     (* get a uniformly distributed real value in [0..1) *)
   BEGIN
     RETURN SHORT(LongRealValS(std))
   END RealVal;
 
-  PROCEDURE ValS*(sequence: Sequence; low, high: LONGINT): LONGINT;
+  PROCEDURE ValS*(sequence: Sequence; low, high: Types.Int32): Types.Int32;
     (* get a uniformly distributed integer in [low..high] *)
   BEGIN
     ASSERT(low <= high);
     RETURN Entier( low + LongRealValS(sequence) * (1. + high - low) )
   END ValS;
 
-  PROCEDURE Val*(low, high: LONGINT): LONGINT;
+  PROCEDURE Val*(low, high: Types.Int32): Types.Int32;
     (* get a uniformly distributed integer in [low..high] *)
   BEGIN
     RETURN ValS(std, low, high)
@@ -305,7 +305,7 @@ MODULE ulmRandomGenerators;
 
   (* ----- DefaultSequence ----- *)
 
-  PROCEDURE CongruentialStep(VAR value1, value2: LONGINT);
+  PROCEDURE CongruentialStep(VAR value1, value2: Types.Int32);
   BEGIN
     value1 :=
       factor1 * (value1 MOD quotient1) - remainder1 * (value1 DIV quotient1);
@@ -319,9 +319,9 @@ MODULE ulmRandomGenerators;
     END;
   END CongruentialStep;
 
-  PROCEDURE DefaultSequenceValue(sequence: Sequence): LONGREAL;
+  PROCEDURE DefaultSequenceValue(sequence: Sequence): Types.Real64;
     VAR
-      value: LONGINT;
+      value: Types.Int32;
   BEGIN
     WITH sequence: DefaultSequence DO
       CongruentialStep(sequence.value1, sequence.value2);
@@ -357,12 +357,12 @@ MODULE ulmRandomGenerators;
       if: Interface;
       daytime: Times.Time;
       timeval: Times.TimeValueRec;
-      count: LONGINT;
+      count: Types.Int32;
 
-    PROCEDURE Hash(str: ARRAY OF CHAR): LONGINT;
+    PROCEDURE Hash(str: ARRAY OF CHAR): Types.Int32;
       VAR
         index,
-        val: LONGINT;
+        val: Types.Int32;
     BEGIN
       val := 27567352;
       index := 0;
