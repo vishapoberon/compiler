@@ -655,7 +655,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         DeclareObj(obj, vis = 3);
         IF obj^.typ^.comp = OPT.DynArr THEN (* declare len parameter(s) *)
           EndStat; BegStat;
-          base := OPT.linttyp;
+          base := OPT.adrtyp;
           OPM.WriteString("ADDRESS "); LenList(obj, FALSE, TRUE)
         ELSIF (obj^.mode = OPT.VarPar) & (obj^.typ^.comp = OPT.Record) THEN
           EndStat; BegStat;
