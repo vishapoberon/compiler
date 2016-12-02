@@ -968,7 +968,7 @@ static void OPC_IdentList (OPT_Object obj, INT16 vis)
 			if (obj->typ->comp == 3) {
 				OPC_EndStat();
 				OPC_BegStat();
-				base = OPT_linttyp;
+				base = OPT_adrtyp;
 				OPM_WriteString((CHAR*)"ADDRESS ", 9);
 				OPC_LenList(obj, 0, 1);
 			} else if ((obj->mode == 2 && obj->typ->comp == 4)) {
