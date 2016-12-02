@@ -685,7 +685,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END WriteHex;
 
   PROCEDURE WriteInt* (i: SYSTEM.INT64);
-    VAR s: ARRAY 24 OF CHAR; i1, k: SYSTEM.INT64;
+    VAR s: ARRAY 26 OF CHAR; i1, k: SYSTEM.INT64;
   BEGIN
     IF (i = SignedMinimum(2)) OR (i = SignedMinimum(4)) OR (i = SignedMinimum(8)) THEN
       (* abs(minint) is one more than maxint, causing problems representing the value as a minus sign
@@ -694,11 +694,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
          only way to represent MinLInt. *)
       Write("("); WriteInt(i+1); WriteString("-1)")
     ELSE i1 := ABS(i);
-      s[0] := CHR(i1 MOD 10 + ORD("0")); i1 := i1 DIV 10; k := 1;
+      IF i1 <= MAX(SYSTEM.INT32) THEN k := 0 ELSE s := "LL"; k := 2 END;
+      s[k] := CHR(i1 MOD 10 + ORD("0")); i1 := i1 DIV 10; INC(k);
       WHILE i1 > 0 DO s[k] := CHR(i1 MOD 10 + ORD("0")); i1 := i1 DIV 10; INC(k) END ;
       IF i < 0 THEN s[k] := "-"; INC(k) END ;
-      WHILE k > 0 DO  DEC(k); Write(s[k]) END
-    END ;
+      WHILE k > 0 DO  DEC(k); Write(s[k]) END;
+    END;
   END WriteInt;
 
   PROCEDURE WriteReal* (r: LONGREAL; suffx: CHAR);

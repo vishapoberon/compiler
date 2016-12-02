@@ -896,21 +896,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                       ELSIF x^.BaseTyp = OPT.chartyp THEN (* Assign to (static) ARRAY OF CHAR *)
                         IF g = OPT.String THEN (*check length of string*)
                           IF ynode^.conval^.intval2 > x^.n THEN err(114) END
-                        (* Todo: implement Oberon-07/2013 array assignment
-                        ELSIF (y.comp IN {OPT.DynArr, OPT.Array}) & (y.BaseTyp = OPT.chartyp) THEN
-                          (* Assignment from ARRAY OF CHAR is good.*)
-                        *)
                         ELSE err(113)
                         END
                       ELSE err(113)
                       END
-                    (* Todo: implement Oberon-07/2013 array assignment
-                    ELSIF (x.comp = OPT.DynArr) & (x^.BaseTyp = OPT.chartyp) THEN (* Assign to dynamic ARRAY OF CHAR*)
-                      IF (y.comp IN {OPT.DynArr, OPT.Array}) & (y.BaseTyp = OPT.chartyp) THEN
-                        (* Assignment from ARRAY OF CHAR is good.*)
-                      ELSE err(113)
-                      END
-                    *)
                     ELSIF x^.comp = OPT.Record THEN
                       IF x = y THEN (* ok *)
                       ELSIF y^.comp = OPT.Record THEN
