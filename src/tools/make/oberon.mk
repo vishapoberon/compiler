@@ -372,6 +372,7 @@ library:
 	rm -rf $(BUILDDIR)/$(MODEL)
 	mkdir -p $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/SYSTEM.[ho] $(BUILDDIR)/$(MODEL)
+	cp src/runtime/*.Txt  $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/WindowsWrapper.h $(BUILDDIR)/$(MODEL)
 	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
 	@printf "\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n"
