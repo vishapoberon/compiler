@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/03]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -267,6 +267,10 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 BOOLEAN OPM_OpenPar (void)
 {
 	CHAR s[256];
+	Out_String((CHAR*)"Testing. Binary directory is: '", 32);
+	Out_String(Modules_BinaryDir, 1024);
+	Out_String((CHAR*)"'.", 3);
+	Out_Ln();
 	if (Modules_ArgCount == 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);

@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/02]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/03]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Modules__h
 #define Modules__h
@@ -42,6 +42,7 @@ import Modules_ModuleName Modules_imported, Modules_importing;
 import INT64 Modules_MainStackFrame;
 import INT16 Modules_ArgCount;
 import INT64 Modules_ArgVector;
+import CHAR Modules_BinaryDir[1024];
 
 import ADDRESS *Modules_ModuleDesc__typ;
 import ADDRESS *Modules_CmdDesc__typ;
