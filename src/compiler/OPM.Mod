@@ -233,6 +233,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE OpenPar*(): BOOLEAN;  (* prepare for a sequence of translations *)
     VAR s: ARRAY 256 OF CHAR;
   BEGIN
+    Out.String("Testing. Binary directory is: '"); Out.String(Modules.BinaryDir); Out.String("'."); Out.Ln;
     IF Modules.ArgCount = 1 THEN
       LogWLn;
       LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
