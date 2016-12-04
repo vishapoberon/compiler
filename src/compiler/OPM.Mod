@@ -119,6 +119,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     S: INTEGER;
 
+    InstallDir*:  ARRAY 1024 OF CHAR;
     ResourceDir*: ARRAY 1024 OF CHAR;
 
 
@@ -206,16 +207,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
                AddressSize := ORD(s[i+1]) - ORD('0'); Alignment := ORD(s[i+2]) - ORD('0');
                INC(i, 2)
              END
-
-      (* Temporary build control option - remove when makefile updated to new options. *)
-      | "B": IF s[i+1] # 0X THEN INC(i); IntegerSize := ORD(s[i]) - ORD('0') END;
-             IF s[i+1] # 0X THEN INC(i); AddressSize := ORD(s[i]) - ORD('0') END;
-             IF s[i+1] # 0X THEN INC(i); Alignment   := ORD(s[i]) - ORD('0') END;
-             ASSERT((IntegerSize = 2) OR (IntegerSize = 4));
-             ASSERT((AddressSize = 4) OR (AddressSize = 8));
-             ASSERT((Alignment   = 4) OR (Alignment   = 8));
-             IF IntegerSize = 2 THEN LongintSize := 4 ELSE LongintSize := 8 END;
-             Files.SetSearchPath("")
       ELSE
         LogWStr("  warning: option ");
         LogW(OptionChar);
@@ -233,7 +224,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE OpenPar*(): BOOLEAN;  (* prepare for a sequence of translations *)
     VAR s: ARRAY 256 OF CHAR;
   BEGIN
-    Out.String("Testing. Binary directory is: '"); Out.String(Modules.BinaryDir); Out.String("'."); Out.Ln;
     IF Modules.ArgCount = 1 THEN
       LogWLn;
       LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
@@ -347,7 +337,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     IF verbose IN Options THEN VerboseListSizes END;
 
-    ResourceDir := Configuration.installdir;
+    ResourceDir := InstallDir;
     Strings.Append("/",   ResourceDir);
     Strings.Append(Model, ResourceDir);
 
@@ -777,6 +767,49 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END CloseFiles;
 
 
+  PROCEDURE IsProbablyInstallDir(s: ARRAY OF CHAR): BOOLEAN;
+  VAR testpath: ARRAY 1024 OF CHAR; identity: Platform.FileIdentity;
+  BEGIN
+    COPY(InstallDir, testpath);
+    Strings.Append("/lib/lib", testpath);
+    Strings.Append(Configuration.name, testpath);
+    Strings.Append("-O2.a", testpath);
+    IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
+
+    COPY(InstallDir, testpath);
+    Strings.Append("/2/include/Oberon.h", testpath);
+    IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
+
+    COPY(InstallDir, testpath);
+    Strings.Append("/2/sym/Files.sym", testpath);
+    IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
+
+    RETURN TRUE;
+  END IsProbablyInstallDir;
+
+  PROCEDURE FindInstallDir;
+  VAR i: INTEGER;
+  BEGIN
+    (* First try location of binary (with -parts appended) *)
+    COPY(Modules.BinaryDir, InstallDir);
+    Strings.Append("/", InstallDir);
+    Strings.Append(Configuration.name, InstallDir);
+    Strings.Append("-parts", InstallDir);
+    IF IsProbablyInstallDir(InstallDir) THEN RETURN END;
+
+    (* Now test whether binary is in bin directory under install dir. *)
+    COPY(Modules.BinaryDir, InstallDir);
+    i := Strings.Length(InstallDir);
+    WHILE (i > 0) & (InstallDir[i-1] # '/') DO DEC(i) END;
+    IF (i > 0) & (InstallDir[i-1] = '/') THEN
+      InstallDir[i-1] := 0X;
+      IF IsProbablyInstallDir(InstallDir) THEN RETURN END
+    END;
+
+    (* Give up! Use install directory from configuration. *)
+    COPY(Configuration.installdir, InstallDir)
+  END FindInstallDir;
+
 
 
 BEGIN
@@ -784,4 +817,5 @@ BEGIN
   MaxLReal := 1.7976931348623157D307 * 9.999999; (* LONGREAL is 8 bytes, should be 1.7976931348623157D308 *)
   MinReal  := -MaxReal;
   MinLReal := -MaxLReal;
+  FindInstallDir;
 END OPM.

@@ -96,7 +96,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
         OPM.Init(done, mname); (* Get next module name from command line *)
         IF ~done THEN RETURN END ;
 
-        OPM.InitOptions; (* Get options ofr this module *)
+        OPM.InitOptions; (* Get options for this module *)
         PropagateElementaryTypeSizes;
 
         (* Compile source to .c and .h files *)
