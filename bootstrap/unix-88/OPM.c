@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/03]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/05]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -42,6 +42,7 @@ static Files_Rider OPM_oldSF, OPM_newSF;
 static Files_Rider OPM_R[3];
 static Files_File OPM_oldSFile, OPM_newSFile, OPM_HFile, OPM_BFile, OPM_HIFile;
 static INT16 OPM_S;
+export CHAR OPM_InstallDir[1024];
 export CHAR OPM_ResourceDir[1024];
 
 
@@ -53,12 +54,14 @@ export void OPM_FPrint (INT32 *fp, INT64 val);
 export void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 export void OPM_FPrintReal (INT32 *fp, REAL val);
 export void OPM_FPrintSet (INT32 *fp, UINT64 val);
+static void OPM_FindInstallDir (void);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
 static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
 export void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len);
 export void OPM_InitOptions (void);
 export INT16 OPM_Integer (INT64 n);
+static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len);
 static void OPM_LogErrMsg (INT16 n);
 export void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len);
 export void OPM_LogW (CHAR ch);
@@ -228,29 +231,6 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 					i += 2;
 				}
 				break;
-			case 'B': 
-				if (s[__X(i + 1, s__len)] != 0x00) {
-					i += 1;
-					OPM_IntegerSize = (INT16)s[__X(i, s__len)] - 48;
-				}
-				if (s[__X(i + 1, s__len)] != 0x00) {
-					i += 1;
-					OPM_AddressSize = (INT16)s[__X(i, s__len)] - 48;
-				}
-				if (s[__X(i + 1, s__len)] != 0x00) {
-					i += 1;
-					OPM_Alignment = (INT16)s[__X(i, s__len)] - 48;
-				}
-				__ASSERT(OPM_IntegerSize == 2 || OPM_IntegerSize == 4, 0);
-				__ASSERT(OPM_AddressSize == 4 || OPM_AddressSize == 8, 0);
-				__ASSERT(OPM_Alignment == 4 || OPM_Alignment == 8, 0);
-				if (OPM_IntegerSize == 2) {
-					OPM_LongintSize = 4;
-				} else {
-					OPM_LongintSize = 8;
-				}
-				Files_SetSearchPath((CHAR*)"", 1);
-				break;
 			default: 
 				OPM_LogWStr((CHAR*)"  warning: option ", 19);
 				OPM_LogW('-');
@@ -267,10 +247,6 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 BOOLEAN OPM_OpenPar (void)
 {
 	CHAR s[256];
-	Out_String((CHAR*)"Testing. Binary directory is: '", 32);
-	Out_String(Modules_BinaryDir, 1024);
-	Out_String((CHAR*)"'.", 3);
-	Out_Ln();
 	if (Modules_ArgCount == 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);
@@ -455,7 +431,7 @@ void OPM_InitOptions (void)
 	if (__IN(18, OPM_Options, 32)) {
 		OPM_VerboseListSizes();
 	}
-	OPM_ResourceDir[0] = 0x00;
+	__MOVE(OPM_InstallDir, OPM_ResourceDir, 1024);
 	Strings_Append((CHAR*)"/", 2, (void*)OPM_ResourceDir, 1024);
 	Strings_Append(OPM_Model, 10, (void*)OPM_ResourceDir, 1024);
 	modules[0] = 0x00;
@@ -1060,6 +1036,59 @@ void OPM_CloseFiles (void)
 	Files_Set(&OPM_oldSF, Files_Rider__typ, NIL, 0);
 }
 
+static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
+{
+	CHAR testpath[1024];
+	Platform_FileIdentity identity;
+	__DUP(s, s__len, CHAR);
+	__COPY(OPM_InstallDir, testpath, 1024);
+	Strings_Append((CHAR*)"/lib/lib", 9, (void*)testpath, 1024);
+	Strings_Append((CHAR*)"voc", 4, (void*)testpath, 1024);
+	Strings_Append((CHAR*)"-O2.a", 6, (void*)testpath, 1024);
+	if (Platform_IdentifyByName(testpath, 1024, &identity, Platform_FileIdentity__typ) != 0) {
+		__DEL(s);
+		return 0;
+	}
+	__COPY(OPM_InstallDir, testpath, 1024);
+	Strings_Append((CHAR*)"/2/include/Oberon.h", 20, (void*)testpath, 1024);
+	if (Platform_IdentifyByName(testpath, 1024, &identity, Platform_FileIdentity__typ) != 0) {
+		__DEL(s);
+		return 0;
+	}
+	__COPY(OPM_InstallDir, testpath, 1024);
+	Strings_Append((CHAR*)"/2/sym/Files.sym", 17, (void*)testpath, 1024);
+	if (Platform_IdentifyByName(testpath, 1024, &identity, Platform_FileIdentity__typ) != 0) {
+		__DEL(s);
+		return 0;
+	}
+	__DEL(s);
+	return 1;
+}
+
+static void OPM_FindInstallDir (void)
+{
+	INT16 i;
+	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
+	Strings_Append((CHAR*)"/", 2, (void*)OPM_InstallDir, 1024);
+	Strings_Append((CHAR*)"voc", 4, (void*)OPM_InstallDir, 1024);
+	Strings_Append((CHAR*)".d", 3, (void*)OPM_InstallDir, 1024);
+	if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
+		return;
+	}
+	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
+	i = Strings_Length(OPM_InstallDir, 1024);
+	while ((i > 0 && OPM_InstallDir[__X(i - 1, 1024)] != '/')) {
+		i -= 1;
+	}
+	if ((i > 0 && OPM_InstallDir[__X(i - 1, 1024)] == '/')) {
+		OPM_InstallDir[__X(i - 1, 1024)] = 0x00;
+		if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
+			return;
+		}
+	}
+	__COPY("", OPM_InstallDir, 1024);
+}
+
 static void EnumPtrs(void (*P)(void*))
 {
 	__ENUMR(&OPM_inR, Texts_Reader__typ, 72, 1, P);
@@ -1100,5 +1129,6 @@ export void *OPM__init(void)
 	OPM_MaxLReal =   1.79769296342094e+308;
 	OPM_MinReal = -OPM_MaxReal;
 	OPM_MinLReal = -OPM_MaxLReal;
+	OPM_FindInstallDir();
 	__ENDMOD;
 }

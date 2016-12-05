@@ -767,6 +767,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END CloseFiles;
 
 
+(* === Installation directory discovery === *)
+
   PROCEDURE IsProbablyInstallDir(s: ARRAY OF CHAR): BOOLEAN;
   VAR testpath: ARRAY 1024 OF CHAR; identity: Platform.FileIdentity;
   BEGIN
@@ -790,11 +792,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE FindInstallDir;
   VAR i: INTEGER;
   BEGIN
-    (* First try location of binary (with -parts appended) *)
+    (* First try location of binary (with <name>.d appended) *)
     COPY(Modules.BinaryDir, InstallDir);
     Strings.Append("/", InstallDir);
     Strings.Append(Configuration.name, InstallDir);
-    Strings.Append("-parts", InstallDir);
+    Strings.Append(".d", InstallDir);
     IF IsProbablyInstallDir(InstallDir) THEN RETURN END;
 
     (* Now test whether binary is in bin directory under install dir. *)
