@@ -387,12 +387,17 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   PROCEDURE Get*(VAR ch: CHAR);  (* read next character from source text, 0X if eof *)
   BEGIN
+    curpos := Texts.Pos(inR);
     Texts.Read(inR, ch);
-    IF ch = 0DX THEN
-       curpos := Texts.Pos(inR); (* supports CR LF mapping *)
-    ELSE
-      INC(curpos)
-    END ;
+
+    (* OpenBSD intermittent file read error debugging. *)
+    IF (curpos = 0) & inR.eot THEN
+      LogWLn; LogWStr("DEBUG: OPM.Get returned inR.eot at curpos = 0, ch = ");
+      LogWNum(ORD(ch),1); LogW(".");
+    END;
+    (* TODO, remove curpos var, and provide fn returning Texts.Pos(inR) - 1. *)
+    (* Or, better still, record symbol position in OPS. *)
+
     IF (ch < 09X) & ~inR.eot THEN ch := " " END
   END Get;
 

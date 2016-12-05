@@ -484,11 +484,13 @@ void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len)
 
 void OPM_Get (CHAR *ch)
 {
+	OPM_curpos = Texts_Pos(&OPM_inR, Texts_Reader__typ);
 	Texts_Read(&OPM_inR, Texts_Reader__typ, &*ch);
-	if (*ch == 0x0d) {
-		OPM_curpos = Texts_Pos(&OPM_inR, Texts_Reader__typ);
-	} else {
-		OPM_curpos += 1;
+	if ((OPM_curpos == 0 && OPM_inR.eot)) {
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"DEBUG: OPM.Get returned inR.eot at curpos = 0, ch = ", 53);
+		OPM_LogWNum((INT16)*ch, 1);
+		OPM_LogW('.');
 	}
 	if ((*ch < 0x09 && !OPM_inR.eot)) {
 		*ch = ' ';
