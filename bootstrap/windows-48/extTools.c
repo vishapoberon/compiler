@@ -65,7 +65,7 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 
 static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len)
 {
-	__COPY("gcc -g", s, s__len);
+	__COPY("gcc -fPIC -g", s, s__len);
 	Strings_Append((CHAR*)" -I \"", 6, (void*)s, s__len);
 	Strings_Append(OPM_ResourceDir, 1024, (void*)s, s__len);
 	Strings_Append((CHAR*)"/include\" ", 11, (void*)s, s__len);

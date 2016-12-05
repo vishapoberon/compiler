@@ -1665,6 +1665,9 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 				obj->typ = OPT_undftyp;
 				OPP_CheckMark(&obj->vis);
 				if (OPP_sym == 9) {
+					if (((((((((__STRCMP(obj->name, "INTEGER") == 0 || __STRCMP(obj->name, "SHORTINT") == 0) || __STRCMP(obj->name, "LONGINT") == 0) || __STRCMP(obj->name, "HUGEINT") == 0) || __STRCMP(obj->name, "LONGREAL") == 0) || __STRCMP(obj->name, "REAL") == 0) || __STRCMP(obj->name, "CHAR") == 0) || __STRCMP(obj->name, "SET") == 0) || __STRCMP(obj->name, "TRUE") == 0) || __STRCMP(obj->name, "FALSE") == 0) {
+						OPM_Mark(-310, OPM_curpos);
+					}
 					OPS_Get(&OPP_sym);
 					OPP_TypeDecl(&obj->typ, &obj->typ);
 				} else if (OPP_sym == 34 || OPP_sym == 20) {
