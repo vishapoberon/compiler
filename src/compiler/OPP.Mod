@@ -922,10 +922,11 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           OPT.Insert(OPS.name, obj); obj^.mode := OPT.Typ; obj^.typ := OPT.undftyp;
           CheckMark(obj^.vis);
           IF sym = OPS.eql THEN
-		    IF (obj^.name = "INTEGER") OR (obj^.name = "SHORTINT") OR
-			   (obj^.name = "LONGINT") OR (obj^.name = "HUGEINT") OR
-			   (obj^.name = "LONGREAL") OR (obj^.name = "REAL") OR
-			   (obj^.name = "CHAR") THEN
+		    IF (obj^.name = "INTEGER")  OR (obj^.name = "SHORTINT") OR
+			   (obj^.name = "LONGINT")  OR (obj^.name = "HUGEINT")  OR
+			   (obj^.name = "LONGREAL") OR (obj^.name = "REAL")     OR
+			   (obj^.name = "CHAR")     OR (obj^.name = "SET")      OR
+			   (obj^.name = "TRUE")     OR (obj^.name = "FALSE")    THEN
               OPM.Mark(-310, OPM.curpos); (* notice about aliasing of predefined type *) 
 			END;
             OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
