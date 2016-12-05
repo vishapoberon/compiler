@@ -1,6 +1,7 @@
 ^/\* voc +
 Configuration_
 OPM_ResourceDir
+OPM_InstallDir
 __MOVE.* cmd,
 OPM_(IntSize|PointerSize|Alignment) =
 Strings_Append.+void\*\)(cmd|OPM_OBERON|extTools_comp)
