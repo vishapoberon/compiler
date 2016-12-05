@@ -177,6 +177,7 @@ Compiler Warnings
 307 no ELSE symbol after CASE statement sequence may lead to trap
 308 SYSTEM.VAL result includes memory past end of source variable; use SYSTEM.GET
 309 you should name this parameter type, or else no actual parameter will match
+310 aliasing of predefined type
 
 Run-time Error Messages
  -1 assertion failed, cf. SYSTEM_assert
