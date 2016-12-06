@@ -32,7 +32,7 @@ usage:
 
 
 clean:
-	@printf "\n\n--- Cleaning branch $(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n"
+	@printf '\n\n--- Cleaning branch $(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n'
 	rm -rf $(BUILDDIR)
 	rm -f $(OBECOMP)
 
@@ -42,22 +42,22 @@ clean:
 # Assemble: Generate the Vishap Oberon compiler binary by compiling the C sources in the build directory
 
 assemble:
-	@printf "\nmake assemble - compiling Oberon compiler c source:\n"
-	@printf "  VERSION: %s\n" "$(VERSION)"
-	@printf "  BRANCH:  %s\n" "$(BRANCH)"
-	@printf "  Target characteristics:\n"
-	@printf "    PLATFORM:   %s\n" "$(PLATFORM)"
-	@printf "    OS:         %s\n" "$(OS)"
-	@printf "    BUILDDIR:   %s\n" "$(BUILDDIR)"
-	@printf "    INSTALLDIR: %s\n" "$(INSTALLDIR)"
-	@printf "  Oberon characteristics:\n"
-	@printf "    MODEL:      %s\n" "$(MODEL)"
-	@printf "    ADRSIZE:    %s\n" "$(ADRSIZE)"
-	@printf "    ALIGNMENT:  %s\n" "$(ALIGNMENT)"
-	@printf "  C compiler:\n"
-	@printf "    COMPILER:   %s\n" "$(COMPILER)"
-	@printf "    COMPILE:    %s\n" "$(COMPILE)"
-	@printf "    DATAMODEL:  %s\n" "$(DATAMODEL)"
+	@printf '\nmake assemble - compiling Oberon compiler c source:\n'
+	@printf '  VERSION: %s\n' "$(VERSION)"
+	@printf '  BRANCH:  %s\n' "$(BRANCH)"
+	@printf '  Target characteristics:\n'
+	@printf '    PLATFORM:   %s\n' "$(PLATFORM)"
+	@printf '    OS:         %s\n' "$(OS)"
+	@printf '    BUILDDIR:   %s\n' "$(BUILDDIR)"
+	@printf '    INSTALLDIR: %s\n' "$(INSTALLDIR)"
+	@printf '  Oberon characteristics:\n'
+	@printf '    MODEL:      %s\n' "$(MODEL)"
+	@printf '    ADRSIZE:    %s\n' "$(ADRSIZE)"
+	@printf '    ALIGNMENT:  %s\n' "$(ALIGNMENT)"
+	@printf '  C compiler:\n'
+	@printf '    COMPILER:   %s\n' "$(COMPILER)"
+	@printf '    COMPILE:    %s\n' "$(COMPILE)"
+	@printf '    DATAMODEL:  %s\n' "$(DATAMODEL)"
 
 	cd $(BUILDDIR) && $(COMPILE) -c SYSTEM.c  Configuration.c Platform.c Heap.c
 	cd $(BUILDDIR) && $(COMPILE) -c Out.c     Strings.c       Modules.c  Files.c
@@ -73,7 +73,7 @@ assemble:
 	cp src/runtime/*.[ch] $(BUILDDIR)
 	cp src/runtime/*.Txt  $(BUILDDIR)
 	cp src/runtime/*.Txt  $(ROOTDIR)
-	@printf "$(OBECOMP) created.\n"
+	@printf '$(OBECOMP) created.\n'
 
 
 
@@ -95,11 +95,11 @@ translate:
 
 	if [ ! -e $(OBECOMP) ]; then make -f src/tools/make/oberon.mk -s compilerfromsavedsource; fi
 
-	@printf "\nmake translate - translating compiler source from Oberon to C:\n"
-	@printf "  PLATFORM:  %s\n" $(PLATFORM)
-	@printf "  MODEL:     %s\n" $(MODEL)
-	@printf "  ADRSIZE:   %s\n" $(ADRSIZE)
-	@printf "  ALIGNMENT: %s\n" $(ALIGNMENT)
+	@printf '\nmake translate - translating compiler source from Oberon to C:\n'
+	@printf '  PLATFORM:  %s\n' $(PLATFORM)
+	@printf '  MODEL:     %s\n' $(MODEL)
+	@printf '  ADRSIZE:   %s\n' $(ADRSIZE)
+	@printf '  ALIGNMENT: %s\n' $(ALIGNMENT)
 	@mkdir -p $(BUILDDIR)
 	@rm -f $(BUILDDIR)/*.sym
 
@@ -125,13 +125,13 @@ translate:
 
 	cp src/runtime/*.[ch] $(BUILDDIR)
 	cp src/runtime/*.Txt  $(BUILDDIR)
-	@printf "$(BUILDDIR) filled with compiler C source.\n"
+	@printf '$(BUILDDIR) filled with compiler C source.\n'
 
 
 
 
 browsercmd:
-	@printf "\nMaking symbol browser\n"
+	@printf '\nMaking symbol browser\n'
 	@cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Ss -O$(MODEL) ../../src/runtime/Oberon.Mod
 	@cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -Sm -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
 	@cd $(BUILDDIR); $(COMPILE) BrowserCmd.c Oberon.c -o showdef \
@@ -148,7 +148,7 @@ FORCE:
 
 installable:
 	@rm -rf "S(INSTALLDIR)/test-access-qqq"
-	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then echo "\\n\\n   Cannot write to install directory.\\n   Please use sudo or run as root/administrator.\\n\\n"; exit 1;fi
+	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then printf '\n\n   Cannot write to install directory.\n   Please use sudo or run as root/administrator.\n\n'; exit 1;fi
 	@rm -rf "S(INSTALLDIR)/test-access-qqq"
 
 
@@ -158,7 +158,7 @@ installable:
 #          and libraries in /opt/$(ONAME).
 #          May require root access.
 install:
-	@printf "\nInstalling into \"$(INSTALLDIR)\"\n"
+	@printf '\nInstalling into \"$(INSTALLDIR)\"\n'
 	@rm -rf "$(INSTALLDIR)"
 
 	@mkdir -p "$(INSTALLDIR)/bin"
@@ -183,22 +183,22 @@ install:
 
 # showpath: Describe how to set the PATH variable
 showpath:
-	@printf "\nNow add $(INSTALLDIR)/bin to your path, for example with the command:\n"
-	@printf "export PATH=\"$(INSTALLDIR)/bin:\$$PATH\"\n"
-	@printf "\n"
+	@printf '\nNow add $(INSTALLDIR)/bin to your path, for example with the command:\n'
+	@printf 'export PATH=\"$(INSTALLDIR)/bin:\$$PATH\"\n'
+	@printf '\n'
 
 
 
 
 uninstall:
-	@printf "\nUninstalling from \"$(INSTALLDIR)\"\n"
+	@printf '\nUninstalling from \"$(INSTALLDIR)\"\n'
 	rm -rf "$(INSTALLDIR)"
 	rm -f /etc/ld.so.conf/lib$(ONAME)
 	if which ldconfig >/dev/null 2>&1; then ldconfig; fi
 
 
 runtime:
-	@printf "\nMaking run time library for -O$(MODEL)\n"
+	@printf '\nMaking run time library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Heap.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Modules.Mod
@@ -215,14 +215,14 @@ runtime:
 
 
 v4:
-	@printf "\nMaking v4 library for -O$(MODEL)\n"
+	@printf '\nMaking v4 library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/v4/Args.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/v4/Console.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/v4/Printer.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/v4/Sets.Mod
 
 ooc2:
-	@printf "\nMaking ooc2 library for -O$(MODEL)\n"
+	@printf '\nMaking ooc2 library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc2/ooc2Strings.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc2/ooc2Ascii.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc2/ooc2CharClass.Mod
@@ -232,7 +232,7 @@ ooc2:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc2/ooc2Real0.Mod
 
 ooc:
-	@printf "\nMaking ooc library for -O$(MODEL)\n"
+	@printf '\nMaking ooc library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc/oocLowReal.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc/oocLowLReal.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc/oocRealMath.Mod
@@ -266,13 +266,13 @@ ooc:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ooc/oocC$(DATAMODEL).Mod
 
 oocX11:
-	@printf "\nMaking oocX11 library for -O$(MODEL)\n"
+	@printf '\nMaking oocX11 library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/oocX11/oocX11.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/oocX11/oocXutil.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/oocX11/oocXYplane.Mod
 
 ulm:
-	@printf "\nMaking ulm library for -O$(MODEL)\n"
+	@printf '\nMaking ulm library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmTypes.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmObjects.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmPriorities.Mod
@@ -329,11 +329,11 @@ ulm:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/ulm/ulmIntOperations.Mod
 
 pow32:
-	@printf "\nMaking pow library for -O$(MODEL)\n"
+	@printf '\nMaking pow library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/pow/powStrings.Mod
 
 misc:
-	@printf "\nMaking misc library for -O$(MODEL)\n"
+	@printf '\nMaking misc library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/misc/crt.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/misc/Listen.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/misc/MersenneTwister.Mod
@@ -341,7 +341,7 @@ misc:
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/misc/MultiArrayRiders.Mod
 
 s3:
-	@printf "\nMaking s3 library for -O$(MODEL)\n"
+	@printf '\nMaking s3 library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/s3/ethBTrees.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/s3/ethMD5.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/library/s3/ethSets.Mod
@@ -368,14 +368,14 @@ O2library: runtime v4 ooc2 ooc ulm pow32 misc s3
 OClibrary: runtime
 
 library:
-	@printf "\nCompiling lib$(ONAME)-O$(MODEL) sources\n"
+	@printf '\nCompiling lib$(ONAME)-O$(MODEL) sources\n'
 	rm -rf $(BUILDDIR)/$(MODEL)
 	mkdir -p $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/SYSTEM.[ho] $(BUILDDIR)/$(MODEL)
 	cp src/runtime/*.Txt  $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/WindowsWrapper.h $(BUILDDIR)/$(MODEL)
 	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
-	@printf "\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n"
+	@printf '\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n'
 	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
 	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)-O$(MODEL).so *.o
 
@@ -390,7 +390,7 @@ sourcechanges:
 RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR) BRANCH=$(BRANCH) sh ./test.sh "$(INSTALLDIR)"
 
 confidence:
-	@printf "\n\n--- Confidence tests ---\n\n"
+	@printf '\n\n--- Confidence tests ---\n\n'
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)
 	cd src/test/confidence/in;              $(RUNTEST)
@@ -403,4 +403,4 @@ confidence:
 	cd src/test/confidence/isptest;         $(RUNTEST)
 	cd src/test/confidence/lola;            $(RUNTEST)
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
-	@printf "\n\n--- Confidence tests passed ---\n\n"
+	@printf '\n\n--- Confidence tests passed ---\n\n'
