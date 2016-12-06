@@ -929,7 +929,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 			   (obj^.name = "TRUE")     OR (obj^.name = "FALSE")    THEN
               OPM.Mark(-310, OPM.curpos); (* notice about aliasing of predefined type *) 
 			END;
-            OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
+           OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
           ELSIF (sym = OPS.becomes) OR (sym = OPS.colon) THEN
             err(OPS.eql); OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
           ELSE err(OPS.eql)
