@@ -1665,7 +1665,7 @@ static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
 				obj->typ = OPT_undftyp;
 				OPP_CheckMark(&obj->vis);
 				if (OPP_sym == 9) {
-					if (((((((((__STRCMP(obj->name, OPT_sinttyp->strobj->name) == 0 || __STRCMP(obj->name, OPT_inttyp->strobj->name) == 0) || __STRCMP(obj->name, OPT_linttyp->strobj->name) == 0) || __STRCMP(obj->name, OPT_hinttyp->strobj->name) == 0) || __STRCMP(obj->name, OPT_realtyp->strobj->name) == 0) || __STRCMP(obj->name, OPT_lrltyp->strobj->name) == 0) || __STRCMP(obj->name, OPT_settyp->strobj->name) == 0) || __STRCMP(obj->name, OPT_chartyp->strobj->name) == 0) || __STRCMP(obj->name, "TRUE") == 0) || __STRCMP(obj->name, "FALSE") == 0) {
+					if (((((((((__STRCMP(obj->name, "SHORTINT") == 0 || __STRCMP(obj->name, "INTEGER") == 0) || __STRCMP(obj->name, "LONGINT") == 0) || __STRCMP(obj->name, "HUGEINT") == 0) || __STRCMP(obj->name, "REAL") == 0) || __STRCMP(obj->name, "LONGREAL") == 0) || __STRCMP(obj->name, "SET") == 0) || __STRCMP(obj->name, "CHAR") == 0) || __STRCMP(obj->name, "TRUE") == 0) || __STRCMP(obj->name, "FALSE") == 0) {
 						OPM_Mark(-310, OPM_curpos);
 					}
 					OPS_Get(&OPP_sym);
