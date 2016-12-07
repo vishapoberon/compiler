@@ -62,7 +62,7 @@ unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && git checkout -f && src/tools/make/getbranch.sh $branch && $sudo $mkcmd\" ";
+  my $cmd = "ssh $login \"cd $dir && git pull && git checkout -f && src/tools/make/getbranch.sh $branch && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 
