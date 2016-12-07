@@ -101,6 +101,27 @@ executable binary.
 
 Execute as usual on Linux ('./hello') or Windows ('hello').
 
+In order to know module's interface, use "showdef" program.
+
+```
+ $ showdef Out.sym
+DEFINITION Out;
+
+  VAR
+    IsConsole-: BOOLEAN;
+
+  PROCEDURE Char(ch: CHAR);
+  PROCEDURE Flush;
+  PROCEDURE Int(x: INT64; n: INT64);
+  PROCEDURE Ln;
+  PROCEDURE LongReal(x: LONGREAL; n: INT16);
+  PROCEDURE Open;
+  PROCEDURE Real(x: REAL; n: INT16);
+  PROCEDURE String(str: ARRAY OF CHAR);
+  PROCEDURE Ten(e: INT16): LONGREAL;
+
+END Out.
+```
 
 Also see [**Compiling**](/doc/Compiling.md).
 

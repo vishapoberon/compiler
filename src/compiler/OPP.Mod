@@ -72,8 +72,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     VAR x: OPT.Node; sf: SYSTEM.INT64;
   BEGIN
     IF sym = OPS.lbrak THEN OPS.Get(sym);
-	  IF ~OPT.SYSimported THEN err(135) END;
-	  ConstExpression(x);
+    IF ~OPT.SYSimported THEN err(135) END;
+    ConstExpression(x);
       IF x^.typ^.form = OPT.Int THEN sf := x^.conval^.intval;
         IF (sf < 0) OR (sf > OPM.MaxSysFlag) THEN err(220); sf := 0 END
       ELSE err(51); sf := 0
@@ -737,7 +737,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       IF e THEN OPS.Get(sym); StatSeq(y)
       ELSE
          y := NIL;
-	 OPM.Mark(-307, OPM.curpos); (* notice about no OPS.else symbol; -- noch *)
+   OPM.Mark(-307, OPM.curpos); (* notice about no OPS.else symbol; -- noch *)
       END ;
       OPB.Construct(OPT.Ncaselse, cases, y); OPB.Construct(OPT.Ncase, x, cases);
       cases^.conval := OPT.NewConst();
@@ -922,13 +922,17 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           OPT.Insert(OPS.name, obj); obj^.mode := OPT.Typ; obj^.typ := OPT.undftyp;
           CheckMark(obj^.vis);
           IF sym = OPS.eql THEN
-		    IF (obj^.name = "INTEGER")  OR (obj^.name = "SHORTINT") OR
-			   (obj^.name = "LONGINT")  OR (obj^.name = "HUGEINT")  OR
-			   (obj^.name = "LONGREAL") OR (obj^.name = "REAL")     OR
-			   (obj^.name = "CHAR")     OR (obj^.name = "SET")      OR
-			   (obj^.name = "TRUE")     OR (obj^.name = "FALSE")    THEN
+            IF (obj^.name = "SHORTINT") OR 
+               (obj^.name = "INTEGER") OR
+               (obj^.name = "LONGINT") OR
+               (obj^.name = "HUGEINT") OR
+               (obj^.name = "REAL") OR
+               (obj^.name = "LONGREAL") OR
+               (obj^.name = "SET") OR
+               (obj^.name = "CHAR") OR
+               (obj^.name = "TRUE") OR (obj^.name = "FALSE") THEN
               OPM.Mark(-310, OPM.curpos); (* notice about aliasing of predefined type *) 
-			END;
+            END;
            OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
           ELSIF (sym = OPS.becomes) OR (sym = OPS.colon) THEN
             err(OPS.eql); OPS.Get(sym); TypeDecl(obj^.typ, obj^.typ)
