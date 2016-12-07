@@ -680,6 +680,7 @@ BEGIN
     SpaceFormParms(bText);
     (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier);
+    Texts.CloseAscii(bText, 'test');
   END
 END Beautify; 
 
