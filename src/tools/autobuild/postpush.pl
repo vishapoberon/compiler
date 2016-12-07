@@ -41,9 +41,7 @@ if ($buildneeded) {
     writelog "Started buildall, pid = $child.";  # parent process
   } else {
     close(STDIN); close(STDOUT); close(STDERR);  # child process
-    system 'echo Syncing voc>postpush.log';
-    system '(cd voc; git reset --hard; git clean -dfx; git pull; git checkout -f ' . $branch . '; git pull; git checkout -f) >>postpush.log';
-    exec 'perl voc/src/tools/make/buildall.pl ' . $branch . ' >/tmp/buildall.log';
+    exec 'perl buildall.pl ' . $branch . ' >/tmp/buildall.log';
     exit;
   }
 } else {

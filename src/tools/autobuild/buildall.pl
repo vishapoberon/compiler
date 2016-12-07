@@ -10,26 +10,20 @@ my $branch = "master";
 if (defined($ARGV[0]) && ($ARGV[0] ne "")) {$branch = $ARGV[0]}
 
 my %machines = (
-  "pi"      => ['pi@pie',          "sudo", "projects/oberon/vishap/voc", "make full"],
-  "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
-  "cygwin"  => ['-p5932 dave@wax', "",     "oberon/cygwin/voc",        "export CC=gcc && make full;"
-                                                                       . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd oberon/cygwin/voc &&"
-                                                                                         . "src/tools/make/getbranch.sh $branch &&"
-                                                                                         . "export CC=gcc && make full;\\\""],
-  "mingw"   => ['-p5932 dave@wax', "",     "oberon/mingw/voc",         "export CC=i686-w64-mingw32-gcc && make full;"
-                                                                       . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd oberon/mingw/voc &&"
-                                                                                         . "src/tools/make/getbranch.sh $branch &&"
-                                                                                         . "export CC=x86_64-w64-mingw32-gcc && make full;\\\""],
-  "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
-  "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
-  "lub32"   => ['dave@vim-lub32',  "sudo", "oberon/voc",                 "make full"],
-  "fed64"   => ['dave@vim-fed64',  "sudo", "oberon/voc",                 "make full"],
-  "osu64"   => ['dave@vim-osu64',  "sudo", "oberon/voc",                 "make full"],
-  "ob32"    => ['root@nas-ob32',   "",     "vishap/voc",                 "make full"],
-  "ce64"    => ['-p5922 obe@www',  "sudo", "vishap/voc",                 "make full"],
-  "fb64"    => ['root@oberon',     "",     "vishap/voc",                 "make full"]
+  "pi"       => ['22',   'pi@pie',                          'sh build-oberon.sh  sudo  projects/oberon/vishap/voc  gcc'],
+  "darwin"   => ['22',   'dave@dcb',                        'sh build-oberon.sh  sudo  projects/oberon/vishap/voc  clang'],
+  "cygwin32" => ['5932', 'dave@wax',                        'sh build-oberon.sh  n     oberon/cygwin/voc           gcc'],
+  "cygwin64" => ['5932', 'dave@wax',        'sh start64.sh \'sh build-oberon.sh  n     oberon/cygwin/voc           gcc\''],
+  "mingw32"  => ['5932', 'dave@wax',                        'sh build-oberon.sh  n     oberon/mingw/voc            i686-w64-mingw32-gcc'],
+  "mingw64"  => ['5932', 'dave@wax',        'sh start64.sh \'sh build-oberon.sh  n     oberon/mingw/voc            i686-w64-mingw32-gcc\''],
+  "android"  => ['8022', 'root@and',                        'sh build-oberon.sh  n     vishap/voc                  gcc'],
+  "lub64"    => ['22',   'dave@vim',                        'sh build-oberon.sh  sudo  oberon/voc                  gcc'],
+  "lub32"    => ['22',   'dave@vim-lub32',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc'],
+  "fed64"    => ['22',   'dave@vim-fed64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc'],
+  "osu64"    => ['22',   'dave@vim-osu64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc'],
+  "ob32"     => ['22',   'root@nas-ob32',                   'sh build-oberon.sh  n     vishap/voc                  gcc'],
+  "ce64"     => ['5922', 'obe@www',                         'sh build-oberon.sh  sudo  vishap/voc                  gcc'],
+  "fb64"     => ['22',   'root@oberon',                     'sh build-oberon.sh  n     vishap/voc                  gcc']
 );
 
 
@@ -61,8 +55,9 @@ sub logged {
 unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
-  my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && git pull && git checkout -f && src/tools/make/getbranch.sh $branch && $sudo $mkcmd\" ";
+  my ($port, $login, $cmd) = @{$machines{$machine}};
+  my $cmd = "scp -P $port build-oberon.sh $login:build-oberon.sh &&"
+          . "ssh -p $port $login \"$cmd\"";
   logged($cmd, $machine);
 }
 
