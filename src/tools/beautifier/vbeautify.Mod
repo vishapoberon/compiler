@@ -334,7 +334,7 @@ BEGIN
   ParseCmdLine(bText, oldNotifier);
   IF bText = NIL THEN
     (*Out.String("Usage: Beautifier.Format * | ^ | Filename.Mod"); Out.Ln*)
-    Out.String("Usage: beautifier Filename.Mod"); Out.Ln
+    Out.String("Usage: vbeautify Filename.Mod"); Out.Ln
   ELSE
     (*GetFontsFromText(bText, expNamFnt, cmtFnt);
     FoldElems.ExpandAll(bText, 0, TRUE);
@@ -693,7 +693,7 @@ BEGIN
   ParseCmdLine(bText, oldNotifier);
   IF bText = NIL THEN
     (*Out.String("Usage: Beautifier.SpaceOps * | ^ | Filename.Mod"); Out.Ln*)
-    Out.String("Usage: Beautifier Filename.Mod"); Out.Ln
+    Out.String("Usage: vbeautify Filename.Mod"); Out.Ln
   ELSE
     (*GetFontsFromText(bText, expNamFnt, cmtFnt);
     FoldElems.ExpandAll(bText, 0, TRUE);
