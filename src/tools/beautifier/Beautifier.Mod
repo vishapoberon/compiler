@@ -1,6 +1,6 @@
 MODULE Beautifier;     
 
-IMPORT FoldElems, Fonts, Oberon, Out, Strings, TextFrames, Texts, Viewers, MenuViewers;
+IMPORT Oberon, Out, Strings, Texts;
 
 CONST
   Tab = 09X;   LF = 0DX;
@@ -23,7 +23,7 @@ VAR
   fC, lC: ARRAY 23 OF INTEGER;
   hashT: ARRAY 51 OF Keyword;
 
-PROCEDURE (VAR k: Keyword) Init (s: ARRAY 10 OF CHAR; class: SHORTINT); 
+PROCEDURE (VAR k: Keyword) Init (s: ARRAY (*10*) OF CHAR; class: SHORTINT); 
 BEGIN
   COPY(s, k.word);
   k.class := class
@@ -66,7 +66,7 @@ BEGIN
     END
   END
 END passProcHead;
-
+(*
 PROCEDURE MarkedViewer (): TextFrames.Frame; 
   VAR v: Viewers.Viewer;
 BEGIN
@@ -77,17 +77,17 @@ BEGIN
     RETURN NIL
   END
 END MarkedViewer;
-
+*)
 PROCEDURE NoNotify (t: Texts.Text; op: INTEGER; beg, end: LONGINT);  END NoNotify;
 
 PROCEDURE ParseCmdLine (VAR bText: Texts.Text; VAR oldNotifier: Texts.Notifier); 
 VAR
   beg, end, time: LONGINT;
-  f: TextFrames.Frame;
+  (*f: TextFrames.Frame;*)
   par: Oberon.ParList;
   s: Texts.Scanner;
   t: Texts.Text;
-
+(*
 PROCEDURE OpenText (fileName: ARRAY OF CHAR; VAR t: Texts.Text; VAR f: TextFrames.Frame); 
   VAR menuF: TextFrames.Frame; v: Viewers.Viewer; x, y: INTEGER;
 BEGIN
@@ -97,13 +97,21 @@ BEGIN
   Oberon.AllocateUserViewer(0, x, y);
   v := MenuViewers.New(menuF, f, TextFrames.menuH, x, y)
 END OpenText; 
+*)
+PROCEDURE OpenText (fileName: ARRAY OF CHAR; VAR t: Texts.Text); 
+BEGIN
+  NEW(t);
+  Texts.Open(t, fileName);
 
+END OpenText; 
 BEGIN
   oldNotifier := NIL; par := Oberon.Par;
   Texts.OpenScanner(s, par.text, par.pos);
   Texts.Scan(s);
   IF s.class = Texts.Name THEN                (* Called by filename *)
-    OpenText(s.s, bText, f)
+    (*OpenText(s.s, bText, f)*)
+    OpenText(s.s, bText)
+  (*
   ELSIF (s.class = Texts.Char) & (s.c = "*") THEN    (* Called by selected viewer *)
     f := MarkedViewer()
   ELSIF (s.class = Texts.Char) & (s.c = "^") THEN    (* Called by selection *)
@@ -114,17 +122,18 @@ BEGIN
         OpenText(s.s, bText, f)
       END
     END
+    *) (* commented out oberon system specific parts. -- noch *)
   END;
-  IF f # NIL THEN
+  (*IF f # NIL THEN
     bText := f.text;
     oldNotifier := f.text.notify;
     bText.notify := NoNotify
   ELSE
     Out.String("Could not find TextFrames.Frame. Program aborted."); Out.Ln;
     HALT(99)
-  END
+  END*)
 END ParseCmdLine;
-
+(*
 PROCEDURE GetFontsFromText (bText: Texts.Text; VAR expNamFnt, cmtFnt: Fonts.Font); 
 VAR
   r: Texts.Reader;
@@ -145,7 +154,7 @@ BEGIN
   Strings.Insert("i", i, italicfont);
   cmtFnt := Fonts.This(italicfont)
 END GetFontsFromText;
-
+*)
 PROCEDURE UpdateText (bText: Texts.Text; oldNotifier: Texts.Notifier); 
 BEGIN
   IF oldNotifier # NIL THEN
@@ -273,7 +282,7 @@ BEGIN
     END
   END
 END IndentCheck;
-
+(*
 PROCEDURE ChangeFont (bText: Texts.Text; expNamFnt, cmtFnt: Fonts.Font); 
 VAR
   s: Texts.Scanner; ch: CHAR; oPos, pos: LONGINT; exp: BOOLEAN; noExpLine: INTEGER;
@@ -316,21 +325,22 @@ BEGIN
     END
   END
 END ChangeFont;
-
+*)
 PROCEDURE Format*; 
 VAR
-  bText: Texts.Text; oldNotifier: Texts.Notifier; expNamFnt, cmtFnt: Fonts.Font;
+  bText: Texts.Text; oldNotifier: Texts.Notifier;(* expNamFnt, cmtFnt: Fonts.Font;*)
 BEGIN
   bText := NIL; oldNotifier := NIL;
   ParseCmdLine(bText, oldNotifier);
   IF bText = NIL THEN
-    Out.String("Usage: Beautifier.Format * | ^ | Filename.Mod"); Out.Ln
+    (*Out.String("Usage: Beautifier.Format * | ^ | Filename.Mod"); Out.Ln*)
+    Out.String("Usage: beautifier Filename.Mod"); Out.Ln
   ELSE
-    GetFontsFromText(bText, expNamFnt, cmtFnt);
+    (*GetFontsFromText(bText, expNamFnt, cmtFnt);
     FoldElems.ExpandAll(bText, 0, TRUE);
-    ChangeFont(bText, expNamFnt, cmtFnt);
+    ChangeFont(bText, expNamFnt, cmtFnt);*)
     IndentCheck(bText);
-    FoldElems.CollapseAll(bText, {FoldElems.tempLeft});
+    (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier)
   END
 END Format;
@@ -384,16 +394,16 @@ BEGIN
   IF bText = NIL THEN
     Out.String("Usage: Beautifier.RemSemicolons * | ^ | Filename.Mod"); Out.Ln
   ELSE
-    FoldElems.ExpandAll(bText, 0, TRUE);
+    (*FoldElems.ExpandAll(bText, 0, TRUE);*)
     RemSemicolons(bText);
-    FoldElems.CollapseAll(bText, {FoldElems.tempLeft});
+    (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier)
   END
 END RemoveSemicolons;
 
 
 PROCEDURE FoldProcedures (bText: Texts.Text); 
-  VAR s: Texts.Scanner; start, end: LONGINT; procName: ARRAY 24 OF CHAR; err: BOOLEAN; ch: CHAR; e: FoldElems.Elem; te: Texts.Elem;
+  VAR s: Texts.Scanner; start, end: LONGINT; procName: ARRAY 24 OF CHAR; err: BOOLEAN; ch: CHAR; (*e: FoldElems.Elem;*) te: Texts.Elem;
 BEGIN
   Texts.OpenScanner(s, bText, 0);
   Texts.Scan(s);
@@ -404,7 +414,7 @@ BEGIN
         start := Texts.Pos(s);
         (* --- Read to end of line *)
         Texts.Read(s, ch);
-        WHILE (ch # LF) & ((s.elem = NIL) OR ~(s.elem IS FoldElems.Elem)) DO Texts.Read(s, ch) END;
+        WHILE (ch # LF) & ((s.elem = NIL)(* OR ~(s.elem IS FoldElems.Elem)*)) DO Texts.Read(s, ch) END;
         te := s.elem;
 
         (* --- find end of procedure *)
@@ -420,7 +430,7 @@ BEGIN
         END;
 
         (* --- Check, whether Procedure has not yet been folded *)
-        IF (te = NIL) OR ~(te IS FoldElems.Elem) THEN
+        (*IF (te = NIL) OR ~(te IS FoldElems.Elem) THEN
           (* --- Insert FoldElems *)
           NEW(e); e.mode := FoldElems.expRight; e.W := FoldElems.elemW; e.H := FoldElems.elemH;
           e.handle := FoldElems.FoldHandler; e.visible := TRUE; Texts.WriteElem(w, e); Texts.Insert(bText, end, w.buf);
@@ -428,14 +438,14 @@ BEGIN
           e.handle := FoldElems.FoldHandler; NEW(e.hidden); Texts.OpenBuf(e.hidden); e.visible := TRUE;
           Texts.WriteElem(w, e); Texts.Insert(bText, start, w.buf);
           Texts.OpenScanner(s, bText, end)
-        END
+        END*)
       END
     ELSIF (s.class = Texts.Name) & (s.s = "BEGIN") THEN        (* Fold Module-Body *)
       start := Texts.Pos(s) - 1;
       Texts.OpenReader(s, bText, start);
       (* --- Read to end of line *)
       Texts.Read(s, ch);
-      WHILE (ch # LF) & ((s.elem = NIL) OR ~(s.elem IS FoldElems.Elem)) DO Texts.Read(s, ch) END;
+      WHILE (ch # LF) & ((s.elem = NIL)(* OR ~(s.elem IS FoldElems.Elem)*)) DO Texts.Read(s, ch) END;
       te := s.elem;
 
       (* --- Find end of Module *)
@@ -447,7 +457,7 @@ BEGIN
         END
       END;
       (* --- Check, whether Procedure has not yet been folded *)
-      IF (te = NIL) OR ~(te IS FoldElems.Elem) THEN
+      (*IF (te = NIL) OR ~(te IS FoldElems.Elem) THEN
         (* --- Insert FoldElems *)
         NEW(e); e.mode := FoldElems.expRight; e.W := FoldElems.elemW; e.H := FoldElems.elemH;
         e.handle := FoldElems.FoldHandler; e.visible := TRUE; Texts.WriteElem(w, e); Texts.Insert(bText, end, w.buf);
@@ -455,7 +465,7 @@ BEGIN
         e.handle := FoldElems.FoldHandler; NEW(e.hidden); Texts.OpenBuf(e.hidden); e.visible := TRUE;
         Texts.WriteElem(w, e); Texts.Insert(bText, start, w.buf);
         Texts.OpenScanner(s, bText, end)
-      END
+      END*)
     ELSIF (s.class = Texts.Char) & (s.c = "(") & (s.nextCh = "*") THEN
       passComments(s)
     END;
@@ -470,9 +480,9 @@ BEGIN
   IF bText = NIL THEN
     Out.String("Usage: Beautifier.FoldProc * | ^ | Filename.Mod"); Out.Ln
   ELSE
-    FoldElems.ExpandAll(bText, 0, TRUE);
+    (*FoldElems.ExpandAll(bText, 0, TRUE);*)
     FoldProcedures(bText);
-    FoldElems.CollapseAll(bText, {FoldElems.tempLeft});
+    (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier)
   END
 END FoldProc; 
@@ -643,31 +653,32 @@ BEGIN
   IF bText = NIL THEN
     Out.String("Usage: Beautifier.SpaceOps * | ^ | Filename.Mod"); Out.Ln
   ELSE
-    FoldElems.ExpandAll(bText, 0, TRUE);
+    (*FoldElems.ExpandAll(bText, 0, TRUE);*)
     SpaceOperators(bText);
     SpaceFormParms(bText);
     RemSpaces(bText);
-    FoldElems.CollapseAll(bText, {FoldElems.tempLeft});
+    (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier)
   END
 END SpaceOps; 
 
 PROCEDURE Beautify*; 
-  VAR bText: Texts.Text; oldNotifier: Texts.Notifier; expNamFnt, cmtFnt: Fonts.Font;
+  VAR bText: Texts.Text; oldNotifier: Texts.Notifier; (*expNamFnt, cmtFnt: Fonts.Font;*)
 BEGIN
   ParseCmdLine(bText, oldNotifier);
   IF bText = NIL THEN
-    Out.String("Usage: Beautifier.SpaceOps * | ^ | Filename.Mod"); Out.Ln
+    (*Out.String("Usage: Beautifier.SpaceOps * | ^ | Filename.Mod"); Out.Ln*)
+    Out.String("Usage: Beautifier Filename.Mod"); Out.Ln
   ELSE
-    GetFontsFromText(bText, expNamFnt, cmtFnt);
+    (*GetFontsFromText(bText, expNamFnt, cmtFnt);
     FoldElems.ExpandAll(bText, 0, TRUE);
-    ChangeFont(bText, expNamFnt, cmtFnt);
+    ChangeFont(bText, expNamFnt, cmtFnt);*)
     IndentCheck(bText);
     RemSemicolons(bText);
     FoldProcedures(bText);
     SpaceOperators(bText);
     SpaceFormParms(bText);
-    FoldElems.CollapseAll(bText, {FoldElems.tempLeft});
+    (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier);
   END
 END Beautify; 
@@ -715,5 +726,6 @@ BEGIN
   Texts.OpenWriter(w);
   NEW(b);
   Texts.OpenBuf(b);
-  InitHashTable
+  InitHashTable;
+  Beautify
 END Beautifier.
