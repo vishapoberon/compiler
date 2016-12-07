@@ -15,12 +15,12 @@ my %machines = (
   "cygwin"  => ['-p5932 dave@wax', "",     "oberon/cygwin/voc",        "export CC=gcc && make full;"
                                                                        . "cd ~;"
                                                                        . "sh start64.sh \\\"cd oberon/cygwin/voc &&"
-                                                                                         . "src/tools/make/getbranch $branch &&"
+                                                                                         . "src/tools/make/getbranch.sh $branch &&"
                                                                                          . "export CC=gcc && make full;\\\""],
   "mingw"   => ['-p5932 dave@wax', "",     "oberon/mingw/voc",         "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
                                                                        . "sh start64.sh \\\"cd oberon/mingw/voc &&"
-                                                                                         . "src/tools/make/getbranch $branch &&"
+                                                                                         . "src/tools/make/getbranch.sh $branch &&"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full;\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
   "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
@@ -62,7 +62,7 @@ unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && src/tools/make/getbranch $branch && $sudo $mkcmd\" ";
+  my $cmd = "ssh $login \"cd $dir && git checkout -f && perl src/tools/make/getbranch.sh $branch && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 
