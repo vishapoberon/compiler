@@ -14,13 +14,13 @@ my %machines = (
   "darwin"  => ['dave@dcb',        "sudo", "projects/oberon/vishap/voc", "make full"],
   "cygwin"  => ['-p5932 dave@wax', "",     "oberon/cygwin/voc",        "export CC=gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd oberon/cygwin/voc && git reset --hard && git clean -dfx &&"
-                                                                                         . "git pull && git checkout $branch && git pull;"
+                                                                       . "sh start64.sh \\\"cd oberon/cygwin/voc &&"
+                                                                                         . "src/tools/make/getbranch $branch &&"
                                                                                          . "export CC=gcc && make full;\\\""],
   "mingw"   => ['-p5932 dave@wax', "",     "oberon/mingw/voc",         "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
                                                                        . "sh start64.sh \\\"cd oberon/mingw/voc && git reset --hard && git clean -dfx &&"
-                                                                                         . "git pull && git checkout $branch && git pull;"
+                                                                                         . "git pull && git checkout -f $branch && git pull;"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full;\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
   "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
@@ -62,8 +62,7 @@ unlink glob "log/*";
 
 for my $machine (sort keys %machines) {
   my ($login, $sudo, $dir, $mkcmd) = @{$machines{$machine}};
-  my $cmd = "ssh $login \"cd $dir && $sudo git reset --hard && $sudo git clean -dfx &&"
-          . "$sudo git pull && $sudo git checkout -f $branch && $sudo git pull && $sudo $mkcmd\" ";
+  my $cmd = "ssh $login \"cd $dir && src/tools/make/getbranch $branch && $sudo $mkcmd\" ";
   logged($cmd, $machine);
 }
 
