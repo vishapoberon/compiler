@@ -662,6 +662,31 @@ BEGIN
   END
 END SpaceOps; 
 
+PROCEDURE TextToString(VAR T : Texts.Text; VAR string : ARRAY OF CHAR);
+   VAR R : Texts.Reader;
+   ch : CHAR;
+   i : LONGINT;
+BEGIN
+   COPY("", string);
+   Texts.OpenReader(R, T, 0);
+   i := 0;
+   WHILE Texts.Pos(R) < T.len DO
+      Texts.Read(R, ch);
+      IF ch # 0DX THEN string[i] := ch ELSE string[i] := 0AX END;
+      INC(i);
+   END;
+   (*string[i] := 0X;*)
+END TextToString;
+
+PROCEDURE DumpText(VAR t: Texts.Text);
+VAR s : POINTER TO ARRAY OF CHAR;
+BEGIN
+   NEW(s, t.len + 1);
+   COPY("", s^);
+   TextToString(t, s^);
+   Out.String(s^); Out.Ln;
+END DumpText;
+
 PROCEDURE Beautify*; 
   VAR bText: Texts.Text; oldNotifier: Texts.Notifier; (*expNamFnt, cmtFnt: Fonts.Font;*)
 BEGIN
@@ -680,7 +705,8 @@ BEGIN
     SpaceFormParms(bText);
     (*FoldElems.CollapseAll(bText, {FoldElems.tempLeft});*)
     UpdateText(bText, oldNotifier);
-    Texts.CloseAscii(bText, 'test');
+    (*Texts.CloseAscii(bText, 'test');*)
+    DumpText(bText)
   END
 END Beautify; 
 
