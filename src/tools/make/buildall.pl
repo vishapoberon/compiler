@@ -19,8 +19,8 @@ my %machines = (
                                                                                          . "export CC=gcc && make full;\\\""],
   "mingw"   => ['-p5932 dave@wax', "",     "oberon/mingw/voc",         "export CC=i686-w64-mingw32-gcc && make full;"
                                                                        . "cd ~;"
-                                                                       . "sh start64.sh \\\"cd oberon/mingw/voc && git reset --hard && git clean -dfx &&"
-                                                                                         . "git pull && git checkout -f $branch && git pull;"
+                                                                       . "sh start64.sh \\\"cd oberon/mingw/voc &&"
+                                                                                         . "src/tools/make/getbranch $branch &&"
                                                                                          . "export CC=x86_64-w64-mingw32-gcc && make full;\\\""],
   "android" => ['-p8022 root@and', "",     "vishap/voc",                 "export CC=gcc && make full"],
   "lub64"   => ['dave@vim',        "sudo", "oberon/voc",                 "make full"],
