@@ -341,7 +341,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
       IF (ch = 0AX) & u(Piece).ascii THEN ch := CR (* << LF to CR *)
       ELSIF (ch = CR) & u(Piece).ascii THEN (* << CR LF to CR *)
          pos := Files.Pos(R.rider); Files.Read(R.rider, nextch);
-         IF nextch = 0AX THEN INC(R.off) ELSE Files.Set(R.rider, u(Piece).file, pos) END
+	 IF nextch = 0AX THEN INC(R.off) ELSE Files.Set(R.rider, u(Piece).file, pos) END
       END
     ELSIF u IS Elem THEN ch := ElemChar; R.elem := u(Elem)
     ELSE ch := 0X; R.elem := NIL; R.eot := TRUE
@@ -876,86 +876,6 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     COPY(name, bak); bak[i] := "."; bak[i+1] := "B"; bak[i+2] := "a"; bak[i+3] := "k"; bak[i+4] := 0X;
     Files.Rename(name, bak, res); Files.Register(f)
   END Close;
-
-  PROCEDURE StoreAscii* (VAR r: Files.Rider; T: Text);
-    VAR r1: Files.Rider; u, un: Run; e: Elem; org, pos, delta, hlen, rlen: LONGINT; ecnt, fcnt: SHORTINT; ch: CHAR;  (* << *)
-      fno: SYSTEM.INT8;
-      msg: FileMsg; iden: IdentifyMsg;
-      mods, procs: ARRAY 64, 32 OF CHAR;
-      fnts: ARRAY 32 OF FontsFont;
-      block: ARRAY 1024 OF CHAR;
-
-    PROCEDURE StoreElem (VAR r: Files.Rider; pos: LONGINT; e: Elem);
-      VAR r1: Files.Rider; org, span: LONGINT; eno: SYSTEM.INT8;
-    BEGIN COPY(iden.mod, mods[ecnt]); COPY(iden.proc, procs[ecnt]); eno := 1;
-      WHILE (mods[eno] # iden.mod) OR (procs[eno] # iden.proc) DO INC(eno) END;
-      Files.Set(r1, Files.Base(r), Files.Pos(r));
-      Files.WriteLInt(r, 0); Files.WriteLInt(r, 0); Files.WriteLInt(r, 0); (*fixup slot*)
-      Files.Write(r, eno);
-      IF eno = ecnt THEN INC(ecnt); Files.WriteString(r, iden.mod); Files.WriteString(r, iden.proc) END;
-      msg.pos := pos; org := Files.Pos(r); e.handle(e, msg); span := Files.Pos(r) - org;
-      Files.WriteLInt(r1, -span); Files.WriteLInt(r1, e.W); Files.WriteLInt(r1, e.H) (*fixup*)
-    END StoreElem;
-
-  BEGIN
-    org := Files.Pos(r); msg.id := store; msg.r := r; (*Files.WriteLInt(msg.r, 0)*); (*fixup slot*)
-    u := T.head.next; pos := 0; delta := 0; fcnt := 1; ecnt := 1;
-    (*WHILE u # T.head DO
-      IF u IS Elem THEN iden.mod[0] := 0X; u(Elem).handle(u(Elem), iden) ELSE iden.mod[0] := 1X END;
-      IF iden.mod[0] # 0X THEN
-        fnts[fcnt] := u.fnt; fno := 1;
-        WHILE fnts[fno].name # u.fnt.name DO INC(fno) END;
-        Files.Write(msg.r, fno);
-        IF fno = fcnt THEN INC(fcnt); Files.WriteString(msg.r, u.fnt.name) END;
-        Files.Write(msg.r, u.col); Files.Write(msg.r, u.voff)
-      END;
-      IF u IS Piece THEN rlen := u.len; un := u.next;
-        WHILE (un IS Piece) & (un.fnt = u.fnt) & (un.col = u.col) & (un.voff = u.voff) DO
-          INC(rlen, un.len); un := un.next
-        END;
-        Files.WriteLInt(msg.r, rlen); INC(pos, rlen); u := un
-      ELSIF iden.mod[0] # 0X THEN StoreElem(msg.r, pos, u(Elem)); INC(pos); u := u.next
-      ELSE INC(delta); u := u.next
-      END
-    END;
-    Files.Write(msg.r, 0); Files.WriteLInt(msg.r, T.len - delta);
-    (*!!!hlen := Files.Pos(msg.r) - org;*) hlen := Files.Pos(msg.r) - org + 2;
-    Files.Set(r1, Files.Base(msg.r), org); Files.WriteLInt(r1, hlen); (*fixup*)
-    *)
-    Files.Set(r1, Files.Base(msg.r), 0);
-    u := T.head.next;
-    WHILE u # T.head DO
-      IF u IS Piece THEN
-        WITH u: Piece DO
-          IF u.ascii THEN Files.Set(r1, u.file, u.org); delta := u.len;  (* << LF to CR *)
-            WHILE delta > 0 DO Files.Read(r1, ch); DEC(delta);
-              (*IF ch = 0AX THEN Files.Write(msg.r, CR) ELSE*) Files.Write(msg.r, ch); (*END*)
-            END
-          ELSE Files.Set(r1, u.file, u.org); delta := u.len;
-            WHILE delta > LEN(block) DO Files.ReadBytes(r1, block, LEN(block));
-              Files.WriteBytes(msg.r, block, LEN(block)); DEC(delta, LEN(block))
-            END;
-            Files.ReadBytes(r1, block, delta); Files.WriteBytes(msg.r, block, delta)
-          END
-        END
-      ELSE iden.mod[0] := 0X; u(Elem).handle(u(Elem), iden);
-        IF iden.mod[0] # 0X THEN Files.Write(msg.r, ElemChar) END
-      END;
-      u := u.next
-    END;
-    r := msg.r;
-    IF T.notify # NIL THEN T.notify(T, unmark, 0, 0) END
-  END StoreAscii;
-
-  PROCEDURE CloseAscii* (T: Text; name: ARRAY OF CHAR);
-    VAR f: Files.File; r: Files.Rider; i, res: INTEGER; bak: ARRAY 64 OF CHAR;
-  BEGIN
-    f := Files.New(name); Files.Set(r, f, 0); (*Files.Write(r, textTag); Files.Write(r, version);*) StoreAscii(r, T);
-    i := 0; WHILE name[i] # 0X DO INC(i) END;
-    COPY(name, bak); bak[i] := "."; bak[i+1] := "B"; bak[i+2] := "a"; bak[i+3] := "k"; bak[i+4] := 0X;
-    Files.Rename(name, bak, res); Files.Register(f)
-  END CloseAscii;
-
 
 BEGIN del := NIL; NEW(FontsDefault); FontsDefault.name := "Syntax10.Scn.Fnt"
 END Texts.
