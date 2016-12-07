@@ -8,8 +8,9 @@
 
 if test "$1" = "sudo"; then sudo=sudo; else sudo=""; fi
 
-echo Testing: \$1="$1", \$2="$2", \$3="$3", \$sudo="$sudo"
-exit
+echo ""
+echo === build-oberon.sh: \$1="$1", \$2="$2", \$3="$3", \$sudo="$sudo" ===
+echo """
 
 set -x
 cd $2
