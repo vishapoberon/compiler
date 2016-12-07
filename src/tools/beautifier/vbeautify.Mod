@@ -1,4 +1,4 @@
-MODULE Beautifier;     
+MODULE vbeautify;     
 
 IMPORT Oberon, Out, Strings, Texts;
 
@@ -755,4 +755,4 @@ BEGIN
   Texts.OpenBuf(b);
   InitHashTable;
   Beautify
-END Beautifier.
+END vbeautify.
