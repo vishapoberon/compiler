@@ -1,7 +1,7 @@
 # Push buildall and postpush to postpush server
 
 set -x
-for f in postpush.pl buildall.pl; do
+for f in postpush.pl buildall.pl build-oberon.sh; do
   scp -P 5922 $f root@www:/var/lib/nethserver/ibay/githubhook/$f
   ssh -p 5922 root@www "chmod +x /var/lib/nethserver/ibay/githubhook/$f"
 done;
