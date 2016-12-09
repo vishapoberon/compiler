@@ -73,8 +73,8 @@ usage:
 	@echo ""
 	@echo "  make full"
 	@echo ""
-	@echo "      Does a full, clean build, installs it, and runs confidence tests."
-	@echo "      Requires root access (for the install) except on cygwin."
+	@echo "      Does a full, clean build, and runs confidence tests."
+	@echo "      An installation directory image is left in the local repository install directory."
 	@echo ""
 	@echo "Targets for building and installation:"
 	@echo "  make clean         - Clean out the build directory"
@@ -134,8 +134,6 @@ clean: configuration
 
 # full: Full build of compiler and libarary.
 full: configuration
-	@make -f src/tools/make/oberon.mk -s installable
-	@-make -f src/tools/make/oberon.mk -s uninstall
 	@make -f src/tools/make/oberon.mk -s clean
 # Make bootstrap compiler from source suitable for current data model
 	@printf "\n\n--- Compiler build started ---\n\n"
@@ -153,10 +151,10 @@ full: configuration
 	@make -f src/tools/make/oberon.mk -s library MODEL=C
 	@printf "\n\n--- Library build successfull ---\n\n"
 	@make -f src/tools/make/oberon.mk -s sourcechanges
-	@make -f src/tools/make/oberon.mk -s install
+	@make -f src/tools/make/oberon.mk -s makeinstalldir
 	@printf "\n\n--- Confidence tests started ---\n\n"
 	@make -f src/tools/make/oberon.mk -s confidence MODEL=2
-	@make -f src/tools/make/oberon.mk -s showpath
+	@make -f src/tools/make/oberon.mk -s instructions
 
 
 assemble:
@@ -221,14 +219,16 @@ s3: configuration
 
 
 
+# makeinstalldir: Copy built files to local install directory
+makeinstalldir:
+	@make -f src/tools/make/oberon.mk -s makeinstalldir
+
+
 # install: Copy built files to install directory
 install: configuration
-	@make -f src/tools/make/oberon.mk -s installable
-	@make -f src/tools/make/oberon.mk -s install MODEL=2
-	@make -f src/tools/make/oberon.mk -s showpath MODEL=2
+	@make -f src/tools/make/oberon.mk -s install
 
 uninstall: configuration
-	@make -f src/tools/make/oberon.mk -s installable
 	@make -f src/tools/make/oberon.mk -s uninstall
 
 

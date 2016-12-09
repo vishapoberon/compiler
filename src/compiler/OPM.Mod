@@ -229,6 +229,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
       LogWStr("Based on Ofront by J. Templ and Software Templ OEG.");                                              LogWLn;
       LogWStr("Further development by Norayr Chilingarian, David Brown and others.");                              LogWLn;
+      LogWStr("Loaded from "); LogWStr(Modules.BinaryDir);                                                         LogWLn;
       LogWLn;
       LogWStr("Usage:");                                                                                           LogWLn;
       LogWLn;

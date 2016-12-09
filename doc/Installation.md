@@ -2,10 +2,7 @@
 
 The Oberon compiler and libraries may be built and installed on Linux based, BSD based or Windows based systems.
 
-Building on Linux and BSD based systems is reasonably straightforward. First make sure you have the right pre-requites like a C compiler and static libraries installed, then clone the repository and run `make full`.
-
-Full instructions for a Linux/BSD based build follow in the next section.
-
+### Windows systems
 
 Bulding on Windows is not so simple largely because there is more than one way to do it:
 
@@ -30,8 +27,6 @@ Bulding on Windows is not so simple largely because there is more than one way t
 
 For full details about building with Cygwin or native Microsoft C environments see [**Cygwin and MSC Installation**](/doc/Winstallation.md)
 
-The following sections provide more details for Linux based builds.
-
 
 ### Building the Oberon compiler and libraries on a Linux or BSD based system
 
@@ -41,6 +36,7 @@ This approach is for
    - includes Windows subsystem for Linux (aka Bash on Ubuntu on Windows)
  - All BSD based systems
    - includes macOS (Darwin)
+
 
 #### 1. Install pre-requisites
 
@@ -63,6 +59,7 @@ Example pre-requisite installation commands:
 
 On Mac OS (Darwin) just type the git command. OS/X will tell you that it is not installed and ask if you want to install it (say yes). Note that Darwin builds always use clang, the OS will redirect attempts to use gcc to clang.
 
+
 #### 2. Clone the Oberon compiler repository
 
 Create and change to a directory in which to make the compiler and clone with this command:
@@ -79,8 +76,8 @@ This will create a subdirectory 'voc' which includes the following files and dir
 | makefile   | Makefile for all BSD- and Linux- like environments. Includes tests.                        |
 | make.cmd   | Makefile specifically for native Microsoft C builds. No tests.                             |
 
-#### 3. Build and install the Oberon compiler and library
 
+#### 3. Build and install the Oberon compiler and library
 
 ```
 cd voc
@@ -96,11 +93,8 @@ The makefile will:
    link the final Oberon compiler. This compiler is then used for the remaining steps.
  - Build the .sym file browser command `showdef`.
  - Build all the libraries in -O2 mode, and a subset in -OC mode.
- - Install the compiler and libraries by copying them to an appropriate location for your OS.
+ - Create an installation directory structure local to your copy of the repository.
  - Run a set of confidence tests.
-
-Since installation directories are not generally write accessible to normal users, is is necessary to run
-the `make full` command from a root shell, or by using `sudo`.
 
 The makefile will use either gcc or clang, whichever is installed. If you have both installed you can specify which to use by running either `export CC=gcc` or `export CC=clang` before the `make full` command.
 
@@ -110,15 +104,28 @@ The makefile will use either gcc or clang, whichever is installed. If you have b
 If the makefile succeeds it will end with instructions on how to set your path variable so that the
 compiler (voc) is found.
 
-The installation will be found at:
+
+#### Installing to system directories
+
+You may optionally install to system directories such as /opt or /usr/local/share.
+
+First be sure to have completed `make full` successfully.
+
+Then from a root prompt, or using sudo, run `make install`
+
+The installation will be made to:
 
 | System                       | Install dir                            |
 | -----------------------      | -------------------------------------- |
 | All types of Linux           | /opt/voc                               |
 | BSD (including Darwin)       | /usr/local/share/voc                   |
-| Termux (android)             | /data/data/com.termux/files/opt/voc    |                                |
+| Termux (android)             | /data/data/com.termux/files/opt/voc    |
 
-The installation directory contains:
+As with `make full`, `make install` will exit with instructions on how to set
+your PATH.
+
+
+#### Installation directory contentains:
 
 | Directory      | Content                                            |
 | ---            | ---                                                |

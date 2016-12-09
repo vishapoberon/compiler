@@ -112,7 +112,10 @@ MODULE Modules;  (* jt 6.1.96 *)
   VAR i,j: INTEGER;
   BEGIN
     i := 0; j := CharCount(d);
+    (* Append delimiter c to d only if d is either empty or doesn not
+       already end in c. *)
     IF (j > 0) & (d[j-1] # c) THEN d[j] := c; INC(j) END;
+    (* Append s to d *)
     WHILE s[i] # 0X DO d[j] := s[i]; INC(i); INC(j) END;
     d[j] := 0X;
   END AppendPart;
@@ -144,7 +147,9 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE IsFilePresent(s: ARRAY OF CHAR): BOOLEAN;
   VAR identity: Platform.FileIdentity;
-  BEGIN RETURN Platform.IdentifyByName(s, identity) = 0
+  BEGIN
+    (*Out.String("IsFilePresent("); Out.String(s); Out.String(")."); Out.Ln;*)
+    RETURN Platform.IdentifyByName(s, identity) = 0
   END IsFilePresent;
 
   PROCEDURE ExtractPart(s: ARRAY OF CHAR; VAR i: INTEGER; p: ARRAY OF CHAR; VAR d: ARRAY OF CHAR);
@@ -181,45 +186,50 @@ MODULE Modules;  (* jt 6.1.96 *)
     END;
   END Trim;
 
-  PROCEDURE FindBinaryDir(VAR d: ARRAY OF CHAR);
+  PROCEDURE FindBinaryDir(VAR binarydir: ARRAY OF CHAR);
   TYPE pathstring = ARRAY 4096 OF CHAR;
   VAR
-    executable: pathstring;
-    dir:        pathstring;
-    testpath:   pathstring;
-    pathlist:   pathstring;
+    arg0:       pathstring;  (* The command exactly as passed by the shell *)
+    pathlist:   pathstring;  (* The whole PATH environment variable *)
+    pathdir:    pathstring;  (* A single directory from the PATH *)
+    tempstr:    pathstring;
     i, j, k:    INTEGER;
     present:    BOOLEAN;
   BEGIN
     IF ArgCount < 1 THEN
-      (* Shells and GUIs always pass the command as ARGV[0]. *)
-      d[0] := 0X;
+      (* The caller is misbehaving: Shells and GUIs always pass the command
+         as ARGV[0]. *)
+      binarydir[0] := 0X;
       RETURN;
     END;
 
-    (* First try ARGV[0] without looking at the PATH environment variable. *)
-    GetArg(0, testpath); Trim(testpath, executable);
-    Canonify(executable, d); present := IsFilePresent(d);
-
-    IF (~present) & (~IsAbsolute(testpath)) THEN
-      (* ARGV[0] alone didn't work, try non-absolute ARGV[0] with every entry in path. *)
+    GetArg(0, arg0); (* arg0 is the command binary file name passed by the shell. *)
+    i := 0; WHILE (arg0[i] # 0X) & (arg0[i] # '/') DO INC(i) END;
+    IF arg0[i] = '/' THEN
+      (* The argument contains a '/', we expect it to work without reference
+         to the path. *)
+      Trim(arg0, tempstr); Canonify(tempstr, binarydir);
+      present := IsFilePresent(binarydir)
+    ELSE
+      (* There are no '/'s in arg0, so search through the path. *)
       Platform.GetEnv("PATH", pathlist);
-      i := 0;
+      i := 0; present := FALSE;
       WHILE (~present) & (pathlist[i] # 0X) DO
-        ExtractPart(pathlist, i, ":;", dir); Trim(dir, testpath);
-        AppendPart('/', executable, testpath);
-        Canonify(testpath, d); present := IsFilePresent(d)
+        ExtractPart(pathlist, i, ":;", pathdir);
+        AppendPart('/', arg0, pathdir);
+        Trim(pathdir, tempstr); Canonify(tempstr, binarydir);
+        present := IsFilePresent(binarydir)
       END
     END;
 
     IF present THEN
-      (* Remove trailing executable file name *)
-      k := CharCount(d);
-      WHILE (k > 0) & ~IsOneOf(d[k-1], '/\') DO DEC(k) END;
-      (* Chop off executable file name *)
-      IF k = 0 THEN d[k] := 0X ELSE d[k-1] := 0X END;
+      (* Remove trailing binarydir file name *)
+      k := CharCount(binarydir);
+      WHILE (k > 0) & ~IsOneOf(binarydir[k-1], '/\') DO DEC(k) END;
+      (* Chop off binarydir file name *)
+      IF k = 0 THEN binarydir[k] := 0X ELSE binarydir[k-1] := 0X END;
     ELSE
-      d[0] := 0X (* Couldn't determine binary directory. *)
+      binarydir[0] := 0X (* Couldn't determine binary directory. *)
     END
   END FindBinaryDir;
 

@@ -67,7 +67,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(Configuration.objflag,      cmd);
     Strings.Append(moduleName,                 cmd);
     Strings.Append(Configuration.linkflags,    cmd);
-    Strings.Append(Configuration.installdir,   cmd);
+    Strings.Append(OPM.InstallDir,             cmd);
     Strings.Append('/lib"',                    cmd);
     Strings.Append(Configuration.libspec,      cmd);
     Strings.Append('-O',                       cmd);

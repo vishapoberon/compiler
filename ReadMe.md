@@ -27,8 +27,16 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 ## Installation
 
-While pre-built packages are not provided, it is easy to install the Oberon compiler and libraries
-with the following simple steps.
+It is easy to install the Oberon compiler and libraries
+with the following simple steps:
+
+  1. Install pre-requisites such as git, gcc, static C libraries, diff utils.
+  2. Clone the repository and run 'make full'.
+  3. Optionally install to a system directory such as /opt or /usr/local/share.
+  4. Set your PATH variable to include the compiler binary.
+
+These are detailed below:
+
 
 #### 1. Install prerequisites
 
@@ -43,27 +51,56 @@ with the following simple steps.
 
 More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
 
-#### 2. Build and install the compiler and libraries
+
+#### 2. Clone and build the compiler and libraries
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
-3. `[sudo] make full`
+3. `make full`
 
-Since 'make full' will install the compiler and libraries, it needs root (unix) or administrator (windows) privileges.
+`make full` will create an installation directory under your local repository at voc/install.
 
-#### 3. Set your PATH environment variable
+`mmake full` runs `ldconfig` to configure the linker to find libraries in voc/install, but you
+need to update your program search PATH yourself (see step 4 below).
 
-Set your path to the installed compiler binary location as reported
-by make full, e.g.
 
-| System    | Set path                                                      |
-| --------- | --------------------------------------                        |
-|  Linux    | `export PATH="/opt/voc/bin:$PATH"`                            |
-|  BSD      | `export PATH="/usr/local/share/voc/bin:$PATH"`                |
-|  Windows  | See [Installation](/doc/Installation.md)                      |
-|  Termux   | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
+
+#### 3. Optionally install to a system directory
+
+Run `make install` as root to copy the voc/install directory to the appropriate directory
+for your OS as follows:
+
+| System  | Where `make install` puts the installation            |
+| ------- | --------------------------------------                |
+| Linux   | `/opt/voc`                                            |
+| BSD     | `/usr/local/share/voc`                                |
+| Windows | See [**Windows installation**](/doc/WInstallation.md) |
+| Termux  | `/data/data/com.termux/files/opt/voc`                 |
+
+`make install` updates `ldconfg` with the new library locations.
+
+
+#### 4. Set your PATH environment variable
+
+Since there are so many ways that different systems and users manage their PATHs, we leave
+it to you to update your path to include the compiler binary.
+
+Both `make full` and `make install` display instructions on setting the path specific to your
+system.
+
+For reference this will be:
+
+| Installation choice       | Set path                                                      |
+| ---------                 | --------------------------------------                        |
+| Just `make full`          | `export PATH="your-repository-clone/install/bin:$PATH"`       |
+| `make install` on Linux   | `export PATH="/opt/voc/bin:$PATH"`                            |
+| `make install` on BSD     | `export PATH="/usr/local/share/voc/bin:$PATH"`                |
+| `make install` on Windows | See [**Windows installation**](/doc/WInstallation.md)         |
+| `make install` on Termux  | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
 Also see [**Installation**](/doc/Installation.md).
+
+The compiler finds the rest of the installation based on the location from which it is loaded.
 
 
 ## A 'Hello' application
@@ -99,12 +136,15 @@ Compile as follows:
 The -m parameter tells voc that this is a main module, and to generate an
 executable binary.
 
-Execute as usual on Linux ('./hello') or Windows ('hello').
+Execute as usual on Linux (`./hello`) or Windows (`hello`).
 
-In order to know module's interface, use "showdef" program.
+
+### Viewing the interfaces of included modules.
+
+In order to see the definition of a module's interface, use the "showdef" program.
 
 ```
- $ showdef Out.sym
+$ showdef Out.sym
 DEFINITION Out;
 
   VAR
@@ -118,12 +158,10 @@ DEFINITION Out;
   PROCEDURE Open;
   PROCEDURE Real(x: REAL; n: INT16);
   PROCEDURE String(str: ARRAY OF CHAR);
-  PROCEDURE Ten(e: INT16): LONGREAL;
 
 END Out.
 ```
 
-Also see [**Compiling**](/doc/Compiling.md).
 
 ## Licensing
 

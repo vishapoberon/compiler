@@ -33,7 +33,7 @@ usage:
 
 clean:
 	@printf '\n\n--- Cleaning branch $(BRANCH) $(OS) $(COMPILER) $(DATAMODEL) ---\n\n'
-	rm -rf $(BUILDDIR)
+	rm -rf $(BUILDDIR) $(ROOTDIR)/install
 	rm -f $(OBECOMP)
 
 
@@ -142,68 +142,77 @@ browsercmd:
 
 
 
+# makeinstalldir: Use only after a successful full build. Creates an
+#                 installation directory image in $(BUILDDOR)/install
+makeinstalldir:
+	@printf '\nCreating installation image at $(ROOTDIR)/install\n'
+	@rm -rf "$(ROOTDIR)/install"
+
+	@mkdir -p "$(ROOTDIR)/install/bin"
+	@cp $(OBECOMP) "$(ROOTDIR)/install/bin/$(OBECOMP)"
+	@-cp $(BUILDDIR)/showdef$(BINEXT) "$(ROOTDIR)/install/bin"
+
+	@mkdir -p "$(ROOTDIR)/install/2/include" && cp $(BUILDDIR)/2/*.h   "$(ROOTDIR)/install/2/include/"
+	@mkdir -p "$(ROOTDIR)/install/2/sym"     && cp $(BUILDDIR)/2/*.sym "$(ROOTDIR)/install/2/sym/"
+	@mkdir -p "$(ROOTDIR)/install/C/include" && cp $(BUILDDIR)/C/*.h   "$(ROOTDIR)/install/C/include/"
+	@mkdir -p "$(ROOTDIR)/install/C/sym"     && cp $(BUILDDIR)/C/*.sym "$(ROOTDIR)/install/C/sym/"
+
+	@cp $(BUILDDIR)/*.Txt "$(ROOTDIR)/install/2/sym/"
+	@cp $(BUILDDIR)/*.Txt "$(ROOTDIR)/install/C/sym/"
+
+	@mkdir -p "$(ROOTDIR)/install/lib"
+	@cp $(BUILDDIR)/2/lib$(ONAME)* "$(ROOTDIR)/install/lib/"
+	@cp $(BUILDDIR)/C/lib$(ONAME)* "$(ROOTDIR)/install/lib/"
+
+
+# instructions: Advice on completion of local build
+instructions: FORCE
+	@printf '\nOberon build and test complete, result is in $(ROOTDIR)/install\n'
+	@printf '\nYou can use the new compiler by running $(ROOTDIR)/install/bin/$(ONAME),\n'
+	@printf 'Or add it to your path as follows:\n'
+	@printf 'export PATH=\"$(ROOTDIR)/install/bin:$$PATH\"\n'
+	@printf '\n'
+
+
+
+
 FORCE:
 
-# installable: Check for access to the installation directory
 
+# installable: Check for access to the installation directory
 installable:
 	@rm -rf "S(INSTALLDIR)/test-access-qqq"
 	@if ! mkdir -p "$(INSTALLDIR)/test-access-qqq";then printf '\n\n   Cannot write to install directory.\n   Please use sudo or run as root/administrator.\n\n'; exit 1;fi
 	@rm -rf "S(INSTALLDIR)/test-access-qqq"
 
 
+uninstall: installable
+	@printf '\nUninstalling from \"$(INSTALLDIR)\"\n'
+	rm -rf "$(INSTALLDIR)"
+	@sh src/tools/make/addlibrary.sh uninstall \""$(INSTALLDIR)/lib"\" $(oname)
 
 
 # install: Use only after a successful full build. Installs the compiler
 #          and libraries in /opt/$(ONAME).
 #          May require root access.
-install:
+install: uninstall
 	@printf '\nInstalling into \"$(INSTALLDIR)\"\n'
 	@rm -rf "$(INSTALLDIR)"
-
-	@mkdir -p "$(INSTALLDIR)/bin"
-	@cp $(OBECOMP) "$(INSTALLDIR)/bin/$(OBECOMP)"
-	@-cp $(BUILDDIR)/showdef$(BINEXT) "$(INSTALLDIR)/bin"
-
-	@mkdir -p "$(INSTALLDIR)/2/include" && cp $(BUILDDIR)/2/*.h   "$(INSTALLDIR)/2/include/"
-	@mkdir -p "$(INSTALLDIR)/2/sym"     && cp $(BUILDDIR)/2/*.sym "$(INSTALLDIR)/2/sym/"
-	@mkdir -p "$(INSTALLDIR)/C/include" && cp $(BUILDDIR)/C/*.h   "$(INSTALLDIR)/C/include/"
-	@mkdir -p "$(INSTALLDIR)/C/sym"     && cp $(BUILDDIR)/C/*.sym "$(INSTALLDIR)/C/sym/"
-
-	@cp $(BUILDDIR)/*.Txt "$(INSTALLDIR)/2/sym/"
-	@cp $(BUILDDIR)/*.Txt "$(INSTALLDIR)/C/sym/"
-
-	@mkdir -p "$(INSTALLDIR)/lib"
-	@cp $(BUILDDIR)/2/lib$(ONAME)* "$(INSTALLDIR)/lib/"
-	@cp $(BUILDDIR)/C/lib$(ONAME)* "$(INSTALLDIR)/lib/"
-	@if which ldconfig >/dev/null 2>&1; then $(LDCONFIG); fi
-
-
-
-
-# showpath: Describe how to set the PATH variable
-showpath:
+	@cp -rf "$(ROOTDIR)/install/" "$(INSTALLDIR)"
+	@sh src/tools/make/addlibrary.sh install \""$(INSTALLDIR)/lib"\" $(ONAME)
+	@printf '\nOberon compiler installed to $(INSTALLDIR)\n'
 	@printf '\nNow add $(INSTALLDIR)/bin to your path, for example with the command:\n'
-	@printf 'export PATH=\"$(INSTALLDIR)/bin:\$$PATH\"\n'
+	@printf 'export PATH=\"$(INSTALLDIR)/bin:$$PATH\"\n'
 	@printf '\n'
 
 
-
-
-uninstall:
-	@printf '\nUninstalling from \"$(INSTALLDIR)\"\n'
-	rm -rf "$(INSTALLDIR)"
-	rm -f /etc/ld.so.conf/lib$(ONAME)
-	if which ldconfig >/dev/null 2>&1; then ldconfig; fi
-
-
-runtime:
+runtime: FORCE
 	@printf '\nMaking run time library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Heap.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Out.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Modules.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Strings.Mod
-	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Out.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/In.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/VT100.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Files.Mod
@@ -387,7 +396,7 @@ sourcechanges:
 
 
 
-RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR) BRANCH=$(BRANCH) sh ./test.sh "$(INSTALLDIR)"
+RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR) BRANCH=$(BRANCH) sh ./test.sh "$(ROOTDIR)/install"
 
 confidence:
 	@printf '\n\n--- Confidence tests ---\n\n'

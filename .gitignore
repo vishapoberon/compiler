@@ -2,6 +2,7 @@
 /Configuration.Mod
 /Configuration.Make
 /build/*
+/install/*
 /*.exe
 /*.obj
 /*.[cho]
