@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/06]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/09]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef VT100__h
 #define VT100__h
