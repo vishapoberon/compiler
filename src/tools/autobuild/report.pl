@@ -75,9 +75,9 @@ sub parselog {
     if (/^([0-9.]+) --- Make completed ---$/) {
       # Go back and convert 'Started' status to 'Failed'.
       if ($branch =~ m/^Build on/)  {$branch     = "Build on $fn failed to start.";}
-      if ($compilerok eq "Started") {$compilerok = "Failed.";}
-      if ($libraryok  eq "Started") {$libraryok  = "Failed.";}
-      if ($tests      eq "Started") {$tests      = "Failed.";}
+      if ($compilerok eq "Started") {$compilerok = "Failed";}
+      if ($libraryok  eq "Started") {$libraryok  = "Failed";}
+      if ($tests      eq "Started") {$tests      = "Failed";}
     }
   }
   close($log);

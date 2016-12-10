@@ -1,6 +1,6 @@
 MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**)  (* << RC, MB, JT *)
   IMPORT
-    Files, Modules, Reals, SYSTEM;
+    Files, Modules, Reals, SYSTEM, Out;
 
   (*--- insert field e: Elem into Texts.Scanner and change Texts.Scan to set it in case of class=6 *)
 
@@ -119,6 +119,56 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     new*: Elem;
     del: Buffer;
     FontsDefault: FontsFont;
+
+(* Debugging OpenBSD failure *)
+
+  PROCEDURE DumpText(t: Text);
+  BEGIN
+    Out.String("      len:    "); Out.Int(t.len,1); Out.Ln;
+    Out.String("      notify: "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, t.notify),1); Out.Ln;
+    Out.String("      head:   "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, t.head),1); Out.Ln;
+    Out.String("      cache:  "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, t.cache),1); Out.Ln;
+    Out.String("      corg:   "); Out.Int(t.corg,1); Out.Ln;
+  END DumpText;
+
+  PROCEDURE DumpElem(e: Elem);
+  BEGIN
+    Out.String("    W:      "); Out.Int(e.W,1);  Out.Ln;
+    Out.String("    H:      "); Out.Int(e.H,1);  Out.Ln;
+    Out.String("    handle: "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, e.handle),1); Out.Ln;
+    Out.String("    base:   "); IF e.base  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpText(e.base) END;
+  END DumpElem;
+
+  PROCEDURE DumpRider(ri: Files.Rider);
+  BEGIN
+    Out.String("    res: "); Out.Int(ri.res,1); Out.Ln;
+    Out.String("    eof: "); IF ri.eof THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
+  END DumpRider;
+
+  PROCEDURE DumpRun(ru: Run);
+  BEGIN
+    Out.String("    prev:  "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, ru.prev),1); Out.Ln;
+    Out.String("    next:  "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, ru.next),1); Out.Ln;
+    Out.String("    len:   "); Out.Int(ru.len,1);  Out.Ln;
+    Out.String("    fnt:   "); IF ru.fnt # NIL THEN Out.String(ru.fnt.name) ELSE Out.String("<NIL>") END; Out.Ln;
+    Out.String("    col:   "); Out.Int(ru.col,1);  Out.Ln;
+    Out.String("    voff:  "); Out.Int(ru.voff,1); Out.Ln;
+    Out.String("    ascii: "); IF ru.ascii THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
+  END DumpRun;
+
+  PROCEDURE DumpReader*(re: Reader);
+  BEGIN
+    Out.String("Reader:"); Out.Ln;
+    Out.String("  eot:   "); IF re.eot THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
+    Out.String("  fnt:   "); IF re.fnt # NIL THEN Out.String(re.fnt.name) ELSE Out.String("<NIL>") END; Out.Ln;
+    Out.String("  col:   "); Out.Int(re.col,1);  Out.Ln;
+    Out.String("  voff:  "); Out.Int(re.voff,1); Out.Ln;
+    Out.String("  org:   "); Out.Int(re.org,1);  Out.Ln;
+    Out.String("  off:   "); Out.Int(re.off,1);  Out.Ln;
+    Out.String("  elem:  "); IF re.elem  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpElem(re.elem) END;
+    Out.String("  rider: "); Out.Ln; DumpRider(re.rider);
+    Out.String("  run:   "); IF re.run   = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpRun(re.run) END;
+  END DumpReader;
 
 
   PROCEDURE FontsThis(VAR name: ARRAY OF CHAR): FontsFont;
@@ -340,8 +390,8 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     IF u IS Piece THEN Files.Read(R.rider, ch); R.elem := NIL;
       IF (ch = 0AX) & u(Piece).ascii THEN ch := CR (* << LF to CR *)
       ELSIF (ch = CR) & u(Piece).ascii THEN (* << CR LF to CR *)
-         pos := Files.Pos(R.rider); Files.Read(R.rider, nextch);
-	 IF nextch = 0AX THEN INC(R.off) ELSE Files.Set(R.rider, u(Piece).file, pos) END
+        pos := Files.Pos(R.rider); Files.Read(R.rider, nextch);
+	      IF nextch = 0AX THEN INC(R.off) ELSE Files.Set(R.rider, u(Piece).file, pos) END
       END
     ELSIF u IS Elem THEN ch := ElemChar; R.elem := u(Elem)
     ELSE ch := 0X; R.elem := NIL; R.eot := TRUE
