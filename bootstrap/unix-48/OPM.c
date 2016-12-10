@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/09]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/10]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -494,6 +494,7 @@ void OPM_Get (CHAR *ch)
 		OPM_LogWStr((CHAR*)"DEBUG: OPM.Get returned inR.eot at curpos = 0, ch = ", 53);
 		OPM_LogWNum((INT16)*ch, 1);
 		OPM_LogW('.');
+		Texts_DumpReader(OPM_inR);
 	}
 	if ((*ch < 0x09 && !OPM_inR.eot)) {
 		*ch = ' ';
