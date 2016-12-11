@@ -87,7 +87,7 @@ END Ln;
 PROCEDURE HexDumpAdr*(adr: SYSTEM.ADDRESS; offset: HUGEINT; length: LONGINT);
 VAR i: INTEGER; n, lim: SYSTEM.ADDRESS; c: CHAR;
 BEGIN
-  lim := adr+length;
+  lim := SYSTEM.VAL(SYSTEM.ADDRESS, adr+length);
   WHILE adr < lim DO
     IF adr+16 < lim THEN n := 16 ELSE n := lim-adr END;
     Hex(offset,8); Char(" ");
