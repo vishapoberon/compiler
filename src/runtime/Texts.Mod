@@ -120,7 +120,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     del: Buffer;
     FontsDefault: FontsFont;
 
-(* Debugging OpenBSD failure *)
+(* Debugging intermittent OpenBSD failure. *)
 
   PROCEDURE DumpText(t: Text);
   BEGIN
@@ -138,12 +138,6 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     Out.String("    handle: "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, e.handle),1); Out.Ln;
     Out.String("    base:   "); IF e.base  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpText(e.base) END;
   END DumpElem;
-
-  PROCEDURE DumpRider(ri: Files.Rider);
-  BEGIN
-    Out.String("    res: "); Out.Int(ri.res,1); Out.Ln;
-    Out.String("    eof: "); IF ri.eof THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
-  END DumpRider;
 
   PROCEDURE DumpRun(ru: Run);
   BEGIN
@@ -166,7 +160,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     Out.String("  org:   "); Out.Int(re.org,1);  Out.Ln;
     Out.String("  off:   "); Out.Int(re.off,1);  Out.Ln;
     Out.String("  elem:  "); IF re.elem  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpElem(re.elem) END;
-    Out.String("  rider: "); Out.Ln; DumpRider(re.rider);
+    Out.String("  rider: "); Out.Ln; Files.DumpRider(re.rider,2);
     Out.String("  run:   "); IF re.run   = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpRun(re.run) END;
   END DumpReader;
 

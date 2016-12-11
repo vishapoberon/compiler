@@ -55,7 +55,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     END;
 
     Rider* =  RECORD
-      res*:   LONGINT;
+      res*:   LONGINT;  (* Residue (byte count not read) at eof of ReadBytes *)
       eof*:   BOOLEAN;
       buf:    Buffer;
       org:    LONGINT;  (* File offset of block containing current position *)
@@ -70,10 +70,45 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     SearchPath: POINTER TO ARRAY OF CHAR;
 
 
+(* Debugging intermittent OpenBSD failure. *)
+
+  PROCEDURE Spaces(i: INTEGER); BEGIN WHILE i>0 DO Out.String("  "); DEC(i) END END Spaces;
+
+  PROCEDURE DumpFile*(f: File; indent: INTEGER);
+  BEGIN
+    Spaces(indent); Out.String("workName:     "); Out.String(f.workName); Out.Ln;
+    Spaces(indent); Out.String("registerName: "); Out.String(f.registerName); Out.Ln;
+    Spaces(indent); Out.String("tempFile:     "); IF f.tempFile THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
+    Spaces(indent); Out.String("identity:     "); Out.String("..."); Out.Ln; (* TBD *)
+    Spaces(indent); Out.String("fd:           "); Out.Int(f.fd,1); Out.Ln;
+    Spaces(indent); Out.String("len,          "); Out.Int(f.len,1); Out.Ln;
+    Spaces(indent); Out.String("pos:          "); Out.Int(f.pos,1); Out.Ln;
+    Spaces(indent); Out.String("bufs:         "); Out.String("..."); Out.Ln; (* TBD *)
+    Spaces(indent); Out.String("swapper:      "); Out.Int(f.swapper,1); Out.Ln;
+    Spaces(indent); Out.String("state:        "); Out.Int(f.state,1); Out.Ln;
+    Spaces(indent); Out.String("next:         "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS,f.next),1); Out.Ln;
+  END DumpFile;
+
+  PROCEDURE DumpBuffer*(b: Buffer; indent: INTEGER);
+  BEGIN
+    Spaces(indent); Out.String("chg:  "); IF b.chg THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
+    Spaces(indent); Out.String("org:  "); Out.Int(b.org,1); Out.Ln;
+    Spaces(indent); Out.String("size: "); Out.Int(b.size,1); Out.Ln;
+    Spaces(indent); Out.String("data: "); Out.String("..."); Out.Ln;
+    Spaces(indent); Out.String("f:    "); IF b.f  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpFile(b.f, indent+1) END;
+  END DumpBuffer;
+
+  PROCEDURE DumpRider*(r: Rider; indent: INTEGER);
+  BEGIN
+    Spaces(indent); Out.String("res:    "); Out.Int(r.res,1); Out.Ln;
+    Spaces(indent); Out.String("eof:    "); IF r.eof THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
+    Spaces(indent); Out.String("org:    "); Out.Int(r.org,1); Out.Ln;
+    Spaces(indent); Out.String("offset: "); Out.Int(r.offset,1); Out.Ln;
+    Spaces(indent); Out.String("buf:    "); IF r.buf  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpBuffer(r.buf, indent+1) END;
+  END DumpRider;
 
 
   PROCEDURE -IdxTrap "__HALT(-1)";
-  PROCEDURE -ToAdr(x: SYSTEM.INT64): SYSTEM.ADDRESS "(ADDRESS)x";
 
   PROCEDURE^ Finalize(o: SYSTEM.PTR);
 
@@ -405,7 +440,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       offset := pos MOD BufSize; org := pos - offset; i := 0;
       WHILE (i < NumBufs) & (f.bufs[i] # NIL) & (org # f.bufs[i].org) DO INC(i) END;
       IF i < NumBufs THEN
-        IF f.bufs[i] = NIL THEN NEW(buf); buf.chg := FALSE; buf.org := -1; buf.f := f; f.bufs[i] := buf
+        IF f.bufs[i] = NIL THEN
+          NEW(buf); buf.chg := FALSE; buf.org := -1; buf.f := f; f.bufs[i] := buf
         ELSE buf := f.bufs[i]
         END
       ELSE
@@ -434,7 +470,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR offset: LONGINT; buf: Buffer;
   BEGIN
     buf := r.buf; offset := r.offset;
-    IF r.org # buf.org THEN Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset END;
+    IF r.org # buf.org THEN
+      Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
+    END;
     Assert(offset <= buf.size);
     IF (offset < buf.size) THEN
       x := buf.data[offset]; r.offset := offset + 1
@@ -450,16 +488,17 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
     IF n > LEN(x) THEN IdxTrap END;
-    xpos := 0; buf := r.buf; offset := r.offset;
+    xpos   := 0;
+    buf    := r.buf;
+    offset := r.offset;  (* Offset within buffer r.buf *)
     WHILE n > 0 DO
       IF (r.org # buf.org) OR (offset >= BufSize) THEN
-        Set(r, buf.f, r.org + offset);
-        buf := r.buf; offset := r.offset
+        Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
       END;
       restInBuf := buf.size - offset;
       IF restInBuf = 0 THEN r.res := n; r.eof := TRUE; RETURN
       ELSIF n > restInBuf THEN min := restInBuf ELSE min := n END;
-      SYSTEM.MOVE(SYSTEM.ADR(buf.data) + ToAdr(offset), SYSTEM.ADR(x) + ToAdr(xpos), min);
+      SYSTEM.MOVE(SYSTEM.ADR(buf.data[offset]), SYSTEM.ADR(x[xpos]), min);
       INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min);
       Assert(offset <= BufSize)
     END;
@@ -502,7 +541,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       Assert(offset <= BufSize);
       restInBuf := BufSize - offset;
       IF n > restInBuf THEN min := restInBuf ELSE min := n END;
-      SYSTEM.MOVE(SYSTEM.ADR(x) + ToAdr(xpos), SYSTEM.ADR(buf.data) + ToAdr(offset), min);
+      SYSTEM.MOVE(SYSTEM.ADR(x[xpos]), SYSTEM.ADR(buf.data[offset]), min);
       INC(offset, min); r.offset := offset;
       Assert(offset <= BufSize);
       IF offset > buf.size THEN INC(buf.f.len, offset - buf.size); buf.size := offset END;
