@@ -155,7 +155,7 @@ void Out_HexDumpAdr (INT32 adr, INT64 offset, INT32 length)
 	INT16 i;
 	INT32 n, lim;
 	CHAR c;
-	lim = adr + length;
+	lim = (INT32)(adr + length);
 	while (adr < lim) {
 		if (adr + 16 < lim) {
 			n = 16;
