@@ -16,6 +16,9 @@ static INT16 Out_in;
 
 export void Out_Char (CHAR ch);
 export void Out_Flush (void);
+export void Out_Hex (INT64 x, INT64 n);
+export void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len);
+export void Out_HexDumpAdr (INT32 a, INT32 o, INT32 l);
 export void Out_Int (INT64 x, INT64 n);
 static INT32 Out_Length (CHAR *s, ADDRESS s__len);
 export void Out_Ln (void);
@@ -119,10 +122,84 @@ void Out_Int (INT64 x, INT64 n)
 	}
 }
 
+void Out_Hex (INT64 x, INT64 n)
+{
+	if (n < 1) {
+		n = 1;
+	} else if (n > 16) {
+		n = 16;
+	}
+	while ((n < 16 && __LSH(x, -__ASHL(n, 2), 64) != 0)) {
+		n += 1;
+	}
+	x = __ROT(x, __ASHL(16 - n, 2), 64);
+	while (n > 0) {
+		x = __ROTL(x, 4, 64);
+		n -= 1;
+		if (__MASK(x, -16) < 10) {
+			Out_Char((CHAR)(__MASK(x, -16) + 48));
+		} else {
+			Out_Char((CHAR)((__MASK(x, -16) - 10) + 65));
+		}
+	}
+}
+
 void Out_Ln (void)
 {
 	Out_String(Platform_NL, 3);
 	Out_Flush();
+}
+
+void Out_HexDumpAdr (INT32 a, INT32 o, INT32 l)
+{
+	INT32 i, n, lim;
+	CHAR c;
+	lim = a + l;
+	while (a < lim) {
+		if (a + 16 < lim) {
+			n = 16;
+		} else {
+			n = lim - a;
+		}
+		Out_Hex(o, 8);
+		Out_Char(' ');
+		i = 0;
+		while (i < n) {
+			if (__MASK(i, -4) == 0) {
+				Out_Char(' ');
+			}
+			__GET(a + i, c, CHAR);
+			Out_Hex((INT16)c, 2);
+			Out_Char(' ');
+			i += 1;
+		}
+		while (i < 16) {
+			if (__MASK(i, -4) == 0) {
+				Out_Char(' ');
+			}
+			Out_String((CHAR*)"   ", 4);
+			i += 1;
+		}
+		Out_String((CHAR*)" ", 2);
+		i = 0;
+		while (i < n) {
+			__GET(a + i, c, CHAR);
+			if ((INT16)c < 32 || (INT16)c > 126) {
+				Out_Char('.');
+			} else {
+				Out_Char(c);
+			}
+			i += 1;
+		}
+		a += n;
+		o += n;
+		Out_Ln();
+	}
+}
+
+void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len)
+{
+	Out_HexDumpAdr((ADDRESS)m, 0, m__len);
 }
 
 static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)

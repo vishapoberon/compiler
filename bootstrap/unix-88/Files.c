@@ -172,7 +172,7 @@ void Files_DumpFile (Files_File f, INT16 indent)
 	Out_Ln();
 	Files_Spaces(indent);
 	Out_String((CHAR*)"next:         ", 15);
-	Out_Int((INT64)(ADDRESS)f->next, 1);
+	Out_Hex((INT64)(ADDRESS)f->next, 1);
 	Out_Ln();
 }
 
@@ -196,8 +196,8 @@ void Files_DumpBuffer (Files_Buffer b, INT16 indent)
 	Out_Ln();
 	Files_Spaces(indent);
 	Out_String((CHAR*)"data: ", 7);
-	Out_String((CHAR*)"...", 4);
 	Out_Ln();
+	Out_HexDump((void*)b->data, 4096);
 	Files_Spaces(indent);
 	Out_String((CHAR*)"f:    ", 7);
 	if (b->f == NIL) {

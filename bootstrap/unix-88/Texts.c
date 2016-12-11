@@ -243,13 +243,13 @@ static void Texts_DumpText (Texts_Text t)
 	Out_Int(t->len, 1);
 	Out_Ln();
 	Out_String((CHAR*)"      notify: ", 15);
-	Out_Int((INT64)(ADDRESS)t->notify, 1);
+	Out_Hex((INT64)(ADDRESS)t->notify, 1);
 	Out_Ln();
 	Out_String((CHAR*)"      head:   ", 15);
-	Out_Int((INT64)(ADDRESS)t->head, 1);
+	Out_Hex((INT64)(ADDRESS)t->head, 1);
 	Out_Ln();
 	Out_String((CHAR*)"      cache:  ", 15);
-	Out_Int((INT64)(ADDRESS)t->cache, 1);
+	Out_Hex((INT64)(ADDRESS)t->cache, 1);
 	Out_Ln();
 	Out_String((CHAR*)"      corg:   ", 15);
 	Out_Int(t->corg, 1);
@@ -265,7 +265,7 @@ static void Texts_DumpElem (Texts_Elem e)
 	Out_Int(e->H, 1);
 	Out_Ln();
 	Out_String((CHAR*)"    handle: ", 13);
-	Out_Int((INT64)(ADDRESS)e->handle, 1);
+	Out_Hex((INT64)(ADDRESS)e->handle, 1);
 	Out_Ln();
 	Out_String((CHAR*)"    base:   ", 13);
 	if (e->base == NIL) {
@@ -279,11 +279,14 @@ static void Texts_DumpElem (Texts_Elem e)
 
 static void Texts_DumpRun (Texts_Run ru)
 {
+	Out_String((CHAR*)"  Run at ", 10);
+	Out_Hex((INT64)(ADDRESS)ru, 1);
+	Out_Ln();
 	Out_String((CHAR*)"    prev:  ", 12);
-	Out_Int((INT64)(ADDRESS)ru->prev, 1);
+	Out_Hex((INT64)(ADDRESS)ru->prev, 1);
 	Out_Ln();
 	Out_String((CHAR*)"    next:  ", 12);
-	Out_Int((INT64)(ADDRESS)ru->next, 1);
+	Out_Hex((INT64)(ADDRESS)ru->next, 1);
 	Out_Ln();
 	Out_String((CHAR*)"    len:   ", 12);
 	Out_Int(ru->len, 1);

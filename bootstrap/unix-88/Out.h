@@ -11,6 +11,9 @@ import BOOLEAN Out_IsConsole;
 
 import void Out_Char (CHAR ch);
 import void Out_Flush (void);
+import void Out_Hex (INT64 x, INT64 n);
+import void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len);
+import void Out_HexDumpAdr (INT64 a, INT64 o, INT64 l);
 import void Out_Int (INT64 x, INT64 n);
 import void Out_Ln (void);
 import void Out_LongReal (LONGREAL x, INT16 n);
