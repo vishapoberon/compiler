@@ -1,9 +1,18 @@
-/* voc 2.00 [2016/12/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/12/11]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #ifndef Files__h
 #define Files__h
 
 #include "SYSTEM.h"
+
+typedef
+	struct Files_BufDesc {
+		INT64 _prvt0;
+		char _prvt1[4108];
+	} Files_BufDesc;
+
+typedef
+	Files_BufDesc *Files_Buffer;
 
 typedef
 	struct Files_FileDesc *Files_File;
@@ -25,12 +34,16 @@ typedef
 
 
 import ADDRESS *Files_FileDesc__typ;
+import ADDRESS *Files_BufDesc__typ;
 import ADDRESS *Files_Rider__typ;
 
 import Files_File Files_Base (Files_Rider *r, ADDRESS *r__typ);
 import void Files_ChangeDirectory (CHAR *path, ADDRESS path__len, INT16 *res);
 import void Files_Close (Files_File f);
 import void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
+import void Files_DumpBuffer (Files_Buffer b, INT16 indent);
+import void Files_DumpFile (Files_File f, INT16 indent);
+import void Files_DumpRider (Files_Rider r, INT16 indent);
 import void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
 import void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
 import INT32 Files_Length (Files_File f);

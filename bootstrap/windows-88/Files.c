@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.00 [2016/12/11]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -70,6 +70,9 @@ static void Files_CloseOSFile (Files_File f);
 static void Files_Create (Files_File f);
 export void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
 static void Files_Deregister (CHAR *name, ADDRESS name__len);
+export void Files_DumpBuffer (Files_Buffer b, INT16 indent);
+export void Files_DumpFile (Files_File f, INT16 indent);
+export void Files_DumpRider (Files_Rider r, INT16 indent);
 static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode);
 static void Files_Finalize (SYSTEM_PTR o);
 static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *dest, ADDRESS dest__len);
@@ -100,6 +103,7 @@ export void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__l
 static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len);
 export void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos);
 export void Files_SetSearchPath (CHAR *path, ADDRESS path__len);
+static void Files_Spaces (INT16 i);
 export void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x);
 export void Files_WriteBool (Files_Rider *R, ADDRESS *R__typ, BOOLEAN x);
 export void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n);
@@ -112,7 +116,132 @@ export void Files_WriteSet (Files_Rider *R, ADDRESS *R__typ, UINT32 x);
 export void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
 
 #define Files_IdxTrap()	__HALT(-1)
-#define Files_ToAdr(x)	(ADDRESS)x
+
+static void Files_Spaces (INT16 i)
+{
+	while (i > 0) {
+		Out_String((CHAR*)"  ", 3);
+		i -= 1;
+	}
+}
+
+void Files_DumpFile (Files_File f, INT16 indent)
+{
+	Files_Spaces(indent);
+	Out_String((CHAR*)"workName:     ", 15);
+	Out_String(f->workName, 101);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"registerName: ", 15);
+	Out_String(f->registerName, 101);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"tempFile:     ", 15);
+	if (f->tempFile) {
+		Out_String((CHAR*)"TRUE", 5);
+	} else {
+		Out_String((CHAR*)"FALSE", 6);
+	}
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"identity:     ", 15);
+	Out_String((CHAR*)"...", 4);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"fd:           ", 15);
+	Out_Int(f->fd, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"len,          ", 15);
+	Out_Int(f->len, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"pos:          ", 15);
+	Out_Int(f->pos, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"bufs:         ", 15);
+	Out_String((CHAR*)"...", 4);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"swapper:      ", 15);
+	Out_Int(f->swapper, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"state:        ", 15);
+	Out_Int(f->state, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"next:         ", 15);
+	Out_Int((INT64)(ADDRESS)f->next, 1);
+	Out_Ln();
+}
+
+void Files_DumpBuffer (Files_Buffer b, INT16 indent)
+{
+	Files_Spaces(indent);
+	Out_String((CHAR*)"chg:  ", 7);
+	if (b->chg) {
+		Out_String((CHAR*)"TRUE", 5);
+	} else {
+		Out_String((CHAR*)"FALSE", 6);
+	}
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"org:  ", 7);
+	Out_Int(b->org, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"size: ", 7);
+	Out_Int(b->size, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"data: ", 7);
+	Out_String((CHAR*)"...", 4);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"f:    ", 7);
+	if (b->f == NIL) {
+		Out_String((CHAR*)"<NIL>", 6);
+		Out_Ln();
+	} else {
+		Out_Ln();
+		Files_DumpFile(b->f, indent + 1);
+	}
+}
+
+void Files_DumpRider (Files_Rider r, INT16 indent)
+{
+	Files_Spaces(indent);
+	Out_String((CHAR*)"res:    ", 9);
+	Out_Int(r.res, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"eof:    ", 9);
+	if (r.eof) {
+		Out_String((CHAR*)"TRUE", 5);
+	} else {
+		Out_String((CHAR*)"FALSE", 6);
+	}
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"org:    ", 9);
+	Out_Int(r.org, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"offset: ", 9);
+	Out_Int(r.offset, 1);
+	Out_Ln();
+	Files_Spaces(indent);
+	Out_String((CHAR*)"buf:    ", 9);
+	if (r.buf == NIL) {
+		Out_String((CHAR*)"<NIL>", 6);
+		Out_Ln();
+	} else {
+		Out_Ln();
+		Files_DumpBuffer(r.buf, indent + 1);
+	}
+}
 
 static void Files_Assert (BOOLEAN truth)
 {
@@ -662,7 +791,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 		} else {
 			min = n;
 		}
-		__MOVE((ADDRESS)buf->data + Files_ToAdr(offset), (ADDRESS)x + Files_ToAdr(xpos), min);
+		__MOVE((ADDRESS)&buf->data[offset], (ADDRESS)&x[xpos], min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -725,7 +854,7 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 		} else {
 			min = n;
 		}
-		__MOVE((ADDRESS)x + Files_ToAdr(xpos), (ADDRESS)buf->data + Files_ToAdr(offset), min);
+		__MOVE((ADDRESS)&x[xpos], (ADDRESS)&buf->data[offset], min);
 		offset += min;
 		(*r).offset = offset;
 		Files_Assert(offset <= 4096);
