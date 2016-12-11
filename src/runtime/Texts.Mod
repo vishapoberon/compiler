@@ -131,17 +131,9 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     Out.String("      corg:   "); Out.Int(t.corg,1); Out.Ln;
   END DumpText;
 
-  PROCEDURE DumpElem(e: Elem);
-  BEGIN
-    Out.String("    W:      "); Out.Int(e.W,1);  Out.Ln;
-    Out.String("    H:      "); Out.Int(e.H,1);  Out.Ln;
-    Out.String("    handle: "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, e.handle),1); Out.Ln;
-    Out.String("    base:   "); IF e.base  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpText(e.base) END;
-  END DumpElem;
-
   PROCEDURE DumpRun(ru: Run);
   BEGIN
-    Out.String("  Run at "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru),1); Out.Ln;
+    Out.String("    Run at "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru),1); Out.Ln;
     Out.String("    prev:  "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru.prev),1); Out.Ln;
     Out.String("    next:  "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru.next),1); Out.Ln;
     Out.String("    len:   "); Out.Int(ru.len,1);  Out.Ln;
@@ -150,6 +142,24 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     Out.String("    voff:  "); Out.Int(ru.voff,1); Out.Ln;
     Out.String("    ascii: "); IF ru.ascii THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
   END DumpRun;
+
+  PROCEDURE DumpElem(e: Elem);
+  BEGIN
+    DumpRun(e);
+    Out.String("    -- Elem --"); Out.Ln;
+    Out.String("    W:      "); Out.Int(e.W,1);  Out.Ln;
+    Out.String("    H:      "); Out.Int(e.H,1);  Out.Ln;
+    Out.String("    handle: "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, e.handle),1); Out.Ln;
+    Out.String("    base:   "); IF e.base  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpText(e.base) END;
+  END DumpElem;
+
+  PROCEDURE DumpPiece(p: Piece);
+  BEGIN
+    DumpRun(p);
+    Out.String("    -- Piece --"); Out.Ln;
+    Out.String("    file:  "); IF p.file = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; Files.DumpFile(p.file, 3) END;
+    Out.String("    org:   "); Out.Int(p.org,1);  Out.Ln;
+  END DumpPiece;
 
   PROCEDURE DumpReader*(re: Reader);
   BEGIN
@@ -162,7 +172,14 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     Out.String("  off:   "); Out.Int(re.off,1);  Out.Ln;
     Out.String("  elem:  "); IF re.elem  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpElem(re.elem) END;
     Out.String("  rider: "); Out.Ln; Files.DumpRider(re.rider,2);
-    Out.String("  run:   "); IF re.run   = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpRun(re.run) END;
+    Out.String("  run:   ");
+      IF re.run   = NIL THEN Out.String("<NIL>"); Out.Ln
+      ELSE Out.Ln;
+        IF    re.run IS Piece THEN DumpPiece(re.run(Piece))
+        ELSIF re.run IS Elem  THEN DumpElem(re.run(Elem))
+        ELSE                       DumpRun(re.run)
+        END
+      END;
   END DumpReader;
 
 
