@@ -68,10 +68,51 @@ BEGIN
   WHILE i > 0 DO DEC(i); Char(s[i]) END
 END Int;
 
+PROCEDURE Hex*(x, n: HUGEINT);
+BEGIN
+  IF n < 1 THEN n := 1 ELSIF n > 16 THEN n := 16 END;
+  WHILE (n < 16) & (SYSTEM.LSH(x, -4*n) # 0) DO INC(n) END;
+  x := SYSTEM.ROT(x, 4*(16-n));
+  WHILE n > 0 DO
+    x := SYSTEM.ROT(x,4); DEC(n);
+    IF x MOD 16 < 10 THEN Char(CHR((x MOD 16) + ORD('0')))
+    ELSE Char(CHR((x MOD 16) - 10 + ORD('A'))) END
+  END
+END Hex;
+
 PROCEDURE Ln*;
 BEGIN String(Platform.NL); Flush;
 END Ln;
 
+PROCEDURE HexDumpAdr*(a, o, l: SYSTEM.ADDRESS);
+VAR i, n, lim: SYSTEM.ADDRESS; c: CHAR;
+BEGIN
+  lim := a+l;
+  WHILE a < lim DO
+    IF a+16 < lim THEN n := 16 ELSE n := lim-a END;
+    Hex(o,8); Char(" ");
+    i := 0; WHILE i < n DO
+      IF i MOD 4 = 0 THEN Char(" ") END;
+      SYSTEM.GET(a+i, c); Hex(ORD(c), 2); Char(" ");
+      INC(i)
+    END;
+    WHILE i < 16 DO
+      IF i MOD 4 = 0 THEN Char(" ") END; String("   ");
+      INC(i)
+    END;
+    String(" ");
+    i := 0; WHILE i < n DO
+      SYSTEM.GET(a+i, c);
+      IF (ORD(c) < 32) OR (ORD(c) > 126) THEN Char(".") ELSE Char(c) END;
+      INC(i)
+    END;
+    INC(a,n); INC(o,n); Ln
+  END
+END HexDumpAdr;
+
+PROCEDURE HexDump*(VAR m: ARRAY OF SYSTEM.BYTE);
+BEGIN HexDumpAdr(SYSTEM.ADR(m), 0, LEN(m))
+END HexDump;
 
 (* Real and Longreal display *)
 

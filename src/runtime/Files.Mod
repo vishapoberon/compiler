@@ -86,7 +86,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     Spaces(indent); Out.String("bufs:         "); Out.String("..."); Out.Ln; (* TBD *)
     Spaces(indent); Out.String("swapper:      "); Out.Int(f.swapper,1); Out.Ln;
     Spaces(indent); Out.String("state:        "); Out.Int(f.state,1); Out.Ln;
-    Spaces(indent); Out.String("next:         "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS,f.next),1); Out.Ln;
+    Spaces(indent); Out.String("next:         "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS,f.next),1); Out.Ln;
   END DumpFile;
 
   PROCEDURE DumpBuffer*(b: Buffer; indent: INTEGER);
@@ -94,7 +94,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     Spaces(indent); Out.String("chg:  "); IF b.chg THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
     Spaces(indent); Out.String("org:  "); Out.Int(b.org,1); Out.Ln;
     Spaces(indent); Out.String("size: "); Out.Int(b.size,1); Out.Ln;
-    Spaces(indent); Out.String("data: "); Out.String("..."); Out.Ln;
+    Spaces(indent); Out.String("data: "); Out.Ln; Out.HexDump(b.data);
     Spaces(indent); Out.String("f:    "); IF b.f  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpFile(b.f, indent+1) END;
   END DumpBuffer;
 

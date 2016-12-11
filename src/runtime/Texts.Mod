@@ -125,9 +125,9 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
   PROCEDURE DumpText(t: Text);
   BEGIN
     Out.String("      len:    "); Out.Int(t.len,1); Out.Ln;
-    Out.String("      notify: "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, t.notify),1); Out.Ln;
-    Out.String("      head:   "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, t.head),1); Out.Ln;
-    Out.String("      cache:  "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, t.cache),1); Out.Ln;
+    Out.String("      notify: "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, t.notify),1); Out.Ln;
+    Out.String("      head:   "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, t.head),1); Out.Ln;
+    Out.String("      cache:  "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, t.cache),1); Out.Ln;
     Out.String("      corg:   "); Out.Int(t.corg,1); Out.Ln;
   END DumpText;
 
@@ -135,14 +135,15 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
   BEGIN
     Out.String("    W:      "); Out.Int(e.W,1);  Out.Ln;
     Out.String("    H:      "); Out.Int(e.H,1);  Out.Ln;
-    Out.String("    handle: "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, e.handle),1); Out.Ln;
+    Out.String("    handle: "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, e.handle),1); Out.Ln;
     Out.String("    base:   "); IF e.base  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpText(e.base) END;
   END DumpElem;
 
   PROCEDURE DumpRun(ru: Run);
   BEGIN
-    Out.String("    prev:  "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, ru.prev),1); Out.Ln;
-    Out.String("    next:  "); Out.Int(SYSTEM.VAL(SYSTEM.ADDRESS, ru.next),1); Out.Ln;
+    Out.String("  Run at "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru),1); Out.Ln;
+    Out.String("    prev:  "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru.prev),1); Out.Ln;
+    Out.String("    next:  "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS, ru.next),1); Out.Ln;
     Out.String("    len:   "); Out.Int(ru.len,1);  Out.Ln;
     Out.String("    fnt:   "); IF ru.fnt # NIL THEN Out.String(ru.fnt.name) ELSE Out.String("<NIL>") END; Out.Ln;
     Out.String("    col:   "); Out.Int(ru.col,1);  Out.Ln;
