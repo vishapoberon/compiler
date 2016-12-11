@@ -84,16 +84,16 @@ PROCEDURE Ln*;
 BEGIN String(Platform.NL); Flush;
 END Ln;
 
-PROCEDURE HexDumpAdr*(a, o, l: SYSTEM.ADDRESS);
-VAR i, n, lim: SYSTEM.ADDRESS; c: CHAR;
+PROCEDURE HexDumpAdr*(adr: SYSTEM.ADDRESS; offset: HUGEINT; length: LONGINT);
+VAR i: INTEGER; n, lim: SYSTEM.ADDRESS; c: CHAR;
 BEGIN
-  lim := a+l;
-  WHILE a < lim DO
-    IF a+16 < lim THEN n := 16 ELSE n := lim-a END;
-    Hex(o,8); Char(" ");
+  lim := adr+length;
+  WHILE adr < lim DO
+    IF adr+16 < lim THEN n := 16 ELSE n := lim-adr END;
+    Hex(offset,8); Char(" ");
     i := 0; WHILE i < n DO
       IF i MOD 4 = 0 THEN Char(" ") END;
-      SYSTEM.GET(a+i, c); Hex(ORD(c), 2); Char(" ");
+      SYSTEM.GET(adr+i, c); Hex(ORD(c), 2); Char(" ");
       INC(i)
     END;
     WHILE i < 16 DO
@@ -102,11 +102,11 @@ BEGIN
     END;
     String(" ");
     i := 0; WHILE i < n DO
-      SYSTEM.GET(a+i, c);
+      SYSTEM.GET(adr+i, c);
       IF (ORD(c) < 32) OR (ORD(c) > 126) THEN Char(".") ELSE Char(c) END;
       INC(i)
     END;
-    INC(a,n); INC(o,n); Ln
+    INC(adr,n); INC(offset,n); Ln
   END
 END HexDumpAdr;
 
