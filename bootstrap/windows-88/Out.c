@@ -249,6 +249,7 @@ void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len)
 	Out_String((CHAR*)"obj tag:  ", 11);
 	Out_Hex(addr, 1);
 	Out_Ln();
+	addr -= __MASK(addr, -2);
 	desc = (tag__4)(ADDRESS)(addr - 192);
 	Out_String((CHAR*)"desc at:  ", 11);
 	Out_Hex((INT64)(ADDRESS)desc, 1);
