@@ -1,6 +1,6 @@
 MODULE Out; (* DCW Brown. 2016-09-27 *)
 
-IMPORT SYSTEM, Platform;
+IMPORT SYSTEM, Platform, Heap;
 
 VAR
   IsConsole-: BOOLEAN;
@@ -113,6 +113,59 @@ END HexDumpAdr;
 PROCEDURE HexDump*(VAR m: ARRAY OF SYSTEM.BYTE);
 BEGIN HexDumpAdr(SYSTEM.ADR(m), 0, LEN(m))
 END HexDump;
+
+
+PROCEDURE DumpModule(m: Heap.Module);
+BEGIN
+  String("  next:     "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.next),1); Ln;
+  String("  name:     "); String(m.name); Ln;
+  String("  refcnt:   "); Hex(m.refcnt,1); Ln;
+  String("  cmds:     "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.cmds),1); Ln;
+  String("  types:    "); Hex(m.types,1); Ln;
+  String("  enumPtrs: "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.enumPtrs),1); Ln;
+END DumpModule;
+
+PROCEDURE DumpType*(VAR o: ARRAY OF SYSTEM.BYTE);
+TYPE
+  typedesc = RECORD
+    (* Array of type bound procedure addresses preceeds this. *)
+    tag:      SYSTEM.ADDRESS;
+    next:     SYSTEM.ADDRESS;
+    level:    SYSTEM.ADDRESS;
+    module:   SYSTEM.ADDRESS;
+    name:     ARRAY 24 OF CHAR;
+    bases:    ARRAY 16 OF SYSTEM.ADDRESS;
+    reserved: SYSTEM.ADDRESS;
+    blksz:    SYSTEM.ADDRESS;
+    ptr0:     SYSTEM.ADDRESS;  (* Offset of first pointer. Others follow this. *)
+  END;
+  tag = POINTER [1] TO typedesc;
+VAR
+  addr: SYSTEM.ADDRESS;
+  desc: tag;
+  i: INTEGER;
+BEGIN
+  SYSTEM.GET(SYSTEM.ADR(o) - SIZE(SYSTEM.ADDRESS), addr);
+  String("obj tag:  "); Hex(addr,1); Ln;
+  desc := SYSTEM.VAL(tag, addr - (21*SIZE(SYSTEM.ADDRESS) + 24));
+  String("desc at:  "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, desc),1); Ln;
+  String("desc contains:"); Ln;
+  String("tag:      "); Hex(desc.tag,      1); Ln;
+  String("next:     "); Hex(desc.next,     1); Ln;
+  String("level:    "); Hex(desc.level,    1); Ln;
+  String("module:   "); Hex(desc.module,   1); Ln;
+  DumpModule(SYSTEM.VAL(Heap.Module, desc.module));
+  String("name:     "); String(desc.name); Ln;
+  String("bases:    ");
+  i := 0; WHILE i < 16 DO
+    Hex(desc.bases[i], SIZE(SYSTEM.ADDRESS) * 2);
+    IF i MOD 4 = 3 THEN Ln; String("          ") ELSE Char(" ") END;
+    INC(i)
+  END; Ln;
+  String("reserved: "); Hex(desc.reserved, 1); Ln;
+  String("blksz:    "); Hex(desc.blksz,    1); Ln;
+  String("ptr0:     "); Hex(desc.ptr0,     1); Ln;
+END DumpType;
 
 (* Real and Longreal display *)
 

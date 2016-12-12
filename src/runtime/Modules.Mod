@@ -9,27 +9,10 @@ MODULE Modules;  (* jt 6.1.96 *)
     ModNameLen* = 20;
 
   TYPE
-    ModuleName* = ARRAY ModNameLen OF CHAR;
-    Module* = POINTER TO ModuleDesc;
-    Cmd* = POINTER TO CmdDesc;
-    ModuleDesc* = RECORD  (* cf. SYSTEM.Mod *)
-      next-: Module;
-      name-: ModuleName;
-      refcnt-: LONGINT;
-      cmds-: Cmd;
-      types-: LONGINT;
-      enumPtrs-: PROCEDURE (P: PROCEDURE(p: LONGINT));
-      reserved1, reserved2: LONGINT;
-    END ;
-
-    Command* = PROCEDURE;
-
-    CmdDesc* = RECORD
-      next-: Cmd;
-      name-: ARRAY 24 OF CHAR;
-      cmd-: Command
-    END ;
-
+    ModuleName* = Heap.ModuleName;
+    Module*     = Heap.Module;
+    Cmd*        = Heap.Cmd;
+    Command*    = Heap.Command;
   VAR
     res*:       INTEGER;
     resMsg*:    ARRAY 256 OF CHAR;
@@ -236,8 +219,8 @@ MODULE Modules;  (* jt 6.1.96 *)
 
 (* Module and command lookup by name *)
 
-  PROCEDURE -modules(): Module     "(Modules_Module)Heap_modules";
-  PROCEDURE -setmodules(m: Module) "Heap_modules = m";
+  PROCEDURE -modules(): Module     "(Heap_Module)Heap_modules";
+  (*PROCEDURE -setmodules(m: Module) "Heap_modules = m";*)
 
   PROCEDURE ThisMod* (name: ARRAY OF CHAR): Module;
     VAR m: Module; bodyname: ARRAY 64 OF CHAR; body: Command;
@@ -262,24 +245,23 @@ MODULE Modules;  (* jt 6.1.96 *)
   END ThisCommand;
 
   PROCEDURE Free*(name: ARRAY OF CHAR; all: BOOLEAN);
-    VAR m, p: Module;
+    VAR m, p: Module; refcount: LONGINT;
   BEGIN m := modules();
     IF all THEN
       res := 1; resMsg := 'unloading "all" not yet supported'
     ELSE
-      WHILE (m # NIL) & (m.name # name) DO p := m; m := m.next END ;
-      IF (m # NIL) & (m.refcnt = 0) THEN
-        IF m = modules() THEN setmodules(m.next)
-        ELSE p.next := m.next
-        END ;
+      refcount := Heap.FreeModule(name);
+      IF refcount = 0 THEN
         res := 0
-      ELSE res := 1;
-        IF m = NIL THEN resMsg := "module not found"
+      ELSE
+        IF refcount < 0 THEN resMsg := "module not found"
         ELSE resMsg := "clients of this module exist"
-        END
+        END;
+        res := 1
       END
     END
   END Free;
+
 
 
   (* Run time error reporting. *)

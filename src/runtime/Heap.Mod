@@ -33,30 +33,31 @@ MODULE Heap;
     AddressZero = S.VAL(S.ADDRESS, 0);
 
   TYPE
-    ModuleName = ARRAY ModNameLen OF CHAR;
-    CmdName    = ARRAY CmdNameLen OF CHAR;
+    ModuleName- = ARRAY ModNameLen OF CHAR;
+    CmdName-    = ARRAY CmdNameLen OF CHAR;
 
-    Module = POINTER TO ModuleDesc;
-    Cmd    = POINTER TO CmdDesc;
+    Module- = POINTER TO ModuleDesc;
+    Cmd-    = POINTER TO CmdDesc;
 
-    EnumProc   = PROCEDURE(P: PROCEDURE(p: S.PTR));
+    EnumProc-   = PROCEDURE(P: PROCEDURE(p: S.PTR));
 
-    ModuleDesc = RECORD
-      next:     Module;
-      name:     ModuleName;
-      refcnt:   LONGINT;
-      cmds:     Cmd;
-      types:    S.ADDRESS;
-      enumPtrs: EnumProc;
-      reserved1, reserved2: LONGINT
+    ModuleDesc- = RECORD
+      next-:     Module;
+      name-:     ModuleName;
+      refcnt-:   LONGINT;
+      cmds-:     Cmd;
+      types-:    S.ADDRESS;
+      enumPtrs-: EnumProc;
+      reserved1,
+      reserved2: LONGINT
     END ;
 
-    Command = PROCEDURE;
+    Command- = PROCEDURE;
 
-    CmdDesc = RECORD
-      next: Cmd;
-      name: CmdName;
-      cmd:  Command
+    CmdDesc- = RECORD
+      next-: Cmd;
+      name-: CmdName;
+      cmd-:  Command
     END ;
 
     Finalizer = PROCEDURE(obj: S.PTR);
@@ -71,7 +72,7 @@ MODULE Heap;
 
   VAR
     (* the list of loaded (=initialization started) modules *)
-    modules*: S.PTR;
+    modules-:   S.PTR; (*POINTER [1] TO ModuleDesc;*)
 
     freeList:   ARRAY nofLists + 1 OF S.ADDRESS;  (* dummy, 16, 32, 48, 64, 80, 96, 112, 128, sentinel *)
     bigBlocks:  S.ADDRESS;
@@ -140,6 +141,22 @@ MODULE Heap;
     modules := m;
     RETURN m
   END REGMOD;
+
+  PROCEDURE FreeModule*(name: ARRAY OF CHAR): LONGINT;
+  (* Returns 0 if freed, -1 if not found, refcount if found and refcount > 0. *)
+    VAR m, p: Module;
+  BEGIN m := S.VAL(Module, modules);
+    WHILE (m # NIL) & (m.name # name) DO p := m; m := m.next END;
+    IF (m # NIL) & (m.refcnt = 0) THEN
+      IF m = S.VAL(Module, modules) THEN modules := m.next
+      ELSE p.next := m.next
+      END;
+      RETURN 0
+    ELSE
+      IF m = NIL THEN RETURN -1 ELSE RETURN m.refcnt END
+    END
+  END FreeModule;
+
 
   PROCEDURE REGCMD*(m: Module; VAR name: CmdName; cmd: Command);
     VAR c: Cmd;

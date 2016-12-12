@@ -180,6 +180,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
         ELSE                       DumpRun(re.run)
         END
       END;
+    Out.DumpType(re.run^);
   END DumpReader;
 
 
