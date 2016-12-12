@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -9,47 +9,15 @@
 #include "Heap.h"
 #include "Platform.h"
 
-typedef
-	struct Modules_CmdDesc *Modules_Cmd;
-
-typedef
-	void (*Modules_Command)(void);
-
-typedef
-	struct Modules_CmdDesc {
-		Modules_Cmd next;
-		CHAR name[24];
-		Modules_Command cmd;
-	} Modules_CmdDesc;
-
-typedef
-	struct Modules_ModuleDesc *Modules_Module;
-
-typedef
-	CHAR Modules_ModuleName[20];
-
-typedef
-	struct Modules_ModuleDesc {
-		Modules_Module next;
-		Modules_ModuleName name;
-		INT32 refcnt;
-		Modules_Cmd cmds;
-		INT32 types;
-		void (*enumPtrs)(void(*)(INT32));
-		INT32 reserved1, reserved2;
-	} Modules_ModuleDesc;
-
 
 export INT16 Modules_res;
 export CHAR Modules_resMsg[256];
-export Modules_ModuleName Modules_imported, Modules_importing;
+export Heap_ModuleName Modules_imported, Modules_importing;
 export INT64 Modules_MainStackFrame;
 export INT16 Modules_ArgCount;
 export INT64 Modules_ArgVector;
 export CHAR Modules_BinaryDir[1024];
 
-export ADDRESS *Modules_ModuleDesc__typ;
-export ADDRESS *Modules_CmdDesc__typ;
 
 static void Modules_Append (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len);
 static void Modules_AppendPart (CHAR c, CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len);
@@ -68,8 +36,8 @@ export void Modules_Init (INT32 argc, INT64 argvadr);
 static BOOLEAN Modules_IsAbsolute (CHAR *d, ADDRESS d__len);
 static BOOLEAN Modules_IsFilePresent (CHAR *s, ADDRESS s__len);
 static BOOLEAN Modules_IsOneOf (CHAR c, CHAR *s, ADDRESS s__len);
-export Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, ADDRESS name__len);
-export Modules_Module Modules_ThisMod (CHAR *name, ADDRESS name__len);
+export Heap_Command Modules_ThisCommand (Heap_Module mod, CHAR *name, ADDRESS name__len);
+export Heap_Module Modules_ThisMod (CHAR *name, ADDRESS name__len);
 static void Modules_Trim (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len);
 static void Modules_errch (CHAR c);
 static void Modules_errint (INT32 l);
@@ -79,8 +47,7 @@ extern void Heap_InitHeap();
 extern void *Modules__init(void);
 #define Modules_InitHeap()	Heap_InitHeap()
 #define Modules_ModulesInit()	Modules__init()
-#define Modules_modules()	(Modules_Module)Heap_modules
-#define Modules_setmodules(m)	Heap_modules = m
+#define Modules_modules()	(Heap_Module)Heap_modules
 
 void Modules_Init (INT32 argc, INT64 argvadr)
 {
@@ -334,11 +301,11 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 	}
 }
 
-Modules_Module Modules_ThisMod (CHAR *name, ADDRESS name__len)
+Heap_Module Modules_ThisMod (CHAR *name, ADDRESS name__len)
 {
-	Modules_Module m = NIL;
+	Heap_Module m = NIL;
 	CHAR bodyname[64];
-	Modules_Command body;
+	Heap_Command body;
 	__DUP(name, name__len, CHAR);
 	m = Modules_modules();
 	while ((m != NIL && __STRCMP(m->name, name) != 0)) {
@@ -358,9 +325,9 @@ Modules_Module Modules_ThisMod (CHAR *name, ADDRESS name__len)
 	return m;
 }
 
-Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, ADDRESS name__len)
+Heap_Command Modules_ThisCommand (Heap_Module mod, CHAR *name, ADDRESS name__len)
 {
-	Modules_Cmd c = NIL;
+	Heap_Cmd c = NIL;
 	__DUP(name, name__len, CHAR);
 	c = mod->cmds;
 	while ((c != NIL && __STRCMP(c->name, name) != 0)) {
@@ -387,31 +354,24 @@ Modules_Command Modules_ThisCommand (Modules_Module mod, CHAR *name, ADDRESS nam
 
 void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all)
 {
-	Modules_Module m = NIL, p = NIL;
+	Heap_Module m = NIL, p = NIL;
+	INT32 refcount;
 	__DUP(name, name__len, CHAR);
 	m = Modules_modules();
 	if (all) {
 		Modules_res = 1;
 		__MOVE("unloading \"all\" not yet supported", Modules_resMsg, 34);
 	} else {
-		while ((m != NIL && __STRCMP(m->name, name) != 0)) {
-			p = m;
-			m = m->next;
-		}
-		if ((m != NIL && m->refcnt == 0)) {
-			if (m == Modules_modules()) {
-				Modules_setmodules(m->next);
-			} else {
-				p->next = m->next;
-			}
+		refcount = Heap_FreeModule(name, name__len);
+		if (refcount == 0) {
 			Modules_res = 0;
 		} else {
-			Modules_res = 1;
-			if (m == NIL) {
+			if (refcount < 0) {
 				__MOVE("module not found", Modules_resMsg, 17);
 			} else {
 				__MOVE("clients of this module exist", Modules_resMsg, 29);
 			}
+			Modules_res = 1;
 		}
 	}
 	__DEL(name);
@@ -533,8 +493,6 @@ void Modules_AssertFail (INT32 code)
 	}
 }
 
-__TDESC(Modules_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 64), {0, 32, -24}};
-__TDESC(Modules_CmdDesc, 1, 1) = {__TDFLDS("CmdDesc", 40), {0, -16}};
 
 export void *Modules__init(void)
 {
@@ -542,8 +500,6 @@ export void *Modules__init(void)
 	__MODULE_IMPORT(Heap);
 	__MODULE_IMPORT(Platform);
 	__REGMOD("Modules", 0);
-	__INITYP(Modules_ModuleDesc, Modules_ModuleDesc, 0);
-	__INITYP(Modules_CmdDesc, Modules_CmdDesc, 0);
 /* BEGIN */
 	Modules_FindBinaryDir((void*)Modules_BinaryDir, 1024);
 	__ENDMOD;

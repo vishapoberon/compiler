@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/11]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -84,6 +84,7 @@ static void Heap_CheckFin (void);
 static void Heap_ExtendHeap (INT32 blksz);
 export void Heap_FINALL (void);
 static void Heap_Finalize (void);
+export INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len);
 export void Heap_GC (BOOLEAN markStack);
 static void Heap_HeapSort (INT32 n, INT32 *a, ADDRESS a__len);
 export void Heap_INCREF (Heap_Module m);
@@ -141,6 +142,35 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 	m->next = (Heap_Module)(ADDRESS)Heap_modules;
 	Heap_modules = (SYSTEM_PTR)m;
 	return (void*)m;
+}
+
+INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
+{
+	Heap_Module m, p;
+	__DUP(name, name__len, CHAR);
+	m = (Heap_Module)(ADDRESS)Heap_modules;
+	while ((m != NIL && __STRCMP(m->name, name) != 0)) {
+		p = m;
+		m = m->next;
+	}
+	if ((m != NIL && m->refcnt == 0)) {
+		if (m == (Heap_Module)(ADDRESS)Heap_modules) {
+			Heap_modules = (SYSTEM_PTR)m->next;
+		} else {
+			p->next = m->next;
+		}
+		__DEL(name);
+		return 0;
+	} else {
+		if (m == NIL) {
+			__DEL(name);
+			return -1;
+		} else {
+			__DEL(name);
+			return m->refcnt;
+		}
+	}
+	__RETCHK;
 }
 
 void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd)

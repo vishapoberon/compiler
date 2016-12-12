@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/11]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #ifndef Heap__h
 #define Heap__h
@@ -6,10 +6,20 @@
 #include "SYSTEM.h"
 
 typedef
+	struct Heap_CmdDesc *Heap_Cmd;
+
+typedef
 	CHAR Heap_CmdName[24];
 
 typedef
 	void (*Heap_Command)(void);
+
+typedef
+	struct Heap_CmdDesc {
+		Heap_Cmd next;
+		Heap_CmdName name;
+		Heap_Command cmd;
+	} Heap_CmdDesc;
 
 typedef
 	void (*Heap_EnumProc)(void(*)(SYSTEM_PTR));
@@ -21,13 +31,18 @@ typedef
 	struct Heap_ModuleDesc *Heap_Module;
 
 typedef
-	struct Heap_ModuleDesc {
-		INT32 _prvt0;
-		char _prvt1[44];
-	} Heap_ModuleDesc;
+	CHAR Heap_ModuleName[20];
 
 typedef
-	CHAR Heap_ModuleName[20];
+	struct Heap_ModuleDesc {
+		Heap_Module next;
+		Heap_ModuleName name;
+		INT32 refcnt;
+		Heap_Cmd cmds;
+		INT32 types;
+		Heap_EnumProc enumPtrs;
+		char _prvt0[8];
+	} Heap_ModuleDesc;
 
 
 import SYSTEM_PTR Heap_modules;
@@ -35,8 +50,10 @@ import INT32 Heap_allocated, Heap_heapsize;
 import INT16 Heap_FileCount;
 
 import ADDRESS *Heap_ModuleDesc__typ;
+import ADDRESS *Heap_CmdDesc__typ;
 
 import void Heap_FINALL (void);
+import INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len);
 import void Heap_GC (BOOLEAN markStack);
 import void Heap_INCREF (Heap_Module m);
 import void Heap_InitHeap (void);

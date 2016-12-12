@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/11]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -6,6 +6,7 @@
 #define SET      UINT32
 
 #include "SYSTEM.h"
+#include "Heap.h"
 #include "Platform.h"
 
 
@@ -13,8 +14,11 @@ export BOOLEAN Out_IsConsole;
 static CHAR Out_buf[128];
 static INT16 Out_in;
 
+static ADDRESS *typedesc__5__typ;
 
 export void Out_Char (CHAR ch);
+static void Out_DumpModule (Heap_Module m);
+export void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len);
 export void Out_Flush (void);
 export void Out_Hex (INT64 x, INT64 n);
 export void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len);
@@ -203,6 +207,94 @@ void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len)
 	Out_HexDumpAdr((ADDRESS)m, 0, m__len);
 }
 
+static void Out_DumpModule (Heap_Module m)
+{
+	Out_String((CHAR*)"  next:     ", 13);
+	Out_Hex((INT32)(ADDRESS)m->next, 1);
+	Out_Ln();
+	Out_String((CHAR*)"  name:     ", 13);
+	Out_String(m->name, 20);
+	Out_Ln();
+	Out_String((CHAR*)"  refcnt:   ", 13);
+	Out_Hex(m->refcnt, 1);
+	Out_Ln();
+	Out_String((CHAR*)"  cmds:     ", 13);
+	Out_Hex((INT32)(ADDRESS)m->cmds, 1);
+	Out_Ln();
+	Out_String((CHAR*)"  types:    ", 13);
+	Out_Hex(m->types, 1);
+	Out_Ln();
+	Out_String((CHAR*)"  enumPtrs: ", 13);
+	Out_Hex((INT32)(ADDRESS)m->enumPtrs, 1);
+	Out_Ln();
+}
+
+typedef
+	struct typedesc__5 *tag__4;
+
+typedef
+	struct typedesc__5 {
+		INT32 tag, next, level, module;
+		CHAR name[24];
+		INT32 bases[16];
+		INT32 reserved, blksz, ptr0;
+	} typedesc__5;
+
+void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len)
+{
+	INT32 addr;
+	tag__4 desc = NIL;
+	INT16 i;
+	__GET((ADDRESS)o - 4, addr, INT32);
+	Out_String((CHAR*)"obj tag:  ", 11);
+	Out_Hex(addr, 1);
+	Out_Ln();
+	desc = (tag__4)(ADDRESS)(addr - 108);
+	Out_String((CHAR*)"desc at:  ", 11);
+	Out_Hex((INT32)(ADDRESS)desc, 1);
+	Out_Ln();
+	Out_String((CHAR*)"desc contains:", 15);
+	Out_Ln();
+	Out_String((CHAR*)"tag:      ", 11);
+	Out_Hex(desc->tag, 1);
+	Out_Ln();
+	Out_String((CHAR*)"next:     ", 11);
+	Out_Hex(desc->next, 1);
+	Out_Ln();
+	Out_String((CHAR*)"level:    ", 11);
+	Out_Hex(desc->level, 1);
+	Out_Ln();
+	Out_String((CHAR*)"module:   ", 11);
+	Out_Hex(desc->module, 1);
+	Out_Ln();
+	Out_DumpModule((Heap_Module)(ADDRESS)desc->module);
+	Out_String((CHAR*)"name:     ", 11);
+	Out_String(desc->name, 24);
+	Out_Ln();
+	Out_String((CHAR*)"bases:    ", 11);
+	i = 0;
+	while (i < 16) {
+		Out_Hex(desc->bases[__X(i, 16)], 8);
+		if (__MASK(i, -4) == 3) {
+			Out_Ln();
+			Out_String((CHAR*)"          ", 11);
+		} else {
+			Out_Char(' ');
+		}
+		i += 1;
+	}
+	Out_Ln();
+	Out_String((CHAR*)"reserved: ", 11);
+	Out_Hex(desc->reserved, 1);
+	Out_Ln();
+	Out_String((CHAR*)"blksz:    ", 11);
+	Out_Hex(desc->blksz, 1);
+	Out_Ln();
+	Out_String((CHAR*)"ptr0:     ", 11);
+	Out_Hex(desc->ptr0, 1);
+	Out_Ln();
+}
+
 static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)
 {
 	*i -= 1;
@@ -380,15 +472,18 @@ void Out_LongReal (LONGREAL x, INT16 n)
 	Out_RealP(x, n, 1);
 }
 
+__TDESC(typedesc__5, 1, 0) = {__TDFLDS("typedesc__5", 116), {-4}};
 
 export void *Out__init(void)
 {
 	__DEFMOD;
+	__MODULE_IMPORT(Heap);
 	__MODULE_IMPORT(Platform);
 	__REGMOD("Out", 0);
 	__REGCMD("Flush", Out_Flush);
 	__REGCMD("Ln", Out_Ln);
 	__REGCMD("Open", Out_Open);
+	__INITYP(typedesc__5, typedesc__5, 0);
 /* BEGIN */
 	Out_IsConsole = Platform_IsConsole(1);
 	Out_in = 0;
