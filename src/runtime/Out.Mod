@@ -147,6 +147,7 @@ VAR
 BEGIN
   SYSTEM.GET(SYSTEM.ADR(o) - SIZE(SYSTEM.ADDRESS), addr);
   String("obj tag:  "); Hex(addr,1); Ln;
+  DEC(addr, addr MOD 2); (* Work OK with incremented tags. *)
   desc := SYSTEM.VAL(tag, addr - (21*SIZE(SYSTEM.ADDRESS) + 24));
   String("desc at:  "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, desc),1); Ln;
   String("desc contains:"); Ln;
