@@ -359,7 +359,7 @@ void Out_DumpHeap (void)
 			Out_Hex(baddr, 1);
 			Out_Ln();
 			b = (block__4)(ADDRESS)baddr;
-			tag = (adrptr__3)(ADDRESS)b->tag;
+			tag = (adrptr__3)(ADDRESS)(b->tag - __MASK(b->tag, -2));
 			Out_String((CHAR*)"    tag:      ", 15);
 			Out_Hex(b->tag, 1);
 			if (__MASK(b->tag, -2) != 0) {
