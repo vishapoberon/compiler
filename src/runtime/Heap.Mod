@@ -224,7 +224,7 @@ MODULE Heap;
         S.PUT(chnk, heap); heap := chnk
       ELSE
         j := heap; S.GET(j, next);
-        WHILE (next # 0) & (chnk > next) DO
+        WHILE (next # 0) & (chnk - next > 0) DO
           j := next;
           S.GET(j, next)
         END;
@@ -311,7 +311,7 @@ MODULE Heap;
       INC(adr, restsize)
     END ;
     i := adr + 4*SZA; end := adr + blksz;
-    WHILE i < end DO  (*deliberately unrolled*)
+    WHILE end - i > 0 DO  (*deliberately unrolled*)
       S.PUT(i,         AddressZero);
       S.PUT(i + SZA,   AddressZero);
       S.PUT(i + 2*SZA, AddressZero);
@@ -393,7 +393,7 @@ MODULE Heap;
     WHILE chnk # 0 DO
       adr := chnk + blkOff;
       S.GET(chnk + endOff, end);
-      WHILE adr < end DO
+      WHILE end - adr > 0 DO
         S.GET(adr, tag);
         IF ODD(tag) THEN  (*marked*)
           IF freesize > 0 THEN
@@ -453,21 +453,21 @@ MODULE Heap;
     VAR chnk, adr, tag, next, lim, lim1, i, ptr, size: S.ADDRESS;
   BEGIN
     chnk := heap; i := 0; lim := cand[n-1];
-    WHILE (chnk # 0 ) & (chnk < lim) DO
+    WHILE (chnk # 0 ) & (lim - chnk > 0) DO
       adr := chnk + blkOff;
       S.GET(chnk + endOff, lim1);
-      IF lim < lim1 THEN lim1 := lim END ;
-      WHILE adr < lim1 DO
+      IF lim1 - lim > 0 THEN lim1 := lim END ;
+      WHILE lim1 - adr > 0 DO
         S.GET(adr, tag);
         IF ODD(tag) THEN (*already marked*)
           S.GET(tag-1, size); INC(adr, size)
         ELSE
           S.GET(tag, size);
           ptr := adr + SZA;
-          WHILE cand[i] < ptr DO INC(i) END ;
+          WHILE ptr - cand[i] > 0 DO INC(i) END ;
           IF i = n THEN RETURN END ;
           next := adr + size;
-          IF cand[i] < next THEN Mark(ptr) END ;
+          IF next - cand[i] > 0 THEN Mark(ptr) END ;
           adr := next
         END
       END ;
@@ -530,7 +530,7 @@ MODULE Heap;
       stack0 := ModulesMainStackFrame();
       (* check for minimum alignment of pointers *)
       inc := S.ADR(align.p) - S.ADR(align);
-      IF sp > stack0 THEN inc := -inc END ;
+      IF sp - stack0 > 0 THEN inc := -inc END ;
       WHILE sp # stack0 DO
         S.GET(sp, p);
         IF (p > 0) & (p >= heapPosMin) & (p < heapPosMax)
