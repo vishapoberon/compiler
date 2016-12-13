@@ -213,7 +213,7 @@ BEGIN
     WHILE c.end - baddr > 0 DO
       String("  Block at:   "); Hex(baddr, 1); Ln;
       b := SYSTEM.VAL(block, baddr);
-      tag  := SYSTEM.VAL(adrptr, b.tag);
+      tag  := SYSTEM.VAL(adrptr, b.tag - (b.tag MOD 2)); (* mask out heap management flag in bit 0. *)
       String("    tag:      "); Hex(b.tag, 1);  IF b.tag MOD 2 # 0 THEN String(" <--- ODD! ---") END; Ln;
       String("    tag^:     "); Hex(tag^[0], 1);    Ln;
       String("    size:     "); Hex(b.size, 1);     Ln;
