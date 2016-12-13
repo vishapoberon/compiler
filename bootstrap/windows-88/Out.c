@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/13]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -14,10 +14,14 @@ export BOOLEAN Out_IsConsole;
 static CHAR Out_buf[128];
 static INT16 Out_in;
 
-static ADDRESS *typedesc__5__typ;
+static ADDRESS *typedesc__11__typ;
+static ADDRESS *blockdesc__5__typ;
+static ADDRESS *chunkdesc__7__typ;
 
 export void Out_Char (CHAR ch);
+export void Out_DumpHeap (void);
 static void Out_DumpModule (Heap_Module m);
+export void Out_DumpTag (INT64 addr);
 export void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len);
 export void Out_Flush (void);
 export void Out_Hex (INT64 x, INT64 n);
@@ -36,6 +40,8 @@ static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i);
 static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16 *i);
 
 #define Out_Entier64(x)	(INT64)(x)
+extern ADDRESS Heap_heap;
+#define Out_getheap()	Heap_heap
 
 void Out_Flush (void)
 {
@@ -209,91 +215,178 @@ void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len)
 
 static void Out_DumpModule (Heap_Module m)
 {
-	Out_String((CHAR*)"  next:     ", 13);
+	Out_String((CHAR*)"        next:     ", 19);
 	Out_Hex((INT64)(ADDRESS)m->next, 1);
 	Out_Ln();
-	Out_String((CHAR*)"  name:     ", 13);
+	Out_String((CHAR*)"        name:     ", 19);
 	Out_String(m->name, 20);
 	Out_Ln();
-	Out_String((CHAR*)"  refcnt:   ", 13);
+	Out_String((CHAR*)"        refcnt:   ", 19);
 	Out_Hex(m->refcnt, 1);
 	Out_Ln();
-	Out_String((CHAR*)"  cmds:     ", 13);
+	Out_String((CHAR*)"        cmds:     ", 19);
 	Out_Hex((INT64)(ADDRESS)m->cmds, 1);
 	Out_Ln();
-	Out_String((CHAR*)"  types:    ", 13);
+	Out_String((CHAR*)"        types:    ", 19);
 	Out_Hex(m->types, 1);
 	Out_Ln();
-	Out_String((CHAR*)"  enumPtrs: ", 13);
+	Out_String((CHAR*)"        enumPtrs: ", 19);
 	Out_Hex((INT64)(ADDRESS)m->enumPtrs, 1);
 	Out_Ln();
 }
 
 typedef
-	struct typedesc__5 *tag__4;
+	struct typedesc__11 *tag__10;
 
 typedef
-	struct typedesc__5 {
+	struct typedesc__11 {
 		INT64 tag, next, level, module;
 		CHAR name[24];
 		INT64 bases[16];
 		INT64 reserved, blksz, ptr0;
-	} typedesc__5;
+	} typedesc__11;
 
-void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len)
+void Out_DumpTag (INT64 addr)
 {
-	INT64 addr;
-	tag__4 desc = NIL;
+	tag__10 desc = NIL;
 	INT16 i;
-	__GET((ADDRESS)o - 8, addr, INT64);
-	Out_String((CHAR*)"obj tag:  ", 11);
+	Out_String((CHAR*)"      obj tag:  ", 17);
 	Out_Hex(addr, 1);
 	Out_Ln();
 	addr -= __MASK(addr, -2);
-	desc = (tag__4)(ADDRESS)(addr - 192);
-	Out_String((CHAR*)"desc at:  ", 11);
+	desc = (tag__10)(ADDRESS)(addr - 192);
+	Out_String((CHAR*)"      desc at:  ", 17);
 	Out_Hex((INT64)(ADDRESS)desc, 1);
 	Out_Ln();
-	Out_String((CHAR*)"desc contains:", 15);
+	Out_String((CHAR*)"      desc contains:", 21);
 	Out_Ln();
-	Out_String((CHAR*)"tag:      ", 11);
+	Out_String((CHAR*)"      tag:      ", 17);
 	Out_Hex(desc->tag, 1);
 	Out_Ln();
-	Out_String((CHAR*)"next:     ", 11);
+	Out_String((CHAR*)"      next:     ", 17);
 	Out_Hex(desc->next, 1);
 	Out_Ln();
-	Out_String((CHAR*)"level:    ", 11);
+	Out_String((CHAR*)"      level:    ", 17);
 	Out_Hex(desc->level, 1);
 	Out_Ln();
-	Out_String((CHAR*)"module:   ", 11);
+	Out_String((CHAR*)"      module:   ", 17);
 	Out_Hex(desc->module, 1);
 	Out_Ln();
-	Out_DumpModule((Heap_Module)(ADDRESS)desc->module);
-	Out_String((CHAR*)"name:     ", 11);
+	if (desc->module != 0) {
+		Out_DumpModule((Heap_Module)(ADDRESS)desc->module);
+	}
+	Out_String((CHAR*)"      name:     ", 17);
 	Out_String(desc->name, 24);
 	Out_Ln();
-	Out_String((CHAR*)"bases:    ", 11);
+	Out_String((CHAR*)"      bases:    ", 17);
 	i = 0;
 	while (i < 16) {
 		Out_Hex(desc->bases[__X(i, 16)], 16);
 		if (__MASK(i, -4) == 3) {
 			Out_Ln();
-			Out_String((CHAR*)"          ", 11);
+			Out_String((CHAR*)"                ", 17);
 		} else {
 			Out_Char(' ');
 		}
 		i += 1;
 	}
 	Out_Ln();
-	Out_String((CHAR*)"reserved: ", 11);
+	Out_String((CHAR*)"      reserved: ", 17);
 	Out_Hex(desc->reserved, 1);
 	Out_Ln();
-	Out_String((CHAR*)"blksz:    ", 11);
+	Out_String((CHAR*)"      blksz:    ", 17);
 	Out_Hex(desc->blksz, 1);
 	Out_Ln();
-	Out_String((CHAR*)"ptr0:     ", 11);
+	Out_String((CHAR*)"      ptr0:     ", 17);
 	Out_Hex(desc->ptr0, 1);
 	Out_Ln();
+}
+
+void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len)
+{
+	INT64 addr;
+	__GET((ADDRESS)o - 8, addr, INT64);
+	Out_DumpTag(addr);
+}
+
+typedef
+	INT64 (*adrptr__3)[1];
+
+typedef
+	struct blockdesc__5 *block__4;
+
+typedef
+	struct blockdesc__5 {
+		INT64 tag, size, sentinel, next;
+	} blockdesc__5;
+
+typedef
+	struct chunkdesc__7 *chunk__6;
+
+typedef
+	struct chunkdesc__7 {
+		INT64 next, end, reserved;
+		blockdesc__5 firstblock;
+	} chunkdesc__7;
+
+void Out_DumpHeap (void)
+{
+	INT64 caddr;
+	chunk__6 c = NIL;
+	INT64 baddr;
+	block__4 b = NIL;
+	adrptr__3 tag = NIL;
+	caddr = Heap_heap;
+	while (caddr != 0) {
+		Out_String((CHAR*)"Chunk at: ", 11);
+		Out_Hex(caddr, 1);
+		Out_Ln();
+		c = (chunk__6)(ADDRESS)caddr;
+		Out_String((CHAR*)"  next:   ", 11);
+		Out_Hex(c->next, 1);
+		Out_Ln();
+		Out_String((CHAR*)"  end:    ", 11);
+		Out_Hex(c->end, 1);
+		Out_String((CHAR*)" => size: ", 11);
+		Out_Hex(c->end - caddr, 1);
+		Out_Ln();
+		Out_String((CHAR*)"  rsvd:   ", 11);
+		Out_Hex(c->reserved, 1);
+		Out_Ln();
+		baddr = (ADDRESS)&c->firstblock;
+		while (baddr < c->end) {
+			Out_String((CHAR*)"  Block at:   ", 15);
+			Out_Hex(baddr, 1);
+			Out_Ln();
+			b = (block__4)(ADDRESS)baddr;
+			tag = (adrptr__3)(ADDRESS)b->tag;
+			Out_String((CHAR*)"    tag:      ", 15);
+			Out_Hex(b->tag, 1);
+			if (__MASK(b->tag, -2) != 0) {
+				Out_String((CHAR*)" <--- ODD! ---", 15);
+			}
+			Out_Ln();
+			Out_String((CHAR*)"    tag^:     ", 15);
+			Out_Hex((*tag)[0], 1);
+			Out_Ln();
+			Out_String((CHAR*)"    size:     ", 15);
+			Out_Hex(b->size, 1);
+			Out_Ln();
+			Out_String((CHAR*)"    sentinel: ", 15);
+			Out_Hex(b->sentinel, 1);
+			Out_Ln();
+			Out_String((CHAR*)"    next:     ", 15);
+			Out_Hex(b->next, 1);
+			Out_Ln();
+			if (b->tag != (ADDRESS)&b->size) {
+				Out_DumpTag(b->tag);
+			}
+			baddr += (*tag)[0];
+			Out_Ln();
+		}
+		caddr = c->next;
+		Out_Ln();
+	}
 }
 
 static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)
@@ -473,7 +566,9 @@ void Out_LongReal (LONGREAL x, INT16 n)
 	Out_RealP(x, n, 1);
 }
 
-__TDESC(typedesc__5, 1, 0) = {__TDFLDS("typedesc__5", 208), {-8}};
+__TDESC(typedesc__11, 1, 0) = {__TDFLDS("typedesc__11", 208), {-8}};
+__TDESC(blockdesc__5, 1, 0) = {__TDFLDS("blockdesc__5", 32), {-8}};
+__TDESC(chunkdesc__7, 1, 0) = {__TDFLDS("chunkdesc__7", 56), {-8}};
 
 export void *Out__init(void)
 {
@@ -481,10 +576,13 @@ export void *Out__init(void)
 	__MODULE_IMPORT(Heap);
 	__MODULE_IMPORT(Platform);
 	__REGMOD("Out", 0);
+	__REGCMD("DumpHeap", Out_DumpHeap);
 	__REGCMD("Flush", Out_Flush);
 	__REGCMD("Ln", Out_Ln);
 	__REGCMD("Open", Out_Open);
-	__INITYP(typedesc__5, typedesc__5, 0);
+	__INITYP(typedesc__11, typedesc__11, 0);
+	__INITYP(blockdesc__5, blockdesc__5, 0);
+	__INITYP(chunkdesc__7, chunkdesc__7, 0);
 /* BEGIN */
 	Out_IsConsole = Platform_IsConsole(Platform_StdOut);
 	Out_in = 0;

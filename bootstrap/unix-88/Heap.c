@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.00 [2016/12/13]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -68,7 +68,8 @@ static INT64 Heap_freeList[10];
 static INT64 Heap_bigBlocks;
 export INT64 Heap_allocated;
 static BOOLEAN Heap_firstTry;
-static INT64 Heap_heap, Heap_heapNegMin, Heap_heapNegMax, Heap_heapPosMin, Heap_heapPosMax;
+export INT64 Heap_heap;
+static INT64 Heap_heapNegMin, Heap_heapNegMax, Heap_heapPosMin, Heap_heapPosMax;
 export INT64 Heap_heapsize;
 static Heap_FinNode Heap_fin;
 static INT16 Heap_lockdepth;

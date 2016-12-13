@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/12]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/13]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Out__h
 #define Out__h
@@ -10,6 +10,8 @@ import BOOLEAN Out_IsConsole;
 
 
 import void Out_Char (CHAR ch);
+import void Out_DumpHeap (void);
+import void Out_DumpTag (INT32 addr);
 import void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len);
 import void Out_Flush (void);
 import void Out_Hex (INT64 x, INT64 n);
