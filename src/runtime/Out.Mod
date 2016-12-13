@@ -117,15 +117,15 @@ END HexDump;
 
 PROCEDURE DumpModule(m: Heap.Module);
 BEGIN
-  String("  next:     "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.next),1); Ln;
-  String("  name:     "); String(m.name); Ln;
-  String("  refcnt:   "); Hex(m.refcnt,1); Ln;
-  String("  cmds:     "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.cmds),1); Ln;
-  String("  types:    "); Hex(m.types,1); Ln;
-  String("  enumPtrs: "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.enumPtrs),1); Ln;
+  String("        next:     "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.next),1); Ln;
+  String("        name:     "); String(m.name); Ln;
+  String("        refcnt:   "); Hex(m.refcnt,1); Ln;
+  String("        cmds:     "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.cmds),1); Ln;
+  String("        types:    "); Hex(m.types,1); Ln;
+  String("        enumPtrs: "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, m.enumPtrs),1); Ln;
 END DumpModule;
 
-PROCEDURE DumpType*(VAR o: ARRAY OF SYSTEM.BYTE);
+PROCEDURE DumpTag*(addr: SYSTEM.ADDRESS);
 TYPE
   typedesc = RECORD
     (* Array of type bound procedure addresses preceeds this. *)
@@ -141,32 +141,97 @@ TYPE
   END;
   tag = POINTER [1] TO typedesc;
 VAR
-  addr: SYSTEM.ADDRESS;
   desc: tag;
   i: INTEGER;
 BEGIN
-  SYSTEM.GET(SYSTEM.ADR(o) - SIZE(SYSTEM.ADDRESS), addr);
-  String("obj tag:  "); Hex(addr,1); Ln;
+  String("      obj tag:  "); Hex(addr,1); Ln;
   DEC(addr, addr MOD 2); (* Work OK with incremented tags. *)
   desc := SYSTEM.VAL(tag, addr - (21*SIZE(SYSTEM.ADDRESS) + 24));
-  String("desc at:  "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, desc),1); Ln;
-  String("desc contains:"); Ln;
-  String("tag:      "); Hex(desc.tag,      1); Ln;
-  String("next:     "); Hex(desc.next,     1); Ln;
-  String("level:    "); Hex(desc.level,    1); Ln;
-  String("module:   "); Hex(desc.module,   1); Ln;
-  DumpModule(SYSTEM.VAL(Heap.Module, desc.module));
-  String("name:     "); String(desc.name); Ln;
-  String("bases:    ");
+  String("      desc at:  "); Hex(SYSTEM.VAL(SYSTEM.ADDRESS, desc),1); Ln;
+  String("      desc contains:"); Ln;
+  String("      tag:      "); Hex(desc.tag,      1); Ln;
+  String("      next:     "); Hex(desc.next,     1); Ln;
+  String("      level:    "); Hex(desc.level,    1); Ln;
+  String("      module:   "); Hex(desc.module,   1); Ln;
+  IF desc.module # 0 THEN DumpModule(SYSTEM.VAL(Heap.Module, desc.module)) END;
+  String("      name:     "); String(desc.name); Ln;
+  String("      bases:    ");
   i := 0; WHILE i < 16 DO
     Hex(desc.bases[i], SIZE(SYSTEM.ADDRESS) * 2);
-    IF i MOD 4 = 3 THEN Ln; String("          ") ELSE Char(" ") END;
+    IF i MOD 4 = 3 THEN Ln; String("                ") ELSE Char(" ") END;
     INC(i)
   END; Ln;
-  String("reserved: "); Hex(desc.reserved, 1); Ln;
-  String("blksz:    "); Hex(desc.blksz,    1); Ln;
-  String("ptr0:     "); Hex(desc.ptr0,     1); Ln;
+  String("      reserved: "); Hex(desc.reserved, 1); Ln;
+  String("      blksz:    "); Hex(desc.blksz,    1); Ln;
+  String("      ptr0:     "); Hex(desc.ptr0,     1); Ln;
+END DumpTag;
+
+PROCEDURE DumpType*(VAR o: ARRAY OF SYSTEM.BYTE);
+VAR addr: SYSTEM.ADDRESS;
+BEGIN
+  SYSTEM.GET(SYSTEM.ADR(o) - SIZE(SYSTEM.ADDRESS), addr);
+  DumpTag(addr);
 END DumpType;
+
+
+PROCEDURE -externheap "extern ADDRESS Heap_heap;";
+PROCEDURE -getheap(): SYSTEM.ADDRESS "Heap_heap";
+
+PROCEDURE DumpHeap*;
+TYPE
+  adrptr = POINTER [1] TO ARRAY 1 OF SYSTEM.ADDRESS;
+
+  block     = POINTER [1] TO blockdesc;
+  blockdesc = RECORD
+    tag:      SYSTEM.ADDRESS;
+    size:     SYSTEM.ADDRESS;
+    sentinel: SYSTEM.ADDRESS;
+    next:     SYSTEM.ADDRESS;
+  END;
+
+  chunk     = POINTER [1] TO chunkdesc;
+  chunkdesc = RECORD
+    next:       SYSTEM.ADDRESS;
+    end:        SYSTEM.ADDRESS;
+    reserved:   SYSTEM.ADDRESS;
+    firstblock: blockdesc;
+  END;
+VAR
+  caddr: SYSTEM.ADDRESS; c: chunk;
+  baddr: SYSTEM.ADDRESS; b: block;
+  tag: adrptr;
+BEGIN
+  caddr := Heap.heap;
+  WHILE caddr # 0 DO
+    String("Chunk at: "); Hex(caddr, 1); Ln;
+    c := SYSTEM.VAL(chunk, caddr);
+    String("  next:   "); Hex(c.next, 1);     Ln;
+    String("  end:    "); Hex(c.end, 1); String(" => size: "); Hex(c.end - caddr,1 );     Ln;
+    String("  rsvd:   "); Hex(c.reserved, 1); Ln;
+
+    baddr := SYSTEM.ADR(c.firstblock);
+    WHILE baddr < c.end DO
+      String("  Block at:   "); Hex(baddr, 1); Ln;
+      b := SYSTEM.VAL(block, baddr);
+      tag  := SYSTEM.VAL(adrptr, b.tag);
+      String("    tag:      "); Hex(b.tag, 1);  IF b.tag MOD 2 # 0 THEN String(" <--- ODD! ---") END; Ln;
+      String("    tag^:     "); Hex(tag^[0], 1);    Ln;
+      String("    size:     "); Hex(b.size, 1);     Ln;
+      String("    sentinel: "); Hex(b.sentinel, 1); Ln;
+      String("    next:     "); Hex(b.next, 1);     Ln;
+      IF b.tag # SYSTEM.ADR(b.size) THEN
+        (* There is a type descriptor. *)
+        DumpTag(b.tag)
+      END;
+      INC(baddr, tag^[0]);
+      Ln;
+    END;
+
+    caddr := c.next;
+    Ln;
+  END
+END DumpHeap;
+
 
 (* Real and Longreal display *)
 
@@ -182,6 +247,7 @@ BEGIN
   DEC(i, SHORT(l)); j := 0;
   WHILE j < l DO s[i+j] := t[j]; INC(j) END
 END prepend;
+
 
 
 PROCEDURE Ten*(e: INTEGER): LONGREAL;

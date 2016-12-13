@@ -80,7 +80,7 @@ MODULE Heap;
     firstTry:   BOOLEAN;
 
     (* extensible heap *)
-    heap:       S.ADDRESS;  (* the sorted list of heap chunks *)
+    heap-:      S.ADDRESS;  (* the sorted list of heap chunks *)
     heapNegMin: S.ADDRESS;  (* Range of pointer values, used for stack collection *)
     heapNegMax: S.ADDRESS;
     heapPosMin: S.ADDRESS;

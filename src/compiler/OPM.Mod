@@ -396,6 +396,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWLn; LogWStr("DEBUG: OPM.Get returned inR.eot at curpos = 0, ch = ");
       LogWNum(ORD(ch),1); LogW(".");
       Texts.DumpReader(inR);
+      LogWLn; LogWStr("Heap dump:"); LogWLn;
+      Out.DumpHeap
     END;
     (* TODO, remove curpos var, and provide fn returning Texts.Pos(inR) - 1. *)
     (* Or, better still, record symbol position in OPS. *)
