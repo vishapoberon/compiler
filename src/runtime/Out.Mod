@@ -210,7 +210,7 @@ BEGIN
     String("  rsvd:   "); Hex(c.reserved, 1); Ln;
 
     baddr := SYSTEM.ADR(c.firstblock);
-    WHILE baddr < c.end DO
+    WHILE c.end - baddr > 0 DO
       String("  Block at:   "); Hex(baddr, 1); Ln;
       b := SYSTEM.VAL(block, baddr);
       tag  := SYSTEM.VAL(adrptr, b.tag);
