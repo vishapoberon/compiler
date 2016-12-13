@@ -248,7 +248,7 @@ static void Heap_ExtendHeap (INT64 blksz)
 		} else {
 			j = Heap_heap;
 			__GET(j, next, INT64);
-			while ((next != 0 && chnk > next)) {
+			while ((next != 0 && chnk - next > 0)) {
 				j = next;
 				__GET(j, next, INT64);
 			}
@@ -345,7 +345,7 @@ SYSTEM_PTR Heap_NEWREC (INT64 tag)
 	}
 	i = adr + 32;
 	end = adr + blksz;
-	while (i < end) {
+	while (end - i > 0) {
 		__PUT(i, 0, INT64);
 		__PUT(i + 8, 0, INT64);
 		__PUT(i + 16, 0, INT64);
@@ -442,7 +442,7 @@ static void Heap_Scan (void)
 	while (chnk != 0) {
 		adr = chnk + 24;
 		__GET(chnk + 8, end, INT64);
-		while (adr < end) {
+		while (end - adr > 0) {
 			__GET(adr, tag, INT64);
 			if (__ODD(tag)) {
 				if (freesize > 0) {
@@ -533,13 +533,13 @@ static void Heap_MarkCandidates (INT64 n, INT64 *cand, ADDRESS cand__len)
 	chnk = Heap_heap;
 	i = 0;
 	lim = cand[n - 1];
-	while ((chnk != 0 && chnk < lim)) {
+	while ((chnk != 0 && lim - chnk > 0)) {
 		adr = chnk + 24;
 		__GET(chnk + 8, lim1, INT64);
-		if (lim < lim1) {
+		if (lim1 - lim > 0) {
 			lim1 = lim;
 		}
-		while (adr < lim1) {
+		while (lim1 - adr > 0) {
 			__GET(adr, tag, INT64);
 			if (__ODD(tag)) {
 				__GET(tag - 1, size, INT64);
@@ -547,14 +547,14 @@ static void Heap_MarkCandidates (INT64 n, INT64 *cand, ADDRESS cand__len)
 			} else {
 				__GET(tag, size, INT64);
 				ptr = adr + 8;
-				while (cand[i] < ptr) {
+				while (ptr - cand[i] > 0) {
 					i += 1;
 				}
 				if (i == n) {
 					return;
 				}
 				next = adr + size;
-				if (cand[i] < next) {
+				if (next - cand[i] > 0) {
 					Heap_Mark(ptr);
 				}
 				adr = next;
@@ -632,7 +632,7 @@ static void Heap_MarkStack (INT64 n, INT64 *cand, ADDRESS cand__len)
 		sp = (ADDRESS)&frame;
 		stack0 = Heap_ModulesMainStackFrame();
 		inc = (ADDRESS)&align.p - (ADDRESS)&align;
-		if (sp > stack0) {
+		if (sp - stack0 > 0) {
 			inc = -inc;
 		}
 		while (sp != stack0) {
