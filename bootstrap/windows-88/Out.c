@@ -354,7 +354,7 @@ void Out_DumpHeap (void)
 		Out_Hex(c->reserved, 1);
 		Out_Ln();
 		baddr = (ADDRESS)&c->firstblock;
-		while (baddr < c->end) {
+		while (c->end - baddr > 0) {
 			Out_String((CHAR*)"  Block at:   ", 15);
 			Out_Hex(baddr, 1);
 			Out_Ln();
