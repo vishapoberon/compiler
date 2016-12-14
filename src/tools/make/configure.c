@@ -106,7 +106,7 @@ void determineOS() {
   #ifdef _WIN32
     os = "windows";  platform = "windows";  binext = ".exe"; staticlink = "";
   #else
-    os = "unknown";  platform = "unix";     binext = "";     staticlink = "-static";
+    os = "unknown";  platform = "unix";     binext = "";     staticlink = " -static";
 
     struct utsname sys;
     if (uname(&sys)<0) fail("Couldn't get sys name - uname() failed.");
