@@ -176,7 +176,7 @@ CONST
   Srvar*  = 22; Svalpar* = 23; Svarpar* = 24; Sfld*    = 25; Srfld* = 26;
   Shdptr* = 27; Shdpro*  = 28; Stpro*   = 29; Shdtpro* = 30; Sxpro* = 31;
   Sipro*  = 32; Scpro*   = 33; Sstruct* = 34; Ssys*    = 35; Sptr*  = 36;
-  Sarr*   = 37; Sdarr*   = 38; Srec*    = 39; Spro*    = 40;
+  Sarr*   = 37; Sdarr*   = 38; Srec*    = 39; Spro*    = 40; Slink* = 37;
 
 TYPE
   ImpCtxt = RECORD
@@ -206,6 +206,18 @@ VAR
   symExtended, symNew: BOOLEAN;
   recno:               LONGINT;  (* number of anonymous record types *)
 
+
+(* Linking control - modules whose object files will be required to link a module. *)
+
+TYPE
+  Link* = POINTER TO LinkDesc;
+  LinkDesc* = RECORD
+    name-: OPS.Name;
+    next-: Link
+  END;
+
+VAR
+  Links-: Link;
 
 
 PROCEDURE InitRecno*; BEGIN recno := 0 END InitRecno;
@@ -392,7 +404,8 @@ BEGIN
   topScope := universe; OpenScope(0, NIL); SYSimported := FALSE;
   SelfName := name; topScope^.name := name;
   GlbMod[0] := topScope; nofGmod := 1;
-  newsf := nsf IN opt; findpc := fpc IN opt; extsf := newsf OR (esf IN opt); sfpresent := TRUE
+  newsf := nsf IN opt; findpc := fpc IN opt; extsf := newsf OR (esf IN opt); sfpresent := TRUE;
+  NEW(Links); Links.name := name
 END Init;
 
 PROCEDURE Close*;
@@ -733,6 +746,20 @@ BEGIN
   END
 END InMod;
 
+PROCEDURE InLinks;  (* Load a list of all modules whose object files we will need to link with *)
+  VAR linkname: OPS.Name; l: Link;
+BEGIN
+  InName(linkname);
+  WHILE linkname[0] # 0X DO
+    l := Links; WHILE (l # NIL) & (l.name # linkname) DO l := l.next END;
+    IF l = NIL THEN
+      l := Links; NEW(Links);
+      Links.next := l; Links.name := linkname
+    END;
+    InName(linkname)
+  END
+END InLinks;
+
 PROCEDURE InConstant(f: LONGINT; conval: Const);
   VAR ch: CHAR; i: INTEGER; ext: ConstExt; rval: REAL;
 BEGIN
@@ -1022,7 +1049,7 @@ BEGIN
     impCtxt.self := aliasName = "@self"; impCtxt.reffp := 0;
     OPM.OldSym(name, done);
     IF done THEN
-      InMod(mno);
+      InMod(mno); InLinks;
       impCtxt.nextTag := OPM.SymRInt();
       WHILE ~OPM.eofSF() DO
         obj := InObj(mno); impCtxt.nextTag := OPM.SymRInt()
@@ -1056,6 +1083,13 @@ END Import;
     ELSE OPM.SymWInt(-expCtxt.locmno[mno])
     END
   END OutMod;
+
+  PROCEDURE OutLinks;
+    VAR l: Link;
+  BEGIN
+   l := Links; WHILE l # NIL DO OutName(l.name); l := l.next END;
+   OPM.SymWCh(0X)
+  END OutLinks;
 
   PROCEDURE ^OutStr(typ: Struct);
   PROCEDURE ^OutFlds(fld: Object; adr: LONGINT; visible: BOOLEAN);
@@ -1235,7 +1269,7 @@ END Import;
     IF OPM.noerr THEN  (* ~OPM.noerr => ~done *)
       OPM.NewSym(SelfName);
       IF OPM.noerr THEN
-        OPM.SymWInt(Smname); OutName(SelfName);
+        OPM.SymWInt(Smname); OutName(SelfName); OutLinks;
         expCtxt.reffp := 0; expCtxt.ref := FirstRef(*Comp+1*);
         expCtxt.nofm := 1; expCtxt.locmno[0] := 0;
         i := 1; WHILE i < maxImps DO expCtxt.locmno[i] := -1; INC(i) END;
@@ -1248,13 +1282,15 @@ END Import;
         END;
         newsf := FALSE; symNew := FALSE;  (* because of call to FPrintErr from OPL *)
         IF ~OPM.noerr OR findpc THEN
-          OPM.DeleteNewSym
+          OPM.DeleteNewSym(SelfName)
         END
         (* OPM.RegisterNewSym is called in OP2 after writing the object file *)
       END
     END
   END Export;  (* no new symbol file if ~OPM.noerr or findpc *)
 
+
+(*------------------------- Initialise types --------------------------*)
 
   PROCEDURE InitStruct(VAR typ: Struct; form: SHORTINT);
   BEGIN

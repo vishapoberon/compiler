@@ -645,21 +645,11 @@ Especially Length would become fairly complex.
   PROCEDURE Register* (f: File);
     VAR idx, errcode: INTEGER; f1: File;
   BEGIN
-    (*
-    Out.String("Files.Register f.registerName = "); Out.String(f.registerName);
-    Out.String(", fd = "); Out.Int(f.fd,1); Out.Ln;
-    *)
     IF (f.state = create) & (f.registerName # "") THEN f.state := close (* shortcut renaming *) END;
     Close(f);
     IF f.registerName # "" THEN
       Deregister(f.registerName);
       Rename(f.workName, f.registerName, errcode);
-      (*
-      Out.String("Renamed (for register) f.fd = "); Out.Int(f.fd,1);
-      Out.String(" from workname ");                Out.String(f.workName);
-      Out.String(" to registerName ");              Out.String(f.registerName);
-      Out.String(" errorcode = ");                  Out.Int(errcode,1); Out.Ln;
-      *)
       IF errcode # 0 THEN Err("Couldn't rename temp name as register name", f, errcode) END;
       f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
     END

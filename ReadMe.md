@@ -125,7 +125,7 @@ Alternatively the Oakwood module Out can be used to write directly to stdout:
 MODULE hello;
   IMPORT Out;
 BEGIN
-  Out.String("Hello."); Out.Ln;
+  Out.String("Hello."); Out.Ln
 END hello.
 ```
 
@@ -144,7 +144,7 @@ Execute as usual on Linux (`./hello`) or Windows (`hello`).
 In order to see the definition of a module's interface, use the "showdef" program.
 
 ```
-$ showdef Out.sym
+$ showdef Out
 DEFINITION Out;
 
   VAR

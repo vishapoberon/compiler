@@ -6,9 +6,6 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     OPV, OPC, OPM,
     extTools, Strings, VT100;
 
-  VAR mname: ARRAY 256 OF CHAR; (* noch *)
-
-
   PROCEDURE Module*(VAR done: BOOLEAN);
     VAR ext, new: BOOLEAN; p: OPT.Node;
   BEGIN
@@ -20,11 +17,12 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
       OPT.Export(ext, new);
       IF OPM.noerr THEN
         OPM.OpenFiles(OPT.SelfName);
+        OPM.DeleteObj(OPT.SelfName); (* Make sure old object file isn't left hanging around. *)
         OPC.Init;
         OPV.Module(p);
         IF OPM.noerr THEN
           IF (OPM.mainprog IN OPM.Options) & (OPM.modName # "SYSTEM") THEN
-            OPM.DeleteNewSym;
+            OPM.DeleteNewSym(OPT.SelfName);
             OPM.LogVT100(VT100.Green); OPM.LogWStr("  Main program."); OPM.LogVT100(VT100.ResetAll);
           ELSE
             IF new THEN
@@ -36,7 +34,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
             END
           END;
       	ELSE
-          OPM.DeleteNewSym
+          OPM.DeleteNewSym(OPT.SelfName)
         END
       END
     END;
@@ -83,17 +81,48 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
   END PropagateElementaryTypeSizes;
 
 
+  PROCEDURE FindLocalObjectFiles(VAR objectnames: ARRAY OF CHAR);
+    VAR
+      l:  OPT.Link;
+      fn: ARRAY 64 OF CHAR;
+      id: Platform.FileIdentity;
+  BEGIN
+    objectnames[0] := 0X;
+    l := OPT.Links; WHILE l # NIL DO
+      (* Tell linker to link this module as an object file if both a symbol
+         and an object file exist in the current directory. *)
+      COPY(l.name, fn); Strings.Append('.sym', fn);
+      IF Platform.IdentifyByName(fn, id) = 0 THEN
+        COPY(l.name, fn); Strings.Append(Configuration.objext, fn);
+        IF Platform.IdentifyByName(fn, id) = 0 THEN
+          Strings.Append(' ', objectnames);
+          Strings.Append(fn,  objectnames)
+        ELSE
+          (* Found symbol file but no object file. *)
+          OPM.LogVT100(VT100.Yellow);
+          OPM.LogWStr("Link warning: a local symbol file is present for module "); OPM.LogWStr(l.name);
+          OPM.LogWStr(", but local object file '"); OPM.LogWStr(fn); OPM.LogWStr("' is missing.");
+          OPM.LogVT100(VT100.ResetAll); OPM.LogWLn
+        END
+      ELSE
+        (* No symbol file present in current directory.
+           Assume this referenced module is in a library. *)
+      END;
+      l := l.next
+    END
+  END FindLocalObjectFiles;
+
+
   PROCEDURE Translate*;
     VAR
-      done:       BOOLEAN;
-      modulesobj: ARRAY 2048 OF CHAR; (* here we hold all modules name given on the command line, to add corresponding .o files to the external compiler options *)
+      done:      BOOLEAN;
+      linkfiles: ARRAY 2048 OF CHAR; (* Object files to be linked into main program. *)
   BEGIN
-    modulesobj := "";
     IF OPM.OpenPar() THEN
       (* gclock();   slightly faster translation but may lead to opening "too many files" *)
 
       LOOP
-        OPM.Init(done, mname); (* Get next module name from command line *)
+        OPM.Init(done); (* Get next module name from command line *)
         IF ~done THEN RETURN END ;
 
         OPM.InitOptions; (* Get options for this module *)
@@ -116,12 +145,10 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
             IF ~(OPM.mainprog IN OPM.Options) THEN
               (* Assemble non main program and add object name to link list *)
               extTools.Assemble(OPM.modName);
-              Strings.Append(" ",                  modulesobj);
-              Strings.Append(OPM.modName,          modulesobj);
-              Strings.Append(Configuration.objext, modulesobj)
             ELSE
               (* Assemble and link main program *)
-              extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.Options, modulesobj)
+              FindLocalObjectFiles(linkfiles);
+              extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.Options, linkfiles)
             END
           END
   	    END

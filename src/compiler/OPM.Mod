@@ -76,7 +76,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     BFext = ".c";   (* body file extension *)
     HFext = ".h";   (* header file extension *)
     SFtag = 0F7X;   (* symbol file tag *)
-    SFver = 082X;   (* symbol file version. Increment if symbol file format is changed. *)
+    SFver = 083X;   (* symbol file version. Increment if symbol file format is changed. *)
 
 
 
@@ -353,7 +353,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END InitOptions;
 
 
-  PROCEDURE Init*(VAR done: BOOLEAN; VAR mname : ARRAY OF CHAR);  (* get the source for one translation *)
+  PROCEDURE Init*(VAR done: BOOLEAN);  (* get the source for one translation *)
   VAR
     T: Texts.Text;
     beg, end, time: LONGINT;
@@ -367,7 +367,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     NEW(T); Texts.Open(T, s);
     LogWStr(s); LogWStr("  ");
-    COPY(s, mname);
     COPY(s, SourceFileName); (* to keep it also in this module -- noch *)
 
     IF T.len = 0 THEN
@@ -636,8 +635,15 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF (modName # "SYSTEM") OR (mainprog IN Options) THEN Files.Register(newSFile) END
   END RegisterNewSym;
 
-  PROCEDURE DeleteNewSym*;
+  PROCEDURE DeleteNewSym*(VAR modulename: ARRAY OF CHAR);
+  VAR fn: FileName; res: INTEGER;
+  BEGIN MakeFileName(modulename, fn, SFext); Files.Delete(fn, res)
   END DeleteNewSym;
+
+  PROCEDURE DeleteObj*(VAR modulename: ARRAY OF CHAR);
+  VAR fn: FileName; res: INTEGER;
+  BEGIN MakeFileName(modulename, fn, Configuration.objext); Files.Delete(fn, res)
+  END DeleteObj;
 
   PROCEDURE NewSym*(VAR modName: ARRAY OF CHAR);
     VAR fileName: FileName;
@@ -742,7 +748,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END Append;
 
   PROCEDURE OpenFiles*(VAR moduleName: ARRAY OF CHAR);
-    VAR FName: ARRAY 32 OF CHAR;
+    VAR FName: FileName;
   BEGIN
     COPY(moduleName, modName);
     HFile := Files.New("");
@@ -756,7 +762,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END OpenFiles;
 
   PROCEDURE CloseFiles*;
-    VAR FName: ARRAY 32 OF CHAR; res: INTEGER;
+    VAR FName: FileName; res: INTEGER;
   BEGIN
     IF noerr THEN LogWStr("  "); LogWNum(Files.Pos(R[BodyFile]), 0); LogWStr(" chars.") END;
     IF noerr THEN
@@ -779,7 +785,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 (* === Installation directory discovery === *)
 
   PROCEDURE IsProbablyInstallDir(s: ARRAY OF CHAR): BOOLEAN;
-  VAR testpath: ARRAY 1024 OF CHAR; identity: Platform.FileIdentity;
+  VAR testpath: ARRAY 4096 OF CHAR; identity: Platform.FileIdentity;
   BEGIN
     COPY(InstallDir, testpath);
     Strings.Append("/lib/lib", testpath);

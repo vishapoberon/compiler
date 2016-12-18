@@ -790,7 +790,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                           OPM.WriteString("__X(");
                                           OPC.Len(r.obj, r.typ, 0); OPM.WriteString(" * "); OPM.WriteInt(r.typ.BaseTyp.size);
                                           OPM.WriteString(", ");
-                                          OPM.WriteInt(l.typ.size+1); (* _X vaidates 0 .. n-1 so we need to +1. *)
+                                          OPM.WriteInt(l.typ.size+1); (* _X validates 0 .. n-1 so we need top+1. *)
                                           OPM.Write(")")
                                         ELSE (* Array to array copy. *)
                                           ASSERT(r.typ.comp = OPT.Array); ASSERT(r.typ.size <= l.typ.size);
