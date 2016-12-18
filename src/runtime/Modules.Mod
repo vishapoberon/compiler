@@ -74,6 +74,7 @@ MODULE Modules;  (* jt 6.1.96 *)
     RETURN i
   END ArgPos;
 
+
 (* Determine directory from which this executable was loaded *)
 
   PROCEDURE CharCount(s: ARRAY OF CHAR): INTEGER;
@@ -151,7 +152,7 @@ MODULE Modules;  (* jt 6.1.96 *)
   END ExtractPart;
 
   PROCEDURE Trim(s: ARRAY OF CHAR; VAR d: ARRAY OF CHAR);
-  (* Remove redundant '.'s and '/'s.
+  (* Remove redundant '.'s and '/'s. Convert '\'s to '/'. *)
      Note, does not remove 'x/..'. This cannot safely be removed because if
      x is a link then 'x/..' means the parent of what x links to rather than
      the directory containing link x.
@@ -187,8 +188,8 @@ MODULE Modules;  (* jt 6.1.96 *)
     END;
 
     GetArg(0, arg0); (* arg0 is the command binary file name passed by the shell. *)
-    i := 0; WHILE (arg0[i] # 0X) & (arg0[i] # '/') DO INC(i) END;
-    IF arg0[i] = '/' THEN
+    i := 0; WHILE (arg0[i] # 0X) & (arg0[i] # '/') & (arg0[i] # '\') DO INC(i) END;
+    IF (arg0[i] = '/') OR (arg0[i] = '\') THEN
       (* The argument contains a '/', we expect it to work without reference
          to the path. *)
       Trim(arg0, tempstr); Canonify(tempstr, binarydir);
