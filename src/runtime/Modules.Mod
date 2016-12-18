@@ -152,7 +152,7 @@ MODULE Modules;  (* jt 6.1.96 *)
   END ExtractPart;
 
   PROCEDURE Trim(s: ARRAY OF CHAR; VAR d: ARRAY OF CHAR);
-  (* Remove redundant '.'s and '/'s. Convert '\'s to '/'. *)
+  (* Remove redundant '.'s and '/'s. Convert '\'s to '/'.
      Note, does not remove 'x/..'. This cannot safely be removed because if
      x is a link then 'x/..' means the parent of what x links to rather than
      the directory containing link x.

@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 4, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -267,10 +267,10 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 	}
 	Modules_GetArg(0, (void*)arg0, 4096);
 	i = 0;
-	while ((arg0[__X(i, 4096)] != 0x00 && arg0[__X(i, 4096)] != '/')) {
+	while ((((arg0[__X(i, 4096)] != 0x00 && arg0[__X(i, 4096)] != '/')) && arg0[__X(i, 4096)] != '\\')) {
 		i += 1;
 	}
-	if (arg0[__X(i, 4096)] == '/') {
+	if (arg0[__X(i, 4096)] == '/' || arg0[__X(i, 4096)] == '\\') {
 		Modules_Trim(arg0, 4096, (void*)tempstr, 4096);
 		Modules_Canonify(tempstr, 4096, (void*)binarydir, binarydir__len);
 		present = Modules_IsFilePresent(binarydir, binarydir__len);
