@@ -339,8 +339,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF verbose IN Options THEN VerboseListSizes END;
 
     ResourceDir := InstallDir;
-    Strings.Append("/",   ResourceDir);
-    Strings.Append(Model, ResourceDir);
+    IF ResourceDir[0] # 0X THEN
+      Strings.Append("/",   ResourceDir);
+      Strings.Append(Model, ResourceDir);
+    END;
 
     modules    := "";  Platform.GetEnv("MODULES", modules);
     searchpath := "."; Platform.GetEnv("OBERON",  searchpath);
@@ -592,18 +594,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     oldSFile := NIL; done := FALSE;
     MakeFileName(modName, fileName, SFext);
-    IF forcenewsym IN Options THEN
-      Files.Delete(fileName, res)
-    ELSE
-      oldSFile := Files.Old(fileName); done := oldSFile # NIL;
-      IF done THEN
-        Files.Set(oldSF, oldSFile, 0); Files.Read(oldSF, tag); Files.Read(oldSF, ver);
-        IF (tag # SFtag) OR (ver # SFver) THEN
-          (* Possibly a symbol file from another Oberon implementation, e.g. HP-Oberon,
-             or from a symbol incompatible version of this Oberon. *)
-          IF ~(newsf IN Options) THEN err(-306) END;
-          CloseOldSym; done := FALSE
-        END
+    oldSFile := Files.Old(fileName); done := oldSFile # NIL;
+    IF done THEN
+      Files.Set(oldSF, oldSFile, 0); Files.Read(oldSF, tag); Files.Read(oldSF, ver);
+      IF (tag # SFtag) OR (ver # SFver) THEN
+        (* Possibly a symbol file from another Oberon implementation, e.g. HP-Oberon,
+           or from a symbol incompatible version of this Oberon. *)
+        IF ~(newsf IN Options) THEN err(-306) END;
+        CloseOldSym; done := FALSE
       END
     END
   END OldSym;
@@ -642,10 +640,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF (modName # "SYSTEM") OR (mainprog IN Options) THEN Files.Register(newSFile) END
   END RegisterNewSym;
 
-  PROCEDURE DeleteNewSym*(VAR modulename: ARRAY OF CHAR);
+  PROCEDURE DeleteSym*(VAR modulename: ARRAY OF CHAR);
   VAR fn: FileName; res: INTEGER;
   BEGIN MakeFileName(modulename, fn, SFext); Files.Delete(fn, res)
-  END DeleteNewSym;
+  END DeleteSym;
 
   PROCEDURE DeleteObj*(VAR modulename: ARRAY OF CHAR);
   VAR fn: FileName; res: INTEGER;

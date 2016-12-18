@@ -1047,7 +1047,11 @@ BEGIN
   ELSE
     impCtxt.nofr := FirstRef(*Comp+1*); impCtxt.minr := maxStruct; impCtxt.nofm := 0;
     impCtxt.self := aliasName = "@self"; impCtxt.reffp := 0;
-    OPM.OldSym(name, done);
+    IF impCtxt.self & (OPM.forcenewsym IN OPM.Options) THEN
+      OPM.DeleteSym(name); done := FALSE
+    ELSE
+      OPM.OldSym(name, done)
+    END;
     IF done THEN
       InMod(mno); InLinks;
       impCtxt.nextTag := OPM.SymRInt();
@@ -1282,7 +1286,7 @@ END Import;
         END;
         newsf := FALSE; symNew := FALSE;  (* because of call to FPrintErr from OPL *)
         IF ~OPM.noerr OR findpc THEN
-          OPM.DeleteNewSym(SelfName)
+          OPM.DeleteSym(SelfName)
         END
         (* OPM.RegisterNewSym is called in OP2 after writing the object file *)
       END

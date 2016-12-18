@@ -22,7 +22,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
         OPV.Module(p);
         IF OPM.noerr THEN
           IF (OPM.mainprog IN OPM.Options) & (OPM.modName # "SYSTEM") THEN
-            OPM.DeleteNewSym(OPT.SelfName);
+            OPM.DeleteSym(OPT.SelfName);
             OPM.LogVT100(VT100.Green); OPM.LogWStr("  Main program."); OPM.LogVT100(VT100.ResetAll);
           ELSE
             IF new THEN
@@ -34,7 +34,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
             END
           END;
       	ELSE
-          OPM.DeleteNewSym(OPT.SelfName)
+          OPM.DeleteSym(OPT.SelfName)
         END
       END
     END;
