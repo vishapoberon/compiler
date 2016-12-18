@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/14]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -20,6 +20,15 @@ typedef
 		UINT64 setval;
 		LONGREAL realval;
 	} OPT_ConstDesc;
+
+typedef
+	struct OPT_LinkDesc *OPT_Link;
+
+typedef
+	struct OPT_LinkDesc {
+		OPS_Name name;
+		OPT_Link next;
+	} OPT_LinkDesc;
 
 typedef
 	struct OPT_NodeDesc *OPT_Node;
@@ -75,11 +84,13 @@ import INT8 OPT_nofGmod;
 import OPT_Object OPT_GlbMod[64];
 import OPS_Name OPT_SelfName;
 import BOOLEAN OPT_SYSimported;
+import OPT_Link OPT_Links;
 
 import ADDRESS *OPT_ConstDesc__typ;
 import ADDRESS *OPT_ObjDesc__typ;
 import ADDRESS *OPT_StrDesc__typ;
 import ADDRESS *OPT_NodeDesc__typ;
+import ADDRESS *OPT_LinkDesc__typ;
 
 import void OPT_Align (INT32 *adr, INT32 base);
 import INT32 OPT_BaseAlignment (OPT_Struct typ);

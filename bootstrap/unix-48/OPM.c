@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/14]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -49,7 +49,8 @@ export CHAR OPM_ResourceDir[1024];
 static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F);
 export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
-export void OPM_DeleteNewSym (void);
+export void OPM_DeleteNewSym (CHAR *modulename, ADDRESS modulename__len);
+export void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len);
 export void OPM_FPrint (INT32 *fp, INT64 val);
 export void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 export void OPM_FPrintReal (INT32 *fp, REAL val);
@@ -58,7 +59,7 @@ static void OPM_FindInstallDir (void);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
 static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
-export void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len);
+export void OPM_Init (BOOLEAN *done);
 export void OPM_InitOptions (void);
 export INT16 OPM_Integer (INT64 n);
 static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len);
@@ -449,7 +450,7 @@ void OPM_InitOptions (void)
 	Files_SetSearchPath(searchpath, 1024);
 }
 
-void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len)
+void OPM_Init (BOOLEAN *done)
 {
 	Texts_Text T = NIL;
 	INT32 beg, end, time;
@@ -465,7 +466,6 @@ void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len)
 	Texts_Open(T, s, 256);
 	OPM_LogWStr(s, 256);
 	OPM_LogWStr((CHAR*)"  ", 3);
-	__COPY(s, mname, mname__len);
 	__COPY(s, OPM_SourceFileName, 256);
 	if (T->len == 0) {
 		OPM_LogWStr(s, 256);
@@ -773,7 +773,7 @@ void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done)
 		Files_Set(&OPM_oldSF, Files_Rider__typ, OPM_oldSFile, 0);
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&tag);
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&ver);
-		if (tag != 0xf7 || ver != 0x82) {
+		if (tag != 0xf7 || ver != 0x83) {
 			OPM_err(-306);
 			OPM_CloseOldSym();
 			*done = 0;
@@ -818,8 +818,20 @@ void OPM_RegisterNewSym (void)
 	}
 }
 
-void OPM_DeleteNewSym (void)
+void OPM_DeleteNewSym (CHAR *modulename, ADDRESS modulename__len)
 {
+	OPM_FileName fn;
+	INT16 res;
+	OPM_MakeFileName((void*)modulename, modulename__len, (void*)fn, 32, (CHAR*)".sym", 5);
+	Files_Delete(fn, 32, &res);
+}
+
+void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len)
+{
+	OPM_FileName fn;
+	INT16 res;
+	OPM_MakeFileName((void*)modulename, modulename__len, (void*)fn, 32, (CHAR*)".o", 3);
+	Files_Delete(fn, 32, &res);
 }
 
 void OPM_NewSym (CHAR *modName, ADDRESS modName__len)
@@ -830,7 +842,7 @@ void OPM_NewSym (CHAR *modName, ADDRESS modName__len)
 	if (OPM_newSFile != NIL) {
 		Files_Set(&OPM_newSF, Files_Rider__typ, OPM_newSFile, 0);
 		Files_Write(&OPM_newSF, Files_Rider__typ, 0xf7);
-		Files_Write(&OPM_newSF, Files_Rider__typ, 0x82);
+		Files_Write(&OPM_newSF, Files_Rider__typ, 0x83);
 	} else {
 		OPM_err(153);
 	}
@@ -984,7 +996,7 @@ static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F)
 
 void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len)
 {
-	CHAR FName[32];
+	OPM_FileName FName;
 	__COPY(moduleName, OPM_modName, 32);
 	OPM_HFile = Files_New((CHAR*)"", 1);
 	if (OPM_HFile != NIL) {
@@ -1010,7 +1022,7 @@ void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len)
 
 void OPM_CloseFiles (void)
 {
-	CHAR FName[32];
+	OPM_FileName FName;
 	INT16 res;
 	if (OPM_noerr) {
 		OPM_LogWStr((CHAR*)"  ", 3);
@@ -1048,26 +1060,26 @@ void OPM_CloseFiles (void)
 
 static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 {
-	CHAR testpath[1024];
+	CHAR testpath[4096];
 	Platform_FileIdentity identity;
 	__DUP(s, s__len, CHAR);
-	__COPY(OPM_InstallDir, testpath, 1024);
-	Strings_Append((CHAR*)"/lib/lib", 9, (void*)testpath, 1024);
-	Strings_Append((CHAR*)"voc", 4, (void*)testpath, 1024);
-	Strings_Append((CHAR*)"-O2.a", 6, (void*)testpath, 1024);
-	if (Platform_IdentifyByName(testpath, 1024, &identity, Platform_FileIdentity__typ) != 0) {
+	__COPY(OPM_InstallDir, testpath, 4096);
+	Strings_Append((CHAR*)"/lib/lib", 9, (void*)testpath, 4096);
+	Strings_Append((CHAR*)"voc", 4, (void*)testpath, 4096);
+	Strings_Append((CHAR*)"-O2.a", 6, (void*)testpath, 4096);
+	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
 		__DEL(s);
 		return 0;
 	}
-	__COPY(OPM_InstallDir, testpath, 1024);
-	Strings_Append((CHAR*)"/2/include/Oberon.h", 20, (void*)testpath, 1024);
-	if (Platform_IdentifyByName(testpath, 1024, &identity, Platform_FileIdentity__typ) != 0) {
+	__COPY(OPM_InstallDir, testpath, 4096);
+	Strings_Append((CHAR*)"/2/include/Oberon.h", 20, (void*)testpath, 4096);
+	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
 		__DEL(s);
 		return 0;
 	}
-	__COPY(OPM_InstallDir, testpath, 1024);
-	Strings_Append((CHAR*)"/2/sym/Files.sym", 17, (void*)testpath, 1024);
-	if (Platform_IdentifyByName(testpath, 1024, &identity, Platform_FileIdentity__typ) != 0) {
+	__COPY(OPM_InstallDir, testpath, 4096);
+	Strings_Append((CHAR*)"/2/sym/Files.sym", 17, (void*)testpath, 4096);
+	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
 		__DEL(s);
 		return 0;
 	}
@@ -1129,7 +1141,6 @@ export void *OPM__init(void)
 	__REGMOD("OPM", EnumPtrs);
 	__REGCMD("CloseFiles", OPM_CloseFiles);
 	__REGCMD("CloseOldSym", OPM_CloseOldSym);
-	__REGCMD("DeleteNewSym", OPM_DeleteNewSym);
 	__REGCMD("InitOptions", OPM_InitOptions);
 	__REGCMD("LogWLn", OPM_LogWLn);
 	__REGCMD("RegisterNewSym", OPM_RegisterNewSym);

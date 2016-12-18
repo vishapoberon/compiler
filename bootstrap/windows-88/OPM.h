@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/14]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -23,13 +23,14 @@ import CHAR OPM_ResourceDir[1024];
 
 import void OPM_CloseFiles (void);
 import void OPM_CloseOldSym (void);
-import void OPM_DeleteNewSym (void);
+import void OPM_DeleteNewSym (CHAR *modulename, ADDRESS modulename__len);
+import void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len);
 import void OPM_FPrint (INT32 *fp, INT64 val);
 import void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 import void OPM_FPrintReal (INT32 *fp, REAL val);
 import void OPM_FPrintSet (INT32 *fp, UINT64 val);
 import void OPM_Get (CHAR *ch);
-import void OPM_Init (BOOLEAN *done, CHAR *mname, ADDRESS mname__len);
+import void OPM_Init (BOOLEAN *done);
 import void OPM_InitOptions (void);
 import INT16 OPM_Integer (INT64 n);
 import void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len);

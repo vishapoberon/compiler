@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/14]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -48,6 +48,15 @@ typedef
 		INT32 pvfp[255];
 		INT8 glbmno[64];
 	} OPT_ImpCtxt;
+
+typedef
+	struct OPT_LinkDesc *OPT_Link;
+
+typedef
+	struct OPT_LinkDesc {
+		OPS_Name name;
+		OPT_Link next;
+	} OPT_LinkDesc;
 
 typedef
 	struct OPT_NodeDesc *OPT_Node;
@@ -101,6 +110,7 @@ static OPT_ExpCtxt OPT_expCtxt;
 static INT32 OPT_nofhdfld;
 static BOOLEAN OPT_newsf, OPT_findpc, OPT_extsf, OPT_sfpresent, OPT_symExtended, OPT_symNew;
 static INT32 OPT_recno;
+export OPT_Link OPT_Links;
 
 export ADDRESS *OPT_ConstDesc__typ;
 export ADDRESS *OPT_ObjDesc__typ;
@@ -108,6 +118,7 @@ export ADDRESS *OPT_StrDesc__typ;
 export ADDRESS *OPT_NodeDesc__typ;
 export ADDRESS *OPT_ImpCtxt__typ;
 export ADDRESS *OPT_ExpCtxt__typ;
+export ADDRESS *OPT_LinkDesc__typ;
 
 export void OPT_Align (INT32 *adr, INT32 base);
 export INT32 OPT_BaseAlignment (OPT_Struct typ);
@@ -131,6 +142,7 @@ export void OPT_IdFPrint (OPT_Struct typ);
 export void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
 static void OPT_InConstant (INT32 f, OPT_Const conval);
 static OPT_Object OPT_InFld (void);
+static void OPT_InLinks (void);
 static void OPT_InMod (INT8 *mno);
 static void OPT_InName (CHAR *name, ADDRESS name__len);
 static OPT_Object OPT_InObj (INT8 mno);
@@ -154,6 +166,7 @@ export void OPT_OpenScope (INT8 level, OPT_Object owner);
 static void OPT_OutConstant (OPT_Object obj);
 static void OPT_OutFlds (OPT_Object fld, INT32 adr, BOOLEAN visible);
 static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, INT32 adr);
+static void OPT_OutLinks (void);
 static void OPT_OutMod (INT16 mno);
 static void OPT_OutName (CHAR *name, ADDRESS name__len);
 static void OPT_OutObj (OPT_Object obj);
@@ -442,6 +455,8 @@ void OPT_Init (OPS_Name name, UINT32 opt)
 	OPT_findpc = __IN(8, opt, 32);
 	OPT_extsf = OPT_newsf || __IN(9, opt, 32);
 	OPT_sfpresent = 1;
+	__NEW(OPT_Links, OPT_LinkDesc);
+	__MOVE(name, OPT_Links->name, 256);
 }
 
 void OPT_Close (void)
@@ -1011,6 +1026,26 @@ static void OPT_InMod (INT8 *mno)
 	}
 }
 
+static void OPT_InLinks (void)
+{
+	OPS_Name linkname;
+	OPT_Link l = NIL;
+	OPT_InName((void*)linkname, 256);
+	while (linkname[0] != 0x00) {
+		l = OPT_Links;
+		while ((l != NIL && __STRCMP(l->name, linkname) != 0)) {
+			l = l->next;
+		}
+		if (l == NIL) {
+			l = OPT_Links;
+			__NEW(OPT_Links, OPT_LinkDesc);
+			OPT_Links->next = l;
+			__MOVE(linkname, OPT_Links->name, 256);
+		}
+		OPT_InName((void*)linkname, 256);
+	}
+}
+
 static void OPT_InConstant (INT32 f, OPT_Const conval)
 {
 	CHAR ch;
@@ -1461,6 +1496,7 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 		OPM_OldSym((void*)name, 256, &*done);
 		if (*done) {
 			OPT_InMod(&mno);
+			OPT_InLinks();
 			OPT_impCtxt.nextTag = OPM_SymRInt();
 			while (!OPM_eofSF()) {
 				obj = OPT_InObj(mno);
@@ -1505,6 +1541,17 @@ static void OPT_OutMod (INT16 mno)
 	} else {
 		OPM_SymWInt(-OPT_expCtxt.locmno[__X(mno, 64)]);
 	}
+}
+
+static void OPT_OutLinks (void)
+{
+	OPT_Link l = NIL;
+	l = OPT_Links;
+	while (l != NIL) {
+		OPT_OutName((void*)l->name, 256);
+		l = l->next;
+	}
+	OPM_SymWCh(0x00);
 }
 
 static void OPT_OutHdFld (OPT_Struct typ, OPT_Object fld, INT32 adr)
@@ -1833,6 +1880,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 		if (OPM_noerr) {
 			OPM_SymWInt(16);
 			OPT_OutName((void*)OPT_SelfName, 256);
+			OPT_OutLinks();
 			OPT_expCtxt.reffp = 0;
 			OPT_expCtxt.ref = 14;
 			OPT_expCtxt.nofm = 1;
@@ -1854,7 +1902,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 			OPT_newsf = 0;
 			OPT_symNew = 0;
 			if (!OPM_noerr || OPT_findpc) {
-				OPM_DeleteNewSym();
+				OPM_DeleteNewSym((void*)OPT_SelfName, 256);
 			}
 		}
 	}
@@ -1969,6 +2017,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPT_universe);
 	P(OPT_syslink);
 	__ENUMR(&OPT_impCtxt, OPT_ImpCtxt__typ, 5184, 1, P);
+	P(OPT_Links);
 }
 
 __TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 40), {0, -16}};
@@ -2008,6 +2057,7 @@ __TDESC(OPT_ImpCtxt, 1, 510) = {__TDFLDS("ImpCtxt", 5184), {16, 24, 32, 40, 48, 
 	3856, 3864, 3872, 3880, 3888, 3896, 3904, 3912, 3920, 3928, 3936, 3944, 3952, 3960, 3968, 3976, 
 	3984, 3992, 4000, 4008, 4016, 4024, 4032, 4040, 4048, 4056, 4064, 4072, 4080, 4088, -4088}};
 __TDESC(OPT_ExpCtxt, 1, 0) = {__TDFLDS("ExpCtxt", 72), {-8}};
+__TDESC(OPT_LinkDesc, 1, 1) = {__TDFLDS("LinkDesc", 264), {256, -16}};
 
 export void *OPT__init(void)
 {
@@ -2024,6 +2074,7 @@ export void *OPT__init(void)
 	__INITYP(OPT_NodeDesc, OPT_NodeDesc, 0);
 	__INITYP(OPT_ImpCtxt, OPT_ImpCtxt, 0);
 	__INITYP(OPT_ExpCtxt, OPT_ExpCtxt, 0);
+	__INITYP(OPT_LinkDesc, OPT_LinkDesc, 0);
 /* BEGIN */
 	OPT_topScope = NIL;
 	OPT_OpenScope(0, NIL);

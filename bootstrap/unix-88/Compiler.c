@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/14]. Bootstrapping compiler for address size 8, alignment 8. xtspamS */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspamS */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -20,9 +20,9 @@
 #include "extTools.h"
 
 
-static CHAR Compiler_mname[256];
 
 
+static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectnames__len);
 export void Compiler_Module (BOOLEAN *done);
 static void Compiler_PropagateElementaryTypeSizes (void);
 export void Compiler_Translate (void);
@@ -41,11 +41,12 @@ void Compiler_Module (BOOLEAN *done)
 		OPT_Export(&ext, &new);
 		if (OPM_noerr) {
 			OPM_OpenFiles((void*)OPT_SelfName, 256);
+			OPM_DeleteObj((void*)OPT_SelfName, 256);
 			OPC_Init();
 			OPV_Module(p);
 			if (OPM_noerr) {
 				if ((__IN(10, OPM_Options, 32) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
-					OPM_DeleteNewSym();
+					OPM_DeleteNewSym((void*)OPT_SelfName, 256);
 					OPM_LogVT100((CHAR*)"32m", 4);
 					OPM_LogWStr((CHAR*)"  Main program.", 16);
 					OPM_LogVT100((CHAR*)"0m", 3);
@@ -61,7 +62,7 @@ void Compiler_Module (BOOLEAN *done)
 					}
 				}
 			} else {
-				OPM_DeleteNewSym();
+				OPM_DeleteNewSym((void*)OPT_SelfName, 256);
 			}
 		}
 	}
@@ -104,14 +105,44 @@ static void Compiler_PropagateElementaryTypeSizes (void)
 	}
 }
 
+static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectnames__len)
+{
+	OPT_Link l = NIL;
+	CHAR fn[64];
+	Platform_FileIdentity id;
+	objectnames[0] = 0x00;
+	l = OPT_Links;
+	while (l != NIL) {
+		__COPY(l->name, fn, 64);
+		Strings_Append((CHAR*)".sym", 5, (void*)fn, 64);
+		if (Platform_IdentifyByName(fn, 64, &id, Platform_FileIdentity__typ) == 0) {
+			__COPY(l->name, fn, 64);
+			Strings_Append((CHAR*)".o", 3, (void*)fn, 64);
+			if (Platform_IdentifyByName(fn, 64, &id, Platform_FileIdentity__typ) == 0) {
+				Strings_Append((CHAR*)" ", 2, (void*)objectnames, objectnames__len);
+				Strings_Append(fn, 64, (void*)objectnames, objectnames__len);
+			} else {
+				OPM_LogVT100((CHAR*)"33m", 4);
+				OPM_LogWStr((CHAR*)"Link warning: a local symbol file is present for module ", 57);
+				OPM_LogWStr(l->name, 256);
+				OPM_LogWStr((CHAR*)", but local object file '", 26);
+				OPM_LogWStr(fn, 64);
+				OPM_LogWStr((CHAR*)"' is missing.", 14);
+				OPM_LogVT100((CHAR*)"0m", 3);
+				OPM_LogWLn();
+			}
+		}
+		l = l->next;
+	}
+}
+
 void Compiler_Translate (void)
 {
 	BOOLEAN done;
-	CHAR modulesobj[2048];
-	modulesobj[0] = 0x00;
+	CHAR linkfiles[2048];
 	if (OPM_OpenPar()) {
 		for (;;) {
-			OPM_Init(&done, (void*)Compiler_mname, 256);
+			OPM_Init(&done);
 			if (!done) {
 				return;
 			}
@@ -131,11 +162,9 @@ void Compiler_Translate (void)
 				} else {
 					if (!__IN(10, OPM_Options, 32)) {
 						extTools_Assemble(OPM_modName, 32);
-						Strings_Append((CHAR*)" ", 2, (void*)modulesobj, 2048);
-						Strings_Append(OPM_modName, 32, (void*)modulesobj, 2048);
-						Strings_Append((CHAR*)".o", 3, (void*)modulesobj, 2048);
 					} else {
-						extTools_LinkMain((void*)OPM_modName, 32, __IN(15, OPM_Options, 32), modulesobj, 2048);
+						Compiler_FindLocalObjectFiles((void*)linkfiles, 2048);
+						extTools_LinkMain((void*)OPM_modName, 32, __IN(15, OPM_Options, 32), linkfiles, 2048);
 					}
 				}
 			}

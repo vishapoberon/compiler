@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/14]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1793,24 +1793,6 @@ void OPP_Module (OPT_Node *prog, UINT32 opt)
 	if (OPP_sym == 63) {
 		OPS_Get(&OPP_sym);
 	} else {
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Unexpected symbol found when MODULE expected:", 46);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  sym:        ", 15);
-		OPM_LogWNum(OPP_sym, 1);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.name:   ", 15);
-		OPM_LogWStr(OPS_name, 256);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.str:    ", 15);
-		OPM_LogWStr(OPS_str, 256);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.numtyp: ", 15);
-		OPM_LogWNum(OPS_numtyp, 1);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"  OPS.intval: ", 15);
-		OPM_LogWNum(OPS_intval, 1);
-		OPM_LogWLn();
 		OPP_err(16);
 	}
 	if (OPP_sym == 38) {
