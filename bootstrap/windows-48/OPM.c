@@ -49,8 +49,8 @@ export CHAR OPM_ResourceDir[1024];
 static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F);
 export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
-export void OPM_DeleteNewSym (CHAR *modulename, ADDRESS modulename__len);
 export void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len);
+export void OPM_DeleteSym (CHAR *modulename, ADDRESS modulename__len);
 export void OPM_FPrint (INT32 *fp, INT64 val);
 export void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 export void OPM_FPrintReal (INT32 *fp, REAL val);
@@ -436,8 +436,10 @@ void OPM_InitOptions (void)
 		OPM_VerboseListSizes();
 	}
 	__MOVE(OPM_InstallDir, OPM_ResourceDir, 1024);
-	Strings_Append((CHAR*)"/", 2, (void*)OPM_ResourceDir, 1024);
-	Strings_Append(OPM_Model, 10, (void*)OPM_ResourceDir, 1024);
+	if (OPM_ResourceDir[0] != 0x00) {
+		Strings_Append((CHAR*)"/", 2, (void*)OPM_ResourceDir, 1024);
+		Strings_Append(OPM_Model, 10, (void*)OPM_ResourceDir, 1024);
+	}
 	modules[0] = 0x00;
 	Platform_GetEnv((CHAR*)"MODULES", 8, (void*)modules, 1024);
 	__MOVE(".", searchpath, 2);
@@ -766,6 +768,9 @@ void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done)
 {
 	CHAR tag, ver;
 	OPM_FileName fileName;
+	INT16 res;
+	OPM_oldSFile = NIL;
+	*done = 0;
 	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
 	OPM_oldSFile = Files_Old(fileName, 32);
 	*done = OPM_oldSFile != NIL;
@@ -774,7 +779,9 @@ void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done)
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&tag);
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&ver);
 		if (tag != 0xf7 || ver != 0x83) {
-			OPM_err(-306);
+			if (!__IN(4, OPM_Options, 32)) {
+				OPM_err(-306);
+			}
 			OPM_CloseOldSym();
 			*done = 0;
 		}
@@ -818,7 +825,7 @@ void OPM_RegisterNewSym (void)
 	}
 }
 
-void OPM_DeleteNewSym (CHAR *modulename, ADDRESS modulename__len)
+void OPM_DeleteSym (CHAR *modulename, ADDRESS modulename__len)
 {
 	OPM_FileName fn;
 	INT16 res;

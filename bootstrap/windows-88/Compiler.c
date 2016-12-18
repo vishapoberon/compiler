@@ -46,7 +46,7 @@ void Compiler_Module (BOOLEAN *done)
 			OPV_Module(p);
 			if (OPM_noerr) {
 				if ((__IN(10, OPM_Options, 32) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
-					OPM_DeleteNewSym((void*)OPT_SelfName, 256);
+					OPM_DeleteSym((void*)OPT_SelfName, 256);
 					OPM_LogVT100((CHAR*)"32m", 4);
 					OPM_LogWStr((CHAR*)"  Main program.", 16);
 					OPM_LogVT100((CHAR*)"0m", 3);
@@ -62,7 +62,7 @@ void Compiler_Module (BOOLEAN *done)
 					}
 				}
 			} else {
-				OPM_DeleteNewSym((void*)OPT_SelfName, 256);
+				OPM_DeleteSym((void*)OPT_SelfName, 256);
 			}
 		}
 	}

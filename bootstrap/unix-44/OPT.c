@@ -1493,7 +1493,12 @@ void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
 		OPT_impCtxt.nofm = 0;
 		OPT_impCtxt.self = __STRCMP(aliasName, "@self") == 0;
 		OPT_impCtxt.reffp = 0;
-		OPM_OldSym((void*)name, 256, &*done);
+		if ((OPT_impCtxt.self && __IN(17, OPM_Options, 32))) {
+			OPM_DeleteSym((void*)name, 256);
+			*done = 0;
+		} else {
+			OPM_OldSym((void*)name, 256, &*done);
+		}
 		if (*done) {
 			OPT_InMod(&mno);
 			OPT_InLinks();
@@ -1902,7 +1907,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 			OPT_newsf = 0;
 			OPT_symNew = 0;
 			if (!OPM_noerr || OPT_findpc) {
-				OPM_DeleteNewSym((void*)OPT_SelfName, 256);
+				OPM_DeleteSym((void*)OPT_SelfName, 256);
 			}
 		}
 	}

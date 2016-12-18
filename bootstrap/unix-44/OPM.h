@@ -23,8 +23,8 @@ import CHAR OPM_ResourceDir[1024];
 
 import void OPM_CloseFiles (void);
 import void OPM_CloseOldSym (void);
-import void OPM_DeleteNewSym (CHAR *modulename, ADDRESS modulename__len);
 import void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len);
+import void OPM_DeleteSym (CHAR *modulename, ADDRESS modulename__len);
 import void OPM_FPrint (INT32 *fp, INT64 val);
 import void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 import void OPM_FPrintReal (INT32 *fp, REAL val);
