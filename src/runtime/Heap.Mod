@@ -428,8 +428,8 @@ MODULE Heap;
     END
   END Scan;
 
-  PROCEDURE Sift (l, r: S.ADDRESS; VAR a: ARRAY OF S.ADDRESS);
-    VAR i, j, x: S.ADDRESS;
+  PROCEDURE Sift (l, r: LONGINT; VAR a: ARRAY OF S.ADDRESS);
+    VAR i, j: LONGINT; x: S.ADDRESS;
   BEGIN j := l; x := a[j];
     LOOP i := j; j := 2*j + 1;
       IF (j < r) &  uLT(a[j], a[j+1]) THEN INC(j) END;
@@ -439,8 +439,8 @@ MODULE Heap;
     a[i] := x
   END Sift;
 
-  PROCEDURE HeapSort (n: S.ADDRESS; VAR a: ARRAY OF S.ADDRESS);
-    VAR l, r, x: S.ADDRESS;
+  PROCEDURE HeapSort (n: LONGINT; VAR a: ARRAY OF S.ADDRESS);
+    VAR l, r: LONGINT; x: S.ADDRESS;
   BEGIN l := n DIV 2; r := n - 1;
     WHILE l > 0 DO DEC(l); Sift(l, r, a) END;
     WHILE r > 0 DO x := a[0]; a[0] := a[r]; a[r] := x; DEC(r); Sift(l, r, a) END
