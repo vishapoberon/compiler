@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/18]. Bootstrapping compiler for address size 4, alignment 8. tsSF */
+/* voc 2.00 [2016/12/19]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -69,7 +69,7 @@ static INT32 Heap_bigBlocks;
 export INT32 Heap_allocated;
 static BOOLEAN Heap_firstTry;
 export INT32 Heap_heap;
-static INT32 Heap_heapNegMin, Heap_heapNegMax, Heap_heapPosMin, Heap_heapPosMax;
+static INT32 Heap_heapMin, Heap_heapMax;
 export INT32 Heap_heapsize;
 static Heap_FinNode Heap_fin;
 static INT16 Heap_lockdepth;
@@ -113,6 +113,8 @@ extern ADDRESS Platform_OSAllocate(ADDRESS size);
 #define Heap_ModulesHalt(code)	Modules_Halt(code)
 #define Heap_ModulesMainStackFrame()	Modules_MainStackFrame
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)
+#define Heap_uLE(x, y)	((size_t)x <= (size_t)y)
+#define Heap_uLT(x, y)	((size_t)x <  (size_t)y)
 
 void Heap_Lock (void)
 {
@@ -213,20 +215,11 @@ static INT32 Heap_NewChunk (INT32 blksz)
 		__PUT(blk + 12, Heap_bigBlocks, INT32);
 		Heap_bigBlocks = blk;
 		Heap_heapsize += blksz;
-		if (chnk > 0) {
-			if (chnk < Heap_heapPosMin) {
-				Heap_heapPosMin = blk + 4;
-			}
-			if (end > Heap_heapPosMax) {
-				Heap_heapPosMax = end;
-			}
-		} else {
-			if (chnk < Heap_heapNegMin) {
-				Heap_heapNegMin = blk + 4;
-			}
-			if (end > Heap_heapNegMax) {
-				Heap_heapNegMax = end;
-			}
+		if (Heap_uLT(blk + 4, Heap_heapMin)) {
+			Heap_heapMin = blk + 4;
+		}
+		if (Heap_uLT(Heap_heapMax, end)) {
+			Heap_heapMax = end;
 		}
 	}
 	return chnk;
@@ -235,20 +228,20 @@ static INT32 Heap_NewChunk (INT32 blksz)
 static void Heap_ExtendHeap (INT32 blksz)
 {
 	INT32 size, chnk, j, next;
-	if (blksz > 160000) {
+	if (Heap_uLT(160000, blksz)) {
 		size = blksz;
 	} else {
 		size = 160000;
 	}
 	chnk = Heap_NewChunk(size);
 	if (chnk != 0) {
-		if (chnk < Heap_heap) {
+		if (Heap_uLT(chnk, Heap_heap)) {
 			__PUT(chnk, Heap_heap, INT32);
 			Heap_heap = chnk;
 		} else {
 			j = Heap_heap;
 			__GET(j, next, INT32);
-			while ((next != 0 && chnk - next > 0)) {
+			while ((next != 0 && Heap_uLT(next, chnk))) {
 				j = next;
 				__GET(j, next, INT32);
 			}
@@ -266,14 +259,14 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 	__GET(tag, blksz, INT32);
 		i0 = __ASHR(blksz, 4);
 	i = i0;
-	if (i < 9) {
+	if (Heap_uLT(i, 9)) {
 		adr = Heap_freeList[i];
 		while (adr == 0) {
 			i += 1;
 			adr = Heap_freeList[i];
 		}
 	}
-	if (i < 9) {
+	if (Heap_uLT(i, 9)) {
 		__GET(adr + 12, next, INT32);
 		Heap_freeList[i] = next;
 		if (i != i0) {
@@ -296,7 +289,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 				if (Heap_firstTry) {
 					Heap_GC(1);
 					blksz += 16;
-					if (__ASHL((Heap_heapsize - Heap_allocated) - blksz, 2) < Heap_heapsize) {
+					if (Heap_uLT(Heap_heapsize - Heap_allocated, blksz) || Heap_uLT(__ASHL((Heap_heapsize - Heap_allocated) - blksz, 2), Heap_heapsize)) {
 						Heap_ExtendHeap(__ASHL(__DIV(Heap_allocated + blksz, 48), 6) - Heap_heapsize);
 					}
 					Heap_firstTry = 0;
@@ -314,7 +307,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 				}
 			}
 			__GET(adr + 4, t, INT32);
-			if (t >= blksz) {
+			if (Heap_uLE(blksz, t)) {
 				break;
 			}
 			prev = adr;
@@ -325,7 +318,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 		__PUT(end + 4, blksz, INT32);
 		__PUT(end + 8, -4, INT32);
 		__PUT(end, end + 4, INT32);
-		if (restsize > 144) {
+		if (Heap_uLT(144, restsize)) {
 			__PUT(adr + 4, restsize, INT32);
 		} else {
 			__GET(adr + 12, next, INT32);
@@ -334,7 +327,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 			} else {
 				__PUT(prev + 12, next, INT32);
 			}
-			if (restsize > 0) {
+			if (restsize != 0) {
 				di = __ASHR(restsize, 4);
 				__PUT(adr + 4, restsize, INT32);
 				__PUT(adr + 12, Heap_freeList[di], INT32);
@@ -345,7 +338,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 	}
 	i = adr + 16;
 	end = adr + blksz;
-	while (end - i > 0) {
+	while (Heap_uLT(i, end)) {
 		__PUT(i, 0, INT32);
 		__PUT(i + 4, 0, INT32);
 		__PUT(i + 8, 0, INT32);
@@ -442,17 +435,17 @@ static void Heap_Scan (void)
 	while (chnk != 0) {
 		adr = chnk + 12;
 		__GET(chnk + 4, end, INT32);
-		while (end - adr > 0) {
+		while (Heap_uLT(adr, end)) {
 			__GET(adr, tag, INT32);
 			if (__ODD(tag)) {
-				if (freesize > 0) {
+				if (freesize != 0) {
 					start = adr - freesize;
 					__PUT(start, start + 4, INT32);
 					__PUT(start + 4, freesize, INT32);
 					__PUT(start + 8, -4, INT32);
 					i = __ASHR(freesize, 4);
 					freesize = 0;
-					if (i < 9) {
+					if (Heap_uLT(i, 9)) {
 						__PUT(start + 12, Heap_freeList[i], INT32);
 						Heap_freeList[i] = start;
 					} else {
@@ -471,14 +464,14 @@ static void Heap_Scan (void)
 				adr += size;
 			}
 		}
-		if (freesize > 0) {
+		if (freesize != 0) {
 			start = adr - freesize;
 			__PUT(start, start + 4, INT32);
 			__PUT(start + 4, freesize, INT32);
 			__PUT(start + 8, -4, INT32);
 			i = __ASHR(freesize, 4);
 			freesize = 0;
-			if (i < 9) {
+			if (Heap_uLT(i, 9)) {
 				__PUT(start + 12, Heap_freeList[i], INT32);
 				Heap_freeList[i] = start;
 			} else {
@@ -492,16 +485,17 @@ static void Heap_Scan (void)
 
 static void Heap_Sift (INT32 l, INT32 r, INT32 *a, ADDRESS a__len)
 {
-	INT32 i, j, x;
+	INT32 i, j;
+	INT32 x;
 	j = l;
 	x = a[j];
 	for (;;) {
 		i = j;
 		j = __ASHL(j, 1) + 1;
-		if ((j < r && a[j] < a[j + 1])) {
+		if ((j < r && Heap_uLT(a[j], a[j + 1]))) {
 			j += 1;
 		}
-		if (j > r || a[j] <= x) {
+		if (j > r || Heap_uLE(a[j], x)) {
 			break;
 		}
 		a[i] = a[j];
@@ -511,7 +505,8 @@ static void Heap_Sift (INT32 l, INT32 r, INT32 *a, ADDRESS a__len)
 
 static void Heap_HeapSort (INT32 n, INT32 *a, ADDRESS a__len)
 {
-	INT32 l, r, x;
+	INT32 l, r;
+	INT32 x;
 	l = __ASHR(n, 1);
 	r = n - 1;
 	while (l > 0) {
@@ -529,35 +524,40 @@ static void Heap_HeapSort (INT32 n, INT32 *a, ADDRESS a__len)
 
 static void Heap_MarkCandidates (INT32 n, INT32 *cand, ADDRESS cand__len)
 {
-	INT32 chnk, adr, tag, next, lim, lim1, i, ptr, size;
-	chnk = Heap_heap;
+	INT32 chnk, end, adr, tag, next, i, ptr, size;
+		chnk = Heap_heap;
 	i = 0;
-	lim = cand[n - 1];
-	while ((chnk != 0 && lim - chnk > 0)) {
+	while (chnk != 0) {
+		__GET(chnk + 4, end, INT32);
 		adr = chnk + 12;
-		__GET(chnk + 4, lim1, INT32);
-		if (lim1 - lim > 0) {
-			lim1 = lim;
-		}
-		while (lim1 - adr > 0) {
+		while (Heap_uLT(adr, end)) {
 			__GET(adr, tag, INT32);
 			if (__ODD(tag)) {
 				__GET(tag - 1, size, INT32);
 				adr += size;
+				ptr = adr + 4;
+				while (Heap_uLT(cand[i], ptr)) {
+					i += 1;
+					if (i == n) {
+						return;
+					}
+				}
 			} else {
 				__GET(tag, size, INT32);
 				ptr = adr + 4;
-				while (ptr - cand[i] > 0) {
+				adr += size;
+				while (Heap_uLT(cand[i], ptr)) {
 					i += 1;
+					if (i == n) {
+						return;
+					}
 				}
-				if (i == n) {
-					return;
-				}
-				next = adr + size;
-				if (next - cand[i] > 0) {
+				if (Heap_uLT(cand[i], adr)) {
 					Heap_Mark(ptr);
 				}
-				adr = next;
+			}
+			if (Heap_uLE(end, cand[i])) {
+				adr = end;
 			}
 		}
 		__GET(chnk, chnk, INT32);
@@ -619,7 +619,8 @@ void Heap_FINALL (void)
 static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len)
 {
 	SYSTEM_PTR frame;
-	INT32 inc, nofcand, sp, p, stack0;
+	INT32 nofcand;
+	INT32 inc, sp, p, stack0;
 	struct Heap__1 align;
 	if (n > 0) {
 		Heap_MarkStack(n - 1, cand, cand__len);
@@ -632,12 +633,12 @@ static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len)
 		sp = (ADDRESS)&frame;
 		stack0 = Heap_ModulesMainStackFrame();
 		inc = (ADDRESS)&align.p - (ADDRESS)&align;
-		if (sp - stack0 > 0) {
+		if (Heap_uLT(stack0, sp)) {
 			inc = -inc;
 		}
 		while (sp != stack0) {
 			__GET(sp, p, INT32);
-			if ((((p > 0 && p >= Heap_heapPosMin)) && p < Heap_heapPosMax) || (((p < 0 && p >= Heap_heapNegMin)) && p < Heap_heapNegMax)) {
+			if ((Heap_uLE(Heap_heapMin, p) && Heap_uLT(p, Heap_heapMax))) {
 				if (nofcand == cand__len) {
 					Heap_HeapSort(nofcand, (void*)cand, cand__len);
 					Heap_MarkCandidates(nofcand, (void*)cand, cand__len);
@@ -752,17 +753,15 @@ void Heap_InitHeap (void)
 	Heap_heapsize = 0;
 	Heap_allocated = 0;
 	Heap_lockdepth = 0;
-	Heap_heapPosMin = 2147483647;
-	Heap_heapPosMax = 0;
-	Heap_heapNegMin = 0;
-	Heap_heapNegMax = (-2147483647-1);
+	Heap_heapMin = -1;
+	Heap_heapMax = 0;
+	Heap_bigBlocks = 0;
 	Heap_heap = Heap_NewChunk(128000);
 	__PUT(Heap_heap, 0, INT32);
 	Heap_firstTry = 1;
 	Heap_freeList[9] = 1;
 	Heap_FileCount = 0;
 	Heap_modules = NIL;
-	Heap_bigBlocks = 0;
 	Heap_fin = NIL;
 	Heap_interrupted = 0;
 	Heap_HeapModuleInit();
