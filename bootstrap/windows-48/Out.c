@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/20]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -14,19 +14,10 @@ export BOOLEAN Out_IsConsole;
 static CHAR Out_buf[128];
 static INT16 Out_in;
 
-static ADDRESS *typedesc__11__typ;
-static ADDRESS *blockdesc__5__typ;
-static ADDRESS *chunkdesc__7__typ;
 
 export void Out_Char (CHAR ch);
-export void Out_DumpHeap (void);
-static void Out_DumpModule (Heap_Module m);
-export void Out_DumpTag (INT32 addr);
-export void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len);
 export void Out_Flush (void);
 export void Out_Hex (INT64 x, INT64 n);
-export void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len);
-export void Out_HexDumpAdr (INT32 adr, INT64 offset, INT32 length);
 export void Out_Int (INT64 x, INT64 n);
 static INT32 Out_Length (CHAR *s, ADDRESS s__len);
 export void Out_Ln (void);
@@ -40,8 +31,6 @@ static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i);
 static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16 *i);
 
 #define Out_Entier64(x)	(INT64)(x)
-extern ADDRESS Heap_heap;
-#define Out_getheap()	Heap_heap
 
 void Out_Flush (void)
 {
@@ -139,8 +128,10 @@ void Out_Hex (INT64 x, INT64 n)
 	} else if (n > 16) {
 		n = 16;
 	}
-	while ((n < 16 && __LSH(x, -__ASHL(n, 2), 64) != 0)) {
-		n += 1;
+	if (x >= 0) {
+		while ((n < 16 && __LSH(x, -__ASHL(n, 2), 64) != 0)) {
+			n += 1;
+		}
 	}
 	x = __ROT(x, __ASHL(16 - n, 2), 64);
 	while (n > 0) {
@@ -158,235 +149,6 @@ void Out_Ln (void)
 {
 	Out_String(Platform_NL, 3);
 	Out_Flush();
-}
-
-void Out_HexDumpAdr (INT32 adr, INT64 offset, INT32 length)
-{
-	INT16 i;
-	INT32 n, lim;
-	CHAR c;
-	lim = (INT32)(adr + length);
-	while (adr < lim) {
-		if (adr + 16 < lim) {
-			n = 16;
-		} else {
-			n = lim - adr;
-		}
-		Out_Hex(offset, 8);
-		Out_Char(' ');
-		i = 0;
-		while (i < n) {
-			if (__MASK(i, -4) == 0) {
-				Out_Char(' ');
-			}
-			__GET(adr + i, c, CHAR);
-			Out_Hex((INT16)c, 2);
-			Out_Char(' ');
-			i += 1;
-		}
-		while (i < 16) {
-			if (__MASK(i, -4) == 0) {
-				Out_Char(' ');
-			}
-			Out_String((CHAR*)"   ", 4);
-			i += 1;
-		}
-		Out_String((CHAR*)" ", 2);
-		i = 0;
-		while (i < n) {
-			__GET(adr + i, c, CHAR);
-			if ((INT16)c < 32 || (INT16)c > 126) {
-				Out_Char('.');
-			} else {
-				Out_Char(c);
-			}
-			i += 1;
-		}
-		adr += n;
-		offset += (INT64)n;
-		Out_Ln();
-	}
-}
-
-void Out_HexDump (SYSTEM_BYTE *m, ADDRESS m__len)
-{
-	Out_HexDumpAdr((ADDRESS)m, 0, m__len);
-}
-
-static void Out_DumpModule (Heap_Module m)
-{
-	Out_String((CHAR*)"        next:     ", 19);
-	Out_Hex((INT32)(ADDRESS)m->next, 1);
-	Out_Ln();
-	Out_String((CHAR*)"        name:     ", 19);
-	Out_String(m->name, 20);
-	Out_Ln();
-	Out_String((CHAR*)"        refcnt:   ", 19);
-	Out_Hex(m->refcnt, 1);
-	Out_Ln();
-	Out_String((CHAR*)"        cmds:     ", 19);
-	Out_Hex((INT32)(ADDRESS)m->cmds, 1);
-	Out_Ln();
-	Out_String((CHAR*)"        types:    ", 19);
-	Out_Hex(m->types, 1);
-	Out_Ln();
-	Out_String((CHAR*)"        enumPtrs: ", 19);
-	Out_Hex((INT32)(ADDRESS)m->enumPtrs, 1);
-	Out_Ln();
-}
-
-typedef
-	struct typedesc__11 *tag__10;
-
-typedef
-	struct typedesc__11 {
-		INT32 tag, next, level, module;
-		CHAR name[24];
-		INT32 bases[16];
-		INT32 reserved, blksz, ptr0;
-	} typedesc__11;
-
-void Out_DumpTag (INT32 addr)
-{
-	tag__10 desc = NIL;
-	INT16 i;
-	Out_String((CHAR*)"      obj tag:  ", 17);
-	Out_Hex(addr, 1);
-	Out_Ln();
-	addr -= __MASK(addr, -2);
-	desc = (tag__10)(ADDRESS)(addr - 108);
-	Out_String((CHAR*)"      desc at:  ", 17);
-	Out_Hex((INT32)(ADDRESS)desc, 1);
-	Out_Ln();
-	Out_String((CHAR*)"      desc contains:", 21);
-	Out_Ln();
-	Out_String((CHAR*)"      tag:      ", 17);
-	Out_Hex(desc->tag, 1);
-	Out_Ln();
-	Out_String((CHAR*)"      next:     ", 17);
-	Out_Hex(desc->next, 1);
-	Out_Ln();
-	Out_String((CHAR*)"      level:    ", 17);
-	Out_Hex(desc->level, 1);
-	Out_Ln();
-	Out_String((CHAR*)"      module:   ", 17);
-	Out_Hex(desc->module, 1);
-	Out_Ln();
-	if (desc->module != 0) {
-		Out_DumpModule((Heap_Module)(ADDRESS)desc->module);
-	}
-	Out_String((CHAR*)"      name:     ", 17);
-	Out_String(desc->name, 24);
-	Out_Ln();
-	Out_String((CHAR*)"      bases:    ", 17);
-	i = 0;
-	while (i < 16) {
-		Out_Hex(desc->bases[__X(i, 16)], 8);
-		if (__MASK(i, -4) == 3) {
-			Out_Ln();
-			Out_String((CHAR*)"                ", 17);
-		} else {
-			Out_Char(' ');
-		}
-		i += 1;
-	}
-	Out_Ln();
-	Out_String((CHAR*)"      reserved: ", 17);
-	Out_Hex(desc->reserved, 1);
-	Out_Ln();
-	Out_String((CHAR*)"      blksz:    ", 17);
-	Out_Hex(desc->blksz, 1);
-	Out_Ln();
-	Out_String((CHAR*)"      ptr0:     ", 17);
-	Out_Hex(desc->ptr0, 1);
-	Out_Ln();
-}
-
-void Out_DumpType (SYSTEM_BYTE *o, ADDRESS o__len)
-{
-	INT32 addr;
-	__GET((ADDRESS)o - 4, addr, INT32);
-	Out_DumpTag(addr);
-}
-
-typedef
-	INT32 (*adrptr__3)[1];
-
-typedef
-	struct blockdesc__5 *block__4;
-
-typedef
-	struct blockdesc__5 {
-		INT32 tag, size, sentinel, next;
-	} blockdesc__5;
-
-typedef
-	struct chunkdesc__7 *chunk__6;
-
-typedef
-	struct chunkdesc__7 {
-		INT32 next, end, reserved;
-		blockdesc__5 firstblock;
-	} chunkdesc__7;
-
-void Out_DumpHeap (void)
-{
-	INT32 caddr;
-	chunk__6 c = NIL;
-	INT32 baddr;
-	block__4 b = NIL;
-	adrptr__3 tag = NIL;
-	caddr = Heap_heap;
-	while (caddr != 0) {
-		Out_String((CHAR*)"Chunk at: ", 11);
-		Out_Hex(caddr, 1);
-		Out_Ln();
-		c = (chunk__6)(ADDRESS)caddr;
-		Out_String((CHAR*)"  next:   ", 11);
-		Out_Hex(c->next, 1);
-		Out_Ln();
-		Out_String((CHAR*)"  end:    ", 11);
-		Out_Hex(c->end, 1);
-		Out_String((CHAR*)" => size: ", 11);
-		Out_Hex(c->end - caddr, 1);
-		Out_Ln();
-		Out_String((CHAR*)"  rsvd:   ", 11);
-		Out_Hex(c->reserved, 1);
-		Out_Ln();
-		baddr = (ADDRESS)&c->firstblock;
-		while (c->end - baddr > 0) {
-			Out_String((CHAR*)"  Block at:   ", 15);
-			Out_Hex(baddr, 1);
-			Out_Ln();
-			b = (block__4)(ADDRESS)baddr;
-			tag = (adrptr__3)(ADDRESS)(b->tag - __MASK(b->tag, -2));
-			Out_String((CHAR*)"    tag:      ", 15);
-			Out_Hex(b->tag, 1);
-			if (__MASK(b->tag, -2) != 0) {
-				Out_String((CHAR*)" <--- ODD! ---", 15);
-			}
-			Out_Ln();
-			Out_String((CHAR*)"    tag^:     ", 15);
-			Out_Hex((*tag)[0], 1);
-			Out_Ln();
-			Out_String((CHAR*)"    size:     ", 15);
-			Out_Hex(b->size, 1);
-			Out_Ln();
-			Out_String((CHAR*)"    sentinel: ", 15);
-			Out_Hex(b->sentinel, 1);
-			Out_Ln();
-			Out_String((CHAR*)"    next:     ", 15);
-			Out_Hex(b->next, 1);
-			Out_Ln();
-			if (b->tag != (ADDRESS)&b->size) {
-				Out_DumpTag(b->tag);
-			}
-			baddr += (*tag)[0];
-			Out_Ln();
-		}
-		caddr = c->next;
-		Out_Ln();
-	}
 }
 
 static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)
@@ -566,9 +328,6 @@ void Out_LongReal (LONGREAL x, INT16 n)
 	Out_RealP(x, n, 1);
 }
 
-__TDESC(typedesc__11, 1, 0) = {__TDFLDS("typedesc__11", 116), {-4}};
-__TDESC(blockdesc__5, 1, 0) = {__TDFLDS("blockdesc__5", 16), {-4}};
-__TDESC(chunkdesc__7, 1, 0) = {__TDFLDS("chunkdesc__7", 28), {-4}};
 
 export void *Out__init(void)
 {
@@ -576,13 +335,9 @@ export void *Out__init(void)
 	__MODULE_IMPORT(Heap);
 	__MODULE_IMPORT(Platform);
 	__REGMOD("Out", 0);
-	__REGCMD("DumpHeap", Out_DumpHeap);
 	__REGCMD("Flush", Out_Flush);
 	__REGCMD("Ln", Out_Ln);
 	__REGCMD("Open", Out_Open);
-	__INITYP(typedesc__11, typedesc__11, 0);
-	__INITYP(blockdesc__5, blockdesc__5, 0);
-	__INITYP(chunkdesc__7, chunkdesc__7, 0);
 /* BEGIN */
 	Out_IsConsole = Platform_IsConsole(Platform_StdOut);
 	Out_in = 0;

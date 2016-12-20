@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/20]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -33,6 +33,7 @@ import void OPM_Get (CHAR *ch);
 import void OPM_Init (BOOLEAN *done);
 import void OPM_InitOptions (void);
 import INT16 OPM_Integer (INT64 n);
+import void OPM_LogCompiling (CHAR *modname, ADDRESS modname__len);
 import void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len);
 import void OPM_LogW (CHAR ch);
 import void OPM_LogWLn (void);

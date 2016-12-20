@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/19]. Bootstrapping compiler for address size 8, alignment 8. xtspamS */
+/* voc 2.00 [2016/12/20]. Bootstrapping compiler for address size 8, alignment 8. xtspamS */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -122,7 +122,7 @@ static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectname
 				Strings_Append((CHAR*)" ", 2, (void*)objectnames, objectnames__len);
 				Strings_Append(fn, 64, (void*)objectnames, objectnames__len);
 			} else {
-				OPM_LogVT100((CHAR*)"33m", 4);
+				OPM_LogVT100((CHAR*)"91m", 4);
 				OPM_LogWStr((CHAR*)"Link warning: a local symbol file is present for module ", 57);
 				OPM_LogWStr(l->name, 256);
 				OPM_LogWStr((CHAR*)", but local object file '", 26);

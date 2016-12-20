@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/20]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1796,9 +1796,7 @@ void OPP_Module (OPT_Node *prog, UINT32 opt)
 		OPP_err(16);
 	}
 	if (OPP_sym == 38) {
-		OPM_LogWStr((CHAR*)"compiling ", 11);
-		OPM_LogWStr(OPS_name, 256);
-		OPM_LogW('.');
+		OPM_LogCompiling(OPS_name, 256);
 		OPT_Init(OPS_name, opt);
 		OPS_Get(&OPP_sym);
 		OPP_CheckSym(39);

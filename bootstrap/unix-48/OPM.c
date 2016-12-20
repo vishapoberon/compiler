@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/19]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.00 [2016/12/20]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -63,6 +63,7 @@ export void OPM_Init (BOOLEAN *done);
 export void OPM_InitOptions (void);
 export INT16 OPM_Integer (INT64 n);
 static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len);
+export void OPM_LogCompiling (CHAR *modname, ADDRESS modname__len);
 static void OPM_LogErrMsg (INT16 n);
 export void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len);
 export void OPM_LogW (CHAR ch);
@@ -92,7 +93,6 @@ export void OPM_SymWInt (INT64 i);
 export void OPM_SymWLReal (LONGREAL lr);
 export void OPM_SymWReal (REAL r);
 export void OPM_SymWSet (UINT64 s);
-static void OPM_VerboseListSizes (void);
 export void OPM_Write (CHAR ch);
 export void OPM_WriteHex (INT64 i);
 export void OPM_WriteInt (INT64 i);
@@ -134,6 +134,27 @@ void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len)
 		VT100_SetAttr(vt100code, vt100code__len);
 	}
 	__DEL(vt100code);
+}
+
+void OPM_LogCompiling (CHAR *modname, ADDRESS modname__len)
+{
+	__DUP(modname, modname__len, CHAR);
+	OPM_LogWStr((CHAR*)"Compiling ", 11);
+	OPM_LogWStr(modname, modname__len);
+	if (__IN(18, OPM_Options, 32)) {
+		OPM_LogWStr((CHAR*)", s:", 5);
+		OPM_LogWNum(__ASHL(OPM_ShortintSize, 3), 1);
+		OPM_LogWStr((CHAR*)" i:", 4);
+		OPM_LogWNum(__ASHL(OPM_IntegerSize, 3), 1);
+		OPM_LogWStr((CHAR*)" l:", 4);
+		OPM_LogWNum(__ASHL(OPM_LongintSize, 3), 1);
+		OPM_LogWStr((CHAR*)" adr:", 6);
+		OPM_LogWNum(__ASHL(OPM_AddressSize, 3), 1);
+		OPM_LogWStr((CHAR*)" algn:", 7);
+		OPM_LogWNum(__ASHL(OPM_Alignment, 3), 1);
+	}
+	OPM_LogW('.');
+	__DEL(modname);
 }
 
 INT64 OPM_SignedMaximum (INT32 bytecount)
@@ -363,32 +384,6 @@ BOOLEAN OPM_OpenPar (void)
 	__RETCHK;
 }
 
-static void OPM_VerboseListSizes (void)
-{
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Type      Size", 15);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"SHORTINT   ", 12);
-	OPM_LogWNum(OPM_ShortintSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"INTEGER    ", 12);
-	OPM_LogWNum(OPM_IntegerSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"LONGINT    ", 12);
-	OPM_LogWNum(OPM_LongintSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"SET        ", 12);
-	OPM_LogWNum(OPM_LongintSize, 4);
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"ADDRESS    ", 12);
-	OPM_LogWNum(OPM_AddressSize, 4);
-	OPM_LogWLn();
-	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"Alignment: ", 12);
-	OPM_LogWNum(OPM_Alignment, 4);
-	OPM_LogWLn();
-}
-
 void OPM_InitOptions (void)
 {
 	CHAR s[256];
@@ -431,9 +426,6 @@ void OPM_InitOptions (void)
 			OPM_IntegerSize = 2;
 			OPM_LongintSize = 4;
 			break;
-	}
-	if (__IN(18, OPM_Options, 32)) {
-		OPM_VerboseListSizes();
 	}
 	__MOVE(OPM_InstallDir, OPM_ResourceDir, 1024);
 	if (OPM_ResourceDir[0] != 0x00) {
@@ -491,17 +483,6 @@ void OPM_Get (CHAR *ch)
 {
 	OPM_curpos = Texts_Pos(&OPM_inR, Texts_Reader__typ);
 	Texts_Read(&OPM_inR, Texts_Reader__typ, &*ch);
-	if ((OPM_curpos == 0 && OPM_inR.eot)) {
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"DEBUG: OPM.Get returned inR.eot at curpos = 0, ch = ", 53);
-		OPM_LogWNum((INT16)*ch, 1);
-		OPM_LogW('.');
-		Texts_DumpReader(OPM_inR);
-		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"Heap dump:", 11);
-		OPM_LogWLn();
-		Out_DumpHeap();
-	}
 	if ((*ch < 0x09 && !OPM_inR.eot)) {
 		*ch = ' ';
 	}
