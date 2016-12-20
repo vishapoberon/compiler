@@ -49,7 +49,7 @@ PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
     Strings.Append("-c ",      cmd);
     Strings.Append(moduleName, cmd);
     Strings.Append(".c",       cmd);
-    execute("Assemble: ",      cmd);
+    execute("C compile: ", cmd);
   END Assemble;
 
 
@@ -73,7 +73,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append('-O',                       cmd);
     Strings.Append(OPM.Model,                  cmd);
     Strings.Append(Configuration.libext,       cmd);
-    execute("Assemble and link: ", cmd);
+    execute("C compile and link: ", cmd);
   END LinkMain;
 
 

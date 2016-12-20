@@ -70,44 +70,6 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     SearchPath: POINTER TO ARRAY OF CHAR;
 
 
-(* Debugging intermittent OpenBSD failure. *)
-
-  PROCEDURE Spaces(i: INTEGER); BEGIN WHILE i>0 DO Out.String("  "); DEC(i) END END Spaces;
-
-  PROCEDURE DumpFile*(f: File; indent: INTEGER);
-  BEGIN
-    Spaces(indent); Out.String("workName:     "); Out.String(f.workName); Out.Ln;
-    Spaces(indent); Out.String("registerName: "); Out.String(f.registerName); Out.Ln;
-    Spaces(indent); Out.String("tempFile:     "); IF f.tempFile THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
-    Spaces(indent); Out.String("identity:     "); Out.String("..."); Out.Ln; (* TBD *)
-    Spaces(indent); Out.String("fd:           "); Out.Int(f.fd,1); Out.Ln;
-    Spaces(indent); Out.String("len,          "); Out.Int(f.len,1); Out.Ln;
-    Spaces(indent); Out.String("pos:          "); Out.Int(f.pos,1); Out.Ln;
-    Spaces(indent); Out.String("bufs:         "); Out.String("..."); Out.Ln; (* TBD *)
-    Spaces(indent); Out.String("swapper:      "); Out.Int(f.swapper,1); Out.Ln;
-    Spaces(indent); Out.String("state:        "); Out.Int(f.state,1); Out.Ln;
-    Spaces(indent); Out.String("next:         "); Out.Hex(SYSTEM.VAL(SYSTEM.ADDRESS,f.next),1); Out.Ln;
-  END DumpFile;
-
-  PROCEDURE DumpBuffer*(b: Buffer; indent: INTEGER);
-  BEGIN
-    Spaces(indent); Out.String("chg:  "); IF b.chg THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
-    Spaces(indent); Out.String("org:  "); Out.Int(b.org,1); Out.Ln;
-    Spaces(indent); Out.String("size: "); Out.Int(b.size,1); Out.Ln;
-    Spaces(indent); Out.String("data: "); Out.Ln; Out.HexDump(b.data);
-    Spaces(indent); Out.String("f:    "); IF b.f  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpFile(b.f, indent+1) END;
-  END DumpBuffer;
-
-  PROCEDURE DumpRider*(r: Rider; indent: INTEGER);
-  BEGIN
-    Spaces(indent); Out.String("res:    "); Out.Int(r.res,1); Out.Ln;
-    Spaces(indent); Out.String("eof:    "); IF r.eof THEN Out.String("TRUE") ELSE Out.String("FALSE") END; Out.Ln;
-    Spaces(indent); Out.String("org:    "); Out.Int(r.org,1); Out.Ln;
-    Spaces(indent); Out.String("offset: "); Out.Int(r.offset,1); Out.Ln;
-    Spaces(indent); Out.String("buf:    "); IF r.buf  = NIL THEN Out.String("<NIL>"); Out.Ln ELSE Out.Ln; DumpBuffer(r.buf, indent+1) END;
-  END DumpRider;
-
-
   PROCEDURE -IdxTrap "__HALT(-1)";
 
   PROCEDURE^ Finalize(o: SYSTEM.PTR);
@@ -203,13 +165,6 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       error:    Platform.ErrorCode;
       err:      ARRAY 32 OF CHAR;
   BEGIN
-    (*
-    Out.String("Files.Create fd = "); Out.Int(f.fd,1);
-    Out.String(", registerName = ");  Out.String(f.registerName);
-    Out.String(", workName = ");      Out.String(f.workName);
-    Out.String(", state = ");         Out.Int(f.state,1);
-    Out.Ln;
-    *)
     IF f.fd = NoDesc THEN
       IF f.state = create THEN
         (* New file with enough data written to exceed buffers, so we need to
@@ -248,19 +203,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       f:         File;
       (* identity:  Platform.FileIdentity; *)
   BEGIN
-    (*
-    Out.String("Files.Flush buf.f.registername = "); Out.String(buf.f.registerName);
-    Out.String(", buf.f.fd = "); Out.Int(buf.f.fd,1);
-    Out.String(", buffer at $"); Out.Hex(SYSTEM.ADR(buf.data));
-    Out.String(", size "); Out.Int(buf.size,1); Out.Ln;
-    *)
     IF buf.chg THEN f := buf.f; Create(f);
       IF buf.org # f.pos THEN
         error := Platform.Seek(f.fd, buf.org, Platform.SeekSet);
-        (*
-          Out.String("Seeking to "); Out.Int(buf.org,1);
-          Out.String(", error code "); Out.Int(error,1); Out.Ln;
-        *)
       END;
       error := Platform.Write(f.fd, SYSTEM.ADR(buf.data), buf.size);
       IF error # 0 THEN Err("error writing file", f, error) END;
@@ -271,11 +216,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     END
   END Flush;
 
-
   PROCEDURE Close* (f: File);
     VAR
-      i:     LONGINT;
-      error: Platform.ErrorCode;
+      i: LONGINT;  error: Platform.ErrorCode;
   BEGIN
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
@@ -429,13 +372,6 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR org, offset, i, n: LONGINT;  buf: Buffer;  error: Platform.ErrorCode;
   BEGIN
     IF f # NIL THEN
-      (*
-      Out.String("Files.Set rider on fd = "); Out.Int(f.fd,1);
-      Out.String(", registerName = ");  Out.String(f.registerName);
-      Out.String(", workName = ");      Out.String(f.workName);
-      Out.String(", state = ");         Out.Int(f.state,1);
-      Out.Ln;
-      *)
       IF pos > f.len THEN pos := f.len ELSIF pos < 0 THEN pos := 0 END;
       offset := pos MOD BufSize; org := pos - offset; i := 0;
       WHILE (i < NumBufs) & (f.bufs[i] # NIL) & (org # f.bufs[i].org) DO INC(i) END;
@@ -597,10 +533,6 @@ Especially Length would become fairly complex.
       oldidentity, newidentity: Platform.FileIdentity;
       buf: ARRAY 4096 OF CHAR;
   BEGIN
-    (*
-    Out.String("Files.Rename old = "); Out.String(old);
-    Out.String(", new = "); Out.String(new); Out.Ln;
-    *)
     error := Platform.IdentifyByName(old, oldidentity);
     IF error = 0 THEN
       error := Platform.IdentifyByName(new, newidentity);
@@ -798,11 +730,6 @@ Especially Length would become fairly complex.
     VAR f: File; res: LONGINT;
   BEGIN
     f := SYSTEM.VAL(File, o);
-    (*
-    Out.String("Files.Finalize f.fd = "); Out.Int(f.fd,1);
-    Out.String(", f.registername = "); Out.String(f.registerName);
-    Out.String(", f.workName = "); Out.String(f.workName); Out.Ln;
-    *)
     IF f.fd >= 0 THEN
       CloseOSFile(f);
       IF f.tempFile THEN res := Platform.Unlink(f.workName) END

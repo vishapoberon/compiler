@@ -137,6 +137,18 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END
   END LogVT100;
 
+  PROCEDURE LogCompiling*(modname: ARRAY OF CHAR);
+  BEGIN
+    LogWStr("Compiling "); LogWStr(modname);
+    IF verbose IN Options THEN
+      LogWStr(", s:");    LogWNum(ShortintSize*8,1);
+      LogWStr( " i:");    LogWNum(IntegerSize*8,1);
+      LogWStr( " l:");    LogWNum(LongintSize*8,1);
+      LogWStr( " adr:");  LogWNum(AddressSize*8,1);
+      LogWStr( " algn:"); LogWNum(Alignment*8,1)
+    END;
+    LogW(".");
+  END LogCompiling;
 
 
   (* Integer size support *)
@@ -299,20 +311,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END OpenPar;
 
 
-  PROCEDURE VerboseListSizes;
-  BEGIN
-    LogWLn;
-    LogWStr("Type      Size"); LogWLn;
-    LogWStr("SHORTINT   "); LogWNum(ShortintSize, 4); LogWLn;
-    LogWStr("INTEGER    "); LogWNum(IntegerSize,  4); LogWLn;
-    LogWStr("LONGINT    "); LogWNum(LongintSize,  4); LogWLn;
-    LogWStr("SET        "); LogWNum(LongintSize,  4); LogWLn;
-    LogWStr("ADDRESS    "); LogWNum(AddressSize,  4); LogWLn;
-    LogWLn;
-    LogWStr("Alignment: "); LogWNum(Alignment, 4); LogWLn;
-  END VerboseListSizes;
-
-
   PROCEDURE InitOptions*;  (* get the options for one translation *)
     VAR s: ARRAY 256 OF CHAR; searchpath, modules: ARRAY 1024 OF CHAR;
     MODULES: ARRAY 1024 OF CHAR;
@@ -336,7 +334,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
     END;
 
-    IF verbose IN Options THEN VerboseListSizes END;
+    (*IF verbose IN Options THEN VerboseListSizes END;*)
 
     ResourceDir := InstallDir;
     IF ResourceDir[0] # 0X THEN
@@ -392,14 +390,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     curpos := Texts.Pos(inR);
     Texts.Read(inR, ch);
 
-    (* OpenBSD intermittent file read error debugging. *)
-    IF (curpos = 0) & inR.eot THEN
-      LogWLn; LogWStr("DEBUG: OPM.Get returned inR.eot at curpos = 0, ch = ");
-      LogWNum(ORD(ch),1); LogW(".");
-      Texts.DumpReader(inR);
-      LogWLn; LogWStr("Heap dump:"); LogWLn;
-      Out.DumpHeap
-    END;
     (* TODO, remove curpos var, and provide fn returning Texts.Pos(inR) - 1. *)
     (* Or, better still, record symbol position in OPS. *)
 

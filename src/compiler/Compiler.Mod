@@ -99,7 +99,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
           Strings.Append(fn,  objectnames)
         ELSE
           (* Found symbol file but no object file. *)
-          OPM.LogVT100(VT100.Yellow);
+          OPM.LogVT100(VT100.LightRed);
           OPM.LogWStr("Link warning: a local symbol file is present for module "); OPM.LogWStr(l.name);
           OPM.LogWStr(", but local object file '"); OPM.LogWStr(fn); OPM.LogWStr("' is missing.");
           OPM.LogVT100(VT100.ResetAll); OPM.LogWLn

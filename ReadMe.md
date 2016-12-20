@@ -14,8 +14,8 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 ### Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[**A 'Hello' application**](#a-hello-application)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[**Licensing**](#licensing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Compiling a 'Hello' application**](#a-hello-application)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**License**](#license)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Platform support and porting**](#platform-support-and-porting)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Language support and libraries**](#language-support-and-libraries)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**History**](#history)<br>
@@ -138,6 +138,7 @@ executable binary.
 
 Execute as usual on Linux (`./hello`) or Windows (`hello`).
 
+For more details on compilation, see [**Compiling**](/doc/Compiling.md).
 
 ### Viewing the interfaces of included modules.
 
@@ -163,7 +164,7 @@ END Out.
 ```
 
 
-## Licensing
+## License
 
 Vishap Oberon's frontend and C backend engine is a fork of Josef Templ’s Ofront, which has been released
 under the FreeBSD License. Unlike Ofront, Vishap Oberon does not include the Oberon v4 GUI environment.

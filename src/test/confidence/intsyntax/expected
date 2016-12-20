@@ -1,4 +1,4 @@
-IntSyntax.mod  compiling IntSyntax.
+IntSyntax.mod  Compiling IntSyntax.
 
   14:   i := l;   (* Bad, INTEGER shorter than LONGINT *)
              ^
