@@ -298,3 +298,8 @@ Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015
  - [Joseph Templ's ofront on github](https://hithub.com/jtempl/ofront)
  - [Software Templ OG](http://www.software-templ.com)
  - [Oberon: Steps beyond Pascal and Modula](http://fruttenboel.verhoeven272.nl/Oberon/)
+
+
+## History
+
+See [**History**](/doc/History.md).

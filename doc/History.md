@@ -1,9 +1,30 @@
-#### (Work in progress)
-
-
-
 ### History
 
+#### Changes from 2.0 to 2.1.0
+
+  - Features
+    - Modules of a multi-module program may now be compiled independently - it is
+      no longer necessary to compile all modules on a single compiler command line.
+    - The file system location of standard libraries is now determined relative to
+      where the compiler binary loads from, rather than a fixed location built
+      into the compiler at install time.
+    - ```make full``` no longer installs the compiler, and can be run without
+      root/administrator priviledges. Optionally use ```make install``` to install.
+    - New warning message to advise of redefinition of standard predefined types.
+    - Supports revised Oberon array assignment. As well as supporting assignments
+      between arrays of identical type and size, also supports assignment of arrays
+      of identical type where the target is larger than the source.
+  - Fixes:
+    - Files.Mod provide Oberon system compatible behaviour when deleting an open file.
+      - The open file will be renamed to a temporary file, remaining accessible and
+        can be (re)registered. If not registered the temporary file will be deleted
+        at exit.
+    - Support allocated memory straddling and above 7FFFFFFFH.
+    - Flush output on assertion failure.
+    - Fix 2 or more dimension open array parameter addressing.
+    - Remove invalid large integer literal warnings on OpenBSD.
+    - Fix incorrect type generation when a record variable of type LONGINT immediately
+      follows a record variable of type SYSTEM.ADDRESS.
 
 #### Changes from 1.2 to 2.0
 
