@@ -20,6 +20,7 @@ my %machines = (
   "fed64"    => ['22',   'dave@vim-fed64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc   '                  . $branch],
   "osu64"    => ['22',   'dave@vim-osu64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc   '                  . $branch],
   "ob32"     => ['22',   'root@nas-ob32',                   'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch],
+  "obs32"    => ['22',   'dave@vim-obs32',                  'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch],
   "ce64"     => ['5922', 'obe@www',                         'sh build-oberon.sh  sudo  vishap/voc                  gcc   '                  . $branch],
   "fb64"     => ['22',   'root@oberon',                     'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch]
 );

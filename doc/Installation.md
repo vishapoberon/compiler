@@ -54,7 +54,8 @@ Example pre-requisite installation commands:
 | ---------              | ------------                                                                  |
 | Debian/Ubuntu/Mint ... | `apt-get install git`                                                         |
 | Fedora/RHEL/CentOS ... | `yum install git gcc glibc-static` (`dnf` instead of `yum` on recent Fedoras) |
-| FreeBSD/OpenBSD/NetBSD | `pkg install git`                                                             |
+| FreeBSD/NetBSD         | `pkg install git`                                                             |
+| OpenBSD                | `pkg_add git gcc`                                                             |
 | OpenSUSE               | `zypper install gcc git-core make glibc-devel-static`                         |
 
 On Mac OS (Darwin) just type the git command. OS/X will tell you that it is not installed and ask if you want to install it (say yes). Note that Darwin builds always use clang, the OS will redirect attempts to use gcc to clang.
