@@ -1,4 +1,4 @@
-/* voc 2.00 [2016/12/20]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2016/12/21]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -272,7 +272,7 @@ BOOLEAN OPM_OpenPar (void)
 	if (Modules_ArgCount == 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);
-		OPM_LogWStr(Configuration_versionLong, 75);
+		OPM_LogWStr(Configuration_versionLong, 76);
 		OPM_LogW('.');
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Based on Ofront by J. Templ and Software Templ OEG.", 52);
