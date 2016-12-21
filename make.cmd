@@ -1,25 +1,29 @@
 @echo off
 
-:: mscmake.cmd - Build Oberon with Microsoft C compiler.
+:: make.cmd - Build Oberon with Microsoft C compiler.
 
 :: Expects the path to include cl.exe.
 
-:: As of 10th Feb 2016 the miscrosoft c compiler and build tools
+:: As of December 2016 the Microsoft C compiler and build tools
 :: can be downloaded independently of  the full Visual Studio IDE
 :: as the 'Visual C++ Build Tools 2015'.
 
-:: See: https://blogs.msdn.microsoft.com/vcblog/2015/11/02/announcing-visual-c-build-tools-2015-standalone-c-tools-for-build-environments/
+:: See: http://landinghub.visualstudio.com/visual-cpp-build-tools
 
 :: With this installed, from the start button select:
-::   All Apps / Visual C++ Build Tools / Visual C++ x86 Native Build Tools Command Prompt
+::    All Apps / Visual C++ Build Tools / Visual C++ 2015 x86 Native Build Tools Command Prompt
+:: or All Apps / Visual C++ Build Tools / Visual C++ 2015 x64 Native Build Tools Command Prompt
+
+
 
 
 :: Create configuration and parameter files.
 
-cl -nologo -Isrc\runtime src\tools\make\configure.c >nul
+cl -nologo -Isrc\runtime src\tools\make\configure.c >msc-listing || type msc-listing
 setlocal
 configure.exe >nul
 del configure.obj configure.exe 2>nul
+
 
 :: Extract make variables into local environment
 
@@ -31,7 +35,6 @@ set OBECOMP=%ONAME%%BINEXT%
 set MODEL=2
 
 for /F %%d in ('cd');do set ROOTDIR=%%d
-
 
 
 :: Process target parameter
@@ -51,30 +54,86 @@ goto :eof
 @echo.
 @echo Usage:
 @echo.
-@echo.  make full          - Make and install compiler (from administrator prompt)
+@echo.  make full     - Make compiler to 'install' subdirectory
+@echo.  make install  - Install 'install' subdir to OS. Requires administrator privileges
 @echo.
-@echo.  make clean         - Remove made files
-@echo.  make compiler      - Build the compiler but not the library
-@echo.  make library       - Build all library files and make library
-@echo.  make install       - Install built compiler and library (from administrator prompt)
+@echo.  make clean    - Remove made files
+@echo.  make compiler - Build the compiler but not the library
+@echo.  make library  - Build all library files and make library
+@echo.  make install  - Install built compiler and library (from administrator prompt)
 goto :eof
 
 
 
 
 :full
+call :clean          || exit /b
+call :compiler       || exit /b
+call :browsercmd     || exit /b
+call :library        || exit /b
+call :makeinstalldir || exit /b
+goto :eof
+
+
+
+
+:makeinstalldir
+rmdir /s /q "%ROOTDIR%\install"                        >nul 2>&1
+mkdir "%ROOTDIR%\install"                              >nul 2>&1
+
+mkdir "%ROOTDIR%\install\bin"                          >nul 2>&1
+copy %OBECOMP%              "%ROOTDIR%\install\bin"    >nul
+copy %BUILDDIR%\showdef.exe "%ROOTDIR%\install\bin"    >nul
+
+mkdir "%ROOTDIR%\install\2"                            >nul 2>&1
+mkdir "%ROOTDIR%\install\2\include"                    >nul 2>&1
+mkdir "%ROOTDIR%\install\2\sym"                        >nul 2>&1
+copy %BUILDDIR%\2\*.h    "%ROOTDIR%\install\2\include" >nul
+copy %BUILDDIR%\2\*.sym  "%ROOTDIR%\install\2\sym"     >nul
+
+mkdir "%ROOTDIR%\install\C"                            >nul 2>&1
+mkdir "%ROOTDIR%\install\C\include"                    >nul 2>&1
+mkdir "%ROOTDIR%\install\C\sym"                        >nul 2>&1
+copy %BUILDDIR%\C\*.h    "%ROOTDIR%\install\C\include" >nul
+copy %BUILDDIR%\C\*.sym  "%ROOTDIR%\install\C\sym"     >nul
+
+mkdir "%ROOTDIR%\install\lib"                          >nul 2>&1
+copy %BUILDDIR%\2\lib%ONAME%* "%ROOTDIR%\install\lib"  >nul
+copy %BUILDDIR%\C\lib%ONAME%* "%ROOTDIR%\install\lib"  >nul
+
+echo.
+echo Now add %ROOTDIR%\install\bin to your path, for example with the command:
+echo PATH %ROOTDIR%\install\bin;%%PATH%%
+echo.
+goto :eof
+
+
+
+:install
 whoami /groups | find "12288" >nul
 if errorlevel 1 (
-echo make full - administrator rights required. Please run under an administrator command prompt.
+echo make install - administrator rights required. Please run under an administrator command prompt.
 goto :eof
 )
-call :uninstall  || exit /b
-call :clean      || exit /b
-call :compiler   || exit /b
-call :browsercmd || exit /b
-call :library    || exit /b
-call :install    || exit /b
-call :showpath   || exit /b
+echo Installing to %INSTALLDIR%
+rmdir /s /q "%INSTALLDIR%"                     >nul 2>&1
+xcopy /E /I /Y "%ROOTDIR%\install" "%INSTALLDIR%" >nul
+echo.
+echo Now add %INSTALLDIR%\bin to your path, for example with the command:
+echo PATH %INSTALLDIR%\bin;%%PATH%%
+echo.
+goto :eof
+
+
+
+:uninstall
+whoami /groups | find "12288" >nul
+if errorlevel 1 (
+echo make uninstall - administrator rights required. Please run under an administrator command prompt.
+goto :eof
+)
+echo Uninstalling %INSTALLDIR%
+rmdir /s /q "%INSTALLDIR%" >nul 2>&1
 goto :eof
 
 
@@ -101,37 +160,38 @@ echo.
 echo.make assemble - compiling Oberon compiler c source::
 echo.  VERSION:   %VERSION%
 echo.  Target characeristics:
-echo.    PLATFORM:  %PLATFORM%
-echo.    OS:        %OS%
-echo.    BUILDDIR:  %BUILDDIR%
+echo.    PLATFORM:   %PLATFORM%
+echo.    OS:         %OS%
+echo.    BUILDDIR:   %BUILDDIR%
+echo.    INSTALLDIR: %INSTALLDIR%
 echo.  Oberon characteristics:
-echo.    MODEL:     %MODEL%
-echo.    ADRSIZE:   %ADRSIZE%
-echo.    ALIGNMENT: %ALIGNMENT%
+echo.    MODEL:      %MODEL%
+echo.    ADRSIZE:    %ADRSIZE%
+echo.    ALIGNMENT:  %ALIGNMENT%
 echo.  C compiler:
-echo.    COMPILER:  %COMPILER%
-echo.    COMPILE:   %COMPILE%
-echo.    DATAMODEL: %DATAMODEL%
+echo.    COMPILER:   %COMPILER%
+echo.    COMPILE:    %COMPILE%
+echo.    DATAMODEL:  %DATAMODEL%
 
 cd %BUILDDIR%
 
 cl -nologo /Zi -c SYSTEM.c  Configuration.c Platform.c Heap.c   || exit /b
 cl -nologo /Zi -c Out.c     Strings.c       Modules.c  Files.c  || exit /b
-cl -nologo /Zi -c Reals.c   Texts.c         vt100.c    errors.c || exit /b
+cl -nologo /Zi -c Reals.c   Texts.c         VT100.c             || exit /b
 cl -nologo /Zi -c OPM.c     extTools.c      OPS.c      OPT.c    || exit /b
 cl -nologo /Zi -c OPC.c     OPV.c           OPB.c      OPP.c    || exit /b
 
 cl -nologo /Zi Compiler.c /Fe%ROOTDIR%\%OBECOMP% /link /INCREMENTAL:NO ^
-SYSTEM.obj Configuration.obj Platform.obj Heap.obj ^
-Out.obj Strings.obj Modules.obj Files.obj ^
-Reals.obj Texts.obj VT100.obj errors.obj ^
-OPM.obj extTools.obj OPS.obj OPT.obj ^
-OPC.obj OPV.obj OPB.obj OPP.obj || exit /b
+SYSTEM.obj  Configuration.obj Platform.obj Heap.obj  Out.obj   Strings.obj ^
+Modules.obj Files.obj         Reals.obj    Texts.obj VT100.obj extTools.obj ^
+OPM.obj     OPS.obj           OPT.obj      OPC.obj   OPV.obj   OPB.obj    OPP.obj || exit /b
 
+cd %ROOTDIR%
 copy src\runtime\*.c %BUILDDIR% >nul
 copy src\runtime\*.h %BUILDDIR% >nul
+copy src\runtime\*.Txt %BUILDDIR% >nul
+copy src\runtime\*.Txt %ROOTDIR% >nul
 echo.%OBECOMP% created.
-cd %ROOTDIR%
 goto :eof
 
 
@@ -176,7 +236,6 @@ del *.sym >nul 2>nul
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Reals.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Texts.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/VT100.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/errors.Mod            || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/OPM.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/extTools.Mod          || exit /b
 %ROOTDIR%\%OBECOMP% -SsfFx   -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/OPS.Mod               || exit /b
@@ -186,7 +245,12 @@ del *.sym >nul 2>nul
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/OPB.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/OPP.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -Ssfm    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/Compiler.Mod          || exit /b
+
 cd %ROOTDIR%
+copy src\runtime\*.c %BUILDDIR% >nul
+copy src\runtime\*.h %BUILDDIR% >nul
+copy src\runtime\*.Txt %BUILDDIR% >nul
+
 echo.%BUILDDIR% filled with compiler C source.
 goto :eof
 
@@ -197,64 +261,16 @@ goto :eof
 echo.
 echo.Making symbol browser
 cd %BUILDDIR%
+%ROOTDIR%/%OBECOMP% -fSs ../../src/runtime/Oberon.Mod
 %ROOTDIR%/%OBECOMP% -fSm ../../src/tools/browser/BrowserCmd.Mod
-cl -nologo BrowserCmd.c /Feshowdef.exe ^
+cl -nologo BrowserCmd.c Oberon.c /Feshowdef.exe ^
   Platform.obj Texts.obj OPT.obj Heap.obj Out.obj SYSTEM.obj OPM.obj OPS.obj OPV.obj ^
-  Files.obj Reals.obj Modules.obj VT100.obj errors.obj Configuration.obj Strings.obj ^
+  Files.obj Reals.obj Modules.obj VT100.obj Configuration.obj Strings.obj ^
   OPC.obj
 cd %ROOTDIR%
 goto :eof
 
 
-
-
-:install
-whoami /groups | find "12288" >nul
-if errorlevel 1 (
-echo make install - administrator rights required. Please run under an administrator command prompt.
-goto :eof
-)
-rmdir /s /q "%INSTALLDIR%"                        >nul 2>&1
-mkdir "%INSTALLDIR%"                              >nul 2>&1
-
-mkdir "%INSTALLDIR%\bin"                          >nul 2>&1
-copy %OBECOMP%              "%INSTALLDIR%\bin"    >nul
-copy %BUILDDIR%\showdef.exe "%INSTALLDIR%\bin"    >nul
-
-mkdir "%INSTALLDIR%\2"                            >nul 2>&1
-mkdir "%INSTALLDIR%\2\include"                    >nul 2>&1
-mkdir "%INSTALLDIR%\2\sym"                        >nul 2>&1
-copy %BUILDDIR%\2\*.h    "%INSTALLDIR%\2\include" >nul
-copy %BUILDDIR%\2\*.sym  "%INSTALLDIR%\2\sym"     >nul
-
-mkdir "%INSTALLDIR%\C"                            >nul 2>&1
-mkdir "%INSTALLDIR%\C\include"                    >nul 2>&1
-mkdir "%INSTALLDIR%\C\sym"                        >nul 2>&1
-copy %BUILDDIR%\C\*.h    "%INSTALLDIR%\C\include" >nul
-copy %BUILDDIR%\C\*.sym  "%INSTALLDIR%\C\sym"     >nul
-
-mkdir "%INSTALLDIR%\lib"                          >nul 2>&1
-copy %BUILDDIR%\2\lib%ONAME%* "%INSTALLDIR%\lib"  >nul
-copy %BUILDDIR%\C\lib%ONAME%* "%INSTALLDIR%\lib"  >nul
-goto :eof
-
-
-:uninstall
-whoami /groups | find "12288" >nul
-if errorlevel 1 (
-echo make uninstall - administrator rights required. Please run under an administrator command prompt.
-goto :eof
-)
-rmdir /s /q "%INSTALLDIR%" >nul 2>&1
-goto :eof
-
-
-:showpath
-echo.
-echo Now add %INSTALLDIR%\bin to your path, for example with the command:
-echo PATH %INSTALLDIR%\bin;%%PATH%%
-echo.
-goto :eof
 
 
 :runtime
@@ -346,6 +362,7 @@ goto :eof
 :ulm
 echo.Making ulm library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTypes.Mod                 || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmObjects.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmPriorities.Mod            || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmDisciplines.Mod           || exit /b
@@ -357,7 +374,6 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmResources.Mod             || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmForwarders.Mod            || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmRelatedEvents.Mod         || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTypes.Mod                 || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreams.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStrings.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysTypes.Mod              || exit /b

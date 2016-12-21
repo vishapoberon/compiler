@@ -413,6 +413,7 @@ void writeConfigurationMod() {
   fprintf(fd, "  linkflags*   = '%s';\n", linkflags);
   fprintf(fd, "  libspec*     = '%s';\n", libspec);
   fprintf(fd, "  libext*      = '%s';\n", libext);
+  fprintf(fd, "  compiler*    = '%s';\n", compiler);
   fprintf(fd, "  compile*     = '%s';\n", cc);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);

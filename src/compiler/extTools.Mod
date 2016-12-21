@@ -1,19 +1,34 @@
 MODULE extTools;
 
-IMPORT Strings, Out, Configuration, Platform, Modules, OPM;
+IMPORT Strings, Out, Configuration, Platform, Modules, Heap, OPM;
 
-VAR CFLAGS: ARRAY 1023 OF CHAR;
+TYPE CommandString = ARRAY 4096 OF CHAR;
+
+VAR CFLAGS: CommandString;
 
 
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
-  VAR r, status, exitcode: INTEGER;
+  VAR r, status, exitcode: INTEGER; fullcmd: CommandString;
 BEGIN
   IF OPM.verbose IN OPM.Options THEN
-    Out.String(title); Out.String(cmd); Out.Ln
+    Out.String("  "); Out.String(fullcmd); Out.Ln
   END;
-  r := Platform.System(cmd);
-  status := r MOD 128;
-  exitcode := r DIV 256;
+
+  (* Hack to suppress unwanted filename display by Microsoft C compiler on successful compilations. *)
+  IF Configuration.compiler = "MSC" THEN
+    fullcmd := "cmd /c ";
+    Strings.Append(cmd, fullcmd);
+    Strings.Append(" >msc-listing || type msc-listing", fullcmd)
+  ELSE
+    COPY(cmd, fullcmd);
+  END;
+
+  (* Get GC to run file finalizers closing generated C files as otherwise Microsoft C cannot open them. *)
+  Heap.GC(FALSE);
+
+  r := Platform.System(fullcmd);
+
+  status := r MOD 128; exitcode := r DIV 256;
   IF exitcode > 127 THEN exitcode := exitcode - 256 END; (* Handle signed exit code *)
 
   IF r # 0 THEN
@@ -43,7 +58,7 @@ END InitialiseCompilerCommand;
 
 PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
   VAR
-    cmd: ARRAY 1023 OF CHAR;
+    cmd: CommandString;
   BEGIN
     InitialiseCompilerCommand(cmd);
     Strings.Append("-c ",      cmd);
@@ -55,7 +70,7 @@ PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
 
 PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; additionalopts: ARRAY OF CHAR);
   VAR
-    cmd: ARRAY 1023 OF CHAR;
+    cmd: CommandString;
   BEGIN
     InitialiseCompilerCommand(cmd);
     Strings.Append(moduleName,                 cmd);
