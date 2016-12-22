@@ -266,18 +266,15 @@ MODULE Heap;
         IF adr = 0 THEN (* Nothing free *)
           IF firstTry THEN
             GC(TRUE); INC(blksz, Unit);
-            IF uLT(heapsize - allocated, blksz)
-            OR uLT((heapsize - allocated - blksz) * 4, heapsize) THEN
-              (* heap would still be more than 3/4 full; expand to avoid thrashing *)
-              ExtendHeap((allocated + blksz) DIV (3*Unit) * (4*Unit) - heapsize)
+            (* Anti-thrashing heuristics: ensure 1/4 of the heap will not be allocated. *)
+            t := (allocated + blksz) DIV (3*Unit) * (4*Unit); (* Minimum required new heapsize *)
+            IF uLT(heapsize, t) THEN ExtendHeap(t - heapsize) END;
+            firstTry := FALSE; new := NEWREC(tag);
+            IF new = NIL THEN (* Fragmentation prevented allocation, heap is 1/4 free *)
+              ExtendHeap(blksz);
+              new := NEWREC(tag)  (* Will find a free block if heap has been expanded successfully *)
             END;
-            firstTry := FALSE; new := NEWREC(tag); firstTry := TRUE;
-            IF new = NIL THEN
-              (* depending on the fragmentation, the heap may not have been extended by
-                the anti-thrashing heuristics above *)
-              ExtendHeap((allocated + blksz) DIV (3*Unit) * (4*Unit) - heapsize);
-              new := NEWREC(tag);  (* will find a free block if heap has been expanded properly *)
-            END;
+            firstTry := TRUE;
             Unlock(); RETURN new
           ELSE
             Unlock(); RETURN NIL
