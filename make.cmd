@@ -21,7 +21,7 @@
 
 cl -nologo -Isrc\runtime src\tools\make\configure.c >msc-listing || type msc-listing
 setlocal
-configure.exe >nul
+configure.exe
 del configure.obj configure.exe 2>nul
 
 

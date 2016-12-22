@@ -31,3 +31,4 @@ if test "$3" = "msc-x64"; then
 else
   $sudo make full
 fi
+fi
