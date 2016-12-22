@@ -46,17 +46,31 @@ sub parselog {
   open(my $log, $fn) // die "Couldn't open build log $fn.";
   $branch = "Build on $fn started";
   while (<$log>) {
+    s/\r//g; # Remove unwanted MS command prompt CR's.
+
     if (/^([0-9\/]+) ([0-9.]+) .+\.log$/) {$date = $1}
     if (/^([0-9.]+) /)                    {$time = $1}
-    # 19.39.58 Configuration: 1.95 [2016/07/14] for gcc LP64 on centos
-    if (/^[^ ]+ Configuration: ([0-9a-zA-Z.]+) \[[0-9\/]+\] for (.+) *$/) {
-      logstatus($fn);
-      $ver = $1;
-      printf "--- Config for $fn: $1 for $2.\n";
+
+    #14.55.15 === build-oberon.sh: $1=sudo, $2=oberon/voc, $3=gcc, $4=master, $sudo=sudo ===
+    if (/^[^ ]+ === build-oberon.sh: .* \$3=([^ ]+), \$4=([^ ]+),/) {
+      ($compiler, $branch) = ($1, $2);
     }
-    if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
-      ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
+
+    # 14.55.17 + sudo git checkout -f master
+    if (/^[^ ]+ .*git checkout -f ([^ ]+) *$/) {
+      $branch = $1;
     }
+
+    # 14.55.17 Configuration: 2.1.0 [2016/12/22] for gcc ILP32 on ubuntu
+    if (/^[^ ]+ Configuration: ([^ ]+) \[[0-9\/]+\] for ([^ ]+) ([^ ]+) on ([^ ]+)/) {
+      ($ver, $compiler, $datamodel, $os) = ($1, $2, $3, $4);
+      printf "--- Config for $fn: $1 for $2 $3 on $4.\n";
+    }
+
+   #if (/^[^ ]+ --- Cleaning branch ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ---$/) {
+   #  ($branch, $os, $compiler, $datamodel) = ($1, $2, $3, $4, $5);
+   #}
+
     if (/^([0-9.]+) --- Compiler build started ---$/)                         {$compilerok   = "Started";}
     if (/^([0-9.]+) --- Compiler build successfull ---$/)                     {$compilerok   = "Built";}
 
@@ -78,6 +92,7 @@ sub parselog {
       if ($compilerok eq "Started") {$compilerok = "Failed";}
       if ($libraryok  eq "Started") {$libraryok  = "Failed";}
       if ($tests      eq "Started") {$tests      = "Failed";}
+      if ($compiler   eq "msc")     {$sourcechange = "n/a"; $tests = "n/a";}
     }
   }
   close($log);
@@ -110,8 +125,9 @@ sub svgtext {
 
 sub colourfor {
   my ($str) = @_;
-  if ($str eq "Failed")  {return "#e03030";}
-  if ($str eq "Changed") {return "#ff9d4d";}
+  if ($str eq "Failed")   {return "#e03030";}
+  if ($str eq "Changed")  {return "#ff9d4d";}
+  if ($str eq "n/a")      {return "#707070";}
   return "#5adb5a";
 }
 

@@ -148,7 +148,7 @@ void determineCCompiler() {
       cc = "gcc -fPIC -g" optimize;
     }
   #elif defined(_MSC_VER)
-    compiler  = "MSC";
+    compiler  = "msc";
     cc        = "cl /nologo";
     objext    = ".obj";
     objflag   = " -Fe";
