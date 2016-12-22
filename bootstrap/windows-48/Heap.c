@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2016/12/21]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.1.0 [2016/12/22]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -289,16 +289,17 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 				if (Heap_firstTry) {
 					Heap_GC(1);
 					blksz += 16;
-					if (Heap_uLT(Heap_heapsize - Heap_allocated, blksz) || Heap_uLT(__ASHL((Heap_heapsize - Heap_allocated) - blksz, 2), Heap_heapsize)) {
-						Heap_ExtendHeap(__ASHL(__DIV(Heap_allocated + blksz, 48), 6) - Heap_heapsize);
+					t = __ASHL(__DIV(Heap_allocated + blksz, 48), 6);
+					if (Heap_uLT(Heap_heapsize, t)) {
+						Heap_ExtendHeap(t - Heap_heapsize);
 					}
 					Heap_firstTry = 0;
 					new = Heap_NEWREC(tag);
-					Heap_firstTry = 1;
 					if (new == NIL) {
-						Heap_ExtendHeap(__ASHL(__DIV(Heap_allocated + blksz, 48), 6) - Heap_heapsize);
+						Heap_ExtendHeap(blksz);
 						new = Heap_NEWREC(tag);
 					}
+					Heap_firstTry = 1;
 					Heap_Unlock();
 					return new;
 				} else {
