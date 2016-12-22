@@ -22,4 +22,11 @@ $sudo git pull            # Update the local repository
 $sudo git checkout -f $4  # Switch to requested branch
 
 export CC=$3
-$sudo make full
+
+if test "$3" = "msc-x86"; then
+  cmd /c 'C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat' x86 '&&' cd 'c:\cygwin\home\dave\msc-x86\voc' '&&' make full
+else; if test "$3" = "msc-x64"; then
+  cmd /c 'C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat' x64 '&&' cd 'c:\cygwin\home\dave\msc-x64\voc' '&&' make full
+else
+  $sudo make full
+fi

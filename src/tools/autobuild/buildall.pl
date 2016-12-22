@@ -8,21 +8,21 @@ my $branch = "master";
 if (defined($ARGV[0]) && ($ARGV[0] ne "")) {$branch = $ARGV[0]}
 
 my %machines = (
-  "pi"       => ['22',   'pi@pie',                          'sh build-oberon.sh  sudo  projects/oberon/vishap/voc  gcc   '                  . $branch],
-  "darwin"   => ['22',   'dave@dcb',                        'sh build-oberon.sh  sudo  projects/oberon/vishap/voc  clang '                  . $branch],
-  "cygwin32" => ['5932', 'dave@wax',                        'sh build-oberon.sh  n     oberon/cygwin/voc           gcc   '                  . $branch],
-  "cygwin64" => ['5932', 'dave@wax',        'sh start64.sh \'sh build-oberon.sh  n     oberon/cygwin/voc           gcc   '                  . $branch . '\''],
+  "pi"       => ['22',   'pi@pie',                          'sh build-oberon.sh  sudo  projects/oberon/vishap/voc  gcc    '                  . $branch],
+  "darwin"   => ['22',   'dave@dcb',                        'sh build-oberon.sh  sudo  projects/oberon/vishap/voc  clang  '                  . $branch],
+  "cygwin32" => ['5932', 'dave@wax',                        'sh build-oberon.sh  n     oberon/cygwin/voc           gcc    '                  . $branch],
+  "cygwin64" => ['5932', 'dave@wax',        'sh start64.sh \'sh build-oberon.sh  n     oberon/cygwin/voc           gcc    '                  . $branch . '\''],
   "mingw32"  => ['5932', 'dave@wax',                        'sh build-oberon.sh  n     oberon/mingw/voc            i686-w64-mingw32-gcc   ' . $branch],
   "mingw64"  => ['5932', 'dave@wax',        'sh start64.sh \'sh build-oberon.sh  n     oberon/mingw/voc            x86_64-w64-mingw32-gcc ' . $branch . '\''],
-  "android"  => ['8022', 'root@and',                        'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch],
-  "lub64"    => ['22',   'dave@vim',                        'sh build-oberon.sh  sudo  oberon/voc                  gcc   '                  . $branch],
-  "lub32"    => ['22',   'dave@vim-lub32',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc   '                  . $branch],
-  "fed64"    => ['22',   'dave@vim-fed64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc   '                  . $branch],
-  "osu64"    => ['22',   'dave@vim-osu64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc   '                  . $branch],
-  "ob32"     => ['22',   'root@nas-ob32',                   'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch],
-  "obs32"    => ['22',   'dave@vim-obs32',                  'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch],
-  "ce64"     => ['5922', 'obe@www',                         'sh build-oberon.sh  sudo  vishap/voc                  gcc   '                  . $branch],
-  "fb64"     => ['22',   'root@oberon',                     'sh build-oberon.sh  n     vishap/voc                  gcc   '                  . $branch]
+  "android"  => ['8022', 'root@and',                        'sh build-oberon.sh  n     vishap/voc                  gcc    '                  . $branch],
+  "lub64"    => ['22',   'dave@vim',                        'sh build-oberon.sh  sudo  oberon/voc                  gcc    '                  . $branch],
+  "lub32"    => ['22',   'dave@vim-lub32',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc    '                  . $branch],
+  "fed64"    => ['22',   'dave@vim-fed64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc    '                  . $branch],
+  "osu64"    => ['22',   'dave@vim-osu64',                  'sh build-oberon.sh  sudo  oberon/voc                  gcc    '                  . $branch],
+  "obs32"    => ['22',   'dave@vim-obs32',                  'sh build-oberon.sh  n     vishap/voc                  gcc    '                  . $branch],
+  "win32"    => ['22',   'dave@vim-win64',                  'sh build-oberon.sh  n     msc-x86/voc                 msc-x86'                  . $branch],
+  "ce64"     => ['5922', 'obe@www',                         'sh build-oberon.sh  sudo  vishap/voc                  gcc    '                  . $branch],
+  "fb64"     => ['22',   'root@oberon',                     'sh build-oberon.sh  n     vishap/voc                  gcc    '                  . $branch]
 );
 
 sub logged {

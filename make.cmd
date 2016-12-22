@@ -68,9 +68,21 @@ goto :eof
 
 :full
 call :clean          || exit /b
+echo.
+echo.--- Compiler build started ---
+echo.
 call :compiler       || exit /b
+echo.
+echo.--- Compiler build successfull ---
+echo.
 call :browsercmd     || exit /b
+echo.
+echo.--- Library build started ---
+echo.
 call :library        || exit /b
+echo.
+echo.--- Library build successfull ---
+echo.
 call :makeinstalldir || exit /b
 goto :eof
 
@@ -148,6 +160,7 @@ goto :eof
 
 
 :clean
+echo.--- Cleaning branch ... %OS% %COMPILER% %DATAMODEL% ---
 rd /s /q %BUILDDIR% 2>nul
 del /q %OBECOMP% 2>nul
 goto :eof
