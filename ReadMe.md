@@ -32,7 +32,7 @@ with the following simple steps:
 
   1. Install pre-requisites such as git, gcc, static C libraries, diff utils.
   2. Clone the repository and run 'make full'.
-  3. Optionally install to a system directory such as /opt or /usr/local/share.
+  3. Optionally install to a system directory such as /opt or /usr/local/share with 'make install'.
   4. Set your PATH variable to include the compiler binary.
 
 These are detailed below:
