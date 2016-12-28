@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2016/12/22]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.1.0 [2016/12/28]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -68,6 +68,7 @@ static INT32 Heap_freeList[10];
 static INT32 Heap_bigBlocks;
 export INT32 Heap_allocated;
 static BOOLEAN Heap_firstTry;
+static INT16 Heap_ldUnit;
 export INT32 Heap_heap;
 static INT32 Heap_heapMin, Heap_heapMax;
 export INT32 Heap_heapsize;
@@ -257,16 +258,16 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 	SYSTEM_PTR new;
 	Heap_Lock();
 	__GET(tag, blksz, INT32);
-		i0 = __ASHR(blksz, 4);
+		i0 = __LSH(blksz, -Heap_ldUnit, 32);
 	i = i0;
-	if (Heap_uLT(i, 9)) {
+	if (i < 9) {
 		adr = Heap_freeList[i];
 		while (adr == 0) {
 			i += 1;
 			adr = Heap_freeList[i];
 		}
 	}
-	if (Heap_uLT(i, 9)) {
+	if (i < 9) {
 		__GET(adr + 12, next, INT32);
 		Heap_freeList[i] = next;
 		if (i != i0) {
@@ -289,7 +290,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 				if (Heap_firstTry) {
 					Heap_GC(1);
 					blksz += 16;
-					t = __ASHL(__DIV(Heap_allocated + blksz, 48), 6);
+					t = __LSHR(Heap_allocated + blksz, 2, 32) * 5;
 					if (Heap_uLT(Heap_heapsize, t)) {
 						Heap_ExtendHeap(t - Heap_heapsize);
 					}
@@ -444,7 +445,7 @@ static void Heap_Scan (void)
 					__PUT(start, start + 4, INT32);
 					__PUT(start + 4, freesize, INT32);
 					__PUT(start + 8, -4, INT32);
-					i = __ASHR(freesize, 4);
+					i = __LSH(freesize, -Heap_ldUnit, 32);
 					freesize = 0;
 					if (Heap_uLT(i, 9)) {
 						__PUT(start + 12, Heap_freeList[i], INT32);
@@ -470,7 +471,7 @@ static void Heap_Scan (void)
 			__PUT(start, start + 4, INT32);
 			__PUT(start + 4, freesize, INT32);
 			__PUT(start + 8, -4, INT32);
-			i = __ASHR(freesize, 4);
+			i = __LSH(freesize, -Heap_ldUnit, 32);
 			freesize = 0;
 			if (Heap_uLT(i, 9)) {
 				__PUT(start + 12, Heap_freeList[i], INT32);
@@ -757,6 +758,7 @@ void Heap_InitHeap (void)
 	Heap_heapMin = -1;
 	Heap_heapMax = 0;
 	Heap_bigBlocks = 0;
+	Heap_ldUnit = 4;
 	Heap_heap = Heap_NewChunk(128000);
 	__PUT(Heap_heap, 0, INT32);
 	Heap_firstTry = 1;
