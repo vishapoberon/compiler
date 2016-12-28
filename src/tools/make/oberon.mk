@@ -189,7 +189,7 @@ installable:
 uninstall: installable
 	@printf '\nUninstalling from \"$(INSTALLDIR)\"\n'
 	rm -rf "$(INSTALLDIR)"
-	@sh src/tools/make/addlibrary.sh uninstall \""$(INSTALLDIR)/lib"\" $(oname)
+	@sh src/tools/make/addlibrary.sh uninstall "$(INSTALLDIR)/lib" $(oname)
 
 
 # install: Use only after a successful full build. Installs the compiler
@@ -199,7 +199,7 @@ install: uninstall
 	@printf '\nInstalling into \"$(INSTALLDIR)\"\n'
 	@rm -rf "$(INSTALLDIR)"
 	@cp -rf "$(ROOTDIR)/install/" "$(INSTALLDIR)"
-	@sh src/tools/make/addlibrary.sh install \""$(INSTALLDIR)/lib"\" $(ONAME)
+	@sh src/tools/make/addlibrary.sh install "$(INSTALLDIR)/lib" $(ONAME)
 	@printf '\nOberon compiler installed to $(INSTALLDIR)\n'
 	@printf '\nNow add $(INSTALLDIR)/bin to your path, for example with the command:\n'
 	@printf 'export PATH=\"$(INSTALLDIR)/bin:$$PATH\"\n'
