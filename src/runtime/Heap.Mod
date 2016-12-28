@@ -4,12 +4,13 @@ MODULE Heap;
                           before any other modules are initialized. *)
 
   CONST
-    ModNameLen = 20;
-    CmdNameLen = 24;
-    SZA        = SIZE(S.ADDRESS);  (* Size of address *)
-    Unit       = 4*SZA;            (* smallest possible heap block *)
-    nofLists   = 9;                (* number of freelist entries excluding sentinel *)
-    heapSize0  = 8000*Unit;        (* startup heap size *)
+    ModNameLen    = 20;
+    CmdNameLen    = 24;
+    SZA           = SIZE(S.ADDRESS);  (* Size of address *)
+    Unit          = 4*SZA;            (* Smallest possible heap block *)
+    nofLists      = 9;                (* Number of freelist entries excluding sentinel *)
+    heapSize0     = 8000*Unit;        (* Startup heap size *)
+    heapMinExpand = 10000*Unit;       (* minimum heap expansion size *)
 
   (* all blocks look the same:
     free blocks describe themselves: size = Unit
@@ -78,6 +79,8 @@ MODULE Heap;
     bigBlocks:  S.ADDRESS;
     allocated*: S.ADDRESS;
     firstTry:   BOOLEAN;
+    ldUnit:     INTEGER;    (* Unit = 2^ldUnit, for unsigned division expressed as logical shift right *)
+
 
     (* extensible heap *)
     heap-:      S.ADDRESS;  (* the sorted list of heap chunks *)
@@ -210,8 +213,8 @@ MODULE Heap;
   PROCEDURE ExtendHeap(blksz: S.ADDRESS);
     VAR size, chnk, j, next: S.ADDRESS;
   BEGIN
-    IF uLT(10000*Unit, blksz) THEN size := blksz
-    ELSE size := 10000*Unit  (* additional heuristics *)
+    IF uLT(heapMinExpand, blksz) THEN size := blksz
+    ELSE size := heapMinExpand  (* additional heuristics for avoiding many small heap expansions *)
     END;
     chnk := NewChunk(size);
     IF chnk # 0 THEN
@@ -239,15 +242,15 @@ MODULE Heap;
     Lock();
     S.GET(tag, blksz);
 
-    ASSERT((Unit = 16) OR (Unit = 32));
     ASSERT(SIZE(S.PTR) = SIZE(S.ADDRESS));
     ASSERT(blksz MOD Unit = 0);
 
-    i0 := blksz DIV Unit; i := i0;
-    IF uLT(i, nofLists) THEN adr := freeList[i];
+    i0 := S.LSH(blksz, -ldUnit); (*uDIV Unit*)
+    i := i0;
+    IF i < nofLists THEN adr := freeList[i];
       WHILE adr = 0 DO INC(i); adr := freeList[i] END
     END;
-    IF uLT(i, nofLists) THEN (* Unlink from freelist[i] *)
+    IF i < nofLists THEN (* Unlink from freelist[i] *)
       S.GET(adr + nextOff, next);
       freeList[i] := next;
       IF i # i0 THEN (* Split *)
@@ -266,11 +269,11 @@ MODULE Heap;
         IF adr = 0 THEN (* Nothing free *)
           IF firstTry THEN
             GC(TRUE); INC(blksz, Unit);
-            (* Anti-thrashing heuristics: ensure 1/4 of the heap will not be allocated. *)
-            t := (allocated + blksz) DIV (3*Unit) * (4*Unit); (* Minimum required new heapsize *)
+            (* Anti-thrashing heuristics: ensure 1/5 of the heap will not be allocated. *)
+            t := S.LSH(allocated + blksz, -2) (*uDIV 4*) * 5 ; (* Minimum preferred heapsize *)
             IF uLT(heapsize, t) THEN ExtendHeap(t - heapsize) END;
             firstTry := FALSE; new := NEWREC(tag);
-            IF new = NIL THEN (* Fragmentation prevented allocation, heap is 1/4 free *)
+            IF new = NIL THEN (* Heap is 1/5 free but fragmentation prevented allocation *)
               ExtendHeap(blksz);
               new := NEWREC(tag)  (* Will find a free block if heap has been expanded successfully *)
             END;
@@ -395,7 +398,8 @@ MODULE Heap;
             S.PUT(start,         start+SZA);
             S.PUT(start+sizeOff, freesize);
             S.PUT(start+sntlOff, NoPtrSntl);
-            i := freesize DIV Unit; freesize := 0;
+            i := S.LSH(freesize, -ldUnit) (*uDIV Unit*);
+            freesize := 0;
             IF uLT(i, nofLists) THEN S.PUT(start + nextOff, freeList[i]); freeList[i] := start
             ELSE                     S.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
             END
@@ -416,7 +420,8 @@ MODULE Heap;
         S.PUT(start,         start+SZA);
         S.PUT(start+sizeOff, freesize);
         S.PUT(start+sntlOff, NoPtrSntl);
-        i := freesize DIV Unit; freesize := 0;
+        i := S.LSH(freesize, -ldUnit) (*uDIV Unit*);
+        freesize := 0;
         IF uLT(i, nofLists) THEN S.PUT(start + nextOff, freeList[i]); freeList[i] := start
         ELSE                     S.PUT(start + nextOff, bigBlocks);   bigBlocks   := start
         END
@@ -594,6 +599,9 @@ MODULE Heap;
     heapMin    := -1;  (* all bits set *)
     heapMax    := 0;
     bigBlocks  := 0;
+
+    ASSERT((Unit = 16) OR (Unit = 32));
+    IF Unit = 16 THEN ldUnit := 4 ELSE ldUnit := 5 END;
 
     heap := NewChunk(heapSize0);
     S.PUT(heap + nextChnkOff, AddressZero);
