@@ -290,7 +290,7 @@ SYSTEM_PTR Heap_NEWREC (INT32 tag)
 				if (Heap_firstTry) {
 					Heap_GC(1);
 					blksz += 16;
-					t = __LSHR(Heap_allocated + blksz, 2, 32) * 5;
+					t = __LSH(Heap_allocated + blksz, -(Heap_ldUnit + 2), 32) * 80;
 					if (Heap_uLT(Heap_heapsize, t)) {
 						Heap_ExtendHeap(t - Heap_heapsize);
 					}
