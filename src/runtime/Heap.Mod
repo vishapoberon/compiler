@@ -270,7 +270,7 @@ MODULE Heap;
           IF firstTry THEN
             GC(TRUE); INC(blksz, Unit);
             (* Anti-thrashing heuristics: ensure 1/5 of the heap will not be allocated. *)
-            t := S.LSH(allocated + blksz, -2) (*uDIV 4*) * 5 ; (* Minimum preferred heapsize *)
+            t := S.LSH(allocated + blksz, -(ldUnit+2)) (*uDIV 4*Unit*) * (5*Unit) ; (* Minimum preferred heapsize *)
             IF uLT(heapsize, t) THEN ExtendHeap(t - heapsize) END;
             firstTry := FALSE; new := NEWREC(tag);
             IF new = NIL THEN (* Heap is 1/5 free but fragmentation prevented allocation *)
