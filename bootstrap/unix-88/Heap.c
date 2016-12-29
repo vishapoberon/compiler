@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2016/12/28]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.1.0 [2016/12/29]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -71,7 +71,7 @@ static BOOLEAN Heap_firstTry;
 static INT16 Heap_ldUnit;
 export INT64 Heap_heap;
 static INT64 Heap_heapMin, Heap_heapMax;
-export INT64 Heap_heapsize;
+export INT64 Heap_heapsize, Heap_heapMinExpand;
 static Heap_FinNode Heap_fin;
 static INT16 Heap_lockdepth;
 static BOOLEAN Heap_interrupted;
@@ -229,10 +229,10 @@ static INT64 Heap_NewChunk (INT64 blksz)
 static void Heap_ExtendHeap (INT64 blksz)
 {
 	INT64 size, chnk, j, next;
-	if (Heap_uLT(320000, blksz)) {
+		if (Heap_uLT(Heap_heapMinExpand, blksz)) {
 		size = blksz;
 	} else {
-		size = 320000;
+		size = Heap_heapMinExpand;
 	}
 	chnk = Heap_NewChunk(size);
 	if (chnk != 0) {
@@ -249,6 +249,8 @@ static void Heap_ExtendHeap (INT64 blksz)
 			__PUT(chnk, next, INT64);
 			__PUT(j, chnk, INT64);
 		}
+	} else if (!Heap_firstTry) {
+		Heap_heapMinExpand = 32;
 	}
 }
 
@@ -290,7 +292,7 @@ SYSTEM_PTR Heap_NEWREC (INT64 tag)
 				if (Heap_firstTry) {
 					Heap_GC(1);
 					blksz += 32;
-					t = __LSH(Heap_allocated + blksz, -(Heap_ldUnit + 2), 64) * 160;
+					t = __LSH(Heap_allocated + blksz, -(2 + Heap_ldUnit), 64) * 160;
 					if (Heap_uLT(Heap_heapsize, t)) {
 						Heap_ExtendHeap(t - Heap_heapsize);
 					}
@@ -758,6 +760,7 @@ void Heap_InitHeap (void)
 	Heap_heapMin = -1;
 	Heap_heapMax = 0;
 	Heap_bigBlocks = 0;
+	Heap_heapMinExpand = 256000;
 	Heap_ldUnit = 5;
 	Heap_heap = Heap_NewChunk(256000);
 	__PUT(Heap_heap, 0, INT64);

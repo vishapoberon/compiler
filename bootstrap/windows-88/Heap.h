@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2016/12/28]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
+/* voc 2.1.0 [2016/12/29]. Bootstrapping compiler for address size 8, alignment 8. tsSF */
 
 #ifndef Heap__h
 #define Heap__h
@@ -48,7 +48,7 @@ typedef
 import SYSTEM_PTR Heap_modules;
 import INT64 Heap_allocated;
 import INT64 Heap_heap;
-import INT64 Heap_heapsize;
+import INT64 Heap_heapsize, Heap_heapMinExpand;
 import INT16 Heap_FileCount;
 
 import ADDRESS *Heap_ModuleDesc__typ;
