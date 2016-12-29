@@ -10,7 +10,6 @@ MODULE Heap;
     Unit          = 4*SZA;            (* Smallest possible heap block *)
     nofLists      = 9;                (* Number of freelist entries excluding sentinel *)
     heapSize0     = 8000*Unit;        (* Startup heap size *)
-    heapMinExpand = 10000*Unit;       (* minimum heap expansion size *)
 
   (* all blocks look the same:
     free blocks describe themselves: size = Unit
@@ -83,10 +82,11 @@ MODULE Heap;
 
 
     (* extensible heap *)
-    heap-:      S.ADDRESS;  (* the sorted list of heap chunks *)
-    heapMin:    S.ADDRESS;  (* Range of valid pointer values, used for stack collection *)
-    heapMax:    S.ADDRESS;
-    heapsize*:  S.ADDRESS;  (* the sum of all heap chunk sizes *)
+    heap-:          S.ADDRESS;  (* the sorted list of heap chunks *)
+    heapMin:        S.ADDRESS;  (* Range of valid pointer values, used for stack collection *)
+    heapMax:        S.ADDRESS;
+    heapsize*:      S.ADDRESS;  (* the sum of all heap chunk sizes *)
+    heapMinExpand*: S.ADDRESS;  (* minimum heap expansion size *)
 
     (* finalization candidates *)
     fin: FinNode;
@@ -213,6 +213,7 @@ MODULE Heap;
   PROCEDURE ExtendHeap(blksz: S.ADDRESS);
     VAR size, chnk, j, next: S.ADDRESS;
   BEGIN
+    ASSERT(blksz MOD Unit = 0);
     IF uLT(heapMinExpand, blksz) THEN size := blksz
     ELSE size := heapMinExpand  (* additional heuristics for avoiding many small heap expansions *)
     END;
@@ -229,6 +230,12 @@ MODULE Heap;
         END;
         S.PUT(chnk, next); S.PUT(j, chnk)
       END
+    ELSIF ~firstTry THEN
+      (* Heap memory exhausted, i.e. heap is not expanded and NEWREC() will return NIL.
+         In order to be able to report a trap due to NIL access, there is more
+         memory needed, which may be available by reducing heapMinExpand. *)
+      heapMinExpand := Unit
+    (* ELSE firstTry: ignore failed heap expansion for anti-thrashing heuristics. *)
     END
   END ExtendHeap;
 
@@ -270,8 +277,10 @@ MODULE Heap;
           IF firstTry THEN
             GC(TRUE); INC(blksz, Unit);
             (* Anti-thrashing heuristics: ensure 1/5 of the heap will not be allocated. *)
-            t := S.LSH(allocated + blksz, -(ldUnit+2)) (*uDIV 4*Unit*) * (5*Unit) ; (* Minimum preferred heapsize *)
-            IF uLT(heapsize, t) THEN ExtendHeap(t - heapsize) END;
+            t := S.LSH(allocated + blksz, -(2+ldUnit)) (*uDIV 4*Unit*) * (5*Unit) ; (* Minimum preferred heapsize *)
+            IF uLT(heapsize, t) THEN ExtendHeap(t - heapsize)
+              (* If there is not enough heap memory then the heap will be expanded below by blksz *)
+            END;
             firstTry := FALSE; new := NEWREC(tag);
             IF new = NIL THEN (* Heap is 1/5 free but fragmentation prevented allocation *)
               ExtendHeap(blksz);
@@ -592,13 +601,14 @@ MODULE Heap;
   (* InitHeap is called by Platform.init before any module bodies have been
      initialised, to enable NEW, S.NEW *)
   BEGIN
-    heap       := 0;
-    heapsize   := 0;
-    allocated  := 0;
-    lockdepth  := 0;
-    heapMin    := -1;  (* all bits set *)
-    heapMax    := 0;
-    bigBlocks  := 0;
+    heap          := 0;
+    heapsize      := 0;
+    allocated     := 0;
+    lockdepth     := 0;
+    heapMin       := -1;        (* all bits set = max unsigned value *)
+    heapMax       := 0;
+    bigBlocks     := 0;
+    heapMinExpand := heapSize0;
 
     ASSERT((Unit = 16) OR (Unit = 32));
     IF Unit = 16 THEN ldUnit := 4 ELSE ldUnit := 5 END;
