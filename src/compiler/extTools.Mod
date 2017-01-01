@@ -11,7 +11,7 @@ PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
   VAR r, status, exitcode: INTEGER; fullcmd: CommandString;
 BEGIN
   IF OPM.verbose IN OPM.Options THEN
-    Out.String("  "); Out.String(fullcmd); Out.Ln
+    Out.String("  "); Out.String(cmd); Out.Ln
   END;
 
   (* Hack to suppress unwanted filename display by Microsoft C compiler on successful compilations. *)
