@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2016/12/29]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2017/01/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -35,7 +35,7 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 	__DUP(cmd, cmd__len, CHAR);
 	if (__IN(18, OPM_Options, 32)) {
 		Out_String((CHAR*)"  ", 3);
-		Out_String(fullcmd, 4096);
+		Out_String(cmd, cmd__len);
 		Out_Ln();
 	}
 	__COPY(cmd, fullcmd, 4096);
