@@ -197,11 +197,11 @@ void determineInstallDirectory() {
 
 void determineLdconfig() {  // Generate appropriate ldconfig command for this OS
   if (bsd) {
-    snprintf(ldconfig, sizeof(ldconfig), "ldconfig -m \"%s/lib\"", installdir);
+    snprintf(ldconfig, sizeof(ldconfig), "ldconfig -m ""%s/lib""", installdir);
   } else {
     snprintf(
       ldconfig, sizeof(ldconfig),
-      "if echo \"%s/lib\" >/etc/ld.so.conf.d/lib%s.conf; then ldconfig; fi",
+      "if echo ""%s/lib"" >/etc/ld.so.conf.d/lib%s.conf; then ldconfig; fi",
       installdir, oname
     );
   }
