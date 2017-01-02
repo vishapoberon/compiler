@@ -43,7 +43,6 @@ char installdir[256];
 char versionstring[256];
 char osrelease[1024];
 char cwd[1024];
-char ldconfig[1024];  // Command(s) to update OS shared library config
 char libspec[1024];
 
 #define macrotostringhelper(s) #s
@@ -189,21 +188,6 @@ void determineInstallDirectory() {
         }
       #endif
     }
-  }
-}
-
-
-
-
-void determineLdconfig() {  // Generate appropriate ldconfig command for this OS
-  if (bsd) {
-    snprintf(ldconfig, sizeof(ldconfig), "ldconfig -m \"%s/lib\"", installdir);
-  } else {
-    snprintf(
-      ldconfig, sizeof(ldconfig),
-      "if echo \"%s/lib\" >/etc/ld.so.conf.d/lib%s.conf; then ldconfig; fi",
-      installdir, oname
-    );
   }
 }
 
@@ -394,7 +378,6 @@ void writeMakeParameters() {
   fprintf(fd, "BINEXT=%s\n",     binext);
   fprintf(fd, "COMPILE=%s\n",    cc);
   fprintf(fd, "STATICLINK=%s\n", staticlink);
-  fprintf(fd, "LDCONFIG=%s\n",   ldconfig);
   fclose(fd);
 }
 
@@ -456,7 +439,6 @@ int main(int argc, char *argv[])
   determineCDataModel();
   determineBuildDate();
   determineInstallDirectory();
-  determineLdconfig();
 
   testSystemDotH();
 
