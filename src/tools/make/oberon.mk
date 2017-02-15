@@ -386,7 +386,7 @@ library:
 	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
 	@printf '\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n'
 	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
-	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)-O$(MODEL).so *.o
+	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)-O$(MODEL)$(DYNEXT) *.o
 
 
 

@@ -47,14 +47,13 @@ char libspec[1024];
 
 #define macrotostringhelper(s) #s
 #define macrotostring(s) macrotostringhelper(s)
-char *version   = macrotostring(O_VER);
-char *objext    = ".o";
-char *objflag   = " -o ";
-char *linkflags = " -L\"";
-char *libext    = "";
-char *oname     = NULL;  // From O_NAME env var if present, or O_NAME macro otherwise.
-
-
+char *version     = macrotostring(O_VER);
+char *objext      = ".o";
+char *objflag     = " -o ";
+char *linkflags   = " -L\"";
+char *libext      = "";
+char *oname       = NULL;  // From O_NAME env var if present, or O_NAME macro otherwise.
+char *dynext      = ".so";
 char *dataModel   = NULL;
 char *compiler    = NULL;
 char *cc          = NULL;
@@ -114,7 +113,7 @@ void determineOS() {
     else if (strncasecmp(sys.sysname, "linux",   5) == 0) {determineLinuxVariant();}
     else if (strncasecmp(sys.sysname, "freebsd", 5) == 0) {os = "freebsd"; bsd = 1;}
     else if (strncasecmp(sys.sysname, "openbsd", 5) == 0) {os = "openbsd"; bsd = 1;}
-    else if (strncasecmp(sys.sysname, "darwin",  5) == 0) {os = "darwin";  staticlink = "";}
+    else if (strncasecmp(sys.sysname, "darwin",  5) == 0) {os = "darwin";  staticlink = ""; dynext = ".dylib";}
     else {
       fprintf(stderr, "\n\n** Unrecognised utsname.sysname '%s' returned by uname().\n", sys.sysname);
       fprintf(stderr, "** Please add a test for this OS in src/buildtools/configure.c\n");
@@ -376,6 +375,7 @@ void writeMakeParameters() {
   fprintf(fd, "INSTALLDIR=%s\n", installdir);
   fprintf(fd, "PLATFORM=%s\n",   platform);
   fprintf(fd, "BINEXT=%s\n",     binext);
+  fprintf(fd, "DYNEXT=%s\n",     dynext);
   fprintf(fd, "COMPILE=%s\n",    cc);
   fprintf(fd, "STATICLINK=%s\n", staticlink);
   fclose(fd);
@@ -396,6 +396,7 @@ void writeConfigurationMod() {
   fprintf(fd, "  linkflags*   = '%s';\n", linkflags);
   fprintf(fd, "  libspec*     = '%s';\n", libspec);
   fprintf(fd, "  libext*      = '%s';\n", libext);
+  fprintf(fd, "  os*          = '%s';\n", os);
   fprintf(fd, "  compiler*    = '%s';\n", compiler);
   fprintf(fd, "  compile*     = '%s';\n", cc);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);

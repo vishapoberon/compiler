@@ -89,6 +89,23 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(OPM.Model,                  cmd);
     Strings.Append(Configuration.libext,       cmd);
     execute("C compile and link: ", cmd);
+
+    IF (Configuration.os = "darwin") & ~statically THEN
+      (* Darwin requires an extra command to set the library directory into the binary *)
+      cmd := "install_name_tool -change lib";
+      Strings.Append(Configuration.name,   cmd);
+      Strings.Append('-O',                 cmd);
+      Strings.Append(OPM.Model,            cmd);
+      Strings.Append('.dylib ',            cmd);
+      Strings.Append(OPM.InstallDir,       cmd);
+      Strings.Append('/lib/lib',           cmd);
+      Strings.Append(Configuration.name,   cmd);
+      Strings.Append('-O',                 cmd);
+      Strings.Append(OPM.Model,            cmd);
+      Strings.Append('.dylib ',            cmd);
+      Strings.Append(moduleName,           cmd);
+      execute("Set library directory: ",   cmd)
+    END
   END LinkMain;
 
 
