@@ -73,21 +73,32 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     cmd: CommandString;
   BEGIN
     InitialiseCompilerCommand(cmd);
-    Strings.Append(moduleName,                 cmd);
-    Strings.Append(".c ",                      cmd);
-    Strings.Append(additionalopts,             cmd);
+    Strings.Append(moduleName,                   cmd);
+    Strings.Append(".c ",                        cmd);
+    Strings.Append(additionalopts,               cmd);
     IF statically THEN
-      Strings.Append(Configuration.staticLink, cmd)
+      IF Configuration.os = "darwin" THEN
+        Strings.Append(OPM.InstallDir,           cmd);
+        Strings.Append('/lib/lib',               cmd);
+        Strings.Append(Configuration.name,       cmd);
+        Strings.Append('-O',                     cmd);
+        Strings.Append(OPM.Model,                cmd);
+        Strings.Append('.a',                     cmd);
+      ELSE
+        Strings.Append(Configuration.staticLink, cmd)
+      END
     END;
-    Strings.Append(Configuration.objflag,      cmd);
-    Strings.Append(moduleName,                 cmd);
-    Strings.Append(Configuration.linkflags,    cmd);
-    Strings.Append(OPM.InstallDir,             cmd);
-    Strings.Append('/lib"',                    cmd);
-    Strings.Append(Configuration.libspec,      cmd);
-    Strings.Append('-O',                       cmd);
-    Strings.Append(OPM.Model,                  cmd);
-    Strings.Append(Configuration.libext,       cmd);
+    Strings.Append(Configuration.objflag,        cmd);
+    Strings.Append(moduleName,                   cmd);
+    IF (~statically) OR ~(Configuration.os = "darwin") THEN
+      Strings.Append(Configuration.linkflags,      cmd);
+      Strings.Append(OPM.InstallDir,               cmd);
+      Strings.Append('/lib"',                      cmd);
+      Strings.Append(Configuration.libspec,        cmd);
+      Strings.Append('-O',                         cmd);
+      Strings.Append(OPM.Model,                    cmd);
+      Strings.Append(Configuration.libext,         cmd)
+    END;
     execute("C compile and link: ", cmd);
 
     IF (Configuration.os = "darwin") & ~statically THEN
