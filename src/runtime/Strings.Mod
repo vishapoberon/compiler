@@ -28,8 +28,8 @@ Strings.Cap(s)
   replaces each lower case letter in s by its upper case equivalent.
 -------------------------------------------------------------*)
 (* added from trianus v4 *)
-MODULE Strings;  (*HM 94-06-22 /  *)
-
+MODULE Strings;  (*HM 94-06-22 /  *) (* noch 2017-06-21 *)
+IMPORT Reals;
 
 PROCEDURE Length* (s: ARRAY OF CHAR): INTEGER;
   VAR i: LONGINT;
@@ -152,5 +152,75 @@ PROCEDURE Match* (string, pattern: ARRAY OF CHAR): BOOLEAN;
 BEGIN
   RETURN M(string, pattern, Length(string)-1, Length(pattern)-1)
 END Match;
+
+PROCEDURE StrToReal*(s: ARRAY OF CHAR; VAR r: REAL);
+VAR p, e: INTEGER; y, g: REAL; neg, negE: BOOLEAN;
+BEGIN
+	p := 0;
+	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
+	IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
+	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
+	
+	y := 0;
+	WHILE ("0" <= s[p]) & (s[p] <= "9") DO
+		y := y * 10 + (ORD(s[p]) - 30H);
+		INC(p);
+	END;
+	IF s[p] = "." THEN
+		INC(p); g := 1; 
+		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
+			g := g / 10; y := y + g * (ORD(s[p]) - 30H);
+			INC(p);
+		END;
+	END;
+	IF (s[p] = "D") OR (s[p] = "E") THEN
+		INC(p); e := 0;
+		IF s[p] = "-" THEN negE := TRUE; INC(p) ELSE negE := FALSE END;
+		WHILE (s[p] = "0") DO INC(p) END;
+		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
+			e := e * 10 + (ORD(s[p]) - 30H);
+			INC(p);
+		END;
+		IF negE THEN y := y / Reals.Ten(e)
+		ELSE y := y * Reals.Ten(e) END;
+	END;
+	IF neg THEN y := -y END;
+	r := y;
+END StrToReal;
+
+PROCEDURE StrToLongReal*(s: ARRAY OF CHAR; VAR r: LONGREAL);
+VAR p, e: INTEGER; y, g: LONGREAL; neg, negE: BOOLEAN;
+BEGIN
+	p := 0;
+	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
+	IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
+	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
+	
+	y := 0;
+	WHILE ("0" <= s[p]) & (s[p] <= "9") DO
+		y := y * 10 + (ORD(s[p]) - 30H);
+		INC(p);
+	END;
+	IF s[p] = "." THEN
+		INC(p); g := 1; 
+		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
+			g := g / 10; y := y + g * (ORD(s[p]) - 30H);
+			INC(p);
+		END;
+	END;
+	IF (s[p] = "D") OR (s[p] = "E") THEN
+		INC(p); e := 0;
+		IF s[p] = "-" THEN negE := TRUE; INC(p) ELSE negE := FALSE END;
+		WHILE (s[p] = "0") DO INC(p) END;
+		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
+			e := e * 10 + (ORD(s[p]) - 30H);
+			INC(p);
+		END;
+		IF negE THEN y := y / Reals.Ten(e)
+		ELSE y := y * Reals.Ten(e) END;
+	END;
+	IF neg THEN y := -y END;
+	r := y;
+END StrToLongReal;
 
 END Strings.

@@ -106,11 +106,11 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../Configuration.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsFapx -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Heap.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Reals.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Strings.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Out.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Modules.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Files.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Reals.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Texts.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/VT100.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPM.Mod
