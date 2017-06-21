@@ -60,8 +60,8 @@ assemble:
 	@printf '    DATAMODEL:  %s\n' "$(DATAMODEL)"
 
 	cd $(BUILDDIR) && $(COMPILE) -c SYSTEM.c  Configuration.c Platform.c Heap.c
-	cd $(BUILDDIR) && $(COMPILE) -c Out.c     Strings.c       Modules.c  Files.c
-	cd $(BUILDDIR) && $(COMPILE) -c Reals.c   Texts.c         VT100.c
+	cd $(BUILDDIR) && $(COMPILE) -c Out.c     Reals.c         Strings.c  Modules.c 
+	cd $(BUILDDIR) && $(COMPILE) -c Files.c   Texts.c         VT100.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
@@ -212,13 +212,13 @@ runtime: FORCE
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Heap.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Out.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Modules.Mod
+	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Reals.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Strings.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/In.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/VT100.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Files.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Math.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/MathL.Mod
-	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Reals.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Texts.Mod
 	cd $(BUILDDIR)/$(MODEL); $(ROOTDIR)/$(OBECOMP) -Fs -O$(MODEL) ../../../src/runtime/Oberon.Mod
 
