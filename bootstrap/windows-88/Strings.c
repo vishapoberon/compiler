@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2017/01/01]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2017/06/21]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -6,6 +6,7 @@
 #define SET      UINT32
 
 #include "SYSTEM.h"
+#include "Reals.h"
 
 
 
@@ -19,6 +20,8 @@ export INT16 Strings_Length (CHAR *s, ADDRESS s__len);
 export BOOLEAN Strings_Match (CHAR *string, ADDRESS string__len, CHAR *pattern, ADDRESS pattern__len);
 export INT16 Strings_Pos (CHAR *pattern, ADDRESS pattern__len, CHAR *s, ADDRESS s__len, INT16 pos);
 export void Strings_Replace (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len);
+export void Strings_StrToLongReal (CHAR *s, ADDRESS s__len, LONGREAL *r);
+export void Strings_StrToReal (CHAR *s, ADDRESS s__len, REAL *r);
 
 
 INT16 Strings_Length (CHAR *s, ADDRESS s__len)
@@ -236,10 +239,135 @@ BOOLEAN Strings_Match (CHAR *string, ADDRESS string__len, CHAR *pattern, ADDRESS
 	return __retval;
 }
 
+void Strings_StrToReal (CHAR *s, ADDRESS s__len, REAL *r)
+{
+	INT16 p, e;
+	REAL y, g;
+	BOOLEAN neg, negE;
+	__DUP(s, s__len, CHAR);
+	p = 0;
+	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
+		p += 1;
+	}
+	if (s[__X(p, s__len)] == '-') {
+		neg = 1;
+		p += 1;
+	} else {
+		neg = 0;
+	}
+	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
+		p += 1;
+	}
+	y = (REAL)0;
+	while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
+		y = y * (REAL)10 + ((INT16)s[__X(p, s__len)] - 48);
+		p += 1;
+	}
+	if (s[__X(p, s__len)] == '.') {
+		p += 1;
+		g = (REAL)1;
+		while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
+			g = g / (REAL)(REAL)10;
+			y = y + g * ((INT16)s[__X(p, s__len)] - 48);
+			p += 1;
+		}
+	}
+	if (s[__X(p, s__len)] == 'D' || s[__X(p, s__len)] == 'E') {
+		p += 1;
+		e = 0;
+		if (s[__X(p, s__len)] == '-') {
+			negE = 1;
+			p += 1;
+		} else {
+			negE = 0;
+		}
+		while (s[__X(p, s__len)] == '0') {
+			p += 1;
+		}
+		while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
+			e = e * 10 + ((INT16)s[__X(p, s__len)] - 48);
+			p += 1;
+		}
+		if (negE) {
+			y = y / (REAL)Reals_Ten(e);
+		} else {
+			y = y * Reals_Ten(e);
+		}
+	}
+	if (neg) {
+		y = -y;
+	}
+	*r = y;
+	__DEL(s);
+}
+
+void Strings_StrToLongReal (CHAR *s, ADDRESS s__len, LONGREAL *r)
+{
+	INT16 p, e;
+	LONGREAL y, g;
+	BOOLEAN neg, negE;
+	__DUP(s, s__len, CHAR);
+	p = 0;
+	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
+		p += 1;
+	}
+	if (s[__X(p, s__len)] == '-') {
+		neg = 1;
+		p += 1;
+	} else {
+		neg = 0;
+	}
+	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
+		p += 1;
+	}
+	y = (LONGREAL)0;
+	while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
+		y = y * (LONGREAL)10 + ((INT16)s[__X(p, s__len)] - 48);
+		p += 1;
+	}
+	if (s[__X(p, s__len)] == '.') {
+		p += 1;
+		g = (LONGREAL)1;
+		while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
+			g = g / (LONGREAL)(LONGREAL)10;
+			y = y + g * ((INT16)s[__X(p, s__len)] - 48);
+			p += 1;
+		}
+	}
+	if (s[__X(p, s__len)] == 'D' || s[__X(p, s__len)] == 'E') {
+		p += 1;
+		e = 0;
+		if (s[__X(p, s__len)] == '-') {
+			negE = 1;
+			p += 1;
+		} else {
+			negE = 0;
+		}
+		while (s[__X(p, s__len)] == '0') {
+			p += 1;
+		}
+		while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
+			e = e * 10 + ((INT16)s[__X(p, s__len)] - 48);
+			p += 1;
+		}
+		if (negE) {
+			y = y / (LONGREAL)Reals_Ten(e);
+		} else {
+			y = y * Reals_Ten(e);
+		}
+	}
+	if (neg) {
+		y = -y;
+	}
+	*r = y;
+	__DEL(s);
+}
+
 
 export void *Strings__init(void)
 {
 	__DEFMOD;
+	__MODULE_IMPORT(Reals);
 	__REGMOD("Strings", 0);
 /* BEGIN */
 	__ENDMOD;
