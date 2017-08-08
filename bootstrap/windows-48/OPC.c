@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2017/06/21]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2017/08/08]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -681,6 +681,10 @@ static void OPC_DefineType (OPT_Struct str)
 					OPC_DefineType(str->BaseTyp);
 				}
 			} else if (__IN(str->comp, 0x0c, 32)) {
+				if ((str->BaseTyp->strobj != NIL && str->BaseTyp->strobj->linkadr == 1)) {
+					OPM_Mark(244, str->txtpos);
+					str->BaseTyp->strobj->linkadr = 2;
+				}
 				OPC_DefineType(str->BaseTyp);
 			} else if (str->form == 12) {
 				if (str->BaseTyp != OPT_notyp) {
