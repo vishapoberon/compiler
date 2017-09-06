@@ -19,7 +19,11 @@
     typedef unsigned long      size_t;
   #endif
 #else
-  typedef unsigned int         size_t;
+  #if defined(__OpenBSD__)
+    typedef unsigned long      size_t;
+  #else
+    typedef unsigned int       size_t;
+  #endif
 #endif
 
 #define _SIZE_T_DECLARED // For FreeBSD
