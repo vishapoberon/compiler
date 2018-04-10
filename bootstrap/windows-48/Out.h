@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2017/09/06]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2018/04/10]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #ifndef Out__h
 #define Out__h
