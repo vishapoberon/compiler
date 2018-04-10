@@ -1,6 +1,6 @@
 MODULE newttest2;
 
-IMPORT newt, oocIntStr, Unix;
+IMPORT newt, oocIntStr;
 VAR i, j, k : newt.Int32;
 str : ARRAY 32 OF CHAR;
 form, b1, b2, comp: newt.Component;
@@ -20,7 +20,7 @@ newt.FormAddComponent(form, b1);
 newt.FormAddComponent(form, b2);
 comp := newt.RunForm(form);
 newt.WaitForKey();
-newt.Delay(30);
+newt.Delay(3000);
 newt.FormDestroy(form);
 i := newt.Finished();
 END newttest2.
