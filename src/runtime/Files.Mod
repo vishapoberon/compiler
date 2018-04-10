@@ -29,7 +29,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
                       name *)
 
   TYPE
-    FileName = ARRAY 101 OF CHAR;
+    FileName = ARRAY 256 OF CHAR;
     File*    = POINTER TO FileDesc;
     Buffer   = POINTER TO BufDesc;
 
