@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <limits.h>	// for enabling PATH_MAX ...
 
 
 void fail(char *msg) {fprintf(stderr, "Error: %s\n", msg); exit(1);}
@@ -42,8 +43,8 @@ char builddate[256];
 char installdir[256];
 char versionstring[256];
 char osrelease[1024];
-char cwd[1024];
-char libspec[1024];
+char cwd[PATH_MAX];
+char libspec[PATH_MAX*8];
 
 #define macrotostringhelper(s) #s
 #define macrotostring(s) macrotostringhelper(s)
@@ -401,6 +402,8 @@ void writeConfigurationMod() {
   fprintf(fd, "  compile*     = '%s';\n", cc);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
+  fprintf(fd, "  MaxPathLen*  = %d;\n", PATH_MAX);
+  fprintf(fd  "  MaxFnLen*    = %d;\n", NAME_MAX);
   fprintf(fd, "VAR\n");
   fprintf(fd, "  versionLong-: ARRAY %d OF CHAR;\n", (int)strnlen(versionstring, 100)+1);
   fprintf(fd, "BEGIN\n");

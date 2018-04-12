@@ -4,7 +4,7 @@ MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
 2002-08-20 jt: NewStr: txtpos remains 0 for structs read from symbol file
 *)
 
-IMPORT OPS, OPM, SYSTEM;
+IMPORT OPS, OPM, SYSTEM, Configuration;
 
 
 (* Constants - value of literals *)
@@ -1310,6 +1310,13 @@ END Import;
     obj^.mode := Con; obj^.typ := booltyp; obj^.conval^.intval := value
   END EnterBoolConst;
 
+  PROCEDURE EnterIntConst(name: OPS.Name; value: LONGINT);
+    VAR obj: Object;
+  BEGIN
+    Insert(name, obj); obj^.conval := NewConst();
+    obj^.mode := Con; obj^.typ := int32typ; obj^.conval^.intval := value;
+  END EntarIntConst;
+
   PROCEDURE EnterTyp(name: OPS.Name; form: SHORTINT; size: INTEGER; VAR res: Struct);
     VAR obj: Object; typ: Struct;
   BEGIN
@@ -1367,6 +1374,9 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("NEW",    sysnewfn);
   EnterProc("MOVE",   movefn);
 
+  (* POSIX systems normally support PATH_MAX *)
+  EnterIntConst("MAXPATHLEN", Configuration.MaxPathLen);
+  EnterIntConst("MAXFILENAMELENGTH", Configuration.MaxFnLen);
 
   syslink  := topScope^.right;
   universe := topScope; topScope^.right := NIL;
