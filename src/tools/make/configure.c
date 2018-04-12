@@ -402,8 +402,8 @@ void writeConfigurationMod() {
   fprintf(fd, "  compile*     = '%s';\n", cc);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
-  fprintf(fd, "  MaxPathLen*  = %d;\n", PATH_MAX);
-  fprintf(fd  "  MaxFnLen*    = %d;\n", NAME_MAX);
+  fprintf(fd, "  MaxPathLen*  = %d;\n", PATH_MAX-1); // -1 for more consistency
+  fprintf(fd, "  MaxFnLen*    = %d;\n", NAME_MAX);
   fprintf(fd, "VAR\n");
   fprintf(fd, "  versionLong-: ARRAY %d OF CHAR;\n", (int)strnlen(versionstring, 100)+1);
   fprintf(fd, "BEGIN\n");

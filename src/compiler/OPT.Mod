@@ -1315,7 +1315,7 @@ END Import;
   BEGIN
     Insert(name, obj); obj^.conval := NewConst();
     obj^.mode := Con; obj^.typ := int32typ; obj^.conval^.intval := value;
-  END EntarIntConst;
+  END EnterIntConst;
 
   PROCEDURE EnterTyp(name: OPS.Name; form: SHORTINT; size: INTEGER; VAR res: Struct);
     VAR obj: Object; typ: Struct;
@@ -1375,8 +1375,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("MOVE",   movefn);
 
   (* POSIX systems normally support PATH_MAX *)
-  EnterIntConst("MAXPATHLEN", Configuration.MaxPathLen);
-  EnterIntConst("MAXFILENAMELENGTH", Configuration.MaxFnLen);
+  EnterIntConst("MAXPATHLEN", Configuration.MaxPathLen);        (*PATH_MAX - 1*)
+  EnterIntConst("MAXFILENAMELEN", Configuration.MaxFnLen);      (*NAME_LEN*)
 
   syslink  := topScope^.right;
   universe := topScope; topScope^.right := NIL;
