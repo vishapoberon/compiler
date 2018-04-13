@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/10]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2018/04/13]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -6,6 +6,7 @@
 #define SET      UINT32
 
 #include "SYSTEM.h"
+#include "Configuration.h"
 #include "OPM.h"
 #include "OPS.h"
 
@@ -126,6 +127,7 @@ export void OPT_Close (void);
 export void OPT_CloseScope (void);
 static void OPT_DebugStruct (OPT_Struct btyp);
 static void OPT_EnterBoolConst (OPS_Name name, INT32 value);
+static void OPT_EnterIntConst (OPS_Name name, INT32 value);
 static void OPT_EnterProc (OPS_Name name, INT16 num);
 static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res);
 static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res);
@@ -684,21 +686,21 @@ void OPT_IdFPrint (OPT_Struct typ)
 	}
 }
 
-static struct FPrintStr__15 {
+static struct FPrintStr__16 {
 	INT32 *pbfp, *pvfp;
-	struct FPrintStr__15 *lnk;
-} *FPrintStr__15_s;
+	struct FPrintStr__16 *lnk;
+} *FPrintStr__16_s;
 
-static void FPrintFlds__16 (OPT_Object fld, INT32 adr, BOOLEAN visible);
-static void FPrintHdFld__18 (OPT_Struct typ, OPT_Object fld, INT32 adr);
-static void FPrintTProcs__20 (OPT_Object obj);
+static void FPrintFlds__17 (OPT_Object fld, INT32 adr, BOOLEAN visible);
+static void FPrintHdFld__19 (OPT_Struct typ, OPT_Object fld, INT32 adr);
+static void FPrintTProcs__21 (OPT_Object obj);
 
-static void FPrintHdFld__18 (OPT_Struct typ, OPT_Object fld, INT32 adr)
+static void FPrintHdFld__19 (OPT_Struct typ, OPT_Object fld, INT32 adr)
 {
 	INT32 i, j, n;
 	OPT_Struct btyp = NIL;
 	if (typ->comp == 4) {
-		FPrintFlds__16(typ->link, adr, 0);
+		FPrintFlds__17(typ->link, adr, 0);
 	} else if (typ->comp == 2) {
 		btyp = typ->BaseTyp;
 		n = typ->n;
@@ -708,53 +710,53 @@ static void FPrintHdFld__18 (OPT_Struct typ, OPT_Object fld, INT32 adr)
 		}
 		if (btyp->form == 11 || btyp->comp == 4) {
 			j = OPT_nofhdfld;
-			FPrintHdFld__18(btyp, fld, adr);
+			FPrintHdFld__19(btyp, fld, adr);
 			if (j != OPT_nofhdfld) {
 				i = 1;
 				while ((i < n && OPT_nofhdfld <= 2048)) {
 					adr += btyp->size;
-					FPrintHdFld__18(btyp, fld, adr);
+					FPrintHdFld__19(btyp, fld, adr);
 					i += 1;
 				}
 			}
 		}
 	} else if (typ->form == 11 || __STRCMP(fld->name, "@ptr") == 0) {
-		OPM_FPrint(&*FPrintStr__15_s->pvfp, 11);
-		OPM_FPrint(&*FPrintStr__15_s->pvfp, adr);
+		OPM_FPrint(&*FPrintStr__16_s->pvfp, 11);
+		OPM_FPrint(&*FPrintStr__16_s->pvfp, adr);
 		OPT_nofhdfld += 1;
 	}
 }
 
-static void FPrintFlds__16 (OPT_Object fld, INT32 adr, BOOLEAN visible)
+static void FPrintFlds__17 (OPT_Object fld, INT32 adr, BOOLEAN visible)
 {
 	while ((fld != NIL && fld->mode == 4)) {
 		if ((fld->vis != 0 && visible)) {
-			OPM_FPrint(&*FPrintStr__15_s->pbfp, fld->vis);
-			OPT_FPrintName(&*FPrintStr__15_s->pbfp, (void*)fld->name, 256);
-			OPM_FPrint(&*FPrintStr__15_s->pbfp, fld->adr);
+			OPM_FPrint(&*FPrintStr__16_s->pbfp, fld->vis);
+			OPT_FPrintName(&*FPrintStr__16_s->pbfp, (void*)fld->name, 256);
+			OPM_FPrint(&*FPrintStr__16_s->pbfp, fld->adr);
 			OPT_FPrintStr(fld->typ);
-			OPM_FPrint(&*FPrintStr__15_s->pbfp, fld->typ->pbfp);
-			OPM_FPrint(&*FPrintStr__15_s->pvfp, fld->typ->pvfp);
+			OPM_FPrint(&*FPrintStr__16_s->pbfp, fld->typ->pbfp);
+			OPM_FPrint(&*FPrintStr__16_s->pvfp, fld->typ->pvfp);
 		} else {
-			FPrintHdFld__18(fld->typ, fld, fld->adr + adr);
+			FPrintHdFld__19(fld->typ, fld, fld->adr + adr);
 		}
 		fld = fld->link;
 	}
 }
 
-static void FPrintTProcs__20 (OPT_Object obj)
+static void FPrintTProcs__21 (OPT_Object obj)
 {
 	if (obj != NIL) {
-		FPrintTProcs__20(obj->left);
+		FPrintTProcs__21(obj->left);
 		if (obj->mode == 13) {
 			if (obj->vis != 0) {
-				OPM_FPrint(&*FPrintStr__15_s->pbfp, 13);
-				OPM_FPrint(&*FPrintStr__15_s->pbfp, __ASHR(obj->adr, 16));
-				OPT_FPrintSign(&*FPrintStr__15_s->pbfp, obj->typ, obj->link);
-				OPT_FPrintName(&*FPrintStr__15_s->pbfp, (void*)obj->name, 256);
+				OPM_FPrint(&*FPrintStr__16_s->pbfp, 13);
+				OPM_FPrint(&*FPrintStr__16_s->pbfp, __ASHR(obj->adr, 16));
+				OPT_FPrintSign(&*FPrintStr__16_s->pbfp, obj->typ, obj->link);
+				OPT_FPrintName(&*FPrintStr__16_s->pbfp, (void*)obj->name, 256);
 			}
 		}
-		FPrintTProcs__20(obj->right);
+		FPrintTProcs__21(obj->right);
 	}
 }
 
@@ -764,11 +766,11 @@ void OPT_FPrintStr (OPT_Struct typ)
 	OPT_Struct btyp = NIL;
 	OPT_Object strobj = NIL, bstrobj = NIL;
 	INT32 pbfp, pvfp;
-	struct FPrintStr__15 _s;
+	struct FPrintStr__16 _s;
 	_s.pbfp = &pbfp;
 	_s.pvfp = &pvfp;
-	_s.lnk = FPrintStr__15_s;
-	FPrintStr__15_s = &_s;
+	_s.lnk = FPrintStr__16_s;
+	FPrintStr__16_s = &_s;
 	if (!typ->fpdone) {
 		OPT_IdFPrint(typ);
 		pbfp = typ->idfp;
@@ -805,11 +807,11 @@ void OPT_FPrintStr (OPT_Struct typ)
 			OPM_FPrint(&pvfp, typ->align);
 			OPM_FPrint(&pvfp, typ->n);
 			OPT_nofhdfld = 0;
-			FPrintFlds__16(typ->link, 0, 1);
+			FPrintFlds__17(typ->link, 0, 1);
 			if (OPT_nofhdfld > 2048) {
 				OPM_Mark(225, typ->txtpos);
 			}
-			FPrintTProcs__20(typ->link);
+			FPrintTProcs__21(typ->link);
 			OPM_FPrint(&pvfp, pbfp);
 			strobj = typ->strobj;
 			if (strobj == NIL || strobj->name[0] == 0x00) {
@@ -819,7 +821,7 @@ void OPT_FPrintStr (OPT_Struct typ)
 		typ->pbfp = pbfp;
 		typ->pvfp = pvfp;
 	}
-	FPrintStr__15_s = _s.lnk;
+	FPrintStr__16_s = _s.lnk;
 }
 
 void OPT_FPrintObj (OPT_Object obj)
@@ -1939,6 +1941,18 @@ static void OPT_EnterBoolConst (OPS_Name name, INT32 value)
 	obj->conval->intval = value;
 }
 
+static void OPT_EnterIntConst (OPS_Name name, INT32 value)
+{
+	OPT_Object obj = NIL;
+	OPS_Name name__copy;
+	__DUPARR(name, OPS_Name);
+	OPT_Insert(name, &obj);
+	obj->conval = OPT_NewConst();
+	obj->mode = 3;
+	obj->typ = OPT_int32typ;
+	obj->conval->intval = value;
+}
+
 static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res)
 {
 	OPT_Object obj = NIL;
@@ -2067,6 +2081,7 @@ __TDESC(OPT_LinkDesc, 1, 1) = {__TDFLDS("LinkDesc", 260), {256, -8}};
 export void *OPT__init(void)
 {
 	__DEFMOD;
+	__MODULE_IMPORT(Configuration);
 	__MODULE_IMPORT(OPM);
 	__MODULE_IMPORT(OPS);
 	__REGMOD("OPT", EnumPtrs);
@@ -2110,6 +2125,8 @@ export void *OPT__init(void)
 	OPT_EnterProc((CHAR*)"VAL", 29);
 	OPT_EnterProc((CHAR*)"NEW", 30);
 	OPT_EnterProc((CHAR*)"MOVE", 31);
+	OPT_EnterIntConst((CHAR*)"MAXPATHLEN", 4095);
+	OPT_EnterIntConst((CHAR*)"MAXFILENAMELEN", 255);
 	OPT_syslink = OPT_topScope->right;
 	OPT_universe = OPT_topScope;
 	OPT_topScope->right = NIL;

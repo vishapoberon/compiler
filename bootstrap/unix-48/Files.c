@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.1.0 [2018/04/13]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -26,7 +26,7 @@ typedef
 	Files_BufDesc *Files_Buffer;
 
 typedef
-	CHAR Files_FileName[256];
+	CHAR Files_FileName[4096];
 
 typedef
 	struct Files_FileDesc {
@@ -129,9 +129,9 @@ static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 	Out_String((CHAR*)": ", 3);
 	if (f != NIL) {
 		if (f->registerName[0] != 0x00) {
-			Out_String(f->registerName, 256);
+			Out_String(f->registerName, 4096);
 		} else {
-			Out_String(f->workName, 256);
+			Out_String(f->workName, 4096);
 		}
 		if (f->fd != 0) {
 			Out_String((CHAR*)"f.fd = ", 8);
@@ -236,11 +236,11 @@ static void Files_Deregister (CHAR *name, ADDRESS name__len)
 		if (osfile != NIL) {
 			__ASSERT(!osfile->tempFile, 0);
 			__ASSERT(osfile->fd >= 0, 0);
-			__MOVE(osfile->workName, osfile->registerName, 256);
-			Files_GetTempName(osfile->registerName, 256, (void*)osfile->workName, 256);
+			__MOVE(osfile->workName, osfile->registerName, 4096);
+			Files_GetTempName(osfile->registerName, 4096, (void*)osfile->workName, 4096);
 			osfile->tempFile = 1;
 			osfile->state = 0;
-			error = Platform_Rename((void*)osfile->registerName, 256, (void*)osfile->workName, 256);
+			error = Platform_Rename((void*)osfile->registerName, 4096, (void*)osfile->workName, 4096);
 			if (error != 0) {
 				Files_Err((CHAR*)"Couldn't rename previous version of file being registered", 58, osfile, error);
 			}
@@ -256,17 +256,17 @@ static void Files_Create (Files_File f)
 	CHAR err[32];
 	if (f->fd == -1) {
 		if (f->state == 1) {
-			Files_GetTempName(f->registerName, 256, (void*)f->workName, 256);
+			Files_GetTempName(f->registerName, 4096, (void*)f->workName, 4096);
 			f->tempFile = 1;
 		} else {
 			__ASSERT(f->state == 2, 0);
-			Files_Deregister(f->registerName, 256);
-			__MOVE(f->registerName, f->workName, 256);
+			Files_Deregister(f->registerName, 4096);
+			__MOVE(f->registerName, f->workName, 4096);
 			f->registerName[0] = 0x00;
 			f->tempFile = 0;
 		}
-		error = Platform_Unlink((void*)f->workName, 256);
-		error = Platform_New((void*)f->workName, 256, &f->fd);
+		error = Platform_Unlink((void*)f->workName, 4096);
+		error = Platform_New((void*)f->workName, 4096, &f->fd);
 		done = error == 0;
 		if (done) {
 			f->next = Files_files;
@@ -337,7 +337,7 @@ Files_File Files_New (CHAR *name, ADDRESS name__len)
 	__DUP(name, name__len, CHAR);
 	__NEW(f, Files_FileDesc);
 	f->workName[0] = 0x00;
-	__COPY(name, f->registerName, 256);
+	__COPY(name, f->registerName, 4096);
 	f->fd = -1;
 	f->state = 1;
 	f->len = 0;
@@ -482,7 +482,7 @@ Files_File Files_Old (CHAR *name, ADDRESS name__len)
 					f->pos = 0;
 					f->swapper = -1;
 					error = Platform_Size(fd, &f->len);
-					__COPY(name, f->workName, 256);
+					__COPY(name, f->workName, 4096);
 					f->registerName[0] = 0x00;
 					f->tempFile = 0;
 					f->identity = identity;
@@ -817,12 +817,12 @@ void Files_Register (Files_File f)
 	}
 	Files_Close(f);
 	if (f->registerName[0] != 0x00) {
-		Files_Deregister(f->registerName, 256);
-		Files_Rename(f->workName, 256, f->registerName, 256, &errcode);
+		Files_Deregister(f->registerName, 4096);
+		Files_Rename(f->workName, 4096, f->registerName, 4096, &errcode);
 		if (errcode != 0) {
 			Files_Err((CHAR*)"Couldn't rename temp name as register name", 43, f, errcode);
 		}
-		__MOVE(f->registerName, f->workName, 256);
+		__MOVE(f->registerName, f->workName, 4096);
 		f->registerName[0] = 0x00;
 		f->tempFile = 0;
 	}
@@ -1041,7 +1041,7 @@ static void Files_Finalize (SYSTEM_PTR o)
 	if (f->fd >= 0) {
 		Files_CloseOSFile(f);
 		if (f->tempFile) {
-			res = Platform_Unlink((void*)f->workName, 256);
+			res = Platform_Unlink((void*)f->workName, 4096);
 		}
 	}
 }
@@ -1063,7 +1063,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(Files_SearchPath);
 }
 
-__TDESC(Files_FileDesc, 1, 4) = {__TDFLDS("FileDesc", 564), {540, 544, 548, 552, -20}};
+__TDESC(Files_FileDesc, 1, 4) = {__TDFLDS("FileDesc", 8244), {8220, 8224, 8228, 8232, -20}};
 __TDESC(Files_BufDesc, 1, 1) = {__TDFLDS("BufDesc", 4112), {0, -8}};
 __TDESC(Files_Rider, 1, 1) = {__TDFLDS("Rider", 20), {8, -8}};
 
