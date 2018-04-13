@@ -61,6 +61,7 @@ export ADDRESS *Files_FileDesc__typ;
 export ADDRESS *Files_BufDesc__typ;
 export ADDRESS *Files_Rider__typ;
 
+static void Files_AppendStr (CHAR *src, ADDRESS src__len, CHAR *dest, ADDRESS dest__len, INT32 *dx, BOOLEAN *done);
 static void Files_Assert (BOOLEAN truth);
 export Files_File Files_Base (Files_Rider *r, ADDRESS *r__typ);
 static Files_File Files_CacheEntry (Platform_FileIdentity identity);
@@ -71,6 +72,7 @@ static void Files_Create (Files_File f);
 export void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
 static void Files_Deregister (CHAR *name, ADDRESS name__len);
 static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode);
+static void Files_ErrBO (CHAR *where, ADDRESS where__len, CHAR *culprit, ADDRESS culprit__len);
 static void Files_Finalize (SYSTEM_PTR o);
 static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *dest, ADDRESS dest__len);
 static void Files_Flush (Files_Buffer buf);
@@ -78,10 +80,12 @@ export void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
 export void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
 static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len);
 static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len);
+static void Files_IntToStr (INT32 n, CHAR *buffer, ADDRESS buffer__len);
 export INT32 Files_Length (Files_File f);
 static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len);
 export Files_File Files_New (CHAR *name, ADDRESS name__len);
 export Files_File Files_Old (CHAR *name, ADDRESS name__len);
+static void Files_Peek (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x);
 export INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ);
 export void Files_Purge (Files_File f);
 export void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x);
@@ -148,27 +152,87 @@ static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 	__DEL(s);
 }
 
+static void Files_ErrBO (CHAR *where, ADDRESS where__len, CHAR *culprit, ADDRESS culprit__len)
+{
+	INT32 ix;
+	__DUP(where, where__len, CHAR);
+	__DUP(culprit, culprit__len, CHAR);
+	Out_Ln();
+	Out_String((CHAR*)"-- Files.", 10);
+	Out_String(where, where__len);
+	Out_String((CHAR*)": Buffer overflow (", 20);
+	Out_String(culprit, culprit__len);
+	Out_String((CHAR*)"|<", 3);
+	Out_String((CHAR*)")", 2);
+	Out_Ln();
+	__HALT(99);
+	__DEL(where);
+	__DEL(culprit);
+}
+
+static void Files_AppendStr (CHAR *src, ADDRESS src__len, CHAR *dest, ADDRESS dest__len, INT32 *dx, BOOLEAN *done)
+{
+	INT32 sx;
+	__DUP(src, src__len, CHAR);
+	sx = 0;
+	while (src[sx] != 0x00) {
+		if (*dx >= dest__len - 1) {
+			*done = 0;
+			__DEL(src);
+			return;
+		}
+		dest[*dx] = src[sx];
+		*dx += 1;
+		sx += 1;
+	}
+	*done = 1;
+	__DEL(src);
+}
+
+static void Files_IntToStr (INT32 n, CHAR *buffer, ADDRESS buffer__len)
+{
+	INT32 bx;
+	BOOLEAN sign;
+	sign = 0;
+	if (n < 0) {
+		n = -n;
+		sign = 1;
+	}
+	bx = buffer__len;
+	bx -= 1;
+	buffer[bx] = 0x00;
+	do {
+		if (bx > 0) {
+			bx -= 1;
+			buffer[bx] = (CHAR)((int)__MOD(n, 10) + 48);
+			n = __DIV(n, 10);
+		}
+	} while (!(n == 0));
+	if ((sign && bx > 0)) {
+		bx -= 1;
+		buffer[bx] = '-';
+	}
+	__MOVE((ADDRESS)buffer + (INT64)bx, (ADDRESS)buffer, buffer__len - bx);
+}
+
 static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len)
 {
-	INT16 i, j;
+	INT32 i;
+	BOOLEAN done;
 	__DUP(dir, dir__len, CHAR);
 	__DUP(name, name__len, CHAR);
 	i = 0;
-	j = 0;
-	while (dir[i] != 0x00) {
-		dest[i] = dir[i];
-		i += 1;
+	Files_AppendStr(dir, dir__len, (void*)dest, dest__len, &i, &done);
+	if ((done && dest[i - 1] != '/')) {
+		Files_AppendStr((CHAR*)"/", 2, (void*)dest, dest__len, &i, &done);
 	}
-	if (dest[i - 1] != '/') {
-		dest[i] = '/';
-		i += 1;
-	}
-	while (name[j] != 0x00) {
-		dest[i] = name[j];
-		i += 1;
-		j += 1;
+	if (done) {
+		Files_AppendStr(name, name__len, (void*)dest, dest__len, &i, &done);
 	}
 	dest[i] = 0x00;
+	if (!done) {
+		Files_ErrBO((CHAR*)"MakeFileName", 13, dest, dest__len);
+	}
 	__DEL(dir);
 	__DEL(name);
 }
@@ -176,50 +240,42 @@ static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS
 static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len)
 {
 	INT32 n, i, j;
+	CHAR numBuffer[40];
+	BOOLEAN done;
 	__DUP(finalName, finalName__len, CHAR);
 	Files_tempno += 1;
 	n = Files_tempno;
 	i = 0;
+	done = 1;
 	if (finalName[0] != '/') {
-		while (Platform_CWD[i] != 0x00) {
-			name[i] = Platform_CWD[i];
-			i += 1;
-		}
-		if (Platform_CWD[i - 1] != '/') {
-			name[i] = '/';
-			i += 1;
+		Files_AppendStr(Platform_CWD, 4096, (void*)name, name__len, &i, &done);
+		if ((done && name[i - 1] != '/')) {
+			Files_AppendStr((CHAR*)"/", 2, (void*)name, name__len, &i, &done);
 		}
 	}
-	j = 0;
-	while (finalName[j] != 0x00) {
-		name[i] = finalName[j];
-		i += 1;
-		j += 1;
+	if (done) {
+		Files_AppendStr(finalName, finalName__len, (void*)name, name__len, &i, &done);
 	}
-	i -= 1;
-	while (name[i] != '/') {
+	if (done) {
 		i -= 1;
-	}
-	name[i + 1] = '.';
-	name[i + 2] = 't';
-	name[i + 3] = 'm';
-	name[i + 4] = 'p';
-	name[i + 5] = '.';
-	i += 6;
-	while (n > 0) {
-		name[i] = (CHAR)((int)__MOD(n, 10) + 48);
-		n = __DIV(n, 10);
+		while (name[i] != '/') {
+			i -= 1;
+		}
 		i += 1;
+		Files_AppendStr((CHAR*)".tmp.", 6, (void*)name, name__len, &i, &done);
 	}
-	name[i] = '.';
-	i += 1;
-	n = Platform_PID;
-	while (n > 0) {
-		name[i] = (CHAR)((int)__MOD(n, 10) + 48);
-		n = __DIV(n, 10);
-		i += 1;
+	if (done) {
+		Files_IntToStr(Files_tempno, (void*)numBuffer, 40);
+		Files_AppendStr(numBuffer, 40, (void*)name, name__len, &i, &done);
+	}
+	if (done) {
+		Files_IntToStr(Platform_PID, (void*)numBuffer, 40);
+		Files_AppendStr(numBuffer, 40, (void*)name, name__len, &i, &done);
 	}
 	name[i] = 0x00;
+	if (!done) {
+		Files_ErrBO((CHAR*)"GetTempName", 12, name, name__len);
+	}
 	__DEL(finalName);
 }
 
@@ -350,13 +406,15 @@ Files_File Files_New (CHAR *name, ADDRESS name__len)
 
 static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len)
 {
-	INT16 i;
+	INT32 i;
+	INT16 pos1;
 	CHAR ch;
+	BOOLEAN done;
 	i = 0;
+	done = 1;
 	if (Files_SearchPath == NIL) {
 		if (*pos == 0) {
-			dir[0] = '.';
-			i = 1;
+			Files_AppendStr((CHAR*)".", 2, (void*)dir, dir__len, &i, &done);
 			*pos += 1;
 		}
 	} else {
@@ -368,27 +426,35 @@ static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len)
 		if (ch == '~') {
 			*pos += 1;
 			ch = (Files_SearchPath->data)[*pos];
-			while (Files_HOME[i] != 0x00) {
-				dir[i] = Files_HOME[i];
-				i += 1;
-			}
-			if ((((((ch != '/' && ch != 0x00)) && ch != ';')) && ch != ' ')) {
+			Files_AppendStr(Files_HOME, 1024, (void*)dir, dir__len, &i, &done);
+			if ((((((((done && ch != '/')) && ch != 0x00)) && ch != ';')) && ch != ' ')) {
 				while ((i > 0 && dir[i - 1] != '/')) {
 					i -= 1;
 				}
 			}
 		}
-		while ((ch != 0x00 && ch != ';')) {
-			dir[i] = ch;
-			i += 1;
-			*pos += 1;
-			ch = (Files_SearchPath->data)[*pos];
-		}
-		while ((i > 0 && dir[i - 1] == ' ')) {
-			i -= 1;
+		if (done) {
+			while ((((done && ch != 0x00)) && ch != ';')) {
+				if (i >= dir__len - 1) {
+					done = 0;
+				} else {
+					dir[i] = ch;
+					i += 1;
+					*pos += 1;
+					ch = (Files_SearchPath->data)[*pos];
+				}
+			}
+			if (done) {
+				while ((i > 0 && dir[i - 1] == ' ')) {
+					i -= 1;
+				}
+			}
 		}
 	}
 	dir[i] = 0x00;
+	if (!done) {
+		Files_ErrBO((CHAR*)"ScanPath", 9, dir, dir__len);
+	}
 }
 
 static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len)
@@ -629,6 +695,30 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 		Files_Set(&*r, r__typ, (*r).buf->f, (*r).org + offset);
 		*x = (*r).buf->data[0];
 		(*r).offset = 1;
+	} else {
+		*x = 0x00;
+		(*r).eof = 1;
+	}
+}
+
+static void Files_Peek (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
+{
+	INT32 offset;
+	Files_Buffer buf = NIL;
+	buf = (*r).buf;
+	offset = (*r).offset;
+	if ((*r).org != buf->org) {
+		Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
+		buf = (*r).buf;
+		offset = (*r).offset;
+	}
+	Files_Assert(offset <= buf->size);
+	if (offset < buf->size) {
+		*x = buf->data[offset];
+	} else if ((*r).org + offset < buf->f->len) {
+		Files_Set(&*r, r__typ, (*r).buf->f, (*r).org + offset);
+		*x = (*r).buf->data[0];
+		(*r).offset = 0;
 	} else {
 		*x = 0x00;
 		(*r).eof = 1;
@@ -899,27 +989,47 @@ void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
 	INT16 i;
 	CHAR ch;
+	BOOLEAN done;
 	i = 0;
+	done = 1;
+	Files_Read(&*R, R__typ, (void*)&ch);
 	do {
-		Files_Read(&*R, R__typ, (void*)&ch);
+		if (i >= x__len - 1) {
+			done = 0;
+		}
 		x[i] = ch;
 		i += 1;
-	} while (!(ch == 0x00));
+		Files_Read(&*R, R__typ, (void*)&ch);
+	} while (!(!done || ch == 0x00));
+	x[i] = 0x00;
+	if (!done) {
+		Files_ErrBO((CHAR*)"ReadString", 11, x, x__len);
+	}
 }
 
 void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
 	INT16 i;
+	CHAR ch;
 	i = 0;
-	do {
-		Files_Read(&*R, R__typ, (void*)&x[i]);
-		i += 1;
-	} while (!(x[i - 1] == 0x00 || x[i - 1] == 0x0a));
-	if (x[i - 1] == 0x0a) {
-		i -= 1;
+	if (x__len < 2) {
+		Files_ErrBO((CHAR*)"ReadLine", 9, (CHAR*)"*buffer too short*", 19);
 	}
-	if ((i > 0 && x[i - 1] == 0x0d)) {
-		i -= 1;
+	do {
+		Files_Read(&*R, R__typ, (void*)&ch);
+		x[i] = ch;
+		i += 1;
+	} while (!((i >= x__len - 1 || ch == 0x00) || ch == 0x0a));
+	if (x[i - 1] == 0x0d) {
+		if (i >= x__len - 1) {
+			Files_Peek(&*R, R__typ, (void*)&ch);
+			if (ch == 0x0a) {
+				i -= 1;
+				Files_Read(&*R, R__typ, (void*)&ch);
+			}
+		} else {
+			i -= 1;
+		}
 	}
 	x[i] = 0x00;
 }

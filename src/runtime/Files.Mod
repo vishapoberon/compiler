@@ -91,32 +91,127 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     HALT(99)
   END Err;
 
+(* ************************************************************************* **
+** Some helper procedures to be used in the modified versions of             **
+** 'MakeFileName()', 'GetTempName()' and 'ScanPath()', 'ReadString()' and    **
+** 'ReadLine()'. These should simplify the implementation of the named       **
+** procedures and help reducing buffer overflow problems ...                 **
+** ************************************************************************* **
+*)
+
+  (* Write a buffer overflow message to "stdout" and terminate ... *)
+  PROCEDURE ErrBO(where, culprit: ARRAY OF CHAR);
+    VAR ix: LONGINT;
+  BEGIN
+    Out.Ln; Out.String("-- Files."); Out.String(where);
+    Out.String(": Buffer overflow ("); Out.String(culprit);
+    Out.String("|<"); Out.String(")"); Out.Ln;
+    HALT(99)
+  END ErrBO;
+
+  (* Append a string (from a given position until its end) to the content of
+  ** a file buffer. This procedure returns TRUE through its last argument
+  ** if appending the string was successful (i.e., if the remaining buffer's
+  ** size was long enough for the string - including a 0X), and FALSE otherwise.
+  ** This procedure counts the ending 0X, but doesn't include it into the
+  ** output, meaning the terminating 0X must be appended manually after the
+  ** string was successfully completely.
+  *)
+  PROCEDURE AppendStr(src: ARRAY OF CHAR;
+                      VAR dest: ARRAY OF CHAR; VAR dx: LONGINT;
+		      VAR done: BOOLEAN);
+    VAR sx: LONGINT;
+  BEGIN
+    sx := 0;
+    WHILE src[sx] # 0X DO
+      IF dx >= LEN(dest) - 1 THEN done := FALSE; RETURN END;
+      dest[dx] := src[sx]; INC(dx); INC(sx);
+    END;
+    done := TRUE
+  END AppendStr;
+
+(* Small helper procedure for dumping a part of a string buffer ...
+  PROCEDURE DumpPath(tag, name, path: ARRAY OF CHAR; sx, px: LONGINT);
+    VAR ix: LONGINT;
+  BEGIN
+    Out.String(tag); Out.String(": "); Out.String(name); Out.String(' = "');
+    IF px = 0 THEN
+	ix := sx; WHILE path[ix] # 0X DO Out.Char(path[ix]); INC(ix) END;
+    ELSE
+	FOR ix := sx TO px - 2 DO Out.Char(path[ix]) END
+    END;
+    Out.String('"'); Out.Ln
+  END DumpPath;
+*)
+
+  (* Convert an integer (LONGINT) into a string in the supplied 'buffer'.
+  ** 'buffer' must be big enough to hold the complete integer (including the
+  ** string terminator (0X) after the conversion. (A buffer of 40 characters
+  ** should be enough for even 128bit numbers ...)
+  *)
+  PROCEDURE IntToStr(n: LONGINT; VAR buffer: ARRAY OF CHAR);
+    VAR bx: LONGINT; sign: BOOLEAN;
+  BEGIN
+    sign := FALSE; IF n < 0 THEN n := -n; sign := TRUE END;
+    bx := LEN(buffer);
+    DEC(bx); buffer[bx] := 0X;
+    REPEAT
+      IF bx > 0 THEN
+        DEC(bx); buffer[bx] := CHR(n MOD 10 + ORD("0"));
+        n := n DIV 10
+      END
+    UNTIL (n = 0);
+    IF sign & (bx > 0) THEN DEC(bx); buffer[bx] := "-" END;
+    SYSTEM.MOVE(SYSTEM.ADR(buffer) + bx, SYSTEM.ADR(buffer), LEN(buffer) - bx)
+  END IntToStr;
+
+  (* Reimplemented version of 'MakeFileName()', which makes use of
+  ** 'AppendStr()'. The status variable 'done' which is returned by
+  ** 'AppendStr()' is passed through the complete implementation, skipping
+  ** further appends after the first failure ...
+  *)
   PROCEDURE MakeFileName(dir, name: ARRAY OF CHAR; VAR dest: ARRAY OF CHAR);
-    VAR i, j: INTEGER;
-  BEGIN i := 0; j := 0;
-    WHILE dir[i] # 0X DO dest[i] := dir[i]; INC(i) END;
-    IF dest[i-1] # "/" THEN dest[i] := "/"; INC(i) END;
-    WHILE name[j] # 0X DO dest[i] := name[j]; INC(i); INC(j) END;
-    dest[i] := 0X
+    VAR i: LONGINT; done: BOOLEAN;
+  BEGIN i := 0;
+    AppendStr(dir, dest, i, done);
+    IF done & (dest[i-1] # "/") THEN
+      AppendStr("/", dest, i, done)
+    END;
+    IF done THEN AppendStr(name, dest, i, done); END;
+    dest[i] := 0X;
+    (* Generate an error message and terminate on failure *)
+    IF ~ done THEN ErrBO("MakeFileName", dest) END
   END MakeFileName;
 
+  (* Reimplemented version of 'GetTempName()'. The errorneous appending of
+  ** sequence number and process id was rewritten (using 'IntToStr()' and
+  ** 'AppendStr()').
+  *)
   PROCEDURE GetTempName(finalName: ARRAY OF CHAR; VAR name: ARRAY OF CHAR);
-    VAR n, i, j: LONGINT;
+    VAR n, i, j: LONGINT; numBuffer: ARRAY 40 OF CHAR; done: BOOLEAN;
   BEGIN
-    INC(tempno); n := tempno; i := 0;
+    INC(tempno); n := tempno; i := 0; done := TRUE;
     IF finalName[0] # "/" THEN  (* relative pathname *)
-      WHILE Platform.CWD[i] # 0X DO name[i] := Platform.CWD[i]; INC(i) END;
-      IF Platform.CWD[i-1] # "/" THEN name[i] := "/"; INC(i) END
+      (* Prepend the current working directory *)
+      AppendStr(Platform.CWD, name, i, done);
+      IF done & (name[i - 1] # "/") THEN AppendStr("/", name, i, done) END
     END;
-    j := 0;
-    WHILE finalName[j] # 0X DO name[i] := finalName[j]; INC(i); INC(j) END;
-    DEC(i);
-    WHILE name[i] # "/" DO DEC(i) END;
-    name[i+1] := "."; name[i+2] := "t"; name[i+3] := "m"; name[i+4] := "p"; name[i+5] := "."; INC(i, 6);
-    WHILE n > 0 DO name[i] := CHR(n MOD 10 + ORD("0")); n := n DIV 10; INC(i) END;
-    name[i] := "."; INC(i); n := Platform.PID;
-    WHILE n > 0 DO name[i] := CHR(n MOD 10 + ORD("0"));  n := n DIV 10; INC(i) END;
-    name[i] := 0X
+    (* Append the "final" pathname, but only for the directory *)
+    IF done THEN AppendStr(finalName, name, i, done) END;
+    IF done THEN
+      DEC(i); WHILE name[i] # "/" DO DEC(i) END; INC(i);
+      AppendStr(".tmp.", name, i, done)
+    END;
+    IF done THEN
+      IntToStr(tempno, numBuffer);
+      AppendStr(numBuffer, name, i, done);
+    END;
+    IF done THEN
+      IntToStr(Platform.PID, numBuffer);
+      AppendStr(numBuffer, name, i, done)
+    END;
+    name[i] := 0X;
+    IF ~ done THEN ErrBO("GetTempName", name) END
   END GetTempName;
 
   (* When registering a file, it may turn out that the name we want to use
@@ -240,28 +335,40 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE ScanPath(VAR pos: INTEGER; VAR dir: ARRAY OF CHAR);
   (* Extract next individual directory from searchpath starting at pos,
      updating pos and returning dir.
-     Supports ~, ~user and blanks inside path *)
-  VAR i: INTEGER; ch: CHAR;
+     Supports ~, ~user (???) and blanks inside path *)
+  VAR i: LONGINT; pos1: INTEGER; ch: CHAR; done: BOOLEAN;
   BEGIN
-    i := 0;
+    i := 0; done := TRUE;
     IF SearchPath = NIL THEN
       IF pos = 0 THEN
-        dir[0] := "."; i := 1; INC(pos) (* Default search path is just the current directory *)
+        (* Default search path is just the current directory *)
+        AppendStr(".", dir, i, done); INC(pos)
       END
     ELSE
       ch := SearchPath[pos];
       WHILE (ch = " ") OR (ch = ";") DO INC(pos); ch := SearchPath[pos] END;
       IF ch = "~" THEN
         INC(pos); ch := SearchPath[pos];
-        WHILE HOME[i] # 0X DO dir[i] := HOME[i]; INC(i) END;
-        IF (ch # "/") & (ch # 0X) & (ch # ";") & (ch # " ") THEN
+        AppendStr(HOME, dir, i, done);
+        IF done & (ch # "/") & (ch # 0X) & (ch # ";") & (ch # " ") THEN
           WHILE (i > 0) & (dir[i-1] # "/") DO DEC(i) END
         END
       END;
-      WHILE (ch # 0X) & (ch # ";") DO dir[i] := ch; INC(i); INC(pos); ch := SearchPath[pos] END;
-      WHILE (i > 0) & (dir[i-1] = " ") DO DEC(i) END
+      IF done THEN
+        WHILE done & (ch # 0X) & (ch # ";") DO
+          IF i >= LEN(dir) - 1 THEN
+            done := FALSE
+          ELSE
+            dir[i] := ch; INC(i); INC(pos); ch := SearchPath[pos]
+          END
+        END;
+        IF done THEN
+          WHILE (i > 0) & (dir[i - 1] = " ") DO DEC(i) END
+        END
+      END
     END;
-    dir[i] := 0X
+    dir[i] := 0X;
+    IF ~ done THEN ErrBO("ScanPath", dir) END
   END ScanPath;
 
   PROCEDURE HasDir(VAR name: ARRAY OF CHAR): BOOLEAN;
@@ -402,6 +509,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     r.buf := buf; r.org := org; r.offset := offset; r.eof := FALSE; r.res := 0
   END Set;
 
+
   PROCEDURE Read* (VAR r: Rider; VAR x: SYSTEM.BYTE);
     VAR offset: LONGINT; buf: Buffer;
   BEGIN
@@ -419,6 +527,30 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       x := 0X; r.eof := TRUE
     END
   END Read;
+
+
+  (* Read the next character from the stream, but don't advance after it.
+  ** This is a primitive 'look ahead' mechanism implemented especially for
+  ** 'ReadLine()'. Maybe it could be exported, too ...
+  *)
+  PROCEDURE Peek(VAR r: Rider; VAR x: SYSTEM.BYTE);
+    VAR offset: LONGINT; buf: Buffer;
+  BEGIN
+    buf := r.buf; offset := r.offset;
+    IF r.org # buf.org THEN
+      Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
+    END;
+    Assert(offset <= buf.size);
+    IF (offset < buf.size) THEN
+      x := buf.data[offset]                     (*Don't advance the offset*)
+    ELSIF r.org + offset < buf.f.len THEN
+      Set(r, r.buf.f, r.org + offset);
+      x := r.buf.data[0]; r.offset := 0         (*Same here - don't advance*)
+    ELSE
+      x := 0X; r.eof := TRUE
+    END
+  END Peek;
+
 
   PROCEDURE ReadBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
@@ -636,19 +768,64 @@ Especially Length would become fairly complex.
   BEGIN ReadBytes(R, b, 8); FlipBytes(b, x)
   END ReadLReal;
 
+  (* Reimplemented version of 'ReadString()' which checks for a buffer overflow
+  ** and terminates the program in this case.
+  *)
   PROCEDURE ReadString* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR;
-  BEGIN i := 0;
-    REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X
+    VAR i: INTEGER; ch: CHAR; done: BOOLEAN;
+  BEGIN i := 0; done := TRUE;
+    Read(R, ch);
+    REPEAT
+      IF i >= LEN(x) - 1 THEN done := FALSE END;
+      x[i] := ch; INC(i); Read(R, ch)
+    UNTIL ~ done OR (ch = 0X);
+    x[i] := 0X;
+    IF ~ done THEN ErrBO("ReadString", x) END
   END ReadString;
 
+  (* Buffer-overflow safe variant of 'ReadLine()'.
+  ** This variant read as much characters of a line as fit in the output
+  ** variable 'x' (excluding the terminating 0X). The terminating 0X will be
+  ** inserted manually after the read-loop. If the line has been read
+  ** incompletely (meaning there was no 0AX before the end of the buffer was
+  ** reached), the length of the resulting string is LEN(x) - 1. Otherwise, it
+  ** is always shorter.
+  ** In order to keep this procedure's semantics consistent in the case of a
+  ** CR/LF sequence being read partially into the buffer (due to a buffer
+  ** overflow), the procedure 'Peek()' (see above) was introduced.
+  *)
   PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-  VAR i: INTEGER;
+  VAR i: INTEGER; ch: CHAR;
   BEGIN
-    i := 0; REPEAT Read(R, x[i]); INC(i) UNTIL (x[i-1] = 0X) OR (x[i-1] = 0AX);
-    IF x[i-1] = 0AX THEN DEC(i) END;             (* Omit trailing LF *)
-    IF (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END; (* Also omit preceeding trailing CR if present. *)
-    x[i] := 0X;                                  (* Guarantee zero termination. *)
+    i := 0;
+    IF LEN(x) < 2 THEN ErrBO("ReadLine", "*buffer too short*") END;
+    REPEAT
+      Read(R, ch); x[i] := ch; INC(i)
+    UNTIL (i >= LEN(x) - 1) OR (ch = 0X) OR (ch = 0AX);
+
+    IF x[i-1] = 0DX THEN
+      (* Handle the two cases which may occur if the last valid character in the
+      ** buffer is 0DX ...
+      *)
+      (* Handle the special situation that the buffer overflowed, the last valid
+      ** character in the buffer is a 0DX and the next character in the stream
+      ** is 0AX ...
+      *)
+      IF (i >= LEN(x) - 1) THEN
+        (* The buffer overflowed. IF the next character in the input stream is
+        ** a LF, a CR/LF sequence was found. This means that the 0DX must be
+        ** removed from the buffer and the LF must be consumed. Otherwise, the
+        ** next character must remain in the input stream. Here, 'Peek()' is
+        ** used for getting the next character from the input stream, but *not*
+        ** consuming it. For consuming the character from the input stream,
+        ** 'Read()' is used ...
+        *)
+        Peek(R, ch); IF (ch = 0AX) THEN DEC(i); Read(R, ch) END
+      ELSE
+        DEC(i)
+      END
+    END;
+    x[i] := 0X
   END ReadLine;
 
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
