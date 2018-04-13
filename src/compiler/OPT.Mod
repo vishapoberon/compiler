@@ -1376,7 +1376,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
 
   (* POSIX systems normally support PATH_MAX *)
   EnterIntConst("MAXPATHLEN", Configuration.MaxPathLen);        (*PATH_MAX - 1*)
-  EnterIntConst("MAXFILENAMELEN", Configuration.MaxFnLen);      (*NAME_LEN*)
+  EnterIntConst("MAXFILENAMELEN", Configuration.MaxFnLen);      (*NAME_MAX*)
 
   syslink  := topScope^.right;
   universe := topScope; topScope^.right := NIL;
