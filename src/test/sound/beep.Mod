@@ -1,5 +1,5 @@
 MODULE beep;
-IMPORT Files, rm:=oocRealMath, Unix;
+IMPORT Files, rm:=oocRealMath, Platform;
 
 CONST pi2=6.28318;
 (*pi2 = 6.2831802368164062;*)
@@ -52,7 +52,7 @@ FOR i:=1 TO e DO
 END;
 
 Files.Register(outvar);
-i:=Unix.System("oggenc -r -C 1 beepfile");
-i:=Unix.System("ogg123 beepfile.ogg");
+i:=Platform.System("oggenc -r -C 1 beepfile");
+i:=Platform.System("ogg123 beepfile.ogg");
 END beep.
 
