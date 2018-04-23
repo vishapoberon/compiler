@@ -160,9 +160,9 @@ make full
 sub BuildBranch {my ($branch) = @_;
   Log undef, $branch, "$branch branch build triggered.";
 
-#  # Obtain a clean clone of vishaps
-#  DoLogged undef, $branch, "rm -rf $home/voc";
-#  DoLogged undef, $branch, "cd $home && git clone -b $branch --single-branch https://github.com/vishaps/voc";
+  # Obtain a clean clone of vishaps
+  DoLogged undef, $branch, "rm -rf $home/voc";
+  DoLogged undef, $branch, "cd $home && git clone -b $branch --single-branch https://github.com/vishaps/voc";
 
   # Start each build in turn
 
