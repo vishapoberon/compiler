@@ -188,15 +188,15 @@ echo.    DATAMODEL:  %DATAMODEL%
 
 cd %BUILDDIR%
 
-cl -nologo /Zi -c SYSTEM.c  Configuration.c Platform.c Heap.c   || exit /b
-cl -nologo /Zi -c Out.c     Strings.c       Modules.c  Files.c  || exit /b
-cl -nologo /Zi -c Reals.c   Texts.c         VT100.c             || exit /b
-cl -nologo /Zi -c OPM.c     extTools.c      OPS.c      OPT.c    || exit /b
-cl -nologo /Zi -c OPC.c     OPV.c           OPB.c      OPP.c    || exit /b
+cl -nologo /Zi -c SYSTEM.c Configuration.c Platform.c Heap.c    || exit /b
+cl -nologo /Zi -c Out.c    Reals.c         Strings.c  Modules.c || exit /b
+cl -nologo /Zi -c Files.c  Texts.c         VT100.c              || exit /b
+cl -nologo /Zi -c OPM.c    extTools.c      OPS.c      OPT.c     || exit /b
+cl -nologo /Zi -c OPC.c    OPV.c           OPB.c      OPP.c     || exit /b
 
 cl -nologo /Zi Compiler.c /Fe%ROOTDIR%\%OBECOMP% /link /INCREMENTAL:NO ^
-SYSTEM.obj  Configuration.obj Platform.obj Heap.obj  Out.obj   Strings.obj ^
-Modules.obj Files.obj         Reals.obj    Texts.obj VT100.obj extTools.obj ^
+SYSTEM.obj  Configuration.obj Platform.obj Heap.obj  Out.obj   Reals.obj ^
+Modules.obj Files.obj         Strings.obj  Texts.obj VT100.obj extTools.obj ^
 OPM.obj     OPS.obj           OPT.obj      OPC.obj   OPV.obj   OPB.obj    OPP.obj || exit /b
 
 cd %ROOTDIR%
@@ -242,11 +242,11 @@ del *.sym >nul 2>nul
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../Configuration.Mod                  || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Platform%PLATFORM%.Mod || exit /b
 %ROOTDIR%\%OBECOMP% -SsfFapx -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Heap.Mod               || exit /b
+%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Reals.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Strings.Mod            || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Out.Mod                || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Modules.Mod            || exit /b
 %ROOTDIR%\%OBECOMP% -SsfFx   -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Files.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Reals.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Texts.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/VT100.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/OPM.Mod               || exit /b
@@ -293,6 +293,7 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Platform%PLATFORM%.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Heap.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Modules.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Reals.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Strings.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Out.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/In.Mod
@@ -300,7 +301,6 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Files.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Math.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/MathL.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Reals.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Texts.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Oberon.Mod
 cd %ROOTDIR%
