@@ -1,4 +1,4 @@
-[Build status](http://brownsmeet.com/githubhook/vishaps-status.svg)
+![Build status](http://brownsmeet.com/githubhook/vishaps-status.svg)
 
 # Ѵishap Oberon
 
