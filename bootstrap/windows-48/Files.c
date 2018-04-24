@@ -48,6 +48,7 @@ typedef
 	} Files_Rider;
 
 
+export INT16 Files_MaxPathLength, Files_MaxNameLength;
 static Files_FileDesc *Files_files;
 static INT16 Files_tempno;
 static CHAR Files_HOME[1024];
@@ -1082,5 +1083,7 @@ export void *Files__init(void)
 	Heap_FileCount = 0;
 	Files_HOME[0] = 0x00;
 	Platform_GetEnv((CHAR*)"HOME", 5, (void*)Files_HOME, 1024);
+	Files_MaxPathLength = Platform_MaxPathLength();
+	Files_MaxNameLength = Platform_MaxNameLength();
 	__ENDMOD;
 }

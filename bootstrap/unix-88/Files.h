@@ -23,6 +23,7 @@ typedef
 	} Files_Rider;
 
 
+import INT16 Files_MaxPathLength, Files_MaxNameLength;
 
 import ADDRESS *Files_FileDesc__typ;
 import ADDRESS *Files_Rider__typ;

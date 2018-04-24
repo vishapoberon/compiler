@@ -40,6 +40,8 @@ import BOOLEAN Platform_Inaccessible (INT16 e);
 import BOOLEAN Platform_Interrupted (INT16 e);
 import BOOLEAN Platform_IsConsole (INT32 h);
 import void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
+import INT16 Platform_MaxNameLength (void);
+import INT16 Platform_MaxPathLength (void);
 import INT16 Platform_New (CHAR *n, ADDRESS n__len, INT32 *h);
 import BOOLEAN Platform_NoSuchDirectory (INT16 e);
 import INT64 Platform_OSAllocate (INT64 size);

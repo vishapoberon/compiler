@@ -44,6 +44,8 @@ export BOOLEAN Platform_Inaccessible (INT16 e);
 export BOOLEAN Platform_Interrupted (INT16 e);
 export BOOLEAN Platform_IsConsole (INT64 h);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
+export INT16 Platform_MaxNameLength (void);
+export INT16 Platform_MaxPathLength (void);
 export INT16 Platform_New (CHAR *n, ADDRESS n__len, INT64 *h);
 export BOOLEAN Platform_NoSuchDirectory (INT16 e);
 export INT64 Platform_OSAllocate (INT64 size);
@@ -88,6 +90,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_ETIMEDOUT()	WSAETIMEDOUT
 #define Platform_GetConsoleMode(h, m)	GetConsoleMode((HANDLE)h, (DWORD*)m)
 #define Platform_GetTickCount()	(LONGINT)(UINT32)GetTickCount()
+#define Platform_MAXPATH()	MAX_PATH
 #define Platform_SetConsoleMode(h, m)	SetConsoleMode((HANDLE)h, (DWORD)m)
 #define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((ADDRESS)h)
 #define Platform_SetQuitHandler(h)	SystemSetQuitHandler((ADDRESS)h)
@@ -189,6 +192,16 @@ BOOLEAN Platform_ConnectionFailed (INT16 e)
 BOOLEAN Platform_Interrupted (INT16 e)
 {
 	return e == Platform_EINTR();
+}
+
+INT16 Platform_MaxNameLength (void)
+{
+	return Platform_MAXPATH();
+}
+
+INT16 Platform_MaxPathLength (void)
+{
+	return Platform_MAXPATH();
 }
 
 INT64 Platform_OSAllocate (INT64 size)

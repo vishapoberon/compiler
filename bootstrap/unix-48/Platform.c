@@ -42,6 +42,8 @@ export BOOLEAN Platform_Inaccessible (INT16 e);
 export BOOLEAN Platform_Interrupted (INT16 e);
 export BOOLEAN Platform_IsConsole (INT32 h);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
+export INT16 Platform_MaxNameLength (void);
+export INT16 Platform_MaxPathLength (void);
 export INT16 Platform_New (CHAR *n, ADDRESS n__len, INT32 *h);
 export BOOLEAN Platform_NoSuchDirectory (INT16 e);
 export INT32 Platform_OSAllocate (INT32 size);
@@ -79,6 +81,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #define Platform_EACCES()	EACCES
@@ -94,6 +97,8 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_EROFS()	EROFS
 #define Platform_ETIMEDOUT()	ETIMEDOUT
 #define Platform_EXDEV()	EXDEV
+#define Platform_NAMEMAX()	NAME_MAX
+#define Platform_PATHMAX()	PATH_MAX
 #define Platform_allocate(size)	(ADDRESS)((void*)malloc((size_t)size))
 #define Platform_chdir(n, n__len)	chdir((char*)n)
 #define Platform_closefile(fd)	close(fd)
@@ -178,6 +183,16 @@ BOOLEAN Platform_Interrupted (INT16 e)
 	return e == Platform_EINTR();
 }
 
+INT16 Platform_MaxNameLength (void)
+{
+	return Platform_NAMEMAX();
+}
+
+INT16 Platform_MaxPathLength (void)
+{
+	return Platform_PATHMAX();
+}
+
 INT32 Platform_OSAllocate (INT32 size)
 {
 	return Platform_allocate(size);
@@ -189,13 +204,13 @@ void Platform_OSFree (INT32 address)
 }
 
 typedef
-	CHAR (*EnvPtr__78)[1024];
+	CHAR (*EnvPtr__83)[1024];
 
 BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	EnvPtr__78 p = NIL;
+	EnvPtr__83 p = NIL;
 	__DUP(var, var__len, CHAR);
-	p = (EnvPtr__78)(ADDRESS)Platform_getenv(var, var__len);
+	p = (EnvPtr__83)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
 		__COPY(*p, val, val__len);
 	}
