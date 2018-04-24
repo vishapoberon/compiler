@@ -134,12 +134,12 @@ static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 			Out_String(f->workName, 256);
 		}
 		if (f->fd != 0) {
-			Out_String((CHAR*)"f.fd = ", 8);
+			Out_String((CHAR*)", f.fd = ", 10);
 			Out_Int(f->fd, 1);
 		}
 	}
 	if (errcode != 0) {
-		Out_String((CHAR*)" errcode = ", 12);
+		Out_String((CHAR*)", errcode = ", 13);
 		Out_Int(errcode, 1);
 	}
 	Out_Ln();
@@ -149,20 +149,28 @@ static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 
 static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len)
 {
-	INT16 i, j;
+	INT16 i, j, ld, ln;
 	__DUP(dir, dir__len, CHAR);
 	__DUP(name, name__len, CHAR);
+	ld = Strings_Length(dir, dir__len);
+	ln = Strings_Length(name, name__len);
+	while ((ld > 0 && dir[__X(ld - 1, dir__len)] == '/')) {
+		ld -= 1;
+	}
+	if (((ld + ln) + 2) > dest__len) {
+		Files_Err((CHAR*)"File name too long", 19, NIL, 0);
+	}
 	i = 0;
-	j = 0;
-	while (dir[__X(i, dir__len)] != 0x00) {
+	while (i < ld) {
 		dest[__X(i, dest__len)] = dir[__X(i, dir__len)];
 		i += 1;
 	}
-	if (dest[__X(i - 1, dest__len)] != '/') {
+	if (i > 0) {
 		dest[__X(i, dest__len)] = '/';
 		i += 1;
 	}
-	while (name[__X(j, name__len)] != 0x00) {
+	j = 0;
+	while (j < ln) {
 		dest[__X(i, dest__len)] = name[__X(j, name__len)];
 		i += 1;
 		j += 1;
@@ -174,31 +182,22 @@ static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS
 
 static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len)
 {
-	INT32 n, i, j;
+	INT16 i, n;
 	__DUP(finalName, finalName__len, CHAR);
-	Files_tempno += 1;
-	n = Files_tempno;
-	i = 0;
-	if (finalName[0] != '/') {
-		while (Platform_CWD[__X(i, 256)] != 0x00) {
-			name[__X(i, name__len)] = Platform_CWD[__X(i, 256)];
-			i += 1;
-		}
-		if (Platform_CWD[__X(i - 1, 256)] != '/') {
-			name[__X(i, name__len)] = '/';
-			i += 1;
-		}
+	if (finalName[0] == '/') {
+		__COPY(finalName, name, name__len);
+	} else {
+		Files_MakeFileName(Platform_CWD, 256, finalName, finalName__len, (void*)name, name__len);
 	}
-	j = 0;
-	while (finalName[__X(j, finalName__len)] != 0x00) {
-		name[__X(i, name__len)] = finalName[__X(j, finalName__len)];
-		i += 1;
-		j += 1;
-	}
-	i -= 1;
-	while (name[__X(i, name__len)] != '/') {
+	i = Strings_Length(name, name__len) - 1;
+	while ((i > 0 && name[__X(i, name__len)] != '/')) {
 		i -= 1;
 	}
+	if ((i + 16) >= name__len) {
+		Files_Err((CHAR*)"File name too long", 19, NIL, 0);
+	}
+	Files_tempno += 1;
+	n = Files_tempno;
 	name[__X(i + 1, name__len)] = '.';
 	name[__X(i + 2, name__len)] = 't';
 	name[__X(i + 3, name__len)] = 'm';
