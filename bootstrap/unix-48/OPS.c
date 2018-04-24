@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -56,11 +56,11 @@ static void OPS_Str (INT8 *sym)
 			OPS_err(241);
 			break;
 		}
-		OPS_str[i] = OPS_ch;
+		OPS_str[__X(i, 256)] = OPS_ch;
 		i += 1;
 	}
 	OPM_Get(&OPS_ch);
-	OPS_str[i] = 0x00;
+	OPS_str[__X(i, 256)] = 0x00;
 	OPS_intval = i + 1;
 	if (OPS_intval == 2) {
 		*sym = 35;
@@ -76,7 +76,7 @@ static void OPS_Identifier (INT8 *sym)
 	INT16 i;
 	i = 0;
 	do {
-		OPS_name[i] = OPS_ch;
+		OPS_name[__X(i, 256)] = OPS_ch;
 		i += 1;
 		OPM_Get(&OPS_ch);
 	} while (!(((OPS_ch < '0' || ('9' < OPS_ch && __CAP(OPS_ch) < 'A')) || 'Z' < __CAP(OPS_ch)) || i == 256));
@@ -84,7 +84,7 @@ static void OPS_Identifier (INT8 *sym)
 		OPS_err(240);
 		i -= 1;
 	}
-	OPS_name[i] = 0x00;
+	OPS_name[__X(i, 256)] = 0x00;
 	*sym = 38;
 }
 
@@ -143,7 +143,7 @@ static void OPS_Number (void)
 		if (('0' <= OPS_ch && OPS_ch <= '9') || (((d == 0 && 'A' <= OPS_ch)) && OPS_ch <= 'F')) {
 			if (m > 0 || OPS_ch != '0') {
 				if (n < 24) {
-					dig[n] = OPS_ch;
+					dig[__X(n, 24)] = OPS_ch;
 					n += 1;
 				}
 				m += 1;
@@ -173,7 +173,7 @@ static void OPS_Number (void)
 				OPS_numtyp = 1;
 				if (n <= 2) {
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[i], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X(i, 24)], 1);
 						i += 1;
 					}
 				} else {
@@ -187,7 +187,7 @@ static void OPS_Number (void)
 						OPS_intval = -1;
 					}
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[i], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X(i, 24)], 1);
 						i += 1;
 					}
 				} else {
@@ -196,7 +196,7 @@ static void OPS_Number (void)
 			} else {
 				OPS_numtyp = 2;
 				while (i < n) {
-					d = Ord__7(dig[i], 0);
+					d = Ord__7(dig[__X(i, 24)], 0);
 					i += 1;
 					if (OPS_intval <= __DIV(9223372036854775807LL - (INT64)d, 10)) {
 						OPS_intval = OPS_intval * 10 + (INT64)d;
@@ -214,7 +214,7 @@ static void OPS_Number (void)
 		expCh = 'E';
 		while (n > 0) {
 			n -= 1;
-			f = (Ord__7(dig[n], 0) + f) / (LONGREAL)(LONGREAL)10;
+			f = (Ord__7(dig[__X(n, 24)], 0) + f) / (LONGREAL)(LONGREAL)10;
 		}
 		if (OPS_ch == 'E' || OPS_ch == 'D') {
 			expCh = OPS_ch;

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/10]. Bootstrapping compiler for address size 8, alignment 8. tspaSF */
+/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -155,20 +155,20 @@ static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS
 	__DUP(name, name__len, CHAR);
 	i = 0;
 	j = 0;
-	while (dir[i] != 0x00) {
-		dest[i] = dir[i];
+	while (dir[__X(i, dir__len)] != 0x00) {
+		dest[__X(i, dest__len)] = dir[__X(i, dir__len)];
 		i += 1;
 	}
-	if (dest[i - 1] != '/') {
-		dest[i] = '/';
+	if (dest[__X(i - 1, dest__len)] != '/') {
+		dest[__X(i, dest__len)] = '/';
 		i += 1;
 	}
-	while (name[j] != 0x00) {
-		dest[i] = name[j];
+	while (name[__X(j, name__len)] != 0x00) {
+		dest[__X(i, dest__len)] = name[__X(j, name__len)];
 		i += 1;
 		j += 1;
 	}
-	dest[i] = 0x00;
+	dest[__X(i, dest__len)] = 0x00;
 	__DEL(dir);
 	__DEL(name);
 }
@@ -181,45 +181,45 @@ static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *na
 	n = Files_tempno;
 	i = 0;
 	if (finalName[0] != '/') {
-		while (Platform_CWD[i] != 0x00) {
-			name[i] = Platform_CWD[i];
+		while (Platform_CWD[__X(i, 4096)] != 0x00) {
+			name[__X(i, name__len)] = Platform_CWD[__X(i, 4096)];
 			i += 1;
 		}
-		if (Platform_CWD[i - 1] != '/') {
-			name[i] = '/';
+		if (Platform_CWD[__X(i - 1, 4096)] != '/') {
+			name[__X(i, name__len)] = '/';
 			i += 1;
 		}
 	}
 	j = 0;
-	while (finalName[j] != 0x00) {
-		name[i] = finalName[j];
+	while (finalName[__X(j, finalName__len)] != 0x00) {
+		name[__X(i, name__len)] = finalName[__X(j, finalName__len)];
 		i += 1;
 		j += 1;
 	}
 	i -= 1;
-	while (name[i] != '/') {
+	while (name[__X(i, name__len)] != '/') {
 		i -= 1;
 	}
-	name[i + 1] = '.';
-	name[i + 2] = 't';
-	name[i + 3] = 'm';
-	name[i + 4] = 'p';
-	name[i + 5] = '.';
+	name[__X(i + 1, name__len)] = '.';
+	name[__X(i + 2, name__len)] = 't';
+	name[__X(i + 3, name__len)] = 'm';
+	name[__X(i + 4, name__len)] = 'p';
+	name[__X(i + 5, name__len)] = '.';
 	i += 6;
 	while (n > 0) {
-		name[i] = (CHAR)((int)__MOD(n, 10) + 48);
+		name[__X(i, name__len)] = (CHAR)((int)__MOD(n, 10) + 48);
 		n = __DIV(n, 10);
 		i += 1;
 	}
-	name[i] = '.';
+	name[__X(i, name__len)] = '.';
 	i += 1;
 	n = Platform_PID;
 	while (n > 0) {
-		name[i] = (CHAR)((int)__MOD(n, 10) + 48);
+		name[__X(i, name__len)] = (CHAR)((int)__MOD(n, 10) + 48);
 		n = __DIV(n, 10);
 		i += 1;
 	}
-	name[i] = 0x00;
+	name[__X(i, name__len)] = 0x00;
 	__DEL(finalName);
 }
 
@@ -320,8 +320,8 @@ void Files_Close (Files_File f)
 	if (f->state != 1 || f->registerName[0] != 0x00) {
 		Files_Create(f);
 		i = 0;
-		while ((i < 4 && f->bufs[i] != NIL)) {
-			Files_Flush(f->bufs[i]);
+		while ((i < 4 && f->bufs[__X(i, 4)] != NIL)) {
+			Files_Flush(f->bufs[__X(i, 4)]);
 			i += 1;
 		}
 	}
@@ -360,35 +360,35 @@ static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len)
 			*pos += 1;
 		}
 	} else {
-		ch = (Files_SearchPath->data)[*pos];
+		ch = (Files_SearchPath->data)[__X(*pos, Files_SearchPath->len[0])];
 		while (ch == ' ' || ch == ';') {
 			*pos += 1;
-			ch = (Files_SearchPath->data)[*pos];
+			ch = (Files_SearchPath->data)[__X(*pos, Files_SearchPath->len[0])];
 		}
 		if (ch == '~') {
 			*pos += 1;
-			ch = (Files_SearchPath->data)[*pos];
-			while (Files_HOME[i] != 0x00) {
-				dir[i] = Files_HOME[i];
+			ch = (Files_SearchPath->data)[__X(*pos, Files_SearchPath->len[0])];
+			while (Files_HOME[__X(i, 1024)] != 0x00) {
+				dir[__X(i, dir__len)] = Files_HOME[__X(i, 1024)];
 				i += 1;
 			}
 			if ((((((ch != '/' && ch != 0x00)) && ch != ';')) && ch != ' ')) {
-				while ((i > 0 && dir[i - 1] != '/')) {
+				while ((i > 0 && dir[__X(i - 1, dir__len)] != '/')) {
 					i -= 1;
 				}
 			}
 		}
 		while ((ch != 0x00 && ch != ';')) {
-			dir[i] = ch;
+			dir[__X(i, dir__len)] = ch;
 			i += 1;
 			*pos += 1;
-			ch = (Files_SearchPath->data)[*pos];
+			ch = (Files_SearchPath->data)[__X(*pos, Files_SearchPath->len[0])];
 		}
-		while ((i > 0 && dir[i - 1] == ' ')) {
+		while ((i > 0 && dir[__X(i - 1, dir__len)] == ' ')) {
 			i -= 1;
 		}
 	}
-	dir[i] = 0x00;
+	dir[__X(i, dir__len)] = 0x00;
 }
 
 static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len)
@@ -399,7 +399,7 @@ static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len)
 	ch = name[0];
 	while ((ch != 0x00 && ch != '/')) {
 		i += 1;
-		ch = name[i];
+		ch = name[__X(i, name__len)];
 	}
 	return ch == '/';
 }
@@ -414,9 +414,9 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 			if (!Platform_SameFileTime(identity, f->identity)) {
 				i = 0;
 				while (i < 4) {
-					if (f->bufs[i] != NIL) {
-						f->bufs[i]->org = -1;
-						f->bufs[i] = NIL;
+					if (f->bufs[__X(i, 4)] != NIL) {
+						f->bufs[__X(i, 4)]->org = -1;
+						f->bufs[__X(i, 4)] = NIL;
 					}
 					i += 1;
 				}
@@ -515,9 +515,9 @@ void Files_Purge (Files_File f)
 	INT16 error;
 	i = 0;
 	while (i < 4) {
-		if (f->bufs[i] != NIL) {
-			f->bufs[i]->org = -1;
-			f->bufs[i] = NIL;
+		if (f->bufs[__X(i, 4)] != NIL) {
+			f->bufs[__X(i, 4)]->org = -1;
+			f->bufs[__X(i, 4)] = NIL;
 		}
 		i += 1;
 	}
@@ -561,22 +561,22 @@ void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos)
 		offset = __MASK(pos, -4096);
 		org = pos - offset;
 		i = 0;
-		while ((((i < 4 && f->bufs[i] != NIL)) && org != f->bufs[i]->org)) {
+		while ((((i < 4 && f->bufs[__X(i, 4)] != NIL)) && org != f->bufs[__X(i, 4)]->org)) {
 			i += 1;
 		}
 		if (i < 4) {
-			if (f->bufs[i] == NIL) {
+			if (f->bufs[__X(i, 4)] == NIL) {
 				__NEW(buf, Files_BufDesc);
 				buf->chg = 0;
 				buf->org = -1;
 				buf->f = f;
-				f->bufs[i] = buf;
+				f->bufs[__X(i, 4)] = buf;
 			} else {
-				buf = f->bufs[i];
+				buf = f->bufs[__X(i, 4)];
 			}
 		} else {
 			f->swapper = __MASK(f->swapper + 1, -4);
-			buf = f->bufs[f->swapper];
+			buf = f->bufs[__X(f->swapper, 4)];
 			Files_Flush(buf);
 		}
 		if (buf->org != org) {
@@ -623,7 +623,7 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 	}
 	Files_Assert(offset <= buf->size);
 	if (offset < buf->size) {
-		*x = buf->data[offset];
+		*x = buf->data[__X(offset, 4096)];
 		(*r).offset = offset + 1;
 	} else if ((*r).org + offset < buf->f->len) {
 		Files_Set(&*r, r__typ, (*r).buf->f, (*r).org + offset);
@@ -661,7 +661,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 		} else {
 			min = n;
 		}
-		__MOVE((ADDRESS)&buf->data[offset], (ADDRESS)&x[xpos], min);
+		__MOVE((ADDRESS)&buf->data[__X(offset, 4096)], (ADDRESS)&x[__X(xpos, x__len)], min);
 		offset += min;
 		(*r).offset = offset;
 		xpos += min;
@@ -690,7 +690,7 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 		offset = (*r).offset;
 	}
 	Files_Assert(offset < 4096);
-	buf->data[offset] = x;
+	buf->data[__X(offset, 4096)] = x;
 	buf->chg = 1;
 	if (offset == buf->size) {
 		buf->size += 1;
@@ -724,7 +724,7 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 		} else {
 			min = n;
 		}
-		__MOVE((ADDRESS)&x[xpos], (ADDRESS)&buf->data[offset], min);
+		__MOVE((ADDRESS)&x[__X(xpos, x__len)], (ADDRESS)&buf->data[__X(offset, 4096)], min);
 		offset += min;
 		(*r).offset = offset;
 		Files_Assert(offset <= 4096);
@@ -845,7 +845,7 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *de
 		j = 0;
 		while (i > 0) {
 			i -= 1;
-			dest[j] = src[i];
+			dest[__X(j, dest__len)] = src[__X(i, src__len)];
 			j += 1;
 		}
 	} else {
@@ -902,7 +902,7 @@ void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 	i = 0;
 	do {
 		Files_Read(&*R, R__typ, (void*)&ch);
-		x[i] = ch;
+		x[__X(i, x__len)] = ch;
 		i += 1;
 	} while (!(ch == 0x00));
 }
@@ -912,16 +912,16 @@ void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 	INT16 i;
 	i = 0;
 	do {
-		Files_Read(&*R, R__typ, (void*)&x[i]);
+		Files_Read(&*R, R__typ, (void*)&x[__X(i, x__len)]);
 		i += 1;
-	} while (!(x[i - 1] == 0x00 || x[i - 1] == 0x0a));
-	if (x[i - 1] == 0x0a) {
+	} while (!(x[__X(i - 1, x__len)] == 0x00 || x[__X(i - 1, x__len)] == 0x0a));
+	if (x[__X(i - 1, x__len)] == 0x0a) {
 		i -= 1;
 	}
-	if ((i > 0 && x[i - 1] == 0x0d)) {
+	if ((i > 0 && x[__X(i - 1, x__len)] == 0x0d)) {
 		i -= 1;
 	}
-	x[i] = 0x00;
+	x[__X(i, x__len)] = 0x00;
 }
 
 void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__len)
@@ -994,7 +994,7 @@ void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len
 {
 	INT16 i;
 	i = 0;
-	while (x[i] != 0x00) {
+	while (x[__X(i, x__len)] != 0x00) {
 		i += 1;
 	}
 	Files_WriteBytes(&*R, R__typ, (void*)x, x__len * 1, i + 1);
