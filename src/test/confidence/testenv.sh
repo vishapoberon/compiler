@@ -5,8 +5,8 @@
 echo --- Confidence test $(basename $PWD) ---
 
 if which cygpath >/dev/null 2>/dev/null
-then export PATH="$(cygpath "$1")/bin":$PATH
-else export PATH="$1/bin":$PATH
+then export PATH="$(cygpath "$1")/bin":"$PATH"
+else export PATH="$1/bin":"$PATH"
 fi
 # Set ibrary paths for darwin and termux(android)
 export DYLD_LIBRARY_PATH=$1/lib:$DYLD_LIBRARY_PATH
