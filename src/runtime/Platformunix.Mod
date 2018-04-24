@@ -44,6 +44,7 @@ PROCEDURE -Aincludeerrno    '#include <errno.h>';
 PROCEDURE -Astdlib          '#include <stdlib.h>';
 PROCEDURE -Astdio           '#include <stdio.h>';
 PROCEDURE -Aerrno           '#include <errno.h>';
+PROCEDURE -Alimits          '#include <limits.h>';
 
 
 
@@ -63,7 +64,6 @@ PROCEDURE -ECONNABORTED(): ErrorCode 'ECONNABORTED';
 PROCEDURE -ENETUNREACH():  ErrorCode 'ENETUNREACH';
 PROCEDURE -EHOSTUNREACH(): ErrorCode 'EHOSTUNREACH';
 PROCEDURE -EINTR():        ErrorCode 'EINTR';
-
 
 
 
@@ -91,6 +91,17 @@ BEGIN RETURN (e = ECONNREFUSED()) OR (e = ECONNABORTED())
 
 PROCEDURE Interrupted*(e: ErrorCode): BOOLEAN;
 BEGIN RETURN e = EINTR() END Interrupted;
+
+
+
+
+(* Expose file and path name length limits *)
+
+PROCEDURE -NAMEMAX(): INTEGER 'NAME_MAX';
+PROCEDURE -PATHMAX(): INTEGER 'PATH_MAX';
+
+PROCEDURE MaxNameLength*(): INTEGER;  BEGIN RETURN NAMEMAX() END MaxNameLength;
+PROCEDURE MaxPathLength*(): INTEGER;  BEGIN RETURN PATHMAX() END MaxPathLength;
 
 
 

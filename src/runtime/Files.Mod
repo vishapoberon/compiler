@@ -54,6 +54,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
 
   VAR
+    MaxPathLength-: INTEGER;
+    MaxNameLength-: INTEGER;
+
     files:      POINTER [1] TO FileDesc;   (* List of files backed by an OS file, whether open, registered or temporary. *)
     tempno:     INTEGER;
     HOME:       ARRAY 1024 OF CHAR;
@@ -741,4 +744,6 @@ BEGIN
   tempno := -1;
   Heap.FileCount := 0;
   HOME := "";  Platform.GetEnv("HOME", HOME);
+  MaxPathLength := Platform.MaxPathLength();
+  MaxNameLength := Platform.MaxNameLength();
 END Files.

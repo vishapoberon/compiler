@@ -91,6 +91,17 @@ BEGIN RETURN e = EINTR() END Interrupted;
 
 
 
+
+(* Expose file and path name length limits (same on Windows) *)
+
+PROCEDURE -MAXPATH(): INTEGER 'MAX_PATH';
+
+PROCEDURE MaxNameLength*(): INTEGER;  BEGIN RETURN MAXPATH() END MaxNameLength;
+PROCEDURE MaxPathLength*(): INTEGER;  BEGIN RETURN MAXPATH() END MaxPathLength;
+
+
+
+
 (* OS memory allocaton *)
 
 PROCEDURE -allocate(size: SYSTEM.ADDRESS): SYSTEM.ADDRESS "(ADDRESS)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))";
