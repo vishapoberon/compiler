@@ -2,16 +2,6 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   IMPORT SYSTEM, Platform, Heap, Strings, Out;
 
-  (* standard data type I/O
-
-    little endian,
-    Sint:1, Int:2, Lint:4
-    ORD({0}) = 1,
-    false = 0, true =1
-    IEEE real format,
-    null terminated strings,
-    compact numbers according to M.Odersky *)
-
 
   CONST
     NumBufs = 4;
@@ -84,34 +74,34 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     Out.Ln; Out.String("-- "); Out.String(s); Out.String(": ");
     IF f # NIL THEN
       IF f.registerName # "" THEN Out.String(f.registerName) ELSE Out.String(f.workName) END;
-      IF f.fd # 0 THEN Out.String("f.fd = "); Out.Int(f.fd,1) END
+      IF f.fd # 0 THEN Out.String(", f.fd = "); Out.Int(f.fd,1) END
     END;
-    IF errcode # 0 THEN Out.String(" errcode = "); Out.Int(errcode, 1) END;
+    IF errcode # 0 THEN Out.String(", errcode = "); Out.Int(errcode, 1) END;
     Out.Ln;
     HALT(99)
   END Err;
 
   PROCEDURE MakeFileName(dir, name: ARRAY OF CHAR; VAR dest: ARRAY OF CHAR);
-    VAR i, j: INTEGER;
-  BEGIN i := 0; j := 0;
-    WHILE dir[i] # 0X DO dest[i] := dir[i]; INC(i) END;
-    IF dest[i-1] # "/" THEN dest[i] := "/"; INC(i) END;
-    WHILE name[j] # 0X DO dest[i] := name[j]; INC(i); INC(j) END;
-    dest[i] := 0X
+  VAR i, j, ld, ln: INTEGER;
+  BEGIN ld := Strings.Length(dir);  ln := Strings.Length(name);
+    WHILE (ld > 0) & (dir[ld-1] = '/') DO DEC(ld) END;
+    IF ld + ln + 2 > LEN(dest) THEN Err("File name too long", NIL, 0) END;
+    i := 0;
+    WHILE i < ld DO dest[i] := dir[i]; INC(i) END;
+    IF i > 0 THEN dest[i] := '/'; INC(i) END;
+    j := 0;
+    WHILE j < ln DO dest[i] := name[j]; INC(i); INC(j) END;
+    dest[i] := 0X;
   END MakeFileName;
 
   PROCEDURE GetTempName(finalName: ARRAY OF CHAR; VAR name: ARRAY OF CHAR);
-    VAR n, i, j: LONGINT;
+  VAR i, n: INTEGER;
   BEGIN
-    INC(tempno); n := tempno; i := 0;
-    IF finalName[0] # "/" THEN  (* relative pathname *)
-      WHILE Platform.CWD[i] # 0X DO name[i] := Platform.CWD[i]; INC(i) END;
-      IF Platform.CWD[i-1] # "/" THEN name[i] := "/"; INC(i) END
-    END;
-    j := 0;
-    WHILE finalName[j] # 0X DO name[i] := finalName[j]; INC(i); INC(j) END;
-    DEC(i);
-    WHILE name[i] # "/" DO DEC(i) END;
+    IF finalName[0]='/' THEN COPY(finalName, name) ELSE MakeFileName(Platform.CWD, finalName, name) END;
+    i := Strings.Length(name)-1;
+    WHILE (i > 0) & (name[i] # '/') DO DEC(i) END;
+    IF i+16 >= LEN(name) THEN Err("File name too long", NIL, 0) END;
+    INC(tempno); n := tempno;
     name[i+1] := "."; name[i+2] := "t"; name[i+3] := "m"; name[i+4] := "p"; name[i+5] := "."; INC(i, 6);
     WHILE n > 0 DO name[i] := CHR(n MOD 10 + ORD("0")); n := n DIV 10; INC(i) END;
     name[i] := "."; INC(i); n := Platform.PID;
@@ -181,7 +171,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       error := Platform.New(f.workName, f.fd);
       done := error = 0;
       IF done THEN
-        f.next := files;  files := f;  (* Link this file into the list of OS bakced files. *)
+        f.next := files;  files := f;  (* Link this file into the list of OS backed files. *)
         INC(Heap.FileCount);
         Heap.RegisterFinalizer(f, Finalize);
         f.state := open;
