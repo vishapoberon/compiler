@@ -67,7 +67,7 @@ assemble:
 
 	cd $(BUILDDIR) && $(COMPILE) $(STATICLINK) Compiler.c -o $(ROOTDIR)/$(OBECOMP) \
 	SYSTEM.o   Configuration.o Platform.o Heap.o  Out.o   Strings.o  \
-	Modules.o  Files.o 	       Reals.o    Texts.o VT100.o extTools.o \
+	Modules.o  Files.o         Reals.o    Texts.o VT100.o extTools.o \
 	OPM.o      OPS.o           OPT.o      OPC.o   OPV.o   OPB.o    OPP.o
 
 	cp src/runtime/*.[ch] $(BUILDDIR)
@@ -110,12 +110,12 @@ translate:
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Strings.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Out.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Modules.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Files.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Files.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Texts.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/VT100.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPM.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/extTools.Mod
-	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsFx   -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPS.Mod
+	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPS.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPT.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPC.Mod
 	cd $(BUILDDIR); $(ROOTDIR)/$(OBECOMP) -SsF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPV.Mod
