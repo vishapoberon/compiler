@@ -74,7 +74,7 @@ for your OS as follows:
 | ------- | --------------------------------------                |
 | Linux   | `/opt/voc`                                            |
 | BSD     | `/usr/local/share/voc`                                |
-| Windows | See [**Windows installation**](/doc/WInstallation.md) |
+| Windows | See [**Windows installation**](/doc/Winstallation.md) |
 | Termux  | `/data/data/com.termux/files/opt/voc`                 |
 
 `make install` updates `ldconfg` with the new library locations.
