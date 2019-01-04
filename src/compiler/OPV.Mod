@@ -204,7 +204,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END;
   END Precedence;
 
-  PROCEDURE^ expr (n: OPT.Node; prec: INTEGER);
+  PROCEDURE^ expr  (n: OPT.Node; prec: INTEGER);
   PROCEDURE^ design(n: OPT.Node; prec: INTEGER);
 
   PROCEDURE Len(n: OPT.Node; dim: SYSTEM.INT64);
@@ -241,7 +241,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ELSE
       IF (n.typ.size # to) & ((n.typ.size > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
         OPM.WriteString("(INT"); OPM.WriteInt(to*8); OPM.WriteString(")")
-      END
+      END;
+      Entier(n, 9)
     END
   END SizeCast;
 
@@ -250,13 +251,13 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   BEGIN from := n^.typ^.form; to := newtype.form;
     IF to = OPT.Set THEN
       IF from = OPT.Set THEN (* Sets of different size *)
-        SizeCast(n, newtype.size); Entier(n, 9)
+        SizeCast(n, newtype.size);
       ELSE (* Set from integer *)
         OPM.WriteString("__SETOF("); Entier(n, MinPrec);
         OPM.WriteString(","); OPM.WriteInt(newtype.size*8); OPM.Write(CloseParen)
       END
     ELSIF to = OPT.Int THEN (* integers of different size *)
-      SizeCast(n, newtype.size); Entier(n, 9)
+      SizeCast(n, newtype.size);
     ELSIF to = OPT.Char THEN
       IF OPM.ranchk IN OPM.Options THEN OPM.WriteString("__CHR");
         IF SideEffects(n) THEN OPM.Write("F") END ;

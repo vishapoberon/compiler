@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -404,7 +404,7 @@ static void Modules_errint (INT32 l)
 	if (l >= 10) {
 		Modules_errint(__DIV(l, 10));
 	}
-	Modules_errch((CHAR)((int)__MOD(l, 10) + 48));
+	Modules_errch(__CHR((int)__MOD(l, 10) + 48));
 }
 
 static void Modules_DisplayHaltCode (INT32 code)

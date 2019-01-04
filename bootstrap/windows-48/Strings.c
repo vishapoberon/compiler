@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -34,7 +34,7 @@ INT16 Strings_Length (CHAR *s, ADDRESS s__len)
 	}
 	if (i <= 32767) {
 		__DEL(s);
-		return (INT16)i;
+		return __SHORT(i, 32768);
 	} else {
 		__DEL(s);
 		return 32767;
@@ -126,7 +126,7 @@ void Strings_Extract (CHAR *source, ADDRESS source__len, INT16 pos, INT16 n, CHA
 	INT16 len, destLen, i;
 	__DUP(source, source__len, CHAR);
 	len = Strings_Length(source, source__len);
-	destLen = (INT16)dest__len - 1;
+	destLen = __SHORT(dest__len, 32768) - 1;
 	if (pos < 0) {
 		pos = 0;
 	}

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -74,7 +74,7 @@ void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len)
 		}
 		e = s;
 		do {
-			b[__X(e, 21)] = (CHAR)((int)__MOD(int_, 10) + 48);
+			b[__X(e, 21)] = __CHR((int)__MOD(int_, 10) + 48);
 			int_ = __DIV(int_, 10);
 			e += 1;
 		} while (!(int_ == 0));

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -67,9 +67,9 @@ void Reals_SetExpo (REAL *x, INT16 ex)
 {
 	CHAR c;
 	__GET((ADDRESS)x + 3, c, CHAR);
-	__PUT((ADDRESS)x + 3, (CHAR)(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
+	__PUT((ADDRESS)x + 3, __CHR(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
 	__GET((ADDRESS)x + 2, c, CHAR);
-	__PUT((ADDRESS)x + 2, (CHAR)(__MASK((INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
+	__PUT((ADDRESS)x + 2, __CHR(__MASK((INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
 }
 
 INT16 Reals_ExpoL (LONGREAL x)
@@ -87,21 +87,21 @@ void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, ADDRESS d__len)
 	}
 	k = 0;
 	if (n > 9) {
-		i = (INT32)__ENTIER(x / (LONGREAL)(LONGREAL)1000000000);
-		j = (INT32)__ENTIER(x - i * (LONGREAL)1000000000);
+		i = __SHORT(__ENTIER(x / (LONGREAL)(LONGREAL)1000000000), 2147483648LL);
+		j = __SHORT(__ENTIER(x - i * (LONGREAL)1000000000), 2147483648LL);
 		if (j < 0) {
 			j = 0;
 		}
 		while (k < 9) {
-			d[__X(k, d__len)] = (CHAR)((int)__MOD(j, 10) + 48);
+			d[__X(k, d__len)] = __CHR((int)__MOD(j, 10) + 48);
 			j = __DIV(j, 10);
 			k += 1;
 		}
 	} else {
-		i = (INT32)__ENTIER(x);
+		i = __SHORT(__ENTIER(x), 2147483648LL);
 	}
 	while (k < n) {
-		d[__X(k, d__len)] = (CHAR)((int)__MOD(i, 10) + 48);
+		d[__X(k, d__len)] = __CHR((int)__MOD(i, 10) + 48);
 		i = __DIV(i, 10);
 		k += 1;
 	}
@@ -115,9 +115,9 @@ void Reals_Convert (REAL x, INT16 n, CHAR *d, ADDRESS d__len)
 static CHAR Reals_ToHex (INT16 i)
 {
 	if (i < 10) {
-		return (CHAR)(i + 48);
+		return __CHR(i + 48);
 	} else {
-		return (CHAR)(i + 55);
+		return __CHR(i + 55);
 	}
 	__RETCHK;
 }

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -80,7 +80,7 @@ void Out_String (CHAR *str, ADDRESS str__len)
 		error = Platform_Write(1, (ADDRESS)str, l);
 	} else {
 		__MOVE((ADDRESS)str, (ADDRESS)&Out_buf[__X(Out_in, 128)], l);
-		Out_in += (INT16)l;
+		Out_in += __SHORT(l, 32768);
 	}
 	__DEL(str);
 }
@@ -98,11 +98,11 @@ void Out_Int (INT64 x, INT64 n)
 		if (x < 0) {
 			x = -x;
 		}
-		s[0] = (CHAR)(48 + __MOD(x, 10));
+		s[0] = __CHR(48 + __MOD(x, 10));
 		x = __DIV(x, 10);
 		i = 1;
 		while (x != 0) {
-			s[__X(i, 22)] = (CHAR)(48 + __MOD(x, 10));
+			s[__X(i, 22)] = __CHR(48 + __MOD(x, 10));
 			x = __DIV(x, 10);
 			i += 1;
 		}
@@ -138,9 +138,9 @@ void Out_Hex (INT64 x, INT64 n)
 		x = __ROTL(x, 4, 64);
 		n -= 1;
 		if (__MASK(x, -16) < 10) {
-			Out_Char((CHAR)(__MASK(x, -16) + 48));
+			Out_Char(__CHR(__MASK(x, -16) + 48));
 		} else {
-			Out_Char((CHAR)((__MASK(x, -16) - 10) + 65));
+			Out_Char(__CHR((__MASK(x, -16) - 10) + 65));
 		}
 	}
 }
@@ -154,7 +154,7 @@ void Out_Ln (void)
 static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)
 {
 	*i -= 1;
-	s[__X(*i, s__len)] = (CHAR)(__MOD(n, 10) + 48);
+	s[__X(*i, s__len)] = __CHR(__MOD(n, 10) + 48);
 }
 
 static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16 *i)
@@ -166,7 +166,7 @@ static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16
 	if (l > *i) {
 		l = *i;
 	}
-	*i -= (INT16)l;
+	*i -= __SHORT(l, 32768);
 	j = 0;
 	while (j < l) {
 		s[__X(*i + j, s__len)] = t[__X(j, t__len)];
@@ -248,7 +248,7 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 			if (nn) {
 				x = -x;
 			}
-			e = (INT16)__ASHR((e - 1023) * 77, 8);
+			e = __SHORT(__ASHR((e - 1023) * 77, 8), 32768);
 			if (e >= 0) {
 				x = x / (LONGREAL)Out_Ten(e);
 			} else {

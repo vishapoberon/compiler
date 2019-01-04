@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1743,7 +1743,7 @@ static void OPC_CharacterLiteral (INT64 c)
 		if ((c == 92 || c == 39) || c == 63) {
 			OPM_Write('\\');
 		}
-		OPM_Write((CHAR)c);
+		OPM_Write(__CHR(c));
 		OPM_Write('\'');
 	}
 }
@@ -1759,16 +1759,16 @@ static void OPC_StringLiteral (CHAR *s, ADDRESS s__len, INT32 l)
 		c = (INT16)s[__X(i, s__len)];
 		if (c < 32 || c > 126) {
 			OPM_Write('\\');
-			OPM_Write((CHAR)(48 + __ASHR(c, 6)));
+			OPM_Write(__CHR(48 + __ASHR(c, 6)));
 			c = __MASK(c, -64);
-			OPM_Write((CHAR)(48 + __ASHR(c, 3)));
+			OPM_Write(__CHR(48 + __ASHR(c, 3)));
 			c = __MASK(c, -8);
-			OPM_Write((CHAR)(48 + c));
+			OPM_Write(__CHR(48 + c));
 		} else {
 			if ((c == 92 || c == 34) || c == 63) {
 				OPM_Write('\\');
 			}
-			OPM_Write((CHAR)c);
+			OPM_Write(__CHR(c));
 		}
 		i += 1;
 	}
