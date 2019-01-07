@@ -95,7 +95,7 @@ For reference this will be:
 | Just `make full`          | `export PATH="your-repository-clone/install/bin:$PATH"`       |
 | `make install` on Linux   | `export PATH="/opt/voc/bin:$PATH"`                            |
 | `make install` on BSD     | `export PATH="/usr/local/share/voc/bin:$PATH"`                |
-| `make install` on Windows | See [**Windows installation**](/doc/WInstallation.md)         |
+| `make install` on Windows | See [**Windows installation**](/doc/Winstallation.md)         |
 | `make install` on Termux  | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
 Also see [**Installation**](/doc/Installation.md).
