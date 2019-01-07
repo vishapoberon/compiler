@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -813,10 +813,10 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 				if ('9' < ch) {
 					if (('A' <= ch && ch <= 'F')) {
 						hex = 1;
-						ch = (CHAR)((INT16)ch - 7);
+						ch = __CHR((INT16)ch - 7);
 					} else if (('a' <= ch && ch <= 'f')) {
 						hex = 1;
-						ch = (CHAR)((INT16)ch - 39);
+						ch = __CHR((INT16)ch - 39);
 					} else {
 						break;
 					}
@@ -1058,7 +1058,7 @@ void Texts_WriteInt (Texts_Writer *W, ADDRESS *W__typ, INT64 x, INT64 n)
 		x0 = x;
 	}
 	do {
-		a[__X(i, 24)] = (CHAR)(__MOD(x0, 10) + 48);
+		a[__X(i, 24)] = __CHR(__MOD(x0, 10) + 48);
 		x0 = __DIV(x0, 10);
 		i += 1;
 	} while (!(x0 == 0));
@@ -1085,9 +1085,9 @@ void Texts_WriteHex (Texts_Writer *W, ADDRESS *W__typ, INT32 x)
 	do {
 		y = __MASK(x, -16);
 		if (y < 10) {
-			a[__X(i, 20)] = (CHAR)(y + 48);
+			a[__X(i, 20)] = __CHR(y + 48);
 		} else {
-			a[__X(i, 20)] = (CHAR)(y + 55);
+			a[__X(i, 20)] = __CHR(y + 55);
 		}
 		x = __ASHR(x, 4);
 		i += 1;
@@ -1163,8 +1163,8 @@ void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n)
 		} else {
 			Texts_Write(&*W, W__typ, '+');
 		}
-		Texts_Write(&*W, W__typ, (CHAR)(__DIV(e, 10) + 48));
-		Texts_Write(&*W, W__typ, (CHAR)((int)__MOD(e, 10) + 48));
+		Texts_Write(&*W, W__typ, __CHR(__DIV(e, 10) + 48));
+		Texts_Write(&*W, W__typ, __CHR((int)__MOD(e, 10) + 48));
 	}
 }
 
@@ -1314,7 +1314,7 @@ void Texts_WriteLongReal (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x, INT16 n)
 		} else {
 			Texts_Write(&*W, W__typ, ' ');
 		}
-		e = (INT16)__ASHR((e - 1023) * 77, 8);
+		e = __SHORT(__ASHR((e - 1023) * 77, 8), 32768);
 		if (e >= 0) {
 			x = x / (LONGREAL)Reals_TenL(e);
 		} else {
@@ -1345,10 +1345,10 @@ void Texts_WriteLongReal (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x, INT16 n)
 		} else {
 			Texts_Write(&*W, W__typ, '+');
 		}
-		Texts_Write(&*W, W__typ, (CHAR)(__DIV(e, 100) + 48));
+		Texts_Write(&*W, W__typ, __CHR(__DIV(e, 100) + 48));
 		e = (int)__MOD(e, 100);
-		Texts_Write(&*W, W__typ, (CHAR)(__DIV(e, 10) + 48));
-		Texts_Write(&*W, W__typ, (CHAR)((int)__MOD(e, 10) + 48));
+		Texts_Write(&*W, W__typ, __CHR(__DIV(e, 10) + 48));
+		Texts_Write(&*W, W__typ, __CHR((int)__MOD(e, 10) + 48));
 	}
 }
 
@@ -1375,8 +1375,8 @@ static void WritePair__44 (CHAR ch, INT32 x);
 static void WritePair__44 (CHAR ch, INT32 x)
 {
 	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, ch);
-	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, (CHAR)(__DIV(x, 10) + 48));
-	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, (CHAR)((int)__MOD(x, 10) + 48));
+	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, __CHR(__DIV(x, 10) + 48));
+	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, __CHR((int)__MOD(x, 10) + 48));
 }
 
 void Texts_WriteDate (Texts_Writer *W, ADDRESS *W__typ, INT32 t, INT32 d)

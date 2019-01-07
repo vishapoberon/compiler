@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -352,7 +352,7 @@ void OPT_TypSize (OPT_Struct typ)
 			}
 			typ->size = offset;
 			typ->align = base;
-			typ->sysflag = __MASK(typ->sysflag, -256) + (INT16)__ASHL(offset - off0, 8);
+			typ->sysflag = __MASK(typ->sysflag, -256) + __SHORT(__ASHL(offset - off0, 8), 32768);
 		} else if (c == 2) {
 			OPT_TypSize(typ->BaseTyp);
 			typ->size = typ->n * typ->BaseTyp->size;
@@ -1251,7 +1251,7 @@ static void OPT_InStruct (OPT_Struct *typ)
 		obj->vis = 0;
 		tag = OPM_SymRInt();
 		if (tag == 35) {
-			(*typ)->sysflag = (INT16)OPM_SymRInt();
+			(*typ)->sysflag = __SHORTF(OPM_SymRInt(), 32768);
 			tag = OPM_SymRInt();
 		}
 		switch (tag) {
@@ -1412,8 +1412,8 @@ static OPT_Object OPT_InObj (INT8 mno)
 					obj->mode = 9;
 					ext = OPT_NewExt();
 					obj->conval->ext = ext;
-					s = (INT16)OPM_SymRInt();
-					(*ext)[0] = (CHAR)s;
+					s = __SHORTF(OPM_SymRInt(), 32768);
+					(*ext)[0] = __CHR(s);
 					i = 1;
 					while (i <= s) {
 						OPM_SymRCh(&(*ext)[__X(i, 256)]);
@@ -1752,7 +1752,7 @@ static void OPT_OutConstant (OPT_Object obj)
 	OPM_SymWInt(f);
 	switch (f) {
 		case 2: case 3: 
-			OPM_SymWCh((CHAR)obj->conval->intval);
+			OPM_SymWCh(__CHR(obj->conval->intval));
 			break;
 		case 4: 
 			OPM_SymWInt(obj->conval->intval);

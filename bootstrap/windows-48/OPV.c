@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -112,7 +112,7 @@ static void OPV_Stamp (OPS_Name s)
 	i += 2;
 	k = 0;
 	do {
-		n[__X(k, 10)] = (CHAR)((int)__MOD(j, 10) + 48);
+		n[__X(k, 10)] = __CHR((int)__MOD(j, 10) + 48);
 		j = __DIV(j, 10);
 		k += 1;
 	} while (!(j == 0));
@@ -370,6 +370,7 @@ static void OPV_SizeCast (OPT_Node n, INT32 to)
 			OPM_WriteInt(__ASHL(to, 3));
 			OPM_WriteString((CHAR*)")", 2);
 		}
+		OPV_Entier(n, 9);
 	}
 }
 
@@ -381,7 +382,6 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INT16 prec)
 	if (to == 7) {
 		if (from == 7) {
 			OPV_SizeCast(n, newtype->size);
-			OPV_Entier(n, 9);
 		} else {
 			OPM_WriteString((CHAR*)"__SETOF(", 9);
 			OPV_Entier(n, -1);
@@ -391,7 +391,6 @@ static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INT16 prec)
 		}
 	} else if (to == 4) {
 		OPV_SizeCast(n, newtype->size);
-		OPV_Entier(n, 9);
 	} else if (to == 3) {
 		if (__IN(2, OPM_Options, 32)) {
 			OPM_WriteString((CHAR*)"__CHR", 6);

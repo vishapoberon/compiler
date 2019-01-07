@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -207,7 +207,7 @@ static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *na
 	name[__X(i + 5, name__len)] = '.';
 	i += 6;
 	while (n > 0) {
-		name[__X(i, name__len)] = (CHAR)((int)__MOD(n, 10) + 48);
+		name[__X(i, name__len)] = __CHR((int)__MOD(n, 10) + 48);
 		n = __DIV(n, 10);
 		i += 1;
 	}
@@ -215,7 +215,7 @@ static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *na
 	i += 1;
 	n = Platform_PID;
 	while (n > 0) {
-		name[__X(i, name__len)] = (CHAR)((int)__MOD(n, 10) + 48);
+		name[__X(i, name__len)] = __CHR((int)__MOD(n, 10) + 48);
 		n = __DIV(n, 10);
 		i += 1;
 	}
@@ -949,18 +949,18 @@ void Files_WriteBool (Files_Rider *R, ADDRESS *R__typ, BOOLEAN x)
 void Files_WriteInt (Files_Rider *R, ADDRESS *R__typ, INT16 x)
 {
 	CHAR b[2];
-	b[0] = (CHAR)x;
-	b[1] = (CHAR)__ASHR(x, 8);
+	b[0] = __CHR(x);
+	b[1] = __CHR(__ASHR(x, 8));
 	Files_WriteBytes(&*R, R__typ, (void*)b, 2, 2);
 }
 
 void Files_WriteLInt (Files_Rider *R, ADDRESS *R__typ, INT32 x)
 {
 	CHAR b[4];
-	b[0] = (CHAR)x;
-	b[1] = (CHAR)__ASHR(x, 8);
-	b[2] = (CHAR)__ASHR(x, 16);
-	b[3] = (CHAR)__ASHR(x, 24);
+	b[0] = __CHR(x);
+	b[1] = __CHR(__ASHR(x, 8));
+	b[2] = __CHR(__ASHR(x, 16));
+	b[3] = __CHR(__ASHR(x, 24));
 	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
@@ -969,10 +969,10 @@ void Files_WriteSet (Files_Rider *R, ADDRESS *R__typ, UINT32 x)
 	CHAR b[4];
 	INT32 i;
 	i = (INT32)x;
-	b[0] = (CHAR)i;
-	b[1] = (CHAR)__ASHR(i, 8);
-	b[2] = (CHAR)__ASHR(i, 16);
-	b[3] = (CHAR)__ASHR(i, 24);
+	b[0] = __CHR(i);
+	b[1] = __CHR(__ASHR(i, 8));
+	b[2] = __CHR(__ASHR(i, 16));
+	b[3] = __CHR(__ASHR(i, 24));
 	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
 }
 
@@ -1003,10 +1003,10 @@ void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len
 void Files_WriteNum (Files_Rider *R, ADDRESS *R__typ, INT64 x)
 {
 	while (x < -64 || x > 63) {
-		Files_Write(&*R, R__typ, (CHAR)(__MASK(x, -128) + 128));
+		Files_Write(&*R, R__typ, __CHR(__MASK(x, -128) + 128));
 		x = __ASHR(x, 7);
 	}
-	Files_Write(&*R, R__typ, (CHAR)__MASK(x, -128));
+	Files_Write(&*R, R__typ, __CHR(__MASK(x, -128)));
 }
 
 void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len)

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -261,7 +261,7 @@ static void OPB_CharToString (OPT_Node n)
 {
 	CHAR ch;
 	n->typ = OPT_stringtyp;
-	ch = (CHAR)n->conval->intval;
+	ch = __CHR(n->conval->intval);
 	n->conval->ext = OPT_NewExt();
 	if (ch == 0x00) {
 		n->conval->intval2 = 1;
@@ -597,7 +597,7 @@ void OPB_MOp (INT8 op, OPT_Node *x)
 			case 22: 
 				if (f == 3) {
 					if (z->class == 7) {
-						z->conval->intval = (INT16)__CAP((CHAR)z->conval->intval);
+						z->conval->intval = (INT16)__CAP(__CHR(z->conval->intval));
 						z->obj = NIL;
 					} else {
 						z = NewOp__29(op, typ, z);
@@ -1136,7 +1136,7 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 					OPB_err(203);
 					r = (LONGREAL)1;
 				}
-				(*x)->conval->intval = (INT32)__ENTIER(r);
+				(*x)->conval->intval = __SHORT(__ENTIER(r), 2147483648LL);
 				OPB_SetIntType(*x);
 			}
 		}

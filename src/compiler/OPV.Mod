@@ -204,7 +204,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END;
   END Precedence;
 
-  PROCEDURE^ expr (n: OPT.Node; prec: INTEGER);
+  PROCEDURE^ expr  (n: OPT.Node; prec: INTEGER);
   PROCEDURE^ design(n: OPT.Node; prec: INTEGER);
 
   PROCEDURE Len(n: OPT.Node; dim: SYSTEM.INT64);
@@ -242,7 +242,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       IF (n.typ.size # to) & ((n.typ.size > OPM.CIntSize) OR (to # OPM.CIntSize)) THEN
         OPM.WriteString("(INT"); OPM.WriteInt(to*8); OPM.WriteString(")")
       END;
-      OPM.Write(OpenParen); Entier(n, MinPrec); OPM.Write(CloseParen)
+      Entier(n, 9)
     END
   END SizeCast;
 

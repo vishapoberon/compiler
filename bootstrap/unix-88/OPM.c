@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -606,7 +606,7 @@ static void OPM_ShowLine (INT64 pos)
 	if (pos >= (INT64)OPM_ErrorLineLimitPos) {
 		pos = OPM_ErrorLineLimitPos - 1;
 	}
-	i = (INT16)OPM_Longint(pos - (INT64)OPM_ErrorLineStartPos);
+	i = __SHORTF(OPM_Longint(pos - (INT64)OPM_ErrorLineStartPos), 32768);
 	while (i > 0) {
 		OPM_LogW(' ');
 		i -= 1;
@@ -865,17 +865,17 @@ void OPM_WriteHex (INT64 i)
 {
 	CHAR s[3];
 	INT32 digit;
-	digit = __ASHR((INT32)i, 4);
+	digit = __ASHR(__SHORT(i, 2147483648LL), 4);
 	if (digit < 10) {
-		s[0] = (CHAR)(48 + digit);
+		s[0] = __CHR(48 + digit);
 	} else {
-		s[0] = (CHAR)(87 + digit);
+		s[0] = __CHR(87 + digit);
 	}
-	digit = __MASK((INT32)i, -16);
+	digit = __MASK(__SHORT(i, 2147483648LL), -16);
 	if (digit < 10) {
-		s[1] = (CHAR)(48 + digit);
+		s[1] = __CHR(48 + digit);
 	} else {
-		s[1] = (CHAR)(87 + digit);
+		s[1] = __CHR(87 + digit);
 	}
 	s[2] = 0x00;
 	OPM_WriteString(s, 3);
@@ -897,11 +897,11 @@ void OPM_WriteInt (INT64 i)
 			__MOVE("LL", s, 3);
 			k = 2;
 		}
-		s[__X(k, 26)] = (CHAR)(__MOD(i1, 10) + 48);
+		s[__X(k, 26)] = __CHR(__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k += 1;
 		while (i1 > 0) {
-			s[__X(k, 26)] = (CHAR)(__MOD(i1, 10) + 48);
+			s[__X(k, 26)] = __CHR(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
@@ -924,13 +924,13 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 	CHAR s[32];
 	CHAR ch;
 	INT16 i;
-	if ((((r < OPM_SignedMaximum(OPM_LongintSize) && r > OPM_SignedMinimum(OPM_LongintSize))) && r == ((INT32)__ENTIER(r)))) {
+	if ((((r < OPM_SignedMaximum(OPM_LongintSize) && r > OPM_SignedMinimum(OPM_LongintSize))) && r == (__SHORT(__ENTIER(r), 2147483648LL)))) {
 		if (suffx == 'f') {
 			OPM_WriteString((CHAR*)"(REAL)", 7);
 		} else {
 			OPM_WriteString((CHAR*)"(LONGREAL)", 11);
 		}
-		OPM_WriteInt((INT32)__ENTIER(r));
+		OPM_WriteInt(__SHORT(__ENTIER(r), 2147483648LL));
 	} else {
 		Texts_OpenWriter(&W, Texts_Writer__typ);
 		if (suffx == 'f') {

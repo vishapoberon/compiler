@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2018/04/24]. Bootstrapping compiler for address size 8, alignment 8. xtspaSF */
+/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -634,7 +634,7 @@ static void OPP_StandProcCall (OPT_Node *x)
 	OPT_Node y = NIL;
 	INT8 m;
 	INT16 n;
-	m = (INT8)((INT16)(*x)->obj->adr);
+	m = __SHORT(__SHORT((*x)->obj->adr, 32768), 128);
 	n = 0;
 	if (OPP_sym == 30) {
 		OPS_Get(&OPP_sym);
@@ -943,7 +943,7 @@ static void GetCode__19 (void)
 			(*ext)[__X(n + 1, 256)] = OPS_str[__X(n, 256)];
 			n += 1;
 		}
-		(*ext)[0] = (CHAR)n;
+		(*ext)[0] = __CHR(n);
 		OPS_Get(&OPP_sym);
 	} else {
 		for (;;) {
@@ -956,14 +956,14 @@ static void GetCode__19 (void)
 					n = 1;
 				}
 				OPS_Get(&OPP_sym);
-				(*ext)[__X(n, 256)] = (CHAR)c;
+				(*ext)[__X(n, 256)] = __CHR(c);
 			}
 			if (OPP_sym == 19) {
 				OPS_Get(&OPP_sym);
 			} else if (OPP_sym == 35) {
 				OPP_err(19);
 			} else {
-				(*ext)[0] = (CHAR)n;
+				(*ext)[0] = __CHR(n);
 				break;
 			}
 		}

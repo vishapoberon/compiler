@@ -35,3 +35,7 @@
 **/.tmp.*
 /*.pdb
 /*.ilk
+/t/*
+/triage/BasicTypeSize.md
+/triage/Roadmap.md
+triage/system/*
