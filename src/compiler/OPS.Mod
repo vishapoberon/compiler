@@ -111,6 +111,11 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
       END
     END Ord;
 
+    PROCEDURE HexExtend(neg: SYSTEM.INT64);  (* Sign extend values from neg to 2*neg *)
+    BEGIN OPM.Get(ch);
+      IF (intval >= neg) & (intval < 2*neg) THEN DEC(intval, 2*neg) END
+    END HexExtend;
+
   BEGIN (* ("0" <= ch) & (ch <= "9") *)
     i := 0; m := 0; n := 0; d := 0;
     LOOP (* read mantissa *)
@@ -138,7 +143,14 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
         ELSIF ch = "H" THEN (* hexadecimal *) OPM.Get(ch); numtyp := integer;
           IF n <= maxhexdigits THEN
             IF (n = maxhexdigits) & (dig[0] > "7") THEN (* prevent overflow *) intval := -1 END;
-            WHILE i < n DO intval := intval*10H + Ord(dig[i], TRUE); INC(i) END
+            WHILE i < n DO intval := intval*10H + Ord(dig[i], TRUE); INC(i) END;
+            CASE ch OF
+            |"1": HexExtend(80H)
+            |"2": HexExtend(8000H)
+            |"4": HexExtend(80000000H)
+            |"8": HexExtend(8000000000000000H)
+            ELSE
+            END
           ELSE err(203)
           END
         ELSE (* decimal *) numtyp := integer;
