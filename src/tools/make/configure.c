@@ -126,7 +126,7 @@ void determineOS() {
 #define optimize "" // " -O1"
 
 void determineCCompiler() {
-  snprintf(libspec, sizeof(libspec), " -l %s", oname);
+  snprintf(libspec, sizeof(libspec), " -l%s", oname);
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
@@ -137,6 +137,9 @@ void determineCCompiler() {
   #elif defined(__clang__)
     compiler = "clang";
     cc       = "clang -fPIC -g" optimize;
+  #elif defined(__TINYC__)
+    compiler = "tcc";
+    cc       = "tcc -g";
   #elif defined(__GNUC__)
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {

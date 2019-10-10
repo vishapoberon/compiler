@@ -65,10 +65,20 @@ assemble:
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
+ifeq ($(COMPILER),tcc)
+	cd $(BUILDDIR) && $(COMPILE) Compiler.c -o $(ROOTDIR)/$(OBECOMP) \
+	SYSTEM.o Configuration.o Platform.o Heap.o  Out.o \
+	Strings.o Modules.o Files.o Reals.o Texts.o \
+	VT100.o extTools.o \
+	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o
+else
 	cd $(BUILDDIR) && $(COMPILE) $(STATICLINK) Compiler.c -o $(ROOTDIR)/$(OBECOMP) \
-	SYSTEM.o   Configuration.o Platform.o Heap.o  Out.o   Strings.o  \
-	Modules.o  Files.o         Reals.o    Texts.o VT100.o extTools.o \
-	OPM.o      OPS.o           OPT.o      OPC.o   OPV.o   OPB.o    OPP.o
+	SYSTEM.o Configuration.o Platform.o Heap.o  Out.o \
+	Strings.o Modules.o Files.o Reals.o Texts.o \
+	VT100.o extTools.o \
+	OPM.o OPS.o OPT.o OPC.o OPV.o OPB.o OPP.o
+
+endif
 
 	cp src/runtime/*.[ch] $(BUILDDIR)
 	cp src/runtime/*.Txt  $(BUILDDIR)
