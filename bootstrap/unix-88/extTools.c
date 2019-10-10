@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/01/04]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/10/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -72,7 +72,7 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 
 static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len)
 {
-	__COPY("gcc -g", s, s__len);
+	__COPY("tcc -g", s, s__len);
 	Strings_Append((CHAR*)" -I \"", 6, (void*)s, s__len);
 	Strings_Append(OPM_ResourceDir, 1024, (void*)s, s__len);
 	Strings_Append((CHAR*)"/include\" ", 11, (void*)s, s__len);
@@ -110,7 +110,7 @@ void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN stati
 		Strings_Append((CHAR*)" -L\"", 5, (void*)cmd, 4096);
 		Strings_Append(OPM_InstallDir, 1024, (void*)cmd, 4096);
 		Strings_Append((CHAR*)"/lib\"", 6, (void*)cmd, 4096);
-		Strings_Append((CHAR*)" -l voc", 8, (void*)cmd, 4096);
+		Strings_Append((CHAR*)" -lvoc", 7, (void*)cmd, 4096);
 		Strings_Append((CHAR*)"-O", 3, (void*)cmd, 4096);
 		Strings_Append(OPM_Model, 10, (void*)cmd, 4096);
 		Strings_Append((CHAR*)"", 1, (void*)cmd, 4096);
