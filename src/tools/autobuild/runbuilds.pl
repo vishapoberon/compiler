@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use POSIX "strftime";
 
+$SIG{CHLD} = 'IGNORE';
+
 my $home = "/home/dave/vishap-build";
 
 chdir $home;

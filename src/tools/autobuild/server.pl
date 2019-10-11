@@ -11,25 +11,28 @@ use Data::Dumper;
 use JSON;
 use sigtrap qw(die INT QUIT);
 
-my $home = "/usr/home/dave/vishap-build";
+my $home = "/home/dave/vishap-build";
 my $criggleplop = "splurd crungle splonge.";
 
 $| = 1;
+$SIG{CHLD} = 'IGNORE';
 
 my $PORT = 9000;
-my $server = HTTP::Daemon->new(LocalPort => $PORT, ReuseAddr => 1);
+my $server = HTTP::Daemon->new(Family => AF_INET, LocalPort => $PORT, ReuseAddr => 1);
 die "Cannot setup server" unless $server;
 print "[$$: Accepting clients at http://localhost:$PORT/]\n";
 
 while (my $client = $server->accept) {
   (my $pid = fork()) // die("Couldn't fork.");
-  if ($pid) {close $client; undef $client} else {ServeRequests($client); exit}
+  if ($pid) {$client->close; undef $client}
+  else {ServeRequests($client); $client->close; undef $client; exit}
 }
 print "$$: server->accept failed. Exiting.\n";
 exit;
 
 
 sub StartBuilds {my ($branch) = @_;
+  print "  -- start builds for branch $branch.\n";
   open TRIGGER, ">trigger-$branch"; print TRIGGER "trigger.\n"; close TRIGGER;
   my $running = 0;
   if (open PID, "<pid") {$running = kill 0, <PID>; close PID}
@@ -41,6 +44,7 @@ sub StartBuilds {my ($branch) = @_;
       open PID, ">pid";  print PID "$child.\n";  close PID;
     } else {
       # This is the child, we actually run all triggered builds.
+      # print "Debug: About to run perl >$home/runbuilds.log ...\n";
       exec "perl $home/runbuilds.pl >$home/runbuilds.log";
       exit; # Shouldn't get here
     }
@@ -97,14 +101,17 @@ sub SendFile {my ($client, $file) = @_;
 
 
 sub VishapStatus {my ($client) = @_;
+  print "  -- generate status.\n";
   system "perl makesvg.pl";  # Construct an up-to-date status file
   SendFile($client, "vishaps-status.svg");
 }
 
 sub LogFileResponse {my ($client, $path) = @_;
   if (-f "logs/$path.log") {
+    print "  -- send log for build $path.\n";
     SendFile($client, "logs/$path.log")
   } else {
+    print "  -- respond forbidden: no log for $path.\n";
     $client->send_error(RC_FORBIDDEN)
   }
 }
@@ -115,19 +122,23 @@ sub ServeRequests {my ($client) = @_;
   while (my $request = $client->get_request) {
     if ($request->method eq 'GET') {
 
-      my $uri = $request->uri;
       my $host = $request->headers->{host};
-
-      print "URI requested: '$uri'.\n";
-      print "Host: '$host'.\n";
-
+      my $uri = $request->uri;
       $uri =~ s/^\///;
       $uri =~ s/^githubhook\///;
 
+      print "Request: $uri\n";
 
-      if ($uri eq 'vishaps-status.svg') {VishapStatus($client)}
+      if    ($uri eq 'vishaps-status.svg') {VishapStatus($client)}
+      elsif ($uri eq 'vishaps-trigger') {
+        $client->send_file_response("response.html");
+        StartBuilds("master");
+      }
+      elsif ($uri =~ /^vishaps-trigger\/([-_a-z0-9]+)/i) {
+        $client->send_file_response("response.html");
+        StartBuilds($1);
+      }
       else {LogFileResponse($client, $uri)}
-
 
     } elsif ($request->method eq 'POST') {
 
@@ -135,7 +146,7 @@ sub ServeRequests {my ($client) = @_;
       my $event = $request->headers->{'x-github-event'};
       my $githubsig = substr($request->headers->{'x-hub-signature'}, 5);
       my $mysig = hmac_sha1_hex($request->content, $criggleplop);
-      print "Github event: $event, mysig $mysig, githubsig: $githubsig.\n";
+      print "Github POST: $event, mysig $mysig, githubsig: $githubsig.\n";
       if (($event eq "push") &&  ($mysig eq $githubsig)) {
         my $content = $request->content;
         $content =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  # Unescape %xx sequences.
@@ -146,9 +157,7 @@ sub ServeRequests {my ($client) = @_;
 
       print "Request method $request->method forbidden.\n";
       $client->send_error(RC_FORBIDDEN)
+
     }
   }
-  $client->close;
-  undef $client;
-  #print "$$: no more requests, closing client.\n";
 }
