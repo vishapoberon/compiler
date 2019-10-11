@@ -140,6 +140,7 @@ void determineCCompiler() {
   #elif defined(__TINYC__)
     compiler = "tcc";
     cc       = "tcc -g";
+    staticlink = "";
   #elif defined(__GNUC__)
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
