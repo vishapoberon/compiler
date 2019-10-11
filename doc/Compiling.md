@@ -57,10 +57,12 @@ The following options designate the main module:
 
 | Compiler option | Use                                                                                  |
 | :-------------: | ---------------------------                                                          | 
-| ```-m```        | Generate loadable binary using dynamic library loading (on systems that support it). |
-| ```-M```        | Generate loadable binary with all library references statically linked.              |
+| ```-m```        | Generate loadable binary using dynamic library loading (*see note*)                  |
+| ```-M```        | Generate loadable binary with all library references statically linked (*see note*)  |
 
 For a main module, no .sym or .h files are generated, and the C compiler is called with additional parameters to generate the execututable binary, linking the object files needed for imported modules.
+
+*Note:* not all systems support both static and dynamic linking: some support only static; some support only dynamic. When a system only supports one, ```-m``` and ```-M``` behave the same.
 
 ### Separate compilation
 
