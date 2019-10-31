@@ -215,7 +215,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     IF (n^.class = OPT.Nderef) & (n^.typ^.comp = OPT.DynArr) THEN
 	  d := dim; array := n^.typ;
 	  WHILE d > 0 DO array := array^.BaseTyp; DEC(d) END;
-	  IF array^.comp = DynArr THEN
+	  IF array^.comp = OPT.DynArr THEN
         design(n^.left, 10); OPM.WriteString("->len["); OPM.WriteInt(dim); OPM.Write("]")
 	  ELSE
         OPM.WriteInt(array^.n); OPM.PromoteIntConstToLInt()
