@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/10/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/01]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -317,15 +317,27 @@ static INT16 OPV_Precedence (INT16 class, INT16 subclass, INT16 form, INT16 comp
 
 static void OPV_Len (OPT_Node n, INT64 dim)
 {
+	INT64 d;
+	OPT_Struct array = NIL;
 	while ((n->class == 4 && n->typ->comp == 3)) {
 		dim += 1;
 		n = n->left;
 	}
 	if ((n->class == 3 && n->typ->comp == 3)) {
-		OPV_design(n->left, 10);
-		OPM_WriteString((CHAR*)"->len[", 7);
-		OPM_WriteInt(dim);
-		OPM_Write(']');
+		d = dim;
+		array = n->typ;
+		while (d > 0) {
+			array = array->BaseTyp;
+			d -= 1;
+		}
+		if (array->comp == 3) {
+			OPV_design(n->left, 10);
+			OPM_WriteString((CHAR*)"->len[", 7);
+			OPM_WriteInt(dim);
+			OPM_Write(']');
+		} else {
+			OPM_WriteInt(array->n);
+		}
 	} else {
 		OPC_Len(n->obj, n->typ, dim);
 	}
