@@ -1215,12 +1215,15 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END IntLiteral;
 
   PROCEDURE Len* (obj: OPT.Object; array: OPT.Struct; dim: SYSTEM.INT64);
+  VAR
+    d: SYSTEM.INT64;
   BEGIN
+    d := dim;
+    WHILE d > 0 DO array := array^.BaseTyp; DEC(d) END;
     IF array^.comp = OPT.DynArr THEN
       CompleteIdent(obj); OPM.WriteString(LenExt);
       IF dim # 0 THEN OPM.WriteInt(dim) END
     ELSE (* array *)
-      WHILE dim > 0 DO array := array^.BaseTyp; DEC(dim) END;
       OPM.WriteInt(array.n)
     END
   END Len;
