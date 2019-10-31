@@ -218,7 +218,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 	  IF array^.comp = OPT.DynArr THEN
         design(n^.left, 10); OPM.WriteString("->len["); OPM.WriteInt(dim); OPM.Write("]")
 	  ELSE
-        OPM.WriteInt(array^.n); OPM.PromoteIntConstToLInt()
+        OPM.WriteInt(array^.n)
 	  END
     ELSE
       OPC.Len(n^.obj, n^.typ, dim)
