@@ -78,11 +78,11 @@ This will create a subdirectory 'voc' which includes the following files and dir
 | make.cmd   | Makefile specifically for native Microsoft C builds. No tests.                             |
 
 
-#### 3. Build and install the Oberon compiler and library
+#### 3. Build the Oberon compiler and library
 
 ```
 cd voc
-[sudo] make full
+make full
 ```
 
 The makefile will:
