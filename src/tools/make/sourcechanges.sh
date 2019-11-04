@@ -12,9 +12,9 @@
 #   The current directory is the build directory
 
 changes="0"
-for f in $1/*; do
-  fn=$(basename $f)
-  egrep -v -f ../../src/tools/make/ignore $f  >$fn.old
+find "$1" -type f -print0 | while IFS= read -r -d '' f; do
+  fn=$(basename "$f")
+  egrep -v -f ../../src/tools/make/ignore "$f"  >$fn.old
   egrep -v -f ../../src/tools/make/ignore $fn >$fn.new
   if ! diff -U 2 -b $fn.old $fn.new >$fn.diff; then
     echo ""

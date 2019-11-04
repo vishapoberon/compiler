@@ -107,13 +107,13 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
       Strings.Append(Configuration.name,   cmd);
       Strings.Append('-O',                 cmd);
       Strings.Append(OPM.Model,            cmd);
-      Strings.Append('.dylib ',            cmd);
+      Strings.Append('.dylib "',           cmd);
       Strings.Append(OPM.InstallDir,       cmd);
       Strings.Append('/lib/lib',           cmd);
       Strings.Append(Configuration.name,   cmd);
       Strings.Append('-O',                 cmd);
       Strings.Append(OPM.Model,            cmd);
-      Strings.Append('.dylib ',            cmd);
+      Strings.Append('.dylib" ',           cmd);
       Strings.Append(moduleName,           cmd);
       execute("Set library directory: ",   cmd)
     END
