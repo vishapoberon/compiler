@@ -245,9 +245,7 @@ Norayr Chilingarian forked ofront in 2013, porting extensive libraries from [ULM
 
 David Brown has worked on adding support for more platforms incuding windows using MSC, cygwin or mingw since January 2016. More recently he has generalised basic type support within the compiler to allow e.g. 64 bit LONGINT on 32 bit systems, and 32 bit LONGINT on 64 bit systems.
 
-## Origin of the name "Ѵishap Oberon"
-
-#### Oberon
+## Oberon
 
 Oberon is a programming language, an operating system and a graphical
 user interface. Originally designed and implemented by by Niklaus Wirth and
@@ -266,7 +264,7 @@ of Einstein and Antoine de Saint-Exupéry:
 >  when there is no longer anything to take away. (Antoine de Saint-Exupéry,
 >  translated by Lewis Galantière.)
 
-#### Ѵishap
+## Origin of the name "Ѵishap Oberon"
 
 Vishaps are dragons inhabiting the Armenian Highlands.
 We decided to name the project “Vishap” because ties between compilers and dragons have ancient traditions.
