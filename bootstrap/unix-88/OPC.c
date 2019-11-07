@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/10/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/01]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1834,6 +1834,12 @@ void OPC_IntLiteral (INT64 n, INT32 size)
 
 void OPC_Len (OPT_Object obj, OPT_Struct array, INT64 dim)
 {
+	INT64 d;
+	d = dim;
+	while (d > 0) {
+		array = array->BaseTyp;
+		d -= 1;
+	}
 	if (array->comp == 3) {
 		OPC_CompleteIdent(obj);
 		OPM_WriteString((CHAR*)"__len", 6);
@@ -1841,10 +1847,6 @@ void OPC_Len (OPT_Object obj, OPT_Struct array, INT64 dim)
 			OPM_WriteInt(dim);
 		}
 	} else {
-		while (dim > 0) {
-			array = array->BaseTyp;
-			dim -= 1;
-		}
 		OPM_WriteInt(array->n);
 	}
 }
