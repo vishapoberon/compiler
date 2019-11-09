@@ -10,7 +10,7 @@ MODULE Args;  (* jt, 8.12.94 *)
     ArgVec = POINTER TO ARRAY 1024 OF ArgPtr;
 
   VAR
-    argc-: LONGINT;
+    argc-: INTEGER;
     argv-: SYSTEM.ADDRESS;
 
 
