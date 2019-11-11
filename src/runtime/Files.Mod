@@ -461,7 +461,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     r.offset := offset + 1; r.res := 0
   END Write;
 
-  PROCEDURE WriteBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
+  PROCEDURE WriteBytes* (VAR r: Rider; x: ARRAY [1] OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
     IF n > LEN(x) THEN IdxTrap END;
