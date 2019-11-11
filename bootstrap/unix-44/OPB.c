@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/01]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -2348,11 +2348,12 @@ void OPB_StFct (OPT_Node *par0, INT8 fctno, INT16 parno)
 
 static void OPB_DynArrParCheck (OPT_Struct ftyp, OPT_Struct atyp, BOOLEAN fvarpar)
 {
-	INT16 f;
+	INT16 f, sysflag;
+	sysflag = ftyp->sysflag;
 	f = atyp->comp;
 	ftyp = ftyp->BaseTyp;
 	atyp = atyp->BaseTyp;
-	if ((fvarpar && ftyp == OPT_bytetyp)) {
+	if (((fvarpar || sysflag != 0) && ftyp == OPT_bytetyp)) {
 		if (!__IN(f, 0x0c, 32) || !((__IN(atyp->form, 0x1e, 32) && atyp->size == 1))) {
 			if (__IN(18, OPM_Options, 32)) {
 				OPB_err(-301);

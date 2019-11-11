@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/01]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -90,7 +90,7 @@ export void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, AD
 export void Files_ReadInt (Files_Rider *R, ADDRESS *R__typ, INT16 *x);
 export void Files_ReadLInt (Files_Rider *R, ADDRESS *R__typ, INT32 *x);
 export void Files_ReadLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL *x);
-export void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
+export void Files_ReadLine (Files_Rider *r, ADDRESS *r__typ, CHAR *x, ADDRESS x__len);
 export void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__len);
 export void Files_ReadReal (Files_Rider *R, ADDRESS *R__typ, REAL *x);
 export void Files_ReadSet (Files_Rider *R, ADDRESS *R__typ, UINT32 *x);
@@ -613,24 +613,29 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 {
 	INT32 offset;
 	Files_Buffer buf = NIL;
-	buf = (*r).buf;
-	offset = (*r).offset;
-	if ((*r).org != buf->org) {
-		Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
+	if (((*r).org == (*r).buf->org && (*r).offset < (*r).buf->size)) {
+		*x = (*r).buf->data[__X((*r).offset, 4096)];
+		(*r).offset += 1;
+	} else {
 		buf = (*r).buf;
 		offset = (*r).offset;
-	}
-	Files_Assert(offset <= buf->size);
-	if (offset < buf->size) {
-		*x = buf->data[__X(offset, 4096)];
-		(*r).offset = offset + 1;
-	} else if ((*r).org + offset < buf->f->len) {
-		Files_Set(&*r, r__typ, (*r).buf->f, (*r).org + offset);
-		*x = (*r).buf->data[0];
-		(*r).offset = 1;
-	} else {
-		*x = 0x00;
-		(*r).eof = 1;
+		if ((*r).org != buf->org) {
+			Files_Set(&*r, r__typ, buf->f, (*r).org + offset);
+			buf = (*r).buf;
+			offset = (*r).offset;
+		}
+		Files_Assert(offset <= buf->size);
+		if (offset < buf->size) {
+			*x = buf->data[__X(offset, 4096)];
+			(*r).offset = offset + 1;
+		} else if ((*r).org + offset < buf->f->len) {
+			Files_Set(&*r, r__typ, (*r).buf->f, (*r).org + offset);
+			*x = (*r).buf->data[0];
+			(*r).offset = 1;
+		} else {
+			*x = 0x00;
+			(*r).eof = 1;
+		}
 	}
 }
 
@@ -905,16 +910,45 @@ void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 	} while (!(ch == 0x00));
 }
 
-void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
+void Files_ReadLine (Files_Rider *r, ADDRESS *r__typ, CHAR *x, ADDRESS x__len)
 {
 	INT16 i;
+	INT32 offset, limit;
+	Files_Buffer buffer = NIL;
+	BOOLEAN eoln;
+	CHAR ch;
 	i = 0;
-	do {
-		Files_Read(&*R, R__typ, (void*)&x[__X(i, x__len)]);
-		i += 1;
-	} while (!(x[__X(i - 1, x__len)] == 0x00 || x[__X(i - 1, x__len)] == 0x0a));
-	if (x[__X(i - 1, x__len)] == 0x0a) {
-		i -= 1;
+	limit = x__len - 1;
+	offset = (*r).offset;
+	buffer = (*r).buf;
+	eoln = (*r).eof || limit == 0;
+	while (!eoln) {
+		if ((*r).org != buffer->org || offset >= buffer->size) {
+			if ((*r).org + offset < buffer->f->len) {
+				Files_Set(&*r, r__typ, buffer->f, (*r).org + offset);
+				offset = (*r).offset;
+				buffer = (*r).buf;
+				eoln = (*r).eof;
+			} else {
+				(*r).eof = 1;
+				eoln = 1;
+			}
+		}
+		while ((offset < buffer->size && !eoln)) {
+			ch = __VAL(CHAR, buffer->data[__X(offset, 4096)]);
+			offset += 1;
+			if ((ch != 0x00 && ch != 0x0a)) {
+				x[__X(i, x__len)] = ch;
+				i += 1;
+				eoln = i >= limit;
+			} else {
+				eoln = 1;
+			}
+		}
+		(*r).offset = offset;
+		if (i == limit) {
+			eoln = 1;
+		}
 	}
 	if ((i > 0 && x[__X(i - 1, x__len)] == 0x0d)) {
 		i -= 1;

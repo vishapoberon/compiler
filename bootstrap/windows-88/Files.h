@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/01]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef Files__h
 #define Files__h
@@ -45,7 +45,7 @@ import void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, AD
 import void Files_ReadInt (Files_Rider *R, ADDRESS *R__typ, INT16 *x);
 import void Files_ReadLInt (Files_Rider *R, ADDRESS *R__typ, INT32 *x);
 import void Files_ReadLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL *x);
-import void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
+import void Files_ReadLine (Files_Rider *r, ADDRESS *r__typ, CHAR *x, ADDRESS x__len);
 import void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__len);
 import void Files_ReadReal (Files_Rider *R, ADDRESS *R__typ, REAL *x);
 import void Files_ReadSet (Files_Rider *R, ADDRESS *R__typ, UINT32 *x);

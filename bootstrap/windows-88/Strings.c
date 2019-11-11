@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/01]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -27,16 +27,13 @@ export void Strings_StrToReal (CHAR *s, ADDRESS s__len, REAL *r);
 INT16 Strings_Length (CHAR *s, ADDRESS s__len)
 {
 	INT32 i;
-	__DUP(s, s__len, CHAR);
 	i = 0;
 	while ((i < s__len && s[__X(i, s__len)] != 0x00)) {
 		i += 1;
 	}
 	if (i <= 32767) {
-		__DEL(s);
 		return __SHORT(i, 32768);
 	} else {
-		__DEL(s);
 		return 32767;
 	}
 	__RETCHK;
