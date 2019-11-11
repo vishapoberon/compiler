@@ -398,18 +398,23 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Read* (VAR r: Rider; VAR x: SYSTEM.BYTE);
     VAR offset: LONGINT; buf: Buffer;
   BEGIN
-    buf := r.buf; offset := r.offset;
-    IF r.org # buf.org THEN
-      Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
-    END;
-    Assert(offset <= buf.size);
-    IF (offset < buf.size) THEN
-      x := buf.data[offset]; r.offset := offset + 1
-    ELSIF r.org + offset < buf.f.len THEN
-      Set(r, r.buf.f, r.org + offset);
-      x := r.buf.data[0]; r.offset := 1
-    ELSE
-      x := 0X; r.eof := TRUE
+    IF (r.org = r.buf.org) & (r.offset < r.buf.size) THEN (* Fast case *)
+      x := r.buf.data[r.offset];
+      INC(r.offset)
+    ELSE (* Slow case *)
+      buf := r.buf; offset := r.offset;
+      IF r.org # buf.org THEN
+        Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
+      END;
+      Assert(offset <= buf.size);
+      IF (offset < buf.size) THEN
+        x := buf.data[offset]; r.offset := offset + 1
+      ELSIF r.org + offset < buf.f.len THEN
+        Set(r, r.buf.f, r.org + offset);
+        x := r.buf.data[0]; r.offset := 1
+      ELSE
+        x := 0X; r.eof := TRUE
+      END
     END
   END Read;
 
@@ -635,14 +640,42 @@ Especially Length would become fairly complex.
     REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X
   END ReadString;
 
-  PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-  VAR i: INTEGER;
+  PROCEDURE ReadLine* (VAR r: Rider; VAR x: ARRAY OF CHAR);
+  VAR i: INTEGER; offset, limit: LONGINT; buffer: Buffer; eoln: BOOLEAN; ch: CHAR;
   BEGIN
-    i := 0; REPEAT Read(R, x[i]); INC(i) UNTIL (x[i-1] = 0X) OR (x[i-1] = 0AX);
-    IF x[i-1] = 0AX THEN DEC(i) END;             (* Omit trailing LF *)
-    IF (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END; (* Also omit preceeding trailing CR if present. *)
-    x[i] := 0X;                                  (* Guarantee zero termination. *)
+    i := 0;  limit := LEN(x)-1;
+    offset := r.offset;  buffer := r.buf;
+    eoln := r.eof OR (limit = 0);
+    WHILE ~eoln DO
+      IF (r.org # buffer.org) OR (offset >= buffer.size) THEN (* Refresh buffer *)
+        IF r.org + offset < buffer.f.len THEN
+          Set(r, buffer.f, r.org+offset);
+          offset := r.offset;  buffer := r.buf;  eoln := r.eof;
+        ELSE
+          r.eof := TRUE;  eoln := TRUE;
+        END
+      END;
+      WHILE (offset < buffer.size) & ~eoln DO
+        ch := SYSTEM.VAL(CHAR, buffer.data[offset]);  INC(offset);
+        IF (ch # 0X) & (ch # 0AX) THEN
+          x[i] := ch;  INC(i);  eoln := i >= limit
+        ELSE
+          eoln := TRUE
+        END
+      END;
+      r.offset := offset;
+      IF i=limit THEN eoln := TRUE END
+    END;
+    IF (i>0) & (x[i-1] = 0DX) THEN DEC(i) END; (* Exclude CR if present at eol *)
+    x[i] := 0X
   END ReadLine;
+
+  (* old readline code:
+    REPEAT Read(R, x[i]); INC(i) UNTIL (x[i-1] = 0X) OR (x[i-1] = 0AX);
+    IF x[i-1] = 0AX THEN DEC(i) END;             ( * Omit trailing LF * )
+    IF (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END; ( * Also omit preceeding trailing CR if present. * )
+    x[i] := 0X;                                  ( * Guarantee zero termination. * )
+    *)
 
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
     VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;

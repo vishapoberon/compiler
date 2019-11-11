@@ -29,9 +29,9 @@ Strings.Cap(s)
 -------------------------------------------------------------*)
 (* added from trianus v4 *)
 MODULE Strings;  (*HM 94-06-22 /  *) (* noch 2017-06-21 *)
-IMPORT Reals;
+IMPORT Reals, SYSTEM;
 
-PROCEDURE Length* (s: ARRAY OF CHAR): INTEGER;
+PROCEDURE Length* (s: ARRAY [1] OF CHAR): INTEGER;
   VAR i: LONGINT;
 BEGIN
   i := 0; WHILE (i < LEN(s)) & (s[i] # 0X) DO INC(i) END;
@@ -160,14 +160,14 @@ BEGIN
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
 	IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
-	
+
 	y := 0;
 	WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 		y := y * 10 + (ORD(s[p]) - 30H);
 		INC(p);
 	END;
 	IF s[p] = "." THEN
-		INC(p); g := 1; 
+		INC(p); g := 1;
 		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 			g := g / 10; y := y + g * (ORD(s[p]) - 30H);
 			INC(p);
@@ -195,14 +195,14 @@ BEGIN
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
 	IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
-	
+
 	y := 0;
 	WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 		y := y * 10 + (ORD(s[p]) - 30H);
 		INC(p);
 	END;
 	IF s[p] = "." THEN
-		INC(p); g := 1; 
+		INC(p); g := 1;
 		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 			g := g / 10; y := y + g * (ORD(s[p]) - 30H);
 			INC(p);
