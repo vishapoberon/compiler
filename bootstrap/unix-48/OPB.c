@@ -101,6 +101,9 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 	}
 	node->obj = obj;
 	node->typ = obj->typ;
+	if ((((obj->mode == 1 && __IN(obj->typ->comp, 0x0c, 32))) && obj->typ->sysflag != 0)) {
+		node->readonly = 1;
+	}
 	return node;
 }
 

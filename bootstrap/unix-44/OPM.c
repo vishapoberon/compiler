@@ -848,7 +848,7 @@ void OPM_WriteString (CHAR *s, ADDRESS s__len)
 	while (s[__X(i, s__len)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
+	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, s, s__len * 1, i);
 }
 
 void OPM_WriteStringVar (CHAR *s, ADDRESS s__len)
@@ -858,7 +858,7 @@ void OPM_WriteStringVar (CHAR *s, ADDRESS s__len)
 	while (s[__X(i, s__len)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
+	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, s, s__len * 1, i);
 }
 
 void OPM_WriteHex (INT64 i)
@@ -976,7 +976,7 @@ static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F)
 		Files_Set(&R1, Files_Rider__typ, F, 0);
 		Files_ReadBytes(&R1, Files_Rider__typ, (void*)buffer, 4096, 4096);
 		while (4096 - R1.res > 0) {
-			Files_WriteBytes(&*R, R__typ, (void*)buffer, 4096, 4096 - R1.res);
+			Files_WriteBytes(&*R, R__typ, buffer, 4096, 4096 - R1.res);
 			Files_ReadBytes(&R1, Files_Rider__typ, (void*)buffer, 4096, 4096);
 		}
 	}

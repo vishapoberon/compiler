@@ -985,7 +985,7 @@ void Files_WriteInt (Files_Rider *R, ADDRESS *R__typ, INT16 x)
 	CHAR b[2];
 	b[0] = __CHR(x);
 	b[1] = __CHR(__ASHR(x, 8));
-	Files_WriteBytes(&*R, R__typ, (void*)b, 2, 2);
+	Files_WriteBytes(&*R, R__typ, b, 2, 2);
 }
 
 void Files_WriteLInt (Files_Rider *R, ADDRESS *R__typ, INT32 x)
@@ -995,7 +995,7 @@ void Files_WriteLInt (Files_Rider *R, ADDRESS *R__typ, INT32 x)
 	b[1] = __CHR(__ASHR(x, 8));
 	b[2] = __CHR(__ASHR(x, 16));
 	b[3] = __CHR(__ASHR(x, 24));
-	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
+	Files_WriteBytes(&*R, R__typ, b, 4, 4);
 }
 
 void Files_WriteSet (Files_Rider *R, ADDRESS *R__typ, UINT32 x)
@@ -1007,21 +1007,21 @@ void Files_WriteSet (Files_Rider *R, ADDRESS *R__typ, UINT32 x)
 	b[1] = __CHR(__ASHR(i, 8));
 	b[2] = __CHR(__ASHR(i, 16));
 	b[3] = __CHR(__ASHR(i, 24));
-	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
+	Files_WriteBytes(&*R, R__typ, b, 4, 4);
 }
 
 void Files_WriteReal (Files_Rider *R, ADDRESS *R__typ, REAL x)
 {
 	CHAR b[4];
 	Files_FlipBytes((void*)&x, 4, (void*)b, 4);
-	Files_WriteBytes(&*R, R__typ, (void*)b, 4, 4);
+	Files_WriteBytes(&*R, R__typ, b, 4, 4);
 }
 
 void Files_WriteLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL x)
 {
 	CHAR b[8];
 	Files_FlipBytes((void*)&x, 8, (void*)b, 8);
-	Files_WriteBytes(&*R, R__typ, (void*)b, 8, 8);
+	Files_WriteBytes(&*R, R__typ, b, 8, 8);
 }
 
 void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
@@ -1031,7 +1031,7 @@ void Files_WriteString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len
 	while (x[__X(i, x__len)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&*R, R__typ, (void*)x, x__len * 1, i + 1);
+	Files_WriteBytes(&*R, R__typ, x, x__len * 1, i + 1);
 }
 
 void Files_WriteNum (Files_Rider *R, ADDRESS *R__typ, INT64 x)

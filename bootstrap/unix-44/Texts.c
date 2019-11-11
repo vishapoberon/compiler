@@ -1733,11 +1733,11 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 					delta = (*(Texts_Piece*)&u)->len;
 					while (delta > 1024) {
 						Files_ReadBytes(&r1, Files_Rider__typ, (void*)block, 1024, 1024);
-						Files_WriteBytes(&msg.r, Files_Rider__typ, (void*)block, 1024, 1024);
+						Files_WriteBytes(&msg.r, Files_Rider__typ, block, 1024, 1024);
 						delta -= 1024;
 					}
 					Files_ReadBytes(&r1, Files_Rider__typ, (void*)block, 1024, delta);
-					Files_WriteBytes(&msg.r, Files_Rider__typ, (void*)block, 1024, delta);
+					Files_WriteBytes(&msg.r, Files_Rider__typ, block, 1024, delta);
 				}
 			} else __WITHCHK;
 		} else {
