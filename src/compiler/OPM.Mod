@@ -92,7 +92,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     GlobalAlignment,   Alignment*:   INTEGER;
     GlobalOptions*,    Options*:     SET;
 
-    ShortintSize*, IntegerSize*, LongintSize*: INTEGER;
+    ShortintSize*, IntegerSize*, LongintSize*, SetSize*: INTEGER;
 
     MaxIndex*: SYSTEM.INT64;
 
@@ -328,10 +328,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     MaxIndex := SignedMaximum(AddressSize);
     CASE Model[0] OF
-    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
-    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8
-    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8
-    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
+    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4;
+    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8;  SetSize := 4;
+    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8;
+    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4;
     END;
 
     (*IF verbose IN Options THEN VerboseListSizes END;*)
