@@ -273,7 +273,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWLn;
       LogWStr("  Size model for elementary types (default O2)");                                                   LogWLn;
       LogWStr("    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.");   LogWLn;
-      LogWStr("    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
+      LogWStr("    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER and SET, 64 bit LONGINT.");   LogWLn;
       LogWStr("    -OV   Alternate large model:       8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
       LogWLn;
       LogWStr("  Target machine address size and alignment (default is that of the running compiler binary)");     LogWLn;
