@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -27,7 +27,7 @@ export INT16 OPM_AddressSize;
 static INT16 OPM_GlobalAlignment;
 export INT16 OPM_Alignment;
 export UINT32 OPM_GlobalOptions, OPM_Options;
-export INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize;
+export INT16 OPM_ShortintSize, OPM_IntegerSize, OPM_LongintSize, OPM_SetSize;
 export INT64 OPM_MaxIndex;
 export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
@@ -112,9 +112,7 @@ void OPM_LogW (CHAR ch)
 
 void OPM_LogWStr (CHAR *s, ADDRESS s__len)
 {
-	__DUP(s, s__len, CHAR);
 	Out_String(s, s__len);
-	__DEL(s);
 }
 
 void OPM_LogWNum (INT64 i, INT64 len)
@@ -129,16 +127,13 @@ void OPM_LogWLn (void)
 
 void OPM_LogVT100 (CHAR *vt100code, ADDRESS vt100code__len)
 {
-	__DUP(vt100code, vt100code__len, CHAR);
 	if ((Out_IsConsole && !__IN(16, OPM_Options, 32))) {
 		VT100_SetAttr(vt100code, vt100code__len);
 	}
-	__DEL(vt100code);
 }
 
 void OPM_LogCompiling (CHAR *modname, ADDRESS modname__len)
 {
-	__DUP(modname, modname__len, CHAR);
 	OPM_LogWStr((CHAR*)"Compiling ", 11);
 	OPM_LogWStr(modname, modname__len);
 	if (__IN(18, OPM_Options, 32)) {
@@ -154,7 +149,6 @@ void OPM_LogCompiling (CHAR *modname, ADDRESS modname__len)
 		OPM_LogWNum(__ASHL(OPM_Alignment, 3), 1);
 	}
 	OPM_LogW('.');
-	__DEL(modname);
 }
 
 INT64 OPM_SignedMaximum (INT32 bytecount)
@@ -183,7 +177,6 @@ INT16 OPM_Integer (INT64 n)
 static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
-	__DUP(s, s__len, CHAR);
 	i = 1;
 	while (s[__X(i, s__len)] != 0x00) {
 		switch (s[__X(i, s__len)]) {
@@ -263,7 +256,6 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 		}
 		i += 1;
 	}
-	__DEL(s);
 }
 
 BOOLEAN OPM_OpenPar (void)
@@ -338,7 +330,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.", 95);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 95);
+		OPM_LogWStr((CHAR*)"    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER and SET, 64 bit LONGINT.", 95);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -OV   Alternate large model:       8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.", 95);
 		OPM_LogWLn();
@@ -410,21 +402,25 @@ void OPM_InitOptions (void)
 			OPM_ShortintSize = 1;
 			OPM_IntegerSize = 2;
 			OPM_LongintSize = 4;
+			OPM_SetSize = 4;
 			break;
 		case 'C': 
 			OPM_ShortintSize = 2;
 			OPM_IntegerSize = 4;
 			OPM_LongintSize = 8;
+			OPM_SetSize = 4;
 			break;
 		case 'V': 
 			OPM_ShortintSize = 1;
 			OPM_IntegerSize = 4;
 			OPM_LongintSize = 8;
+			OPM_SetSize = 8;
 			break;
 		default: 
 			OPM_ShortintSize = 1;
 			OPM_IntegerSize = 2;
 			OPM_LongintSize = 4;
+			OPM_SetSize = 4;
 			break;
 	}
 	__MOVE(OPM_InstallDir, OPM_ResourceDir, 1024);
@@ -492,7 +488,6 @@ static void OPM_MakeFileName (CHAR *name, ADDRESS name__len, CHAR *FName, ADDRES
 {
 	INT16 i, j;
 	CHAR ch;
-	__DUP(ext, ext__len, CHAR);
 	i = 0;
 	for (;;) {
 		ch = name[__X(i, name__len)];
@@ -509,7 +504,6 @@ static void OPM_MakeFileName (CHAR *name, ADDRESS name__len, CHAR *FName, ADDRES
 		i += 1;
 		j += 1;
 	} while (!(ch == 0x00));
-	__DEL(ext);
 }
 
 static void OPM_LogErrMsg (INT16 n)
@@ -1050,28 +1044,23 @@ static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 {
 	CHAR testpath[4096];
 	Platform_FileIdentity identity;
-	__DUP(s, s__len, CHAR);
 	__COPY(OPM_InstallDir, testpath, 4096);
 	Strings_Append((CHAR*)"/lib/lib", 9, (void*)testpath, 4096);
 	Strings_Append((CHAR*)"voc", 4, (void*)testpath, 4096);
 	Strings_Append((CHAR*)"-O2.a", 6, (void*)testpath, 4096);
 	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
-		__DEL(s);
 		return 0;
 	}
 	__COPY(OPM_InstallDir, testpath, 4096);
 	Strings_Append((CHAR*)"/2/include/Oberon.h", 20, (void*)testpath, 4096);
 	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
-		__DEL(s);
 		return 0;
 	}
 	__COPY(OPM_InstallDir, testpath, 4096);
 	Strings_Append((CHAR*)"/2/sym/Files.sym", 17, (void*)testpath, 4096);
 	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
-		__DEL(s);
 		return 0;
 	}
-	__DEL(s);
 	return 1;
 }
 

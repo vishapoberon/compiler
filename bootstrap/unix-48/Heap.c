@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -151,7 +151,6 @@ SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
 INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
 {
 	Heap_Module m, p;
-	__DUP(name, name__len, CHAR);
 	m = (Heap_Module)(ADDRESS)Heap_modules;
 	while ((m != NIL && __STRCMP(m->name, name) != 0)) {
 		p = m;
@@ -163,14 +162,11 @@ INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
 		} else {
 			p->next = m->next;
 		}
-		__DEL(name);
 		return 0;
 	} else {
 		if (m == NIL) {
-			__DEL(name);
 			return -1;
 		} else {
-			__DEL(name);
 			return m->refcnt;
 		}
 	}

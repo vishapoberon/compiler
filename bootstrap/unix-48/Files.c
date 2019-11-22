@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -123,7 +123,6 @@ static void Files_Assert (BOOLEAN truth)
 
 static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 {
-	__DUP(s, s__len, CHAR);
 	Out_Ln();
 	Out_String((CHAR*)"-- ", 4);
 	Out_String(s, s__len);
@@ -145,14 +144,11 @@ static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode)
 	}
 	Out_Ln();
 	__HALT(99);
-	__DEL(s);
 }
 
 static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 i, j, ld, ln;
-	__DUP(dir, dir__len, CHAR);
-	__DUP(name, name__len, CHAR);
 	ld = Strings_Length(dir, dir__len);
 	ln = Strings_Length(name, name__len);
 	while ((ld > 0 && dir[__X(ld - 1, dir__len)] == '/')) {
@@ -177,14 +173,11 @@ static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS
 		j += 1;
 	}
 	dest[__X(i, dest__len)] = 0x00;
-	__DEL(dir);
-	__DEL(name);
 }
 
 static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len)
 {
 	INT16 i, n;
-	__DUP(finalName, finalName__len, CHAR);
 	if (finalName[0] == '/') {
 		__COPY(finalName, name, name__len);
 	} else {
@@ -219,7 +212,6 @@ static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *na
 		i += 1;
 	}
 	name[__X(i, name__len)] = 0x00;
-	__DEL(finalName);
 }
 
 static void Files_Deregister (CHAR *name, ADDRESS name__len)
@@ -227,7 +219,6 @@ static void Files_Deregister (CHAR *name, ADDRESS name__len)
 	Platform_FileIdentity identity;
 	Files_File osfile = NIL;
 	INT16 error;
-	__DUP(name, name__len, CHAR);
 	if (Platform_IdentifyByName(name, name__len, &identity, Platform_FileIdentity__typ) == 0) {
 		osfile = (Files_File)Files_files;
 		while ((osfile != NIL && !Platform_SameFile(osfile->identity, identity))) {
@@ -246,7 +237,6 @@ static void Files_Deregister (CHAR *name, ADDRESS name__len)
 			}
 		}
 	}
-	__DEL(name);
 }
 
 static void Files_Create (Files_File f)
@@ -334,7 +324,6 @@ INT32 Files_Length (Files_File f)
 Files_File Files_New (CHAR *name, ADDRESS name__len)
 {
 	Files_File f = NIL;
-	__DUP(name, name__len, CHAR);
 	__NEW(f, Files_FileDesc);
 	f->workName[0] = 0x00;
 	__COPY(name, f->registerName, 256);
@@ -343,7 +332,6 @@ Files_File Files_New (CHAR *name, ADDRESS name__len)
 	f->len = 0;
 	f->pos = 0;
 	f->swapper = -1;
-	__DEL(name);
 	return f;
 }
 
@@ -1082,14 +1070,12 @@ static void Files_Finalize (SYSTEM_PTR o)
 
 void Files_SetSearchPath (CHAR *path, ADDRESS path__len)
 {
-	__DUP(path, path__len, CHAR);
 	if (Strings_Length(path, path__len) != 0) {
 		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((ADDRESS)((Strings_Length(path, path__len) + 1))));
 		__COPY(path, Files_SearchPath->data, Files_SearchPath->len[0]);
 	} else {
 		Files_SearchPath = NIL;
 	}
-	__DEL(path);
 }
 
 static void EnumPtrs(void (*P)(void*))

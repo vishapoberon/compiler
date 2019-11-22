@@ -1,5 +1,5 @@
+(* Oberon Portable build parse tree (front end) *)
 MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
-(* build parse tree *)
 
   IMPORT OPT, OPS, OPM, SYSTEM;
 
@@ -34,12 +34,6 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     ELSE          node := OPT.NewNode(OPT.Nvar); err(127)
     END ;
     node^.obj := obj; node^.typ := obj^.typ;
-
-    (* Array and record value parameters with copy disabled are readonly *)
-    IF (obj.mode = OPT.Var) & (obj.typ.comp IN {OPT.Array, OPT.DynArr}) & (obj.typ.sysflag # 0) THEN
-      node.readonly := TRUE;
-    END;
-
     RETURN node
   END NewLeaf;
 
@@ -921,6 +915,15 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 *)
   END CheckLeaf;
 
+  PROCEDURE CheckWrite(x: OPT.Node);
+  BEGIN
+    IF x^.readonly THEN err(76) END;
+    WHILE x.class IN {OPT.Nfield, OPT.Nindex, OPT.Nguard, OPT.Neguard} DO
+      x := x.left  (* Identify underlying named target variable *)
+    END;
+    IF (x # NIL) & (x.obj # NIL) THEN x.obj.written := TRUE END;
+  END CheckWrite;
+
   PROCEDURE StPar0*(VAR par0: OPT.Node; fctno: INTEGER);  (* par0: first param of standard proc *)
     VAR f: INTEGER; typ: OPT.Struct; x: OPT.Node;
   BEGIN x := par0; f := x^.typ^.form;
@@ -939,7 +942,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    IF NotVar(x) THEN err(112)
                    ELSIF f = OPT.Pointer THEN
                      IF OPM.NEWusingAdr THEN CheckLeaf(x, TRUE) END ;
-                     IF x^.readonly THEN err(76) END ;
+                     CheckWrite(x);
                      f := x^.typ^.BaseTyp^.comp;
                      IF f IN {OPT.Record, OPT.DynArr, OPT.Array} THEN
                        IF f = OPT.DynArr THEN typ := x^.typ^.BaseTyp END ;
@@ -1019,13 +1022,13 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
      OPT.decfn:    (*INC, DEC*)
                    IF NotVar(x) THEN err(112)
                    ELSIF f # OPT.Int THEN err(111)
-                   ELSIF x^.readonly THEN err(76)
+                   ELSE CheckWrite(x)
                    END
     |OPT.inclfn,
      OPT.exclfn:   (*INCL, EXCL*)
                    IF NotVar(x) THEN err(112)
                    ELSIF x.typ.form # OPT.Set THEN err(111); x^.typ := OPT.settyp
-                   ELSIF x^.readonly THEN err(76)
+                   ELSE CheckWrite(x)
                    END
     |OPT.lenfn:    (*LEN*)
                    IF ~(x^.typ^.comp IN {OPT.DynArr, OPT.Array}) THEN err(131) END
@@ -1145,7 +1148,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     |OPT.copyfn:   (*COPY*)
                    IF NotVar(x) THEN err(112)
                    ELSIF (x^.typ^.comp IN {OPT.Array, OPT.DynArr}) & (x^.typ^.BaseTyp^.form = OPT.Char) THEN
-                     IF x^.readonly THEN err(76) END ;
+                     CheckWrite(x);
                      t := x; x := p; p := t; p := NewOp(OPT.Nassign, OPT.copyfn, p, x)
                    ELSE err(111)
                    END ;
@@ -1339,9 +1342,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN (* ftyp^.comp = OPT.DynArr *)
     sysflag := ftyp.sysflag;
     f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
-    IF (fvarpar OR (sysflag # 0)) & (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
+    IF (* fvarpar & *) (ftyp = OPT.bytetyp) THEN (* ok, but ... *)
       (* Allow any parameter type, but give warning in verbose mode *)
-      IF ~(f IN {OPT.Array, OPT.DynArr}) OR ~((atyp.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (atyp.size = 1)) THEN
+      IF ~(f IN {OPT.Array, OPT.DynArr})
+      OR ~((atyp.form IN {OPT.Byte..OPT.Char, OPT.Int}) & (atyp.size = 1)) THEN
         IF OPM.verbose IN OPM.Options THEN err(-301) END
       END
     ELSIF f IN {OPT.Array, OPT.DynArr} THEN
@@ -1387,7 +1391,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         IF NotVar(ap) THEN err(122)
         ELSE CheckLeaf(ap, FALSE)
         END ;
-        IF ap^.readonly THEN err(76) END ;
+        CheckWrite(ap);
         IF fp^.typ^.comp = OPT.DynArr THEN DynArrParCheck(fp^.typ, ap^.typ, TRUE)
         ELSIF (fp^.typ^.comp = OPT.Record) & (ap^.typ^.comp = OPT.Record) THEN
           q := ap^.typ;
@@ -1460,7 +1464,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN
     IF x^.class >= OPT.Nconst THEN err(56) END ;
     CheckAssign(x^.typ, y);
-    IF x^.readonly THEN err(76) END ;
+    CheckWrite(x);
     IF x^.typ^.comp = OPT.Record THEN
       IF x^.class = OPT.Nguard THEN z := x^.left ELSE z := x END ;
       IF (z^.class = OPT.Nderef) & (z^.left^.class = OPT.Nguard) THEN

@@ -461,7 +461,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     r.offset := offset + 1; r.res := 0
   END Write;
 
-  PROCEDURE WriteBytes* (VAR r: Rider; x: ARRAY [1] OF SYSTEM.BYTE; n: LONGINT);
+  PROCEDURE WriteBytes* (VAR r: Rider; x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
     IF n > LEN(x) THEN IdxTrap END;
@@ -669,13 +669,6 @@ Especially Length would become fairly complex.
     IF (i>0) & (x[i-1] = 0DX) THEN DEC(i) END; (* Exclude CR if present at eol *)
     x[i] := 0X
   END ReadLine;
-
-  (* old readline code:
-    REPEAT Read(R, x[i]); INC(i) UNTIL (x[i-1] = 0X) OR (x[i-1] = 0AX);
-    IF x[i-1] = 0AX THEN DEC(i) END;             ( * Omit trailing LF * )
-    IF (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END; ( * Also omit preceeding trailing CR if present. * )
-    x[i] := 0X;                                  ( * Guarantee zero termination. * )
-    *)
 
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
     VAR s, b: SYSTEM.INT8; q: SYSTEM.INT64;

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -218,14 +218,11 @@ BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__le
 {
 	CHAR buf[4096];
 	INT16 res;
-	__DUP(var, var__len, CHAR);
 	res = Platform_getenv(var, var__len, (void*)buf, 4096);
 	if ((res > 0 && res < 4096)) {
 		__COPY(buf, val, val__len);
-		__DEL(var);
 		return 1;
 	} else {
-		__DEL(var);
 		return 0;
 	}
 	__RETCHK;
@@ -233,11 +230,9 @@ BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__le
 
 void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	__DUP(var, var__len, CHAR);
 	if (!Platform_getEnv(var, var__len, (void*)val, val__len)) {
 		val[0] = 0x00;
 	}
-	__DEL(var);
 }
 
 void Platform_SetBadInstructionHandler (Platform_SignalHandler handler)
@@ -287,7 +282,6 @@ void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec)
 INT16 Platform_System (CHAR *cmd, ADDRESS cmd__len)
 {
 	INT16 result;
-	__DUP(cmd, cmd__len, CHAR);
 	result = 127;
 	Platform_startupInfo();
 	Platform_processInfo();
@@ -297,7 +291,6 @@ INT16 Platform_System (CHAR *cmd, ADDRESS cmd__len)
 		}
 		Platform_cleanupProcess();
 	}
-	__DEL(cmd);
 	return __ASHL(result, 8);
 }
 

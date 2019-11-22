@@ -973,7 +973,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF NeedsRetval(proc) THEN BegStat; Ident(proc^.typ^.strobj); OPM.WriteString(" __retval"); EndStat END;
     var := proc^.link;
     WHILE var # NIL DO (* declare copy of fixed size value array parameters *)
-      IF (var^.typ^.comp = OPT.Array) & (var^.mode = OPT.Var) THEN
+      IF var.written
+       & (var^.typ^.comp = OPT.Array)
+       & (var^.mode = OPT.Var) THEN
         BegStat;
         IF var^.typ^.strobj = NIL THEN OPM.Mark(200, var^.typ^.txtpos) ELSE Ident(var^.typ^.strobj) END ;
         OPM.Write(' '); Ident(var); OPM.WriteString("__copy");
@@ -983,7 +985,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END ;
     var := proc^.link;
     WHILE var # NIL DO (* copy value array parameters *)
-      IF (var^.typ^.comp IN {OPT.Array, OPT.DynArr}) & (var^.mode = OPT.Var) & (var^.typ^.sysflag = 0) THEN
+      IF var.written
+       & (var.typ.comp IN {OPT.Array, OPT.DynArr})
+       & (var.mode = OPT.Var)
+       & (var.typ.sysflag = 0) THEN
         BegStat;
         IF var^.typ^.comp = OPT.Array THEN
           OPM.WriteString("__DUPARR(");
@@ -1074,7 +1079,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       (* delete array value parameters *)
       var := proc^.link;
       WHILE var # NIL DO
-        IF (var^.typ^.comp = OPT.DynArr) & (var^.mode = OPT.Var) & (var^.typ^.sysflag = 0) THEN
+        IF var.written
+         & (var^.typ^.comp = OPT.DynArr)
+         & (var^.mode = OPT.Var)
+         & (var^.typ^.sysflag = 0) THEN
           IF indent THEN BegStat ELSE indent := TRUE END ;
           OPM.WriteString('__DEL('); Ident(var); OPM.Write(')'); EndStat
         END ;

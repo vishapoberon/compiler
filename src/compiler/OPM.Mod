@@ -92,7 +92,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     GlobalAlignment,   Alignment*:   INTEGER;
     GlobalOptions*,    Options*:     SET;
 
-    ShortintSize*, IntegerSize*, LongintSize*: INTEGER;
+    ShortintSize*, IntegerSize*, LongintSize*, SetSize*: INTEGER;
 
     MaxIndex*: SYSTEM.INT64;
 
@@ -273,7 +273,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWLn;
       LogWStr("  Size model for elementary types (default O2)");                                                   LogWLn;
       LogWStr("    -O2   Original Oberon / Oberon-2:  8 bit SHORTINT, 16 bit INTEGER, 32 bit LONGINT and SET.");   LogWLn;
-      LogWStr("    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
+      LogWStr("    -OC   Component Pascal:           16 bit SHORTINT, 32 bit INTEGER and SET, 64 bit LONGINT.");   LogWLn;
       LogWStr("    -OV   Alternate large model:       8 bit SHORTINT, 32 bit INTEGER, 64 bit LONGINT and SET.");   LogWLn;
       LogWLn;
       LogWStr("  Target machine address size and alignment (default is that of the running compiler binary)");     LogWLn;
@@ -328,10 +328,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     MaxIndex := SignedMaximum(AddressSize);
     CASE Model[0] OF
-    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
-    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8
-    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8
-    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4
+    |'2':  ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4;
+    |'C':  ShortintSize := 2;  IntegerSize := 4;  LongintSize := 8;  SetSize := 4;
+    |'V':  ShortintSize := 1;  IntegerSize := 4;  LongintSize := 8;  SetSize := 8;
+    ELSE   ShortintSize := 1;  IntegerSize := 2;  LongintSize := 4;  SetSize := 4;
     END;
 
     (*IF verbose IN Options THEN VerboseListSizes END;*)

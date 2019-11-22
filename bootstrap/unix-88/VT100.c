@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -87,44 +87,37 @@ void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len)
 static void VT100_EscSeq0 (CHAR *letter, ADDRESS letter__len)
 {
 	CHAR cmd[9];
-	__DUP(letter, letter__len, CHAR);
 	__COPY(VT100_CSI, cmd, 9);
 	Strings_Append(letter, letter__len, (void*)cmd, 9);
 	Out_String(cmd, 9);
-	__DEL(letter);
 }
 
 static void VT100_EscSeq (INT16 n, CHAR *letter, ADDRESS letter__len)
 {
 	CHAR nstr[2];
 	CHAR cmd[7];
-	__DUP(letter, letter__len, CHAR);
 	VT100_IntToStr(n, (void*)nstr, 2);
 	__COPY(VT100_CSI, cmd, 7);
 	Strings_Append(nstr, 2, (void*)cmd, 7);
 	Strings_Append(letter, letter__len, (void*)cmd, 7);
 	Out_String(cmd, 7);
-	__DEL(letter);
 }
 
 static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, ADDRESS letter__len)
 {
 	CHAR nstr[2];
 	CHAR cmd[7];
-	__DUP(letter, letter__len, CHAR);
 	VT100_IntToStr(n, (void*)nstr, 2);
 	__COPY(VT100_CSI, cmd, 7);
 	Strings_Append(letter, letter__len, (void*)cmd, 7);
 	Strings_Append(nstr, 2, (void*)cmd, 7);
 	Out_String(cmd, 7);
-	__DEL(letter);
 }
 
 static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, ADDRESS letter__len)
 {
 	CHAR nstr[5], mstr[5];
 	CHAR cmd[12];
-	__DUP(letter, letter__len, CHAR);
 	VT100_IntToStr(n, (void*)nstr, 5);
 	VT100_IntToStr(m, (void*)mstr, 5);
 	__COPY(VT100_CSI, cmd, 12);
@@ -133,7 +126,6 @@ static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, ADDRESS letter__len)
 	Strings_Append(mstr, 5, (void*)cmd, 12);
 	Strings_Append(letter, letter__len, (void*)cmd, 12);
 	Out_String(cmd, 12);
-	__DEL(letter);
 }
 
 void VT100_CUU (INT16 n)
@@ -239,11 +231,9 @@ void VT100_DECTCEMh (void)
 void VT100_SetAttr (CHAR *attr, ADDRESS attr__len)
 {
 	CHAR tmpstr[16];
-	__DUP(attr, attr__len, CHAR);
 	__COPY(VT100_CSI, tmpstr, 16);
 	Strings_Append(attr, attr__len, (void*)tmpstr, 16);
 	Out_String(tmpstr, 16);
-	__DEL(attr);
 }
 
 

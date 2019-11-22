@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -209,22 +209,18 @@ typedef
 BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
 	EnvPtr__83 p = NIL;
-	__DUP(var, var__len, CHAR);
 	p = (EnvPtr__83)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
 		__COPY(*p, val, val__len);
 	}
-	__DEL(var);
 	return p != NIL;
 }
 
 void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	__DUP(var, var__len, CHAR);
 	if (!Platform_getEnv(var, var__len, (void*)val, val__len)) {
 		val[0] = 0x00;
 	}
-	__DEL(var);
 }
 
 void Platform_SetInterruptHandler (Platform_SignalHandler handler)
@@ -280,8 +276,6 @@ void Platform_Delay (INT32 ms)
 
 INT16 Platform_System (CHAR *cmd, ADDRESS cmd__len)
 {
-	__DUP(cmd, cmd__len, CHAR);
-	__DEL(cmd);
 	return Platform_system(cmd, cmd__len);
 }
 
@@ -358,16 +352,13 @@ INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *iden
 
 INT16 Platform_IdentifyByName (CHAR *n, ADDRESS n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ)
 {
-	__DUP(n, n__len, CHAR);
 	Platform_structstats();
 	if (Platform_stat(n, n__len) < 0) {
-		__DEL(n);
 		return Platform_err();
 	}
 	(*identity).volume = Platform_statdev();
 	(*identity).index = Platform_statino();
 	(*identity).mtime = Platform_statmtime();
-	__DEL(n);
 	return 0;
 }
 

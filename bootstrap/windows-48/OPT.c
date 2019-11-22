@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -77,7 +77,7 @@ typedef
 		OPS_Name name;
 		BOOLEAN leaf;
 		INT8 mode, mnolev, vis, history;
-		BOOLEAN used, fpdone;
+		BOOLEAN used, fpdone, written;
 		INT32 fprint;
 		OPT_Struct typ;
 		OPT_Const conval;

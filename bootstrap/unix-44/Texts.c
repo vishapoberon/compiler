@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1031,13 +1031,11 @@ void Texts_WriteLn (Texts_Writer *W, ADDRESS *W__typ)
 void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
-	__DUP(s, s__len, CHAR);
 	i = 0;
 	while (s[__X(i, s__len)] >= ' ') {
 		Texts_Write(&*W, W__typ, s[__X(i, s__len)]);
 		i += 1;
 	}
-	__DEL(s);
 }
 
 void Texts_WriteInt (Texts_Writer *W, ADDRESS *W__typ, INT64 x, INT64 n)
@@ -1548,7 +1546,6 @@ void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
 	Texts_Piece p = NIL;
 	CHAR tag, version;
 	INT32 hlen;
-	__DUP(name, name__len, CHAR);
 	f = Files_Old(name, name__len);
 	if (f == NIL) {
 		f = Files_New((CHAR*)"", 1);
@@ -1593,7 +1590,6 @@ void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
 		T->cache = T->head;
 		T->corg = 0;
 	}
-	__DEL(name);
 }
 
 static struct Store__39 {
@@ -1762,7 +1758,6 @@ void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len)
 	Files_Rider r;
 	INT16 i, res;
 	CHAR bak[64];
-	__DUP(name, name__len, CHAR);
 	f = Files_New(name, name__len);
 	Files_Set(&r, Files_Rider__typ, f, 0);
 	Files_Write(&r, Files_Rider__typ, 0xf0);
@@ -1780,7 +1775,6 @@ void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len)
 	bak[__X(i + 4, 64)] = 0x00;
 	Files_Rename(name, name__len, bak, 64, &res);
 	Files_Register(f);
-	__DEL(name);
 }
 
 static void EnumPtrs(void (*P)(void*))

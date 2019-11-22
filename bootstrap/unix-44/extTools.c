@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -31,8 +31,6 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 {
 	INT16 r, status, exitcode;
 	extTools_CommandString fullcmd;
-	__DUP(title, title__len, CHAR);
-	__DUP(cmd, cmd__len, CHAR);
 	if (__IN(18, OPM_Options, 32)) {
 		Out_String((CHAR*)"  ", 3);
 		Out_String(cmd, cmd__len);
@@ -66,8 +64,6 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 			Modules_Halt(exitcode);
 		}
 	}
-	__DEL(title);
-	__DEL(cmd);
 }
 
 static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len)
@@ -84,19 +80,16 @@ static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len)
 void extTools_Assemble (CHAR *moduleName, ADDRESS moduleName__len)
 {
 	extTools_CommandString cmd;
-	__DUP(moduleName, moduleName__len, CHAR);
 	extTools_InitialiseCompilerCommand((void*)cmd, 4096);
 	Strings_Append((CHAR*)"-c ", 4, (void*)cmd, 4096);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 4096);
 	Strings_Append((CHAR*)".c", 3, (void*)cmd, 4096);
 	extTools_execute((CHAR*)"C compile: ", 12, cmd, 4096);
-	__DEL(moduleName);
 }
 
 void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN statically, CHAR *additionalopts, ADDRESS additionalopts__len)
 {
 	extTools_CommandString cmd;
-	__DUP(additionalopts, additionalopts__len, CHAR);
 	extTools_InitialiseCompilerCommand((void*)cmd, 4096);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 4096);
 	Strings_Append((CHAR*)".c ", 4, (void*)cmd, 4096);
@@ -116,7 +109,6 @@ void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN stati
 		Strings_Append((CHAR*)"", 1, (void*)cmd, 4096);
 	}
 	extTools_execute((CHAR*)"C compile and link: ", 21, cmd, 4096);
-	__DEL(additionalopts);
 }
 
 

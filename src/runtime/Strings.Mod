@@ -29,9 +29,9 @@ Strings.Cap(s)
 -------------------------------------------------------------*)
 (* added from trianus v4 *)
 MODULE Strings;  (*HM 94-06-22 /  *) (* noch 2017-06-21 *)
-IMPORT Reals, SYSTEM;
+IMPORT Reals;
 
-PROCEDURE Length* (s: ARRAY [1] OF CHAR): INTEGER;
+PROCEDURE Length* (s: ARRAY OF CHAR): INTEGER;
   VAR i: LONGINT;
 BEGIN
   i := 0; WHILE (i < LEN(s)) & (s[i] # 0X) DO INC(i) END;

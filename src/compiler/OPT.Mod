@@ -1,3 +1,4 @@
+(* OPT - Oberon Portable Symbol Table (front end) *)
 MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
 
 (*
@@ -41,6 +42,7 @@ TYPE
     vis*:           SHORTINT;  (* internal, external, externalR *)
     history*:       SHORTINT;  (* relevant if name # "" *)
     used*, fpdone*: BOOLEAN;
+    written*:       BOOLEAN;   (* determines whether to copy value array parameters *)
     fprint*:        LONGINT;
     typ*:           Struct;
     conval*:        Const;
@@ -200,7 +202,7 @@ TYPE
   END;
 
 VAR
-  universe*, syslink*: Object;
+  universe, syslink:   Object;
   impCtxt:             ImpCtxt;
   expCtxt:             ExpCtxt;
   nofhdfld:            LONGINT;

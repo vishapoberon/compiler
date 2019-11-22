@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -42,7 +42,6 @@ INT16 Strings_Length (CHAR *s, ADDRESS s__len)
 void Strings_Append (CHAR *extra, ADDRESS extra__len, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 n1, n2, i;
-	__DUP(extra, extra__len, CHAR);
 	n1 = Strings_Length(dest, dest__len);
 	n2 = Strings_Length(extra, extra__len);
 	i = 0;
@@ -53,7 +52,6 @@ void Strings_Append (CHAR *extra, ADDRESS extra__len, CHAR *dest, ADDRESS dest__
 	if ((i + n1) < dest__len) {
 		dest[__X(i + n1, dest__len)] = 0x00;
 	}
-	__DEL(extra);
 }
 
 void Strings_Insert (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len)
@@ -112,16 +110,13 @@ void Strings_Delete (CHAR *s, ADDRESS s__len, INT16 pos, INT16 n)
 
 void Strings_Replace (CHAR *source, ADDRESS source__len, INT16 pos, CHAR *dest, ADDRESS dest__len)
 {
-	__DUP(source, source__len, CHAR);
 	Strings_Delete((void*)dest, dest__len, pos, pos + Strings_Length(source, source__len));
 	Strings_Insert(source, source__len, pos, (void*)dest, dest__len);
-	__DEL(source);
 }
 
 void Strings_Extract (CHAR *source, ADDRESS source__len, INT16 pos, INT16 n, CHAR *dest, ADDRESS dest__len)
 {
 	INT16 len, destLen, i;
-	__DUP(source, source__len, CHAR);
 	len = Strings_Length(source, source__len);
 	destLen = __SHORT(dest__len, 32768) - 1;
 	if (pos < 0) {
@@ -129,7 +124,6 @@ void Strings_Extract (CHAR *source, ADDRESS source__len, INT16 pos, INT16 n, CHA
 	}
 	if (pos >= len) {
 		dest[0] = 0x00;
-		__DEL(source);
 		return;
 	}
 	i = 0;
@@ -140,19 +134,14 @@ void Strings_Extract (CHAR *source, ADDRESS source__len, INT16 pos, INT16 n, CHA
 		i += 1;
 	}
 	dest[__X(i, dest__len)] = 0x00;
-	__DEL(source);
 }
 
 INT16 Strings_Pos (CHAR *pattern, ADDRESS pattern__len, CHAR *s, ADDRESS s__len, INT16 pos)
 {
 	INT16 n1, n2, i, j;
-	__DUP(pattern, pattern__len, CHAR);
-	__DUP(s, s__len, CHAR);
 	n1 = Strings_Length(s, s__len);
 	n2 = Strings_Length(pattern, pattern__len);
 	if (n2 == 0) {
-		__DEL(pattern);
-		__DEL(s);
 		return 0;
 	}
 	i = pos;
@@ -163,15 +152,11 @@ INT16 Strings_Pos (CHAR *pattern, ADDRESS pattern__len, CHAR *s, ADDRESS s__len,
 				j += 1;
 			}
 			if (j == n2) {
-				__DEL(pattern);
-				__DEL(s);
 				return i;
 			}
 		}
 		i += 1;
 	}
-	__DEL(pattern);
-	__DEL(s);
 	return -1;
 }
 
@@ -241,7 +226,6 @@ void Strings_StrToReal (CHAR *s, ADDRESS s__len, REAL *r)
 	INT16 p, e;
 	REAL y, g;
 	BOOLEAN neg, negE;
-	__DUP(s, s__len, CHAR);
 	p = 0;
 	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
 		p += 1;
@@ -295,7 +279,6 @@ void Strings_StrToReal (CHAR *s, ADDRESS s__len, REAL *r)
 		y = -y;
 	}
 	*r = y;
-	__DEL(s);
 }
 
 void Strings_StrToLongReal (CHAR *s, ADDRESS s__len, LONGREAL *r)
@@ -303,7 +286,6 @@ void Strings_StrToLongReal (CHAR *s, ADDRESS s__len, LONGREAL *r)
 	INT16 p, e;
 	LONGREAL y, g;
 	BOOLEAN neg, negE;
-	__DUP(s, s__len, CHAR);
 	p = 0;
 	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
 		p += 1;
@@ -357,7 +339,6 @@ void Strings_StrToLongReal (CHAR *s, ADDRESS s__len, LONGREAL *r)
 		y = -y;
 	}
 	*r = y;
-	__DEL(s);
 }
 
 

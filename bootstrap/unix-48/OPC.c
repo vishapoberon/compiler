@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2019/11/11]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2019/11/22]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -141,7 +141,6 @@ static void OPC_Str1 (CHAR *s, ADDRESS s__len, INT32 x)
 {
 	CHAR ch;
 	INT16 i;
-	__DUP(s, s__len, CHAR);
 	ch = s[0];
 	i = 0;
 	while (ch != 0x00) {
@@ -153,7 +152,6 @@ static void OPC_Str1 (CHAR *s, ADDRESS s__len, INT32 x)
 		i += 1;
 		ch = s[__X(i, s__len)];
 	}
-	__DEL(s);
 }
 
 static INT16 OPC_Length (CHAR *s, ADDRESS s__len)
@@ -727,12 +725,10 @@ static void OPC_DefineType (OPT_Struct str)
 static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, ADDRESS y__len)
 {
 	INT16 i;
-	__DUP(y, y__len, CHAR);
 	i = 0;
 	while ((*x)[__X(i + 1, 256)] == y[__X(i, y__len)]) {
 		i += 1;
 	}
-	__DEL(y);
 	return y[__X(i, y__len)] == 0x00;
 }
 
@@ -1466,7 +1462,7 @@ void OPC_EnterProc (OPT_Object proc)
 	}
 	var = proc->link;
 	while (var != NIL) {
-		if ((var->typ->comp == 2 && var->mode == 1)) {
+		if ((((var->written && var->typ->comp == 2)) && var->mode == 1)) {
 			OPC_BegStat();
 			if (var->typ->strobj == NIL) {
 				OPM_Mark(200, var->typ->txtpos);
@@ -1482,7 +1478,7 @@ void OPC_EnterProc (OPT_Object proc)
 	}
 	var = proc->link;
 	while (var != NIL) {
-		if ((((__IN(var->typ->comp, 0x0c, 32) && var->mode == 1)) && var->typ->sysflag == 0)) {
+		if ((((((var->written && __IN(var->typ->comp, 0x0c, 32))) && var->mode == 1)) && var->typ->sysflag == 0)) {
 			OPC_BegStat();
 			if (var->typ->comp == 2) {
 				OPM_WriteString((CHAR*)"__DUPARR(", 10);
@@ -1632,7 +1628,7 @@ void OPC_ExitProc (OPT_Object proc, BOOLEAN eoBlock, BOOLEAN implicitRet)
 		}
 		var = proc->link;
 		while (var != NIL) {
-			if ((((var->typ->comp == 3 && var->mode == 1)) && var->typ->sysflag == 0)) {
+			if ((((((var->written && var->typ->comp == 3)) && var->mode == 1)) && var->typ->sysflag == 0)) {
 				if (indent) {
 					OPC_BegStat();
 				} else {
@@ -1752,7 +1748,6 @@ static void OPC_StringLiteral (CHAR *s, ADDRESS s__len, INT32 l)
 {
 	INT32 i;
 	INT16 c;
-	__DUP(s, s__len, CHAR);
 	OPM_Write('"');
 	i = 0;
 	while (i < l) {
@@ -1773,7 +1768,6 @@ static void OPC_StringLiteral (CHAR *s, ADDRESS s__len, INT32 l)
 		i += 1;
 	}
 	OPM_Write('"');
-	__DEL(s);
 }
 
 void OPC_Case (INT64 caseVal, INT16 form)
