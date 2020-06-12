@@ -4,6 +4,8 @@ IMPORT SYSTEM, Console;
 
   VAR gz: LONGREAL;
 
+PROCEDURE -cpumod(x, y: INTEGER): INTEGER "(INT64)(x % y)";
+
 PROCEDURE TestShiftResult(of, by, actual, expected: LONGINT; msg: ARRAY OF CHAR);
 BEGIN
   IF actual # expected THEN
@@ -172,7 +174,7 @@ END TestValue;
 PROCEDURE side(i: INTEGER): INTEGER; BEGIN RETURN i END side;
 
 PROCEDURE DivMod;
-  VAR i,j: INTEGER;
+  VAR i,j, m: INTEGER;
 BEGIN
   j := 2;
   i :=  4;  TestValue(i DIV j, 2, "4 DIV 2");       TestValue(side(i) DIV side(j),  2, "side(4) DIV side(2)");
@@ -203,20 +205,44 @@ BEGIN
   i :=  6; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "6 MOD 3");
   i :=  7; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "7 MOD 3");
 
-  i := -4; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-4 MOD 3");
-  i := -5; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-5 MOD 3");
-  i := -6; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-6 MOD 3");
-  i := -7; j :=  3; TestValue(i MOD j, i - ((i DIV j) * j), "-7 MOD 3");
+  i := -4; j :=  3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-4 MOD 3");
+  i := -5; j :=  3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-5 MOD 3");
+  i := -6; j :=  3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-6 MOD 3");
+  i := -7; j :=  3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-7 MOD 3");
 
-  i :=  4; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "4 MOD -3");
-  i :=  5; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "5 MOD -3");
-  i :=  6; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "6 MOD -3");
-  i :=  7; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "7 MOD -3");
+  i :=  4; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "4 MOD -3");
+  i :=  5; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "5 MOD -3");
+  i :=  6; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "6 MOD -3");
+  i :=  7; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "7 MOD -3");
 
-  i := -4; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-4 MOD -3");
-  i := -5; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-5 MOD -3");
-  i := -6; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-6 MOD -3");
-  i := -7; j := -3; TestValue(i MOD j, i - ((i DIV j) * j), "-7 MOD -3");
+  i := -4; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-4 MOD -3");
+  i := -5; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-5 MOD -3");
+  i := -6; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-6 MOD -3");
+  i := -7; j := -3;
+  m := cpumod(i, j); IF m < 0 THEN IF j < 0 THEN m := m - j ELSE m := m + j END END;
+  TestValue(i MOD j, m, "-7 MOD -3");
 END DivMod;
 
 

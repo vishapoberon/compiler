@@ -37,13 +37,13 @@ INT64 SYSTEM_DIV(INT64 x, INT64 y)
 
 INT64 SYSTEM_MOD(INT64 x, INT64 y)
 {
-  if (x == 0) return 0;
-  if (x >= 0)
-    if (y >= 0) {return x % y;}
-    else        {return (y+1) + ((x-1) % (-y));}
-  else
-    if (y >= 0) {return (y-1) - ((-x-1) % y);}
-    else        {return -((-x) % (-y));}
+  if (x == 0) {return 0;}
+  INT64 m = x % y;
+  if (m < 0)
+  {
+    m = (y < 0) ? m - y : m + y;
+  }
+  return m;
 }
 
 INT64 SYSTEM_ENTIER(double x)
