@@ -1,3 +1,4 @@
+(* Oberon Portable Scanner (front end) *)
 MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
 
   IMPORT OPM, SYSTEM;

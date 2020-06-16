@@ -1,3 +1,4 @@
+(* OPP - Oberon Portable Parser (front end) *)
 MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
 
   IMPORT

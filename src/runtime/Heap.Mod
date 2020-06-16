@@ -91,7 +91,7 @@ MODULE Heap;
     (* finalization candidates *)
     fin: FinNode;
 
-    (* garbage collector locking *)
+    (* garbage collector busy flag *)
     lockdepth:   INTEGER;
     interrupted: BOOLEAN;
 
@@ -549,6 +549,8 @@ MODULE Heap;
     END
   END MarkStack;
 
+
+
   PROCEDURE GC*(markStack: BOOLEAN);
     VAR
       m: Module;
@@ -556,34 +558,37 @@ MODULE Heap;
       i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: S.ADDRESS;
       cand: ARRAY 10000 OF S.ADDRESS;
   BEGIN
-    IF (lockdepth = 0) OR (lockdepth = 1) & ~markStack THEN
-      Lock();
-      m := S.VAL(Module, modules);
-      WHILE m # NIL DO
-        IF m.enumPtrs # NIL THEN m.enumPtrs(MarkP) END;
-        m := m^.next
+    Lock();
+    m := S.VAL(Module, modules);
+    WHILE m # NIL DO
+      IF m.enumPtrs # NIL THEN m.enumPtrs(MarkP) END;
+      m := m^.next
+    END;
+    IF markStack THEN
+      (* generate register pressure to force callee saved registers to memory;
+         may be simplified by inlining OS calls or processor specific instructions
+      *)
+      i0  := -100; i1  := -101; i2  := -102; i3  := -103; i4  := -104; i5  := -105; i6  := -106; i7  := -107;
+      i8  :=    1; i9  :=    2; i10 :=    3; i11 :=    4; i12 :=    5; i13 :=    6; i14 :=    7; i15 :=    8;
+      i16 :=    9; i17 :=   10; i18 :=   11; i19 :=   12; i20 :=   13; i21 :=   14; i22 :=   15; i23 :=   16;
+      LOOP
+        INC(i0,   1); INC(i1,   2); INC(i2,   3); INC(i3,   4); INC(i4,   5); INC(i5,   6); INC(i6,   7); INC(i7,   8);
+        INC(i8,   9); INC(i9,  10); INC(i10, 11); INC(i11, 12); INC(i12, 13); INC(i13, 14); INC(i14, 15); INC(i15, 16);
+        INC(i16, 17); INC(i17, 18); INC(i18, 19); INC(i19, 20); INC(i20, 21); INC(i21, 22); INC(i22, 23); INC(i23, 24);
+        IF (i0 = -99) & (i15 = 24) THEN  (* True at first iteration *)
+          MarkStack(32, cand); EXIT
+        END
       END;
-      IF markStack THEN
-        (* generate register pressure to force callee saved registers to memory;
-          may be simplified by inlining OS calls or processor specific instructions
-        *)
-        i0 := -100; i1 := -101; i2 := -102; i3 := -103; i4 := -104; i5 := -105; i6 := -106; i7 := -107;
-        i8 := 1; i9 := 2; i10 := 3; i11 := 4; i12 := 5; i13 := 6; i14 := 7; i15 := 8;
-        i16 := 9; i17 := 10; i18 := 11; i19 := 12; i20 := 13; i21 := 14; i22 := 15; i23 := 16;
-        LOOP INC(i0, 1); INC(i1, 2); INC(i2, 3); INC(i3, 4); INC(i4, 5); INC(i5, 6); INC(i6, 7); INC(i7, 8);
-          INC(i8, 9); INC(i9, 10); INC(i10, 11); INC(i11, 12); INC(i12, 13); INC(i13, 14); INC(i14, 15); INC(i15, 16);
-          INC(i16, 17); INC(i17, 18); INC(i18, 19); INC(i19, 20); INC(i20, 21); INC(i21, 22); INC(i22, 23); INC(i23, 24);
-          IF (i0 = -99) & (i15 = 24) THEN MarkStack(32, cand); EXIT END
-        END;
-        IF i0 + i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9 + i10 + i11 + i12 + i13 + i14 + i15
-          + i16 + i17 + i18 + i19 + i20 + i21 + i22 + i23 > 10000 THEN RETURN    (* use all variables *)
-        END;
+      IF i0  + i1  + i2  + i3  + i4  + i5  + i6  + i7  (* use all variables *)
+       + i8  + i9  + i10 + i11 + i12 + i13 + i14 + i15
+       + i16 + i17 + i18 + i19 + i20 + i21 + i22 + i23 > 10000 THEN  (* Always false *)
+        RETURN
       END;
-      CheckFin;
-      Scan;
-      Finalize;
-      Unlock()
-    END
+    END;
+    CheckFin;
+    Scan;
+    Finalize;
+    Unlock()
   END GC;
 
   PROCEDURE RegisterFinalizer*(obj: S.PTR; finalize: Finalizer);

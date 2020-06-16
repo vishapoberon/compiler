@@ -1,3 +1,4 @@
+(* OPT - Oberon Portable Symbol Table (front end) *)
 MODULE OPT;  (* NW, RC 6.3.89 / 23.1.92 *)  (* object model 24.2.94 *)
 
 (*
