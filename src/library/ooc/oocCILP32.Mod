@@ -31,13 +31,13 @@ Unix they should be fairly safe.
 
 TYPE
   char*       = CHAR;                        (*  8 bits *)
-  signedchar* = SHORTINT;                    (*  8 bits *)
-  shortint*   = RECORD a,b: SYSTEM.BYTE END; (* 16 bits *)
-  int*        = LONGINT;                     (* 32 bits *)   
-  set*        = LONGINT;                     (* 32 bits *)
-  longint*    = LONGINT;                     (* 32 bits on ILP32 (64 bits is 'long long') *)
+  signedchar* = SYSTEM.INT8;                 (*  8 bits *)
+  shortint*   = SYSTEM.INT16;                (* 16 bits *)
+  int*        = SYSTEM.INT32;                (* 32 bits *)   
+  set*        = SYSTEM.INT32;                (* 32 bits *)
+  longint*    = SYSTEM.INT32;                     (* 32 bits on ILP32 (64 bits is 'long long') *)
 (*longset*    = SET;  n/a *)                 (* 64 bit SET *)
-  address*    = LONGINT;                     (* 32 bits *)
+  address*    = SYSTEM.ADDRESS;                     (* 32 bits *)
   float*      = REAL;                        (* 32 bits *)
   double*     = LONGREAL;                    (* 64 bits *)
 
