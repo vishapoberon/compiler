@@ -63,7 +63,11 @@ PROCEDURE Length* (stringVal: ARRAY OF CHAR): INTEGER;
     i: INTEGER;
   BEGIN
     i := 0;
-    WHILE (stringVal[i] # 0X) DO
+    (* note from noch:
+       original ooc code below, commented out, leads to 
+       index out of range runtime error
+    WHILE (stringVal[i] # 0X) DO *)
+    WHILE ((i < LEN(stringVal)) & (stringVal[i] # 0X)) DO
       INC (i)
     END;
     RETURN i
