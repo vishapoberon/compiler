@@ -168,8 +168,15 @@ CONST
 
    END EscSeq2;
 
-
-
+   PROCEDURE Reset*;
+      VAR
+       cmd : ARRAY 6 OF CHAR;
+   BEGIN
+      COPY(Escape, cmd);
+      Strings.Append("c", cmd);
+      Out.String(cmd);
+      Out.Ln;
+   END Reset;
 (* Cursor up
    moves cursor n cells in the given direction. if the cursor is already at the edge of the screen, this has no effect *)
 
