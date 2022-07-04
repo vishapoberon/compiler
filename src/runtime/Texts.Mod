@@ -1,6 +1,6 @@
 MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**)  (* << RC, MB, JT *)
   IMPORT
-    Files, Modules, Reals, SYSTEM, Out;
+    Files, Modules, Reals, SYSTEM;
 
   (*--- insert field e: Elem into Texts.Scanner and change Texts.Scan to set it in case of class=6 *)
 
