@@ -141,7 +141,11 @@ void determineCCompiler() {
     compiler = "tcc";
     cc       = "tcc -g";
     staticlink = "";
-  #elif defined(__GNUC__)
+  #elif defined(__NVCC__)
+    compiler = "nvcc";
+    cc       = "nvcc -g --compiler-options -fPIC";
+    staticlink = "";
+   #elif defined(__GNUC__)
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
