@@ -19,6 +19,7 @@
 #
 #   clang
 #   gcc
+#   tcc
 #   i686-w64-mingw32-gcc        (32 bit cygwin only)
 #   x86_64-w64-mingw32-gcc      (64 bit cygwin only)
 #

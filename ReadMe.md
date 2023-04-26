@@ -6,7 +6,7 @@
 implementation of the Oberon-2 language and libraries for use on
 conventional operating systems such as Linux, BSD, Android, Mac and Windows.
 
-Vishap's Oberon Compiler (voc) uses a C backend (gcc, clang or msc) to compile
+Vishap's Oberon Compiler (voc) uses a C backend (gcc, clang, tcc or msc) to compile
 Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
@@ -181,7 +181,7 @@ Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime e
 
 Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x64, arm and ppc.
 
-It compiles under gcc, clang and Microsoft Visual C.
+It compiles under gcc, clang, tcc and Microsoft Visual C.
 
 Installation supports GNU/Linux, MAC OSX, BSD and Windows (native and cygwin).
 
