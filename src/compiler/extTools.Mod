@@ -63,7 +63,8 @@ PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
     InitialiseCompilerCommand(cmd);
     Strings.Append("-c ",      cmd);
     Strings.Append(moduleName, cmd);
-    Strings.Append(".c",       cmd);
+    Strings.Append(Configuration.cext, cmd);
+    Strings.Append(" ",                          cmd);
     execute("C compile: ", cmd);
   END Assemble;
 
@@ -74,7 +75,8 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
   BEGIN
     InitialiseCompilerCommand(cmd);
     Strings.Append(moduleName,                   cmd);
-    Strings.Append(".c ",                        cmd);
+    Strings.Append(Configuration.cext,           cmd);
+    Strings.Append(" ",                          cmd);
     Strings.Append(additionalopts,               cmd);
     IF statically THEN
       IF Configuration.os = "darwin" THEN

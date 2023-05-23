@@ -6,7 +6,7 @@
 implementation of the Oberon-2 language and libraries for use on
 conventional operating systems such as Linux, BSD, Android, Mac and Windows.
 
-Vishap's Oberon Compiler (voc) uses a C backend (gcc, clang or msc) to compile
+Vishap's Oberon Compiler (voc) uses a C backend (gcc, clang, tcc, msc or nvcc) to compile
 Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
@@ -31,9 +31,11 @@ It is easy to install the Oberon compiler and libraries
 with the following simple steps:
 
   1. Install pre-requisites such as git, gcc, static C libraries, diff utils.
-  2. Clone the repository and run 'make full'.
-  3. Optionally install to a system directory such as /opt or /usr/local/share with 'make install'.
-  4. Set your PATH variable to include the compiler binary.
+  2. Clone the repository: `git clone https://github.com/vishaps/voc`
+  3. Optionally `export CC=clang` or `export CC=tcc` or `export CC=nvcc`
+  4. run `make full`.
+  5. Optionally install to a system directory such as /opt or /usr/local/share with `make install` (might be with sudo).
+  6. Set your PATH variable to include the compiler binary.
 
 These are detailed below:
 
@@ -179,9 +181,9 @@ Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime e
 
 ## Platform support and porting
 
-Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x64, arm and ppc.
+Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x64, arm.
 
-It compiles under gcc, clang and Microsoft Visual C.
+It compiles under gcc, clang, Microsoft Visual C and NVIDIA nvcc.
 
 Installation supports GNU/Linux, MAC OSX, BSD and Windows (native and cygwin).
 

@@ -8,7 +8,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   CONST
     OptionChar* = "-";
-
+    cextopt     = "--extention";
     (* compiler option flag bits; don't change the encoding *)
     inxchk*         = 0;  (* index check on *)
     ranchk*         = 2;  (* range check on *)
@@ -296,7 +296,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       (* Pick up global option changes from start of command line *)
       S:=1; s:=""; Modules.GetArg(S, s);
       WHILE s[0] = OptionChar DO
-        ScanOptions(s);
+        IF s = cextopt (* if '--extention' present *) THEN
+            (* cext it is initialized as ".c" in Configuration.Mod *)
+            Modules.GetArg(S, s); COPY(s, Configuration.cext); 
+        ELSE
+          ScanOptions(s);
+        END;
         INC(S); s:=""; Modules.GetArg(S, s)
       END;
 
