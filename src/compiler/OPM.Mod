@@ -298,7 +298,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       WHILE s[0] = OptionChar DO
         IF s = cextopt (* if '--extention' present *) THEN
             (* cext it is initialized as ".c" in Configuration.Mod *)
-            Modules.GetArg(S, s); COPY(s, Configuration.cext); 
+            INC(S);
+            Modules.GetArg(S, s);
+            COPY(s, Configuration.cext); 
         ELSE
           ScanOptions(s);
         END;
