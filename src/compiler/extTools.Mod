@@ -51,6 +51,7 @@ BEGIN
   Strings.Append(OPM.ResourceDir, s);
   Strings.Append('/include" ', s);
   Strings.Append(additionalopts, s);
+  Strings.Append(" ", s);
   Platform.GetEnv("CFLAGS", CFLAGS);
   Strings.Append (CFLAGS, s);
   Strings.Append (" ", s);
