@@ -17,5 +17,5 @@ rm -f *.o *.obj *.exe *.sym *.c *.h result new.asm $(basename "$PWD")
 # NOTE: The cygwin 64 bit build has relocation errors with
 # these assembly generation options.
 if [ "$COMPILER" = "gcc" -a "$FLAVOUR" != "cygwin.LP64.gcc" ]
-then export CFLAGS="-gstabs -g1 -Wa,-acdhln=new.asm -Wl,-Map=output.map"
+then export CFLAGS="-g1 -Wa,-acdhln=new.asm -Wl,-Map=output.map"
 fi
