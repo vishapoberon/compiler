@@ -44,12 +44,13 @@ BEGIN
 END execute;
 
 
-PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR);
+PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR; additionalopts: ARRAY OF CHAR);
 BEGIN
   COPY(Configuration.compile, s);
   Strings.Append(' -I "', s);
   Strings.Append(OPM.ResourceDir, s);
   Strings.Append('/include" ', s);
+  Strings.Append(additionalopts, s);
   Platform.GetEnv("CFLAGS", CFLAGS);
   Strings.Append (CFLAGS, s);
   Strings.Append (" ", s);
@@ -60,7 +61,7 @@ PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
   VAR
     cmd: CommandString;
   BEGIN
-    InitialiseCompilerCommand(cmd);
+    InitialiseCompilerCommand(cmd, "");
     Strings.Append("-c ",      cmd);
     Strings.Append(moduleName, cmd);
     Strings.Append(".c",       cmd);
@@ -72,10 +73,9 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
   VAR
     cmd: CommandString;
   BEGIN
-    InitialiseCompilerCommand(cmd);
+    InitialiseCompilerCommand(cmd, additionalopts);
     Strings.Append(moduleName,                   cmd);
     Strings.Append(".c ",                        cmd);
-    Strings.Append(additionalopts,               cmd);
     IF statically THEN
       IF Configuration.os = "darwin" THEN
         Strings.Append(OPM.InstallDir,           cmd);
