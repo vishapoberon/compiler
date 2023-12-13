@@ -31,9 +31,11 @@ It is easy to install the Oberon compiler and libraries
 with the following simple steps:
 
   1. Install pre-requisites such as git, gcc, static C libraries, diff utils.
-  2. Clone the repository and run 'make full'.
-  3. Optionally install to a system directory such as /opt or /usr/local/share with 'make install'.
-  4. Set your PATH variable to include the compiler binary.
+  2. Clone the repository: `git clone https://github.com/vishaps/voc`.
+  3. Optionally `export CC=clang` or `export CC=tcc`.
+  4. run `make full`.
+  5. Optionally install to a system directory such as /opt or /usr/local/share with `make install` (might be with sudo).
+  6. Set your PATH variable to include the compiler binary.
 
 These are detailed below:
 
@@ -179,7 +181,7 @@ Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime e
 
 ## Platform support and porting
 
-Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x64, arm and ppc.
+Vishap Oberon supports 32 and 64 bit little-endian architectures including Intel x86 and x86_64, 32 bit arm and aarch64.
 
 It compiles under gcc, clang, tcc and Microsoft Visual C.
 

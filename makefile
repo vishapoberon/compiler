@@ -82,6 +82,8 @@ usage:
 	@echo "  make compiler      - Build the compiler but not the library"
 	@echo "  make browsercmd    - Build the symbol browser (showdef)"
 	@echo "  make library       - Build all library files and make library"
+	@echo "  make O2library     - Build all library files with Oberon-2 type sizes"
+	@echo "  make OClibrary     - Build all library files with Component Pascal type sizes"
 	@echo "  make install       - Install built compiler and library in /opt or C:\\PROGRAM FILES*"
 	@echo "                       (Needs root access)"
 	@echo ""
