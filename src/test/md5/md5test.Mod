@@ -19,25 +19,30 @@ PROCEDURE main;
     hexDigest: ARRAY 33 OF CHAR;
     F: Files.File;
     R: Files.Rider;
-    input: ARRAY 512 OF CHAR;
+    input: POINTER TO ARRAY OF CHAR;
+    ilen: LONGINT;
     ch: CHAR;
     i: INTEGER;
 BEGIN
-  F := Files.Old("hello.txt");
+  F := Files.Old("SETs.pdf");
   IF F # NIL THEN
     Files.Set(R, F, 0);
+    ilen := Files.Length(F);
+      Out.String("file length is "); Out.Int(ilen, 0); Out.Ln;
+      NEW(input, ilen+1);
     i := 0;
     REPEAT
       Files.Read(R, ch);
-      input[i] := ch;
+      input^[i] := ch;
       INC(i)
     UNTIL R.eof;
-    dump(input);
+    (*dump(input^);*)
   END;
 
   context := MD5.New(); (* Initialize MD5 context *)
 
-  MD5.WriteBytes(context, input, Strings.Length(input)); (* Process input string *)
+  (*MD5.WriteBytes(context, input^, Strings.Length(input^));*) (* Process input string *)
+  MD5.WriteBytes(context, input^, LEN(input^)-1); (* Process input string *)
   MD5.Close(context, digest); (* Finalize and get digest *)
 
   MD5.ToString(digest, hexDigest); (* Convert digest to hex string *)
