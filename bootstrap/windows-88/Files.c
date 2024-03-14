@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2022/03/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2024/03/14]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -87,6 +87,7 @@ export INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ);
 export void Files_Purge (Files_File f);
 export void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x);
 export void Files_ReadBool (Files_Rider *R, ADDRESS *R__typ, BOOLEAN *x);
+export void Files_ReadByte (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x);
 export void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n);
 export void Files_ReadInt (Files_Rider *R, ADDRESS *R__typ, INT16 *x);
 export void Files_ReadLInt (Files_Rider *R, ADDRESS *R__typ, INT32 *x);
@@ -633,6 +634,11 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 		*x = 0x00;
 		(*r).eof = 1;
 	}
+}
+
+void Files_ReadByte (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
+{
+	Files_Read(&*r, r__typ, &*x);
 }
 
 void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n)

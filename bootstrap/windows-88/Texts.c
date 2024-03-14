@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2022/03/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2024/03/14]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -8,7 +8,6 @@
 #include "SYSTEM.h"
 #include "Files.h"
 #include "Modules.h"
-#include "Out.h"
 #include "Reals.h"
 
 typedef
@@ -1810,7 +1809,6 @@ export void *Texts__init(void)
 	__DEFMOD;
 	__MODULE_IMPORT(Files);
 	__MODULE_IMPORT(Modules);
-	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Reals);
 	__REGMOD("Texts", EnumPtrs);
 	__INITYP(Texts_FontDesc, Texts_FontDesc, 0);

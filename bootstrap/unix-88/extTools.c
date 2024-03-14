@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2022/03/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2024/03/14]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -22,7 +22,7 @@ static extTools_CommandString extTools_CFLAGS;
 
 
 export void extTools_Assemble (CHAR *moduleName, ADDRESS moduleName__len);
-static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len);
+static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len, CHAR *additionalopts, ADDRESS additionalopts__len);
 export void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN statically, CHAR *additionalopts, ADDRESS additionalopts__len);
 static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRESS cmd__len);
 
@@ -70,22 +70,26 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 	__DEL(cmd);
 }
 
-static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len)
+static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len, CHAR *additionalopts, ADDRESS additionalopts__len)
 {
+	__DUP(additionalopts, additionalopts__len, CHAR);
 	__COPY("gcc -fPIC -g", s, s__len);
 	Strings_Append((CHAR*)" -I \"", 6, (void*)s, s__len);
 	Strings_Append(OPM_ResourceDir, 1024, (void*)s, s__len);
 	Strings_Append((CHAR*)"/include\" ", 11, (void*)s, s__len);
+	Strings_Append(additionalopts, additionalopts__len, (void*)s, s__len);
+	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
 	Platform_GetEnv((CHAR*)"CFLAGS", 7, (void*)extTools_CFLAGS, 4096);
 	Strings_Append(extTools_CFLAGS, 4096, (void*)s, s__len);
 	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
+	__DEL(additionalopts);
 }
 
 void extTools_Assemble (CHAR *moduleName, ADDRESS moduleName__len)
 {
 	extTools_CommandString cmd;
 	__DUP(moduleName, moduleName__len, CHAR);
-	extTools_InitialiseCompilerCommand((void*)cmd, 4096);
+	extTools_InitialiseCompilerCommand((void*)cmd, 4096, (CHAR*)"", 1);
 	Strings_Append((CHAR*)"-c ", 4, (void*)cmd, 4096);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 4096);
 	Strings_Append((CHAR*)".c", 3, (void*)cmd, 4096);
@@ -97,10 +101,9 @@ void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN stati
 {
 	extTools_CommandString cmd;
 	__DUP(additionalopts, additionalopts__len, CHAR);
-	extTools_InitialiseCompilerCommand((void*)cmd, 4096);
+	extTools_InitialiseCompilerCommand((void*)cmd, 4096, additionalopts, additionalopts__len);
 	Strings_Append(moduleName, moduleName__len, (void*)cmd, 4096);
 	Strings_Append((CHAR*)".c ", 4, (void*)cmd, 4096);
-	Strings_Append(additionalopts, additionalopts__len, (void*)cmd, 4096);
 	if (statically) {
 		Strings_Append((CHAR*)" -static", 9, (void*)cmd, 4096);
 	}

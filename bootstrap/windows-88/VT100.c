@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2022/03/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2024/03/14]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -34,6 +34,7 @@ static void VT100_EscSeqSwapped (INT16 n, CHAR *letter, ADDRESS letter__len);
 export void VT100_HVP (INT16 n, INT16 m);
 export void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len);
 export void VT100_RCP (void);
+export void VT100_Reset (void);
 static void VT100_Reverse0 (CHAR *str, ADDRESS str__len, INT16 start, INT16 end);
 export void VT100_SCP (void);
 export void VT100_SD (INT16 n);
@@ -134,6 +135,15 @@ static void VT100_EscSeq2 (INT16 n, INT16 m, CHAR *letter, ADDRESS letter__len)
 	Strings_Append(letter, letter__len, (void*)cmd, 12);
 	Out_String(cmd, 12);
 	__DEL(letter);
+}
+
+void VT100_Reset (void)
+{
+	CHAR cmd[6];
+	__COPY("\033", cmd, 6);
+	Strings_Append((CHAR*)"c", 2, (void*)cmd, 6);
+	Out_String(cmd, 6);
+	Out_Ln();
 }
 
 void VT100_CUU (INT16 n)
@@ -256,6 +266,7 @@ export void *VT100__init(void)
 	__REGCMD("DECTCEMh", VT100_DECTCEMh);
 	__REGCMD("DECTCEMl", VT100_DECTCEMl);
 	__REGCMD("RCP", VT100_RCP);
+	__REGCMD("Reset", VT100_Reset);
 	__REGCMD("SCP", VT100_SCP);
 /* BEGIN */
 	__COPY("\033", VT100_CSI, 5);

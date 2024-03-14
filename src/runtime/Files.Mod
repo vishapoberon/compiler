@@ -413,6 +413,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     END
   END Read;
 
+  (* wrapper for compatibility with Project Oberon sources *)
+  PROCEDURE ReadByte*(VAR r: Rider; VAR x: SYSTEM.BYTE);
+  BEGIN
+    Read(r, x)
+  END ReadByte;
+
   PROCEDURE ReadBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
@@ -673,7 +679,7 @@ Especially Length would become fairly complex.
   PROCEDURE WriteSet* (VAR R: Rider; x: SET);
     VAR b: ARRAY 4 OF CHAR; i: LONGINT;
         y: SYSTEM.SET64;
-  BEGIN 
+  BEGIN
     IF SIZE(SET) = SIZE(INTEGER) THEN
       i := SYSTEM.VAL(INTEGER, x);
     ELSE
