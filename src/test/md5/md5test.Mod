@@ -24,7 +24,7 @@ PROCEDURE main;
     ch: CHAR;
     i: INTEGER;
 BEGIN
-  F := Files.Old("SETs.pdf");
+  F := Files.Old("hello.txt");
   IF F # NIL THEN
     Files.Set(R, F, 0);
     ilen := Files.Length(F);
