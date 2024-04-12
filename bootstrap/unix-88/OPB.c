@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/03/14]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2024/04/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -1626,6 +1626,7 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 				if (x == y) {
 				} else if ((((y->comp == 2 && y->BaseTyp == x->BaseTyp)) && y->n <= x->n)) {
 				} else if ((y->comp == 3 && y->BaseTyp == x->BaseTyp)) {
+					OPB_err(113);
 				} else if (x->BaseTyp == OPT_chartyp) {
 					if (g == 8) {
 						if (ynode->conval->intval2 > x->n) {

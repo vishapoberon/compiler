@@ -893,6 +893,25 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                       IF x = y THEN (* ok *)
                       ELSIF (y.comp = OPT.Array) & (y.BaseTyp = x.BaseTyp) & (y.n <= x.n) THEN (* OK by Oberon-07/2013 *)
                       ELSIF (y.comp = OPT.DynArr) & (y.BaseTyp = x.BaseTyp) THEN (* OK by Oberon-07/2013, length tested at runtime *)
+                      err(113)
+                (* if no error issued the compiler will crash later
+                   in OPC.CompleteIdent because NIL will be passed to it
+                   from OPC.Len
+                   which is called from OPV.stat
+                   OPV.stat gets n: OPT.node
+                   where both n^.left.obj and n^.right.obj are NIL.
+                   n^.right.obj is then passed to OPC.Len
+
+                   at this point, in this ELSIF body
+                   x^.comp = OPT.Array
+                   x^.strobj.name=
+                   y^.strobj is NIL already!
+
+                   it's interesting that OPT.InStruct functions
+                   Sarr case is entered, but not Sdarr
+
+                  issuing error for now to eliminate compiler crash.
+                         *)
                       ELSIF x^.BaseTyp = OPT.chartyp THEN (* Assign to (static) ARRAY OF CHAR *)
                         IF g = OPT.String THEN (*check length of string*)
                           IF ynode^.conval^.intval2 > x^.n THEN err(114) END
