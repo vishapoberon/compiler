@@ -265,7 +265,10 @@ extern void       Heap_INCREF();
 extern void Modules_Init(INT32 argc, ADDRESS argv);
 extern void Heap_FINALL();
 
-#define __INIT(argc, argv)    static void *m; Modules_Init(argc, (ADDRESS)&argv);
+extern void setupAutomaticSegfaultHandler();
+
+#define __INIT(argc, argv)    static void *m; setupAutomaticSegfaultHandler(); Modules_Init(argc, (ADDRESS)&argv);
+
 #define __REGMAIN(name, enum) m = Heap_REGMOD((CHAR*)name,enum)
 #define __FINI                Heap_FINALL(); return 0
 

@@ -151,53 +151,61 @@ SYSTEM_PTR SYSTEM_NEWARR(ADDRESS *typ, ADDRESS elemsz, int elemalgn, int nofdim,
     return x;
 }
 
-
-
-
 typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
 
 #ifndef _WIN32
+    // Unix signal handling
+    SystemSignalHandler handler[10] = {0};  // Adjust the array size to include signal 11
 
-    SystemSignalHandler handler[3] = {0};
-
-    // Provide signal handling for Unix based systems
+    void segfaultHandler(int signal) {
+      __HALT(-10);
+    }
+    // Revised signal handler to accommodate additional signals like SIGSEGV
     void signalHandler(int s) {
-        if (s >= 2  &&  s <= 4) handler[s-2](s);
-        // (Ignore other signals)
+        if ((s >= 2 && s <= 4) || s == 11) {  // Include SIGSEGV (usually signal 11)
+            if (handler[s-2]) {
+                handler[s-2](s);
+            }
+        }
+        // Ignore other signals
     }
 
     void SystemSetHandler(int s, ADDRESS h) {
-        if (s >= 2 && s <= 4) {
+        if ((s >= 2 && s <= 4) || s == 11) {
             int needtosetsystemhandler = handler[s-2] == 0;
             handler[s-2] = (SystemSignalHandler)h;
-            if (needtosetsystemhandler) {signal(s, signalHandler);}
+            if (needtosetsystemhandler) {
+                signal(s, signalHandler);
+            }
         }
     }
 
-#else
+    void setupAutomaticSegfaultHandler() {
+        SystemSetHandler(11, (ADDRESS)segfaultHandler);  // Register handler for SIGSEGV
+    }
 
-    // Provides Windows callback handlers for signal-like scenarios
+#else
+    // Windows system remains as is since Windows does not use SIGSEGV in the same way
     #include "WindowsWrapper.h"
 
     SystemSignalHandler SystemInterruptHandler = 0;
-    SystemSignalHandler SystemQuitHandler      = 0;
+    SystemSignalHandler SystemQuitHandler = 0;
     BOOL ConsoleCtrlHandlerSet = FALSE;
 
     BOOL WINAPI SystemConsoleCtrlHandler(DWORD ctrlType) {
         if ((ctrlType == CTRL_C_EVENT) || (ctrlType == CTRL_BREAK_EVENT)) {
             if (SystemInterruptHandler) {
-                SystemInterruptHandler(2); // SIGINT
+                SystemInterruptHandler(2);  // SIGINT
                 return TRUE;
             }
-        } else { // Close, logoff or shutdown
+        } else {
             if (SystemQuitHandler) {
-                SystemQuitHandler(3); // SIGQUIT
+                SystemQuitHandler(3);  // SIGQUIT
                 return TRUE;
             }
         }
         return FALSE;
     }
-
     void EnsureConsoleCtrlHandler() {
         if (!ConsoleCtrlHandlerSet) {
         SetConsoleCtrlHandler(SystemConsoleCtrlHandler, TRUE);
@@ -216,3 +224,4 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     }
 
 #endif
+
