@@ -34,3 +34,7 @@
 *.Mod diff=pascal
 *.c   diff=cpp
 *.h   diff=cpp
+
+# Set the language to Oberon
+*.Mod linguist-language=Oberon
+*.mod linguist-language=Oberon
