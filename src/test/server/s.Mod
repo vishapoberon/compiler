@@ -4,7 +4,7 @@ IMPORT sockets, types, Out := Console, SYSTEM, Platform, Strings;
 
 
 PROCEDURE DoSmth(sock: Platform.FileHandle);
-VAR
+VAR 
   str, aff: ARRAY 256 OF CHAR;
   n:   LONGINT;
 BEGIN
@@ -15,7 +15,7 @@ BEGIN
   ELSE
     str[n] := 0X; (* Make sure that received message is zero terminated *)
     Out.String("received message is "); Out.String(str); Out.Ln;
-
+    
     IF Platform.Write(sock, SYSTEM.ADR(aff), Strings.Length(aff)) # 0 THEN
       Out.String("error writing to socket"); Out.Ln
     END;
@@ -29,17 +29,16 @@ PROCEDURE -fork(): LONGINT "(LONGINT)fork()";
 
 
 PROCEDURE serve;
-CONST
+CONST  
   Port     = 2055;
   MaxQueue = 5;
-VAR
+VAR 
   sockfd:      LONGINT;
   newsockfd:   LONGINT;
   ServAddr:    sockets.SockAddrIn;
   pid:         LONGINT;
   res:         Platform.ErrorCode;
   sockaddrlen: LONGINT;
-  ipAddr:      LONGINT; ip: ARRAY 16 OF CHAR;
 BEGIN
   sockfd := sockets.Socket(sockets.AfInet, sockets.SockStream, 0);
   IF sockfd < 0 THEN
@@ -48,17 +47,15 @@ BEGIN
     Out.String("socket created.")
   END;
   Out.Ln;
-  COPY("127.0.0.1", ip);
-  ipAddr := sockets.inetaddr(ip);
 
-  sockets.SetSockAddrIn(sockets.AfInet, Port, ipAddr, ServAddr);
+  sockets.SetSockAddrIn(sockets.AfInet, Port, 0, ServAddr);
   IF sockets.Bind(sockfd, SYSTEM.VAL(sockets.SockAddr, ServAddr), SIZE(sockets.SockAddr)) < 0 THEN
     Out.String("error on binding")
   ELSE
     Out.String("binding completed.")
   END;
   Out.Ln;
-
+    
   IF sockets.Listen(sockfd, MaxQueue) # 0 THEN
     Out.String("listen() failed");
   ELSE
