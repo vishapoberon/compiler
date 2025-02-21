@@ -6,7 +6,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     various promotion rules changed (long) => (LONGINT), xxxL avoided
 *)
 
-  IMPORT OPT, OPC, OPM, OPS, SYSTEM;
+  IMPORT OPT, OPC, OPM, OPS, VT100, Strings, SYSTEM;
 
   CONST
     UndefinedType  = 0; (* named type not yet defined *)
@@ -28,6 +28,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     GuardPtrFunc = "__GUARDP(";
     GuardRecFunc = "__GUARDR(";
     TypeFunc     = "__TYPEOF(";
+    SetOfFunc    = "__SETOF(";
     CopyFunc     = "__COPY(";
     MoveFunc     = "__MOVE(";
     GetFunc      = "__GET(";
@@ -44,7 +45,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   TYPE
     ExitInfo = RECORD level, label: INTEGER END ;
-
+    tmpName = POINTER TO ARRAY 32 OF CHAR;
 
   VAR
     stamp: INTEGER;  (* unique number for nested objects *)
@@ -52,6 +53,20 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     exit: ExitInfo;  (* to check if EXIT is simply a break *)
     nofExitLabels: INTEGER;
 
+    tempCounter: INTEGER; (* to generate unique temp names *)
+
+  PROCEDURE uniqueTempName(): tmpName;
+  VAR
+    num: ARRAY 8 OF CHAR;
+    tempName: tmpName;
+  BEGIN
+    INC(tempCounter);
+    NEW(tempName);
+    COPY("_voc_tmp_", tempName^);
+    VT100.IntToStr(tempCounter, num);
+    Strings.Append(num, tempName^);
+    RETURN tempName;
+  END uniqueTempName;
 
   PROCEDURE Init*;
   BEGIN
@@ -196,7 +211,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      OPT.bit,
                      OPT.lsh,
                      OPT.rot:   RETURN 10
-      	           ELSE OPM.LogWStr("unhandled case in OPV.Precedence OPT.Ndop, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
+                   ELSE OPM.LogWStr("unhandled case in OPV.Precedence OPT.Ndop, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
                    END;
     | OPT.Nupto:   RETURN 10
     | OPT.Ntype,
@@ -214,13 +229,13 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   BEGIN
     WHILE (n^.class = OPT.Nindex) & (n^.typ^.comp = OPT.DynArr(*26.7.2002*)) DO INC(dim); n := n^.left END ;
     IF (n^.class = OPT.Nderef) & (n^.typ^.comp = OPT.DynArr) THEN
-	  d := dim; array := n^.typ;
-	  WHILE d > 0 DO array := array^.BaseTyp; DEC(d) END;
-	  IF array^.comp = OPT.DynArr THEN
+    d := dim; array := n^.typ;
+    WHILE d > 0 DO array := array^.BaseTyp; DEC(d) END;
+    IF array^.comp = OPT.DynArr THEN
         design(n^.left, 10); OPM.WriteString("->len["); OPM.WriteInt(dim); OPM.Write("]")
-	  ELSE
+    ELSE
         OPM.WriteInt(array^.n)
-	  END
+    END
     ELSE
       OPC.Len(n^.obj, n^.typ, dim)
     END
@@ -255,27 +270,39 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END
   END SizeCast;
 
-  PROCEDURE Convert(n: OPT.Node; newtype: OPT.Struct; prec: INTEGER);
-    VAR from, to: INTEGER;
-  BEGIN from := n^.typ^.form; to := newtype.form;
-    IF to = OPT.Set THEN
-      IF from = OPT.Set THEN (* Sets of different size *)
-        SizeCast(n, newtype.size);
-      ELSE (* Set from integer *)
-        OPM.WriteString("__SETOF("); Entier(n, MinPrec);
-        OPM.WriteString(","); OPM.WriteInt(newtype.size*8); OPM.Write(CloseParen)
-      END
-    ELSIF to = OPT.Int THEN (* integers of different size *)
+PROCEDURE Convert(n: OPT.Node; newtype: OPT.Struct; prec: INTEGER);
+VAR
+  from, to: INTEGER;
+  tempName: tmpName;
+  tempIndex: INTEGER; (* New variable to manage temporary indexes *)
+BEGIN
+  from := n^.typ^.form;
+  to := newtype.form;
+
+  IF to = OPT.Set THEN
+    tempName := uniqueTempName();
+    tempIndex := 0; (* Initialize temp index *)
+    OPM.WriteString("UINT32 "); OPM.WriteString(tempName^); OPM.WriteString(" = 0;"); (* Correctly initialize variable *)
+    OPM.WriteLn;
+
+    IF from = OPT.Set THEN
       SizeCast(n, newtype.size);
-    ELSIF to = OPT.Char THEN
-      IF OPM.ranchk IN OPM.Options THEN OPM.WriteString("__CHR");
-        IF SideEffects(n) THEN OPM.Write("F") END ;
-        OPM.Write(OpenParen); Entier(n, MinPrec); OPM.Write(CloseParen)
-      ELSE OPM.WriteString("(CHAR)"); Entier(n, 9)
-      END
-    ELSE expr(n, prec)
+    ELSE
+      OPM.WriteString(tempName^); OPM.WriteString(" = __SETOF(");
+      Entier(n, MinPrec);
+      OPM.WriteString(",");
+      OPM.WriteInt(newtype.size * 8);
+      OPM.WriteString(");");
+      OPM.WriteLn;
+      OPM.WriteString("i |= "); OPM.WriteString(tempName^); OPM.WriteString(";"); (* Ensure 'i' is declared *)
     END
-  END Convert;
+  ELSIF to = OPT.Int THEN
+    SizeCast(n, newtype.size);
+  ELSE
+    expr(n, prec);
+  END
+END Convert;
+
 
   PROCEDURE TypeOf(n: OPT.Node);
   BEGIN
@@ -576,7 +603,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                           IF SideEffects(n) THEN OPM.WriteString("__MODF(")
                                           ELSE OPM.WriteString("__MOD(")
                                           END;
-	                            ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
+                              ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
                               END ;
                               expr(l, MinPrec);
                               OPM.WriteString(Comma);
@@ -622,10 +649,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                            ELSE OPM.WriteString(" - ")
                                            END;
                               | OPS.or:    OPM.WriteString(" || ");
-	                            ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
+                              ELSE OPM.LogWStr("unhandled case in OPV.expr, subclass = "); OPM.LogWNum(subclass, 0); OPM.LogWLn;
                               END;
                               expr(r, exprPrec);
-	                            IF (subclass = OPS.and) OR ((form = OPT.Set) & ((subclass = OPS.times) OR (subclass = OPS.minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
+                              IF (subclass = OPS.and) OR ((form = OPT.Set) & ((subclass = OPS.times) OR (subclass = OPS.minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
                   END
     | OPT.Ncall:  IF (l^.obj # NIL) & (l^.obj^.mode = OPT.TProc) THEN
                     IF l^.subcl = OPT.super THEN proc := SuperProc(n)
@@ -769,6 +796,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE stat(n: OPT.Node; outerProc: OPT.Object);
     VAR proc: OPT.Object; saved: ExitInfo; l, r: OPT.Node;
+    tempName, tempVar: tmpName;
   BEGIN
     WHILE (n # NIL) & OPM.noerr DO
       OPM.errpos := OPM.Longint(n^.conval^.intval);
@@ -833,9 +861,17 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      | OPT.incfn,
                        OPT.decfn:     expr(n^.left, MinPrec); OPC.Increment(n^.subcl = OPT.decfn); expr(n^.right, MinPrec)
                      | OPT.inclfn,
-                       OPT.exclfn:    expr(n^.left, MinPrec); OPC.SetInclude(n^.subcl = OPT.exclfn);
-                                      OPM.WriteString("__SETOF("); expr(n^.right, MinPrec);
-                                      OPM.WriteString(","); OPM.WriteInt(n.left.typ.size*8); OPM.Write(CloseParen)
+                       OPT.exclfn:
+                     tempName := uniqueTempName();
+            OPM.WriteString("UINT32 "); OPM.WriteString(tempName^); OPM.WriteString(";");
+            OPM.WriteLn;
+
+            OPM.WriteString(tempName^); OPM.WriteString(" = __SETOF(");
+            expr(n^.right, MinPrec);
+            OPM.WriteString(","); OPM.WriteInt(n.left.typ.size * 8);
+            OPM.WriteString(");");
+            OPM.WriteLn;
+            OPM.WriteString("i |= "); OPM.WriteString(tempName^); OPM.WriteString(";");
                      | OPT.copyfn:    OPM.WriteString(CopyFunc);
                                       expr(n^.right, MinPrec); OPM.WriteString(Comma); expr(n^.left, MinPrec); OPM.WriteString(Comma);
                                       Len(n^.left, 0); OPM.Write(CloseParen)
@@ -857,7 +893,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                       design(n^.left, MinPrec); OPM.WriteString(", ");
                                       expr(n^.right, MinPrec);
                                       OPM.Write(")")
-	                   ELSE OPM.LogWStr("unhandled case in OPV.expr, n^.subcl = "); OPM.LogWNum(n^.subcl, 0); OPM.LogWLn;
+                     ELSE OPM.LogWStr("unhandled case in OPV.expr, n^.subcl = "); OPM.LogWNum(n^.subcl, 0); OPM.LogWLn;
                      END
       | OPT.Ncall:   IF (n^.left^.obj # NIL) & (n^.left^.obj^.mode = OPT.TProc) THEN
                        IF n^.left^.subcl = OPT.super THEN proc := SuperProc(n)
@@ -930,5 +966,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     IF ~(OPM.mainprog IN OPM.Options) THEN OPC.GenHdr(prog^.right); OPC.GenHdrIncludes END ;
     OPC.GenBdy(prog^.right); stat(prog, NIL)
   END Module;
+
+BEGIN
+  tempCounter := 0
 
 END OPV.
