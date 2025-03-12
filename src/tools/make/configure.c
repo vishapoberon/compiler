@@ -113,6 +113,7 @@ void determineOS() {
     else if (strncasecmp(sys.sysname, "linux",   5) == 0) {determineLinuxVariant();}
     else if (strncasecmp(sys.sysname, "freebsd", 5) == 0) {os = "freebsd"; bsd = 1;}
     else if (strncasecmp(sys.sysname, "openbsd", 5) == 0) {os = "openbsd"; bsd = 1;}
+    else if (strncasecmp(sys.sysname, "netbsd", 5) == 0) {os = "netbsd"; bsd = 1;}
     else if (strncasecmp(sys.sysname, "darwin",  5) == 0) {os = "darwin";  staticlink = ""; dynext = ".dylib";}
     else {
       fprintf(stderr, "\n\n** Unrecognised utsname.sysname '%s' returned by uname().\n", sys.sysname);
