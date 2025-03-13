@@ -189,8 +189,8 @@ installable:
 
 uninstall: installable
 	@printf '\nUninstalling from \"$(INSTALLDIR)\"\n'
+	@[ -d "$(INSTALLDIR)/lib" ] && sh src/tools/make/addlibrary.sh uninstall "$(INSTALLDIR)/lib" $(ONAME) || echo nolibdir, skipping
 	rm -rf "$(INSTALLDIR)"
-	@sh src/tools/make/addlibrary.sh uninstall "$(INSTALLDIR)/lib" $(ONAME)
 
 
 # install: Use only after a successful full build. Installs the compiler
