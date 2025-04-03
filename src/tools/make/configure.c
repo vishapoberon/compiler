@@ -131,9 +131,11 @@ void determineCCompiler() {
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
-      cc = "i686-w64-mingw32-gcc -g" optimize;
+    // FIXME ignoring warnings
+      cc = "i686-w64-mingw32-gcc -g -Wno-stringop-overflow" optimize;
     } else {
-      cc = "x86_64-w64-mingw32-gcc -g" optimize;
+    // FIXME ignoring warnings
+      cc = "x86_64-w64-mingw32-gcc -g -Wno-stringop-overflow" optimize;
     }
   #elif defined(__clang__)
     compiler = "clang";
