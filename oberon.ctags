@@ -1,0 +1,32 @@
+# ctags -R --options=oberon.ctags --extras=+q
+
+--langdef=Oberon{_autoFQTag}
+
+--map-Oberon=+.mod
+--map-Oberon=+.Mod
+
+--kinddef-Oberon=m,module,modules
+--kinddef-Oberon=p,procedure,procedures
+
+--regex-Oberon=/^\s*MODULE\s+([a-zA-Z][a-zA-Z0-9]*)\s*;/\1/m/{scope=push}
+--regex-Oberon=/^\s*END\s+([a-zA-Z][a-zA-Z0-9]*)\s*\./\1/m/{scope=pop}
+--regex-Oberon=/^\s*PROCEDURE(\s*\^|-)?\s*([a-zA-Z][a-zA-Z0-9]*)/\2/p/{scope=ref}
+# NOTE Oberon-2 receiver procedures not supported
+
+### using ctags with vim
+# examples:
+#   vim -t "Compiler"
+#   vim -t "OPS.Get"
+#   vim -c ":ts Platform.Read"
+#
+# when inside the editor you need to jump to the fully qualified tag, 
+# not just procedure name e.g. when you have Platform.Write, you 
+# can't just place cursor on W then <C-]> and expect it to resolve 
+# correctly all the time.
+# your better options are
+#   autocmd FileType oberon setlocal iskeyword+=. 
+#   autocmd FileType modula2 setlocal iskeyword+=. 
+#   :ta Platform.Write
+#   v 3e <C-]>
+#   :ts Platform.Write
+#   g <C-]>
