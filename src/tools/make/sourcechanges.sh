@@ -14,8 +14,8 @@
 changes="0"
 find "$1" -type f -print0 | while IFS= read -r -d '' f; do
   fn=$(basename "$f")
-  egrep -v -f ../../src/tools/make/ignore "$f"  >$fn.old
-  egrep -v -f ../../src/tools/make/ignore $fn >$fn.new
+  grep -E -v -f ../../src/tools/make/ignore "$f"  >$fn.old
+  grep -E -v -f ../../src/tools/make/ignore $fn >$fn.new
   if ! diff -U 2 -b $fn.old $fn.new >$fn.diff; then
     echo ""
     echo ""
