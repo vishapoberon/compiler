@@ -278,13 +278,13 @@ Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015
 ###### Oberon
  - [The History of Modula-2 and Oberon](http://people.inf.ethz.ch/wirth/Articles/Modula-Oberon-June.pdf)
  - [The Programming Language Oberon](https://www.inf.ethz.ch/personal/wirth/Oberon/Oberon.Report.pdf)
- - [Project Oberon: The Design of an Operating System and Compiler ](http://www.ethoberon.ethz.ch/WirthPubl/ProjectOberon.pdf)
- - [Oberon - the Overlooked Jewel](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.7173&rep=rep1&type=pdf)
+ - [Project Oberon: The Design of an Operating System and Compiler ](https://people.inf.ethz.ch/wirth/ProjectOberon1992.pdf)
+ - [Oberon - the Overlooked Jewel](http://pascal.hansotten.com/uploads/oberonpi/Oberon%20article.pdf)
 
 ###### Oberon 2
- - [Differences between Oberon and Oberon-2](http://members.home.nl/jmr272/Oberon/Oberon2.Differences.pdf)
+ - [Differences between Oberon and Oberon-2](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=89e5bd3cf006bde4821599cdc57a37de5dc84bcd)
  - [The Programming Language Oberon-2](http://www.ssw.uni-linz.ac.at/Research/Papers/Oberon2.pdf)
- - [Programming in Oberon. Steps beyond Pascal and Modula](http://www.ethoberon.ethz.ch/WirthPubl/ProgInOberonWR.pdf)
+ - [Programming in Oberon. Steps beyond Pascal and Modula](https://people.inf.ethz.ch/wirth/ProgInOberonWR.pdf)
  - [The Oakwood Guidelines for Oberon-2 Compiler Developers](http://www.math.bas.bg/bantchev/place/oberon/oakwood-guidelines.pdf)
 
 ###### Oberon 07
@@ -294,10 +294,10 @@ Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015
 
 ###### Links
  - [Niklaus Wirth's personal page at ETH Zurich](https://www.inf.ethz.ch/personal/wirth/)
- - [ETH Zurich's Wirth publications page](http://www.ethoberon.ethz.ch/WirthPubl/)
+ - [Selected articles by Niklaus Wirth](https://people.inf.ethz.ch/wirth/SelectedArticles.pdf)
+ - [ETH Oberon publications page](https://web.archive.org/web/20191207155011/http://www.ethoberon.ethz.ch/books.html)
  - [Joseph Templ's ofront on github](https://github.com/jtempl/ofront)
  - [Software Templ OG](http://www.software-templ.com)
- - [Oberon: Steps beyond Pascal and Modula](http://fruttenboel.verhoeven272.nl/Oberon/)
 
 
 ## History
