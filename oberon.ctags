@@ -10,7 +10,7 @@
 
 --regex-Oberon=/^\s*MODULE\s+([a-zA-Z][a-zA-Z0-9]*)\s*;/\1/m/{scope=push}
 --regex-Oberon=/^\s*END\s+([a-zA-Z][a-zA-Z0-9]*)\s*\./\1/m/{scope=pop}
---regex-Oberon=/^\s*PROCEDURE(\s*\^|-)?\s*([a-zA-Z][a-zA-Z0-9]*)/\2/p/{scope=ref}
+--regex-Oberon=/^\s*PROCEDURE\s*(\^|-)?\s*([a-zA-Z][a-zA-Z0-9]*)/\2/p/{scope=ref}
 # NOTE Oberon-2 receiver procedures not supported
 
 ### using ctags with vim
