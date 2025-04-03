@@ -137,7 +137,8 @@ void determineCCompiler() {
     }
   #elif defined(__clang__)
     compiler = "clang";
-    cc       = "clang -fPIC -g" optimize;
+    // FIXME ignoring warnings
+    cc       = "clang -fPIC -g -Wno-deprecated-non-prototype" optimize;
   #elif defined(__TINYC__)
     compiler = "tcc";
     cc       = "tcc -g";
@@ -146,9 +147,11 @@ void determineCCompiler() {
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g" optimize;
+      // FIXME ignoring warnings
+      cc = "gcc -g -Wno-stringop-overflow" optimize;
     } else {
-      cc = "gcc -fPIC -g" optimize;
+      // FIXME ignoring warnings
+      cc = "gcc -fPIC -g -Wno-stringop-overflow" optimize;
     }
   #elif defined(_MSC_VER)
     compiler  = "msc";
