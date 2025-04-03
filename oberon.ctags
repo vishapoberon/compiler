@@ -1,3 +1,4 @@
+# universal tags
 # ctags -R --options=oberon.ctags --extras=+q
 
 --langdef=Oberon{_autoFQTag}
@@ -19,14 +20,14 @@
 #   vim -t "OPS.Get"
 #   vim -c ":ts Platform.Read"
 #
-# when inside the editor you need to jump to the fully qualified tag, 
-# not just procedure name e.g. when you have Platform.Write, you 
-# can't just place cursor on W then <C-]> and expect it to resolve 
-# correctly all the time.
-# your better options are
-#   autocmd FileType oberon setlocal iskeyword+=. 
-#   autocmd FileType modula2 setlocal iskeyword+=. 
-#   :ta Platform.Write
-#   v 3e <C-]>
-#   :ts Platform.Write
-#   g <C-]>
+# you need to jump to the fully qualified name, since procedure names alone
+# sometimes resolve to an incorrect module. that is to say putting cursor on 
+# W in Platform.Write and jumping will probably not work as expected, so you
+# might have to do some of these
+#   autocmd FileType oberon,modula2 setlocal iskeyword+=. 
+#   select the name fully
+#       v 3e <C-]>
+#       :ta Platform.Write
+#   resolve ambiguities interactively
+#       :ts Write
+#       g <C-]>
