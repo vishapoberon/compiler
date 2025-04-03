@@ -2,7 +2,7 @@
 
 # Ѵishap Oberon
 
-[Ѵishap Oberon](http://oberon.vishap.am) is a free and open source (GPLv3)
+[Ѵishap Oberon](https://vishap.oberon.am/) is a free and open source (GPLv3)
 implementation of the Oberon-2 language and libraries for use on
 conventional operating systems such as Linux, BSD, Android, Mac and Windows.
 
