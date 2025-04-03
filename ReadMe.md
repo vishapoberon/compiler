@@ -295,7 +295,7 @@ Also, Vishaps are known in tales, fiction. [This page](http://blog.fogus.me/2015
 ###### Links
  - [Niklaus Wirth's personal page at ETH Zurich](https://www.inf.ethz.ch/personal/wirth/)
  - [ETH Zurich's Wirth publications page](http://www.ethoberon.ethz.ch/WirthPubl/)
- - [Joseph Templ's ofront on github](https://hithub.com/jtempl/ofront)
+ - [Joseph Templ's ofront on github](https://github.com/jtempl/ofront)
  - [Software Templ OG](http://www.software-templ.com)
  - [Oberon: Steps beyond Pascal and Modula](http://fruttenboel.verhoeven272.nl/Oberon/)
 
