@@ -125,19 +125,22 @@ void determineOS() {
 }
 
 #define optimize "" // " -O1"
+// FIXME ignoring warning floods that possibly are problems
+#define ignore_gcc_warning_flood " -Wno-stringop-overflow"
+#define ignore_clang_warning_flood " -Wno-deprecated-non-prototype"
 
 void determineCCompiler() {
   snprintf(libspec, sizeof(libspec), " -l%s", oname);
   #if defined(__MINGW32__)
     compiler = "mingw";
     if (sizeof (void*) == 4) {
-      cc = "i686-w64-mingw32-gcc -g" optimize;
+      cc = "i686-w64-mingw32-gcc -g" ignore_gcc_warning_flood optimize;
     } else {
-      cc = "x86_64-w64-mingw32-gcc -g" optimize;
+      cc = "x86_64-w64-mingw32-gcc -g" ignore_gcc_warning_flood optimize;
     }
   #elif defined(__clang__)
     compiler = "clang";
-    cc       = "clang -fPIC -g" optimize;
+    cc       = "clang -fPIC -g" ignore_clang_warning_flood optimize;
   #elif defined(__TINYC__)
     compiler = "tcc";
     cc       = "tcc -g";
@@ -146,9 +149,9 @@ void determineCCompiler() {
     compiler = "gcc";
     if (strncasecmp(os, "cygwin",  6) == 0) {
       // Avoid cygwin specific warning that -fPIC is ignored.
-      cc = "gcc -g" optimize;
+      cc = "gcc -g" ignore_gcc_warning_flood optimize;
     } else {
-      cc = "gcc -fPIC -g" optimize;
+      cc = "gcc -fPIC -g" ignore_gcc_warning_flood optimize;
     }
   #elif defined(_MSC_VER)
     compiler  = "msc";

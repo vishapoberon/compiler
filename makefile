@@ -91,8 +91,11 @@ usage:
 	@echo "  make bootstrap       - Update bootstrap C source directories."
 	@echo "  make revertbootstrap - Use git checkout to restore bootstrap C source directories"
 
-
-
+# Code navigation helper
+# doc/ctags.md
+.PHONY: tags
+tags: 
+	ctags -R --options=oberon.ctags --extras=+q
 
 # Generate config files Configuration.Make and Configuration.Mod
 FORCE:

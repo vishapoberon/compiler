@@ -11,6 +11,7 @@
 /*.sym
 /*.asm
 /*.mod
+/Errors.Txt
 /Errors.txt
 /olang
 /src/test/**/*.exe
@@ -20,9 +21,11 @@
 /src/test/**/*.obj
 /src/test/**/*.sym
 **/*.stackdump
+!/src/test/confidence/**/expected
 /src/test/confidence/**/input
 /src/test/confidence/**/result
 /src/test/confidence/**/result-*
+/src/test/confidence/**/*[^.]*
 /src/test/confidence/**/*.asm
 /src/test/confidence/**/*.s
 /src/test/confidence/**/*.map
@@ -39,3 +42,5 @@
 /triage/BasicTypeSize.md
 /triage/Roadmap.md
 triage/system/*
+tags
+voc
