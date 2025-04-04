@@ -11,27 +11,4 @@
 
 --regex-Oberon=/^\s*MODULE\s+([a-zA-Z][a-zA-Z0-9]*)\s*;/\1/m/{scope=push}
 --regex-Oberon=/^\s*PROCEDURE\s*(\^|-)?\s*([a-zA-Z][a-zA-Z0-9]*)/\2/p/{scope=ref}
-# NOTE Oberon-2 receiver procedures not supported
 
-### using ctags with vim
-# examples:
-#   vim -t "Compiler"
-#   vim -t "OPS.Get"
-#   vim -c ":ts Platform.Read"
-#
-# you need to jump to the fully qualified name, since procedure names alone
-# sometimes resolve to an incorrect module. that is to say putting cursor on 
-# W in Platform.Write and jumping will probably not work as expected, so you
-# might have to do some of these
-#   add this to yout .vimrc
-#       autocmd FileType oberon,modula2 setlocal iskeyword+=.
-#   select the qualified name
-#       v 3e <C-]>
-#       :ta Platform.Write
-#   resolve ambiguities interactively
-#       :ts Write
-#       g <C-]>
-#
-# if you need upward searching for tags file, so you can access them from
-# project root subdirectories, then add this to your .vimrc
-#   set tags=./tags;~
