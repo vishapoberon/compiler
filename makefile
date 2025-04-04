@@ -92,6 +92,7 @@ usage:
 	@echo "  make revertbootstrap - Use git checkout to restore bootstrap C source directories"
 
 # Code navigation helper
+# doc/ctags.md
 .PHONY: tags
 tags: 
 	ctags -R --options=oberon.ctags --extras=+q
