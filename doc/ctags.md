@@ -28,9 +28,9 @@ First, generate tags in project root
 `make tags`
 
 When you add or change names in source files, you have to regenerate the `tags` file. That can be done by running `make tags` again. Optionally, use a `vim` plugin such as [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags) to automate this process. Install it (or skip this step):
-```
-git clone https://github.com/ludovicchabant/vim-gutentags ~/.vim/plugin/
-```
+
+`git clone https://github.com/ludovicchabant/vim-gutentags ~/.vim/plugin/`  
+
 or wherever your vim global plugin directory is specified in `:h plugin`. 
 
 Add this to your `~/.vimrc`
