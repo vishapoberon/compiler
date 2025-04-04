@@ -1,6 +1,6 @@
 ## Code navigation with ctags
 
-[`ctags`](https://github.com/universal-ctags/ctags) is a tool that creates an index file for names (symbols) in various programming langauges, which helps code comprehension by giving information to text editors to search, locate, and interactively suggest names. Particularly for Oberon, the `oberon.ctags` file, located in the project root, contains definitions for Oberon modules and procedures (but not receiver procedures). 
+[`ctags`](https://github.com/universal-ctags/ctags) is a tool that creates an index file for names in various programming langauges, which helps code comprehension by giving information to text editors to search, locate, and interactively suggest names, identifiers, symbols etc. Particularly for Oberon, the `oberon.ctags` file, located in the project root, contains definitions for Oberon modules and procedures (but not receiver procedures). 
 
 Below you can find installation instructions and usage examples for `ctags` to navigate Oberon source code, in particular, using the universal tags implementation (not tested with other implementations), with `vim` (you can find or add guides for your text editor). 
 
