@@ -66,7 +66,7 @@ module definition:
 To come back:  
 `<C-o>`
 
-Putting cursor on `P` of `Module.Procedure` is not guaranteed to resolve correctly to the correct module, so choose the fully qualified name. This is a [known limitation](https://docs.ctags.io/en/latest/man/ctags-faq.7.html#how-do-i-jump-to-the-tag-i-want-instead-of-the-wrong-one-by-the-same-name) of `ctags` (any suggestions for to handle this better are welcome).
+Putting cursor on `P` of `Module.Procedure` is not guaranteed to resolve correctly to the correct module, so choose the fully qualified name. This is a [known limitation](https://docs.ctags.io/en/latest/man/ctags-faq.7.html#how-do-i-jump-to-the-tag-i-want-instead-of-the-wrong-one-by-the-same-name) of `ctags` (any suggestions for handling this better are welcome).
 
 To address this, you can visually select as in the above examples, or resolve ambiguities interactively:  
 `g <C-]>`  
@@ -77,6 +77,6 @@ or make vim see the qualified name as a complete keyword:
 in `.vimrc`  
 `autocmd FileType oberon,modula2 setlocal iskeyword+=.`  
 
-**TODO**
-There is some auto-completion, with but it doesn't work well. One idea is to define a custom `omnifunc` that suggests only exported symbols (`*`) from a file (module scope is file), so that when you type `OPS.` and press `<C-P>` you can have useful suggestions (similar to `showdef`).
+**TODO**  
+There is some auto-completion, but it doesn't work well. One idea is to define a custom `omnifunc` that suggests only exported symbols (`*`) from a file (module scope is file), so that when you type `OPS.` and press `<C-P>` you can have useful suggestions (similar to `showdef`).
 
