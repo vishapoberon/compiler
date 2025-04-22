@@ -116,9 +116,11 @@ extern void Modules_AssertFail(INT32 x);
 
 // Index checking
 
-static inline INT64 __XF(UINT64 i, UINT64 ub) {if (i >= ub) {__HALT(-2);} return i;}
-#define __X(i, ub) (((i)<(ub))?i:(__HALT(-2),0))
-
+static inline INT64 __XF(INT64 i, UINT64 ub) {
+  if (i < 0 || (UINT64)i >= ub) __HALT(-2);
+  return i;
+}
+#define __X(i, ub) (((i) >= 0 && (i) < (ub)) ? (i) : (__HALT(-2),0))
 
 // Range checking, and checked SHORT and CHR functions
 
