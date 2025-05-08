@@ -741,6 +741,32 @@ BEGIN t := ABS(x);
   RETURN arcsinh(x/sqrt(ONE - x * x))
 END arctanh;
 
+PROCEDURE fcmp* (x, y, epsilon: REAL): INTEGER;
+(*  fcmp: this procedure determines whether `x` and `y` are approximately equal
+    to a relative accuracy `epsilon`.
+    References:
+    The implementation is based on the GNU Scientific Library (GSL).
+    https://www.gnu.org/software/gsl/doc/html/math.html#approximate-comparison-of-floating-point-numbers
+*)
+VAR  max, exponent0, delta, difference: REAL;
+BEGIN
+  IF ABS(x) > ABS(y) THEN
+    max := x;
+  ELSE
+    max := y;
+  END;
+  exponent0 := exponent(max);
+  delta := 2.0*epsilon*power(2.0, exponent0);
+  difference := x - y;
+  IF difference > delta THEN
+    RETURN 1;
+  ELSIF difference < -delta THEN
+    RETURN -1;
+  ELSE
+    RETURN 0; (* approximately equal *)
+  END;
+END fcmp;
+
 PROCEDURE ToREAL(h: HUGEINT): REAL;
 BEGIN RETURN SYSTEM.VAL(REAL, h)
 END ToREAL;
