@@ -409,22 +409,24 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   BEGIN
     IF obj # NIL THEN
       DefineTProcMacros(obj^.left, empty);
-      IF (obj^.mode = OPT.TProc) & (obj = BaseTProc(obj)) & ((OPM.currFile # OPM.HeaderFile) OR (obj^.vis = OPT.external)) THEN
-        OPM.WriteString("#define __");
-        Ident(obj);
-        DeclareParams(obj^.link, TRUE);
-        OPM.WriteString(" __SEND(");
-        IF obj^.link^.typ^.form = OPT.Pointer THEN
-          OPM.WriteString("__TYPEOF("); Ident(obj^.link); OPM.Write(")")
-        ELSE Ident(obj^.link); OPM.WriteString(TagExt)
-        END ;
-        Str1(", #, ", obj^.adr DIV 10000H);
-        IF obj^.typ = OPT.notyp THEN OPM.WriteString('void') ELSE Ident(obj^.typ^.strobj) END ;
-        OPM.WriteString("(*)");
-        AnsiParamList(obj^.link, FALSE);
-        OPM.WriteString(", ");
-        DeclareParams(obj^.link, TRUE);
-        OPM.Write(")"); OPM.WriteLn
+      IF (obj^.mode = OPT.TProc) & (obj = BaseTProc(obj)) THEN
+          IF (OPM.currFile = OPM.BodyFile) OR ((OPM.currFile = OPM.HeaderFile) & (obj^.vis = OPT.external)) THEN
+              OPM.WriteString("#define __");
+              Ident(obj);
+              DeclareParams(obj^.link, TRUE);
+              OPM.WriteString(" __SEND(");
+              IF obj^.link^.typ^.form = OPT.Pointer THEN
+                  OPM.WriteString("__TYPEOF("); Ident(obj^.link); OPM.Write(")")
+              ELSE Ident(obj^.link); OPM.WriteString(TagExt)
+              END ;
+              Str1(", #, ", obj^.adr DIV 10000H);
+              IF obj^.typ = OPT.notyp THEN OPM.WriteString('void') ELSE Ident(obj^.typ^.strobj) END ;
+              OPM.WriteString("(*)");
+              AnsiParamList(obj^.link, FALSE);
+              OPM.WriteString(", ");
+              DeclareParams(obj^.link, TRUE);
+              OPM.Write(")"); OPM.WriteLn
+          END
       END ;
       DefineTProcMacros(obj^.right, empty)
     END
@@ -433,7 +435,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE DefineType(str: OPT.Struct); (* define a type object *)
     VAR obj, field, par: OPT.Object; empty: BOOLEAN;
   BEGIN
-    IF (OPM.currFile = OPM.BodyFile) OR (str^.ref < OPM.MaxStruct (*for hidden exports*) ) THEN
+    IF (OPM.currFile = OPM.BodyFile) OR (str^.ref < OPM.MaxStruct (*for hidden exports*) ) OR ((OPM.currFile = OPM.HeaderFile) & (str^.strobj # NIL) & (str^.strobj^.vis = OPT.external)) THEN
       obj := str^.strobj;
       IF (obj = NIL) OR Undefined(obj) THEN
         IF obj # NIL THEN (* check for cycles *)
@@ -455,7 +457,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         ELSIF str^.comp IN {OPT.Array, OPT.DynArr} THEN
           IF (str^.BaseTyp^.strobj # NIL) & (str^.BaseTyp^.strobj^.linkadr = ProcessingType) THEN (*cyclic base type*)
             OPM.Mark(244, str^ .txtpos); str^.BaseTyp^.strobj^.linkadr := PredefinedType
-					END ;
+          END ;
           DefineType(str^.BaseTyp)
         ELSIF str^.form = OPT.ProcTyp THEN
           IF str^.BaseTyp # OPT.notyp THEN DefineType(str^.BaseTyp) END ;
@@ -474,6 +476,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         EndStat; Indent(-1); OPM.WriteLn;
         IF obj^.typ^.comp = OPT.Record THEN empty := TRUE;
           DeclareTProcs(str^.link, empty); DefineTProcMacros(str^.link, empty);
+          IF ~empty THEN OPM.WriteLn END
+        ELSIF (obj^.typ^.form = OPT.Pointer) & (obj^.typ^.BaseTyp^.comp = OPT.Record) THEN
+          empty := TRUE;
+          DeclareTProcs(obj^.typ^.BaseTyp^.link, empty);
+          DefineTProcMacros(obj^.typ^.BaseTyp^.link, empty);
           IF ~empty THEN OPM.WriteLn END
         END
       END
