@@ -1,4 +1,7 @@
 MODULE Out; (* DCW Brown. 2016-09-27 *)
+    (** Module Out provides a set of basic routines
+      for formatted output of characters, numbers, and strings.
+      It assumes a standard output stream to which the symbols are written. *)
 
 IMPORT SYSTEM, Platform, Heap;
 
@@ -16,11 +19,11 @@ BEGIN
   IF in > 0 THEN error := Platform.Write(Platform.StdOut, SYSTEM.ADR(buf), in) END;
   in := 0;
 END Flush;
-
+(** Initializes the output stream. In this library does nothing, safe to never use. *)
 PROCEDURE Open*;
 BEGIN
 END Open;
-
+(** Writes the character to the end of the output stream. *)
 PROCEDURE Char*(ch: CHAR);
 BEGIN
   IF in >= LEN(buf) THEN Flush END;
@@ -32,7 +35,7 @@ PROCEDURE Length(VAR s: ARRAY OF CHAR): LONGINT;
 VAR l: LONGINT;
 BEGIN l := 0; WHILE (l < LEN(s)) & (s[l] # 0X) DO INC(l) END; RETURN l
 END Length;
-
+(** Writes the null-terminated character sequence str to the end of the output stream (without 0X). *)
 PROCEDURE String*(str: ARRAY OF CHAR);
   VAR l: LONGINT;  error: Platform.ErrorCode;
 BEGIN
@@ -46,7 +49,10 @@ BEGIN
   END
 END String;
 
-
+(** Writes the integer number x to the end of the output stream.
+  If the textual representation of x requires m characters,
+  x is right adjusted in a field of Max(n, m) characters
+  padded with blanks at the left end. a plus sign is not written. *)
 PROCEDURE Int*(x, n: HUGEINT);
   CONST zero = ORD('0');
   VAR s: ARRAY 22 OF CHAR; i: INTEGER; negative: BOOLEAN;
@@ -82,7 +88,7 @@ BEGIN
     ELSE Char(CHR((x MOD 16) - 10 + ORD('A'))) END
   END
 END Hex;
-
+(** Writes an end-of-line symbol to the end of the output stream *)
 PROCEDURE Ln*;
 BEGIN String(Platform.NL); Flush;
 END Ln;
@@ -117,13 +123,14 @@ END Ten;
 
 PROCEDURE -Entier64(x: LONGREAL): SYSTEM.INT64 "(INT64)(x)";
 
-PROCEDURE RealP(x: LONGREAL; n: INTEGER; long: BOOLEAN);
-
-(* RealP(x, n) writes the long real number x to the end of the output stream using an
+(** RealP(x, n) writes the long real number x to the end of the output stream using an
    exponential form. If the textual representation of x requires m characters (including  a
    three-digit signed exponent), x is right adjusted in a ﬁeld of Max(n, m) characters padded
    with blanks at the left end. A plus sign of the mantissa is not written.
    LONGREAL is 1/sign, 11/exponent, 52/significand *)
+
+PROCEDURE RealP(x: LONGREAL; n: INTEGER; long: BOOLEAN);
+
 
 VAR
   e:   INTEGER;          (* Exponent field *)
@@ -212,11 +219,18 @@ BEGIN
   WHILE i < LEN(s) DO Char(s[i]); INC(i) END
 END RealP;
 
-
+(** Writes the real number x to the end of the output stream using an exponential
+  form. If the textual representation of x requires m characters (including a
+  two-digit signed exponent), x is right adjusted in a field of Max(n, m) characters
+  padded with blanks at the left end. A plus sign of the mantissa is not written.*)
 PROCEDURE Real*(x: REAL; n: INTEGER);
 BEGIN RealP(x, n, FALSE);
 END Real;
 
+(** Writes the long real number x to the end of the output stream using an exponential form.
+  If the textual representation of x requires m characters (including a three-digit
+  signed exponent), x is right adjusted in a field of Max(n, m) characters padded
+  with blanks at the left end. A plus sign of the mantissa is not written. *)
 PROCEDURE LongReal*(x: LONGREAL; n: INTEGER);
 BEGIN RealP(x, n, TRUE);
 END LongReal;
@@ -224,4 +238,10 @@ END LongReal;
 BEGIN
   IsConsole := Platform.IsConsole(Platform.StdOut);
   in := 0
+
+(** This module originally was designed by Martin Reiser
+    for the book "Programming in Oberon".
+    the specification was proposed by H. Moessenbock *)
+
 END Out.
+

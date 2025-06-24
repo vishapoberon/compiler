@@ -46,7 +46,8 @@ TYPE
     typ*:           Struct;
     conval*:        Const;
     adr*, linkadr*: LONGINT;
-    x*:             INTEGER    (* linkadr and x can be freely used by the backend *)
+    x*:             INTEGER;   (* linkadr and x can be freely used by the backend *)
+    comment*:        ConstExt;
   END;
 
 CONST
@@ -178,6 +179,7 @@ CONST
   Shdptr* = 27; Shdpro*  = 28; Stpro*   = 29; Shdtpro* = 30; Sxpro* = 31;
   Sipro*  = 32; Scpro*   = 33; Sstruct* = 34; Ssys*    = 35; Sptr*  = 36;
   Sarr*   = 37; Sdarr*   = 38; Srec*    = 39; Spro*    = 40; Slink* = 37;
+  Scomment* = 41;
 
 TYPE
   ImpCtxt = RECORD
@@ -367,7 +369,15 @@ END NewConst;
 
 PROCEDURE NewObj*(): Object;
   VAR obj: Object;
-BEGIN NEW(obj); RETURN obj
+BEGIN
+  NEW(obj);
+   (* lets fully init pointers *)
+   obj^.typ := NIL;
+   obj^.conval := NIL;
+   obj^.comment := NIL;
+   obj^.name := "";
+
+   RETURN obj
 END NewObj;
 
 PROCEDURE NewStr*(form, comp: SHORTINT): Struct;
@@ -468,8 +478,16 @@ BEGIN
 END FindField;
 
 PROCEDURE Insert*(VAR name: OPS.Name; VAR obj: Object);
-  VAR ob0, ob1: Object; left: BOOLEAN; mnolev: SHORTINT;
-BEGIN ob0 := topScope; ob1 := ob0^.right; left := FALSE;
+VAR
+  ob0, ob1: Object;
+  left: BOOLEAN;
+  mnolev: SHORTINT;
+  commentText: ARRAY OPM.MaxCommentLen OF CHAR;
+  j: INTEGER;
+BEGIN
+  ob0 := topScope;
+  ob1 := ob0^.right;
+  left := FALSE;
   LOOP
     IF ob1 # NIL THEN
       IF name < ob1^.name THEN ob0 := ob1; ob1 := ob0^.left; left := TRUE
@@ -480,12 +498,23 @@ BEGIN ob0 := topScope; ob1 := ob0^.right; left := FALSE;
       IF left THEN ob0^.left := ob1 ELSE ob0^.right := ob1 END;
       ob1^.left := NIL; ob1^.right := NIL; COPY(name, ob1^.name);
       mnolev := topScope^.mnolev; ob1^.mnolev := mnolev;
+      (* Attach pending comment *)
+      OPM.GetComment(commentText);
+      IF commentText[0] # 0X THEN
+        NEW(ob1^.comment);
+        (*COPY(commentText, ob1^.comment^);*)
+          j := 0;
+          WHILE (j < OPM.MaxCommentLen - 1) & (commentText[j] # 0X) DO
+            ob1^.comment^[j] := commentText[j];
+            INC(j)
+          END;
+          ob1^.comment^[j] := 0X;
+      END;
       EXIT
     END
   END;
   obj := ob1
 END Insert;
-
 
 (*-------------------------- Fingerprinting --------------------------*)
 
@@ -791,13 +820,25 @@ PROCEDURE InSign(mno: SHORTINT; VAR res: Struct; VAR par: Object);
   VAR last, new: Object; tag: LONGINT;
 BEGIN
   InStruct(res);
-  tag := OPM.SymRInt(); last := NIL;
+  tag := OPM.SymRInt();
+  last := NIL;
   WHILE tag # Send DO
-    new := NewObj(); new^.mnolev := -mno;
+
+    (* Add bounds checking *)
+    IF (tag < 0) OR (tag > 100) THEN
+      OPM.LogWStr("ERROR: Invalid tag value in InSign: "); OPM.LogWNum(tag, 0); OPM.LogWLn;
+      OPM.err(155);  (* symbol file corrupted *)
+      RETURN
+    END;
+
+    new := NewObj();
+    new^.mnolev := -mno;
     IF last = NIL THEN par := new ELSE last^.link := new END;
     IF tag = Svalpar THEN new^.mode := Var ELSE new^.mode := VarPar END;
-    InStruct(new^.typ); new^.adr := OPM.SymRInt(); InName(new^.name);
-    last := new; tag := OPM.SymRInt()
+    InStruct(new^.typ);
+    new^.adr := OPM.SymRInt(); InName(new^.name);
+    last := new;
+    tag := OPM.SymRInt();
   END
 END InSign;
 
@@ -973,11 +1014,46 @@ BEGIN
   END
 END InStruct;
 
+
 PROCEDURE InObj(mno: SHORTINT): Object;  (* first number in impCtxt.nextTag *)
   VAR i, s: INTEGER; ch: CHAR; obj, old: Object; typ: Struct;
       tag: LONGINT; ext: ConstExt;
+      commentText: OPS.Name;
+      hasComment : BOOLEAN;
+      j: INTEGER;
+      len: LONGINT;
 BEGIN
   tag := impCtxt.nextTag;
+  hasComment := FALSE;
+
+  (* checking for comment first, but not processing it yet *)
+  WHILE tag = Scomment DO  (* Handle multiple consecutive comments *)
+    len := OPM.SymRInt();  (* read length *)
+
+    (* Ensure length is within bounds *)
+    IF len < 0 THEN len := 0 END;
+    IF len > OPS.MaxStrLen - 1 THEN len := OPS.MaxStrLen - 1 END;
+
+    i := 0;
+    WHILE i < len DO
+      OPM.SymRCh(commentText[i]); INC(i)
+    END;
+    commentText[i] := 0X;
+    hasComment := TRUE;  (* Only keep the last comment if there are multiple *)
+
+    tag := OPM.SymRInt();  (* continue stream *)
+  END;
+
+  (* Now tag should be a valid object tag *)
+  impCtxt.nextTag := tag;
+
+  (* Validate tag value *)
+  IF (tag < 0) OR (tag > 50) THEN
+    OPM.LogWStr("ERROR: Invalid tag in InObj: "); OPM.LogWNum(tag, 0); OPM.LogWLn;
+    OPM.err(155);  (* Symbol file error *)
+    RETURN NIL
+  END;
+
   IF tag = Stype THEN
     InStruct(typ); obj := typ^.strobj;
     IF ~impCtxt.self THEN obj^.vis := external END  (* type name visible now, obj^.fprint already done *)
@@ -986,7 +1062,7 @@ BEGIN
     IF tag <= Pointer THEN  (* Constant *)
       obj^.mode := Con; obj^.conval := NewConst(); InConstant(tag, obj^.conval);
       obj^.typ := InTyp(tag)
-    ELSIF tag >= Sxpro THEN
+    ELSIF (tag >= Sxpro) & (tag <= Scpro) THEN  (* Procedure tags *)
       obj^.conval := NewConst();
       obj^.conval^.intval := -1;
       InSign(mno, obj^.typ, obj^.link);
@@ -998,16 +1074,33 @@ BEGIN
                s := SHORT(OPM.SymRInt()); ext^[0] := CHR(s); i := 1;
                WHILE i <= s DO OPM.SymRCh(ext^[i]); INC(i) END
       ELSE     OPM.LogWStr("unhandled case at InObj, tag = "); OPM.LogWNum(tag, 0); OPM.LogWLn;
+               OPM.err(155); RETURN NIL
       END
     ELSIF tag = Salias THEN
       obj^.mode := Typ; InStruct(obj^.typ)
-    ELSE
+    ELSIF (tag = Svar) OR (tag = Srvar) THEN
       obj^.mode := Var;
       IF tag = Srvar THEN obj^.vis := externalR END;
       InStruct(obj^.typ)
+    ELSE
+      OPM.LogWStr("ERROR: Unexpected tag in InObj: "); OPM.LogWNum(tag, 0); OPM.LogWLn;
+      OPM.err(155); (* Symbol file error *)
+      RETURN NIL
     END;
     InName(obj^.name)
   END;
+
+  (* attaching exported comment after the object was created *)
+  IF hasComment & (obj # NIL) THEN
+    NEW(obj^.comment);
+    j := 0;
+    WHILE (j < OPM.MaxCommentLen - 1) & (j < len) & (commentText[j] # 0X) DO
+      obj^.comment^[j] := commentText[j];
+      INC(j)
+    END;
+    obj^.comment^[j] := 0X;
+  END;
+
   FPrintObj(obj);
   IF (obj^.mode = Var) & ((obj^.typ^.strobj = NIL) OR (obj^.typ^.strobj^.name = "")) THEN
     (* compute a global fingerprint to avoid structural type equivalence for anonymous types *)
@@ -1039,6 +1132,8 @@ BEGIN
   END;
 RETURN obj
 END InObj;
+
+
 
 PROCEDURE Import*(aliasName: OPS.Name; VAR name: OPS.Name; VAR done: BOOLEAN);
   VAR obj: Object; mno: SHORTINT;  (* done used in Browser *)
@@ -1226,45 +1321,71 @@ END Import;
     END
   END OutConstant;
 
-  PROCEDURE OutObj(obj: Object);
-    VAR i, j: INTEGER; ext: ConstExt;
-  BEGIN
-    IF obj # NIL THEN
-      OutObj(obj^.left);
-      IF obj^.mode IN {Con, Typ, Var, LProc, XProc, CProc, IProc} THEN
-        IF obj^.history = removed THEN FPrintErr(obj, 250)
-        ELSIF obj^.vis # internal THEN
-          CASE obj^.history OF
-          | inserted:   FPrintErr(obj, 253)
-          | same:       (* ok *)
-          | pbmodified: FPrintErr(obj, 252)
-          | pvmodified: FPrintErr(obj, 251)
-          ELSE          OPM.LogWStr("unhandled case at OutObj, obj^.history = "); OPM.LogWNum(obj^.history, 0); OPM.LogWLn;
-          END;
-          CASE obj^.mode OF
-          | Con:   OutConstant(obj); OutName(obj^.name)
-          | Typ:   IF obj^.typ^.strobj = obj THEN OPM.SymWInt(Stype); OutStr(obj^.typ)
-                   ELSE OPM.SymWInt(Salias); OutStr(obj^.typ); OutName(obj^.name)
-                   END
-          | Var:   IF obj^.vis = externalR THEN OPM.SymWInt(Srvar) ELSE OPM.SymWInt(Svar) END;
-                   OutStr(obj^.typ); OutName(obj^.name);
-                   IF (obj^.typ^.strobj = NIL) OR (obj^.typ^.strobj^.name = "") THEN
-                     (* compute fingerprint to avoid structural type equivalence *)
-                     OPM.FPrint(expCtxt.reffp, obj^.typ^.ref)
-                   END
-          | XProc: OPM.SymWInt(Sxpro); OutSign(obj^.typ, obj^.link); OutName(obj^.name)
-          | IProc: OPM.SymWInt(Sipro); OutSign(obj^.typ, obj^.link); OutName(obj^.name)
-          | CProc: OPM.SymWInt(Scpro); OutSign(obj^.typ, obj^.link); ext := obj^.conval^.ext;
-                   j := ORD(ext^[0]); i := 1; OPM.SymWInt(j);
-                   WHILE i <= j DO OPM.SymWCh(ext^[i]); INC(i) END;
-                   OutName(obj^.name)
-          ELSE     OPM.LogWStr("unhandled case at OutObj, obj.mode = "); OPM.LogWNum(obj.mode, 0); OPM.LogWLn;
-          END
+PROCEDURE OutTruncatedName(text: ARRAY OF CHAR);
+VAR i: INTEGER;
+BEGIN
+  i := 0;
+  WHILE (i < OPS.MaxStrLen - 1) & (text[i] # 0X) DO
+    OPM.SymWCh(text[i]); INC(i)
+  END;
+  OPM.SymWCh(0X)
+END OutTruncatedName;
+
+
+PROCEDURE OutObj(obj: Object);
+  VAR i, j: INTEGER; ext: ConstExt;
+  k, l: INTEGER;
+BEGIN
+  IF obj # NIL THEN
+    OutObj(obj^.left);
+    IF obj^.mode IN {Con, Typ, Var, LProc, XProc, CProc, IProc} THEN
+      (* Write comment BEFORE the object *)
+      IF obj^.comment # NIL THEN
+        OPM.SymWInt(Scomment);
+        (* Calculate actual length of comment text *)
+        k := 0;
+        WHILE (k < OPM.MaxCommentLen - 1) & (obj^.comment^[k] # 0X) DO INC(k) END;
+        OPM.SymWInt(k);  (* length prefix *)
+        (* Write comment data as individual characters *)
+        l := 0;
+        WHILE l < k DO
+          OPM.SymWCh(obj^.comment^[l]); INC(l)
         END
       END;
-      OutObj(obj^.right)
-    END
-  END OutObj;
+
+      IF obj^.history = removed THEN FPrintErr(obj, 250)
+      ELSIF obj^.vis # internal THEN
+        CASE obj^.history OF
+        | inserted:   FPrintErr(obj, 253)
+        | same:       (* ok *)
+        | pbmodified: FPrintErr(obj, 252)
+        | pvmodified: FPrintErr(obj, 251)
+        ELSE          OPM.LogWStr("unhandled case at OutObj, obj^.history = "); OPM.LogWNum(obj^.history, 0); OPM.LogWLn;
+        END;
+        CASE obj^.mode OF
+        | Con:   OutConstant(obj); OutName(obj^.name)
+        | Typ:   IF obj^.typ^.strobj = obj THEN OPM.SymWInt(Stype); OutStr(obj^.typ)
+                 ELSE OPM.SymWInt(Salias); OutStr(obj^.typ); OutName(obj^.name)
+                 END
+        | Var:   IF obj^.vis = externalR THEN OPM.SymWInt(Srvar) ELSE OPM.SymWInt(Svar) END;
+                 OutStr(obj^.typ); OutName(obj^.name);
+                 IF (obj^.typ^.strobj = NIL) OR (obj^.typ^.strobj^.name = "") THEN
+                   (* compute fingerprint to avoid structural type equivalence *)
+                   OPM.FPrint(expCtxt.reffp, obj^.typ^.ref)
+                 END
+        | XProc: OPM.SymWInt(Sxpro); OutSign(obj^.typ, obj^.link); OutName(obj^.name)
+        | IProc: OPM.SymWInt(Sipro); OutSign(obj^.typ, obj^.link); OutName(obj^.name)
+        | CProc: OPM.SymWInt(Scpro); OutSign(obj^.typ, obj^.link); ext := obj^.conval^.ext;
+                 j := ORD(ext^[0]); i := 1; OPM.SymWInt(j);
+                 WHILE i <= j DO OPM.SymWCh(ext^[i]); INC(i) END;
+                 OutName(obj^.name)
+        ELSE     OPM.LogWStr("unhandled case at OutObj, obj.mode = "); OPM.LogWNum(obj.mode, 0); OPM.LogWLn;
+        END
+      END
+    END;
+    OutObj(obj^.right)
+  END
+END OutObj;
 
   PROCEDURE Export*(VAR ext, new: BOOLEAN);
     VAR i: INTEGER; nofmod: SHORTINT; done: BOOLEAN;

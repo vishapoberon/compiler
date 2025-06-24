@@ -8,6 +8,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   CONST
     OptionChar* = "-";
+    MaxCommentLen* = 256;
 
     (* compiler option flag bits; don't change the encoding *)
     inxchk*         = 0;  (* index check on *)
@@ -76,15 +77,16 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     BFext = ".c";   (* body file extension *)
     HFext = ".h";   (* header file extension *)
     SFtag = 0F7X;   (* symbol file tag *)
-    SFver = 083X;   (* symbol file version. Increment if symbol file format is changed. *)
-
-
+    SFver = 084X;   (* symbol file version. Increment if symbol file format is changed. *)
 
 
   TYPE
     FileName = ARRAY 32 OF CHAR;
 
   VAR
+    currentComment: ARRAY MaxCommentLen OF CHAR;
+    hasComment: BOOLEAN;
+
     SourceFileName : ARRAY 256 OF CHAR;
 
     GlobalModel,       Model*:       ARRAY 10 OF CHAR;  (* 2: S8/I16/L32, C: S16/I32/L64, V:S8/I32/L64 *)
@@ -149,6 +151,33 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END;
     LogW(".");
   END LogCompiling;
+
+  (* for exported comments *)
+  PROCEDURE StoreComment*(text: ARRAY OF CHAR);
+  VAR i: INTEGER;
+  BEGIN
+    i := 0;
+    WHILE (i < MaxCommentLen - 1) & (text[i] # 0X) DO
+      currentComment[i] := text[i]; INC(i)
+    END;
+    currentComment[i] := 0X;
+    hasComment := TRUE;
+  END StoreComment;
+
+  PROCEDURE GetComment*(VAR text: ARRAY OF CHAR);
+  VAR i: INTEGER;
+  BEGIN
+    IF hasComment THEN
+      i := 0;
+      WHILE (i < LEN(text)) & (i < MaxCommentLen) & (currentComment[i] # 0X) DO
+        text[i] := currentComment[i]; INC(i)
+      END;
+      text[i] := 0X;
+      hasComment := FALSE
+    ELSE
+      text[0] := 0X
+    END;
+  END GetComment;
 
 
   (* Integer size support *)
@@ -830,4 +859,7 @@ BEGIN
   MinReal  := -MaxReal;
   MinLReal := -MaxLReal;
   FindInstallDir;
+
+  hasComment := FALSE;
+  currentComment[0] := 0X;
 END OPM.

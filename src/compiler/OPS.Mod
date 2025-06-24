@@ -190,21 +190,91 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   PROCEDURE Get*(VAR sym: SHORTINT);
     VAR s: SHORTINT;
 
-    PROCEDURE Comment;  (* do not read after end of file *)
-    BEGIN OPM.Get(ch);
-      LOOP
-        LOOP
-          WHILE ch = "(" DO OPM.Get(ch);
-            IF ch = "*" THEN Comment END
-          END ;
-          IF ch = "*" THEN OPM.Get(ch); EXIT END ;
-          IF ch = OPM.Eot THEN EXIT END ;
-          OPM.Get(ch)
-        END ;
-        IF ch = ")" THEN OPM.Get(ch); EXIT END ;
-        IF ch = OPM.Eot THEN err(5); EXIT END
-      END
+    PROCEDURE Comment;
+    VAR
+      isExported: BOOLEAN;
+      commentText: ARRAY OPM.MaxCommentLen OF CHAR;
+      i: INTEGER;
+      nestLevel: INTEGER;
+      prevCh, nextCh: CHAR;
+    BEGIN
+      FOR i := 0 TO LEN(commentText) - 1 DO
+        commentText[i] := 0X
+      END;
+
+      isExported := FALSE;
+      i := 0;
+      nestLevel := 1;
+      prevCh := 0X;
+
+      OPM.Get(ch);
+
+      IF ch = "*" THEN
+        isExported := TRUE;
+        OPM.Get(ch);
+        IF ch = ")" THEN
+          (* Empty exported comment (**), handle and return *)
+          commentText[0] := 0X;
+          OPM.StoreComment(commentText);
+          OPM.Get(ch);  (* consume character after closing comment *)
+          RETURN
+        END
+      END;
+
+      WHILE (nestLevel > 0) & (ch # OPM.Eot) DO
+        IF (prevCh = "(") & (ch = "*") THEN
+          INC(nestLevel);
+          prevCh := 0X
+        ELSIF (prevCh = "*") & (ch = ")") THEN
+          DEC(nestLevel);
+          IF nestLevel = 0 THEN
+            OPM.Get(ch);  (* move past ')' *)
+          ELSE
+            prevCh := 0X
+          END
+        ELSE
+          IF isExported & (nestLevel = 1) & (prevCh # 0X) THEN
+            IF i < OPM.MaxCommentLen - 1 THEN
+              commentText[i] := prevCh; INC(i)
+            END
+          END;
+
+          prevCh := ch
+        END;
+
+        IF nestLevel > 0 THEN OPM.Get(ch) END
+      END;
+
+      IF ch = OPM.Eot THEN
+        err(5)
+      END;
+    (*
+      IF isExported & (nestLevel = 0) & (prevCh # 0X) & (prevCh # "*") & (i < OPM.MaxCommentLen - 2) THEN
+        commentText[i] := prevCh;
+        INC(i)
+      END;
+    *)
+      IF isExported & (nestLevel = 0) & (prevCh # 0X) & (prevCh # "*") THEN
+        IF i < OPM.MaxCommentLen - 1 THEN
+          commentText[i] := prevCh;
+          INC(i)
+        ELSE
+          OPM.LogWStr("Truncating final comment character"); OPM.LogWLn
+        END
+      END;
+
+
+      IF isExported THEN
+        IF i >= OPM.MaxCommentLen THEN
+          OPM.LogWStr("Warning: commentText overflow"); OPM.LogWLn;
+          i := OPM.MaxCommentLen - 1
+        END;
+        commentText[i] := 0X;
+        OPM.StoreComment(commentText)
+      END;
+
     END Comment;
+
 
   BEGIN
     OPM.errpos := OPM.curpos-1;

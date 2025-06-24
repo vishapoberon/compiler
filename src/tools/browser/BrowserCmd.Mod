@@ -63,6 +63,14 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
     IF obj # NIL THEN
       Objects(obj^.left, mode);
       IF obj^.mode IN mode THEN
+              (* Output comment if present *)
+        IF obj^.comment # NIL THEN
+          Indent(1);
+          Ws("(** ");
+          Ws(obj^.comment^);
+          Ws(" *)");
+          Wln
+        END;
         CASE obj^.mode OF
         |OPT.Con:   Indent(2); Ws(obj^.name); Ws(" = ");
                     CASE obj^.typ^.form OF
