@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/08/23]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -279,32 +279,74 @@ static void Comment__2 (void);
 
 static void Comment__2 (void)
 {
+	BOOLEAN isExported;
+	CHAR commentText[256];
+	INT16 i, nestLevel;
+	CHAR prevCh, nextCh;
+	i = 0;
+	while (i <= 255) {
+		commentText[__X(i, 256)] = 0x00;
+		i += 1;
+	}
+	isExported = 0;
+	i = 0;
+	nestLevel = 1;
+	prevCh = 0x00;
 	OPM_Get(&OPS_ch);
-	for (;;) {
-		for (;;) {
-			while (OPS_ch == '(') {
+	if (OPS_ch == '*') {
+		isExported = 1;
+		OPM_Get(&OPS_ch);
+		if (OPS_ch == ')') {
+			commentText[0] = 0x00;
+			OPM_StoreComment(commentText, 256);
+			OPM_Get(&OPS_ch);
+			return;
+		}
+	}
+	while ((nestLevel > 0 && OPS_ch != 0x00)) {
+		if ((prevCh == '(' && OPS_ch == '*')) {
+			nestLevel += 1;
+			prevCh = 0x00;
+		} else if ((prevCh == '*' && OPS_ch == ')')) {
+			nestLevel -= 1;
+			if (nestLevel == 0) {
 				OPM_Get(&OPS_ch);
-				if (OPS_ch == '*') {
-					Comment__2();
+			} else {
+				prevCh = 0x00;
+			}
+		} else {
+			if ((((isExported && nestLevel == 1)) && prevCh != 0x00)) {
+				if (i < 255) {
+					commentText[__X(i, 256)] = prevCh;
+					i += 1;
 				}
 			}
-			if (OPS_ch == '*') {
-				OPM_Get(&OPS_ch);
-				break;
-			}
-			if (OPS_ch == 0x00) {
-				break;
-			}
+			prevCh = OPS_ch;
+		}
+		if (nestLevel > 0) {
 			OPM_Get(&OPS_ch);
 		}
-		if (OPS_ch == ')') {
-			OPM_Get(&OPS_ch);
-			break;
+	}
+	if (OPS_ch == 0x00) {
+		OPS_err(5);
+	}
+	if ((((((isExported && nestLevel == 0)) && prevCh != 0x00)) && prevCh != '*')) {
+		if (i < 255) {
+			commentText[__X(i, 256)] = prevCh;
+			i += 1;
+		} else {
+			OPM_LogWStr((CHAR*)"Truncating final comment character", 35);
+			OPM_LogWLn();
 		}
-		if (OPS_ch == 0x00) {
-			OPS_err(5);
-			break;
+	}
+	if (isExported) {
+		if (i >= 256) {
+			OPM_LogWStr((CHAR*)"Warning: commentText overflow", 30);
+			OPM_LogWLn();
+			i = 255;
 		}
+		commentText[__X(i, 256)] = 0x00;
+		OPM_StoreComment(commentText, 256);
 	}
 }
 

@@ -22,28 +22,28 @@ IMPORT
   Conv := oocConvTypes, IntConv := oocIntConv;
 
 TYPE
-  ConvResults*= Conv.ConvResults;
   (** possible values: strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
+  ConvResults*= Conv.ConvResults;
 
 CONST
-  strAllRight*=Conv.strAllRight;
   (** the string format is correct for the corresponding conversion *)
-  strOutOfRange*=Conv.strOutOfRange;
+  strAllRight*=Conv.strAllRight;
   (** the string is well-formed but the value cannot be represented *)
-  strWrongFormat*=Conv.strWrongFormat;
+  strOutOfRange*=Conv.strOutOfRange;
   (** the string is in the wrong format for the conversion *)
-  strEmpty*=Conv.strEmpty;
+  strWrongFormat*=Conv.strWrongFormat;
   (** the given string is empty *)
+  strEmpty*=Conv.strEmpty;
 
 
 (** the string form of a signed whole number is
      ["+" | "-"] decimal_digit {decimal_digit}
 *)
-
-PROCEDURE StrToInt*(str: ARRAY OF CHAR; VAR int: LONGINT; VAR res: ConvResults);
 (** Ignores any leading spaces in `str'. If the subsequent characters in `str'
    are in the format of a signed whole number, assigns a corresponding value to
    `int'.  Assigns a value indicating the format of `str' to `res'.  *)
+
+PROCEDURE StrToInt*(str: ARRAY OF CHAR; VAR int: LONGINT; VAR res: ConvResults);
 BEGIN
   res:=IntConv.FormatInt(str);
   IF (res = strAllRight) THEN
@@ -53,7 +53,7 @@ END StrToInt;
 
 
 PROCEDURE Reverse (VAR str : ARRAY OF CHAR; start, end : INTEGER);
-(** Reverses order of characters in the interval [start..end]. *)
+(* Reverses order of characters in the interval [start..end]. *)
 VAR
   h : CHAR;
 BEGIN
@@ -63,10 +63,10 @@ BEGIN
   END
 END Reverse;
 
-
-PROCEDURE IntToStr*(int: LONGINT; VAR str: ARRAY OF CHAR);
 (** Converts the value of `int' to string form and copies the possibly truncated
    result to `str'.  *)
+
+PROCEDURE IntToStr*(int: LONGINT; VAR str: ARRAY OF CHAR);
 CONST
   maxLength = 11; (* maximum number of digits representing a LONGINT value *)
 VAR

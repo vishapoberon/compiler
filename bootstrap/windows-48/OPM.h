@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/08/23]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -30,6 +30,7 @@ import void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 import void OPM_FPrintReal (INT32 *fp, REAL val);
 import void OPM_FPrintSet (INT32 *fp, UINT64 val);
 import void OPM_Get (CHAR *ch);
+import void OPM_GetComment (CHAR *text, ADDRESS text__len);
 import void OPM_Init (BOOLEAN *done);
 import void OPM_InitOptions (void);
 import INT16 OPM_Integer (INT64 n);
@@ -48,6 +49,7 @@ import BOOLEAN OPM_OpenPar (void);
 import void OPM_RegisterNewSym (void);
 import INT64 OPM_SignedMaximum (INT32 bytecount);
 import INT64 OPM_SignedMinimum (INT32 bytecount);
+import void OPM_StoreComment (CHAR *text, ADDRESS text__len);
 import void OPM_SymRCh (CHAR *ch);
 import INT32 OPM_SymRInt (void);
 import INT64 OPM_SymRInt64 (void);

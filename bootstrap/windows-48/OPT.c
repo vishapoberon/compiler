@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/08/23]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -83,6 +83,7 @@ typedef
 		OPT_Const conval;
 		INT32 adr, linkadr;
 		INT16 x;
+		OPT_ConstExt comment;
 	} OPT_ObjDesc;
 
 typedef
@@ -173,6 +174,7 @@ static void OPT_OutObj (OPT_Object obj);
 static void OPT_OutSign (OPT_Struct result, OPT_Object par);
 static void OPT_OutStr (OPT_Struct typ);
 static void OPT_OutTProcs (OPT_Struct typ, OPT_Object obj);
+static void OPT_OutTruncatedName (CHAR *text, ADDRESS text__len);
 export OPT_Struct OPT_SetType (INT32 size);
 export OPT_Struct OPT_ShorterOrLongerType (OPT_Struct x, INT16 dir);
 export INT32 OPT_SizeAlignment (INT32 size);
@@ -388,6 +390,10 @@ OPT_Object OPT_NewObj (void)
 {
 	OPT_Object obj = NIL;
 	__NEW(obj, OPT_ObjDesc);
+	obj->typ = NIL;
+	obj->conval = NIL;
+	obj->comment = NIL;
+	obj->name[0] = 0x00;
 	return obj;
 }
 
@@ -554,6 +560,8 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 	OPT_Object ob0 = NIL, ob1 = NIL;
 	BOOLEAN left;
 	INT8 mnolev;
+	CHAR commentText[256];
+	INT16 j;
 	ob0 = OPT_topScope;
 	ob1 = ob0->right;
 	left = 0;
@@ -585,6 +593,16 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 			__COPY(name, ob1->name, 256);
 			mnolev = OPT_topScope->mnolev;
 			ob1->mnolev = mnolev;
+			OPM_GetComment((void*)commentText, 256);
+			if (commentText[0] != 0x00) {
+				ob1->comment = __NEWARR(NIL, 1, 1, 1, 0, 256);
+				j = 0;
+				while ((j < 255 && commentText[__X(j, 256)] != 0x00)) {
+					(*ob1->comment)[__X(j, 256)] = commentText[__X(j, 256)];
+					j += 1;
+				}
+				(*ob1->comment)[__X(j, 256)] = 0x00;
+			}
 			break;
 		}
 	}
@@ -1103,6 +1121,13 @@ static void OPT_InSign (INT8 mno, OPT_Struct *res, OPT_Object *par)
 	tag = OPM_SymRInt();
 	last = NIL;
 	while (tag != 18) {
+		if (tag < 0 || tag > 100) {
+			OPM_LogWStr((CHAR*)"ERROR: Invalid tag value in InSign: ", 37);
+			OPM_LogWNum(tag, 0);
+			OPM_LogWLn();
+			OPM_err(155);
+			return;
+		}
 		new = OPT_NewObj();
 		new->mnolev = -mno;
 		if (last == NIL) {
@@ -1381,7 +1406,37 @@ static OPT_Object OPT_InObj (INT8 mno)
 	OPT_Struct typ = NIL;
 	INT32 tag;
 	OPT_ConstExt ext = NIL;
+	OPS_Name commentText;
+	BOOLEAN hasComment;
+	INT16 j;
+	INT32 len;
 	tag = OPT_impCtxt.nextTag;
+	hasComment = 0;
+	while (tag == 41) {
+		len = OPM_SymRInt();
+		if (len < 0) {
+			len = 0;
+		}
+		if (len > 255) {
+			len = 255;
+		}
+		i = 0;
+		while (i < len) {
+			OPM_SymRCh(&commentText[__X(i, 256)]);
+			i += 1;
+		}
+		commentText[__X(i, 256)] = 0x00;
+		hasComment = 1;
+		tag = OPM_SymRInt();
+	}
+	OPT_impCtxt.nextTag = tag;
+	if (tag < 0 || tag > 50) {
+		OPM_LogWStr((CHAR*)"ERROR: Invalid tag in InObj: ", 30);
+		OPM_LogWNum(tag, 0);
+		OPM_LogWLn();
+		OPM_err(155);
+		return NIL;
+	}
 	if (tag == 19) {
 		OPT_InStruct(&typ);
 		obj = typ->strobj;
@@ -1397,7 +1452,7 @@ static OPT_Object OPT_InObj (INT8 mno)
 			obj->conval = OPT_NewConst();
 			OPT_InConstant(tag, obj->conval);
 			obj->typ = OPT_InTyp(tag);
-		} else if (tag >= 31) {
+		} else if ((tag >= 31 && tag <= 33)) {
 			obj->conval = OPT_NewConst();
 			obj->conval->intval = -1;
 			OPT_InSign(mno, &obj->typ, &obj->link);
@@ -1424,19 +1479,36 @@ static OPT_Object OPT_InObj (INT8 mno)
 					OPM_LogWStr((CHAR*)"unhandled case at InObj, tag = ", 32);
 					OPM_LogWNum(tag, 0);
 					OPM_LogWLn();
+					OPM_err(155);
+					return NIL;
 					break;
 			}
 		} else if (tag == 20) {
 			obj->mode = 5;
 			OPT_InStruct(&obj->typ);
-		} else {
+		} else if (tag == 21 || tag == 22) {
 			obj->mode = 1;
 			if (tag == 22) {
 				obj->vis = 2;
 			}
 			OPT_InStruct(&obj->typ);
+		} else {
+			OPM_LogWStr((CHAR*)"ERROR: Unexpected tag in InObj: ", 33);
+			OPM_LogWNum(tag, 0);
+			OPM_LogWLn();
+			OPM_err(155);
+			return NIL;
 		}
 		OPT_InName((void*)obj->name, 256);
+	}
+	if ((hasComment && obj != NIL)) {
+		obj->comment = __NEWARR(NIL, 1, 1, 1, 0, 256);
+		j = 0;
+		while ((((j < 255 && j < len)) && commentText[__X(j, 256)] != 0x00)) {
+			(*obj->comment)[__X(j, 256)] = commentText[__X(j, 256)];
+			j += 1;
+		}
+		(*obj->comment)[__X(j, 256)] = 0x00;
 	}
 	OPT_FPrintObj(obj);
 	if ((obj->mode == 1 && (obj->typ->strobj == NIL || obj->typ->strobj->name[0] == 0x00))) {
@@ -1780,13 +1852,40 @@ static void OPT_OutConstant (OPT_Object obj)
 	}
 }
 
+static void OPT_OutTruncatedName (CHAR *text, ADDRESS text__len)
+{
+	INT16 i;
+	__DUP(text, text__len, CHAR);
+	i = 0;
+	while ((i < 255 && text[__X(i, text__len)] != 0x00)) {
+		OPM_SymWCh(text[__X(i, text__len)]);
+		i += 1;
+	}
+	OPM_SymWCh(0x00);
+	__DEL(text);
+}
+
 static void OPT_OutObj (OPT_Object obj)
 {
 	INT16 i, j;
 	OPT_ConstExt ext = NIL;
+	INT16 k, l;
 	if (obj != NIL) {
 		OPT_OutObj(obj->left);
 		if (__IN(obj->mode, 0x06ea, 32)) {
+			if (obj->comment != NIL) {
+				OPM_SymWInt(41);
+				k = 0;
+				while ((k < 255 && (*obj->comment)[__X(k, 256)] != 0x00)) {
+					k += 1;
+				}
+				OPM_SymWInt(k);
+				l = 0;
+				while (l < k) {
+					OPM_SymWCh((*obj->comment)[__X(l, 256)]);
+					l += 1;
+				}
+			}
 			if (obj->history == 4) {
 				OPT_FPrintErr(obj, 250);
 			} else if (obj->vis != 0) {
@@ -2026,7 +2125,7 @@ static void EnumPtrs(void (*P)(void*))
 }
 
 __TDESC(OPT_ConstDesc, 1, 1) = {__TDFLDS("ConstDesc", 40), {0, -8}};
-__TDESC(OPT_ObjDesc, 1, 6) = {__TDFLDS("ObjDesc", 304), {0, 4, 8, 12, 284, 288, -28}};
+__TDESC(OPT_ObjDesc, 1, 7) = {__TDFLDS("ObjDesc", 308), {0, 4, 8, 12, 284, 288, 304, -32}};
 __TDESC(OPT_StrDesc, 1, 3) = {__TDFLDS("StrDesc", 56), {44, 48, 52, -16}};
 __TDESC(OPT_NodeDesc, 1, 6) = {__TDFLDS("NodeDesc", 28), {0, 4, 8, 16, 20, 24, -28}};
 __TDESC(OPT_ImpCtxt, 1, 510) = {__TDFLDS("ImpCtxt", 3140), {16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 

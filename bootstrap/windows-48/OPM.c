@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/08/23]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -19,6 +19,8 @@ typedef
 	CHAR OPM_FileName[32];
 
 
+static CHAR OPM_currentComment[256];
+static BOOLEAN OPM_hasComment;
 static CHAR OPM_SourceFileName[256];
 static CHAR OPM_GlobalModel[10];
 export CHAR OPM_Model[10];
@@ -59,6 +61,7 @@ static void OPM_FindInstallDir (void);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
 static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
+export void OPM_GetComment (CHAR *text, ADDRESS text__len);
 export void OPM_Init (BOOLEAN *done);
 export void OPM_InitOptions (void);
 export INT16 OPM_Integer (INT64 n);
@@ -82,6 +85,7 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len);
 static void OPM_ShowLine (INT64 pos);
 export INT64 OPM_SignedMaximum (INT32 bytecount);
 export INT64 OPM_SignedMinimum (INT32 bytecount);
+export void OPM_StoreComment (CHAR *text, ADDRESS text__len);
 export void OPM_SymRCh (CHAR *ch);
 export INT32 OPM_SymRInt (void);
 export INT64 OPM_SymRInt64 (void);
@@ -155,6 +159,36 @@ void OPM_LogCompiling (CHAR *modname, ADDRESS modname__len)
 	}
 	OPM_LogW('.');
 	__DEL(modname);
+}
+
+void OPM_StoreComment (CHAR *text, ADDRESS text__len)
+{
+	INT16 i;
+	__DUP(text, text__len, CHAR);
+	i = 0;
+	while ((i < 255 && text[__X(i, text__len)] != 0x00)) {
+		OPM_currentComment[__X(i, 256)] = text[__X(i, text__len)];
+		i += 1;
+	}
+	OPM_currentComment[__X(i, 256)] = 0x00;
+	OPM_hasComment = 1;
+	__DEL(text);
+}
+
+void OPM_GetComment (CHAR *text, ADDRESS text__len)
+{
+	INT16 i;
+	if (OPM_hasComment) {
+		i = 0;
+		while ((((i < text__len && i < 256)) && OPM_currentComment[__X(i, 256)] != 0x00)) {
+			text[__X(i, text__len)] = OPM_currentComment[__X(i, 256)];
+			i += 1;
+		}
+		text[__X(i, text__len)] = 0x00;
+		OPM_hasComment = 0;
+	} else {
+		text[0] = 0x00;
+	}
 }
 
 INT64 OPM_SignedMaximum (INT32 bytecount)
@@ -763,7 +797,7 @@ void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done)
 		Files_Set(&OPM_oldSF, Files_Rider__typ, OPM_oldSFile, 0);
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&tag);
 		Files_Read(&OPM_oldSF, Files_Rider__typ, (void*)&ver);
-		if (tag != 0xf7 || ver != 0x83) {
+		if (tag != 0xf7 || ver != 0x84) {
 			if (!__IN(4, OPM_Options, 32)) {
 				OPM_err(-306);
 			}
@@ -834,7 +868,7 @@ void OPM_NewSym (CHAR *modName, ADDRESS modName__len)
 	if (OPM_newSFile != NIL) {
 		Files_Set(&OPM_newSF, Files_Rider__typ, OPM_newSFile, 0);
 		Files_Write(&OPM_newSF, Files_Rider__typ, 0xf7);
-		Files_Write(&OPM_newSF, Files_Rider__typ, 0x83);
+		Files_Write(&OPM_newSF, Files_Rider__typ, 0x84);
 	} else {
 		OPM_err(153);
 	}
@@ -1143,5 +1177,7 @@ export void *OPM__init(void)
 	OPM_MinReal = -OPM_MaxReal;
 	OPM_MinLReal = -OPM_MaxLReal;
 	OPM_FindInstallDir();
+	OPM_hasComment = 0;
+	OPM_currentComment[0] = 0x00;
 	__ENDMOD;
 }

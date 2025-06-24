@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/08/23]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -61,6 +61,7 @@ typedef
 		OPT_Const conval;
 		INT32 adr, linkadr;
 		INT16 x;
+		OPT_ConstExt comment;
 	} OPT_ObjDesc;
 
 typedef

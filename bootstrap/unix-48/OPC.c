@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2024/08/23]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -618,31 +618,33 @@ static void OPC_DefineTProcMacros (OPT_Object obj, BOOLEAN *empty)
 {
 	if (obj != NIL) {
 		OPC_DefineTProcMacros(obj->left, &*empty);
-		if ((((obj->mode == 13 && obj == OPC_BaseTProc(obj))) && (OPM_currFile != 0 || obj->vis == 1))) {
-			OPM_WriteString((CHAR*)"#define __", 11);
-			OPC_Ident(obj);
-			OPC_DeclareParams(obj->link, 1);
-			OPM_WriteString((CHAR*)" __SEND(", 9);
-			if (obj->link->typ->form == 11) {
-				OPM_WriteString((CHAR*)"__TYPEOF(", 10);
-				OPC_Ident(obj->link);
+		if ((obj->mode == 13 && obj == OPC_BaseTProc(obj))) {
+			if (OPM_currFile == 1 || (OPM_currFile == 0 && obj->vis == 1)) {
+				OPM_WriteString((CHAR*)"#define __", 11);
+				OPC_Ident(obj);
+				OPC_DeclareParams(obj->link, 1);
+				OPM_WriteString((CHAR*)" __SEND(", 9);
+				if (obj->link->typ->form == 11) {
+					OPM_WriteString((CHAR*)"__TYPEOF(", 10);
+					OPC_Ident(obj->link);
+					OPM_Write(')');
+				} else {
+					OPC_Ident(obj->link);
+					OPM_WriteString((CHAR*)"__typ", 6);
+				}
+				OPC_Str1((CHAR*)", #, ", 6, __ASHR(obj->adr, 16));
+				if (obj->typ == OPT_notyp) {
+					OPM_WriteString((CHAR*)"void", 5);
+				} else {
+					OPC_Ident(obj->typ->strobj);
+				}
+				OPM_WriteString((CHAR*)"(*)", 4);
+				OPC_AnsiParamList(obj->link, 0);
+				OPM_WriteString((CHAR*)", ", 3);
+				OPC_DeclareParams(obj->link, 1);
 				OPM_Write(')');
-			} else {
-				OPC_Ident(obj->link);
-				OPM_WriteString((CHAR*)"__typ", 6);
+				OPM_WriteLn();
 			}
-			OPC_Str1((CHAR*)", #, ", 6, __ASHR(obj->adr, 16));
-			if (obj->typ == OPT_notyp) {
-				OPM_WriteString((CHAR*)"void", 5);
-			} else {
-				OPC_Ident(obj->typ->strobj);
-			}
-			OPM_WriteString((CHAR*)"(*)", 4);
-			OPC_AnsiParamList(obj->link, 0);
-			OPM_WriteString((CHAR*)", ", 3);
-			OPC_DeclareParams(obj->link, 1);
-			OPM_Write(')');
-			OPM_WriteLn();
 		}
 		OPC_DefineTProcMacros(obj->right, &*empty);
 	}
@@ -652,7 +654,7 @@ static void OPC_DefineType (OPT_Struct str)
 {
 	OPT_Object obj = NIL, field = NIL, par = NIL;
 	BOOLEAN empty;
-	if (OPM_currFile == 1 || str->ref < 255) {
+	if ((OPM_currFile == 1 || str->ref < 255) || (((OPM_currFile == 0 && str->strobj != NIL)) && str->strobj->vis == 1)) {
 		obj = str->strobj;
 		if (obj == NIL || OPC_Undefined(obj)) {
 			if (obj != NIL) {
@@ -716,6 +718,13 @@ static void OPC_DefineType (OPT_Struct str)
 				empty = 1;
 				OPC_DeclareTProcs(str->link, &empty);
 				OPC_DefineTProcMacros(str->link, &empty);
+				if (!empty) {
+					OPM_WriteLn();
+				}
+			} else if ((obj->typ->form == 11 && obj->typ->BaseTyp->comp == 4)) {
+				empty = 1;
+				OPC_DeclareTProcs(obj->typ->BaseTyp->link, &empty);
+				OPC_DefineTProcMacros(obj->typ->BaseTyp->link, &empty);
 				if (!empty) {
 					OPM_WriteLn();
 				}
