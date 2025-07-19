@@ -7,16 +7,21 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
     Note: All strings MUST be 0X terminated. *)
 
   IMPORT Texts, Dates := ethDates, Reals := ethReals;
-  
-  CONST
-    CR* = 0DX; (** the Oberon end of line character *)
-    Tab* = 09X; (** the horizontal tab character *)
-    LF* = 0AX; (** the UNIX end of line character *) 
 
+  CONST
+    (** the Oberon end of line character *)
+    CR* = 0DX;
+    (** the horizontal tab character *)
+    Tab* = 09X;
+    (** the UNIX end of line character *)
+    LF* = 0AX;
   VAR
-    isAlpha*: ARRAY 256 OF BOOLEAN; (** all letters in the oberon charset *)
-    ISOToOberon*, OberonToISO*: ARRAY 256 OF CHAR; (** Translation tables for iso-8859-1 to oberon ascii code. *)
-    CRLF*: ARRAY 4 OF CHAR; (** end of line "string" used by MS-DOS and most TCP protocols *)
+    (** all letters in the oberon charset *)
+    isAlpha*: ARRAY 256 OF BOOLEAN;
+    (** Translation tables for iso-8859-1 to oberon ascii code. *)
+    ISOToOberon*, OberonToISO*: ARRAY 256 OF CHAR;
+    (** end of line "string" used by MS-DOS and most TCP protocols *)
+    CRLF*: ARRAY 4 OF CHAR;
     sDayName: ARRAY 7, 4 OF CHAR;
     lDayName: ARRAY 7, 12 OF CHAR;
     sMonthName: ARRAY 12, 4 OF CHAR;
@@ -24,7 +29,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
     dateform, timeform: ARRAY 32 OF CHAR;
 
 (** Length of str. *)
-  PROCEDURE Length*(VAR str(** in *): ARRAY OF CHAR): LONGINT;
+  PROCEDURE Length*(VAR str(* in *): ARRAY OF CHAR): LONGINT;
     VAR i, l: LONGINT;
   BEGIN
     l := LEN(str); i := 0;
@@ -35,7 +40,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END Length;
 
 (** Append this to to. *)
-  PROCEDURE Append*(VAR to(** in/out *): ARRAY OF CHAR; this: ARRAY OF CHAR);
+  PROCEDURE Append*(VAR to(* in/out *): ARRAY OF CHAR; this: ARRAY OF CHAR);
     VAR i, j, l: LONGINT;
   BEGIN
     i := 0;
@@ -50,7 +55,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END Append;
 
 (** Append this to to. *)
-  PROCEDURE AppendCh*(VAR to(** in/out *): ARRAY OF CHAR; this: CHAR);
+  PROCEDURE AppendCh*(VAR to(* in/out *): ARRAY OF CHAR; this: CHAR);
     VAR i: LONGINT;
   BEGIN
     i := 0;
@@ -124,7 +129,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END UpperCh;
 
 (** Convert str to all lower-case letters. *)
-  PROCEDURE Lower*(VAR str(** in *), lstr(** out *): ARRAY OF CHAR);
+  PROCEDURE Lower*(VAR str(* in *), lstr(* out *): ARRAY OF CHAR);
     VAR i: LONGINT;
   BEGIN
     i := 0;
@@ -135,7 +140,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END Lower;
 
 (** Convert str to all upper-case letters. *)
-  PROCEDURE Upper*(VAR str(** in *), ustr(** out *): ARRAY OF CHAR);
+  PROCEDURE Upper*(VAR str(* in *), ustr(* out *): ARRAY OF CHAR);
     VAR i: LONGINT;
   BEGIN
     i := 0;
@@ -146,7 +151,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END Upper;
 
 (** Is str prefixed by pre? *)
-  PROCEDURE Prefix*(pre: ARRAY OF CHAR; VAR str(** in *): ARRAY OF CHAR): BOOLEAN;
+  PROCEDURE Prefix*(pre: ARRAY OF CHAR; VAR str(* in *): ARRAY OF CHAR): BOOLEAN;
     VAR i: LONGINT;
   BEGIN
     i := 0;
@@ -157,7 +162,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END Prefix;
 
 (** Checks if str is prefixed by pre. The case is ignored. *)
-  PROCEDURE CAPPrefix*(pre: ARRAY OF CHAR; VAR str(** in *): ARRAY OF CHAR): BOOLEAN;
+  PROCEDURE CAPPrefix*(pre: ARRAY OF CHAR; VAR str(* in *): ARRAY OF CHAR): BOOLEAN;
     VAR i: LONGINT;
   BEGIN
     i := 0;
@@ -168,7 +173,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END CAPPrefix;
 
 (** Compare str1 to str2. The case is ignored. *)
-  PROCEDURE CAPCompare*(VAR str1(** in *), str2(** in *): ARRAY OF CHAR): BOOLEAN;
+  PROCEDURE CAPCompare*(VAR str1(* in *), str2(* in *): ARRAY OF CHAR): BOOLEAN;
     VAR i: LONGINT;
   BEGIN
     i := 0;
@@ -179,7 +184,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END CAPCompare;
 
 (** Get the parameter-value on line. The parameter value is started behind the first colon character. *)
-  PROCEDURE GetPar*(VAR line(** in *), par(** out *): ARRAY OF CHAR);
+  PROCEDURE GetPar*(VAR line(* in *), par(* out *): ARRAY OF CHAR);
     VAR i, j, l: LONGINT;
   BEGIN
     i := 0;
@@ -200,7 +205,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END GetPar;
 
 (** Get the suffix of str. The suffix is started by the last dot in str. *)
-  PROCEDURE GetSuffix*(VAR str(** in *), suf(** out *): ARRAY OF CHAR);
+  PROCEDURE GetSuffix*(VAR str(* in *), suf(* out *): ARRAY OF CHAR);
     VAR i, j, l, dot: LONGINT;
   BEGIN
     dot := -1; i := 0;
@@ -223,7 +228,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END GetSuffix;
 
 (** Change the suffix of str to suf. *)
-  PROCEDURE ChangeSuffix*(VAR str(** in/out *): ARRAY OF CHAR; suf: ARRAY OF CHAR);
+  PROCEDURE ChangeSuffix*(VAR str(* in/out *): ARRAY OF CHAR; suf: ARRAY OF CHAR);
     VAR i, j, l, dot: LONGINT;
   BEGIN
     dot := -1; i := 0;
@@ -245,7 +250,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END ChangeSuffix;
 
 (** Search in src starting at pos for the next occurrence of pat.  Returns pos=-1 if not found. *)
-  PROCEDURE Search*(pat: ARRAY OF CHAR; VAR src(** in *): ARRAY OF CHAR; VAR pos(** in/out *): LONGINT);
+  PROCEDURE Search*(pat: ARRAY OF CHAR; VAR src(* in *): ARRAY OF CHAR; VAR pos(** in/out *): LONGINT);
     CONST MaxPat = 128;
     VAR
       buf: ARRAY MaxPat OF CHAR;
@@ -306,7 +311,7 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
   END Search;
 
 (** Search in src starting at pos for the next occurrence of pat. *)
-  PROCEDURE CAPSearch*(pat: ARRAY OF CHAR; VAR src(** in *): ARRAY OF CHAR; VAR pos(** in/out *): LONGINT);
+  PROCEDURE CAPSearch*(pat: ARRAY OF CHAR; VAR src(* in *): ARRAY OF CHAR; VAR pos(* in/out *): LONGINT);
     CONST MaxPat = 128;
     VAR
       buf: ARRAY MaxPat OF CHAR;
@@ -445,13 +450,13 @@ MODULE ethStrings;  (** portable *) (* ejz,  *)
 (** Converts a real to a string. *)
 PROCEDURE RealToStr*(x: LONGREAL; VAR s: ARRAY OF CHAR);
 VAR e, h, l, n, len: LONGINT; i, j, pos: INTEGER; z: LONGREAL; d: ARRAY 16 OF CHAR;
-  
+
   PROCEDURE Wr(ch: CHAR);
   BEGIN
     IF ch = 0X THEN HALT(42) END;
     IF pos < len THEN s[pos] := ch; INC(pos) END;
   END Wr;
-  
+
 BEGIN
   len := LEN(s)-1; pos := 0;
   e:= Reals.ExpoL(x);
@@ -573,14 +578,14 @@ BEGIN
   WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
   IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
   WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
-  
+
   y := 0;
   WHILE ("0" <= s[p]) & (s[p] <= "9") DO
     y := y * 10 + (ORD(s[p]) - 30H);
     INC(p);
   END;
   IF s[p] = "." THEN
-    INC(p); g := 1; 
+    INC(p); g := 1;
     WHILE ("0" <= s[p]) & (s[p] <= "9") DO
       g := g / 10; y := y + g * (ORD(s[p]) - 30H);
       INC(p);
@@ -706,7 +711,7 @@ END StrToReal;
           IF CAP(form[j]) = "M" THEN
             INC(j);
             IF CAP(form[j]) = "M" THEN INC(j); COPY(lMonthName[x-1], name)
-            ELSE COPY(sMonthName[x-1], name) 
+            ELSE COPY(sMonthName[x-1], name)
             END;
             k := 0; WHILE name[k] # 0X DO str[i] := name[k]; INC(i); INC(k) END
           ELSE
@@ -735,14 +740,14 @@ END StrToReal;
     str[i] := 0X
   END DateToStr;
 
-(** Returns a month's name (set short to get the abbreviation) *) 
+(** Returns a month's name (set short to get the abbreviation) *)
   PROCEDURE MonthToStr* (month: INTEGER; VAR str: ARRAY OF CHAR; short: BOOLEAN);
   BEGIN
     month := (month - 1) MOD 12;
     IF short THEN COPY(sMonthName[month], str) ELSE COPY(lMonthName[month], str) END
   END MonthToStr;
 
-(** Returns a day's name (set short to get the abbreviation) *) 
+(** Returns a day's name (set short to get the abbreviation) *)
   PROCEDURE DayToStr* (day: INTEGER; VAR str: ARRAY OF CHAR; short: BOOLEAN);
   BEGIN
     IF short THEN COPY(sDayName[day MOD 7], str) ELSE COPY(lDayName[day MOD 7], str) END

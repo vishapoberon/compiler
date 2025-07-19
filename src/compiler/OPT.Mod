@@ -811,6 +811,7 @@ BEGIN
             conval^.intval := OPM.ConstNotAlloc
   | NilTyp: conval^.intval := OPM.nilval
   ELSE          OPM.LogWStr("unhandled case in InConstant(), f = "); OPM.LogWNum(f, 0); OPM.LogWLn;
+  OPM.err(155) (* Symbol file corrupted *)
   END
 END InConstant;
 
@@ -1045,7 +1046,13 @@ BEGIN
   END;
 
   (* Now tag should be a valid object tag *)
-  impCtxt.nextTag := tag;
+  (*impCtxt.nextTag := tag;*)
+
+  (* Additional validation for constants *)
+   IF (tag <= Pointer) & (tag = Undef) THEN
+     OPM.err(155);  (* Symbol file error *)
+     RETURN NIL
+   END;
 
   (* Validate tag value *)
   IF (tag < 0) OR (tag > 50) THEN
