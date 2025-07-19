@@ -8,7 +8,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   CONST
     OptionChar* = "-";
-    MaxCommentLen* = 256;
+    MaxCommentLen* = 1024;
 
     (* compiler option flag bits; don't change the encoding *)
     inxchk*         = 0;  (* index check on *)

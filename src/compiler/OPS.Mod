@@ -4,7 +4,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   IMPORT OPM, SYSTEM;
 
   CONST
-    MaxStrLen* = 256;
+    MaxStrLen* = 1024;
     MaxIdLen = 256;
 
 
@@ -196,7 +196,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
       commentText: ARRAY OPM.MaxCommentLen OF CHAR;
       i: INTEGER;
       nestLevel: INTEGER;
-      prevCh, nextCh: CHAR;
+      prevCh: CHAR;
     BEGIN
       FOR i := 0 TO LEN(commentText) - 1 DO
         commentText[i] := 0X
@@ -224,45 +224,53 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
       WHILE (nestLevel > 0) & (ch # OPM.Eot) DO
         IF (prevCh = "(") & (ch = "*") THEN
           INC(nestLevel);
-          prevCh := 0X
+          prevCh := ch;  (* Don't set to 0X - keep the '*' *)
+          OPM.Get(ch)
         ELSIF (prevCh = "*") & (ch = ")") THEN
           DEC(nestLevel);
           IF nestLevel = 0 THEN
             OPM.Get(ch);  (* move past ')' *)
           ELSE
-            prevCh := 0X
+            prevCh := ch;  (* Keep the ')' *)
+            OPM.Get(ch)
           END
         ELSE
-          IF isExported & (nestLevel = 1) & (prevCh # 0X) THEN
+          IF isExported & (nestLevel = 1) THEN
             IF i < OPM.MaxCommentLen - 1 THEN
-              commentText[i] := prevCh; INC(i)
+              (* Handle all characters including newlines *)
+              IF (ch = 0DX) OR (ch = 0AX) THEN
+                (* Add newline if buffer is empty or last char isn't already a newline *)
+                IF (i = 0) OR (commentText[i-1] # 0AX) THEN
+                  commentText[i] := 0AX; INC(i)
+                END;
+                (* Handle CRLF by skipping the LF if we just saw CR *)
+                IF (ch = 0DX) THEN
+                  prevCh := ch; OPM.Get(ch);
+                  IF ch = 0AX THEN
+                    prevCh := ch; OPM.Get(ch)
+                  END
+                ELSE
+                  prevCh := ch; OPM.Get(ch)
+                END
+              ELSIF ch >= " " THEN
+                commentText[i] := ch; INC(i);
+                prevCh := ch; OPM.Get(ch)
+              ELSE
+                (* Skip control characters *)
+                prevCh := ch; OPM.Get(ch)
+              END
+            ELSE
+              prevCh := ch; OPM.Get(ch)
             END
-          END;
-
-          prevCh := ch
-        END;
-
-        IF nestLevel > 0 THEN OPM.Get(ch) END
+          ELSE
+            prevCh := ch; OPM.Get(ch)
+          END
+        END
       END;
 
       IF ch = OPM.Eot THEN
         err(5)
       END;
-    (*
-      IF isExported & (nestLevel = 0) & (prevCh # 0X) & (prevCh # "*") & (i < OPM.MaxCommentLen - 2) THEN
-        commentText[i] := prevCh;
-        INC(i)
-      END;
-    *)
-      IF isExported & (nestLevel = 0) & (prevCh # 0X) & (prevCh # "*") THEN
-        IF i < OPM.MaxCommentLen - 1 THEN
-          commentText[i] := prevCh;
-          INC(i)
-        ELSE
-          OPM.LogWStr("Truncating final comment character"); OPM.LogWLn
-        END
-      END;
-
 
       IF isExported THEN
         IF i >= OPM.MaxCommentLen THEN
@@ -272,7 +280,6 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
         commentText[i] := 0X;
         OPM.StoreComment(commentText)
       END;
-
     END Comment;
 
 

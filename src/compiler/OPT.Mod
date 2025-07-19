@@ -1019,7 +1019,7 @@ END InStruct;
 PROCEDURE InObj(mno: SHORTINT): Object;  (* first number in impCtxt.nextTag *)
   VAR i, s: INTEGER; ch: CHAR; obj, old: Object; typ: Struct;
       tag: LONGINT; ext: ConstExt;
-      commentText: OPS.Name;
+      commentText: ARRAY OPM.MaxCommentLen OF CHAR;
       hasComment : BOOLEAN;
       j: INTEGER;
       len: LONGINT;

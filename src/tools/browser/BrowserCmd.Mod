@@ -67,7 +67,17 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
         IF obj^.comment # NIL THEN
           Indent(1);
           Ws("(** ");
-          Ws(obj^.comment^);
+          (* Handle multi-line comments *)
+          i := 0;
+          WHILE obj^.comment^[i] # 0X DO
+            IF obj^.comment^[i] = 0AX THEN
+              Ws(" *)"); Wln;
+              Indent(1); Ws("    ");
+            ELSE
+              Wc(obj^.comment^[i])
+            END;
+            INC(i)
+          END;
           Ws(" *)");
           Wln
         END;
