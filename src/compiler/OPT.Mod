@@ -1348,16 +1348,20 @@ BEGIN
     IF obj^.mode IN {Con, Typ, Var, LProc, XProc, CProc, IProc} THEN
       (* Write comment BEFORE the object *)
       IF obj^.comment # NIL THEN
-        OPM.SymWInt(Scomment);
-        (* Calculate actual length of comment text *)
-        k := 0;
-        WHILE (k < OPM.MaxCommentLen - 1) & (obj^.comment^[k] # 0X) DO INC(k) END;
-        OPM.SymWInt(k);  (* length prefix *)
-        (* Write comment data as individual characters *)
-        l := 0;
-        WHILE l < k DO
-          OPM.SymWCh(obj^.comment^[l]); INC(l)
+        (* Only write comments for objects that make sense *)
+        IF (obj^.mode IN {Con, Typ, Var, XProc, IProc, CProc}) & (obj^.vis # internal) THEN
+          OPM.SymWInt(Scomment);
+          (* Calculate actual length of comment text *)
+          k := 0;
+          WHILE (k < OPM.MaxCommentLen - 1) & (obj^.comment^[k] # 0X) DO INC(k) END;
+          OPM.SymWInt(k);  (* length prefix *)
+          (* Write comment data as individual characters *)
+          l := 0;
+          WHILE l < k DO
+            OPM.SymWCh(obj^.comment^[l]); INC(l)
+          END
         END
+        (* If condition is false, we skip the comment entirely *)
       END;
 
       IF obj^.history = removed THEN FPrintErr(obj, 250)
