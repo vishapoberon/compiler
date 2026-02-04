@@ -126,7 +126,7 @@ void determineOS() {
 
 #define optimize "" // " -O1"
 // FIXME ignoring warning floods that possibly are problems
-#define ignore_gcc_warning_flood " -Wno-stringop-overflow"
+#define ignore_gcc_warning_flood " -Wno-stringop-overflow -std=gnu11"
 #define ignore_clang_warning_flood " -Wno-deprecated-non-prototype"
 
 void determineCCompiler() {
