@@ -10,7 +10,7 @@ Strings.Insert(src, pos, dst)
   to hold the result of the operation, the result is truncated so that dst is always
   terminated with a 0X.
 Strings.Append(s, dst)
-  has the same effect as Insert(s, Length(s), dst).
+  has the same effect as Insert(s, Length(dst), dst).
 Strings.Delete(s, pos, n)
   deletes n characters from s starting at position pos (0 <= pos < Length(s)).
   If n > Length(s) - pos, the new length of s is pos.
@@ -160,14 +160,14 @@ BEGIN
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
 	IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
-	
+
 	y := 0;
 	WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 		y := y * 10 + (ORD(s[p]) - 30H);
 		INC(p);
 	END;
 	IF s[p] = "." THEN
-		INC(p); g := 1; 
+		INC(p); g := 1;
 		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 			g := g / 10; y := y + g * (ORD(s[p]) - 30H);
 			INC(p);
@@ -195,14 +195,14 @@ BEGIN
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
 	IF s[p] = "-" THEN neg := TRUE; INC(p) ELSE neg := FALSE END;
 	WHILE (s[p] = " ") OR (s[p] = "0") DO INC(p) END;
-	
+
 	y := 0;
 	WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 		y := y * 10 + (ORD(s[p]) - 30H);
 		INC(p);
 	END;
 	IF s[p] = "." THEN
-		INC(p); g := 1; 
+		INC(p); g := 1;
 		WHILE ("0" <= s[p]) & (s[p] <= "9") DO
 			g := g / 10; y := y + g * (ORD(s[p]) - 30H);
 			INC(p);
