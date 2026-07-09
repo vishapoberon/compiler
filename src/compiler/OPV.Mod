@@ -423,7 +423,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         END
       ELSE
         (* casting of params should be simplified eventually *)
-        IF (mode = OPT.VarPar) & (typ # n^.typ) & (prec = MinPrec) THEN OPM.WriteString("(void*)") END
+        IF ((mode = OPT.VarPar) OR (typ^.BaseTyp^.form = OPT.Comp)) & (typ # n^.typ) & (prec = MinPrec) THEN OPM.WriteString("(void*)") END
       END;
       IF (mode = OPT.VarPar) & (n^.class = OPT.Nmop) & (n^.subcl = OPT.val) THEN
         expr(n^.left, prec)  (* avoid cast in lvalue *)
@@ -817,8 +817,14 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                           design(l, MinPrec); OPM.WriteString(" = ")
                                         END ;
                                         IF l^.typ = r^.typ THEN expr(r, MinPrec)
-                                        ELSIF (l^.typ^.form = OPT.Pointer) & (r^.typ^.form # OPT.NilTyp) & (l^.typ^.strobj # NIL) THEN
-                                          OPM.Write("("); OPC.Ident(l^.typ^.strobj); OPM.Write(")"); expr(r, MinPrec)
+                                        ELSIF (l^.typ^.form = OPT.Pointer) & (r^.typ^.form # OPT.NilTyp) THEN
+                                          IF l^.typ^.strobj # NIL THEN
+                                            OPM.Write("("); OPC.Ident(l^.typ^.strobj); OPM.Write(")")
+                                          ELSIF (l^.typ^.BaseTyp # NIL) & (l^.typ^.BaseTyp^.strobj # NIL)
+                                            & (l^.typ^.BaseTyp # r^.typ^.BaseTyp) THEN
+                                            OPM.Write("("); OPC.Ident(l^.typ^.BaseTyp^.strobj); OPM.WriteString("*)")
+                                          END;
+                                          expr(r, MinPrec)
                                         ELSIF l^.typ^.comp = OPT.Record THEN
                                           OPM.WriteString("*("); OPC.Andent(l^.typ); OPM.WriteString("*)&"); expr(r, 9)
                                         ELSE expr(r, MinPrec)
