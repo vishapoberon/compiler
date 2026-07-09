@@ -56,7 +56,7 @@ CONST
   SProc* = 8; CProc*  = 9; IProc* = 10; Mod* = 11; Head* = 12; TProc* = 13;
 
   (* Object.vis - module visibility of objects *)
-  internal* = 0; external* = 1; externalR* = 2;
+  internal* = 0; external* = 1; externalR* = 2; readOnlyPar* = 3;
 
   (* Object.history - History of imported objects *)
   inserted* = 0; same* = 1; pbmodified* = 2; pvmodified* = 3; removed* = 4; inconsistent* = 5;
@@ -179,7 +179,7 @@ CONST
   Shdptr* = 27; Shdpro*  = 28; Stpro*   = 29; Shdtpro* = 30; Sxpro* = 31;
   Sipro*  = 32; Scpro*   = 33; Sstruct* = 34; Ssys*    = 35; Sptr*  = 36;
   Sarr*   = 37; Sdarr*   = 38; Srec*    = 39; Spro*    = 40; Slink* = 37;
-  Scomment* = 41;
+  Scomment* = 41; Srpar*    = 42;
 
 TYPE
   ImpCtxt = RECORD
@@ -835,7 +835,10 @@ BEGIN
     new := NewObj();
     new^.mnolev := -mno;
     IF last = NIL THEN par := new ELSE last^.link := new END;
-    IF tag = Svalpar THEN new^.mode := Var ELSE new^.mode := VarPar END;
+    IF tag = Svalpar THEN new^.mode := Var
+    ELSIF tag = Srpar THEN new^.mode := VarPar; new^.vis := readOnlyPar
+    ELSE new^.mode := VarPar
+    END;
     InStruct(new^.typ);
     new^.adr := OPM.SymRInt(); InName(new^.name);
     last := new;
@@ -1238,7 +1241,10 @@ END Import;
   BEGIN
     OutStr(result);
     WHILE par # NIL DO
-      IF par^.mode = Var THEN OPM.SymWInt(Svalpar) ELSE OPM.SymWInt(Svarpar) END;
+      IF par^.mode = Var THEN OPM.SymWInt(Svalpar)
+      ELSIF par^.vis = readOnlyPar THEN OPM.SymWInt(Srpar)
+      ELSE OPM.SymWInt(Svarpar)
+      END;
       OutStr(par^.typ);
       OPM.SymWInt(par^.adr);
       OutName(par^.name); par := par^.link

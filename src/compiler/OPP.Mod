@@ -206,7 +206,13 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         LOOP
           IF sym = OPS.ident THEN
             OPT.Insert(OPS.name, par); OPS.Get(sym);
-            par^.mode := mode; par^.link := NIL;
+            IF sym = OPS.minus THEN
+              IF mode = OPT.VarPar THEN err(246) END;
+              OPS.Get(sym); par^.mode := OPT.VarPar; par^.vis := OPT.readOnlyPar
+            ELSE
+              par^.mode := mode; par^.vis := OPT.internal
+            END;
+            par^.link := NIL;
             IF first = NIL THEN first := par END ;
             IF firstPar = NIL THEN firstPar := par ELSE last^.link := par END ;
             last := par

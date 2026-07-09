@@ -24,7 +24,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     CASE obj^.mode OF
     | OPT.Var:    node := OPT.NewNode(OPT.Nvar);
                   node^.readonly := (obj^.vis = OPT.externalR) & (obj^.mnolev < 0)
-    | OPT.VarPar: node := OPT.NewNode(OPT.Nvarpar)
+    | OPT.VarPar: node := OPT.NewNode(OPT.Nvarpar); node^.readonly := obj^.vis = OPT.readOnlyPar
     | OPT.Con:    node := OPT.NewNode(OPT.Nconst);
                   node^.conval := OPT.NewConst();
                   node^.conval^ := obj^.conval^  (* string is not copied, only its ref *)
@@ -1390,7 +1390,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         IF NotVar(ap) THEN err(122)
         ELSE CheckLeaf(ap, FALSE)
         END ;
-        IF ap^.readonly THEN err(76) END ;
+        IF ap^.readonly & (fp^.vis # OPT.readOnlyPar) THEN err(76) END ;
         IF fp^.typ^.comp = OPT.DynArr THEN DynArrParCheck(fp^.typ, ap^.typ, TRUE)
         ELSIF (fp^.typ^.comp = OPT.Record) & (ap^.typ^.comp = OPT.Record) THEN
           q := ap^.typ;
