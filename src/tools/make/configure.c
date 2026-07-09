@@ -74,9 +74,9 @@ void ParseOsRelease(FILE *fd) {
   while (fgets(osrelease, sizeof(osrelease), fd) != NULL) {
     if (strncasecmp(osrelease, "id=", 3) == 0) {
       int i=3;
-      while (osrelease[i] == '"') {i++;}
+      while (osrelease[i] == '"' || osrelease[i] == '\'') {i++;}
       int j=i;
-      while (osrelease[j] > '"') {j++;}
+      while (osrelease[j] != 0 && osrelease[j] != '\n' && osrelease[j] != '"' && osrelease[j] != '\'') {j++;}
       if (j>i) {
         osrelease[j] = 0;
         os = osrelease + i;
