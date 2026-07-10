@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -423,7 +423,7 @@ OPT_Node OPT_NewNode (INT8 class)
 OPT_ConstExt OPT_NewExt (void)
 {
 	OPT_ConstExt ext = NIL;
-	ext = __NEWARR(NIL, 1, 1, 1, 0, ((INT64)(256)));
+	ext = __NEWARR(NIL, 1, 1, 1, 0, ((INT64)(1024)));
 	return ext;
 }
 
@@ -560,7 +560,7 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 	OPT_Object ob0 = NIL, ob1 = NIL;
 	BOOLEAN left;
 	INT8 mnolev;
-	CHAR commentText[256];
+	CHAR commentText[1024];
 	INT16 j;
 	ob0 = OPT_topScope;
 	ob1 = ob0->right;
@@ -593,15 +593,15 @@ void OPT_Insert (OPS_Name name, OPT_Object *obj)
 			__COPY(name, ob1->name, 256);
 			mnolev = OPT_topScope->mnolev;
 			ob1->mnolev = mnolev;
-			OPM_GetComment((void*)commentText, 256);
+			OPM_GetComment((void*)commentText, 1024);
 			if (commentText[0] != 0x00) {
-				ob1->comment = __NEWARR(NIL, 1, 1, 1, 0, ((INT64)(256)));
+				ob1->comment = __NEWARR(NIL, 1, 1, 1, 0, ((INT64)(1024)));
 				j = 0;
-				while ((j < 255 && commentText[__X(j, 256)] != 0x00)) {
-					(*ob1->comment)[__X(j, 256)] = commentText[__X(j, 256)];
+				while ((j < 1023 && commentText[__X(j, 1024)] != 0x00)) {
+					(*ob1->comment)[__X(j, 1024)] = commentText[__X(j, 1024)];
 					j += 1;
 				}
-				(*ob1->comment)[__X(j, 256)] = 0x00;
+				(*ob1->comment)[__X(j, 1024)] = 0x00;
 			}
 			break;
 		}
@@ -868,7 +868,7 @@ void OPT_FPrintObj (OPT_Object obj)
 					OPM_FPrintLReal(&fprint, obj->conval->realval);
 					break;
 				case 8: 
-					OPT_FPrintName(&fprint, (void*)*obj->conval->ext, 256);
+					OPT_FPrintName(&fprint, (void*)*obj->conval->ext, 1024);
 					break;
 				case 9: 
 					break;
@@ -889,7 +889,7 @@ void OPT_FPrintObj (OPT_Object obj)
 			f = 1;
 			OPM_FPrint(&fprint, m);
 			while (f <= m) {
-				OPM_FPrint(&fprint, (INT16)(*ext)[__X(f, 256)]);
+				OPM_FPrint(&fprint, (INT16)(*ext)[__X(f, 1024)]);
 				f += 1;
 			}
 		} else if (obj->mode == 5) {
@@ -1096,7 +1096,7 @@ static void OPT_InConstant (INT32 f, OPT_Const conval)
 			i = 0;
 			do {
 				OPM_SymRCh(&ch);
-				(*ext)[__X(i, 256)] = ch;
+				(*ext)[__X(i, 1024)] = ch;
 				i += 1;
 			} while (!(ch == 0x00));
 			conval->intval2 = i;
@@ -1109,6 +1109,7 @@ static void OPT_InConstant (INT32 f, OPT_Const conval)
 			OPM_LogWStr((CHAR*)"unhandled case in InConstant(), f = ", 37);
 			OPM_LogWNum(f, 0);
 			OPM_LogWLn();
+			OPM_err(155);
 			break;
 	}
 }
@@ -1137,6 +1138,9 @@ static void OPT_InSign (INT8 mno, OPT_Struct *res, OPT_Object *par)
 		}
 		if (tag == 23) {
 			new->mode = 1;
+		} else if (tag == 42) {
+			new->mode = 2;
+			new->vis = 3;
 		} else {
 			new->mode = 2;
 		}
@@ -1210,6 +1214,8 @@ static OPT_Struct OPT_InTyp (INT32 tag)
 		return OPT_IntType(OPM_SymRInt());
 	} else if (tag == 7) {
 		return OPT_SetType(OPM_SymRInt());
+	} else if (tag == 12) {
+		return OPT_adrtyp;
 	} else {
 		return OPT_impCtxt.ref[__X(tag, 255)];
 	}
@@ -1406,7 +1412,7 @@ static OPT_Object OPT_InObj (INT8 mno)
 	OPT_Struct typ = NIL;
 	INT32 tag;
 	OPT_ConstExt ext = NIL;
-	OPS_Name commentText;
+	CHAR commentText[1024];
 	BOOLEAN hasComment;
 	INT16 j;
 	INT32 len;
@@ -1417,19 +1423,22 @@ static OPT_Object OPT_InObj (INT8 mno)
 		if (len < 0) {
 			len = 0;
 		}
-		if (len > 255) {
-			len = 255;
+		if (len > 1023) {
+			len = 1023;
 		}
 		i = 0;
 		while (i < len) {
-			OPM_SymRCh(&commentText[__X(i, 256)]);
+			OPM_SymRCh(&commentText[__X(i, 1024)]);
 			i += 1;
 		}
-		commentText[__X(i, 256)] = 0x00;
+		commentText[__X(i, 1024)] = 0x00;
 		hasComment = 1;
 		tag = OPM_SymRInt();
 	}
-	OPT_impCtxt.nextTag = tag;
+	if ((tag <= 11 && tag == 0)) {
+		OPM_err(155);
+		return NIL;
+	}
 	if (tag < 0 || tag > 50) {
 		OPM_LogWStr((CHAR*)"ERROR: Invalid tag in InObj: ", 30);
 		OPM_LogWNum(tag, 0);
@@ -1471,7 +1480,7 @@ static OPT_Object OPT_InObj (INT8 mno)
 					(*ext)[0] = __CHR(s);
 					i = 1;
 					while (i <= s) {
-						OPM_SymRCh(&(*ext)[__X(i, 256)]);
+						OPM_SymRCh(&(*ext)[__X(i, 1024)]);
 						i += 1;
 					}
 					break;
@@ -1502,13 +1511,13 @@ static OPT_Object OPT_InObj (INT8 mno)
 		OPT_InName((void*)obj->name, 256);
 	}
 	if ((hasComment && obj != NIL)) {
-		obj->comment = __NEWARR(NIL, 1, 1, 1, 0, ((INT64)(256)));
+		obj->comment = __NEWARR(NIL, 1, 1, 1, 0, ((INT64)(1024)));
 		j = 0;
-		while ((((j < 255 && j < len)) && commentText[__X(j, 256)] != 0x00)) {
-			(*obj->comment)[__X(j, 256)] = commentText[__X(j, 256)];
+		while ((((j < 1023 && j < len)) && commentText[__X(j, 1024)] != 0x00)) {
+			(*obj->comment)[__X(j, 1024)] = commentText[__X(j, 1024)];
 			j += 1;
 		}
-		(*obj->comment)[__X(j, 256)] = 0x00;
+		(*obj->comment)[__X(j, 1024)] = 0x00;
 	}
 	OPT_FPrintObj(obj);
 	if ((obj->mode == 1 && (obj->typ->strobj == NIL || obj->typ->strobj->name[0] == 0x00))) {
@@ -1688,6 +1697,8 @@ static void OPT_OutSign (OPT_Struct result, OPT_Object par)
 	while (par != NIL) {
 		if (par->mode == 1) {
 			OPM_SymWInt(23);
+		} else if (par->vis == 3) {
+			OPM_SymWInt(42);
 		} else {
 			OPM_SymWInt(24);
 		}
@@ -1842,7 +1853,7 @@ static void OPT_OutConstant (OPT_Object obj)
 			OPM_SymWLReal(obj->conval->realval);
 			break;
 		case 8: 
-			OPT_OutName((void*)*obj->conval->ext, 256);
+			OPT_OutName((void*)*obj->conval->ext, 1024);
 			break;
 		case 9: 
 			break;
@@ -1857,7 +1868,7 @@ static void OPT_OutTruncatedName (CHAR *text, ADDRESS text__len)
 	INT16 i;
 	__DUP(text, text__len, CHAR);
 	i = 0;
-	while ((i < 255 && text[__X(i, text__len)] != 0x00)) {
+	while ((i < 1023 && text[__X(i, text__len)] != 0x00)) {
 		OPM_SymWCh(text[__X(i, text__len)]);
 		i += 1;
 	}
@@ -1874,16 +1885,18 @@ static void OPT_OutObj (OPT_Object obj)
 		OPT_OutObj(obj->left);
 		if (__IN(obj->mode, 0x06ea, 32)) {
 			if (obj->comment != NIL) {
-				OPM_SymWInt(41);
-				k = 0;
-				while ((k < 255 && (*obj->comment)[__X(k, 256)] != 0x00)) {
-					k += 1;
-				}
-				OPM_SymWInt(k);
-				l = 0;
-				while (l < k) {
-					OPM_SymWCh((*obj->comment)[__X(l, 256)]);
-					l += 1;
+				if ((__IN(obj->mode, 0x06aa, 32) && obj->vis != 0)) {
+					OPM_SymWInt(41);
+					k = 0;
+					while ((k < 1023 && (*obj->comment)[__X(k, 1024)] != 0x00)) {
+						k += 1;
+					}
+					OPM_SymWInt(k);
+					l = 0;
+					while (l < k) {
+						OPM_SymWCh((*obj->comment)[__X(l, 1024)]);
+						l += 1;
+					}
 				}
 			}
 			if (obj->history == 4) {
@@ -1952,7 +1965,7 @@ static void OPT_OutObj (OPT_Object obj)
 						i = 1;
 						OPM_SymWInt(j);
 						while (i <= j) {
-							OPM_SymWCh((*ext)[__X(i, 256)]);
+							OPM_SymWCh((*ext)[__X(i, 1024)]);
 							i += 1;
 						}
 						OPT_OutName((void*)obj->name, 256);
@@ -2191,6 +2204,7 @@ export void *OPT__init(void)
 	OPT_EnterTyp((CHAR*)"BYTE", 1, 1, &OPT_bytetyp);
 	OPT_EnterTyp((CHAR*)"PTR", 11, -1, &OPT_sysptrtyp);
 	OPT_EnterTyp((CHAR*)"ADDRESS", 4, -1, &OPT_adrtyp);
+	OPT_adrtyp->ref = 12;
 	OPT_EnterTyp((CHAR*)"INT8", 4, 1, &OPT_int8typ);
 	OPT_EnterTyp((CHAR*)"INT16", 4, 2, &OPT_int16typ);
 	OPT_EnterTyp((CHAR*)"INT32", 4, 4, &OPT_int32typ);

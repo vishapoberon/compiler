@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -365,7 +365,17 @@ static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp)
 				if (OPP_sym == 38) {
 					OPT_Insert(OPS_name, &par);
 					OPS_Get(&OPP_sym);
-					par->mode = mode;
+					if (OPP_sym == 7) {
+						if (mode == 2) {
+							OPP_err(246);
+						}
+						OPS_Get(&OPP_sym);
+						par->mode = 2;
+						par->vis = 3;
+					} else {
+						par->mode = mode;
+						par->vis = 0;
+					}
 					par->link = NIL;
 					if (first == NIL) {
 						first = par;
@@ -939,8 +949,8 @@ static void GetCode__19 (void)
 	(*ProcedureDeclaration__16_s->proc)->conval->ext = ext;
 	n = 0;
 	if (OPP_sym == 37) {
-		while (OPS_str[__X(n, 256)] != 0x00) {
-			(*ext)[__X(n + 1, 256)] = OPS_str[__X(n, 256)];
+		while (OPS_str[__X(n, 1024)] != 0x00) {
+			(*ext)[__X(n + 1, 1024)] = OPS_str[__X(n, 1024)];
 			n += 1;
 		}
 		(*ext)[0] = __CHR(n);
@@ -950,13 +960,13 @@ static void GetCode__19 (void)
 			if (OPP_sym == 35) {
 				c = OPS_intval;
 				n += 1;
-				if ((c < 0 || c > 255) || n == 256) {
+				if ((c < 0 || c > 255) || n == 1024) {
 					OPP_err(64);
 					c = 1;
 					n = 1;
 				}
 				OPS_Get(&OPP_sym);
-				(*ext)[__X(n, 256)] = __CHR(c);
+				(*ext)[__X(n, 1024)] = __CHR(c);
 			}
 			if (OPP_sym == 19) {
 				OPS_Get(&OPP_sym);

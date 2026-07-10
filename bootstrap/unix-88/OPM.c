@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -19,7 +19,7 @@ typedef
 	CHAR OPM_FileName[32];
 
 
-static CHAR OPM_currentComment[256];
+static CHAR OPM_currentComment[1024];
 static BOOLEAN OPM_hasComment;
 static CHAR OPM_SourceFileName[256];
 static CHAR OPM_GlobalModel[10];
@@ -166,11 +166,11 @@ void OPM_StoreComment (CHAR *text, ADDRESS text__len)
 	INT16 i;
 	__DUP(text, text__len, CHAR);
 	i = 0;
-	while ((i < 255 && text[__X(i, text__len)] != 0x00)) {
-		OPM_currentComment[__X(i, 256)] = text[__X(i, text__len)];
+	while ((i < 1023 && text[__X(i, text__len)] != 0x00)) {
+		OPM_currentComment[__X(i, 1024)] = text[__X(i, text__len)];
 		i += 1;
 	}
-	OPM_currentComment[__X(i, 256)] = 0x00;
+	OPM_currentComment[__X(i, 1024)] = 0x00;
 	OPM_hasComment = 1;
 	__DEL(text);
 }
@@ -180,8 +180,8 @@ void OPM_GetComment (CHAR *text, ADDRESS text__len)
 	INT16 i;
 	if (OPM_hasComment) {
 		i = 0;
-		while ((((i < text__len && i < 256)) && OPM_currentComment[__X(i, 256)] != 0x00)) {
-			text[__X(i, text__len)] = OPM_currentComment[__X(i, 256)];
+		while ((((i < text__len && i < 1024)) && OPM_currentComment[__X(i, 1024)] != 0x00)) {
+			text[__X(i, text__len)] = OPM_currentComment[__X(i, 1024)];
 			i += 1;
 		}
 		text[__X(i, text__len)] = 0x00;

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -738,7 +738,7 @@ static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, ADDRESS y__len)
 	INT16 i;
 	__DUP(y, y__len, CHAR);
 	i = 0;
-	while ((*x)[__X(i + 1, 256)] == y[__X(i, y__len)]) {
+	while ((*x)[__X(i + 1, 1024)] == y[__X(i, y__len)]) {
 		i += 1;
 	}
 	__DEL(y);
@@ -764,7 +764,7 @@ static void OPC_CProcDefs (OPT_Object obj, INT16 vis)
 			_for__7 = (INT16)(*obj->conval->ext)[0];
 			i = i;
 			while (i <= _for__7) {
-				OPM_Write((*obj->conval->ext)[__X(i, 256)]);
+				OPM_Write((*obj->conval->ext)[__X(i, 1024)]);
 				i += 1;
 			}
 			OPM_WriteLn();
@@ -1909,7 +1909,7 @@ void OPC_Constant (OPT_Const con, INT16 form)
 			}
 			break;
 		case 8: 
-			OPC_StringLiteral(*con->ext, 256, con->intval2 - 1);
+			OPC_StringLiteral(*con->ext, 1024, con->intval2 - 1);
 			break;
 		case 9: 
 			OPM_WriteString((CHAR*)"NIL", 4);

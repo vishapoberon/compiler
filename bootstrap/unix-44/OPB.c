@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -82,6 +82,7 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 			break;
 		case 2: 
 			node = OPT_NewNode(1);
+			node->readonly = obj->vis == 3;
 			break;
 		case 3: 
 			node = OPT_NewNode(7);
@@ -253,7 +254,7 @@ OPT_Node OPB_NewString (OPS_String str, INT64 len)
 	x->conval->intval = -1;
 	x->conval->intval2 = OPM_Longint(len);
 	x->conval->ext = OPT_NewExt();
-	__MOVE(str, *x->conval->ext, 256);
+	__MOVE(str, *x->conval->ext, 1024);
 	return x;
 }
 
@@ -1626,7 +1627,6 @@ static void OPB_CheckAssign (OPT_Struct x, OPT_Node ynode)
 				if (x == y) {
 				} else if ((((y->comp == 2 && y->BaseTyp == x->BaseTyp)) && y->n <= x->n)) {
 				} else if ((y->comp == 3 && y->BaseTyp == x->BaseTyp)) {
-					OPB_err(113);
 				} else if (x->BaseTyp == OPT_chartyp) {
 					if (g == 8) {
 						if (ynode->conval->intval2 > x->n) {
@@ -2423,7 +2423,7 @@ void OPB_Param (OPT_Node ap, OPT_Object fp)
 			} else {
 				OPB_CheckLeaf(ap, 0);
 			}
-			if (ap->readonly) {
+			if ((ap->readonly && fp->vis != 3)) {
 				OPB_err(76);
 			}
 			if (fp->typ->comp == 3) {

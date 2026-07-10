@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -12,7 +12,7 @@ typedef
 	CHAR OPS_Name[256];
 
 typedef
-	CHAR OPS_String[256];
+	CHAR OPS_String[1024];
 
 
 export OPS_Name OPS_name;
@@ -52,15 +52,15 @@ static void OPS_Str (INT8 *sym)
 			OPS_err(3);
 			break;
 		}
-		if (i == 255) {
+		if (i == 1023) {
 			OPS_err(241);
 			break;
 		}
-		OPS_str[__X(i, 256)] = OPS_ch;
+		OPS_str[__X(i, 1024)] = OPS_ch;
 		i += 1;
 	}
 	OPM_Get(&OPS_ch);
-	OPS_str[__X(i, 256)] = 0x00;
+	OPS_str[__X(i, 1024)] = 0x00;
 	OPS_intval = i + 1;
 	if (OPS_intval == 2) {
 		*sym = 35;
@@ -280,12 +280,12 @@ static void Comment__2 (void);
 static void Comment__2 (void)
 {
 	BOOLEAN isExported;
-	CHAR commentText[256];
+	CHAR commentText[1024];
 	INT16 i, nestLevel;
-	CHAR prevCh, nextCh;
+	CHAR prevCh;
 	i = 0;
-	while (i <= 255) {
-		commentText[__X(i, 256)] = 0x00;
+	while (i <= 1023) {
+		commentText[__X(i, 1024)] = 0x00;
 		i += 1;
 	}
 	isExported = 0;
@@ -298,7 +298,7 @@ static void Comment__2 (void)
 		OPM_Get(&OPS_ch);
 		if (OPS_ch == ')') {
 			commentText[0] = 0x00;
-			OPM_StoreComment(commentText, 256);
+			OPM_StoreComment(commentText, 1024);
 			OPM_Get(&OPS_ch);
 			return;
 		}
@@ -306,47 +306,65 @@ static void Comment__2 (void)
 	while ((nestLevel > 0 && OPS_ch != 0x00)) {
 		if ((prevCh == '(' && OPS_ch == '*')) {
 			nestLevel += 1;
-			prevCh = 0x00;
+			prevCh = OPS_ch;
+			OPM_Get(&OPS_ch);
 		} else if ((prevCh == '*' && OPS_ch == ')')) {
 			nestLevel -= 1;
 			if (nestLevel == 0) {
 				OPM_Get(&OPS_ch);
 			} else {
-				prevCh = 0x00;
+				prevCh = OPS_ch;
+				OPM_Get(&OPS_ch);
 			}
 		} else {
-			if ((((isExported && nestLevel == 1)) && prevCh != 0x00)) {
-				if (i < 255) {
-					commentText[__X(i, 256)] = prevCh;
-					i += 1;
+			if ((isExported && nestLevel == 1)) {
+				if (i < 1023) {
+					if (OPS_ch == 0x0d || OPS_ch == 0x0a) {
+						if (i == 0 || commentText[__X(i - 1, 1024)] != 0x0a) {
+							commentText[__X(i, 1024)] = 0x0a;
+							i += 1;
+						}
+						if (OPS_ch == 0x0d) {
+							prevCh = OPS_ch;
+							OPM_Get(&OPS_ch);
+							if (OPS_ch == 0x0a) {
+								prevCh = OPS_ch;
+								OPM_Get(&OPS_ch);
+							}
+						} else {
+							prevCh = OPS_ch;
+							OPM_Get(&OPS_ch);
+						}
+					} else if (OPS_ch >= ' ') {
+						commentText[__X(i, 1024)] = OPS_ch;
+						i += 1;
+						prevCh = OPS_ch;
+						OPM_Get(&OPS_ch);
+					} else {
+						prevCh = OPS_ch;
+						OPM_Get(&OPS_ch);
+					}
+				} else {
+					prevCh = OPS_ch;
+					OPM_Get(&OPS_ch);
 				}
+			} else {
+				prevCh = OPS_ch;
+				OPM_Get(&OPS_ch);
 			}
-			prevCh = OPS_ch;
-		}
-		if (nestLevel > 0) {
-			OPM_Get(&OPS_ch);
 		}
 	}
 	if (OPS_ch == 0x00) {
 		OPS_err(5);
 	}
-	if ((((((isExported && nestLevel == 0)) && prevCh != 0x00)) && prevCh != '*')) {
-		if (i < 255) {
-			commentText[__X(i, 256)] = prevCh;
-			i += 1;
-		} else {
-			OPM_LogWStr((CHAR*)"Truncating final comment character", 35);
-			OPM_LogWLn();
-		}
-	}
 	if (isExported) {
-		if (i >= 256) {
+		if (i >= 1024) {
 			OPM_LogWStr((CHAR*)"Warning: commentText overflow", 30);
 			OPM_LogWLn();
-			i = 255;
+			i = 1023;
 		}
-		commentText[__X(i, 256)] = 0x00;
-		OPM_StoreComment(commentText, 256);
+		commentText[__X(i, 1024)] = 0x00;
+		OPM_StoreComment(commentText, 1024);
 	}
 }
 

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef OPS__h
 #define OPS__h
@@ -9,7 +9,7 @@ typedef
 	CHAR OPS_Name[256];
 
 typedef
-	CHAR OPS_String[256];
+	CHAR OPS_String[1024];
 
 
 import OPS_Name OPS_name;

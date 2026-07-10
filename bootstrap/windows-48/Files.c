@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -33,7 +33,8 @@ typedef
 		Files_FileName workName, registerName;
 		BOOLEAN tempFile;
 		Platform_FileIdentity identity;
-		INT32 fd, len, pos;
+		INT32 fd;
+		INT32 len, pos;
 		Files_Buffer bufs[4];
 		INT16 swapper, state;
 		struct Files_FileDesc *next;
@@ -754,7 +755,8 @@ void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res)
 
 void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res)
 {
-	INT32 fdold, fdnew, n;
+	INT32 fdold, fdnew;
+	INT32 n;
 	INT16 error, ignore;
 	Platform_FileIdentity oldidentity, newidentity;
 	CHAR buf[4096];

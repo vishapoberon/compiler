@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2025/06/24]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -676,7 +676,7 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 				}
 			}
 		} else {
-			if ((((mode == 2 && typ != n->typ)) && prec == -1)) {
+			if (((((mode == 2 || typ->BaseTyp->form == 13) && typ != n->typ)) && prec == -1)) {
 				OPM_WriteString((CHAR*)"(void*)", 8);
 			}
 		}
@@ -1299,7 +1299,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 								OPM_WriteInt(r->conval->intval2);
 							} else if (r->typ->comp == 3) {
 								OPM_WriteString((CHAR*)"__X(", 5);
-								OPC_Len(r->obj, r->typ, 0);
+								OPV_Len(r, 0);
 								OPM_WriteString((CHAR*)" * ", 4);
 								OPM_WriteInt(r->typ->BaseTyp->size);
 								OPM_WriteString((CHAR*)", ", 3);
@@ -1327,10 +1327,16 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 							}
 							if (l->typ == r->typ) {
 								OPV_expr(r, -1);
-							} else if ((((l->typ->form == 11 && r->typ->form != 9)) && l->typ->strobj != NIL)) {
-								OPM_Write('(');
-								OPC_Ident(l->typ->strobj);
-								OPM_Write(')');
+							} else if ((l->typ->form == 11 && r->typ->form != 9)) {
+								if (l->typ->strobj != NIL) {
+									OPM_Write('(');
+									OPC_Ident(l->typ->strobj);
+									OPM_Write(')');
+								} else if ((((l->typ->BaseTyp != NIL && l->typ->BaseTyp->strobj != NIL)) && l->typ->BaseTyp != r->typ->BaseTyp)) {
+									OPM_Write('(');
+									OPC_Ident(l->typ->BaseTyp->strobj);
+									OPM_WriteString((CHAR*)"*)", 3);
+								}
 								OPV_expr(r, -1);
 							} else if (l->typ->comp == 4) {
 								OPM_WriteString((CHAR*)"*(", 3);
