@@ -180,6 +180,7 @@ CONST
   Sipro*  = 32; Scpro*   = 33; Sstruct* = 34; Ssys*    = 35; Sptr*  = 36;
   Sarr*   = 37; Sdarr*   = 38; Srec*    = 39; Spro*    = 40; Slink* = 37;
   Scomment* = 41; Srpar*    = 42;
+  Sadr*     = 12; (* symbol file back-ref tag for SYSTEM.ADDRESS; ProcTyp(12) is never a basic type *)
 
 TYPE
   ImpCtxt = RECORD
@@ -885,8 +886,9 @@ END InTProc;
 
 PROCEDURE InTyp(tag: LONGINT): Struct;
 BEGIN
-  IF    tag = Int THEN RETURN IntType(OPM.SymRInt())
-  ELSIF tag = Set THEN RETURN SetType(OPM.SymRInt())
+  IF    tag = Int  THEN RETURN IntType(OPM.SymRInt())
+  ELSIF tag = Set  THEN RETURN SetType(OPM.SymRInt())
+  ELSIF tag = Sadr THEN RETURN adrtyp
   ELSE RETURN impCtxt.ref[tag]
   END
 END InTyp;
@@ -1486,6 +1488,7 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterTyp("BYTE",    Byte,     1, bytetyp);
   EnterTyp("PTR",     Pointer, -1, sysptrtyp);  (* Size set in Compiler.PropagateElementaryTypeSize *)
   EnterTyp("ADDRESS", Int,     -1, adrtyp);     (* Size set in Compiler.PropagateElementaryTypeSize *)
+  adrtyp^.ref := Sadr;  (* unique symbol file tag, distinct from Int so it round-trips as adrtyp *)
   EnterTyp("INT8",    Int,      1, int8typ);
   EnterTyp("INT16",   Int,      2, int16typ);
   EnterTyp("INT32",   Int,      4, int32typ);
