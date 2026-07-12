@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -9,6 +9,7 @@
 #include "OPM.h"
 #include "OPS.h"
 #include "OPT.h"
+#include "Platform.h"
 
 
 static INT16 OPB_exp;
@@ -216,7 +217,11 @@ static void OPB_SetIntType (OPT_Node node)
 static void OPB_SetSetType (OPT_Node node)
 {
 	INT32 i32;
-	__GET((ADDRESS)&node->conval->setval + 4, i32, INT32);
+	if (Platform_LittleEndian) {
+		__GET((ADDRESS)&node->conval->setval + 4, i32, INT32);
+	} else {
+		__GET((ADDRESS)&node->conval->setval, i32, INT32);
+	}
 	if (i32 == 0) {
 		node->typ = OPT_set32typ;
 	} else {
@@ -2584,6 +2589,7 @@ export void *OPB__init(void)
 	__MODULE_IMPORT(OPM);
 	__MODULE_IMPORT(OPS);
 	__MODULE_IMPORT(OPT);
+	__MODULE_IMPORT(Platform);
 	__REGMOD("OPB", 0);
 /* BEGIN */
 	OPB_maxExp = OPB_log(4611686018427387904LL);

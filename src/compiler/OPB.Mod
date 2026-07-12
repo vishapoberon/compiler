@@ -1,7 +1,7 @@
 (* Oberon Portable build parse tree (front end) *)
 MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 
-  IMPORT OPT, OPS, OPM, SYSTEM;
+  IMPORT OPT, OPS, OPM, Platform, SYSTEM;
 
 
   CONST
@@ -109,7 +109,12 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
 
   PROCEDURE SetSetType(node: OPT.Node);
     VAR i32: SYSTEM.INT32;
-  BEGIN SYSTEM.GET(SYSTEM.ADR(node.conval.setval)+4, i32); (* See if upper 32 bits are zero *)
+  BEGIN
+    IF Platform.LittleEndian THEN
+      SYSTEM.GET(SYSTEM.ADR(node.conval.setval) + 4, i32)
+    ELSE
+      SYSTEM.GET(SYSTEM.ADR(node.conval.setval), i32)
+    END;
     IF i32 = 0 THEN node.typ := OPT.set32typ ELSE node.typ := OPT.set64typ END
   END SetSetType;
 

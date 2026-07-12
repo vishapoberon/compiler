@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -52,7 +52,7 @@ extern void *Modules__init(void);
 void Modules_Init (INT32 argc, INT32 argvadr)
 {
 	Modules_MainStackFrame = argvadr;
-	Modules_ArgCount = __VAL(INT16, argc);
+	Modules_ArgCount = __SHORT(argc, 32768);
 	__GET(argvadr, Modules_ArgVector, INT32);
 	Modules_InitHeap();
 	Modules_ModulesInit();

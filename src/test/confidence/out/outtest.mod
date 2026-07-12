@@ -1,6 +1,6 @@
 MODULE outtest;
 
-IMPORT Out, SYSTEM;
+IMPORT Out, Platform, SYSTEM;
 
 VAR
   r:  REAL;
@@ -13,13 +13,15 @@ PROCEDURE wi(i: HUGEINT); BEGIN Out.Int(i,1) END wi;
 PROCEDURE wl; BEGIN Out.Ln END wl;
 
 PROCEDURE wh(VAR h: ARRAY OF SYSTEM.BYTE);
-  VAR i: INTEGER; b: SYSTEM.INT8;
+  VAR i, len: INTEGER; b: SYSTEM.INT8;
 BEGIN
-  i := SHORT(LEN(h));
-  WHILE i > 0 DO
-    DEC(i); b := SYSTEM.VAL(SYSTEM.INT8, h[i]);
+  len := SHORT(LEN(h));
+  IF Platform.LittleEndian THEN i := len - 1 ELSE i := 0 END;
+  WHILE (i >= 0) & (i < len) DO
+    b := SYSTEM.VAL(SYSTEM.INT8, h[i]);
     IF b DIV 16 MOD 16 < 10 THEN wc(CHR(b DIV 16 MOD 16 + 48)) ELSE wc(CHR(b DIV 16 MOD 16 + 55)) END;
     IF b MOD 16 < 10 THEN wc(CHR(b MOD 16 + 48)) ELSE wc(CHR(b MOD 16 + 55)) END;
+    IF Platform.LittleEndian THEN DEC(i) ELSE INC(i) END
   END
 END wh;
 

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -206,12 +206,24 @@ INT64 OPM_SignedMinimum (INT32 bytecount)
 
 INT32 OPM_Longint (INT64 n)
 {
-	return __VAL(INT32, n);
+	INT32 r;
+	if (!Platform_LittleEndian) {
+		__GET((ADDRESS)&n + 4, r, INT32);
+	} else {
+		__GET((ADDRESS)&n, r, INT32);
+	}
+	return r;
 }
 
 INT16 OPM_Integer (INT64 n)
 {
-	return __VAL(INT16, n);
+	INT16 r;
+	if (!Platform_LittleEndian) {
+		__GET((ADDRESS)&n + 6, r, INT16);
+	} else {
+		__GET((ADDRESS)&n, r, INT16);
+	}
+	return r;
 }
 
 static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)

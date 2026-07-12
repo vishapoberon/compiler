@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/10]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -6,8 +6,10 @@
 #define SET      UINT32
 
 #include "SYSTEM.h"
+#include "Platform.h"
 
 
+static INT16 Reals_realExpHi, Reals_realExpLo, Reals_lrealExpHi, Reals_lrealExpLo;
 
 
 static void Reals_BytesToHex (SYSTEM_BYTE *b, ADDRESS b__len, SYSTEM_BYTE *d, ADDRESS d__len);
@@ -17,7 +19,9 @@ export void Reals_ConvertHL (LONGREAL x, CHAR *d, ADDRESS d__len);
 export void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, ADDRESS d__len);
 export INT16 Reals_Expo (REAL x);
 export INT16 Reals_ExpoL (LONGREAL x);
+static void Reals_InitEndian (void);
 export void Reals_SetExpo (REAL *x, INT16 ex);
+export void Reals_SetExpoL (LONGREAL *x, INT16 ex);
 export REAL Reals_Ten (INT16 e);
 export LONGREAL Reals_TenL (INT16 e);
 static CHAR Reals_ToHex (INT16 i);
@@ -58,25 +62,36 @@ LONGREAL Reals_TenL (INT16 e)
 
 INT16 Reals_Expo (REAL x)
 {
-	INT16 i;
-	__GET((ADDRESS)&x + 2, i, INT16);
-	return __MASK(__ASHR(i, 7), -256);
+	CHAR hi, lo;
+	__GET((ADDRESS)&x + Reals_realExpHi, hi, CHAR);
+	__GET((ADDRESS)&x + Reals_realExpLo, lo, CHAR);
+	return __MASK(__ASHL((INT16)hi, 1) + __ASHR((INT16)lo, 7), -256);
 }
 
 void Reals_SetExpo (REAL *x, INT16 ex)
 {
 	CHAR c;
-	__GET((ADDRESS)x + 3, c, CHAR);
-	__PUT((ADDRESS)x + 3, __CHR(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
-	__GET((ADDRESS)x + 2, c, CHAR);
-	__PUT((ADDRESS)x + 2, __CHR(__MASK((INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
+	__GET((ADDRESS)x + Reals_realExpHi, c, CHAR);
+	__PUT((ADDRESS)x + Reals_realExpHi, __CHR(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 1), -128)), CHAR);
+	__GET((ADDRESS)x + Reals_realExpLo, c, CHAR);
+	__PUT((ADDRESS)x + Reals_realExpLo, __CHR(__MASK((INT16)c, -128) + __ASHL(__MASK(ex, -2), 7)), CHAR);
 }
 
 INT16 Reals_ExpoL (LONGREAL x)
 {
-	INT16 i;
-	__GET((ADDRESS)&x + 6, i, INT16);
-	return __MASK(__ASHR(i, 4), -2048);
+	CHAR hi, lo;
+	__GET((ADDRESS)&x + Reals_lrealExpHi, hi, CHAR);
+	__GET((ADDRESS)&x + Reals_lrealExpLo, lo, CHAR);
+	return __MASK(__ASHL((INT16)hi, 4) + __ASHR((INT16)lo, 4), -2048);
+}
+
+void Reals_SetExpoL (LONGREAL *x, INT16 ex)
+{
+	CHAR c;
+	__GET((ADDRESS)x + Reals_lrealExpHi, c, CHAR);
+	__PUT((ADDRESS)x + Reals_lrealExpHi, __CHR(__ASHL(__ASHR((INT16)c, 7), 7) + __MASK(__ASHR(ex, 4), -128)), CHAR);
+	__GET((ADDRESS)x + Reals_lrealExpLo, c, CHAR);
+	__PUT((ADDRESS)x + Reals_lrealExpLo, __CHR(__ASHL(__MASK(ex, -16), 4) + __MASK((INT16)c, -16)), CHAR);
 }
 
 void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, ADDRESS d__len)
@@ -124,16 +139,25 @@ static CHAR Reals_ToHex (INT16 i)
 
 static void Reals_BytesToHex (SYSTEM_BYTE *b, ADDRESS b__len, SYSTEM_BYTE *d, ADDRESS d__len)
 {
-	INT16 i;
-	INT32 l;
+	INT16 i, j, len;
 	CHAR by;
-	i = 0;
-	l = b__len;
-	while (i < l) {
+	len = __SHORT(b__len, 32768);
+	if (Platform_LittleEndian) {
+		i = 0;
+	} else {
+		i = len - 1;
+	}
+	j = 0;
+	while ((i >= 0 && i < len)) {
 		by = __VAL(CHAR, b[__X(i, b__len)]);
-		d[__X(__ASHL(i, 1), d__len)] = Reals_ToHex(__ASHR((INT16)by, 4));
-		d[__X(__ASHL(i, 1) + 1, d__len)] = Reals_ToHex(__MASK((INT16)by, -16));
-		i += 1;
+		d[__X(__ASHL(j, 1), d__len)] = Reals_ToHex(__ASHR((INT16)by, 4));
+		d[__X(__ASHL(j, 1) + 1, d__len)] = Reals_ToHex(__MASK((INT16)by, -16));
+		j += 1;
+		if (Platform_LittleEndian) {
+			i += 1;
+		} else {
+			i -= 1;
+		}
 	}
 }
 
@@ -147,11 +171,28 @@ void Reals_ConvertHL (LONGREAL x, CHAR *d, ADDRESS d__len)
 	Reals_BytesToHex((void*)&x, 8, (void*)d, d__len * 1);
 }
 
+static void Reals_InitEndian (void)
+{
+	if (Platform_LittleEndian) {
+		Reals_realExpHi = 3;
+		Reals_realExpLo = 2;
+		Reals_lrealExpHi = 7;
+		Reals_lrealExpLo = 6;
+	} else {
+		Reals_realExpHi = 0;
+		Reals_realExpLo = 1;
+		Reals_lrealExpHi = 0;
+		Reals_lrealExpLo = 1;
+	}
+}
+
 
 export void *Reals__init(void)
 {
 	__DEFMOD;
+	__MODULE_IMPORT(Platform);
 	__REGMOD("Reals", 0);
 /* BEGIN */
+	Reals_InitEndian();
 	__ENDMOD;
 }

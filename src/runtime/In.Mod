@@ -91,12 +91,24 @@ END HugeInt;
 
 PROCEDURE Int*(VAR i: INTEGER);
 VAR h: HUGEINT;
-BEGIN HugeInt(h); i := SYSTEM.VAL(INTEGER, h)
+BEGIN
+  HugeInt(h);
+  IF ~Platform.LittleEndian THEN
+    SYSTEM.GET(SYSTEM.ADR(h) + SIZE(HUGEINT) - SIZE(INTEGER), i)
+  ELSE
+    SYSTEM.GET(SYSTEM.ADR(h), i)
+  END
 END Int;
 
 PROCEDURE LongInt*(VAR i: LONGINT);
 VAR h: HUGEINT;
-BEGIN HugeInt(h); i := SYSTEM.VAL(LONGINT, h)
+BEGIN
+  HugeInt(h);
+  IF ~Platform.LittleEndian THEN
+    SYSTEM.GET(SYSTEM.ADR(h) + SIZE(HUGEINT) - SIZE(LONGINT), i)
+  ELSE
+    SYSTEM.GET(SYSTEM.ADR(h), i)
+  END
 END LongInt;
 
 PROCEDURE Line*(VAR line: ARRAY OF CHAR);

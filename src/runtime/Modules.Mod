@@ -37,7 +37,7 @@ MODULE Modules;  (* jt 6.1.96 *)
      as the C main program. *)
   BEGIN
     MainStackFrame := argvadr;
-    ArgCount := SYSTEM.VAL(INTEGER, argc);
+    ArgCount := SHORT(argc);
     SYSTEM.GET(argvadr, ArgVector);
 
     InitHeap;      (* Initialse heap variables needed for compiler generated *__inits *)

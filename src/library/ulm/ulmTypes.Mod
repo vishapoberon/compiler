@@ -68,7 +68,6 @@ MODULE ulmTypes;
    CONST
       bigEndian* = 0;    (* SPARC, M68K etc *)
       littleEndian* = 1; (* Intel 80x86, VAX etc *)
-      byteorder* = littleEndian; (* machine-dependent constant *)
    TYPE
       ByteOrder* = SYS.INT8; (* bigEndian or littleEndian *)
 
@@ -79,9 +78,19 @@ MODULE ulmTypes;
    TYPE
       SetInt* = SYS.INT32; (* Types.Int32 type that corresponds to Types.Set *)
    VAR
+      byteorder*: ByteOrder; (* detected at module initialisation *)
       msb*: SYS.SET32;
 	  msbIsMax*, msbIs0*: SYS.INT8;
 	  msbindex*, lsbindex*, nofbits*: SYS.INT32;
+
+   PROCEDURE DetectByteOrder;
+      VAR test: SYS.INT32; c: CHAR;
+   BEGIN
+      test := 1; SYS.GET(SYS.ADR(test), c);
+      IF c = 1X THEN byteorder := littleEndian
+      ELSE byteorder := bigEndian
+      END
+   END DetectByteOrder;
 
    PROCEDURE ToInt8*(int: Int32) : Int8;
    BEGIN
@@ -109,6 +118,7 @@ MODULE ulmTypes;
    END ToReal64;
 
 BEGIN
+     DetectByteOrder;
 
      msb := SYS.VAL(SYS.SET32, MIN(SetInt));
 	 (* most significant bit, converted to a Types.Set *)

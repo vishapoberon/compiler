@@ -161,49 +161,22 @@ PROCEDURE fraction*(x: REAL): REAL;
    significant) part of `x'.  Hence the following relationship shall
    hold: x = scale(fraction(x), exponent(x)).
 *)
-VAR c: CHAR;
 BEGIN
   IF x=ZERO THEN RETURN ZERO
   ELSE
-    (* Set top 7 bits of exponent to 0111111 *)
-    S.GET(S.ADR(x)+3, c);
-    c := CHR(((ORD(c) DIV 128) * 128) + 63); (* Set X0111111 (X unchanged) *)
-    S.PUT(S.ADR(x)+3, c);
-    (* Set bottom bit of exponent to 0 *)
-    S.GET(S.ADR(x)+2, c);
-    c := CHR(ORD(c) MOD 128); (* Set 0XXXXXXX (X unchanged) *)
-    S.PUT(S.ADR(x)+2, c);
+    Reals.SetExpo(x, 126); (* biased exponent 126 = 2^(-1), so x*2 gives [1.0, 2.0) *)
     RETURN x * 2.0;
   END
-(*
-  CONST eZero={(hiBit+2)..29};
-BEGIN
-  IF x=ZERO THEN RETURN ZERO
-  ELSE RETURN S.VAL(REAL,(S.VAL(SET,x)*nMask)+eZero)*2.0  (* set the mantissa's exponent to zero *)
-  END
-*)
 END fraction;
 
 PROCEDURE IsInfinity * (real: REAL) : BOOLEAN;
-  VAR c0, c1, c2, c3: CHAR;
 BEGIN
-  S.GET(S.ADR(real)+0, c3);
-  S.GET(S.ADR(real)+1, c2);
-  S.GET(S.ADR(real)+2, c1);
-  S.GET(S.ADR(real)+3, c0);
-  RETURN (ORD(c0) MOD 128 = 127) & (ORD(c1) = 128) & (ORD(c2) = 0) & (ORD(c3) = 0)
+  RETURN (Reals.Expo(real) = 255) & (S.VAL(SET, real) * {0..22} = {})
 END IsInfinity;
 
 PROCEDURE IsNaN * (real: REAL) : BOOLEAN;
-  VAR c0, c1, c2, c3: CHAR;
 BEGIN
-  S.GET(S.ADR(real)+0, c3);
-  S.GET(S.ADR(real)+1, c2);
-  S.GET(S.ADR(real)+2, c1);
-  S.GET(S.ADR(real)+3, c0);
-  RETURN (ORD(c0) MOD 128 = 127)
-       & (ORD(c1) DIV 128 = 1)
-       & ((ORD(c1) MOD 128 # 0) OR (ORD(c2) # 0) OR (ORD(c3) # 0))
+  RETURN (Reals.Expo(real) = 255) & (S.VAL(SET, real) * {0..22} # {})
 END IsNaN;
 
 PROCEDURE sign*(x: REAL): REAL;

@@ -362,8 +362,7 @@ void testSystemDotH() {
   if (((sizeof(rec2)==65) == (sizeof(rec0)==1)) && ((sizeof(rec2)-64) != sizeof(rec0)))
     printf("error: unsupported record layout  sizeof(rec0) = %lu  sizeof(rec2) = %lu\n", (long)sizeof(rec0), (long)sizeof(rec2));
 
-  x = 1;
-  assert(*(char*)&x == 1, "C compiler does not store multibyte numeric values in little-endian order.");
+  /* byte-order check removed: voc supports both little-endian and big-endian platforms */
 }
 
 

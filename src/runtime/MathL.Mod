@@ -78,7 +78,7 @@ MODULE MathL;
            the status flags for mode control.
 *)
 
-IMPORT Math, SYSTEM;
+IMPORT Math, Platform, SYSTEM;
 
 CONST
   pi* = 3.1415926535897932384626433832795028841972D0;
@@ -146,12 +146,17 @@ PROCEDURE exponent*(x: LONGREAL): INTEGER;
    that lies between `expoMin' and `expoMax'.  An exception shall occur
    and may be raised if `x' is equal to 0.0.
 *)
-  VAR i: SYSTEM.INT64;
+  VAR i: SYSTEM.INT64; r: INTEGER;
 BEGIN
   IF x = ZERO THEN RETURN 0 (* NOTE: x=0.0 should raise exception *)
   ELSE
     i := SYSTEM.LSH(SYSTEM.VAL(SYSTEM.INT64, x), -52) MOD 2048;
-    RETURN SYSTEM.VAL(INTEGER, i) - 1023
+    IF ~Platform.LittleEndian THEN
+      SYSTEM.GET(SYSTEM.ADR(i) + SIZE(HUGEINT) - SIZE(INTEGER), r)
+    ELSE
+      SYSTEM.GET(SYSTEM.ADR(i), r)
+    END;
+    RETURN r - 1023
   END
 END exponent;
 

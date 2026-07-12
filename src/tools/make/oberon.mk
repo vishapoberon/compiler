@@ -133,8 +133,8 @@ translate:
 
 browsercmd:
 	@printf '\nMaking symbol browser\n'
-	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Ss -O$(MODEL) ../../src/runtime/Oberon.Mod
-	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Sm -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
+	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Ss -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Oberon.Mod
+	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Sm -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
 	@cd $(BUILDDIR); $(COMPILE) BrowserCmd.c Oberon.c -o showdef \
 	  Platform.o Texts.o OPT.o Heap.o Out.o SYSTEM.o OPM.o OPS.o OPV.o \
 	  Files.o Reals.o Modules.o VT100.o Configuration.o Strings.o \

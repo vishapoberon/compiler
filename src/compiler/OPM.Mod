@@ -195,10 +195,31 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END SignedMinimum;
 
 
-  (* Unchecked conversion of any size integer to INTEGER or LONGINT *)
+  (* Unchecked conversion of any size integer to INTEGER or LONGINT.
+     Uses endian-neutral byte extraction since SYSTEM.VAL across different
+     sizes reads the wrong bytes on big-endian platforms. *)
 
-  PROCEDURE Longint* (n: SYSTEM.INT64): LONGINT; BEGIN RETURN SYSTEM.VAL(LONGINT, n) END Longint;
-  PROCEDURE Integer* (n: SYSTEM.INT64): INTEGER; BEGIN RETURN SYSTEM.VAL(INTEGER, n) END Integer;
+  PROCEDURE Longint* (n: SYSTEM.INT64): LONGINT;
+    VAR r: LONGINT;
+  BEGIN
+    IF ~Platform.LittleEndian THEN
+      SYSTEM.GET(SYSTEM.ADR(n) + (SIZE(HUGEINT) - SIZE(LONGINT)), r)
+    ELSE
+      SYSTEM.GET(SYSTEM.ADR(n), r)
+    END;
+    RETURN r
+  END Longint;
+
+  PROCEDURE Integer* (n: SYSTEM.INT64): INTEGER;
+    VAR r: INTEGER;
+  BEGIN
+    IF ~Platform.LittleEndian THEN
+      SYSTEM.GET(SYSTEM.ADR(n) + (SIZE(HUGEINT) - SIZE(INTEGER)), r)
+    ELSE
+      SYSTEM.GET(SYSTEM.ADR(n), r)
+    END;
+    RETURN r
+  END Integer;
 
 
 

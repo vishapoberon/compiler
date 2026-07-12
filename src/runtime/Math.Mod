@@ -1,6 +1,6 @@
 MODULE Math;
 
-IMPORT SYSTEM;
+IMPORT SYSTEM, Platform;
 
 (*  Math - Oakwood REAL Mathematics.
     Adapted from OOC LowReal.Mod and RealMath.Mod
@@ -768,7 +768,14 @@ BEGIN
 END fcmp;
 
 PROCEDURE ToREAL(h: HUGEINT): REAL;
-BEGIN RETURN SYSTEM.VAL(REAL, h)
+  VAR r: REAL;
+BEGIN
+  IF ~Platform.LittleEndian THEN
+    SYSTEM.GET(SYSTEM.ADR(h) + SIZE(HUGEINT) - SIZE(REAL), r)
+  ELSE
+    SYSTEM.GET(SYSTEM.ADR(h), r)
+  END;
+  RETURN r
 END ToREAL;
 
 BEGIN
