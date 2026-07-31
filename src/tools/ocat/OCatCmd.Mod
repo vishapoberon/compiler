@@ -2,16 +2,16 @@ MODULE OCatCmd;  (* J. Templ, 13-Jan-96 *)
 
 (* looks at the OBERON search path and writes one or more Oberon or ascii texts to standard out *)
 
-  IMPORT Args, Console, Files, Texts;
+  IMPORT Args, Out, Files, Texts;
 
   PROCEDURE Cat*;
     VAR path: ARRAY 128 OF CHAR; i: INTEGER; T: Texts.Text; R: Texts.Reader; ch: CHAR; tab: BOOLEAN;
       buf: ARRAY 1024  OF CHAR; bufpos: INTEGER;
 
-    PROCEDURE ConsoleChar(ch: CHAR);  (* buffered write *)
+    PROCEDURE OutChar(ch: CHAR);  (* buffered write *)
     BEGIN buf[bufpos] := ch; INC(bufpos);
-      IF bufpos = LEN(buf) - 1 THEN buf[bufpos] := 0X; Console.String(buf); bufpos := 0 END
-    END ConsoleChar;
+      IF bufpos = LEN(buf) - 1 THEN buf[bufpos] := 0X; Out.String(buf); bufpos := 0 END
+    END OutChar;
 
   BEGIN
     path := ""; NEW(T);
@@ -20,20 +20,20 @@ MODULE OCatCmd;  (* J. Templ, 13-Jan-96 *)
     ELSE tab := FALSE; i := 1
     END ;
     WHILE path # "" DO
-      IF Files.Old(path) # NIL THEN 
+      IF Files.Old(path) # NIL THEN
         Texts.Open(T, path);
         Texts.OpenReader(R, T, 0); Texts.Read(R, ch); bufpos := 0;
         WHILE ~R.eot DO
-          IF ch >= " " THEN ConsoleChar(ch)
+          IF ch >= " " THEN OutChar(ch)
           ELSIF ch = 09X THEN
-            IF tab THEN ConsoleChar(ch) ELSE ConsoleChar(" "); ConsoleChar(" ") END
-          ELSIF ch = 0DX THEN ConsoleChar(0AX)
+            IF tab THEN OutChar(ch) ELSE OutChar(" "); OutChar(" ") END
+          ELSIF ch = 0DX THEN OutChar(0AX)
           END ;
           Texts.Read(R, ch)
         END ;
-        buf[bufpos] := 0X; Console.String(buf)  (* flush *)
+        buf[bufpos] := 0X; Out.String(buf); Out.Flush  (* flush *)
       ELSE
-        Console.String("ocat: cannot open "); Console.String(path); Console.Ln
+        Out.String("ocat: cannot open "); Out.String(path); Out.Ln
       END ;
       INC(i); path  := "";
       Args.Get(i, path)
