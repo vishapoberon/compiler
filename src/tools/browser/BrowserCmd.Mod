@@ -310,7 +310,7 @@ PROCEDURE SetDefaultPath;
 VAR path: ARRAY 256 OF CHAR;
 BEGIN
   path := ".;";
-  Strings.Append(Configuration.installdir, path);
+  Strings.Append(OPM.InstallDir, path);
   Strings.Append("/2/sym", path);
   Files.SetSearchPath(path)
 END SetDefaultPath;

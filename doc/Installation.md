@@ -82,7 +82,7 @@ This will create a subdirectory 'voc' which includes the following files and dir
 
 ```
 cd voc
-make full
+make
 ```
 
 The makefile will:
@@ -94,48 +94,71 @@ The makefile will:
    link the final Oberon compiler. This compiler is then used for the remaining steps.
  - Build the .sym file browser command `showdef`.
  - Build all the libraries in -O2 mode, and a subset in -OC mode.
- - Create an installation directory structure local to your copy of the repository.
- - Run a set of confidence tests.
+  - Create an installation directory image local to your copy of the repository at `install/`.
+  - Run a set of confidence tests.
 
-The makefile will use either gcc or clang, whichever is installed. If you have both installed you can specify which to use by running either `export CC=gcc` or `export CC=clang` before the `make full` command.
+The makefile will use either gcc or clang, whichever is installed. If you have both installed you can specify which to use with, for example, `CC=clang make`.
+
+The build does not require root access and does not install anything outside
+the repository. To select a compiler for one build, use for example:
+
+```
+CC=clang make
+```
 
 
 #### Installation directories:
 
 If the makefile succeeds it will end with instructions on how to set your path variable so that the
-compiler (voc) is found.
+compiler (voc) in the local `install/bin` directory is found.
 
 
 #### Installing to system directories
 
-You may optionally install to system directories such as /opt or /usr/local/share.
+You may optionally copy the local installation image to system directories such as /opt or /usr/local.
 
-First be sure to have completed `make full` successfully.
+First be sure to have completed `make` successfully.
 
-Then from a root prompt, or using sudo, run `make install`
+Then from a root prompt, or using sudo, run `make install`.
 
-The installation will be made to:
+By default, the installation will be made to:
 
-| System                       | Install dir                            |
-| -----------------------      | -------------------------------------- |
-| All types of Linux           | /opt/voc                               |
-| BSD (including Darwin)       | /usr/local/share/voc                   |
-| Termux (android)             | /data/data/com.termux/files/opt/voc    |
+| Content                     | Install dir                 |
+| --------------------------- | --------------------------- |
+| Compiler and showdef        | /usr/local/bin              |
+| Oberon resources            | /usr/local/share/voc        |
+| Runtime libraries           | /usr/local/lib              |
+| Termux (android)            | /data/data/com.termux/files/opt/voc |
 
-As with `make full`, `make install` will exit with instructions on how to set
-your PATH.
+Set `PREFIX`, `BINDIR`, `INSTALLDIR`, and `LIBDIR` to change these locations.
+`make install` only copies files. Use `make install-system` for a manual
+installation that also updates the dynamic linker cache.
+
+For package builds, set the final paths and use `DESTDIR` for staging:
+
+```
+make install PREFIX=/usr DESTDIR=/path/to/package-root
+```
+
+`DESTDIR` is only a staging prefix and is not included in the compiler's
+runtime search paths. To install the historical self-contained layout instead,
+use an explicit installation directory, for example:
+
+```
+make install INSTALLDIR=/opt/voc
+```
 
 
-#### Installation directory contentains:
+#### Installation directory contents:
 
-| Directory      | Content                                            |
-| ---            | ---                                                |
-| bin/           | Compiler and symbol file browser command binaries. |
-| lib/           | Static and dynamic link libraries for all (-O2 and -OC) type models. |
-| 2/include/     | C compiler header files for -O2 modules |
-| 2/sym/         | .sym files for -O2 modules              |
-| C/include/     | C compiler header files for -OC modules |
-| C/sym/         | .sym files for -OC modules              |
+| Directory      | Content                                                     |
+| ---            | ---                                                         |
+| `BINDIR`       | Compiler and symbol file browser command binaries.          |
+| `LIBDIR`       | Static and dynamic link libraries for all type models.     |
+| `INSTALLDIR/2/include` | C headers for -O2 modules.                         |
+| `INSTALLDIR/2/sym`     | Symbol files for -O2 modules.                    |
+| `INSTALLDIR/C/include` | C headers for -OC modules.                         |
+| `INSTALLDIR/C/sym`     | Symbol files for -OC modules.                    |
 
 
 

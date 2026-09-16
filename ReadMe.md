@@ -27,14 +27,14 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 ## Installation
 
-It is easy to install the Oberon compiler and libraries
+It is easy to build the Oberon compiler and libraries
 with the following simple steps:
 
   1. Install pre-requisites such as git, gcc, static C libraries, diff utils.
   2. Clone the repository: `git clone https://github.com/vishaps/voc`.
-  3. Optionally `export CC=clang` or `export CC=tcc`.
-  4. run `make full`.
-  5. Optionally install to a system directory such as /opt or /usr/local/share with `make install` (might be with sudo).
+  3. Optionally choose a C compiler, for example with `export CC=clang`.
+  4. Run `make`.
+  5. Optionally install to a system directory with `make install` (might be with sudo).
   6. Set your PATH variable to include the compiler binary.
 
 These are detailed below:
@@ -58,28 +58,38 @@ More details, including for MingW and MS C, in [**Installation**](/doc/Installat
 
 1. `git clone https://github.com/vishaps/voc`
 2. `cd voc`
-3. `make full`
+3. `make`
 
-`make full` will create an installation directory under your local repository at voc/install.
-
-`mmake full` runs `ldconfig` to configure the linker to find libraries in voc/install, but you
-need to update your program search PATH yourself (see step 4 below).
+`make` is an unprivileged build. It creates an installation image under
+`voc/install`, runs the confidence tests, and does not copy files to the host.
+Choose a different C compiler with, for example, `CC=clang make`.
 
 
 
 #### 3. Optionally install to a system directory
 
-Run `make install` as root to copy the voc/install directory to the appropriate directory
-for your OS as follows:
+Run `make install` as root to copy the `voc/install` image to the configured directories.
+The default Unix locations are `/usr/local/bin`, `/usr/local/share/voc`, and
+`/usr/local/lib`. Override `PREFIX`, `BINDIR`, `INSTALLDIR`, and `LIBDIR` as needed.
 
-| System  | Where `make install` puts the installation            |
-| ------- | --------------------------------------                |
-| Linux   | `/opt/voc`                                            |
-| BSD     | `/usr/local/share/voc`                                |
-| Windows | See [**Windows installation**](/doc/Winstallation.md) |
-| Termux  | `/data/data/com.termux/files/opt/voc`                 |
+For a package build, use `DESTDIR` so the staged path is not compiled into the
+compiler configuration:
 
-`make install` updates `ldconfg` with the new library locations.
+    make install PREFIX=/usr DESTDIR=/path/to/package-root
+
+To retain the historical self-contained layout, use an explicit installation
+directory instead:
+
+    make install INSTALLDIR=/opt/voc
+
+| System  | Where `make install` puts the installation             |
+| ------- | --------------------------------------                 |
+| Unix    | `/usr/local/bin`, `/usr/local/share/voc`, `/usr/local/lib` |
+| Windows | See [**Windows installation**](/doc/Winstallation.md)  |
+| Termux  | `/data/data/com.termux/files/opt/voc`                  |
+
+For a manual installation with libraries outside the standard linker paths,
+use `make install-system`; unlike `make install`, it also runs `ldconfig`.
 
 
 #### 4. Set your PATH environment variable
@@ -87,16 +97,17 @@ for your OS as follows:
 Since there are so many ways that different systems and users manage their PATHs, we leave
 it to you to update your path to include the compiler binary.
 
-Both `make full` and `make install` display instructions on setting the path specific to your
-system.
+Both `make` and `make install` display instructions on setting the path specific to your
+system. A staged installation is run from its final installation paths after
+the package is installed, not from its `DESTDIR` path.
 
 For reference this will be:
 
 | Installation choice       | Set path                                                      |
 | ---------                 | --------------------------------------                        |
-| Just `make full`          | `export PATH="your-repository-clone/install/bin:$PATH"`       |
-| `make install` on Linux   | `export PATH="/opt/voc/bin:$PATH"`                            |
-| `make install` on BSD     | `export PATH="/usr/local/share/voc/bin:$PATH"`                |
+| Just `make`               | `export PATH="your-repository-clone/install/bin:$PATH"`       |
+| `make install` on Unix    | `export PATH="/usr/local/bin:$PATH"`                          |
+| `make install` on BSD     | `export PATH="/usr/local/bin:$PATH"`                          |
 | `make install` on Windows | See [**Windows installation**](/doc/Winstallation.md)         |
 | `make install` on Termux  | `export PATH="/data/data/com.termux/files/opt/voc/bin:$PATH"` |
 
