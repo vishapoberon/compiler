@@ -3,13 +3,25 @@
 # Makes sure configuration parameters are up to date and then hands off
 # to src/tools/make/oberon.mk.
 
+# Installation paths. The default is a conventional local Unix installation.
+# Set INSTALLDIR explicitly to retain the historical self-contained layout,
+# for example: INSTALLDIR=/opt/voc make.
+PREFIX      ?=
+DESTDIR     ?=
+INSTALLDIR  ?=
+BINDIR      ?=
+LIBDIR      ?=
+
+# The configurator applies defaults and resolves PREFIX versus explicit paths.
+CONFIG_PATHS = PREFIX='$(PREFIX)' INSTALLDIR='$(INSTALLDIR)' BINDIR='$(BINDIR)' LIBDIR='$(LIBDIR)'
+
 
 
 
 # To build and install the Oberon compiler and library on a Unix based
 # OS (Linux/Mac/BSD etc.) or on cygwin, run:
 #
-#   make full
+#   make
 #
 # To override your OSs default C compiler, first run
 #
@@ -67,12 +79,15 @@
 
 
 
-# Default make target - explain usage
+# Default target: complete build and confidence tests.
+all:
+
+# Display build and installation targets
 usage:
 	@echo ""
 	@echo Usage:
 	@echo ""
-	@echo "  make full"
+	@echo "  make"
 	@echo ""
 	@echo "      Does a full, clean build, and runs confidence tests."
 	@echo "      An installation directory image is left in the local repository install directory."
@@ -84,7 +99,8 @@ usage:
 	@echo "  make library       - Build all library files and make library"
 	@echo "  make O2library     - Build all library files with Oberon-2 type sizes"
 	@echo "  make OClibrary     - Build all library files with Component Pascal type sizes"
-	@echo "  make install       - Install built compiler and library in /opt or C:\\PROGRAM FILES*"
+	@echo "  make install       - Install built compiler and library"
+	@echo "  make install-system - Install and update the dynamic linker cache"
 	@echo "                       (Needs root access)"
 	@echo ""
 	@echo "Targets for (re)creating and reverting bootstrap C sources:"
@@ -102,18 +118,16 @@ FORCE:
 
 configuration: FORCE
 	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
-	@./a.o
+	@$(CONFIG_PATHS) ./a.o
 	@rm a.o
-	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
-	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
+	@branch=$$(git -c safe.directory="$$(pwd)" rev-parse --abbrev-ref HEAD 2>/dev/null || printf unknown); echo BRANCH=$$branch>>Configuration.Make; echo Branch: $$branch.
 
 
 bootstrapconfiguration: FORCE
 	@$(CC) -I src/runtime -o a.o src/tools/make/configure.c
-	@./a.o bootstrap
+	@$(CONFIG_PATHS) ./a.o bootstrap
 	@rm a.o
-	@echo BRANCH=$$(git rev-parse --abbrev-ref HEAD)>>Configuration.Make
-	@echo Branch: $$(git rev-parse --abbrev-ref HEAD).
+	@branch=$$(git -c safe.directory="$$(pwd)" rev-parse --abbrev-ref HEAD 2>/dev/null || printf unknown); echo BRANCH=$$branch>>Configuration.Make; echo Branch: $$branch.
 
 
 
@@ -138,8 +152,9 @@ clean: configuration
 
 
 
-# full: Full build of compiler and libarary.
-full: configuration
+# all: Complete clean build of compiler and library.
+.PHONY: all
+all: configuration
 	@make -f src/tools/make/oberon.mk -s clean
 # Make bootstrap compiler from source suitable for current data model
 	@printf "\n\n--- Compiler build started ---\n\n"
@@ -234,8 +249,14 @@ makeinstalldir:
 install: configuration
 	@make -f src/tools/make/oberon.mk -s install
 
+install-system: configuration
+	@make -f src/tools/make/oberon.mk -s install-system
+
 uninstall: configuration
 	@make -f src/tools/make/oberon.mk -s uninstall
+
+uninstall-system: configuration
+	@make -f src/tools/make/oberon.mk -s uninstall-system
 
 
 
@@ -315,7 +336,7 @@ auto: configuration
 # autoonce: What auto does each time a build is triggered.
 autoonce: configuration
 	git pull
-	@if make -s full; then echo \*\* Succeeded \*\*; else echo \*\* Failed \*\*;fi
+	@if make -s; then echo \*\* Succeeded \*\*; else echo \*\* Failed \*\*;fi
 
 
 

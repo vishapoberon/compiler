@@ -122,6 +122,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     S: INTEGER;
 
     InstallDir*:  ARRAY 1024 OF CHAR;
+    LibraryDir*:  ARRAY 1024 OF CHAR;
     ResourceDir*: ARRAY 1024 OF CHAR;
 
 
@@ -832,17 +833,17 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE IsProbablyInstallDir(s: ARRAY OF CHAR): BOOLEAN;
   VAR testpath: ARRAY 4096 OF CHAR; identity: Platform.FileIdentity;
   BEGIN
-    COPY(InstallDir, testpath);
+    COPY(s, testpath);
     Strings.Append("/lib/lib", testpath);
     Strings.Append(Configuration.name, testpath);
     Strings.Append("-O2.a", testpath);
     IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
 
-    COPY(InstallDir, testpath);
+    COPY(s, testpath);
     Strings.Append("/2/include/Oberon.h", testpath);
     IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
 
-    COPY(InstallDir, testpath);
+    COPY(s, testpath);
     Strings.Append("/2/sym/Files.sym", testpath);
     IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
 
@@ -850,14 +851,28 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   END IsProbablyInstallDir;
 
   PROCEDURE FindInstallDir;
-  VAR i: INTEGER;
+  VAR i: INTEGER; env: ARRAY 1024 OF CHAR;
   BEGIN
+    (* Explicit overrides are useful for testing a staged installation. *)
+    Platform.GetEnv("VOCROOT", env);
+    IF env[0] # 0X THEN
+      COPY(env, InstallDir);
+      Platform.GetEnv("VOCLIBDIR", env);
+      IF env[0] # 0X THEN COPY(env, LibraryDir)
+      ELSE COPY(Configuration.libdir, LibraryDir)
+      END;
+      RETURN
+    END;
+
     (* First try location of binary (with <name>.d appended) *)
     COPY(Modules.BinaryDir, InstallDir);
     Strings.Append("/", InstallDir);
     Strings.Append(Configuration.name, InstallDir);
     Strings.Append(".d", InstallDir);
-    IF IsProbablyInstallDir(InstallDir) THEN RETURN END;
+    IF IsProbablyInstallDir(InstallDir) THEN
+      COPY(InstallDir, LibraryDir); Strings.Append("/lib", LibraryDir);
+      RETURN
+    END;
 
     (* Now test whether binary is in bin directory under install dir. *)
     COPY(Modules.BinaryDir, InstallDir);
@@ -865,11 +880,17 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     WHILE (i > 0) & (InstallDir[i-1] # '/') DO DEC(i) END;
     IF (i > 0) & (InstallDir[i-1] = '/') THEN
       InstallDir[i-1] := 0X;
-      IF IsProbablyInstallDir(InstallDir) THEN RETURN END
+      IF IsProbablyInstallDir(InstallDir) THEN
+        COPY(InstallDir, LibraryDir); Strings.Append("/lib", LibraryDir);
+        RETURN
+      END
     END;
 
     (* Give up! Use install directory from configuration. *)
-    COPY(Configuration.installdir, InstallDir)
+    COPY(Configuration.installdir, InstallDir);
+    COPY(Configuration.libdir, LibraryDir);
+    Platform.GetEnv("VOCLIBDIR", env);
+    IF env[0] # 0X THEN COPY(env, LibraryDir) END
   END FindInstallDir;
 
 

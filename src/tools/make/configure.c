@@ -40,6 +40,8 @@ void assert(int truth, char *complaint) {if (!truth) fail(complaint);}
 
 char builddate[256];
 char installdir[256];
+char bindir[256];
+char libdir[256];
 char versionstring[256];
 char osrelease[1024];
 char cwd[1024];
@@ -173,8 +175,11 @@ void determineInstallDirectory() {
     installdir[0] = 0;
   } else {
     char *env = getenv("INSTALLDIR");
-    if (env) {
+    char *prefix = getenv("PREFIX");
+    if (env && env[0]) {
       strncpy(installdir, env, sizeof(installdir));
+    } else if (prefix && prefix[0]) {
+      snprintf(installdir, sizeof(installdir), "%s/share/%s", prefix, oname);
     } else {
       #if defined(_MSC_VER) || defined(__MINGW32__)
         if (sizeof (void*) == 8) {
@@ -191,10 +196,43 @@ void determineInstallDirectory() {
         } else if (termux) {
           snprintf(installdir, sizeof(installdir), "/data/data/com.termux/files/opt/%s", oname);
         } else {
-          snprintf(installdir, sizeof(installdir), "/opt/%s", oname);
+          snprintf(installdir, sizeof(installdir), "/usr/local/share/%s", oname);
         }
       #endif
     }
+  }
+}
+
+
+
+void determineInstallationPaths() {
+  char *env;
+  char *install;
+  char *prefix = getenv("PREFIX");
+  int explicitInstallDir;
+  install = getenv("INSTALLDIR");
+  explicitInstallDir = install && install[0];
+
+  env = getenv("BINDIR");
+  if (env && env[0]) {
+    snprintf(bindir, sizeof(bindir), "%s", env);
+  } else if (prefix && prefix[0] && !explicitInstallDir) {
+    snprintf(bindir, sizeof(bindir), "%s/bin", prefix);
+  } else if (explicitInstallDir || termux) {
+    snprintf(bindir, sizeof(bindir), "%s/bin", installdir);
+  } else {
+    snprintf(bindir, sizeof(bindir), "/usr/local/bin");
+  }
+
+  env = getenv("LIBDIR");
+  if (env && env[0]) {
+    snprintf(libdir, sizeof(libdir), "%s", env);
+  } else if (prefix && prefix[0] && !explicitInstallDir) {
+    snprintf(libdir, sizeof(libdir), "%s/lib", prefix);
+  } else if (explicitInstallDir || termux) {
+    snprintf(libdir, sizeof(libdir), "%s/lib", installdir);
+  } else {
+    snprintf(libdir, sizeof(libdir), "/usr/local/lib");
   }
 }
 
@@ -380,6 +418,8 @@ void writeMakeParameters() {
   fprintf(fd, "ADRSIZE=%d\n",    addressSize);
   fprintf(fd, "ALIGNMENT=%d\n",  alignment);
   fprintf(fd, "INSTALLDIR=%s\n", installdir);
+  fprintf(fd, "BINDIR=%s\n",     bindir);
+  fprintf(fd, "LIBDIR=%s\n",     libdir);
   fprintf(fd, "PLATFORM=%s\n",   platform);
   fprintf(fd, "BINEXT=%s\n",     binext);
   fprintf(fd, "DYNEXT=%s\n",     dynext);
@@ -407,6 +447,7 @@ void writeConfigurationMod() {
   fprintf(fd, "  compiler*    = '%s';\n", compiler);
   fprintf(fd, "  compile*     = '%s';\n", cc);
   fprintf(fd, "  installdir*  = '%s';\n", installdir);
+  fprintf(fd, "  libdir*      = '%s';\n", libdir);
   fprintf(fd, "  staticLink*  = '%s';\n", staticlink);
   fprintf(fd, "VAR\n");
   fprintf(fd, "  versionLong-: ARRAY %d OF CHAR;\n", (int)strnlen(versionstring, 100)+1);
@@ -447,6 +488,7 @@ int main(int argc, char *argv[])
   determineCDataModel();
   determineBuildDate();
   determineInstallDirectory();
+  determineInstallationPaths();
 
   testSystemDotH();
 

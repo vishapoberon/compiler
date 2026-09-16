@@ -1,7 +1,7 @@
 ### Porting to a new platform
 
 Porting to a new 32 or 64 bit platform is usually automatically handled
-by `make full`:
+by `make`:
 
   -  The makefile compiles `src/tools/make/configure.c` with the
      platform's default C compiler.
@@ -14,10 +14,10 @@ by `make full`:
      which of 5 sets of pre-prepared C source files to build to create
      the bootstrap compiler.
 
-On most systems this will be sufficient for `make full` to build
-and install the compiler and libraries.
+On most systems this will be sufficient for `make` to build the compiler
+and libraries.
 
-`make full` will terminate with a message such as:
+`make` will terminate with a message such as:
 
 `--- Branch v2docs freebsd gcc LP64 confidence tests passed ---`
 
@@ -55,4 +55,3 @@ Unix-like systems including Linux, BSD, Android and cygwin
 If you are porting to a system that does not provide a Unix style API, it will
 be necessary to implement a new variant of Platform.Mod providing the same
 interface as Platformunix.Mod and Platform Windows.Mod.
-

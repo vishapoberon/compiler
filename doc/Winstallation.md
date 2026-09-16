@@ -52,12 +52,12 @@ This will create a subdirectory 'voc' including the following files and director
 | makefile   | Makefile for all BSD- and Linux- like environments. Includes tests.                        |
 | make.cmd   | Makefile specifically for native Microsoft C builds. No tests.                             |
 
-#### 3. Build and install the Oberon compiler and library
+#### 3. Build the Oberon compiler and library
 
 
 ```
 cd voc
-[sudo] make full
+make
 ```
 
 The makefile will:
@@ -69,8 +69,14 @@ The makefile will:
    link the final Oberon compiler. This compiler is then used for the remaining steps.
  - Build the .sym file browser command `showdef`.
  - Build all the libraries in -O2 mode, and a subset in -OC mode.
- - Install the compiler and libraries by copying them to an appropriate location for your OS.
- - Run a set of confidence tests.
+  - Create an installation image in the local `install/` directory.
+  - Run a set of confidence tests.
+
+The build does not require administrator access. To install the resulting
+image, run `make install` separately. On Cygwin, the default Unix locations
+are `/usr/local/bin`, `/usr/local/share/voc`, and `/usr/local/lib`; use
+`PREFIX`, `BINDIR`, `INSTALLDIR`, and `LIBDIR` to change them. For a package
+build, use `DESTDIR` as the staging prefix.
 
 
 ### Build using mingw under cygwin
@@ -84,13 +90,13 @@ The makefile will:
 If it succeeds the makefile will end with instructions on how to set your path variable so that the
 compiler (voc) is found.
 
-The installation will be found at:
+The local build image will be found at:
 
 | Built with      | Install dir                            |
 | --------------- | -------------------------------------- |
-| cygwin          | /opt/voc                               |
-| cygwin + mingw  | %PROGRAMFILES%/voc                     |
-| MSC             | %PROGRAMFILES%/voc                     |
+| cygwin          | `voc/install/`                         |
+| cygwin + mingw  | `voc/install/`                         |
+| MSC             | `%PROGRAMFILES%/voc` after installation |
 
 The installation directory contains:
 
@@ -167,12 +173,12 @@ To use mingw, install the correct sized package and export CC= the compiler name
  - For 32 bit cygwin
 
    - use setup-x86.exe to add the package mingw64-i686-gcc-core.
-   - run 'export CC=i686-w64-mingw32-gcc' then 'make full'
+    - run 'export CC=i686-w64-mingw32-gcc' then 'make'
 
  - For 64 bit cygwin
 
    - use setup-x86\_64.exe to add the package mingw64-x86\_64-gcc-core.
-   - run 'export CC=x86_64-w64-mingw32-gcc' then 'make full'
+    - run 'export CC=x86_64-w64-mingw32-gcc' then 'make'
 
 (*Note*: Don't be put off by the name 'mingw64' in the 32 bit package.)
 

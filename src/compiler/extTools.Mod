@@ -79,8 +79,8 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(".c ",                        cmd);
     IF statically THEN
       IF Configuration.os = "darwin" THEN
-        Strings.Append(OPM.InstallDir,           cmd);
-        Strings.Append('/lib/lib',               cmd);
+        Strings.Append(OPM.LibraryDir,           cmd);
+        Strings.Append('/lib',                   cmd);
         Strings.Append(Configuration.name,       cmd);
         Strings.Append('-O',                     cmd);
         Strings.Append(OPM.Model,                cmd);
@@ -93,8 +93,8 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Strings.Append(moduleName,                   cmd);
     IF (~statically) OR ~(Configuration.os = "darwin") THEN
       Strings.Append(Configuration.linkflags,      cmd);
-      Strings.Append(OPM.InstallDir,               cmd);
-      Strings.Append('/lib"',                      cmd);
+      Strings.Append(OPM.LibraryDir,               cmd);
+      Strings.Append('"',                          cmd);
       Strings.Append(Configuration.libspec,        cmd);
       Strings.Append('-O',                         cmd);
       Strings.Append(OPM.Model,                    cmd);
@@ -109,8 +109,8 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
       Strings.Append('-O',                 cmd);
       Strings.Append(OPM.Model,            cmd);
       Strings.Append('.dylib "',           cmd);
-      Strings.Append(OPM.InstallDir,       cmd);
-      Strings.Append('/lib/lib',           cmd);
+      Strings.Append(OPM.LibraryDir,       cmd);
+      Strings.Append('/lib',               cmd);
       Strings.Append(Configuration.name,   cmd);
       Strings.Append('-O',                 cmd);
       Strings.Append(OPM.Model,            cmd);

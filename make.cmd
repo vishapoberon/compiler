@@ -40,7 +40,7 @@ for /F %%d in ('cd');do set ROOTDIR=%%d
 :: Process target parameter
 
 if "%1" equ "" (
-  call :usage
+  call :all
 ) else (
   call :%1
 )
@@ -54,7 +54,7 @@ goto :eof
 @echo.
 @echo Usage:
 @echo.
-@echo.  make full     - Make compiler to 'install' subdirectory
+@echo.  make           - Make compiler to 'install' subdirectory
 @echo.  make install  - Install 'install' subdir to OS. Requires administrator privileges
 @echo.
 @echo.  make clean    - Remove made files
@@ -66,7 +66,7 @@ goto :eof
 
 
 
-:full
+:all
 call :clean          || exit /b
 echo.
 echo.--- Compiler build started ---
