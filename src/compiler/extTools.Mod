@@ -4,7 +4,7 @@ IMPORT Strings, Out, Configuration, Platform, Modules, Heap, OPM;
 
 TYPE CommandString = ARRAY 4096 OF CHAR;
 
-VAR CFLAGS: CommandString;
+VAR CFLAGS, LDFLAGS, LDLIBS: CommandString;
 
 
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
@@ -77,6 +77,11 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     InitialiseCompilerCommand(cmd, additionalopts);
     Strings.Append(moduleName,                   cmd);
     Strings.Append(".c ",                        cmd);
+
+    Platform.GetEnv("LDFLAGS", LDFLAGS);
+    Strings.Append(LDFLAGS, cmd);
+    Strings.Append(" ", cmd);
+
     IF statically THEN
       IF Configuration.os = "darwin" THEN
         Strings.Append(OPM.LibraryDir,           cmd);
@@ -91,6 +96,13 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     END;
     Strings.Append(Configuration.objflag,        cmd);
     Strings.Append(moduleName,                   cmd);
+    Strings.Append(" ", cmd);
+
+    Platform.GetEnv("LDLIBS", LDLIBS);
+    Strings.Append(LDLIBS, cmd);
+    Strings.Append(" ", cmd);
+
+
     IF (~statically) OR ~(Configuration.os = "darwin") THEN
       Strings.Append(Configuration.linkflags,      cmd);
       Strings.Append(OPM.LibraryDir,               cmd);
