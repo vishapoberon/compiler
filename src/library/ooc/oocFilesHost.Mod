@@ -109,6 +109,12 @@ BEGIN
   RETURN error
 END GetModTime;
 
+PROCEDURE SetModTime* (VAR name: ARRAY OF CHAR; year, month, day,
+                       hour, minute, second: LONGINT): Error;
+BEGIN
+  RETURN Platform.SetFileMTime(name, year, month, day, hour, minute, second)
+END SetModTime;
+
 PROCEDURE CurrentDirectory* (VAR path: ARRAY OF CHAR);
 BEGIN
   COPY(Platform.CWD, path)

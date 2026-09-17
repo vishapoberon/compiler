@@ -41,6 +41,7 @@ PROCEDURE -Aincludeunistd   '#include <unistd.h>';
 PROCEDURE -Aincludesysstat  '#include <sys/stat.h>';
 PROCEDURE -Aincludefcntl    '#include <fcntl.h>';
 PROCEDURE -Aincludeerrno    '#include <errno.h>';
+PROCEDURE -Aincludeutime    '#include <utime.h>';
 PROCEDURE -Astdlib          '#include <stdlib.h>';
 PROCEDURE -Astdio           '#include <stdio.h>';
 PROCEDURE -Aerrno           '#include <errno.h>';
@@ -260,6 +261,33 @@ PROCEDURE Close*(h: FileHandle): ErrorCode;
 BEGIN
   IF closefile(h) < 0 THEN RETURN err() ELSE RETURN 0 END
 END Close;
+
+
+PROCEDURE -mtimevars "struct tm mtm = {0}; struct utimbuf mtimes";
+PROCEDURE -setmtimedate(year, month, day: LONGINT)
+"mtm.tm_year = (int)year-1900; mtm.tm_mon = (int)month-1; mtm.tm_mday = (int)day";
+PROCEDURE -setmtimetime(hour, minute, second: LONGINT)
+"mtm.tm_hour = (int)hour; mtm.tm_min = (int)minute; mtm.tm_sec = (int)second; mtm.tm_isdst = -1";
+PROCEDURE -makemtime(): INTEGER "(mtimes.modtime = mktime(&mtm)) != (time_t)-1";
+PROCEDURE -invalidmtime "errno = EINVAL";
+PROCEDURE -applymtime(n: ARRAY OF CHAR): INTEGER
+"(mtimes.actime = mtimes.modtime, utime((char*)n, &mtimes))";
+
+PROCEDURE SetFileMTime* (VAR n: ARRAY OF CHAR; year, month, day,
+                         hour, minute, second: LONGINT): ErrorCode;
+BEGIN
+  mtimevars;
+  setmtimedate(year, month, day);
+  setmtimetime(hour, minute, second);
+  IF makemtime() = 0 THEN
+    invalidmtime;
+    RETURN err()
+  ELSIF applymtime(n) < 0 THEN
+    RETURN err()
+  ELSE
+    RETURN 0
+  END
+END SetFileMTime;
 
 
 PROCEDURE -isatty(fd: LONGINT): INTEGER "isatty(fd)";

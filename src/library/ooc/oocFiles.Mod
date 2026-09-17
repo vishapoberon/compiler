@@ -566,9 +566,29 @@ BEGIN
 END Tmp;
 
 PROCEDURE SetModTime* (file: ARRAY OF CHAR; mtime: Time.TimeStamp; VAR res: Result);
+  VAR
+    name: ARRAY maxPath OF CHAR;
+    day, month: SHORTINT;
+    year: INTEGER;
+    hour, minute, second, seconds: LONGINT;
+    error: Host.Error;
 BEGIN
-  (* The current host interface exposes modification-time queries only. *)
-  res := GetError(noModTime)
+  IF (mtime.msecs < 0) OR (mtime.msecs >= Time.msecPerDay) THEN
+    res := GetError(invalidTime);
+    RETURN
+  END;
+  JulianDay.DaysToDate(mtime.days, day, month, year);
+  IF year <= 0 THEN
+    res := GetError(invalidTime);
+    RETURN
+  END;
+  seconds := mtime.msecs DIV Time.msecPerSec;
+  hour := seconds DIV 3600;
+  minute := (seconds DIV 60) MOD 60;
+  second := seconds MOD 60;
+  COPY(file, name);
+  error := Host.SetModTime(name, year, month, day, hour, minute, second);
+  IF error = 0 THEN res := done ELSE res := OpenError(error) END
 END SetModTime;
 
 PROCEDURE GetModTime* (file: ARRAY OF CHAR; VAR mtime: Time.TimeStamp; VAR res: Result);
