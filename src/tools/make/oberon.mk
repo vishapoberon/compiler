@@ -286,6 +286,8 @@ ooc:
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocTextRider.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocBinaryRider.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocJulianDay.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocFilesHost.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocFiles.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocFilenames.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocwrapperlibc.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocC$(DATAMODEL).Mod

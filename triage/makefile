@@ -162,7 +162,7 @@ stage6:
 	$(VOCSTATIC) -sPF oocRealConv.Mod oocRealStr.Mod
 	$(VOCSTATIC) -sPF oocMsg.Mod oocChannel.Mod
 	$(VOCSTATIC) -sPF oocStrings2.Mod oocRts.Mod oocFilenames.Mod
-	$(VOCSTATIC) -sPF oocTextRider.Mod oocBinaryRider.Mod oocJulianDay.Mod
+	$(VOCSTATIC) -sPF oocTextRider.Mod oocBinaryRider.Mod oocJulianDay.Mod oocFilesHost.Mod oocFiles.Mod
 	$(VOCSTATIC) -sPF oocFilenames.Mod
 	$(VOCSTATIC) -sPF oocwrapperlibc.Mod
 	$(VOCSTATIC) -sPF oocC.Mod

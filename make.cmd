@@ -362,6 +362,8 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocTextRider.Mod             || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocBinaryRider.Mod           || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocJulianDay.Mod             || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFilesHost.Mod             || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFiles.Mod                 || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFilenames.Mod             || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocwrapperlibc.Mod           || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocC%DATAMODEL%.Mod          || exit /b
