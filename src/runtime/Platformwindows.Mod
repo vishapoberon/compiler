@@ -171,7 +171,7 @@ PROCEDURE -styear(): INTEGER  "(INTEGER)st.wYear";
 
 PROCEDURE YMDHMStoClock(ye,mo,da,ho,mi,se: INTEGER; VAR t, d: LONGINT);
 BEGIN
-  d := ASH(ye MOD 100, 9) + ASH(mo+1, 5) + da;
+  d := ASH(ye MOD 100, 9) + ASH(mo, 5) + da;
   t := ASH(ho, 12)        + ASH(mi, 6)   + se;
 END YMDHMStoClock;
 
@@ -287,6 +287,35 @@ PROCEDURE Close*(h: FileHandle): ErrorCode;
 BEGIN
   IF closeHandle(h) = 0 THEN RETURN err() ELSE RETURN 0 END
 END Close;
+
+
+PROCEDURE -openwriteattributes(n: ARRAY OF CHAR): FileHandle
+"(ADDRESS)CreateFile((char*)n, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)";
+
+PROCEDURE -mtimevars "SYSTEMTIME mst = {0}; FILETIME mft";
+PROCEDURE -setmtimedate(year, month, day: LONGINT)
+"mst.wYear = (WORD)year; mst.wMonth = (WORD)month; mst.wDay = (WORD)day";
+PROCEDURE -setmtimetime(hour, minute, second: LONGINT)
+"mst.wHour = (WORD)hour; mst.wMinute = (WORD)minute; mst.wSecond = (WORD)second";
+PROCEDURE -makemtime(): INTEGER "(INTEGER)SystemTimeToFileTime(&mst, &mft)";
+PROCEDURE -applymtime(h: FileHandle): INTEGER
+"(INTEGER)SetFileTime((HANDLE)h, 0, 0, &mft)";
+
+PROCEDURE SetFileMTime* (VAR n: ARRAY OF CHAR; year, month, day,
+                         hour, minute, second: LONGINT): ErrorCode;
+  VAR handle: FileHandle; result: INTEGER; error, closeError: ErrorCode;
+BEGIN
+  handle := openwriteattributes(n);
+  IF handle = invalidHandleValue() THEN RETURN err() END;
+  mtimevars;
+  setmtimedate(year, month, day);
+  setmtimetime(hour, minute, second);
+  result := makemtime();
+  IF result # 0 THEN result := applymtime(handle) END;
+  IF result = 0 THEN error := err() ELSE error := 0 END;
+  closeError := Close(handle);
+  IF error # 0 THEN RETURN error ELSE RETURN closeError END
+END SetFileMTime;
 
 
 
