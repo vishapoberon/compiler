@@ -280,6 +280,8 @@ ooc:
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocSysClock.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocTime.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocChannel.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocProgramArgsHost.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocProgramArgs.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocStrings2.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocRts.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ooc/oocFilenames.Mod

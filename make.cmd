@@ -356,6 +356,8 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocSysClock.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocTime.Mod                  || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocChannel.Mod               || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocProgramArgsHost.Mod       || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocProgramArgs.Mod           || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocStrings2.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocRts.Mod                   || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFilenames.Mod             || exit /b
