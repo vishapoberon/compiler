@@ -93,7 +93,8 @@
 MODULE ulmStreams;
 
   IMPORT Events := ulmEvents, Objects := ulmObjects, Priorities := ulmPriorities, Process := ulmProcess, RelatedEvents := ulmRelatedEvents, Resources := ulmResources,
-    Services := ulmServices, SYS := ulmSYSTEM, SYSTEM, Types := ulmTypes;
+    Services := ulmServices, SYS := ulmSYSTEM, SYSTEM, Host := ulmStreamsHost,
+    Types := ulmTypes;
 
   CONST
     (* 3rd parameter of Seek *)
@@ -275,11 +276,8 @@ MODULE ulmStreams;
 
   VAR
     null*: Stream; (* accepts any output; does not return input *)
-    (* these streams are set by other modules;
-      after initialization of Streams they equal `null';
-      so, connections with the standard UNIX streams must be
-      done by other modules
-    *)
+    (* The initial streams are connected to the host standard handles.
+       More specialized modules may replace them. *)
     stdin*, stdout*, stderr*: Stream;
     errormsg*: ARRAY errorcodes OF Events.Message;
     error*: Events.EventType;
@@ -294,6 +292,7 @@ MODULE ulmStreams;
       *)
     freelist: Buffer; (* list of free buffers *)
     nullif: Interface; (* interface of null-devices *)
+    stdinif, stdoutif, stderrif: Interface;
 
   (* === private procedures ========================================= *)
 
@@ -2093,6 +2092,36 @@ MODULE ulmStreams;
     Init(s, nullif, {read, write}, nobuf);
   END OpenNulldev;
 
+  PROCEDURE StdInRead(s: Stream; ptr: Address; cnt: Count): Count;
+  BEGIN
+    RETURN Host.ReadStdIn(ptr, cnt)
+  END StdInRead;
+
+  PROCEDURE StdOutWrite(s: Stream; ptr: Address; cnt: Count): Count;
+  BEGIN
+    RETURN Host.WriteStdOut(ptr, cnt)
+  END StdOutWrite;
+
+  PROCEDURE StdErrWrite(s: Stream; ptr: Address; cnt: Count): Count;
+  BEGIN
+    RETURN Host.WriteStdErr(ptr, cnt)
+  END StdErrWrite;
+
+  PROCEDURE OpenStandardStreams;
+  BEGIN
+    NEW(stdinif); stdinif.addrread := StdInRead;
+    NEW(stdin); Services.Init(stdin, type);
+    Init(stdin, stdinif, {read, addrio}, nobuf);
+
+    NEW(stdoutif); stdoutif.addrwrite := StdOutWrite;
+    NEW(stdout); Services.Init(stdout, type);
+    Init(stdout, stdoutif, {write, addrio}, nobuf);
+
+    NEW(stderrif); stderrif.addrwrite := StdErrWrite;
+    NEW(stderr); Services.Init(stderr, type);
+    Init(stderr, stderrif, {write, addrio}, nobuf)
+  END OpenStandardStreams;
+
   PROCEDURE ExitHandler(event: Events.Event);
     (* flush all streams on exit;
       we do not close them to allow output by other exit event handlers
@@ -2143,7 +2172,8 @@ BEGIN
 
   opened := NIL;
   InitNullIf(nullif);
-  OpenNulldev(null); stdin := null; stdout := null; stderr := null;
+  OpenNulldev(null);
+  OpenStandardStreams;
 
   Events.Handler(Process.termination, ExitHandler);
   Events.Handler(Process.startOfGarbageCollection, FreeHandler);
