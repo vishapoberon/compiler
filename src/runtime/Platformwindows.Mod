@@ -412,10 +412,18 @@ END ReadBuf;
 PROCEDURE -writefile(fd: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT; VAR n: SYSTEM.INT32): INTEGER
 "(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, (DWORD*)n, 0)";
 
-PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
-VAR n: SYSTEM.INT32;
+PROCEDURE WriteCount*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT;
+                      VAR n: LONGINT): ErrorCode;
+VAR result: INTEGER; written: SYSTEM.INT32;
 BEGIN
-  IF writefile(h, p, l, n) = 0 THEN RETURN err() ELSE RETURN 0 END
+  result := writefile(h, p, l, written);
+  IF result = 0 THEN n := 0; RETURN err() ELSE n := written; RETURN 0 END
+END WriteCount;
+
+PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
+VAR n: LONGINT;
+BEGIN
+  RETURN WriteCount(h, p, l, n)
 END Write;
 
 
@@ -444,11 +452,17 @@ BEGIN
   IF rc = 0 THEN RETURN err() ELSE RETURN 0 END
 END Seek;
 
-
-
 PROCEDURE -setEndOfFile(h: FileHandle): INTEGER "(INTEGER)SetEndOfFile((HANDLE)h)";
 PROCEDURE -getFilePos(h: FileHandle; VAR r: LONGINT; VAR rc: INTEGER)
 "LARGE_INTEGER liz = {0}; *rc = (INTEGER)SetFilePointerEx((HANDLE)h, liz, &li, FILE_CURRENT); *r = (LONGINT)li.QuadPart";
+
+PROCEDURE Tell*(h: FileHandle; VAR offset: LONGINT): ErrorCode;
+VAR rc: INTEGER;
+BEGIN
+  largeInteger;
+  getFilePos(h, offset, rc);
+  IF rc = 0 THEN offset := 0; RETURN err() ELSE RETURN 0 END
+END Tell;
 
 PROCEDURE Truncate*(h: FileHandle; limit: LONGINT): ErrorCode;
 VAR rc: INTEGER; oldpos: LONGINT;
@@ -516,7 +530,7 @@ END EnableVT100;
 
 PROCEDURE IsConsole*(h: FileHandle): BOOLEAN;
 VAR mode: SYSTEM.INT32;
-BEGIN RETURN GetConsoleMode(StdOut, mode)
+BEGIN RETURN GetConsoleMode(h, mode)
 END IsConsole;
 
 

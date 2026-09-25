@@ -6,11 +6,19 @@ CONST
   StdOut- = 1;
   StdErr- = 2;
 
+  ReadOnly* = 0;
+  WriteOnly* = 1;
+  ReadWrite* = 2;
+  OpenExisting* = 0;
+  CreateAlways* = 1;
+  OpenAlways* = 2;
+
 TYPE
   SignalHandler = PROCEDURE(signal: SYSTEM.INT32);
 
   ErrorCode*  = INTEGER;
   FileHandle* = LONGINT;
+  TerminalState* = SYSTEM.ADDRESS;
 
   FileIdentity* = RECORD
     volume: LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
@@ -42,6 +50,8 @@ PROCEDURE -Aincludesysstat  '#include <sys/stat.h>';
 PROCEDURE -Aincludefcntl    '#include <fcntl.h>';
 PROCEDURE -Aincludeerrno    '#include <errno.h>';
 PROCEDURE -Aincludeutime    '#include <utime.h>';
+PROCEDURE -Aincludetermios  '#include <termios.h>';
+PROCEDURE -Aincludesysioctl '#include <sys/ioctl.h>';
 PROCEDURE -Astdlib          '#include <stdlib.h>';
 PROCEDURE -Astdio           '#include <stdio.h>';
 PROCEDURE -Aerrno           '#include <errno.h>';
@@ -229,6 +239,8 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 PROCEDURE -openrw (n: ARRAY OF CHAR): INTEGER "open((char*)n, O_RDWR)";
 PROCEDURE -openro (n: ARRAY OF CHAR): INTEGER "open((char*)n, O_RDONLY)";
 PROCEDURE -opennew(n: ARRAY OF CHAR): INTEGER "open((char*)n, O_CREAT | O_TRUNC | O_RDWR, 0664)";
+PROCEDURE -openfile(n: ARRAY OF CHAR; access, creation: INTEGER): LONGINT
+"open((char*)n, (access == 0 ? O_RDONLY : access == 1 ? O_WRONLY : O_RDWR) | (creation == 1 ? O_CREAT | O_TRUNC : creation == 2 ? O_CREAT : 0), 0666)";
 
 (* File APIs *)
 
@@ -252,6 +264,14 @@ BEGIN
   fd := opennew(n);
   IF (fd < 0) THEN RETURN err() ELSE h := fd; RETURN 0 END;
 END New;
+
+PROCEDURE OpenFile*(VAR n: ARRAY OF CHAR; access, creation: INTEGER;
+                    VAR h: FileHandle): ErrorCode;
+VAR fd: LONGINT;
+BEGIN
+  fd := openfile(n, access, creation);
+  IF fd < 0 THEN RETURN err() ELSE h := fd; RETURN 0 END
+END OpenFile;
 
 
 
@@ -294,6 +314,86 @@ PROCEDURE -isatty(fd: LONGINT): INTEGER "isatty(fd)";
 
 PROCEDURE IsConsole*(h: FileHandle): BOOLEAN;
 BEGIN RETURN isatty(h) # 0 END IsConsole;
+
+PROCEDURE -captureTerminalState(h: FileHandle;
+                                VAR state: TerminalState): INTEGER
+"({ struct termios *p = malloc(sizeof(*p)); int rc = 0; if (p == 0) { errno = ENOMEM; rc = -1; } else if (tcgetattr(h, p) < 0) { free(p); rc = -1; } else *state = (ADDRESS)p; rc; })";
+
+PROCEDURE CaptureTerminalState*(h: FileHandle;
+                                VAR state: TerminalState): ErrorCode;
+BEGIN
+  state := 0;
+  IF captureTerminalState(h, state) < 0 THEN RETURN err() ELSE RETURN 0 END
+END CaptureTerminalState;
+
+PROCEDURE -restoreTerminalState(h: FileHandle; state: TerminalState): INTEGER
+"tcsetattr(h, TCSANOW, (struct termios*)(ADDRESS)state)";
+
+PROCEDURE RestoreTerminalState*(h: FileHandle;
+                                state: TerminalState): ErrorCode;
+BEGIN
+  IF restoreTerminalState(h, state) < 0 THEN RETURN err() ELSE RETURN 0 END
+END RestoreTerminalState;
+
+PROCEDURE -releaseTerminalState(state: TerminalState)
+"free((void*)(ADDRESS)state)";
+
+PROCEDURE ReleaseTerminalState*(VAR state: TerminalState);
+BEGIN
+  IF state # 0 THEN releaseTerminalState(state); state := 0 END
+END ReleaseTerminalState;
+
+PROCEDURE -setTerminalEcho(h: FileHandle; enabled: INTEGER): INTEGER
+"({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { if (enabled) t.c_lflag |= ECHO; else t.c_lflag &= ~ECHO; rc = tcsetattr(h, TCSANOW, &t); } rc; })";
+
+PROCEDURE SetTerminalEcho*(h: FileHandle; enabled: BOOLEAN): ErrorCode;
+  VAR value: INTEGER;
+BEGIN
+  IF enabled THEN value := 1 ELSE value := 0 END;
+  IF setTerminalEcho(h, value) < 0 THEN RETURN err() ELSE RETURN 0 END
+END SetTerminalEcho;
+
+PROCEDURE -setTerminalInputRaw(h: FileHandle): INTEGER
+"({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { t.c_iflag &= ~ICRNL; t.c_lflag &= ~ICANON; t.c_cc[VMIN] = 1; t.c_cc[VTIME] = 0; rc = tcsetattr(h, TCSANOW, &t); } rc; })";
+
+PROCEDURE -setTerminalInputCooked(h: FileHandle): INTEGER
+"({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { t.c_iflag |= ICRNL; t.c_lflag |= ICANON; t.c_cc[VEOF] = 4; t.c_cc[VEOL] = '\n'; rc = tcsetattr(h, TCSANOW, &t); } rc; })";
+
+PROCEDURE SetTerminalInputMode*(h: FileHandle; raw: BOOLEAN): ErrorCode;
+  VAR result: INTEGER;
+BEGIN
+  IF raw THEN result := setTerminalInputRaw(h)
+  ELSE result := setTerminalInputCooked(h)
+  END;
+  IF result < 0 THEN RETURN err() ELSE RETURN 0 END
+END SetTerminalInputMode;
+
+PROCEDURE -setTerminalOutputMode(h: FileHandle; raw: INTEGER): INTEGER
+"({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { if (raw) t.c_oflag &= ~(OPOST | OCRNL | ONLCR); else t.c_oflag |= OPOST | OCRNL | ONLCR; rc = tcsetattr(h, TCSANOW, &t); } rc; })";
+
+PROCEDURE SetTerminalOutputMode*(h: FileHandle; raw: BOOLEAN): ErrorCode;
+  VAR value: INTEGER;
+BEGIN
+  IF raw THEN value := 1 ELSE value := 0 END;
+  IF setTerminalOutputMode(h, value) < 0 THEN RETURN err() ELSE RETURN 0 END
+END SetTerminalOutputMode;
+
+PROCEDURE -getTerminalSize(h: FileHandle; VAR lines, columns: INTEGER): INTEGER
+"({ struct winsize ws; int rc = ioctl(h, TIOCGWINSZ, &ws); if (rc == 0) { *lines = ws.ws_row; *columns = ws.ws_col; } rc; })";
+
+PROCEDURE GetTerminalSize*(h: FileHandle;
+                           VAR lines, columns: INTEGER): ErrorCode;
+BEGIN
+  IF getTerminalSize(h, lines, columns) < 0 THEN RETURN err() ELSE RETURN 0 END
+END GetTerminalSize;
+
+PROCEDURE -sameTerminal(first, second: FileHandle): INTEGER
+"({ struct stat a, b; int same = 0; if (fstat(first, &a) == 0 && fstat(second, &b) == 0) same = S_ISCHR(a.st_mode) && S_ISCHR(b.st_mode) && a.st_rdev == b.st_rdev; same; })";
+
+PROCEDURE SameTerminal*(first, second: FileHandle): BOOLEAN;
+BEGIN
+  RETURN sameTerminal(first, second) # 0
+END SameTerminal;
 
 
 
@@ -375,11 +475,22 @@ END ReadBuf;
 PROCEDURE -writefile(fd: LONGINT; p: SYSTEM.ADDRESS; l: LONGINT): SYSTEM.ADDRESS
 "write(fd, (void*)(ADDRESS)(p), l)";
 
-PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
+PROCEDURE -writecount(value: SYSTEM.ADDRESS): LONGINT "(LONGINT)value";
+
+PROCEDURE WriteCount*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT;
+                      VAR n: LONGINT): ErrorCode;
   VAR written: SYSTEM.ADDRESS;
 BEGIN
   written := writefile(h, p, l);
-  IF written < 0 THEN RETURN err() ELSE RETURN 0 END
+  IF written < 0 THEN n := 0; RETURN err() END;
+  n := writecount(written);
+  RETURN 0
+END WriteCount;
+
+PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
+  VAR written: LONGINT;
+BEGIN
+  RETURN WriteCount(h, p, l, written)
 END Write;
 
 
@@ -393,7 +504,7 @@ END Sync;
 
 
 
-PROCEDURE -lseek(fd: LONGINT; o: LONGINT; w: INTEGER): INTEGER "lseek(fd, o, w)";
+PROCEDURE -lseek(fd: LONGINT; o: LONGINT; w: INTEGER): LONGINT "lseek(fd, o, w)";
 PROCEDURE -seekset(): INTEGER "SEEK_SET";
 PROCEDURE -seekcur(): INTEGER "SEEK_CUR";
 PROCEDURE -seekend(): INTEGER "SEEK_END";
@@ -402,6 +513,12 @@ PROCEDURE Seek*(h: FileHandle; offset: LONGINT; whence: INTEGER): ErrorCode;
 BEGIN
   IF lseek(h, offset, whence) < 0 THEN RETURN err() ELSE RETURN 0 END
 END Seek;
+
+PROCEDURE Tell*(h: FileHandle; VAR offset: LONGINT): ErrorCode;
+BEGIN
+  offset := lseek(h, 0, seekcur());
+  IF offset < 0 THEN offset := 0; RETURN err() ELSE RETURN 0 END
+END Tell;
 
 
 
