@@ -82,6 +82,21 @@ MODULE ulmSysIO;
       Protection* = Types.Int32;
       Whence* = Types.Int32;
 
+   PROCEDURE StdIn*() : File;
+   BEGIN
+      RETURN Platform.StdIn
+   END StdIn;
+
+   PROCEDURE StdOut*() : File;
+   BEGIN
+      RETURN Platform.StdOut
+   END StdOut;
+
+   PROCEDURE StdErr*() : File;
+   BEGIN
+      RETURN Platform.StdErr
+   END StdErr;
+
    PROCEDURE OpenCreat*(VAR fd: File;
                        filename: ARRAY OF CHAR; options: Types.Set;
                        protection: Protection;
@@ -179,8 +194,8 @@ MODULE ulmSysIO;
    BEGIN
       interrupted := FALSE;
       LOOP
-         error := Platform.Write(fd, buf, cnt);
-         IF error = 0 THEN RETURN cnt (* todo: Upfate Platform.Write to return actual length written.  *)
+         error := Platform.WriteCount(fd, buf, cnt, byteswritten);
+         IF error = 0 THEN RETURN byteswritten
          ELSE
             IF Platform.Interrupted(error) THEN
                interrupted := TRUE;
@@ -210,6 +225,29 @@ MODULE ulmSysIO;
          RETURN FALSE
       END;
    END Seek;
+
+   PROCEDURE Tell*(fd: File; VAR offset: Count;
+                   errors: RelatedEvents.Object) : BOOLEAN;
+      VAR error: Platform.ErrorCode;
+   BEGIN
+      error := Platform.Tell(fd, offset);
+      IF error = 0 THEN RETURN TRUE
+      ELSE
+         SysErrors.Raise(errors, error, Sys.lseek, "");
+         RETURN FALSE
+      END
+   END Tell;
+
+   PROCEDURE Isatty*(fd: File) : BOOLEAN;
+   BEGIN
+      RETURN Platform.IsConsole(fd)
+   END Isatty;
+
+   PROCEDURE Seekable*(fd: File) : BOOLEAN;
+      VAR offset: Count;
+   BEGIN
+      RETURN Platform.Tell(fd, offset) = 0
+   END Seekable;
 
 (*
 

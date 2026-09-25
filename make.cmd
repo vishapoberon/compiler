@@ -391,7 +391,9 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmResources.Mod             || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmForwarders.Mod            || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmRelatedEvents.Mod         || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreamsHost.Mod           || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreams.Mod               || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTerminals.Mod             || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStrings.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysTypes.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTexts.Mod                 || exit /b

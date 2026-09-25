@@ -316,6 +316,7 @@ ulm:
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmRelatedEvents.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmStreamsHost.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmStreams.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmTerminals.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmStrings.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmSysTypes.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmTexts.Mod
@@ -337,6 +338,8 @@ ulm:
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmConstStrings.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmPlotters.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmSysIO.Mod
+	if [ "$(PLATFORM)" = "unix" ]; then cd $(BUILDDIR)/$(MODEL) && "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmUnixFiles.Mod; fi
+	if [ "$(PLATFORM)" = "unix" ]; then cd $(BUILDDIR)/$(MODEL) && "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmUnixTerminals.Mod; fi
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmLoader.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmNetIO.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/ulm/ulmPersistentObjects.Mod
