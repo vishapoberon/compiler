@@ -360,7 +360,7 @@ END ipower;
 PROCEDURE sincos* (x: LONGREAL; VAR Sin, Cos: LONGREAL);
 (* More efficient sin/cos implementation if both values are needed. *)
 BEGIN
-  Sin:=sin(x); Cos:=sqrt(ONE-Sin*Sin)
+  Sin:=sin(x); Cos:=cos(x)  (* sqrt(ONE-Sin*Sin) lost the sign of cos and its precision near pi/2 *)
 END sincos;
 
 PROCEDURE arctan2* (xn, xd: LONGREAL): LONGREAL;

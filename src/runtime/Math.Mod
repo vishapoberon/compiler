@@ -106,6 +106,8 @@ CONST
   eps       = 2.9802322E-8;               (* 2 * *( - MantBits - 1) *)
   piInv     = 0.31830988618379067154;     (* 1/pi *)
   piByTwo   = 1.57079632679489661923132;
+  piByTwoL  = 1.57079632679489661923132D0;  (* for the reduction of tan in LONGREAL: with the REAL piByTwo, tan(pi/2) was infinite *)
+  piL       = 3.1415926535897932384626433832795028841972D0;  (* for the reduction of SinCos in LONGREAL *)
   piByFour  = 0.78539816339744830962;
   lnv       = 0.6931610107421875;         (* should be exact *)
   vbytwo    = 0.13830277879601902638E-4;  (* used in sinh/cosh *)
@@ -244,7 +246,7 @@ BEGIN
   IF x # y THEN xn := xn - HALF END;
 
   (* fractional part of reduced number *)
-  f := SHORT(ABS(LONG(x)) - LONG(xn) * pi);
+  f := SHORT(ABS(LONG(x)) - LONG(xn) * piL);
 
   (* Pre: |f| <= pi/2 *)
   IF ABS(f) < Limit THEN RETURN sign * f END;
@@ -384,7 +386,7 @@ BEGIN
 
   (* determine n and the fraction f *)
   n := round(x * twoByPi); xn := n;
-  f := SHORT(LONG(x) - LONG(xn) * piByTwo);
+  f := SHORT(LONG(x) - LONG(xn) * piByTwoL);
 
   (* check for underflow *)
   IF ABS(f) < Limit THEN xnum := f; xden := ONE
@@ -434,7 +436,7 @@ VAR
   res: REAL; i: LONGINT;
 BEGIN
   asincos(x, 0, i, res);
-  IF err # 0 THEN RETURN res END;
+  IF ABS(x) > ONE THEN RETURN res END;  (* this call failed; err stays set from any earlier error *)
 
   (* adjust result for the correct quadrant *)
   IF i = 1 THEN res := piByFour + (piByFour + res) END;
@@ -448,7 +450,7 @@ VAR
   res: REAL; i: LONGINT;
 BEGIN
   asincos(x, 1, i, res);
-  IF err # 0 THEN RETURN res END;
+  IF ABS(x) > ONE THEN RETURN res END;  (* this call failed; err stays set from any earlier error *)
 
   (* adjust result for the correct quadrant *)
   IF x < 0 THEN
@@ -619,7 +621,7 @@ END ipower;
 PROCEDURE sincos* (x: REAL; VAR Sin, Cos: REAL);
 (* More efficient sin/cos implementation if both values are needed. *)
 BEGIN
-  Sin := sin(x); Cos := sqrt(ONE-Sin * Sin)
+  Sin := sin(x); Cos := cos(x)  (* sqrt(ONE-Sin*Sin) lost the sign of cos and its precision near pi/2 *)
 END sincos;
 
 PROCEDURE arctan2* (xn, xd: REAL): REAL;

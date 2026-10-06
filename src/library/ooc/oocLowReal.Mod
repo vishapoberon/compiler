@@ -84,8 +84,7 @@ CONST
   expoMax*=    127;
   expoMin*=    1-expoMax;
   large*=      MAX(REAL);(*3.40282347E+38;*) (* MAX(REAL) *)
-  (*small*=      1.17549435E-38; (* 2^(-126) *)*)
-  small* =         1/8.50705917E37; (* don't know better way; -- noch *)
+  small*=      1.17549435E-38;  (* 2^(-126) *)
   IEC559*=     TRUE;
   LIA1*=       FALSE;
   rounds*=     FALSE;
@@ -171,12 +170,12 @@ END fraction;
 
 PROCEDURE IsInfinity * (real: REAL) : BOOLEAN;
 BEGIN
-  RETURN (Reals.Expo(real) = 255) & (S.VAL(SET, real) * {0..22} = {})
+  RETURN (Reals.Expo(real) = 255) & (real = real)  (* not a NaN *)
 END IsInfinity;
 
 PROCEDURE IsNaN * (real: REAL) : BOOLEAN;
 BEGIN
-  RETURN (Reals.Expo(real) = 255) & (S.VAL(SET, real) * {0..22} # {})
+  RETURN real # real  (* only a NaN differs from itself *)
 END IsNaN;
 
 PROCEDURE sign*(x: REAL): REAL;
@@ -195,15 +194,17 @@ PROCEDURE scale*(x: REAL; n: INTEGER): REAL;
   The value of the call scale(x,n) shall be the value x*radix^n if such
   a value exists; otherwise an execption shall occur and may be raised.
 *)
-  VAR exp: LONGINT; lexp: SET;
+  VAR exp: LONGINT;
 BEGIN
   IF x=ZERO THEN RETURN ZERO END;
   exp:= exponent(x)+n;                          (* new exponent *)
   IF exp>expoMax THEN RETURN large*sign(x)      (* exception raised here *)
   ELSIF exp<expoMin THEN RETURN small*sign(x)   (* exception here as well *)
   END;
-  lexp:=S.VAL(SET,S.LSH(exp+expOffset,expBit)); (* shifted exponent bits *)
-  RETURN S.VAL(REAL,(S.VAL(SET,x)*nMask)+lexp)  (* insert new exponent *)
+  (* the new exponent with Reals, as fraction: the bits of x as a SET were wrong where SET has
+     64 bits (scale, sqrt and arccos of RealMath gave about 1E9) *)
+  Reals.SetExpo(x, SHORT(exp+expOffset));
+  RETURN x
 END scale;
 
 PROCEDURE ulp*(x: REAL): REAL;
@@ -245,8 +246,8 @@ PROCEDURE intpart*(x: REAL): REAL;
 BEGIN
   loBit:=(hiBit+1)-exponent(x);
   IF loBit<=0 THEN RETURN x                     (* no fractional part *)
-  ELSIF loBit<=hiBit+1 THEN
-    RETURN S.VAL(REAL,S.VAL(SET,x)*{loBit..31}) (* integer part is extracted *)
+  ELSIF loBit<=hiBit+1 THEN                     (* ABS(x) < 2^23: ENTIER is exact *)
+    IF x<ZERO THEN RETURN -ENTIER(-x) ELSE RETURN ENTIER(x) END
   ELSE RETURN ZERO                              (* no whole part *)
   END
 END intpart;
@@ -266,12 +267,12 @@ PROCEDURE trunc*(x: REAL; n: INTEGER): REAL;
    significant `n' places of `x'.  An exception shall occur and may be
    raised if `n' is less than or equal to zero.
 *)
-  VAR loBit: INTEGER; mask: SET;
+  VAR loBit, k: INTEGER;
 BEGIN loBit:=places-n;
   IF n<=0 THEN RETURN ZERO                   (* exception should be raised *)
-  ELSIF loBit<=0 THEN RETURN x               (* nothing was truncated *)
-  ELSE mask:={loBit..31};                    (* truncation bit mask *)
-    RETURN S.VAL(REAL,S.VAL(SET,x)*mask)
+  ELSIF (loBit<=0) OR (x=ZERO) THEN RETURN x (* nothing was truncated *)
+  ELSE k:=n-1-exponent(x);                   (* x scaled by 2^k has n places before the point *)
+    RETURN scale(intpart(scale(x, k)), -k)
   END
 END trunc;
 
@@ -282,19 +283,14 @@ PROCEDURE round*(x: REAL; n: INTEGER): REAL;
    raised if such a value does not exist, or if `n' is less than or equal
    to zero.
 *)
-  VAR loBit: INTEGER; num, mask: SET; r: REAL;
+  VAR loBit, k: INTEGER; t, i: REAL;
 BEGIN loBit:=places-n;
   IF n<=0 THEN RETURN ZERO                   (* exception should be raised *)
-  ELSIF loBit<=0 THEN RETURN x               (* nothing was rounded *)
-  ELSE mask:={loBit..31}; num:=S.VAL(SET,x); (* truncation bit mask and number as SET *)
-    x:=S.VAL(REAL,num*mask);                 (* truncated result *)
-    IF loBit-1 IN num THEN                   (* check if result should be rounded *)
-      r:=scale(ONE,exponent(x)-n+1);         (* rounding fraction *)
-      IF 31 IN num THEN RETURN x-r           (* negative rounding toward -infinity *)
-      ELSE RETURN x+r                        (* positive rounding toward +infinity *)
-      END
-    ELSE RETURN x                            (* return truncated result *)
-    END
+  ELSIF (loBit<=0) OR (x=ZERO) THEN RETURN x (* nothing was rounded *)
+  ELSE k:=n-1-exponent(x);                   (* x scaled by 2^k has n places before the point *)
+    t:=scale(ABS(x), k); i:=intpart(t);
+    IF t-i>=0.5 THEN i:=i+ONE END;          (* the first dropped bit set: away from zero *)
+    RETURN scale(i, -k)*sign(x)
   END
 END round;
 
