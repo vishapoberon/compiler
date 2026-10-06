@@ -183,11 +183,6 @@ BEGIN
       IF e >= 0 THEN x := x / Ten(e) ELSE x := Ten(-e) * x END ;
       IF x >= 10.0D0 THEN x := 0.1D0 * x; INC(e) END;
 
-      (* Generate the exponent digits *)
-      en := e < 0; IF en THEN e := - e END;
-      WHILE el > 0 DO digit(e, s, i); e := e DIV 10; DEC(el) END;
-      DEC(i); IF en THEN s[i] := "-" ELSE s[i] := "+" END;
-
       (* Scale x to enough significant digits to reliably test for trailing
          zeroes or to the amount of space available, if greater. *)
       x0 := Ten(d-1);
@@ -196,7 +191,13 @@ BEGIN
                           introduces a least significant bit difference
                           between 32 bit and 64 bit builds. *)
       IF x >= 10.0D0 * x0 THEN x := 0.1D0 * x; INC(e) END;
-      m := Entier64(x)
+      m := Entier64(x);
+
+      (* Generate the exponent digits, after the rounding above, which can carry into it
+         (0.99999999999999989 was written as 1.0D-001) *)
+      en := e < 0; IF en THEN e := - e END;
+      WHILE el > 0 DO digit(e, s, i); e := e DIV 10; DEC(el) END;
+      DEC(i); IF en THEN s[i] := "-" ELSE s[i] := "+" END
     END;
 
     DEC(i); IF long THEN s[i] := "D" ELSE s[i] := "E" END;
