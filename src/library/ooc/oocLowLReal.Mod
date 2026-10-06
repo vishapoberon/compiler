@@ -87,8 +87,7 @@ CONST
   expoMax*=    1023;
   expoMin*=    1-expoMax;
   large*=      MAX(LONGREAL); (*1.7976931348623157D+308;*)  (* MAX(LONGREAL) *)
-  (*small*=      2.2250738585072014D-308;*)
-  small*=      2.2250738585072014/9.9999999999999981D307(*/10^308)*);
+  small*=      2.2250738585072014D-308;  (* 2^(-1022); exact since the compiler converts and writes reals exactly *)
   IEC559*=     TRUE;
   LIA1*=       FALSE;
   rounds*=     FALSE;
