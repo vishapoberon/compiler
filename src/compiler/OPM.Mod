@@ -754,13 +754,30 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END;
   END WriteInt;
 
+  (* r with 17 significant digits, which read back as the same double: 15 digits lost precision,
+     and very small values (as LowLReal.small) came out as 0 *)
+  PROCEDURE -AAincludeStdio '#include <stdio.h>';
+  PROCEDURE -FormatReal(buf: SYSTEM.ADDRESS; r: LONGREAL) 'snprintf((char*)(ADDRESS)(buf), 40, "%.17g", r)';
+
+  PROCEDURE WriteExactReal(r: LONGREAL);
+    VAR s: ARRAY 40 OF CHAR; i: INTEGER; real: BOOLEAN;
+  BEGIN
+    FormatReal(SYSTEM.ADR(s), r);
+    i := 0; real := FALSE;
+    WHILE s[i] # 0X DO IF (s[i] = ".") OR (s[i] = "e") THEN real := TRUE END; INC(i) END;
+    IF ~real THEN s[i] := "."; s[i+1] := "0"; s[i+2] := 0X END;  (* not an integer constant in C *)
+    WriteStringVar(s)
+  END WriteExactReal;
+
   PROCEDURE WriteReal* (r: LONGREAL; suffx: CHAR);
     VAR W: Texts.Writer; T: Texts.Text; R: Texts.Reader; s: ARRAY 32 OF CHAR; ch: CHAR; i: INTEGER;
   BEGIN
-(*should be improved *)
     IF (r < SignedMaximum(LongintSize)) & (r > SignedMinimum(LongintSize)) & (r = ENTIER(r)) THEN
       IF suffx = "f" THEN WriteString("(REAL)") ELSE WriteString("(LONGREAL)") END ;
       WriteInt(ENTIER(r))
+    ELSIF SYSTEM.VAL(SYSTEM.INT64, r) DIV 10000000000000H MOD 800H # 7FFH THEN  (* not inf or nan *)
+      IF suffx = "f" THEN WriteString("(REAL)") ELSE WriteString("(LONGREAL)") END ;
+      WriteExactReal(r)
     ELSE
       Texts.OpenWriter(W);
       IF suffx = "f" THEN Texts.WriteLongReal(W, r, 16) ELSE Texts.WriteLongReal(W, r, 23) END ;
@@ -895,9 +912,17 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
 
+  (* the largest REAL and LONGREAL, from their bits: 1.7976931348623157D307 * 9.999999 was
+     1.79769296342094D308, and older compilers refuse the exponent 308 *)
+  PROCEDURE SetMaxReals;
+    VAR i32: SYSTEM.INT32; i64: SYSTEM.INT64; r: REAL;
+  BEGIN
+    i32 := 7F7FFFFFH; r := SYSTEM.VAL(REAL, i32); MaxReal := r;
+    i64 := 7FEFFFFFFFFFFFFFH; MaxLReal := SYSTEM.VAL(LONGREAL, i64)
+  END SetMaxReals;
+
 BEGIN
-  MaxReal := 3.40282346D38;                      (* REAL is 4 bytes *)
-  MaxLReal := 1.7976931348623157D307 * 9.999999; (* LONGREAL is 8 bytes, should be 1.7976931348623157D308 *)
+  SetMaxReals;
   MinReal  := -MaxReal;
   MinLReal := -MaxLReal;
   FindInstallDir;
