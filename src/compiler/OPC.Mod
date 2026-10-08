@@ -5,7 +5,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     various promotion rules changed (long) => (LONGINT), xxxL avoided
 *)
 
-  IMPORT OPT, OPM, Configuration, SYSTEM;
+  IMPORT OPT, OPM, Configuration, SYSTEM, Strings;
 
   CONST demoVersion = FALSE;
 
@@ -806,6 +806,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         | OPM.notcoloroutput: OPM.Write("f")
         | OPM.forcenewsym:    OPM.Write("F")
         | OPM.verbose:        OPM.Write("v")
+        | OPM.sharedmodule:   OPM.Write("l")
+        | OPM.permodules:     OPM.Write("P")
+        | OPM.dynamicmain:    OPM.Write("d")
+        | OPM.embeddedcore:   OPM.Write("D")
         ELSE OPM.LogWStr ("( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg"); OPM.LogWLn;
         END
       END
@@ -841,6 +845,15 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
     Include(BasicIncludeFile);
     IncludeImports(OPT.topScope^.right, 0); OPM.WriteLn;
+    IF OPM.sharedmodule IN OPM.Options THEN
+      Include("Heap");
+      OPM.WriteString("extern const INT32 VOC_CoreABI;"); OPM.WriteLn;
+      OPM.WriteString("export const void *"); OPM.WriteStringVar(OPM.modName);
+      OPM.WriteString("__voc_runtime = &VOC_CoreABI;"); OPM.WriteLn;
+      OPM.WriteString("export const INT32 "); OPM.WriteStringVar(OPM.modName);
+      OPM.WriteString("__voc_abi[] = {2, sizeof(ADDRESS), sizeof(SHORTINT), sizeof(INTEGER),"); OPM.WriteLn;
+      OPM.WriteString("sizeof(LONGINT), sizeof(SET), sizeof(Heap_ModuleDesc), sizeof(Heap_CmdDesc), 1};"); OPM.WriteLn
+    END;
     DefAnonRecs(n);
     TypeDefs(OPT.topScope^.right, 0); OPM.WriteLn;
     IdentList(OPT.topScope^.scope, 0); OPM.WriteLn;
@@ -855,6 +868,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       RegCmds(obj^.left);
       IF (obj^.mode = OPT.XProc) & (obj^.history # OPT.removed) THEN
         IF (obj^.vis # 0) & (obj^.link = NIL) & (obj^.typ = OPT.notyp) THEN (*command*)
+          IF (OPM.permodules IN OPM.Options) & (Strings.Length(obj.name) >= OPM.ModularNameLen) THEN
+            OPM.LogWStr("Modular-build command names must fit the 63-character runtime registry.");
+            OPM.LogWLn; OPM.noerr := FALSE
+          END;
           BegStat; OPM.WriteString('__REGCMD("');
           OPM.WriteStringVar(obj.name); OPM.WriteString('", '); Ident(obj); OPM.Write(")"); EndStat
         END
@@ -864,10 +881,28 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END RegCmds;
 
   PROCEDURE InitImports(obj: OPT.Object);
+    VAR i: INTEGER;
   BEGIN
     IF obj # NIL THEN
       InitImports(obj^.left);
       IF (obj^.mode = OPT.Mod) & (obj^.mnolev # 0) THEN
+        IF OPM.permodules IN OPM.Options THEN
+          IF OPT.GlbMod[-obj^.mnolev].name = "core" THEN
+            OPM.LogWStr("The library name core is reserved for the minimal runtime.");
+            OPM.LogWLn; OPM.noerr := FALSE; RETURN
+          END;
+          IF Strings.Length(OPT.GlbMod[-obj^.mnolev].name) >= OPM.ModularNameLen THEN
+            OPM.LogWStr("Modular imports must fit the 63-character runtime registry.");
+            OPM.LogWLn; OPM.noerr := FALSE; RETURN
+          END;
+          i := 0;
+          WHILE (i < OPM.SharedImportCount) &
+              (OPM.SharedImports[i] # OPT.GlbMod[-obj^.mnolev].name) DO INC(i) END;
+          IF i = OPM.SharedImportCount THEN
+            COPY(OPT.GlbMod[-obj^.mnolev].name, OPM.SharedImports[i]);
+            INC(OPM.SharedImportCount)
+          END
+        END;
         BegStat; OPM.WriteString("__MODULE_IMPORT(");
         OPM.WriteStringVar(OPT.GlbMod[-obj^.mnolev].name);
         OPM.Write(')'); EndStat

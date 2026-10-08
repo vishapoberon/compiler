@@ -102,6 +102,9 @@ usage:
 	@echo "  make install       - Install built compiler and library"
 	@echo "  make install-system - Install and update the dynamic linker cache"
 	@echo "                       (Needs root access)"
+	@echo "  make modular-library - Build optional per-module ELF shared libraries"
+	@echo "  make modular-library-test - Check all bundled shared libraries"
+	@echo "  make vish vish-test vish-demo - Build/test the optional module shell"
 	@echo ""
 	@echo "Targets for (re)creating and reverting bootstrap C sources:"
 	@echo "  make bootstrap       - Update bootstrap C source directories."
@@ -112,6 +115,26 @@ usage:
 .PHONY: tags
 tags: 
 	ctags -R --options=oberon.ctags --extras=+q
+
+# Optional ELF runtime and command shell; never replaces the installed compiler.
+.PHONY: vish vish-test vish-demo modular-runtime modular-library modular-library-test
+vish:
+	$(MAKE) -f src/tools/vish/Makefile all
+
+vish-test:
+	$(MAKE) -f src/tools/vish/Makefile test
+
+vish-demo:
+	$(MAKE) -f src/tools/vish/Makefile demo
+
+modular-runtime:
+	$(MAKE) -f src/tools/vish/Makefile modules
+
+modular-library:
+	$(MAKE) -f src/tools/vish/Makefile libraries
+
+modular-library-test:
+	$(MAKE) -f src/tools/vish/Makefile test-library
 
 # Generate config files Configuration.Make and Configuration.Mod
 FORCE:

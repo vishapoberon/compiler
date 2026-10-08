@@ -19,6 +19,7 @@ TYPE
   ErrorCode*  = INTEGER;
   FileHandle* = LONGINT;
   TerminalState* = SYSTEM.ADDRESS;
+  DirectoryHandle* = SYSTEM.ADDRESS;
 
   FileIdentity* = RECORD
     volume: LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
@@ -234,6 +235,42 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 
 
 (* File system *)
+
+(* Native helpers stay private: libc headers/macros must not leak through the
+   exported Platform.h into unrelated generated Oberon modules. *)
+PROCEDURE -ADirectorySupport '#include "PlatformDirectory.h"';
+
+PROCEDURE -openDirectory(path: ARRAY OF CHAR;
+                        VAR handle: DirectoryHandle): ErrorCode
+"VOC_OpenDirectory((char*)path, handle)";
+
+PROCEDURE OpenDirectory*(path: ARRAY OF CHAR;
+                        VAR handle: DirectoryHandle): ErrorCode;
+BEGIN RETURN openDirectory(path, handle) END OpenDirectory;
+
+(* done distinguishes end-of-directory from errors. An undersized name buffer
+   returns an error, never a truncated name. Close every successfully opened
+   cursor, including after read errors. Entries include '.' and '..'. *)
+PROCEDURE -readDirectory(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
+                        VAR done: BOOLEAN): ErrorCode
+"VOC_ReadDirectory(handle, (char*)name, name__len, done)";
+
+PROCEDURE ReadDirectory*(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
+                        VAR done: BOOLEAN): ErrorCode;
+BEGIN RETURN readDirectory(handle, name, done) END ReadDirectory;
+
+PROCEDURE -closeDirectory(VAR handle: DirectoryHandle): ErrorCode
+"VOC_CloseDirectory(handle)";
+
+PROCEDURE CloseDirectory*(VAR handle: DirectoryHandle): ErrorCode;
+BEGIN RETURN closeDirectory(handle) END CloseDirectory;
+
+(* Follow symlinks, so path completion can descend through directory links. *)
+PROCEDURE -isDirectory(path: ARRAY OF CHAR): BOOLEAN
+"VOC_IsDirectory((char*)path)";
+
+PROCEDURE IsDirectory*(path: ARRAY OF CHAR): BOOLEAN;
+BEGIN RETURN isDirectory(path) END IsDirectory;
 
 (* Note: Consider also using flags O_SYNC and O_DIRECT as we do buffering *)
 PROCEDURE -openrw (n: ARRAY OF CHAR): INTEGER "open((char*)n, O_RDWR)";

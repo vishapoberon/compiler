@@ -224,6 +224,7 @@ uninstall-system: uninstall
 
 runtime: FORCE
 	@printf '\nMaking run time library for -O$(MODEL)\n'
+	cp src/runtime/PlatformDirectory.h $(BUILDDIR)/$(MODEL)
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Heap.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Out.Mod

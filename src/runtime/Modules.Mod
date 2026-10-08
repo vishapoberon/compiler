@@ -6,7 +6,7 @@ MODULE Modules;  (* jt 6.1.96 *)
   IMPORT SYSTEM, Platform, Heap; (* Note, must import Platform before Heap *)
 
   CONST
-    ModNameLen* = 20;
+    ModNameLen* = SIZE(Heap.ModuleName);
 
   TYPE
     ModuleName* = Heap.ModuleName;

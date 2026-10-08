@@ -17,6 +17,12 @@
 #include "stdarg.h"
 #include <signal.h>
 
+/* Modular libraries resolve this symbol from their host. In particular they
+   must not pull a second heap/core into an executable built with -mD. */
+#ifdef VOC_CORE_RUNTIME
+export const INT32 VOC_CoreABI = 1;
+#endif
+
 
 // Procedure verions of SYSTEM.H versions used when a multiply accessed
 // parameter has side effects.
@@ -224,4 +230,3 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     }
 
 #endif
-

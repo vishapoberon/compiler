@@ -10,6 +10,24 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
     VAR ext, new: BOOLEAN; p: OPT.Node;
   BEGIN
     OPP.Module(p, OPM.Options);
+    IF (OPM.permodules IN OPM.Options) & (Strings.Length(OPT.SelfName) >= OPM.ModularNameLen) THEN
+      OPM.LogWStr("Modular-build names must fit the 63-character runtime registry.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.permodules IN OPM.Options) & (OPT.SelfName = "core") THEN
+      OPM.LogWStr("The library name core is reserved for the minimal runtime.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.sharedmodule IN OPM.Options) &
+        ((OPT.SelfName = "SYSTEM") OR (OPT.SelfName = "Platform") OR
+         (OPT.SelfName = "Heap") OR (OPT.SelfName = "Modules")) THEN
+      OPM.LogWStr("SYSTEM, Platform, Heap and Modules belong to the minimal core, not separate modules.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.dynamicmain IN OPM.Options) & (OPT.SelfName = "ModuleLoader") THEN
+      OPM.LogWStr("ModuleLoader is the launcher's loader; build it as a library, not an application.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
     IF OPM.noerr THEN
       OPV.Init;
       OPT.InitRecno;
@@ -137,8 +155,14 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
         END;
 
         (* 'assemble' (i.e. c compile) .c to object or executable. *)
+        IF OPM.dynamicmain IN OPM.Options THEN extTools.GenerateLauncher(OPM.modName) END;
         IF ~(OPM.dontasm IN OPM.Options) THEN
-          IF OPM.dontlink IN OPM.Options THEN
+          IF (OPM.sharedmodule IN OPM.Options) & ~(OPM.dontlink IN OPM.Options) THEN
+            extTools.LinkModule(OPM.modName);
+            IF OPM.dynamicmain IN OPM.Options THEN
+              extTools.LinkLauncher(OPM.modName, OPM.embeddedcore IN OPM.Options)
+            END
+          ELSIF OPM.dontlink IN OPM.Options THEN
             (* If not linking, just assemble each module. *)
             extTools.Assemble(OPM.modName)
           ELSE
@@ -147,7 +171,8 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
               extTools.Assemble(OPM.modName);
             ELSE
               (* Assemble and link main program *)
-              FindLocalObjectFiles(linkfiles);
+              linkfiles := "";
+              IF ~(OPM.permodules IN OPM.Options) THEN FindLocalObjectFiles(linkfiles) END;
               extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.Options, linkfiles)
             END
           END

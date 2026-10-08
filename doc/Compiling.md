@@ -57,12 +57,47 @@ The following options designate the main module:
 
 | Compiler option | Use                                                                                  |
 | :-------------: | ---------------------------                                                          | 
-| ```-m```        | Generate loadable binary using dynamic library loading (*see note*)                  |
+| ```-m```        | Generate binary dynamically linked to the shared runtime (*see note*)                |
 | ```-M```        | Generate loadable binary with all library references statically linked (*see note*)  |
 
 For a main module, no .sym or .h files are generated, and the C compiler is called with additional parameters to generate the execututable binary, linking the object files needed for imported modules.
 
 *Note:* not all systems support both static and dynamic linking: some support only static; some support only dynamic. When a system only supports one, ```-m``` and ```-M``` behave the same.
+
+On Linux, `-m` links dynamically to `libvoc` and libc. `-M` passes `-static`,
+linking both statically; their static libraries must be installed.
+
+### Modular programs and command libraries
+
+The optional [shared-module build and `vish` shell](/doc/SharedModules.md)
+add native compiler modes alongside the compatibility modes above:
+
+| Compiler option | Use |
+| :-------------: | --- |
+| `-l` | Build one module as `libvoc-module-O2.so`, retaining its symbols/header. |
+| `-md` | Build an application `.so` and a host which loads it with `dlopen`; shared minimal core and libc. |
+| `-mD` | Build the same loading host with an embedded/exported minimal core; libc remains shared. |
+| `-d` | Shorthand for `-md`. |
+| `-mP` | Link a program at startup to individual module libraries and a shared minimal core. |
+
+These modes require the separately built modular runtime. They must not mix
+its individual modules with the existing monolithic runtime in one process.
+`-md`/`-mD` hosts do not link the application or its imports. Rebuild an application
+with `-l` to change its code/imports without rebuilding its host. Its module body
+is the entry point; arguments remain available through `Modules.GetArg`.
+`-mD` embeds only `SYSTEM`/`Platform`/`Heap`/`Modules`, not the whole `libvoc`;
+its loader, application libraries and libc remain shared. It is not fully static.
+`-M` cannot be combined with `-d`, `-D` or `-P`: `-Md`, `-MD` and `-MP` are
+rejected rather than changing the meaning of static linking. Lowercase `-p`
+still controls pointer initialization; `-m` and `-M` retain their existing behavior.
+
+`make modular-library` builds the full bundled Oberon-2 library profile, including
+optional X11 bindings (`WITH_X11=0` omits them). An installed modular package
+selects its separate headers/symbols and library directory automatically for
+these options; ordinary compilation still selects the compatibility profile.
+See [A gentle introduction to shared modules](/doc/ModuleTutorial.md) for
+complete examples, or the [bundled-library examples](/src/test/shared-libraries/README.md)
+for a makefile which builds both command libraries and standalone applications.
 
 ### Separate compilation
 
@@ -81,4 +116,3 @@ For example:
 ```
  
 Will apply the ```-s``` option to all modules (allow changes to and extension of symbols), and will apply the ```-m``` option (main program) only to ```main.mod```.
-
