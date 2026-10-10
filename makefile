@@ -104,7 +104,7 @@ usage:
 	@echo "                       (Needs root access)"
 	@echo "  make modular-library - Build optional per-module ELF shared libraries"
 	@echo "  make modular-library-test - Check all bundled shared libraries"
-	@echo "  make vish vish-test vish-demo - Build/test the optional module shell"
+	@echo "  make hresh hresh-test hresh-demo - Build/test the optional module shell"
 	@echo ""
 	@echo "Targets for (re)creating and reverting bootstrap C sources:"
 	@echo "  make bootstrap       - Update bootstrap C source directories."
@@ -117,24 +117,24 @@ tags:
 	ctags -R --options=oberon.ctags --extras=+q
 
 # Optional ELF runtime and command shell; never replaces the installed compiler.
-.PHONY: vish vish-test vish-demo modular-runtime modular-library modular-library-test
-vish:
-	$(MAKE) -f src/tools/vish/Makefile all
+.PHONY: hresh hresh-test hresh-demo modular-runtime modular-library modular-library-test
+hresh:
+	$(MAKE) -f src/tools/hresh/Makefile all
 
-vish-test:
-	$(MAKE) -f src/tools/vish/Makefile test
+hresh-test:
+	$(MAKE) -f src/tools/hresh/Makefile test
 
-vish-demo:
-	$(MAKE) -f src/tools/vish/Makefile demo
+hresh-demo:
+	$(MAKE) -f src/tools/hresh/Makefile demo
 
 modular-runtime:
-	$(MAKE) -f src/tools/vish/Makefile modules
+	$(MAKE) -f src/tools/hresh/Makefile modules
 
 modular-library:
-	$(MAKE) -f src/tools/vish/Makefile libraries
+	$(MAKE) -f src/tools/hresh/Makefile libraries
 
 modular-library-test:
-	$(MAKE) -f src/tools/vish/Makefile test-library
+	$(MAKE) -f src/tools/hresh/Makefile test-library
 
 # Generate config files Configuration.Make and Configuration.Mod
 FORCE:

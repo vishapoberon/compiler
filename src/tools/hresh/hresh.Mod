@@ -1,7 +1,7 @@
-MODULE vish;
+MODULE hresh;
 
-  (* Vishap shell. Commands execute in this process,
-     not in child processes, just as in loksh and the Oberon UI. *)
+  (* Hosted Runtime Extensible Shell.
+     Commands execute in this process, sharing one Oberon runtime. *)
 
   IMPORT Modules, SharedModules, Oberon, Texts, Out, Heap, Platform, LineEditor;
 
@@ -71,14 +71,14 @@ MODULE vish;
 
   PROCEDURE Help;
   BEGIN
-    Out.String("vish - Vishap Oberon shell"); Out.Ln;
-    Out.String("  vish [-Ppath] [Module.Command [arguments]]"); Out.Ln;
-    Out.String("  vish < script       run a batch of commands"); Out.Ln;
+    Out.String("hresh - Hosted Runtime Extensible Shell"); Out.Ln;
+    Out.String("  hresh [-Ppath] [Module.Command [arguments]]"); Out.Ln;
+    Out.String("  hresh < script      run a batch of commands"); Out.Ln;
     Out.String("  Module              list its commands without initializing it"); Out.Ln;
     Out.String("  Tab: commands, then files/directories; arrows: history"); Out.Ln;
     Out.String("  quit/exit/Ctrl-D: leave"); Out.Ln;
     Out.String("  VOC_MODULE_PATH: colon-separated module directories"); Out.Ln;
-    Out.String("  Modules stay loaded; HALT or a fault terminates this prototype."); Out.Ln
+    Out.String("  Modules stay loaded; HALT or a fault terminates the shell."); Out.Ln
   END Help;
 
   PROCEDURE ShowCommand(name: ARRAY OF CHAR);
@@ -88,7 +88,7 @@ MODULE vish;
 
   PROCEDURE Error;
   BEGIN
-    Out.String("vish: "); Out.String(SharedModules.resMsg); Out.Ln;
+    Out.String("hresh: "); Out.String(SharedModules.resMsg); Out.Ln;
     failed := TRUE
   END Error;
 
@@ -154,7 +154,7 @@ MODULE vish;
         IF arg[2] = 0X THEN
           INC(i);
           IF i >= Modules.ArgCount THEN
-            Out.String("vish: -P needs a module path"); Out.Ln; Platform.Exit(1)
+            Out.String("hresh: -P needs a module path"); Out.Ln; Platform.Exit(1)
           END;
           Modules.GetArg(i, SharedModules.path)
         ELSE
@@ -173,7 +173,7 @@ MODULE vish;
         Modules.GetArg(i, arg);
         ok := Append(arg, line);
         IF i < Modules.ArgCount - 1 THEN ok := ok & Append(" ", line) END;
-        IF ~ok THEN Out.String("vish: command line too long"); Out.Ln; Platform.Exit(1) END;
+        IF ~ok THEN Out.String("hresh: command line too long"); Out.Ln; Platform.Exit(1) END;
         INC(i)
       END;
       Execute(line)
@@ -183,9 +183,9 @@ MODULE vish;
         status := LineEditor.ReadLine(line);
         IF status = 0 THEN quit := TRUE
         ELSIF status = -1 THEN
-          Out.String("vish: input line too long"); Out.Ln; failed := TRUE
+          Out.String("hresh: input line too long"); Out.Ln; failed := TRUE
         ELSIF status < 0 THEN
-          Out.String("vish: terminal or input error"); Out.Ln; failed := TRUE; quit := TRUE
+          Out.String("hresh: terminal or input error"); Out.Ln; failed := TRUE; quit := TRUE
         ELSE Execute(line)
         END
       END
@@ -194,4 +194,4 @@ MODULE vish;
   END Run;
 
 BEGIN Run
-END vish.
+END hresh.

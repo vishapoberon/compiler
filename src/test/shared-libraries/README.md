@@ -3,9 +3,9 @@
 This example uses VOC's own `oocStrings`, `ooc2IntStr`, `Math` and `Out`
 libraries. No external Oberon library checkout is required.
 
-- `LibraryDemo.Mod` exports `Run` and `Echo` commands for `vish`.
+- `LibraryDemo.Mod` exports `Run` and `Echo` commands for `hresh`.
 - `LibraryMain.Mod` imports the same libraries directly. Its executable host
-  loads the application `.so` at runtime; it does not require `vish` to run.
+  loads the application `.so` at runtime; it does not require `hresh` to run.
 
 ## Build and run from the checkout
 
@@ -21,10 +21,10 @@ make -C src/test/shared-libraries test
 make -C src/test/shared-libraries shell
 ```
 
-The Makefile builds and explicitly uses `build/vish/compiler/voc`, leaving the
+The Makefile builds and explicitly uses `build/hresh/compiler/voc`, leaving the
 root and installed compiler binaries untouched. Libraries are built in
-`build/vish/modules/2`; demo files are in `build/tests/shared-libraries/2`.
-`BUILD`, `VISH_BUILD`, `VOC`, `VOCROOT`, `VOCLIBDIR` and `MODEL` can be overridden.
+`build/hresh/modules/2`; demo files are in `build/tests/shared-libraries/2`.
+`BUILD`, `HRESH_BUILD`, `VOC`, `VOCROOT`, `VOCLIBDIR` and `MODEL` can be overridden.
 
 Inside the shell:
 
@@ -48,8 +48,8 @@ hello world
 ```
 
 Tab discovers commands from `.sym` files without running initializers. State
-persists across commands in the same shell. `make vish-demo` runs both variants
-with demo output in `build/vish/library-demo`.
+persists across commands in the same shell. `make hresh-demo` runs both variants
+with demo output in `build/hresh/library-demo`.
 
 ## Standalone host
 

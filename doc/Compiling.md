@@ -69,7 +69,7 @@ linking both statically; their static libraries must be installed.
 
 ### Modular programs and command libraries
 
-The optional [shared-module build and `vish` shell](/doc/SharedModules.md)
+The optional [shared-module build and `hresh` shell](/doc/SharedModules.md)
 add native compiler modes alongside the compatibility modes above:
 
 | Compiler option | Use |

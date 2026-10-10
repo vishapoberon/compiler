@@ -5,33 +5,33 @@ VOCLIBDIR ?= $(dir $(shell $(CC) -print-file-name=libvoc-O2.so))
 MODEL ?= 2
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../../..)
 DEMO := $(ROOT)/src/test/shared-libraries
-VISH_BUILD ?= $(ROOT)/build/vish
-VISH_BUILD := $(abspath $(VISH_BUILD))
+HRESH_BUILD ?= $(ROOT)/build/hresh
+HRESH_BUILD := $(abspath $(HRESH_BUILD))
 BUILD ?= $(ROOT)/build/tests/shared-libraries/$(MODEL)
 BUILD := $(abspath $(BUILD))
-NATIVE_VOC := $(VISH_BUILD)/compiler/voc
-MODULES := $(VISH_BUILD)/modules/$(MODEL)
+NATIVE_VOC := $(HRESH_BUILD)/compiler/voc
+MODULES := $(HRESH_BUILD)/modules/$(MODEL)
 HOST_MODE ?= md
 ENV := VOCROOT="$(VOCROOT)" VOCLIBDIR="$(MODULES)" OBERON="$(MODULES)"
-RUNTIME_ARGS := BUILD="$(VISH_BUILD)" MODEL="$(MODEL)" VOC="$(VOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)"
+RUNTIME_ARGS := BUILD="$(HRESH_BUILD)" MODEL="$(MODEL)" VOC="$(VOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)"
 
-.PHONY: all libraries for-vish application standalone vish-host run-vish run-standalone shell test
-all: for-vish standalone
+.PHONY: all libraries for-hresh application standalone hresh-host run-hresh run-standalone shell test
+all: for-hresh standalone
 libraries:
-	$(MAKE) -C "$(ROOT)" -f src/tools/vish/Makefile libraries $(RUNTIME_ARGS)
+	$(MAKE) -C "$(ROOT)" -f src/tools/hresh/Makefile libraries $(RUNTIME_ARGS)
 	mkdir -p "$(BUILD)"
-for-vish: libraries
+for-hresh: libraries
 	cd "$(BUILD)" && $(ENV) "$(NATIVE_VOC)" -O$(MODEL) -sFl "$(DEMO)/LibraryDemo.Mod"
 standalone: libraries
 	cd "$(BUILD)" && $(ENV) "$(NATIVE_VOC)" -O$(MODEL) -s$(HOST_MODE) "$(DEMO)/LibraryMain.Mod"
 application: libraries
 	cd "$(BUILD)" && $(ENV) "$(NATIVE_VOC)" -O$(MODEL) -sFl "$(DEMO)/LibraryMain.Mod"
-vish-host: libraries
-	$(MAKE) -C "$(ROOT)" -f src/tools/vish/Makefile all $(RUNTIME_ARGS)
-run-vish: for-vish vish-host
-	"$(VISH_BUILD)/vish" "-P$(BUILD):$(MODULES)" LibraryDemo.Run
+hresh-host: libraries
+	$(MAKE) -C "$(ROOT)" -f src/tools/hresh/Makefile all $(RUNTIME_ARGS)
+run-hresh: for-hresh hresh-host
+	"$(HRESH_BUILD)/hresh" "-P$(BUILD):$(MODULES)" LibraryDemo.Run
 run-standalone: standalone
 	"$(BUILD)/LibraryMain"
-shell: for-vish vish-host
-	"$(VISH_BUILD)/vish" "-P$(BUILD):$(MODULES)"
-test: run-vish run-standalone
+shell: for-hresh hresh-host
+	"$(HRESH_BUILD)/hresh" "-P$(BUILD):$(MODULES)"
+test: run-hresh run-standalone

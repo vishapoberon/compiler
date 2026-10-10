@@ -15,7 +15,7 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Compiling a 'Hello' application**](#a-hello-application)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[**Shared modules and the vish shell**](#shared-modules-and-the-vish-shell)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Shared modules and the hresh shell**](#shared-modules-and-the-hresh-shell)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**License**](#license)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Platform support and porting**](#platform-support-and-porting)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Language support and libraries**](#language-support-and-libraries)<br>
@@ -177,21 +177,22 @@ DEFINITION Out;
 END Out.
 ```
 
-## Shared modules and the vish shell
+## Shared modules and the hresh shell
 
 VOC can compile modules as individual shared libraries and load them when they
-are needed. `vish` calls exported Oberon commands such as `Commands.Run` in one
-process, allowing modules to retain their state between calls. A standalone
-program can use the same libraries without the shell.
+are needed. `hresh`, the Hosted Runtime Extensible Shell, calls exported Oberon
+commands such as `Commands.Run` in one process, allowing modules to retain their
+state between calls. A standalone program can use the same libraries without
+the shell.
 
 Start with [**A gentle introduction to shared modules**](/doc/ModuleTutorial.md)
 to write a command module, build an application, and change its implementation
-without rebuilding the executable. [**Shared modules and vish**](/doc/SharedModules.md)
+without rebuilding the executable. [**Shared modules and hresh**](/doc/SharedModules.md)
 describes the compiler options, library organisation and loading rules.
 
 `make modular-library` builds the optional bundled-library profile. The
 [bundled-library examples](/src/test/shared-libraries/README.md) can be run both
-through `vish` and as standalone applications. Conventional `-m` and `-M`
+through `hresh` and as standalone applications. Conventional `-m` and `-M`
 compilation remains unchanged.
 
 ## License

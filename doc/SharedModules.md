@@ -1,4 +1,4 @@
-# Shared modules and vish
+# Shared modules and hresh
 
 An Oberon program consists of modules. A module provides an interface through
 its exported declarations and an implementation through its procedures and
@@ -59,7 +59,7 @@ may have initialisation code.
 
 The shared library, symbol file and header have different uses. Executing a
 compiled program requires the library. Compiling another module against it
-also requires the symbol file and header. `vish` uses symbol files to discover
+also requires the symbol file and header. `hresh` uses symbol files to discover
 commands in modules that have not yet been loaded.
 
 `-l` cannot be combined with an executable option. `-lc` compiles a modular
@@ -68,7 +68,7 @@ C without invoking the C compiler.
 
 ## Building an application which loads its main module
 
-An application need not use `vish`. Consider the following main module:
+An application need not use `hresh`. Consider the following main module:
 
 ```oberon
 MODULE Main;
@@ -141,11 +141,11 @@ built. Changing an exported interface may require recompiling the modules
 which use that interface.
 
 A loaded module is not replaced in a running process. Exit and restart the
-application, or leave and restart `vish`, before using a rebuilt library.
+application, or leave and restart `hresh`, before using a rebuilt library.
 
-## Commands in vish
+## Commands in hresh
 
-`vish` executes exported Oberon procedures in its own process. A procedure
+`hresh` executes exported Oberon procedures in its own process. A procedure
 which has no formal parameters and no result can be used as a command. For
 example, the exported `Run` procedure in `Commands` is called by typing:
 
@@ -172,15 +172,15 @@ after a command it completes file and directory names. Relative, absolute and
 directory name ends in `/`, allowing completion to continue inside it.
 
 Type `quit` or `exit`, or press Ctrl-D on an empty line, to leave the shell.
-`vish` is an Oberon command host, not a Unix shell: commands such as `voc` and
+`hresh` is an Oberon command host, not a Unix shell: commands such as `voc` and
 `ldd` should be entered at the operating system's shell prompt.
 
 It is also possible to run one command or a sequence of commands without an
 interactive prompt:
 
 ```sh
-vish Commands.Run
-printf 'Commands.Run\nCommands.Run\n' | vish
+hresh Commands.Run
+printf 'Commands.Run\nCommands.Run\n' | hresh
 ```
 
 A command may read the text following its name through `Oberon.Par.text`,
@@ -195,11 +195,11 @@ By default, the loader searches the current directory and the directory of
 executable for the main module. Keep the application library beside the host
 when distributing a program.
 
-`VOC_MODULE_PATH` supplies a colon-separated module search path. In `vish`,
+`VOC_MODULE_PATH` supplies a colon-separated module search path. In `hresh`,
 `-Ppath` or `-P path` replaces that path. For example:
 
 ```sh
-vish -P./modules:/opt/oberon/modules Commands.Run
+hresh -P./modules:/opt/oberon/modules Commands.Run
 ```
 
 Symbol files are searched in the module directories, then in `VOC_SYM_PATH`,
@@ -226,7 +226,7 @@ The modular profile is optional. From a compiler checkout, an installed VOC
 can be used to build it with GNU make and GCC or Clang:
 
 ```sh
-make modular-library vish
+make modular-library hresh
 ```
 
 The full library build includes the runtime, V4, OOC, OOC2, Ulm, POW, misc and
@@ -238,17 +238,17 @@ bundled libraries depend on those sizes. The smaller runtime and shell profile
 can also be built with `MODEL=C` or `MODEL=V`; use a separate application build
 directory for each type model.
 
-The build leaves its compiler in `build/vish/compiler/voc`, libraries and
-development files in `build/vish/modules/2`, and the shell in `build/vish/vish`.
+The build leaves its compiler in `build/hresh/compiler/voc`, libraries and
+development files in `build/hresh/modules/2`, and the shell in `build/hresh/hresh`.
 It does not replace installed tools. To compile against this local build,
 use its compiler and point `VOCLIBDIR` and `OBERON` at its module directory.
 For example, from the checkout root:
 
 ```sh
 export VOCROOT=/usr/share/voc
-export VOCLIBDIR="$(pwd)/build/vish/modules/2"
+export VOCLIBDIR="$(pwd)/build/hresh/modules/2"
 export OBERON="$VOCLIBDIR"
-build/vish/compiler/voc -smd /path/to/Main.Mod
+build/hresh/compiler/voc -smd /path/to/Main.Mod
 ```
 
 Use the `VOCROOT` of the bootstrap installation if it differs from
@@ -261,7 +261,7 @@ their own makefile. The following targets exercise the libraries, shell and
 loading hosts:
 
 ```sh
-make modular-library-test vish-test vish-demo
+make modular-library-test hresh-test hresh-demo
 ```
 
 ## Installing and linking libraries
@@ -275,7 +275,7 @@ installation under `/usr`, their usual locations are:
 | Symbol files | `/usr/share/voc/modular/2/sym` |
 | Module libraries and the minimal core | `/usr/lib/voc/modular/2` or `/usr/lib64/voc/modular/2` |
 
-`install-modular` in `src/tools/vish/Makefile` installs these files.
+`install-modular` in `src/tools/hresh/Makefile` installs these files.
 `INSTALL_ROOT` and `INSTALL_LIBDIR` select the data and library directories;
 `DESTDIR` supplies a staging prefix for package builds. The static minimal-core
 archive is included for building `-mD` hosts. It does not replace the
@@ -297,7 +297,7 @@ build directories.
 To load a module on demand, use `ModuleLoader.ThisMod` instead. It returns the
 registered module, or `NIL` on failure; `ModuleLoader.resMsg` describes a loading
 error. `SharedModules` adds command discovery and command lookup for clients
-such as `vish`.
+such as `hresh`.
 
 Loading a module uses the system's `dlopen` and `dlsym` operations. Its
 initialiser registers the module, its commands and its garbage-collection

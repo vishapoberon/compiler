@@ -5,9 +5,9 @@ VOCROOT ?= /usr/share/voc
 VOCLIBDIR ?= $(dir $(shell $(CC) -print-file-name=libvoc-O2.so))
 MODEL ?= 2
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../../..)
-BUILD ?= $(ROOT)/build/vish
+BUILD ?= $(ROOT)/build/hresh
 BUILD := $(abspath $(BUILD))
-TOOLS := $(ROOT)/src/tools/vish
+TOOLS := $(ROOT)/src/tools/hresh
 SUPPORT := $(ROOT)/src/library/v4
 COMPILER := $(BUILD)/compiler
 MODULES := $(BUILD)/modules/$(MODEL)
@@ -26,7 +26,7 @@ C_MODEL ?= $(shell $(CC) -dM -E - < /dev/null | awk '$$2=="__SIZEOF_POINTER__" {
 include $(ROOT)/src/tools/make/modular-libraries.mk
 
 .PHONY: all compiler modules libraries test test-library demo install-modular FORCE
-all: $(BUILD)/vish
+all: $(BUILD)/hresh
 compiler: $(NEWVOC)
 modules: $(MODULES)/modules.stamp
 ifeq ($(MODEL),2)
@@ -99,8 +99,8 @@ $(MODULES)/libraries.stamp: $(MODULES)/modules.stamp $(MODULES)/libraries.config
 	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 ModuleLoader CommandSymbols UnixTermios LineEditor SharedModules $(MODULAR_V4) $(MODULAR_OOC) oocC $(MODULAR_OOC2) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(if $(filter 1,$(WITH_X11)),$(MODULAR_X11)) > "$(MODULES)/libraries.list"
 	touch "$@"
 
-$(BUILD)/vish: $(TOOLS)/vish.Mod $(MODULES)/modules.stamp
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TOOLS)/vish.Mod"
+$(BUILD)/hresh: $(TOOLS)/hresh.Mod $(MODULES)/modules.stamp
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TOOLS)/hresh.Mod"
 
 test: all
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/tests/SharedProvider.Mod"
@@ -122,7 +122,7 @@ test: all
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/tests/changed/TestLoaded.Mod"
 	cmp "$(BUILD)/TestLoaded" "$(BUILD)/TestLoaded.host"
 	"$(BUILD)/TestLoaded" "runtime argument"
-	"$(BUILD)/vish" "-P$(BUILD)" SharedConsumer.Run
+	"$(BUILD)/hresh" "-P$(BUILD)" SharedConsumer.Run
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/platform/testDirectories.Mod"
 	mkdir -p "$(BUILD)/directory-fixture/child"
 	touch "$(BUILD)/directory-fixture/file.txt"
@@ -155,4 +155,4 @@ install-modular: libraries
 # Keep the root convenience target; demo sources and both build variants live
 # under src/test rather than being part of the shell tool.
 demo:
-	$(MAKE) -C "$(ROOT)/src/test/shared-libraries" test VISH_BUILD="$(BUILD)" BUILD="$(BUILD)/library-demo" MODEL="$(MODEL)" VOC="$(VOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)"
+	$(MAKE) -C "$(ROOT)/src/test/shared-libraries" test HRESH_BUILD="$(BUILD)" BUILD="$(BUILD)/library-demo" MODEL="$(MODEL)" VOC="$(VOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)"

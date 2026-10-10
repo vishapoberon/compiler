@@ -4,17 +4,17 @@
 
 This introduction is for readers who have written a small Oberon program and
 would like to use modules as independently compiled components. It is not an
-Oberon language manual. We shall build a command module, use it in `vish`, and
+Oberon language manual. We shall build a command module, use it in `hresh`, and
 then build an application which runs without that shell.
 
 The examples use VOC's own `Out` and `oocStrings` libraries. You will need a VOC
-installation with the modular runtime and `vish`. The commands below assume
-that `voc` and `vish` are on your operating system's search path. Module loading
+installation with the modular runtime and `hresh`. The commands below assume
+that `voc` and `hresh` are on your operating system's search path. Module loading
 currently uses ELF Unix shared libraries; the examples have been tested on
 Linux.
 
 For the complete set of options and loading rules, see
-[Shared modules and vish](SharedModules.md).
+[Shared modules and hresh](SharedModules.md).
 
 ## Modules as components
 
@@ -34,15 +34,16 @@ With VOC, a module named `Commands` can be supplied as
 interface. The library contains the code which will run when the module is
 loaded.
 
-## First look at vish
+## First look at hresh
 
-`vish` is a shell for Oberon commands. Start it at your Unix shell prompt:
+`hresh` is the Hosted Runtime Extensible Shell for Oberon commands. Start it at
+your Unix shell prompt:
 
 ```sh
-vish
+hresh
 ```
 
-Inside `vish`, type the name of a bundled module:
+Inside `hresh`, type the name of a bundled module:
 
 ```text
 > oocLowReal
@@ -69,9 +70,9 @@ Type `quit` to return to the Unix shell:
 > quit
 ```
 
-The distinction between the two shells is important. `vish` calls Oberon
+The distinction between the two shells is important. `hresh` calls Oberon
 procedures; commands such as `voc`, `mkdir` and `ldd` belong to the Unix shell.
-In the transcripts below, `>` denotes the `vish` prompt and should not be typed.
+In the transcripts below, `>` denotes the `hresh` prompt and should not be typed.
 
 ## A command module
 
@@ -122,11 +123,11 @@ allows a previous symbol file to be replaced if we change the interface. The
 compiler produces `Commands.sym`, `Commands.h`, `Commands.c`, and
 `libvoc-Commands-O2.so`. `O2` denotes the default Oberon-2 type model.
 
-There is no executable named `Commands` to run. Instead, start `vish` from this
+There is no executable named `Commands` to run. Instead, start `hresh` from this
 directory and ask it to use the component:
 
 ```sh
-vish
+hresh
 ```
 
 ```text
@@ -147,30 +148,30 @@ variable of `Run`. The module remains loaded between commands, and both calls
 use the same variable. By contrast, the local `text` array is prepared afresh
 for each call.
 
-Exit and start `vish` again. The first call now prints `1`: this is a new
+Exit and start `hresh` again. The first call now prints `1`: this is a new
 process with a new instance of the module's state.
 
 It is also possible to run a command directly from the Unix shell:
 
 ```sh
-vish Commands.Run
+hresh Commands.Run
 ```
 
 Each such invocation starts a separate process. To call the command twice in
 one process without an interactive prompt, use:
 
 ```sh
-printf 'Commands.Run\nCommands.Run\n' | vish
+printf 'Commands.Run\nCommands.Run\n' | hresh
 ```
 
 The output is again `LOADED calls: 1` followed by `LOADED calls: 2`.
 
-## An application without vish
+## An application without hresh
 
 The command shell is only one possible host for shared modules. An application
 may import the same libraries and call their procedures in the usual way.
 
-Leave `vish` with `quit` if it is still running. In the same example directory,
+Leave `hresh` with `quit` if it is still running. In the same example directory,
 save this program as `Main.Mod`:
 
 ```oberon
@@ -206,7 +207,7 @@ The compiler produces two important files: an executable named `Main` and a
 library named `libvoc-Main-O2.so`. The executable starts the runtime and loads
 the main module. The main module imports `Out` and `oocStrings`, so their
 libraries are made available as well. Neither building nor running this
-application requires `vish`.
+application requires `hresh`.
 
 ## Module initialisation and the common runtime
 
@@ -286,7 +287,7 @@ runs. Adding an import also requires only an application-library rebuild,
 provided the imported library is available. If we change an exported interface,
 we may also need to recompile the modules which use that interface.
 
-This does not replace a module inside a running process. Restart `vish` or the
+This does not replace a module inside a running process. Restart `hresh` or the
 application after rebuilding a library.
 
 ## Further examples
