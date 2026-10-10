@@ -131,6 +131,8 @@ test: all
 	"$(BUILD)/testDirectories" "$(BUILD)/directory-fixture"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestArrayParameters.mod"
 	"$(BUILD)/TestArrayParameters"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/ckeywords/TestCKeywords.mod"
+	"$(BUILD)/TestCKeywords"
 	mkdir -p "$(BUILD)/compatibility"
 	cd "$(BUILD)/compatibility" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" OBERON="$(VOCROOT)/2/sym" "$(NEWVOC)" -O2 -sm "$(TOOLS)/tests/CompatMain.Mod"
 	"$(BUILD)/compatibility/CompatMain"

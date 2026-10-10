@@ -33,6 +33,10 @@
 !/src/test/confidence/arrayparameters/TestArrayParameters.mod
 !/src/test/confidence/arrayparameters/expected
 !/src/test/confidence/arrayparameters/test.sh
+!/src/test/confidence/ckeywords/
+!/src/test/confidence/ckeywords/TestCKeywords.mod
+!/src/test/confidence/ckeywords/expected
+!/src/test/confidence/ckeywords/test.sh
 /bootstrap/*/SYSTEM.[ch]
 /bootstrap/*/Errors.Txt
 /bootstrap/*/WindowsWrapper.h

@@ -38,8 +38,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   VAR
     indentLevel: INTEGER;
-    hashtab:     ARRAY 105 OF SHORTINT;
-    keytab:      ARRAY 50, 9 OF CHAR;
+    hashtab:     ARRAY 257 OF SHORTINT;
+    keytab:      ARRAY 96, 32 OF CHAR;
     GlbPtrs:     BOOLEAN;
     BodyNameExt: ARRAY 13 OF CHAR;
 
@@ -94,12 +94,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     RETURN i
   END Length;
 
-  PROCEDURE PerfectHash (VAR s: ARRAY OF CHAR): INTEGER;
+  PROCEDURE KeywordHash (VAR s: ARRAY OF CHAR): INTEGER;
     VAR i, h: INTEGER;
   BEGIN i := 0; h := 0;
     WHILE (s[i] # 0X) & (i < 5) DO h := 3*h + ORD(s[i]); INC(i) END;
-    RETURN h MOD 105
-  END PerfectHash;
+    RETURN h MOD LEN(hashtab)
+  END KeywordHash;
 
   PROCEDURE Ident* (obj: OPT.Object);
     VAR mode, level, h: INTEGER;
@@ -107,7 +107,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     mode := obj^.mode; level := obj^.mnolev;
     IF (mode IN {OPT.Var, OPT.Typ, OPT.LProc}) & (level > 0) OR (mode IN {OPT.Fld, OPT.VarPar}) THEN
       OPM.WriteStringVar(obj^.name);
-      h := PerfectHash(obj^.name);
+      h := KeywordHash(obj^.name);
+      WHILE (hashtab[h] >= 0) & (keytab[hashtab[h]] # obj^.name) DO
+        h := (h + 1) MOD LEN(hashtab)
+      END;
       IF hashtab[h] >= 0 THEN
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
@@ -1314,11 +1317,14 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
 
   PROCEDURE InitKeywords;
-    VAR n, i: SHORTINT;
+    VAR n: SHORTINT; i: INTEGER;
 
     PROCEDURE Enter(s: ARRAY OF CHAR);
       VAR h: INTEGER;
-    BEGIN h := PerfectHash(s); hashtab[h] := n; COPY(s, keytab[n]); INC(n)
+    BEGIN
+      h := KeywordHash(s);
+      WHILE hashtab[h] >= 0 DO h := (h + 1) MOD LEN(hashtab) END;
+      hashtab[h] := n; COPY(s, keytab[n]); INC(n)
     END Enter;
 
   BEGIN n := 0;
@@ -1370,6 +1376,36 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("void");
     Enter("volatile");
     Enter("while");
+
+    (* C99, C11 and C23 keywords, including the formerly macro-only names.
+       Linear probing keeps new entries from hiding older colliding names. *)
+    Enter("inline");
+    Enter("restrict");
+    Enter("_Bool");
+    Enter("_Complex");
+    Enter("_Imaginary");
+    Enter("_Alignas");
+    Enter("_Alignof");
+    Enter("_Atomic");
+    Enter("_Generic");
+    Enter("_Noreturn");
+    Enter("_Static_assert");
+    Enter("_Thread_local");
+    Enter("_BitInt");
+    Enter("_Decimal32");
+    Enter("_Decimal64");
+    Enter("_Decimal128");
+    Enter("alignas");
+    Enter("alignof");
+    Enter("bool");
+    Enter("constexpr");
+    Enter("false");
+    Enter("nullptr");
+    Enter("static_assert");
+    Enter("thread_local");
+    Enter("true");
+    Enter("typeof");
+    Enter("typeof_unqual");
 
 (* what about common predefined names from cpp as e.g.
                Operating System:   ibm, gcos, os, tss and unix

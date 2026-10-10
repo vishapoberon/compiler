@@ -223,7 +223,7 @@ compilation continues to select the conventional runtime.
 ## Building the bundled libraries
 
 The modular profile is optional. From a compiler checkout, an installed VOC
-can be used to build it with GNU make and GCC or Clang:
+can be used to build it on Linux with GNU make and GCC, Clang or TCC:
 
 ```sh
 make modular-library hresh
