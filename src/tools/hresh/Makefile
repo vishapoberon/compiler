@@ -14,8 +14,9 @@ MODULES := $(BUILD)/modules/$(MODEL)
 NEWVOC := $(COMPILER)/voc
 ENV := VOCROOT="$(VOCROOT)" VOCLIBDIR="$(MODULES)" OBERON="$(MODULES)"
 SOURCES := Configuration OPM OPS OPT OPC OPV OPB OPP extTools Compiler
-INCLUDES := -iquote$(MODULES) -iquote$(ROOT)/src/runtime -iquote$(VOCROOT)/$(MODEL)/include
-NATIVEFLAGS := -fPIC -g -std=gnu11 -fno-strict-aliasing $(if $(findstring clang,$(CC)),-Wno-deprecated-non-prototype,-Wno-stringop-overflow)
+INCLUDEFLAG := $(if $(findstring tcc,$(notdir $(firstword $(CC)))),-I,-iquote)
+INCLUDES := $(INCLUDEFLAG)$(MODULES) $(INCLUDEFLAG)$(ROOT)/src/runtime $(INCLUDEFLAG)$(VOCROOT)/$(MODEL)/include
+NATIVEFLAGS := -fPIC -g -fno-strict-aliasing
 # The compiler's temporary syntax trees rely on conservative stack GC roots.
 # Match the conventional compiler build; CFLAGS still optimize the libraries.
 COMPILER_CFLAGS ?= -O0
@@ -50,7 +51,7 @@ $(NEWVOC): $(wildcard $(ROOT)/src/compiler/*.Mod) $(COMPILER)/Configuration.Mod 
 	cd "$(COMPILER)" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" $(VOC) -sFS Configuration.Mod
 	cd "$(COMPILER)" && for name in OPM OPS OPT OPC OPV OPB OPP extTools; do VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" $(VOC) -sFS "$(ROOT)/src/compiler/$$name.Mod" || exit; done
 	cd "$(COMPILER)" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" $(VOC) -sSm "$(ROOT)/src/compiler/Compiler.Mod"
-	$(CC) $(CFLAGS) $(COMPILER_CFLAGS) $(NATIVEFLAGS) -iquote$(COMPILER) -iquote$(VOCROOT)/2/include $(addprefix $(COMPILER)/,$(addsuffix .c,$(SOURCES))) $(LDFLAGS) -L$(VOCLIBDIR) -Wl,-rpath,$(abspath $(VOCLIBDIR)) -o "$@" -lvoc-O2
+	$(CC) $(CFLAGS) $(COMPILER_CFLAGS) $(NATIVEFLAGS) $(INCLUDEFLAG)$(COMPILER) $(INCLUDEFLAG)$(VOCROOT)/2/include $(addprefix $(COMPILER)/,$(addsuffix .c,$(SOURCES))) $(LDFLAGS) -L$(VOCLIBDIR) -Wl,--enable-new-dtags -Wl,-rpath,$(abspath $(VOCLIBDIR)) -o "$@" -lvoc-O2
 
 $(COMPILER)/CoreSource: $(ROOT)/src/tools/make/CoreSource.Mod $(NEWVOC)
 	cd "$(COMPILER)" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" OBERON="$(VOCROOT)/2/sym" $(VOC) -sm "$<"
@@ -64,7 +65,7 @@ $(MODULES)/libvoc-core-O$(MODEL).so: $(NEWVOC) $(COMPILER)/CoreSource $(ROOT)/sr
 	$(CC) $(CFLAGS) $(NATIVEFLAGS) $(INCLUDES) -DVOC_CORE_RUNTIME -c "$(ROOT)/src/runtime/SYSTEM.c" -o "$(MODULES)/SYSTEM.o"
 	cd "$(MODULES)" && $(CC) $(CFLAGS) $(NATIVEFLAGS) $(INCLUDES) -c Platform.c Heap.c Modules.c
 	ar rcs "$(MODULES)/libvoc-core-O$(MODEL).a" $(addprefix $(MODULES)/,SYSTEM.o Platform.o Heap.o Modules.o)
-	$(CC) -shared $(LDFLAGS) -Wl,-z,defs -Wl,-soname,libvoc-core-O$(MODEL).so -o "$@" $(addprefix $(MODULES)/,SYSTEM.o Platform.o Heap.o Modules.o)
+	$(CC) -shared $(LDFLAGS) $(if $(findstring tcc,$(CC)),,-Wl,-z,defs) -Wl,-soname,libvoc-core-O$(MODEL).so -o "$@" $(addprefix $(MODULES)/,SYSTEM.o Platform.o Heap.o Modules.o)
 
 # The dependency order is the Oberon import order. The compiler discovers the
 # actual DT_NEEDED edges itself; no list of commands/imports is generated here.
@@ -128,6 +129,8 @@ test: all
 	touch "$(BUILD)/directory-fixture/file.txt"
 	ln -sfn child "$(BUILD)/directory-fixture/link"
 	"$(BUILD)/testDirectories" "$(BUILD)/directory-fixture"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestArrayParameters.mod"
+	"$(BUILD)/TestArrayParameters"
 	mkdir -p "$(BUILD)/compatibility"
 	cd "$(BUILD)/compatibility" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" OBERON="$(VOCROOT)/2/sym" "$(NEWVOC)" -O2 -sm "$(TOOLS)/tests/CompatMain.Mod"
 	"$(BUILD)/compatibility/CompatMain"
@@ -139,6 +142,8 @@ test-library: libraries
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/tests/LongModuleRegistryNames.Mod"
 	cd "$(BUILD)" && $(ENV) CFLAGS="$(CFLAGS) -I$(SUPPORT)" "$(NEWVOC)" -O$(MODEL) -smD "$(TOOLS)/tests/TestLibraries.Mod"
 	"$(BUILD)/TestLibraries" "$(MODULES)/libraries.list" "$(MODULES)" "$(BUILD)"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/ulm/testTimes.Mod"
+	"$(BUILD)/testTimes"
 
 # Stage the separate profile. This never installs or replaces libvoc-O2.so.
 INSTALL_ROOT ?= /usr/share/voc

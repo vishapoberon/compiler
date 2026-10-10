@@ -73,30 +73,30 @@ void SYSTEM_INHERIT(ADDRESS *t, ADDRESS *t0)
 }
 
 
-void SYSTEM_ENUMP(void *adr, ADDRESS n, void (*P)())
+void SYSTEM_ENUMP(void *adr, ADDRESS n, void (*P)(SYSTEM_PTR))
 {
     while (n > 0) {
-        P((ADDRESS)(*((void**)(adr))));
+        P(*((SYSTEM_PTR*)adr));
         adr = ((void**)adr) + 1;
         n--;
     }
 }
 
-void SYSTEM_ENUMR(void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)())
+void SYSTEM_ENUMR(void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)(SYSTEM_PTR))
 {
     ADDRESS *t, off;
     typ++;
     while (n > 0) {
         t = typ;
         off = *t;
-        while (off >= 0) {P(*(ADDRESS*)((char*)adr+off)); t++; off = *t;}
+        while (off >= 0) {P(*(SYSTEM_PTR*)((char*)adr+off)); t++; off = *t;}
         adr = ((char*)adr) + size;
         n--;
     }
 }
 
-extern void Heap_Lock();
-extern void Heap_Unlock();
+extern void Heap_Lock(void);
+extern void Heap_Unlock(void);
 
 SYSTEM_PTR SYSTEM_NEWARR(ADDRESS *typ, ADDRESS elemsz, int elemalgn, int nofdim, int nofdyn, ...)
 {
@@ -186,7 +186,7 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
         }
     }
 
-    void setupAutomaticSegfaultHandler() {
+    void setupAutomaticSegfaultHandler(void) {
         SystemSetHandler(11, (ADDRESS)segfaultHandler);  // Register handler for SIGSEGV
     }
 
@@ -212,7 +212,7 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
         }
         return FALSE;
     }
-    void EnsureConsoleCtrlHandler() {
+    void EnsureConsoleCtrlHandler(void) {
         if (!ConsoleCtrlHandlerSet) {
         SetConsoleCtrlHandler(SystemConsoleCtrlHandler, TRUE);
             ConsoleCtrlHandlerSet = TRUE;

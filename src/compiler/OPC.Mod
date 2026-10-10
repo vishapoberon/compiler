@@ -681,17 +681,27 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END IdentList;
 
   PROCEDURE AnsiParamList (obj: OPT.Object; showParamNames: BOOLEAN);
-    VAR name: ARRAY 32 OF CHAR;
+    VAR name: ARRAY 32 OF CHAR; par: OPT.Object; typ: OPT.Struct;
   BEGIN
     OPM.Write("(");
     IF (obj = NIL) OR (obj^.mode = OPT.TProc) THEN OPM.WriteString("void")
     ELSE
       LOOP
-        DeclareBase(obj);
+        par := obj;
+        IF obj^.typ^.comp = OPT.Array THEN
+          (* C adjusts an array parameter to a pointer to its first element.
+             Emit that type explicitly, without suggesting a minimum buffer
+             size to C callers. Keep inner array types for their row stride. *)
+          NEW(par); par^ := obj^;
+          NEW(typ); typ^.form := OPT.Pointer; typ^.comp := OPT.Basic;
+          typ^.BaseTyp := obj^.typ^.BaseTyp;
+          par^.typ := typ; par^.mode := OPT.Var
+        END;
+        DeclareBase(par);
         IF showParamNames THEN
-          OPM.Write(' '); DeclareObj(obj, FALSE)
+          OPM.Write(' '); DeclareObj(par, FALSE)
         ELSE
-          COPY(obj^.name, name);  obj^.name := ""; DeclareObj(obj, FALSE); COPY(name, obj^.name)
+          COPY(par^.name, name); par^.name := ""; DeclareObj(par, FALSE); COPY(name, par^.name)
         END ;
         IF obj^.typ^.comp = OPT.DynArr THEN
           OPM.WriteString(", ADDRESS ");

@@ -29,6 +29,10 @@
 /src/test/confidence/**/*.asm
 /src/test/confidence/**/*.s
 /src/test/confidence/**/*.map
+!/src/test/confidence/arrayparameters/
+!/src/test/confidence/arrayparameters/TestArrayParameters.mod
+!/src/test/confidence/arrayparameters/expected
+!/src/test/confidence/arrayparameters/test.sh
 /bootstrap/*/SYSTEM.[ch]
 /bootstrap/*/Errors.Txt
 /bootstrap/*/WindowsWrapper.h

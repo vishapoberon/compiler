@@ -130,8 +130,22 @@ BEGIN
   Fail("Build the dependency first; set VOC_MODULE_PATH/VOCLIBDIR for library directories.")
 END FindLibrary;
 
+PROCEDURE IsTCC(): BOOLEAN;
+  VAR compiler: Path; i, start: INTEGER;
+BEGIN
+  Platform.GetEnv("CC", compiler);
+  IF compiler = "" THEN RETURN Configuration.compiler = "tcc" END;
+  i := 0; start := 0;
+  WHILE (compiler[i] # 0X) & (compiler[i] # " ") DO
+    IF compiler[i] = "/" THEN start := i + 1 END;
+    INC(i)
+  END;
+  RETURN (i - start = 3) & (compiler[start] = "t") &
+    (compiler[start + 1] = "c") & (compiler[start + 2] = "c")
+END IsTCC;
+
 PROCEDURE ModularCommand(VAR cmd: CommandString);
-  VAR compiler, path, dir: Path; pos: INTEGER;
+  VAR compiler, path, dir: Path; pos: INTEGER; include: ARRAY 16 OF CHAR;
 BEGIN
   IF (Configuration.compiler = "MSC") OR (Configuration.os = "windows") OR
       (Configuration.os = "cygwin") OR (Configuration.os = "darwin") THEN
@@ -140,13 +154,14 @@ BEGIN
   Platform.GetEnv("CC", compiler);
   IF compiler = "" THEN COPY(Configuration.compile, cmd) ELSE COPY(compiler, cmd) END;
   Add(" ", cmd); Platform.GetEnv("CFLAGS", CFLAGS); Add(CFLAGS, cmd);
-  (* Generated code uses GNU C and SYSTEM.VAL type punning. Keep both valid
-     even when CC/CFLAGS override the installation's compiler defaults. *)
-  Add(" -std=gnu11 -fno-strict-aliasing -fPIC ", cmd); SearchPath(path); pos := 0;
+  (* SYSTEM.VAL uses type punning. Do not override the chosen C language mode.
+     TCC has no quote-only include option; keep module headers first with -I. *)
+  Add(" -fno-strict-aliasing -fPIC ", cmd); SearchPath(path); pos := 0;
+  IF IsTCC() THEN include := " -I" ELSE include := " -iquote" END;
   WHILE NextDirectory(path, pos, dir) DO
-    Add(" -iquote", cmd); Quote(dir, cmd)
+    Add(include, cmd); Quote(dir, cmd)
   END;
-  dir := OPM.ResourceDir; Add("/include", dir); Add(" -iquote", cmd); Quote(dir, cmd);
+  dir := OPM.ResourceDir; Add("/include", dir); Add(include, cmd); Quote(dir, cmd);
   Add(" ", cmd)
 END ModularCommand;
 
@@ -155,7 +170,8 @@ PROCEDURE ModularLinkFlags(VAR cmd: CommandString);
 BEGIN
   Platform.GetEnv("LDFLAGS", LDFLAGS); Add(" ", cmd); Add(LDFLAGS, cmd);
   (* No as-needed dropping: even type-only imports have Oberon initializers. *)
-  Add(" -Wl,--no-as-needed ", cmd);
+  IF ~IsTCC() THEN Add(" -Wl,--no-as-needed ", cmd) END;
+  Add(" -Wl,--enable-new-dtags ", cmd);
   Platform.GetEnv("VOC_RUNPATH", path);
   IF path = "" THEN path := "$ORIGIN:"; Add(OPM.LibraryDir, path) END;
   Add(" -Wl,-rpath,", cmd); Quote(path, cmd); Add(" ", cmd)

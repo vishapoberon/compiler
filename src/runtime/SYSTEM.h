@@ -249,10 +249,11 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 
 // Module entry/registration/exit
 
-extern void       Heap_REGCMD();
-extern SYSTEM_PTR Heap_REGMOD();
-extern void       Heap_REGTYP();
-extern void       Heap_INCREF();
+struct Heap_ModuleDesc;
+extern void       Heap_REGCMD(struct Heap_ModuleDesc *m, CHAR *name, void (*cmd)(void));
+extern SYSTEM_PTR Heap_REGMOD(CHAR *name, void (*enumPtrs)(void (*)(SYSTEM_PTR)));
+extern void       Heap_REGTYP(struct Heap_ModuleDesc *m, ADDRESS typ);
+extern void       Heap_INCREF(struct Heap_ModuleDesc *m);
 
 #define __DEFMOD              static void *m; if (m!=0) {return m;}
 #define __REGCMD(name, cmd)   Heap_REGCMD(m, (CHAR*)name, cmd)
@@ -265,9 +266,9 @@ extern void       Heap_INCREF();
 // Main module initialisation, registration and finalisation
 
 extern void Modules_Init(INT32 argc, ADDRESS argv);
-extern void Heap_FINALL();
+extern void Heap_FINALL(void);
 
-extern void setupAutomaticSegfaultHandler();
+extern void setupAutomaticSegfaultHandler(void);
 #ifndef _WIN32
 #define __INIT(argc, argv)    static void *m; setupAutomaticSegfaultHandler(); Modules_Init(argc, (ADDRESS)&argv);
 #else
@@ -292,8 +293,8 @@ extern SYSTEM_PTR SYSTEM_NEWARR(ADDRESS*, ADDRESS, int, int, int, ...);
 /* Type handling */
 
 extern void SYSTEM_INHERIT(ADDRESS *t, ADDRESS *t0);
-extern void SYSTEM_ENUMP  (void *adr, ADDRESS n, void (*P)());
-extern void SYSTEM_ENUMR  (void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)());
+extern void SYSTEM_ENUMP  (void *adr, ADDRESS n, void (*P)(SYSTEM_PTR));
+extern void SYSTEM_ENUMR  (void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)(SYSTEM_PTR));
 
 
 #define __TDESC(t, m, n)                                                \
