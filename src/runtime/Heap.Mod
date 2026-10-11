@@ -6,6 +6,7 @@ MODULE Heap;
   CONST
     ModNameLen    = 20;
     CmdNameLen    = 24;
+    PinModules    = FALSE;  (* The persistent modular core overrides this. *)
     SZA           = SIZE(S.ADDRESS);  (* Size of address *)
     Unit          = 4*SZA;            (* Smallest possible heap block *)
     nofLists      = 9;                (* Number of freelist entries excluding sentinel *)
@@ -54,6 +55,34 @@ MODULE Heap;
 
     Command- = PROCEDURE;
 
+    Import = POINTER TO ImportDesc;
+    ImportDesc = RECORD next: Import; imported: Module END;
+    Lifetime = POINTER TO LifetimeDesc;
+    LifetimeDesc = RECORD
+      next: Lifetime; owner: Module; imports: Import;
+      state: INTEGER; retained: LONGINT; initializer: S.ADDRESS
+    END;
+    Retention* = POINTER TO RetentionDesc;
+    RetentionDesc = RECORD next: Retention; owner: Module END;
+    ModuleNotifier* = PROCEDURE(owner: Module; initializer: S.ADDRESS);
+    UnloadHandler* = PROCEDURE(owner: Module);
+    UnloadHook = POINTER TO UnloadHookDesc;
+    UnloadHookDesc = RECORD next: UnloadHook; owner: Module; handler: UnloadHandler END;
+
+    Procedure = POINTER TO ProcedureDesc;
+    ProcedureDesc = RECORD
+      next: Procedure;
+      owner: Module;
+      address: S.ADDRESS
+    END;
+
+    Termination = POINTER TO TerminationDesc;
+    TerminationDesc = RECORD
+      next: Termination;
+      owner: Module;
+      handler: Command
+    END;
+
     CmdDesc- = RECORD
       next-: Cmd;
       name-: CmdName;
@@ -90,6 +119,13 @@ MODULE Heap;
 
     (* finalization candidates *)
     fin: FinNode;
+    procedures: Procedure;
+    terminations: Termination;
+    lifetimes: Lifetime;
+    retentions: Retention;
+    notifier: ModuleNotifier;
+    notifierRetention: Retention;
+    unloadHooks: UnloadHook;
 
     (* garbage collector busy flag *)
     lockdepth:   INTEGER;
@@ -99,8 +135,11 @@ MODULE Heap;
     FileCount*: INTEGER;
 
 
+  PROCEDURE -CommandCritical(enter: BOOLEAN) "SYSTEM_CommandCritical(enter)";
+
   PROCEDURE Lock*;
   BEGIN
+    CommandCritical(TRUE);
     INC(lockdepth);
   END Lock;
 
@@ -111,7 +150,8 @@ MODULE Heap;
     DEC(lockdepth);
     IF interrupted & (lockdepth = 0) THEN
       ModulesHalt(-9);
-    END
+    END;
+    CommandCritical(FALSE)
   END Unlock;
 
 
@@ -141,7 +181,9 @@ MODULE Heap;
       NEW(m)
     END;
     m.types := 0; m.cmds := NIL;
-    COPY(name, m.name); m.refcnt := 0; m.enumPtrs := enumPtrs; m.next := S.VAL(Module, modules);
+    COPY(name, m.name);
+    IF PinModules THEN m.refcnt := 1 ELSE m.refcnt := 0 END;
+    m.enumPtrs := enumPtrs; m.next := S.VAL(Module, modules);
     modules := m;
     RETURN m
   END REGMOD;
@@ -181,9 +223,290 @@ MODULE Heap;
   BEGIN S.PUT(typ, m.types); m.types := typ
   END REGTYP;
 
+  PROCEDURE ^ModuleState*(owner: Module): INTEGER;
+
   PROCEDURE INCREF*(m: Module);
-  BEGIN INC(m.refcnt)
+  BEGIN
+    IF PinModules & (ModuleState(m) > 2) THEN ModulesHalt(-15) END;
+    INC(m.refcnt)
   END INCREF;
+
+  PROCEDURE Life(owner: Module; create: BOOLEAN): Lifetime;
+    VAR l: Lifetime;
+  BEGIN
+    l := lifetimes;
+    WHILE (l # NIL) & (l.owner # owner) DO l := l.next END;
+    IF (l = NIL) & create THEN
+      NEW(l); l.owner := owner; l.state := 1;
+      l.next := lifetimes; lifetimes := l
+    END;
+    RETURN l
+  END Life;
+
+  PROCEDURE ModuleState*(owner: Module): INTEGER;
+    VAR l: Lifetime;
+  BEGIN
+    l := Life(owner, FALSE);
+    IF l = NIL THEN RETURN 0 ELSE RETURN l.state END
+  END ModuleState;
+
+  PROCEDURE REGIMPORT*(owner, imported: Module);
+    VAR l: Lifetime; i: Import;
+  BEGIN
+    l := Life(owner, TRUE);
+    NEW(i); i.imported := imported; i.next := l.imports; l.imports := i
+  END REGIMPORT;
+
+  PROCEDURE MODREADY*(owner: Module; initializer: S.ADDRESS);
+    VAR l: Lifetime;
+  BEGIN
+    l := Life(owner, TRUE); l.state := 2; l.initializer := initializer;
+    IF notifier # NIL THEN notifier(owner, initializer) END
+  END MODREADY;
+
+  PROCEDURE ^RetainProcedure*(address: S.ADDRESS): Retention;
+  PROCEDURE -NotifierAddress(handler: ModuleNotifier): S.ADDRESS "(ADDRESS)handler";
+
+  PROCEDURE SetModuleNotifier*(handler: ModuleNotifier);
+    VAR l: Lifetime;
+  BEGIN
+    ASSERT(notifier = NIL); notifier := handler;
+    notifierRetention := RetainProcedure(NotifierAddress(handler));
+    ASSERT(notifierRetention # NIL);
+    (* Startup import order can initialize ordinary libraries before the loader
+       itself. Acquire their independent native ownership now, while mapped. *)
+    l := lifetimes;
+    WHILE l # NIL DO
+      IF (l.state = 2) & (l.initializer # 0) THEN notifier(l.owner, l.initializer) END;
+      l := l.next
+    END
+  END SetModuleNotifier;
+
+  PROCEDURE RetainModule*(owner: Module): Retention;
+    VAR l: Lifetime; r: Retention;
+  BEGIN
+    IF owner = NIL THEN RETURN NIL END;
+    l := Life(owner, FALSE);
+    IF (l = NIL) OR (l.state # 2) THEN RETURN NIL END;
+    NEW(r); r.owner := owner; r.next := retentions; retentions := r;
+    INC(l.retained);
+    RETURN r
+  END RetainModule;
+
+  PROCEDURE ReleaseModule*(r: Retention): BOOLEAN;
+    VAR p, previous: Retention; l: Lifetime;
+  BEGIN
+    p := retentions; previous := NIL;
+    WHILE (p # NIL) & (p # r) DO previous := p; p := p.next END;
+    IF p = NIL THEN RETURN FALSE END;
+    l := Life(p.owner, FALSE); ASSERT(l # NIL); ASSERT(l.retained > 0);
+    DEC(l.retained);
+    IF previous = NIL THEN retentions := p.next ELSE previous.next := p.next END;
+    p.owner := NIL; p.next := NIL;
+    RETURN TRUE
+  END ReleaseModule;
+
+  PROCEDURE Retained*(owner: Module): LONGINT;
+    VAR l: Lifetime;
+  BEGIN
+    l := Life(owner, FALSE);
+    IF l = NIL THEN RETURN 0 ELSE RETURN l.retained END
+  END Retained;
+
+  PROCEDURE Imported*(owner: Module; index: INTEGER): Module;
+    VAR l: Lifetime; i: Import;
+  BEGIN
+    l := Life(owner, FALSE);
+    IF l = NIL THEN RETURN NIL END;
+    i := l.imports;
+    WHILE (i # NIL) & (index > 0) DO i := i.next; DEC(index) END;
+    IF i = NIL THEN RETURN NIL ELSE RETURN i.imported END
+  END Imported;
+
+  (* The compiler registers native procedure addresses, including private
+     callbacks. This avoids guessing ownership from libc/ELF struct layouts. *)
+  PROCEDURE REGPROC*(m: Module; address: S.ADDRESS);
+    VAR p: Procedure;
+  BEGIN
+    NEW(p); p.owner := m; p.address := address;
+    p.next := procedures; procedures := p
+  END REGPROC;
+
+  PROCEDURE ProcedureModule*(address: S.ADDRESS): Module;
+    VAR p: Procedure;
+  BEGIN
+    p := procedures;
+    WHILE (p # NIL) & (p.address # address) DO p := p.next END;
+    IF p = NIL THEN RETURN NIL ELSE RETURN p.owner END
+  END ProcedureModule;
+
+  (* Runtime callback registration may happen during its owner's initializer.
+     Unlike a raw external lease, its owner is known from generated metadata. *)
+  PROCEDURE RetainProcedure*(address: S.ADDRESS): Retention;
+    VAR owner: Module; l: Lifetime; r: Retention;
+  BEGIN
+    owner := ProcedureModule(address);
+    IF owner = NIL THEN RETURN NIL END;
+    l := Life(owner, TRUE);
+    IF l.state > 2 THEN RETURN NIL END;
+    NEW(r); r.owner := owner; r.next := retentions; retentions := r;
+    INC(l.retained);
+    RETURN r
+  END RetainProcedure;
+
+  PROCEDURE -CommandAddress(handler: Command): S.ADDRESS "(ADDRESS)handler";
+  PROCEDURE -FinalizerAddress(handler: Finalizer): S.ADDRESS "(ADDRESS)handler";
+  PROCEDURE -HookAddress(handler: UnloadHandler): S.ADDRESS "(ADDRESS)handler";
+
+  PROCEDURE RegisterUnloadHook*(handler: UnloadHandler): BOOLEAN;
+    VAR h: UnloadHook; owner: Module; l: Lifetime;
+  BEGIN
+    IF handler = NIL THEN RETURN FALSE END;
+    h := unloadHooks;
+    WHILE (h # NIL) & (h.handler # handler) DO h := h.next END;
+    IF h # NIL THEN RETURN TRUE END;
+    owner := ProcedureModule(HookAddress(handler));
+    IF owner = NIL THEN RETURN FALSE END;
+    l := Life(owner, TRUE);
+    IF l.state > 2 THEN RETURN FALSE END;
+    NEW(h); h.owner := owner; h.handler := handler;
+    h.next := unloadHooks; unloadHooks := h; INC(l.retained);
+    RETURN TRUE
+  END RegisterUnloadHook;
+
+  PROCEDURE UnregisterUnloadHook*(handler: UnloadHandler): BOOLEAN;
+    VAR h, previous: UnloadHook; l: Lifetime;
+  BEGIN
+    h := unloadHooks; previous := NIL;
+    WHILE (h # NIL) & (h.handler # handler) DO previous := h; h := h.next END;
+    IF h = NIL THEN RETURN FALSE END;
+    l := Life(h.owner, FALSE); DEC(l.retained);
+    IF previous = NIL THEN unloadHooks := h.next ELSE previous.next := h.next END;
+    RETURN TRUE
+  END UnregisterUnloadHook;
+
+  PROCEDURE DetachCallbacks*(owner: Module);
+    VAR h: UnloadHook;
+  BEGIN
+    h := unloadHooks;
+    WHILE h # NIL DO h.handler(owner); h := h.next END
+  END DetachCallbacks;
+
+  PROCEDURE -Active(owner: Module): BOOLEAN "SYSTEM_ModuleActive(owner)";
+  PROCEDURE -NativeCallback(index: INTEGER): S.ADDRESS "SYSTEM_ModuleCallback(index)";
+
+  PROCEDURE NativeCallbacks(owner: Module): BOOLEAN;
+    VAR i: INTEGER; address: S.ADDRESS;
+  BEGIN
+    i := 0;
+    WHILE i < 10 DO
+      address := NativeCallback(i);
+      IF (address # 0) & (ProcedureModule(address) = owner) THEN RETURN TRUE END;
+      INC(i)
+    END;
+    RETURN FALSE
+  END NativeCallbacks;
+
+  PROCEDURE CheckModule*(owner: Module): INTEGER;
+    VAR l: Lifetime;
+  BEGIN
+    l := Life(owner, FALSE);
+    IF l = NIL THEN RETURN 1 END; (* Permanent core/legacy registration. *)
+    IF l.state # 2 THEN RETURN 2 END;
+    IF owner.refcnt # 1 THEN RETURN 3 END;
+    IF Active(owner) THEN RETURN 4 END;
+    IF (l.retained # 0) OR NativeCallbacks(owner) THEN RETURN 5 END;
+    IF lockdepth # 0 THEN RETURN 6 END;
+    RETURN 0
+  END CheckModule;
+
+  PROCEDURE BeginFree*(owner: Module);
+    VAR l: Lifetime;
+  BEGIN l := Life(owner, FALSE); ASSERT(l # NIL); l.state := 3
+  END BeginFree;
+
+  PROCEDURE Finishable*(owner: Module): BOOLEAN;
+    VAR l: Lifetime;
+  BEGIN
+    l := Life(owner, FALSE);
+    RETURN (l # NIL) & (l.state = 3) & (l.retained = 0) & (owner.refcnt = 1) &
+      ~Active(owner) & ~NativeCallbacks(owner)
+  END Finishable;
+
+  PROCEDURE HasFinalizers*(owner: Module): BOOLEAN;
+    VAR f: FinNode;
+  BEGIN
+    f := fin;
+    WHILE f # NIL DO
+      IF ProcedureModule(FinalizerAddress(f.finalize)) = owner THEN RETURN TRUE END;
+      f := f.next
+    END;
+    RETURN FALSE
+  END HasFinalizers;
+
+  PROCEDURE DisableModule*(owner: Module);
+    VAR l: Lifetime;
+  BEGIN
+    l := Life(owner, FALSE); ASSERT(l # NIL); l.state := 4;
+    owner.cmds := NIL; owner.enumPtrs := NIL
+  END DisableModule;
+
+  PROCEDURE CommitFree*(owner: Module);
+    VAR m, previous: Module; l, lp: Lifetime; i: Import;
+      p, pp, pn: Procedure; t, tp: Termination;
+  BEGIN
+    l := lifetimes; lp := NIL;
+    WHILE (l # NIL) & (l.owner # owner) DO lp := l; l := l.next END;
+    ASSERT(l # NIL); ASSERT(l.retained = 0);
+    i := l.imports;
+    WHILE i # NIL DO ASSERT(i.imported.refcnt > 0); DEC(i.imported.refcnt); i := i.next END;
+    IF lp = NIL THEN lifetimes := l.next ELSE lp.next := l.next END;
+    p := procedures; pp := NIL;
+    WHILE p # NIL DO
+      pn := p.next;
+      IF p.owner = owner THEN
+        IF pp = NIL THEN procedures := pn ELSE pp.next := pn END
+      ELSE pp := p END;
+      p := pn
+    END;
+    t := terminations; tp := NIL;
+    WHILE (t # NIL) & (t.owner # owner) DO tp := t; t := t.next END;
+    IF t # NIL THEN
+      IF tp = NIL THEN terminations := t.next ELSE tp.next := t.next END
+    END;
+    m := S.VAL(Module, modules); previous := NIL;
+    WHILE (m # NIL) & (m # owner) DO previous := m; m := m.next END;
+    ASSERT(m # NIL);
+    IF previous = NIL THEN modules := m.next ELSE previous.next := m.next END;
+    m.cmds := NIL; m.enumPtrs := NIL; m.types := 0; m.next := NIL; m.refcnt := 0
+  END CommitFree;
+
+  PROCEDURE InstallTermHandler*(handler: Command): BOOLEAN;
+    VAR owner: Module; t: Termination;
+  BEGIN
+    IF handler = NIL THEN RETURN FALSE END;
+    owner := ProcedureModule(CommandAddress(handler));
+    IF owner = NIL THEN RETURN FALSE END;
+    IF ModuleState(owner) > 2 THEN RETURN FALSE END;
+    t := terminations;
+    WHILE (t # NIL) & (t.owner # owner) DO t := t.next END;
+    IF t = NIL THEN
+      NEW(t); t.owner := owner; t.next := terminations; terminations := t
+    END;
+    t.handler := handler;
+    RETURN TRUE
+  END InstallTermHandler;
+
+  PROCEDURE Terminate(owner: Module);
+    VAR t: Termination; handler: Command;
+  BEGIN
+    t := terminations;
+    WHILE (t # NIL) & (t.owner # owner) DO t := t.next END;
+    IF (t # NIL) & (t.handler # NIL) THEN
+      handler := t.handler; t.handler := NIL; (* Clear before calling: no double cleanup after HALT. *)
+      handler
+    END
+  END Terminate;
 
 
   PROCEDURE -ExternPlatformOSAllocate "extern ADDRESS Platform_OSAllocate(ADDRESS size);";
@@ -510,13 +833,38 @@ MODULE Heap;
   END Finalize;
 
   PROCEDURE FINALL*;
-    VAR n: FinNode;
+    VAR n: FinNode; m: Module;
   BEGIN
+    Lock;
     WHILE fin # NIL DO
       n := fin; fin := fin.next;
       n.finalize(S.VAL(S.PTR, n.obj))
-    END
+    END;
+    (* Registration order is reverse import order: clients terminate first. *)
+    m := S.VAL(Module, modules);
+    WHILE m # NIL DO Terminate(m); m := m.next END;
+    Unlock
   END FINALL;
+
+  PROCEDURE FINALMOD*(owner: Module);
+    VAR n, previous, next: FinNode;
+  BEGIN
+    IF owner = NIL THEN RETURN END;
+    Lock;
+    (* Unlink each callback before calling it; finalizers may register others. *)
+    n := fin; previous := NIL;
+    WHILE n # NIL DO
+      next := n.next;
+      IF ProcedureModule(FinalizerAddress(n.finalize)) = owner THEN
+        IF previous = NIL THEN fin := next ELSE previous.next := next END;
+        n.finalize(S.VAL(S.PTR, n.obj));
+        n := fin; previous := NIL
+      ELSE previous := n; n := next
+      END
+    END;
+    Terminate(owner);
+    Unlock
+  END FINALMOD;
 
   PROCEDURE -ExternMainStackFrame               "extern ADDRESS Modules_MainStackFrame;";
   PROCEDURE -ModulesMainStackFrame(): S.ADDRESS "Modules_MainStackFrame";
@@ -551,17 +899,16 @@ MODULE Heap;
 
 
 
-  PROCEDURE GC*(markStack: BOOLEAN);
+  PROCEDURE MarkRoots(excluded: Module; markStack: BOOLEAN);
     VAR
       m: Module;
       i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,  i8,  i9,  i10, i11,
       i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23: S.ADDRESS;
       cand: ARRAY 10000 OF S.ADDRESS;
   BEGIN
-    Lock();
     m := S.VAL(Module, modules);
     WHILE m # NIL DO
-      IF m.enumPtrs # NIL THEN m.enumPtrs(MarkP) END;
+      IF (m # excluded) & (m.enumPtrs # NIL) THEN m.enumPtrs(MarkP) END;
       m := m^.next
     END;
     IF markStack THEN
@@ -585,11 +932,80 @@ MODULE Heap;
         RETURN
       END;
     END;
-    CheckFin;
+  END MarkRoots;
+
+  PROCEDURE -TypeTag(link: S.ADDRESS): S.ADDRESS
+    "link + (__MAXEXT + 24/sizeof(ADDRESS) + 4)*sizeof(ADDRESS)";
+
+  PROCEDURE OwnedType(owner: Module; tag: S.ADDRESS): BOOLEAN;
+    VAR t: S.ADDRESS;
+  BEGIN
+    t := owner.types;
+    WHILE t # 0 DO
+      IF TypeTag(t) = tag THEN RETURN TRUE END;
+      S.GET(t, t)
+    END;
+    RETURN FALSE
+  END OwnedType;
+
+  (* Inspect tags while mapped. In check-only mode, unmark without reclaiming
+     anything: a refused free must not destroy the module's private state. *)
+  PROCEDURE TypeReferences(owner: Module; markedOnly: BOOLEAN): BOOLEAN;
+    VAR chnk, adr, end, tag, size: S.ADDRESS; found: BOOLEAN;
+  BEGIN
+    chnk := heap; found := FALSE;
+    WHILE chnk # 0 DO
+      adr := chnk + blkOff; S.GET(chnk + endOff, end);
+      WHILE uLT(adr, end) DO
+        S.GET(adr, tag);
+        IF ODD(tag) THEN
+          DEC(tag); S.PUT(adr, tag);
+          IF OwnedType(owner, tag) THEN found := TRUE END
+        ELSIF ~markedOnly THEN
+          IF OwnedType(owner, tag) THEN found := TRUE END
+        END;
+        S.GET(tag, size); INC(adr, size)
+      END;
+      S.GET(chnk, chnk)
+    END;
+    RETURN found
+  END TypeReferences;
+
+  PROCEDURE LiveTypes*(owner: Module): BOOLEAN;
+    VAR n: FinNode; found: BOOLEAN;
+  BEGIN
+    Lock;
+    MarkRoots(owner, TRUE);
+    (* Other owners' finalizers are future users even of otherwise dead objects. *)
+    n := fin;
+    WHILE n # NIL DO
+      IF ProcedureModule(FinalizerAddress(n.finalize)) # owner THEN Mark(n.obj) END;
+      n := n.next
+    END;
+    found := TypeReferences(owner, TRUE);
+    Unlock;
+    RETURN found
+  END LiveTypes;
+
+  PROCEDURE Collect(excluded: Module; markStack: BOOLEAN);
+  BEGIN
+    Lock(); MarkRoots(excluded, markStack); CheckFin;
     Scan;
     Finalize;
     Unlock()
+  END Collect;
+
+  PROCEDURE GC*(markStack: BOOLEAN);
+  BEGIN Collect(NIL, markStack)
   END GC;
+
+  PROCEDURE CollectModule*(owner: Module): BOOLEAN;
+    VAR found: BOOLEAN;
+  BEGIN
+    Collect(owner, TRUE);
+    Lock; found := TypeReferences(owner, FALSE); Unlock;
+    RETURN ~found
+  END CollectModule;
 
   PROCEDURE RegisterFinalizer*(obj: S.PTR; finalize: Finalizer);
     VAR f: FinNode;
@@ -627,6 +1043,9 @@ MODULE Heap;
     FileCount   := 0;
     modules     := NIL;
     fin         := NIL;
+    procedures  := NIL;
+    terminations := NIL;
+    lifetimes := NIL; retentions := NIL; notifier := NIL; notifierRetention := NIL; unloadHooks := NIL;
     interrupted := FALSE;
 
     HeapModuleInit;

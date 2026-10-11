@@ -1,15 +1,42 @@
 MODULE Compiler;  (* J. Templ 3.2.95 *)
 
   IMPORT
-    SYSTEM, Heap, Platform, Configuration,
+    SYSTEM, Heap, Platform, Modules, Configuration,
     OPP, OPB, OPT,
     OPV, OPC, OPM,
     extTools, Strings, VT100;
+
+  VAR busy: BOOLEAN;
+
+  PROCEDURE -Standalone(): BOOLEAN 'VOC_MAIN_PROGRAM';
 
   PROCEDURE Module*(VAR done: BOOLEAN);
     VAR ext, new: BOOLEAN; p: OPT.Node;
   BEGIN
     OPP.Module(p, OPM.Options);
+    IF extTools.hosted & (OPM.sharedmodule IN OPM.Options) &
+        (Modules.ThisMod(OPT.SelfName) # NIL) THEN
+      OPM.LogWStr("The module is loaded; free it or restart the host before rebuilding its library.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.permodules IN OPM.Options) & (Strings.Length(OPT.SelfName) >= OPM.ModularNameLen) THEN
+      OPM.LogWStr("Modular-build names must fit the 63-character runtime registry.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.permodules IN OPM.Options) & (OPT.SelfName = "core") THEN
+      OPM.LogWStr("The library name core is reserved for the minimal runtime.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.sharedmodule IN OPM.Options) &
+        ((OPT.SelfName = "SYSTEM") OR (OPT.SelfName = "Platform") OR
+         (OPT.SelfName = "Heap") OR (OPT.SelfName = "Modules")) THEN
+      OPM.LogWStr("SYSTEM, Platform, Heap and Modules belong to the minimal core, not separate modules.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
+    IF (OPM.dynamicmain IN OPM.Options) & (OPT.SelfName = "ModuleLoader") THEN
+      OPM.LogWStr("ModuleLoader is the launcher's loader; build it as a library, not an application.");
+      OPM.LogWLn; OPM.noerr := FALSE
+    END;
     IF OPM.noerr THEN
       OPV.Init;
       OPT.InitRecno;
@@ -113,7 +140,7 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
   END FindLocalObjectFiles;
 
 
-  PROCEDURE Translate*;
+  PROCEDURE Run(): BOOLEAN;
     VAR
       done:      BOOLEAN;
       linkfiles: ARRAY 2048 OF CHAR; (* Object files to be linked into main program. *)
@@ -123,22 +150,29 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
 
       LOOP
         OPM.Init(done); (* Get next module name from command line *)
-        IF ~done THEN RETURN END ;
+        IF ~done THEN RETURN OPM.noerr END;
 
         OPM.InitOptions; (* Get options for this module *)
+        IF ~OPM.noerr THEN RETURN FALSE END;
         PropagateElementaryTypeSizes;
 
         (* Compile source to .c and .h files *)
-        Heap.GC(FALSE);
+        Heap.GC(extTools.hosted);
         Module(done);
         IF ~done THEN
           OPM.LogWLn; OPM.LogWStr("Module compilation failed."); OPM.LogWLn;
-          Platform.Exit(1)
+          RETURN FALSE
         END;
 
         (* 'assemble' (i.e. c compile) .c to object or executable. *)
+        IF OPM.dynamicmain IN OPM.Options THEN extTools.GenerateLauncher(OPM.modName) END;
         IF ~(OPM.dontasm IN OPM.Options) THEN
-          IF OPM.dontlink IN OPM.Options THEN
+          IF (OPM.sharedmodule IN OPM.Options) & ~(OPM.dontlink IN OPM.Options) THEN
+            extTools.LinkModule(OPM.modName);
+            IF OPM.dynamicmain IN OPM.Options THEN
+              extTools.LinkLauncher(OPM.modName, OPM.embeddedcore IN OPM.Options)
+            END
+          ELSIF OPM.dontlink IN OPM.Options THEN
             (* If not linking, just assemble each module. *)
             extTools.Assemble(OPM.modName)
           ELSE
@@ -147,13 +181,46 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
               extTools.Assemble(OPM.modName);
             ELSE
               (* Assemble and link main program *)
-              FindLocalObjectFiles(linkfiles);
+              linkfiles := "";
+              IF ~(OPM.permodules IN OPM.Options) THEN FindLocalObjectFiles(linkfiles) END;
               extTools.LinkMain(OPM.modName, OPM.mainlinkstat IN OPM.Options, linkfiles)
             END
           END
-  	    END
+        END;
+        IF ~OPM.noerr THEN RETURN FALSE END
       END (* loop *)
+    END;
+    RETURN TRUE
+  END Run;
+
+  PROCEDURE CompileArguments*(count: INTEGER; reader: OPM.ArgumentReader): BOOLEAN;
+    VAR done: BOOLEAN;
+  BEGIN
+    IF busy THEN
+      OPM.LogWStr("compiler is already compiling"); OPM.LogWLn; RETURN FALSE
+    END;
+    busy := TRUE; extTools.hosted := TRUE;
+    OPM.SetArguments(count, reader);
+    done := Run();
+    OPM.SetArguments(0, NIL); extTools.hosted := FALSE; busy := FALSE;
+    RETURN done
+  END CompileArguments;
+
+  PROCEDURE Abort*;
+  BEGIN
+    IF busy THEN
+      OPM.noerr := FALSE; OPM.CloseFiles;
+      IF OPT.topScope # NIL THEN OPT.Close END;
+      OPM.SetArguments(0, NIL); extTools.hosted := FALSE; busy := FALSE
     END
+  END Abort;
+
+  PROCEDURE Translate*;
+    VAR done: BOOLEAN;
+  BEGIN
+    OPM.SetArguments(0, NIL);
+    done := Run();
+    IF ~done THEN Platform.Exit(1) END
   END Translate;
 
   PROCEDURE Trap(sig: SYSTEM.INT32);
@@ -170,8 +237,10 @@ MODULE Compiler;  (* J. Templ 3.2.95 *)
   END Trap;
 
 BEGIN
-  Platform.SetInterruptHandler(Trap);
-  Platform.SetQuitHandler(Trap);
-  Platform.SetBadInstructionHandler(Trap);
-  Translate
+  IF Standalone() THEN
+    Platform.SetInterruptHandler(Trap);
+    Platform.SetQuitHandler(Trap);
+    Platform.SetBadInstructionHandler(Trap);
+    Translate
+  END
 END Compiler.

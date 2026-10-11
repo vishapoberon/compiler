@@ -370,12 +370,14 @@ MODULE ulmTimes;
     VAR
       poif: PersistentObjects.Interface;
 
-    PROCEDURE InitUnit(unitIndex: Types.Int8; name: Scales.UnitName);
+    PROCEDURE InitUnit(unitIndex: Types.Int8; name: ARRAY OF CHAR);
       VAR
         unit: Unit;
+        unitName: Scales.UnitName;
     BEGIN
       NEW(unit); unit.index := unitIndex;
-      Scales.InitUnit(scale, unit, name);
+      COPY(name, unitName);
+      Scales.InitUnit(scale, unit, unitName);
     END InitUnit;
 
   BEGIN

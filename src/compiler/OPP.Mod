@@ -545,7 +545,11 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     BEGIN
       ext := OPT.NewExt(); proc^.conval^.ext := ext; n := 0;
       IF sym = OPS.string THEN
-        WHILE OPS.str[n] # 0X DO ext[n+1] := OPS.str[n]; INC(n) END ;
+        WHILE OPS.str[n] # 0X DO
+          IF n < 255 THEN ext[n+1] := OPS.str[n] END;
+          INC(n)
+        END;
+        IF n > 255 THEN err(241); n := 255 END;
         ext^[0] := CHR(n); OPS.Get(sym);
         (*
           Console.String("Code procedure, length "); Console.Int(n,1); Console.Ln;
@@ -554,9 +558,10 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       ELSE
         LOOP
           IF sym = OPS.number THEN c := OPS.intval; INC(n);
-            IF (c < 0) OR (c > 255) OR (n = OPT.MaxConstLen) THEN
+            IF (c < 0) OR (c > 255) THEN
               err(64); c := 1; n := 1
             END ;
+            IF n > 255 THEN err(241); n := 255 END;
             OPS.Get(sym); ext^[n] := CHR(c)
           END ;
           IF sym = OPS.comma THEN OPS.Get(sym)

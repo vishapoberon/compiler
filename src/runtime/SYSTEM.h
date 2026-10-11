@@ -34,6 +34,11 @@ void *memcpy(void *dest, const void *source, size_t size);
 #define alloca _alloca
 #endif
 void *alloca(size_t size);
+#if defined(__GNUC__) || defined(__clang__)
+#define __VOC_ALLOCA __builtin_alloca
+#else
+#define __VOC_ALLOCA alloca
+#endif
 
 
 // Declare fixed size versions of basic intger types
@@ -70,6 +75,11 @@ typedef unsigned char        UINT8;
 
 #define NIL          ((void*)0)
 #define __MAXEXT     16
+#define VOC_SHARED_ABI_FORMAT 2
+#define VOC_CORE_ABI_PROFILE  3
+#ifndef VOC_MAIN_PROGRAM
+#define VOC_MAIN_PROGRAM 0
+#endif
 #define POINTER__typ ((ADDRESS*)(1))  // not NIL and not a valid type
 
 
@@ -163,7 +173,7 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 #define __COPY(s, d, n) {char*_a=(void*)s,*_b=(void*)d; LONGINT _i=0,_t=n-1; \
                          while(_i<_t&&((_b[_i]=_a[_i])!=0)){_i++;};_b[_i]=0;}
 #define __DUPARR(v, t)  v=(void*)memcpy(v##__copy,v,sizeof(t))
-#define __DUP(x, l, t)  x=(void*)memcpy(alloca(l*sizeof(t)),x,l*sizeof(t))
+#define __DUP(x, l, t)  x=(void*)memcpy(__VOC_ALLOCA(l*sizeof(t)),x,l*sizeof(t))
 #define __DEL(x)
 
 
@@ -249,10 +259,38 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 
 // Module entry/registration/exit
 
-extern void       Heap_REGCMD();
-extern SYSTEM_PTR Heap_REGMOD();
-extern void       Heap_REGTYP();
-extern void       Heap_INCREF();
+struct Heap_ModuleDesc;
+extern void       Heap_REGCMD(struct Heap_ModuleDesc *m, CHAR *name, void (*cmd)(void));
+extern SYSTEM_PTR Heap_REGMOD(CHAR *name, void (*enumPtrs)(void (*)(SYSTEM_PTR)));
+extern void       Heap_REGTYP(struct Heap_ModuleDesc *m, ADDRESS typ);
+extern void       Heap_INCREF(struct Heap_ModuleDesc *m);
+extern void       Heap_REGPROC(struct Heap_ModuleDesc *m, ADDRESS address);
+extern void       Heap_REGIMPORT(struct Heap_ModuleDesc *m, struct Heap_ModuleDesc *imported);
+extern void       Heap_MODREADY(struct Heap_ModuleDesc *m, ADDRESS initializer);
+/* These are our own stack frames, not a mirror of a native ABI structure. */
+typedef struct SYSTEM_ModuleFrame {
+    struct SYSTEM_ModuleFrame *previous;
+    void *owner;
+} SYSTEM_ModuleFrame;
+extern void       SYSTEM_EnterModule(SYSTEM_ModuleFrame *frame, void *owner);
+extern void       SYSTEM_LeaveModule(SYSTEM_ModuleFrame *frame);
+extern BOOLEAN    SYSTEM_ModuleActive(void *owner);
+extern ADDRESS    SYSTEM_ModuleCallback(INT32 index);
+#define __ENTERMODULE(owner) SYSTEM_ModuleFrame __module_frame; SYSTEM_EnterModule(&__module_frame, owner)
+#define __LEAVEMODULE() SYSTEM_LeaveModule(&__module_frame)
+extern void       SYSTEM_CommandCritical(BOOLEAN enter);
+extern void       SYSTEM_CheckCommandInterrupt(void);
+extern void       SYSTEM_StopCommandRecovery(void);
+extern INT32      SYSTEM_RunCommand(void (*command)(void));
+/* A native call may invoke Oberon callbacks while holding libc locks. Defer
+   cancellation through the entire call, preserving its value and C type. */
+#if defined(__GNUC__) || defined(__clang__) || defined(__TINYC__)
+#define __NATIVE_RESULT(expression) ({ SYSTEM_CommandCritical(1); \
+    __typeof__(expression) __voc_native_result = (expression); \
+    SYSTEM_CommandCritical(0); __voc_native_result; })
+#else
+#define __NATIVE_RESULT(expression) (expression)
+#endif
 
 #define __DEFMOD              static void *m; if (m!=0) {return m;}
 #define __REGCMD(name, cmd)   Heap_REGCMD(m, (CHAR*)name, cmd)
@@ -265,9 +303,9 @@ extern void       Heap_INCREF();
 // Main module initialisation, registration and finalisation
 
 extern void Modules_Init(INT32 argc, ADDRESS argv);
-extern void Heap_FINALL();
+extern void Heap_FINALL(void);
 
-extern void setupAutomaticSegfaultHandler();
+extern void setupAutomaticSegfaultHandler(void);
 #ifndef _WIN32
 #define __INIT(argc, argv)    static void *m; setupAutomaticSegfaultHandler(); Modules_Init(argc, (ADDRESS)&argv);
 #else
@@ -292,8 +330,8 @@ extern SYSTEM_PTR SYSTEM_NEWARR(ADDRESS*, ADDRESS, int, int, int, ...);
 /* Type handling */
 
 extern void SYSTEM_INHERIT(ADDRESS *t, ADDRESS *t0);
-extern void SYSTEM_ENUMP  (void *adr, ADDRESS n, void (*P)());
-extern void SYSTEM_ENUMR  (void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)());
+extern void SYSTEM_ENUMP  (void *adr, ADDRESS n, void (*P)(SYSTEM_PTR));
+extern void SYSTEM_ENUMR  (void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)(SYSTEM_PTR));
 
 
 #define __TDESC(t, m, n)                                                \

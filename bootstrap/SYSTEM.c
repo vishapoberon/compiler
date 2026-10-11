@@ -13,7 +13,13 @@
 *
 */
 
+#ifndef _WIN32
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+#endif
 #include "SYSTEM.h"
+#include "CommandContext.h"
 #include "stdarg.h"
 #include <signal.h>
 
@@ -67,30 +73,30 @@ void SYSTEM_INHERIT(ADDRESS *t, ADDRESS *t0)
 }
 
 
-void SYSTEM_ENUMP(void *adr, ADDRESS n, void (*P)())
+void SYSTEM_ENUMP(void *adr, ADDRESS n, void (*P)(SYSTEM_PTR))
 {
     while (n > 0) {
-        P((ADDRESS)(*((void**)(adr))));
+        P(*((SYSTEM_PTR*)adr));
         adr = ((void**)adr) + 1;
         n--;
     }
 }
 
-void SYSTEM_ENUMR(void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)())
+void SYSTEM_ENUMR(void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, void (*P)(SYSTEM_PTR))
 {
     ADDRESS *t, off;
     typ++;
     while (n > 0) {
         t = typ;
         off = *t;
-        while (off >= 0) {P(*(ADDRESS*)((char*)adr+off)); t++; off = *t;}
+        while (off >= 0) {P(*(SYSTEM_PTR*)((char*)adr+off)); t++; off = *t;}
         adr = ((char*)adr) + size;
         n--;
     }
 }
 
-extern void Heap_Lock();
-extern void Heap_Unlock();
+extern void Heap_Lock(void);
+extern void Heap_Unlock(void);
 
 SYSTEM_PTR SYSTEM_NEWARR(ADDRESS *typ, ADDRESS elemsz, int elemalgn, int nofdim, int nofdyn, ...)
 {
@@ -157,6 +163,10 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     // Unix signal handling
     SystemSignalHandler handler[10] = {0};  // Adjust the array size to include signal 11
 
+    ADDRESS SYSTEM_ModuleCallback(INT32 index) {
+        return index >= 0 && index < 10 ? (ADDRESS)handler[index] : 0;
+    }
+
     void segfaultHandler(int signal) {
       __HALT(-10);
     }
@@ -175,12 +185,16 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
             int needtosetsystemhandler = handler[s-2] == 0;
             handler[s-2] = (SystemSignalHandler)h;
             if (needtosetsystemhandler) {
-                signal(s, signalHandler);
+                struct sigaction action = {0};
+                action.sa_handler = signalHandler;
+                action.sa_flags = SA_RESTART;
+                sigemptyset(&action.sa_mask);
+                sigaction(s, &action, NULL);
             }
         }
     }
 
-    void setupAutomaticSegfaultHandler() {
+    void setupAutomaticSegfaultHandler(void) {
         SystemSetHandler(11, (ADDRESS)segfaultHandler);  // Register handler for SIGSEGV
     }
 
@@ -191,6 +205,12 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     SystemSignalHandler SystemInterruptHandler = 0;
     SystemSignalHandler SystemQuitHandler = 0;
     BOOL ConsoleCtrlHandlerSet = FALSE;
+
+    ADDRESS SYSTEM_ModuleCallback(INT32 index) {
+        if (index == 0) return (ADDRESS)SystemInterruptHandler;
+        if (index == 1) return (ADDRESS)SystemQuitHandler;
+        return 0;
+    }
 
     BOOL WINAPI SystemConsoleCtrlHandler(DWORD ctrlType) {
         if ((ctrlType == CTRL_C_EVENT) || (ctrlType == CTRL_BREAK_EVENT)) {
@@ -206,7 +226,7 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
         }
         return FALSE;
     }
-    void EnsureConsoleCtrlHandler() {
+    void EnsureConsoleCtrlHandler(void) {
         if (!ConsoleCtrlHandlerSet) {
         SetConsoleCtrlHandler(SystemConsoleCtrlHandler, TRUE);
             ConsoleCtrlHandlerSet = TRUE;
@@ -224,4 +244,3 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     }
 
 #endif
-

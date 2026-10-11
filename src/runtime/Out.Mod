@@ -16,8 +16,10 @@ VAR
 PROCEDURE Flush*;
 VAR error: Platform.ErrorCode;
 BEGIN
+  Platform.CommandCritical(TRUE);
   IF in > 0 THEN error := Platform.Write(Platform.StdOut, SYSTEM.ADR(buf), in) END;
   in := 0;
+  Platform.CommandCritical(FALSE)
 END Flush;
 (** Initializes the output stream. In this library does nothing, safe to never use. *)
 PROCEDURE Open*;
@@ -26,9 +28,11 @@ END Open;
 (** Writes the character to the end of the output stream. *)
 PROCEDURE Char*(ch: CHAR);
 BEGIN
+  Platform.CommandCritical(TRUE);
   IF in >= LEN(buf) THEN Flush END;
   buf[in] := ch; INC(in);
   IF ch = 0AX THEN Flush END;
+  Platform.CommandCritical(FALSE)
 END Char;
 
 PROCEDURE Length(VAR s: ARRAY OF CHAR): LONGINT;
@@ -39,6 +43,7 @@ END Length;
 PROCEDURE String*(str: ARRAY OF CHAR);
   VAR l: LONGINT;  error: Platform.ErrorCode;
 BEGIN
+  Platform.CommandCritical(TRUE);
   l := Length(str);
   IF in + l > LEN(buf) THEN Flush END;
   IF l > LEN(buf) THEN
@@ -46,7 +51,8 @@ BEGIN
     error := Platform.Write(Platform.StdOut, SYSTEM.ADR(str), l)
   ELSE
     SYSTEM.MOVE(SYSTEM.ADR(str), SYSTEM.ADR(buf[in]), l); INC(in, SHORT(l));
-  END
+  END;
+  Platform.CommandCritical(FALSE)
 END String;
 
 (** Writes the integer number x to the end of the output stream.
@@ -245,4 +251,3 @@ BEGIN
     the specification was proposed by H. Moessenbock *)
 
 END Out.
-

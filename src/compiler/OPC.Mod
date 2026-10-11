@@ -5,7 +5,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     various promotion rules changed (long) => (LONGINT), xxxL avoided
 *)
 
-  IMPORT OPT, OPM, Configuration, SYSTEM;
+  IMPORT OPT, OPM, Configuration, SYSTEM, Strings;
 
   CONST demoVersion = FALSE;
 
@@ -38,8 +38,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   VAR
     indentLevel: INTEGER;
-    hashtab:     ARRAY 105 OF SHORTINT;
-    keytab:      ARRAY 50, 9 OF CHAR;
+    hashtab:     ARRAY 257 OF SHORTINT;
+    keytab:      ARRAY 96, 32 OF CHAR;
     GlbPtrs:     BOOLEAN;
     BodyNameExt: ARRAY 13 OF CHAR;
 
@@ -94,12 +94,12 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     RETURN i
   END Length;
 
-  PROCEDURE PerfectHash (VAR s: ARRAY OF CHAR): INTEGER;
+  PROCEDURE KeywordHash (VAR s: ARRAY OF CHAR): INTEGER;
     VAR i, h: INTEGER;
   BEGIN i := 0; h := 0;
     WHILE (s[i] # 0X) & (i < 5) DO h := 3*h + ORD(s[i]); INC(i) END;
-    RETURN h MOD 105
-  END PerfectHash;
+    RETURN h MOD LEN(hashtab)
+  END KeywordHash;
 
   PROCEDURE Ident* (obj: OPT.Object);
     VAR mode, level, h: INTEGER;
@@ -107,7 +107,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     mode := obj^.mode; level := obj^.mnolev;
     IF (mode IN {OPT.Var, OPT.Typ, OPT.LProc}) & (level > 0) OR (mode IN {OPT.Fld, OPT.VarPar}) THEN
       OPM.WriteStringVar(obj^.name);
-      h := PerfectHash(obj^.name);
+      h := KeywordHash(obj^.name);
+      WHILE (hashtab[h] >= 0) & (keytab[hashtab[h]] # obj^.name) DO
+        h := (h + 1) MOD LEN(hashtab)
+      END;
       IF hashtab[h] >= 0 THEN
         IF keytab[hashtab[h]] = obj^.name THEN OPM.Write('_') END
       END
@@ -681,17 +684,27 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END IdentList;
 
   PROCEDURE AnsiParamList (obj: OPT.Object; showParamNames: BOOLEAN);
-    VAR name: ARRAY 32 OF CHAR;
+    VAR name: ARRAY 32 OF CHAR; par: OPT.Object; typ: OPT.Struct;
   BEGIN
     OPM.Write("(");
     IF (obj = NIL) OR (obj^.mode = OPT.TProc) THEN OPM.WriteString("void")
     ELSE
       LOOP
-        DeclareBase(obj);
+        par := obj;
+        IF obj^.typ^.comp = OPT.Array THEN
+          (* C adjusts an array parameter to a pointer to its first element.
+             Emit that type explicitly, without suggesting a minimum buffer
+             size to C callers. Keep inner array types for their row stride. *)
+          NEW(par); par^ := obj^;
+          NEW(typ); typ^.form := OPT.Pointer; typ^.comp := OPT.Basic;
+          typ^.BaseTyp := obj^.typ^.BaseTyp;
+          par^.typ := typ; par^.mode := OPT.Var
+        END;
+        DeclareBase(par);
         IF showParamNames THEN
-          OPM.Write(' '); DeclareObj(obj, FALSE)
+          OPM.Write(' '); DeclareObj(par, FALSE)
         ELSE
-          COPY(obj^.name, name);  obj^.name := ""; DeclareObj(obj, FALSE); COPY(name, obj^.name)
+          COPY(par^.name, name); par^.name := ""; DeclareObj(par, FALSE); COPY(name, par^.name)
         END ;
         IF obj^.typ^.comp = OPT.DynArr THEN
           OPM.WriteString(", ADDRESS ");
@@ -740,7 +753,18 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END Include;
 
   PROCEDURE IncludeImports(obj: OPT.Object; vis: INTEGER);
+    VAR i: INTEGER;
   BEGIN
+    IF vis = OPT.external THEN
+      (* Re-exported types may belong to an indirect import. Ident marks that
+         defining module, not necessarily a module in the source IMPORT list. *)
+      i := 1;
+      WHILE i < OPT.nofGmod DO
+        IF OPT.GlbMod[i].vis >= vis THEN Include(OPT.GlbMod[i].name) END;
+        INC(i)
+      END;
+      RETURN
+    END;
     IF obj # NIL THEN
       IncludeImports(obj^.left, vis);
       IF (obj^.mode = OPT.Mod) & (obj^.mnolev # 0) & (OPT.GlbMod[-obj^.mnolev].vis >= vis) THEN  (* @self and SYSTEM have mnolev = 0 *)
@@ -806,6 +830,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         | OPM.notcoloroutput: OPM.Write("f")
         | OPM.forcenewsym:    OPM.Write("F")
         | OPM.verbose:        OPM.Write("v")
+        | OPM.sharedmodule:   OPM.Write("l")
+        | OPM.permodules:     OPM.Write("P")
+        | OPM.dynamicmain:    OPM.Write("d")
+        | OPM.embeddedcore:   OPM.Write("D")
         ELSE OPM.LogWStr ("( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg"); OPM.LogWLn;
         END
       END
@@ -837,10 +865,25 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString("#define INTEGER  INT");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;
     OPM.WriteString("#define LONGINT  INT");  OPM.WriteInt(OPT.linttyp.size*8); OPM.WriteLn;
     OPM.WriteString("#define SET      UINT"); OPM.WriteInt(OPT.settyp.size*8);  OPM.WriteLn;
+    IF OPM.mainprog IN OPM.Options THEN
+      OPM.WriteString("#define VOC_MAIN_PROGRAM 1"); OPM.WriteLn
+    END;
     OPM.WriteLn;
 
     Include(BasicIncludeFile);
     IncludeImports(OPT.topScope^.right, 0); OPM.WriteLn;
+    IF OPM.permodules IN OPM.Options THEN
+      OPM.WriteString("static void *__module_owner;"); OPM.WriteLn
+    END;
+    IF OPM.sharedmodule IN OPM.Options THEN
+      Include("Heap");
+      OPM.WriteString("extern const INT32 VOC_CoreABI;"); OPM.WriteLn;
+      OPM.WriteString("export const void *const "); OPM.WriteStringVar(OPM.modName);
+      OPM.WriteString("__voc_runtime = &VOC_CoreABI;"); OPM.WriteLn;
+      OPM.WriteString("export const INT32 "); OPM.WriteStringVar(OPM.modName);
+      OPM.WriteString("__voc_abi[] = {VOC_SHARED_ABI_FORMAT, sizeof(ADDRESS), sizeof(SHORTINT), sizeof(INTEGER),"); OPM.WriteLn;
+      OPM.WriteString("sizeof(LONGINT), sizeof(SET), sizeof(Heap_ModuleDesc), sizeof(Heap_CmdDesc), VOC_CORE_ABI_PROFILE};"); OPM.WriteLn
+    END;
     DefAnonRecs(n);
     TypeDefs(OPT.topScope^.right, 0); OPM.WriteLn;
     IdentList(OPT.topScope^.scope, 0); OPM.WriteLn;
@@ -855,6 +898,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       RegCmds(obj^.left);
       IF (obj^.mode = OPT.XProc) & (obj^.history # OPT.removed) THEN
         IF (obj^.vis # 0) & (obj^.link = NIL) & (obj^.typ = OPT.notyp) THEN (*command*)
+          IF (OPM.permodules IN OPM.Options) & (Strings.Length(obj.name) >= OPM.ModularNameLen) THEN
+            OPM.LogWStr("Modular-build command names must fit the 63-character runtime registry.");
+            OPM.LogWLn; OPM.noerr := FALSE
+          END;
           BegStat; OPM.WriteString('__REGCMD("');
           OPM.WriteStringVar(obj.name); OPM.WriteString('", '); Ident(obj); OPM.Write(")"); EndStat
         END
@@ -863,11 +910,62 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END
   END RegCmds;
 
+  PROCEDURE RegProcs(obj: OPT.Object);
+  BEGIN
+    IF obj # NIL THEN
+      RegProcs(obj.left);
+      IF (obj.mode IN {OPT.LProc, OPT.XProc, OPT.TProc}) & (obj.history # OPT.removed) THEN
+        BegStat; OPM.WriteString("Heap_REGPROC(m, (ADDRESS)"); Ident(obj);
+        OPM.WriteString(")"); EndStat;
+        RegProcs(obj.scope.right)
+      END;
+      RegProcs(obj.right)
+    END
+  END RegProcs;
+
+  PROCEDURE RegisterBody*;
+  BEGIN
+    IF OPM.permodules IN OPM.Options THEN
+      RegProcs(OPT.topScope);
+      IF OPM.modName # "SYSTEM" THEN RegCmds(OPT.topScope) END;
+      BegStat; OPM.WriteString("__ENTERMODULE(m)"); EndStat
+    END
+  END RegisterBody;
+
+  PROCEDURE CheckInterrupt*;
+  BEGIN
+    IF OPM.permodules IN OPM.Options THEN
+      BegStat; OPM.WriteString("SYSTEM_CheckCommandInterrupt()"); EndStat
+    END
+  END CheckInterrupt;
+
   PROCEDURE InitImports(obj: OPT.Object);
+    VAR i: INTEGER;
   BEGIN
     IF obj # NIL THEN
       InitImports(obj^.left);
       IF (obj^.mode = OPT.Mod) & (obj^.mnolev # 0) THEN
+        IF OPM.permodules IN OPM.Options THEN
+          IF OPT.GlbMod[-obj^.mnolev].name = "core" THEN
+            OPM.LogWStr("The library name core is reserved for the minimal runtime.");
+            OPM.LogWLn; OPM.noerr := FALSE; RETURN
+          END;
+          IF Strings.Length(OPT.GlbMod[-obj^.mnolev].name) >= OPM.ModularNameLen THEN
+            OPM.LogWStr("Modular imports must fit the 63-character runtime registry.");
+            OPM.LogWLn; OPM.noerr := FALSE; RETURN
+          END;
+          i := 0;
+          WHILE (i < OPM.SharedImportCount) &
+              (OPM.SharedImports[i] # OPT.GlbMod[-obj^.mnolev].name) DO INC(i) END;
+          IF i = OPM.SharedImportCount THEN
+            IF i >= LEN(OPM.SharedImports) THEN
+              OPM.LogWStr("Too many modular imports."); OPM.LogWLn;
+              OPM.noerr := FALSE; RETURN
+            END;
+            COPY(OPT.GlbMod[-obj^.mnolev].name, OPM.SharedImports[i]);
+            INC(OPM.SharedImportCount)
+          END
+        END;
         BegStat; OPM.WriteString("__MODULE_IMPORT(");
         OPM.WriteStringVar(OPT.GlbMod[-obj^.mnolev].name);
         OPM.Write(')'); EndStat
@@ -875,6 +973,19 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       InitImports(obj^.right)
     END
   END InitImports;
+
+  PROCEDURE RegisterImports(obj: OPT.Object);
+  BEGIN
+    IF obj # NIL THEN
+      RegisterImports(obj.left);
+      IF (obj.mode = OPT.Mod) & (obj.mnolev # 0) THEN
+        BegStat; OPM.WriteString("Heap_REGIMPORT(m, ");
+        OPM.WriteStringVar(OPT.GlbMod[-obj.mnolev].name);
+        OPM.WriteString("__init())"); EndStat
+      END;
+      RegisterImports(obj.right)
+    END
+  END RegisterImports;
 
   PROCEDURE GenEnumPtrs* (var: OPT.Object);
     VAR typ: OPT.Struct; n: LONGINT;
@@ -933,11 +1044,27 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.WriteString(OPM.modName);
     IF GlbPtrs THEN OPM.WriteString('", EnumPtrs)') ELSE OPM.WriteString('", 0)') END ;
     EndStat;
-    IF OPM.modName # "SYSTEM" THEN RegCmds(OPT.topScope) END
+    IF OPM.permodules IN OPM.Options THEN
+      BegStat; OPM.WriteString("__module_owner = m"); EndStat;
+      RegisterImports(OPT.topScope.right)
+    END;
+    IF ~(OPM.permodules IN OPM.Options) & (OPM.modName # "SYSTEM") THEN RegCmds(OPT.topScope) END
   END EnterBody;
+
+  PROCEDURE FinishBody*;
+  BEGIN
+    IF OPM.permodules IN OPM.Options THEN
+      BegStat; OPM.WriteString("__LEAVEMODULE()"); EndStat;
+      BegStat; OPM.WriteString("Heap_MODREADY(m, (ADDRESS)");
+      IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("main")
+      ELSE OPM.WriteStringVar(OPM.modName); OPM.WriteString("__init") END;
+      OPM.WriteString(")"); EndStat
+    END
+  END FinishBody;
 
   PROCEDURE ExitBody*;
   BEGIN
+    FinishBody;
     BegStat;
     IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI;") ELSE OPM.WriteString("__ENDMOD;") END ;
     OPM.WriteLn; EndBlk
@@ -962,7 +1089,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
   PROCEDURE NeedsRetval*(proc: OPT.Object): BOOLEAN; (* aux. variable __retval needed for return *)
   BEGIN (* simple rule; ignores DUPlicated value arrays because they use alloca. *)
-    RETURN (proc^.typ # OPT.notyp) & ~proc^.scope^.leaf
+    RETURN (proc^.typ # OPT.notyp) & (~proc^.scope^.leaf OR (OPM.permodules IN OPM.Options))
   END NeedsRetval;
 
   PROCEDURE EnterProc* (proc: OPT.Object);
@@ -978,6 +1105,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       OPM.Write(' '); OPM.WriteString(LocalScope); EndStat
     END ;
     IF NeedsRetval(proc) THEN BegStat; Ident(proc^.typ^.strobj); OPM.WriteString(" __retval"); EndStat END;
+    IF OPM.permodules IN OPM.Options THEN
+      BegStat; OPM.WriteString("__ENTERMODULE(__module_owner)"); EndStat
+    END;
     var := proc^.link;
     WHILE var # NIL DO (* declare copy of fixed size value array parameters *)
       IF (var^.typ^.comp = OPT.Array) & (var^.mode = OPT.Var) THEN
@@ -1061,7 +1191,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       OPM.WriteString(' = '); OPM.WriteStringVar(scope^.name); OPM.WriteString(GlobalScope); EndStat;
       BegStat; OPM.WriteStringVar(scope^.name); OPM.WriteString(GlobalScope); OPM.WriteString(' = ');
       OPM.Write("&"); OPM.WriteString(LocalScope); EndStat
-    END
+    END;
+    CheckInterrupt
   END EnterProc;
 
   PROCEDURE ExitProc*(proc: OPT.Object; eoBlock, implicitRet: BOOLEAN);
@@ -1086,6 +1217,10 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
           OPM.WriteString('__DEL('); Ident(var); OPM.Write(')'); EndStat
         END ;
         var := var^.link
+      END;
+      IF OPM.permodules IN OPM.Options THEN
+        IF indent THEN BegStat ELSE indent := TRUE END;
+        OPM.WriteString("__LEAVEMODULE()"); EndStat
       END
     END ;
     IF eoBlock THEN EndBlk; OPM.WriteLn
@@ -1269,11 +1404,14 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
 
 
   PROCEDURE InitKeywords;
-    VAR n, i: SHORTINT;
+    VAR n: SHORTINT; i: INTEGER;
 
     PROCEDURE Enter(s: ARRAY OF CHAR);
       VAR h: INTEGER;
-    BEGIN h := PerfectHash(s); hashtab[h] := n; COPY(s, keytab[n]); INC(n)
+    BEGIN
+      h := KeywordHash(s);
+      WHILE hashtab[h] >= 0 DO h := (h + 1) MOD LEN(hashtab) END;
+      hashtab[h] := n; COPY(s, keytab[n]); INC(n)
     END Enter;
 
   BEGIN n := 0;
@@ -1325,6 +1463,36 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     Enter("void");
     Enter("volatile");
     Enter("while");
+
+    (* C99, C11 and C23 keywords, including the formerly macro-only names.
+       Linear probing keeps new entries from hiding older colliding names. *)
+    Enter("inline");
+    Enter("restrict");
+    Enter("_Bool");
+    Enter("_Complex");
+    Enter("_Imaginary");
+    Enter("_Alignas");
+    Enter("_Alignof");
+    Enter("_Atomic");
+    Enter("_Generic");
+    Enter("_Noreturn");
+    Enter("_Static_assert");
+    Enter("_Thread_local");
+    Enter("_BitInt");
+    Enter("_Decimal32");
+    Enter("_Decimal64");
+    Enter("_Decimal128");
+    Enter("alignas");
+    Enter("alignof");
+    Enter("bool");
+    Enter("constexpr");
+    Enter("false");
+    Enter("nullptr");
+    Enter("static_assert");
+    Enter("thread_local");
+    Enter("true");
+    Enter("typeof");
+    Enter("typeof_unqual");
 
 (* what about common predefined names from cpp as e.g.
                Operating System:   ibm, gcos, os, tss and unix

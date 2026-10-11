@@ -15,10 +15,12 @@ CONST
 
 TYPE
   SignalHandler = PROCEDURE(signal: SYSTEM.INT32);
+  Command* = PROCEDURE;
 
   ErrorCode*  = INTEGER;
   FileHandle* = LONGINT;
   TerminalState* = SYSTEM.ADDRESS;
+  DirectoryHandle* = SYSTEM.ADDRESS;
 
   FileIdentity* = RECORD
     volume: LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
@@ -42,6 +44,9 @@ VAR
 
 (* Unix headers to be included *)
 
+PROCEDURE -A0Feature '#ifndef _POSIX_C_SOURCE';
+PROCEDURE -A0Feature1 '#define _POSIX_C_SOURCE 200809L';
+PROCEDURE -A0Feature2 '#endif';
 PROCEDURE -Aincludesystime  '#include <sys/time.h>';  (* for gettimeofday *)
 PROCEDURE -Aincludetime     '#include <time.h>';      (* for localtime *)
 PROCEDURE -Aincludesystypes '#include <sys/types.h>';
@@ -50,10 +55,11 @@ PROCEDURE -Aincludesysstat  '#include <sys/stat.h>';
 PROCEDURE -Aincludefcntl    '#include <fcntl.h>';
 PROCEDURE -Aincludeerrno    '#include <errno.h>';
 PROCEDURE -Aincludeutime    '#include <utime.h>';
-PROCEDURE -Aincludetermios  '#include <termios.h>';
+PROCEDURE -Aincludetermios '#include "PlatformTermios.h"';
 PROCEDURE -Aincludesysioctl '#include <sys/ioctl.h>';
 PROCEDURE -Astdlib          '#include <stdlib.h>';
 PROCEDURE -Astdio           '#include <stdio.h>';
+PROCEDURE -Astring          '#include <string.h>';
 PROCEDURE -Aerrno           '#include <errno.h>';
 PROCEDURE -Alimits          '#include <limits.h>';
 
@@ -164,6 +170,19 @@ BEGIN sethandler(3, handler); END SetQuitHandler;
 PROCEDURE SetBadInstructionHandler*(handler: SignalHandler);
 BEGIN sethandler(4, handler); END SetBadInstructionHandler;
 
+PROCEDURE -runCommand(command: Command): SYSTEM.INT32 "SYSTEM_RunCommand(command)";
+(* Modular Unix hosts: 0 after a normal return, the signal number after a
+   deferred stop, or a negative native error if a context cannot be entered.
+   The caller runs cleanup after this returns. Nested contexts are refused. *)
+PROCEDURE RunCommand*(command: Command): SYSTEM.INT32;
+BEGIN RETURN runCommand(command) END RunCommand;
+
+PROCEDURE -commandCritical(enter: BOOLEAN) "SYSTEM_CommandCritical(enter)";
+(* Protect a multi-step update. Calls must be balanced, including early returns.
+   This defers command cancellation; it is not a thread-synchronization lock. *)
+PROCEDURE CommandCritical*(enter: BOOLEAN);
+BEGIN commandCritical(enter) END CommandCritical;
+
 
 
 
@@ -234,6 +253,42 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 
 
 (* File system *)
+
+(* Native helpers stay private: libc headers/macros must not leak through the
+   exported Platform.h into unrelated generated Oberon modules. *)
+PROCEDURE -ADirectorySupport '#include "PlatformDirectory.h"';
+
+PROCEDURE -openDirectory(path: ARRAY OF CHAR;
+                        VAR handle: DirectoryHandle): ErrorCode
+"VOC_OpenDirectory((char*)path, handle)";
+
+PROCEDURE OpenDirectory*(path: ARRAY OF CHAR;
+                        VAR handle: DirectoryHandle): ErrorCode;
+BEGIN RETURN openDirectory(path, handle) END OpenDirectory;
+
+(* done distinguishes end-of-directory from errors. An undersized name buffer
+   returns an error, never a truncated name. Close every successfully opened
+   cursor, including after read errors. Entries include '.' and '..'. *)
+PROCEDURE -readDirectory(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
+                        VAR done: BOOLEAN): ErrorCode
+"VOC_ReadDirectory(handle, (char*)name, name__len, done)";
+
+PROCEDURE ReadDirectory*(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
+                        VAR done: BOOLEAN): ErrorCode;
+BEGIN RETURN readDirectory(handle, name, done) END ReadDirectory;
+
+PROCEDURE -closeDirectory(VAR handle: DirectoryHandle): ErrorCode
+"VOC_CloseDirectory(handle)";
+
+PROCEDURE CloseDirectory*(VAR handle: DirectoryHandle): ErrorCode;
+BEGIN RETURN closeDirectory(handle) END CloseDirectory;
+
+(* Follow symlinks, so path completion can descend through directory links. *)
+PROCEDURE -isDirectory(path: ARRAY OF CHAR): BOOLEAN
+"VOC_IsDirectory((char*)path)";
+
+PROCEDURE IsDirectory*(path: ARRAY OF CHAR): BOOLEAN;
+BEGIN RETURN isDirectory(path) END IsDirectory;
 
 (* Note: Consider also using flags O_SYNC and O_DIRECT as we do buffering *)
 PROCEDURE -openrw (n: ARRAY OF CHAR): INTEGER "open((char*)n, O_RDWR)";
@@ -317,7 +372,7 @@ BEGIN RETURN isatty(h) # 0 END IsConsole;
 
 PROCEDURE -captureTerminalState(h: FileHandle;
                                 VAR state: TerminalState): INTEGER
-"({ struct termios *p = malloc(sizeof(*p)); int rc = 0; if (p == 0) { errno = ENOMEM; rc = -1; } else if (tcgetattr(h, p) < 0) { free(p); rc = -1; } else *state = (ADDRESS)p; rc; })";
+"VOC_CaptureTerminalState(h, state)";
 
 PROCEDURE CaptureTerminalState*(h: FileHandle;
                                 VAR state: TerminalState): ErrorCode;
@@ -327,11 +382,12 @@ BEGIN
 END CaptureTerminalState;
 
 PROCEDURE -restoreTerminalState(h: FileHandle; state: TerminalState): INTEGER
-"tcsetattr(h, TCSANOW, (struct termios*)(ADDRESS)state)";
+"VOC_RestoreTerminalState(h, state)";
 
 PROCEDURE RestoreTerminalState*(h: FileHandle;
                                 state: TerminalState): ErrorCode;
 BEGIN
+  ASSERT(state # 0);
   IF restoreTerminalState(h, state) < 0 THEN RETURN err() ELSE RETURN 0 END
 END RestoreTerminalState;
 
@@ -339,9 +395,37 @@ PROCEDURE -releaseTerminalState(state: TerminalState)
 "free((void*)(ADDRESS)state)";
 
 PROCEDURE ReleaseTerminalState*(VAR state: TerminalState);
+  VAR address: TerminalState;
 BEGIN
-  IF state # 0 THEN releaseTerminalState(state); state := 0 END
+  address := state; state := 0;
+  IF address # 0 THEN releaseTerminalState(address) END
 END ReleaseTerminalState;
+
+PROCEDURE -copyTerminalState(source: TerminalState; VAR copy: TerminalState): INTEGER
+"VOC_CopyTerminalState(source, copy)";
+
+PROCEDURE CopyTerminalState*(source: TerminalState; VAR copy: TerminalState): ErrorCode;
+BEGIN
+  ASSERT(source # 0);
+  copy := 0;
+  IF copyTerminalState(source, copy) < 0 THEN RETURN err() ELSE RETURN 0 END
+END CopyTerminalState;
+
+PROCEDURE -rawTerminalState(state: TerminalState)
+"VOC_MakeTerminalRaw(state)";
+
+PROCEDURE MakeTerminalRaw*(state: TerminalState);
+BEGIN ASSERT(state # 0); rawTerminalState(state)
+END MakeTerminalRaw;
+
+PROCEDURE -timeoutTerminalState(state: TerminalState; tenths: INTEGER)
+"VOC_SetTerminalTimeout(state, tenths)";
+
+PROCEDURE SetTerminalTimeout*(state: TerminalState; tenths: INTEGER);
+BEGIN
+  ASSERT((state # 0) & (tenths >= 0) & (tenths <= 255));
+  timeoutTerminalState(state, tenths)
+END SetTerminalTimeout;
 
 PROCEDURE -setTerminalEcho(h: FileHandle; enabled: INTEGER): INTEGER
 "({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { if (enabled) t.c_lflag |= ECHO; else t.c_lflag &= ~ECHO; rc = tcsetattr(h, TCSANOW, &t); } rc; })";
@@ -378,14 +462,22 @@ BEGIN
   IF setTerminalOutputMode(h, value) < 0 THEN RETURN err() ELSE RETURN 0 END
 END SetTerminalOutputMode;
 
-PROCEDURE -getTerminalSize(h: FileHandle; VAR lines, columns: INTEGER): INTEGER
-"({ struct winsize ws; int rc = ioctl(h, TIOCGWINSZ, &ws); if (rc == 0) { *lines = ws.ws_row; *columns = ws.ws_col; } rc; })";
+PROCEDURE -getTerminalDimensions(h: FileHandle; VAR lines, columns: LONGINT; limit: LONGINT): INTEGER
+"VOC_GetTerminalDimensions(h, lines, columns, limit)";
 
 PROCEDURE GetTerminalSize*(h: FileHandle;
                            VAR lines, columns: INTEGER): ErrorCode;
+  VAR rows, cols: LONGINT;
 BEGIN
-  IF getTerminalSize(h, lines, columns) < 0 THEN RETURN err() ELSE RETURN 0 END
+  IF getTerminalDimensions(h, rows, cols, MAX(INTEGER)) < 0 THEN RETURN err() END;
+  lines := SHORT(rows); columns := SHORT(cols);
+  RETURN 0
 END GetTerminalSize;
+
+PROCEDURE GetTerminalDimensions*(h: FileHandle; VAR lines, columns: LONGINT): ErrorCode;
+BEGIN
+  IF getTerminalDimensions(h, lines, columns, MAX(LONGINT)) < 0 THEN RETURN err() ELSE RETURN 0 END
+END GetTerminalDimensions;
 
 PROCEDURE -sameTerminal(first, second: FileHandle): INTEGER
 "({ struct stat a, b; int same = 0; if (fstat(first, &a) == 0 && fstat(second, &b) == 0) same = S_ISCHR(a.st_mode) && S_ISCHR(b.st_mode) && a.st_rdev == b.st_rdev; same; })";

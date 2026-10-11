@@ -213,10 +213,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR
       i: LONGINT;  error: Platform.ErrorCode;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
       WHILE (i < NumBufs) & (f.bufs[i] # NIL) DO Flush(f.bufs[i]); INC(i) END;
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END Close;
 
   PROCEDURE Length* (f: File): LONGINT;
@@ -284,7 +286,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     RETURN NIL
   END CacheEntry;
 
-  PROCEDURE Old*(name: ARRAY OF CHAR): File;
+  PROCEDURE OldFile(name: ARRAY OF CHAR): File;
     VAR
       f:         File;
       fd:        Platform.FileHandle;
@@ -330,11 +332,19 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       END
     ELSE RETURN NIL
     END
+  END OldFile;
+
+  PROCEDURE Old*(name: ARRAY OF CHAR): File;
+    VAR f: File;
+  BEGIN
+    (* Do not abandon an OS descriptor before its finalizer owns it. *)
+    Platform.CommandCritical(TRUE); f := OldFile(name);
+    Platform.CommandCritical(FALSE); RETURN f
   END Old;
 
   PROCEDURE Purge* (f: File);
     VAR i: INTEGER;  identity: Platform.FileIdentity;  error: Platform.ErrorCode;
-  BEGIN i := 0;
+  BEGIN Platform.CommandCritical(TRUE); i := 0;
     WHILE i < NumBufs DO
       IF f.bufs[i] # NIL THEN f.bufs[i].org := -1; f.bufs[i] := NIL END;
       INC(i)
@@ -344,15 +354,18 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       error := Platform.Seek(f.fd, 0, Platform.SeekSet)
     END;
     f.pos := 0; f.len := 0; f.swapper := -1;
-    error := Platform.Identify(f.fd, identity); Platform.SetMTime(f.identity, identity)
+    error := Platform.Identify(f.fd, identity); Platform.SetMTime(f.identity, identity);
+    Platform.CommandCritical(FALSE)
   END Purge;
 
   PROCEDURE GetDate* (f: File; VAR t, d: LONGINT);
     VAR
       identity: Platform.FileIdentity;  error: Platform.ErrorCode;
   BEGIN
+    Platform.CommandCritical(TRUE);
     Create(f); error := Platform.Identify(f.fd, identity);
-    Platform.MTimeAsClock(identity, t, d)
+    Platform.MTimeAsClock(identity, t, d);
+    Platform.CommandCritical(FALSE)
   END GetDate;
 
   PROCEDURE Pos* (VAR r: Rider): LONGINT;
@@ -364,6 +377,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Set* (VAR r: Rider; f: File; pos: LONGINT);
     VAR org, offset, i, n: LONGINT;  buf: Buffer;  error: Platform.ErrorCode;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF f # NIL THEN
       IF pos > f.len THEN pos := f.len ELSIF pos < 0 THEN pos := 0 END;
       offset := pos MOD BufSize; org := pos - offset; i := 0;
@@ -392,12 +406,14 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     ELSE buf := NIL; org := 0; offset := 0
     END;
     Assert(offset <= BufSize);
-    r.buf := buf; r.org := org; r.offset := offset; r.eof := FALSE; r.res := 0
+    r.buf := buf; r.org := org; r.offset := offset; r.eof := FALSE; r.res := 0;
+    Platform.CommandCritical(FALSE)
   END Set;
 
   PROCEDURE Read* (VAR r: Rider; VAR x: SYSTEM.BYTE);
     VAR offset: LONGINT; buf: Buffer;
   BEGIN
+    Platform.CommandCritical(TRUE);
     buf := r.buf; offset := r.offset;
     IF r.org # buf.org THEN
       Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
@@ -410,7 +426,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       x := r.buf.data[0]; r.offset := 1
     ELSE
       x := 0X; r.eof := TRUE
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END Read;
 
   (* wrapper for compatibility with Project Oberon sources *)
@@ -422,6 +439,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE ReadBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF n > LEN(x) THEN IdxTrap END;
     xpos   := 0;
     buf    := r.buf;
@@ -431,13 +449,14 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
         Set(r, buf.f, r.org + offset); buf := r.buf; offset := r.offset
       END;
       restInBuf := buf.size - offset;
-      IF restInBuf = 0 THEN r.res := n; r.eof := TRUE; RETURN
+      IF restInBuf = 0 THEN r.res := n; r.eof := TRUE; Platform.CommandCritical(FALSE); RETURN
       ELSIF n > restInBuf THEN min := restInBuf ELSE min := n END;
       SYSTEM.MOVE(SYSTEM.ADR(buf.data[offset]), SYSTEM.ADR(x[xpos]), min);
       INC(offset, min); r.offset := offset; INC(xpos, min); DEC(n, min);
       Assert(offset <= BufSize)
     END;
-    r.res := 0; r.eof := FALSE
+    r.res := 0; r.eof := FALSE;
+    Platform.CommandCritical(FALSE)
   END ReadBytes;
 
   PROCEDURE Base* (VAR r: Rider): File;
@@ -447,6 +466,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Write* (VAR r: Rider; x: SYSTEM.BYTE);
     VAR buf: Buffer; offset: LONGINT;
   BEGIN
+    Platform.CommandCritical(TRUE);
     buf := r.buf; offset := r.offset;
     Assert(offset <= BufSize);
     IF (r.org # buf.org) OR (offset >= BufSize) THEN
@@ -459,12 +479,14 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     IF offset = buf.size THEN
       INC(buf.size); INC(buf.f.len)
     END;
-    r.offset := offset + 1; r.res := 0
+    r.offset := offset + 1; r.res := 0;
+    Platform.CommandCritical(FALSE)
   END Write;
 
   PROCEDURE WriteBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF n > LEN(x) THEN IdxTrap END;
     xpos := 0; buf := r.buf; offset := r.offset;
     WHILE n > 0 DO
@@ -482,7 +504,8 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       IF offset > buf.size THEN INC(buf.f.len, offset - buf.size); buf.size := offset END;
       INC(xpos, min); DEC(n, min); buf.chg := TRUE
     END;
-    r.res := 0
+    r.res := 0;
+    Platform.CommandCritical(FALSE)
   END WriteBytes;
 
 (* another solution would be one that is similar to ReadBytes, WriteBytes.
@@ -520,11 +543,13 @@ Especially Length would become fairly complex.
 
   PROCEDURE Delete*(name: ARRAY OF CHAR; VAR res: INTEGER);
   BEGIN
+    Platform.CommandCritical(TRUE);
     Deregister(name);
-    res := Platform.Unlink(name)
+    res := Platform.Unlink(name);
+    Platform.CommandCritical(FALSE)
   END Delete;
 
-  PROCEDURE Rename* (old, new: ARRAY OF CHAR; VAR res: INTEGER);
+  PROCEDURE RenameFile(old, new: ARRAY OF CHAR; VAR res: INTEGER);
     VAR
       fdold, fdnew: Platform.FileHandle;
       n: LONGINT;
@@ -571,11 +596,18 @@ Especially Length would become fairly complex.
     ELSE
       res := 2 (* old file not found *)
     END
+  END RenameFile;
+
+  PROCEDURE Rename*(old, new: ARRAY OF CHAR; VAR res: INTEGER);
+  BEGIN
+    Platform.CommandCritical(TRUE); RenameFile(old, new, res);
+    Platform.CommandCritical(FALSE)
   END Rename;
 
   PROCEDURE Register* (f: File);
     VAR idx, errcode: INTEGER; f1: File;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF (f.state = create) & (f.registerName # "") THEN f.state := close (* shortcut renaming *) END;
     Close(f);
     IF f.registerName # "" THEN
@@ -583,12 +615,15 @@ Especially Length would become fairly complex.
       Rename(f.workName, f.registerName, errcode);
       IF errcode # 0 THEN Err("Couldn't rename temp name as register name", f, errcode) END;
       f.workName := f.registerName; f.registerName := ""; f.tempFile := FALSE
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END Register;
 
   PROCEDURE ChangeDirectory*(path: ARRAY OF CHAR; VAR res: INTEGER);
   BEGIN
+    Platform.CommandCritical(TRUE);
     res := Platform.Chdir(path);
+    Platform.CommandCritical(FALSE)
   END ChangeDirectory;
 
   PROCEDURE FlipBytes(VAR src, dest: ARRAY OF SYSTEM.BYTE);
@@ -745,14 +780,26 @@ Especially Length would become fairly complex.
     END
   END Finalize;
 
+  PROCEDURE GetSearchPath*(VAR path: ARRAY OF CHAR): BOOLEAN;
+  BEGIN
+    path[0] := 0X;
+    IF SearchPath # NIL THEN
+      IF Strings.Length(SearchPath^) >= LEN(path) THEN RETURN FALSE END;
+      COPY(SearchPath^, path)
+    END;
+    RETURN TRUE
+  END GetSearchPath;
+
   PROCEDURE SetSearchPath*(path: ARRAY OF CHAR);
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF Strings.Length(path) # 0 THEN
       NEW(SearchPath, Strings.Length(path)+1);
       COPY(path, SearchPath^)
     ELSE
       SearchPath := NIL
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END SetSearchPath;
 
 

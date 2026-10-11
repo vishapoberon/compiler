@@ -1,6 +1,6 @@
 MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**)  (* << RC, MB, JT *)
   IMPORT
-    Files, Modules, Reals, SYSTEM;
+    Files, Modules, Reals, SYSTEM, Platform;
 
   (*--- insert field e: Elem into Texts.Scanner and change Texts.Scan to set it in case of class=6 *)
 
@@ -19,9 +19,9 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     textTag = 0F0X; DocBlockId = 0F7X; version = 01X;
 
   TYPE
-    FontsFont = POINTER TO FontDesc;
-    FontDesc = RECORD
-      name: ARRAY 32 OF CHAR;
+    FontsFont* = POINTER TO FontDesc;
+    FontDesc* = RECORD
+      name*: ARRAY 32 OF CHAR;
     END ;
 
     Run = POINTER TO RunDesc;
@@ -238,22 +238,26 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
 
   PROCEDURE OpenBuf* (B: Buffer);
     VAR u: Run;
-  BEGIN NEW(u); u.next := u; u.prev := u; B.head := u; B.len := 0
+  BEGIN
+    Platform.CommandCritical(TRUE);
+    NEW(u); u.next := u; u.prev := u; B.head := u; B.len := 0;
+    Platform.CommandCritical(FALSE)
   END OpenBuf;
 
   PROCEDURE Copy* (SB, DB: Buffer);
     VAR u, v, vn: Run;
-  BEGIN u := SB.head.next; v := DB.head.prev;
+  BEGIN Platform.CommandCritical(TRUE); u := SB.head.next; v := DB.head.prev;
     WHILE u # SB.head DO
       IF u IS Piece THEN vn := ClonePiece(u(Piece)) ELSE vn := CloneElem(u(Elem)) END;
       v.next := vn; vn.prev := v; v := vn; u := u.next
     END;
     v.next := DB.head; DB.head.prev := v;
-    INC(DB.len, SB.len)
+    INC(DB.len, SB.len);
+    Platform.CommandCritical(FALSE)
   END Copy;
 
   PROCEDURE Recall* (VAR B: Buffer);
-  BEGIN B := del; del := NIL
+  BEGIN Platform.CommandCritical(TRUE); B := del; del := NIL; Platform.CommandCritical(FALSE)
   END Recall;
 
 
@@ -261,7 +265,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
 
   PROCEDURE Save* (T: Text; beg, end: LONGINT; B: Buffer);
     VAR u, v, w, wn: Run; uo, ud, vo, vd: LONGINT;
-  BEGIN Find(T, beg, u, uo, ud); Find(T, end, v, vo, vd);
+  BEGIN Platform.CommandCritical(TRUE); Find(T, beg, u, uo, ud); Find(T, end, v, vo, vd);
     w := B.head.prev;
     WHILE u # v DO
       IF u IS Piece THEN wn := ClonePiece(u(Piece)); DEC(wn.len, ud); INC(wn(Piece).org, ud)
@@ -273,41 +277,46 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
       w.next := wn; wn.prev := w; w := wn
     END;
     w.next := B.head; B.head.prev := w;
-    INC(B.len, end - beg)
+    INC(B.len, end - beg);
+    Platform.CommandCritical(FALSE)
   END Save;
 
   PROCEDURE Insert* (T: Text; pos: LONGINT; B: Buffer);
     VAR u, un, v: Run; p, q: Piece; uo, ud, len: LONGINT;
-  BEGIN Find(T, pos, u, uo, ud); Split(ud, u, un);
+  BEGIN Platform.CommandCritical(TRUE); Find(T, pos, u, uo, ud); Split(ud, u, un);
     len := B.len; v := B.head.next;
     Merge(T, u, v); Splice(un, v, B.head.prev, T);
     INC(T.len, len); B.head.next := B.head; B.head.prev := B.head; B.len := 0;
+    Platform.CommandCritical(FALSE);
     IF T.notify # NIL THEN T.notify(T, insert, pos, pos+len) END
   END Insert;
 
   PROCEDURE Append* (T: Text; B: Buffer);
     VAR v: Run; pos, len: LONGINT;
-  BEGIN pos := T.len; len := B.len; v := B.head.next;
+  BEGIN Platform.CommandCritical(TRUE); pos := T.len; len := B.len; v := B.head.next;
     Merge(T, T.head.prev, v); Splice(T.head, v, B.head.prev, T);
     INC(T.len, len); B.head.next := B.head; B.head.prev := B.head; B.len := 0;
+    Platform.CommandCritical(FALSE);
     IF T.notify # NIL THEN T.notify(T, insert, pos, pos+len) END
   END Append;
 
   PROCEDURE Delete* (T: Text; beg, end: LONGINT);
     VAR c, u, un, v, vn: Run; co, uo, ud, vo, vd: LONGINT;
   BEGIN
+    Platform.CommandCritical(TRUE);
     Find(T, beg, u, uo, ud); Split(ud, u, un); c := T.cache; co := T.corg;
     Find(T, end, v, vo, vd); Split(vd, v, vn); T.cache := c; T.corg := co;
     NEW(del); OpenBuf(del); del.len := end - beg;
     Splice(del.head, un, v, NIL);
     Merge(T, u, vn); u.next := vn; vn.prev := u;
     DEC(T.len, end - beg);
+    Platform.CommandCritical(FALSE);
     IF T.notify # NIL THEN T.notify(T, delete, beg, end) END
   END Delete;
 
   PROCEDURE ChangeLooks* (T: Text; beg, end: LONGINT; sel: SET; fnt: FontsFont; col, voff: SYSTEM.INT8);
     VAR c, u, un, v, vn: Run; co, uo, ud, vo, vd: LONGINT;
-  BEGIN Find(T, beg, u, uo, ud); Split(ud, u, un); c := T.cache; co := T.corg;
+  BEGIN Platform.CommandCritical(TRUE); Find(T, beg, u, uo, ud); Split(ud, u, un); c := T.cache; co := T.corg;
     Find(T, end, v, vo, vd); Split(vd, v, vn); T.cache := c; T.corg := co;
     WHILE un # vn DO
       IF (0 IN sel) & (fnt # NIL) THEN un.fnt := fnt END;
@@ -317,6 +326,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
       IF u.next = un THEN u := un; un := un.next ELSE u.next := un; un.prev := u END
     END;
     Merge(T, u, un); u.next := un; un.prev := u;
+    Platform.CommandCritical(FALSE);
     IF T.notify # NIL THEN T.notify(T, replace, beg, end) END
   END ChangeLooks;
 
@@ -326,16 +336,18 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
   PROCEDURE OpenReader* (VAR R: Reader; T: Text; pos: LONGINT);
     VAR u: Run;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF pos >= T.len THEN pos := T.len END;
     Find(T, pos, u, R.org, R.off); R.run := u; R.eot := FALSE;
     IF u IS Piece THEN
       Files.Set(R.rider, u(Piece).file, u(Piece).org + R.off)
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END OpenReader;
 
   PROCEDURE Read* (VAR R: Reader; VAR ch: CHAR);
     VAR u: Run; pos: LONGINT; nextch: CHAR;
-  BEGIN u := R.run; R.fnt := u.fnt; R.col := u.col; R.voff := u.voff; INC(R.off);
+  BEGIN Platform.CommandCritical(TRUE); u := R.run; R.fnt := u.fnt; R.col := u.col; R.voff := u.voff; INC(R.off);
     IF u IS Piece THEN Files.Read(R.rider, ch); R.elem := NIL;
       IF (ch = 0AX) & u(Piece).ascii THEN ch := CR (* << LF to CR *)
       ELSIF (ch = CR) & u(Piece).ascii THEN (* << CR LF to CR *)
@@ -350,7 +362,8 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
         WITH u: Piece DO Files.Set(R.rider, u.file, u.org) END
       END;
       R.run := u; R.off := 0
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END Read;
 
   PROCEDURE ReadElem* (VAR R: Reader);
@@ -496,9 +509,10 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
   (** Writers **)
 
   PROCEDURE OpenWriter* (VAR W: Writer);
-  BEGIN NEW(W.buf); OpenBuf(W.buf);
+  BEGIN Platform.CommandCritical(TRUE); NEW(W.buf); OpenBuf(W.buf);
     W.fnt := FontsDefault; W.col := Displaywhite; W.voff := 0;
-    W.file := Files.New(""); Files.Set(W.rider, W.file, 0)
+    W.file := Files.New(""); Files.Set(W.rider, W.file, 0);
+    Platform.CommandCritical(FALSE)
   END OpenWriter;
 
   PROCEDURE SetFont* (VAR W: Writer; fnt: FontsFont);
@@ -516,22 +530,25 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
 
   PROCEDURE Write* (VAR W: Writer; ch: CHAR);
     VAR u, un: Run; p: Piece;
-  BEGIN Files.Write(W.rider, ch); INC(W.buf.len); un := W.buf.head; u := un.prev;
+  BEGIN Platform.CommandCritical(TRUE); Files.Write(W.rider, ch); INC(W.buf.len); un := W.buf.head; u := un.prev;
     IF (u IS Piece) & (u(Piece).file = W.file) & (u.fnt.name = W.fnt.name) & (u.col = W.col) & (u.voff = W.voff)
     & ~u(Piece).ascii THEN (* << *)
       INC(u.len)
     ELSE NEW(p); u.next := p; p.prev := u; p.next := un; un.prev := p;
       p.len := 1; p.fnt := W.fnt; p.col := W.col; p.voff := W.voff;
       p.file := W.file; p.org := Files.Length(W.file) - 1; p.ascii := FALSE (* << *)
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END Write;
 
   PROCEDURE WriteElem* (VAR W: Writer; e: Elem);
     VAR u, un: Run;
   BEGIN
+    Platform.CommandCritical(TRUE);
     IF e.base # NIL THEN HALT(99) END;
     INC(W.buf.len); e.len := 1; e.fnt := W.fnt; e.col := W.col; e.voff := W.voff;
-    un := W.buf.head; u := un.prev; u.next := e; e.prev := u; e.next := un; un.prev := e
+    un := W.buf.head; u := un.prev; u.next := e; e.prev := u; e.next := un; un.prev := e;
+    Platform.CommandCritical(FALSE)
   END WriteElem;
 
   PROCEDURE WriteLn* (VAR W: Writer);
@@ -770,14 +787,16 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     CONST oldTag = -4095;
     VAR tag: INTEGER;
   BEGIN
+    Platform.CommandCritical(TRUE);
     (* for compatibility inner text tags are checked and skipped; remove this in a later version *)
     Files.ReadInt(r, tag); IF tag # oldTag THEN Files.Set(r, Files.Base(r), Files.Pos(r)-2) END;
-    Load0(r, T)
+    Load0(r, T);
+    Platform.CommandCritical(FALSE)
   END Load;
 
   PROCEDURE Open* (T: Text; name: ARRAY OF CHAR);
     VAR f: Files.File; r: Files.Rider; u: Run; p: Piece; tag, version: CHAR; hlen: LONGINT;
-  BEGIN f := Files.Old(name);
+  BEGIN Platform.CommandCritical(TRUE); f := Files.Old(name);
     IF f = NIL THEN f := Files.New("") END;
     Files.Set(r, f, 0); Files.Read(r, tag); Files.Read(r, version);
     IF (tag = textTag) OR (tag = 01X) & (version = textTag) THEN Load0(r, T)
@@ -796,7 +815,8 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
       ELSE u.next := u; u.prev := u
       END;
       T.head := u; T.cache := T.head; T.corg := 0
-    END
+    END;
+    Platform.CommandCritical(FALSE)
   END Open;
 
   PROCEDURE Store* (VAR r: Files.Rider; T: Text);

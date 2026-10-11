@@ -627,7 +627,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                               expr(r, exprPrec);
 	                            IF (subclass = OPS.and) OR ((form = OPT.Set) & ((subclass = OPS.times) OR (subclass = OPS.minus))) THEN OPM.Write(CloseParen) END; (* to silence clang warnings, -- noch*)
                   END
-    | OPT.Ncall:  IF (l^.obj # NIL) & (l^.obj^.mode = OPT.TProc) THEN
+    | OPT.Ncall:  IF (OPM.permodules IN OPM.Options) & (l.obj # NIL) & (l.obj.mode = OPT.CProc) THEN
+                    OPM.WriteString("__NATIVE_RESULT(")
+                  END;
+                  IF (l^.obj # NIL) & (l^.obj^.mode = OPT.TProc) THEN
                     IF l^.subcl = OPT.super THEN proc := SuperProc(n)
                     ELSE OPM.WriteString("__"); proc := OPC.BaseTProc(l^.obj)
                     END ;
@@ -636,7 +639,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                   ELSIF l^.class = OPT.Nproc THEN design(l, 10)
                   ELSE design(l, ProcTypeVar)
                   END ;
-                  ActualPar(r, n^.obj)
+                  ActualPar(r, n^.obj);
+                  IF (OPM.permodules IN OPM.Options) & (l.obj # NIL) & (l.obj.mode = OPT.CProc) THEN OPM.Write(")") END
     ELSE          design(n, prec); (* not exprPrec! *)
     END;
     IF (exprPrec <= prec) & (class IN {OPT.Nconst, OPT.Nupto, OPT.Nmop, OPT.Ndop, OPT.Ncall, OPT.Nguard}) THEN
@@ -772,12 +776,13 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   BEGIN
     WHILE (n # NIL) & OPM.noerr DO
       OPM.errpos := OPM.Longint(n^.conval^.intval);
+      IF ~(n.class IN {OPT.Nenter, OPT.Ninittd}) THEN OPC.CheckInterrupt END;
       IF n^.class # OPT.Ninittd THEN OPC.BegStat END;
       CASE n^.class OF
       | OPT.Nenter:  IF n^.obj = NIL THEN (* enter module *)
                        INC(OPM.level); stat(n^.left, outerProc); DEC(OPM.level);
                        OPC.GenEnumPtrs(OPT.topScope^.scope);
-                       DefineTDescs(n^.right); OPC.EnterBody; InitTDescs(n^.right);
+                       DefineTDescs(n^.right); OPC.EnterBody; InitTDescs(n^.right); OPC.RegisterBody;
                        OPM.WriteString("/* BEGIN */"); OPM.WriteLn;
                        stat(n^.right, outerProc); OPC.ExitBody
                      ELSE (* enter proc *)
@@ -865,7 +870,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                       OPM.Write(")")
 	                   ELSE OPM.LogWStr("unhandled case in OPV.expr, n^.subcl = "); OPM.LogWNum(n^.subcl, 0); OPM.LogWLn;
                      END
-      | OPT.Ncall:   IF (n^.left^.obj # NIL) & (n^.left^.obj^.mode = OPT.TProc) THEN
+      | OPT.Ncall:   IF (OPM.permodules IN OPM.Options) & (n.left.obj # NIL) & (n.left.obj.mode = OPT.CProc) THEN
+                       OPM.WriteString("SYSTEM_CommandCritical(1)"); OPC.EndStat; OPC.BegStat
+                     END;
+                     IF (n^.left^.obj # NIL) & (n^.left^.obj^.mode = OPT.TProc) THEN
                        IF n^.left^.subcl = OPT.super THEN proc := SuperProc(n)
                        ELSE OPM.WriteString("__"); proc := OPC.BaseTProc(n^.left^.obj)
                        END ;
@@ -874,7 +882,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      ELSIF n^.left^.class = OPT.Nproc THEN design(n^.left, 10)
                      ELSE design(n^.left, ProcTypeVar)
                      END ;
-                     ActualPar(n^.right, n^.obj)
+                     ActualPar(n^.right, n^.obj);
+                     IF (OPM.permodules IN OPM.Options) & (n.left.obj # NIL) & (n.left.obj.mode = OPT.CProc) THEN
+                       OPC.EndStat; OPC.BegStat; OPM.WriteString("SYSTEM_CommandCritical(0)")
+                     END
       | OPT.Nifelse: IF n^.subcl # OPT.assertfn THEN IfStat(n, FALSE, outerProc)
                      ELSIF OPM.assert IN OPM.Options THEN
                        OPM.WriteString("__ASSERT("); expr(n^.left^.left^.left, MinPrec); OPM.WriteString(Comma);
@@ -882,13 +893,13 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      END
       | OPT.Ncase:   INC(exit.level); CaseStat(n, outerProc); DEC(exit.level)
       | OPT.Nwhile:  INC(exit.level); OPM.WriteString("while "); expr(n^.left, MaxPrec);
-                     OPM.Write(Blank); OPC.BegBlk; stat(n^.right, outerProc); OPC.EndBlk;
+                     OPM.Write(Blank); OPC.BegBlk; OPC.CheckInterrupt; stat(n^.right, outerProc); OPC.EndBlk;
                      DEC(exit.level)
-      | OPT.Nrepeat: INC(exit.level); OPM.WriteString("do "); OPC.BegBlk; stat(n^.left, outerProc); OPC.EndBlk0;
+      | OPT.Nrepeat: INC(exit.level); OPM.WriteString("do "); OPC.BegBlk; OPC.CheckInterrupt; stat(n^.left, outerProc); OPC.EndBlk0;
                      OPM.WriteString(" while (!");  expr(n^.right, 9); OPM.Write(CloseParen);
                      DEC(exit.level)
       | OPT.Nloop:   saved := exit; exit.level := 0; exit.label := -1;
-                     OPM.WriteString("for (;;) "); OPC.BegBlk; stat(n^.left, outerProc); OPC.EndBlk;
+                     OPM.WriteString("for (;;) "); OPC.BegBlk; OPC.CheckInterrupt; stat(n^.left, outerProc); OPC.EndBlk;
                      IF exit.label # -1 THEN
                        OPC.BegStat; OPM.WriteString("exit__"); OPM.WriteInt(exit.label); OPM.Write(":"); OPC.EndStat
                      END ;
@@ -899,6 +910,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.WriteString("goto exit__"); OPM.WriteInt(exit.label)
                      END
       | OPT.Nreturn: IF OPM.level = 0 THEN
+                       OPC.FinishBody; OPC.BegStat;
                        IF OPM.mainprog IN OPM.Options THEN OPM.WriteString("__FINI") ELSE OPM.WriteString("__ENDMOD") END
                      ELSIF OPC.NeedsRetval(outerProc) THEN
                        OPM.WriteString("__retval = ");

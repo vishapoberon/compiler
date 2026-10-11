@@ -19,7 +19,7 @@ MODULE ooc2LRealConv;
 *)
 
 IMPORT
-  SYSTEM, libc := oocwrapperlibc, CharClass := ooc2CharClass, ConvTypes := ooc2ConvTypes, Real0 := ooc2Real0;
+  ConvTypes := ooc2ConvTypes, Real0 := ooc2Real0, Format := oocLRealConv;
 
 (**
 
@@ -64,43 +64,23 @@ PROCEDURE FormatReal* (str: ARRAY OF CHAR): ConvResults;
  
 PROCEDURE ValueReal*(str: ARRAY OF CHAR): LONGREAL;
 (* result is undefined if FormatReal(str) # strAllRight *)
-  VAR
-    i: LONGINT;
-    value: LONGREAL;
   BEGIN
-    i := 0;
-    WHILE CharClass.IsWhiteSpace(str[i]) DO
-      (* skip our definition of whitespace *)
-      INC (i);
-    END;
-    IF libc.sscanf(SYSTEM.ADR(str[i]), "%lf", SYSTEM.ADR(value)) = 1 THEN
-(*      <*PUSH; Warnings:=FALSE*> *)
-      RETURN value                       (* syntax is ok *)
-(*      <*POP*> *)
-    ELSE
-      RETURN 0;                          (* error *)
-    END;
+    RETURN Format.ValueReal(str)
   END ValueReal;
 
 PROCEDURE LengthFloatReal*(real: LONGREAL; sigFigs: INTEGER): INTEGER;
   BEGIN
-(*<*PUSH; Assertions:=TRUE*>*)
-    ASSERT (FALSE)
-(*<*POP*>*)
+    RETURN Format.LengthFloatReal(real, sigFigs)
   END LengthFloatReal;
  
 PROCEDURE LengthEngReal*(real: LONGREAL; sigFigs: INTEGER): INTEGER;
   BEGIN
-(*<*PUSH; Assertions:=TRUE*>*)
-    ASSERT (FALSE)
-(*<*POP*>*)
+    RETURN Format.LengthEngReal(real, sigFigs)
   END LengthEngReal;
  
 PROCEDURE LengthFixedReal*(real: LONGREAL; place: INTEGER): INTEGER;
   BEGIN
-(*<*PUSH; Assertions:=TRUE*>*)
-    ASSERT (FALSE)
-(*<*POP*>*)
+    RETURN Format.LengthFixedReal(real, place)
   END LengthFixedReal;
 
 END ooc2LRealConv.

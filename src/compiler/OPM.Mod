@@ -9,6 +9,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   CONST
     OptionChar* = "-";
     MaxCommentLen* = 1024;
+    ModularNameLen* = 64;
 
     (* compiler option flag bits; don't change the encoding *)
     inxchk*         = 0;  (* index check on *)
@@ -25,6 +26,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     notcoloroutput* = 16; (* turn off color output *)
     forcenewsym*    = 17; (* force new symbol file *)
     verbose*        = 18; (* verbose *)
+    sharedmodule*   = 19; (* build one loadable ELF module *)
+    permodules*     = 20; (* use the minimal core and individual module libraries *)
+    dynamicmain*    = 21; (* build an application module and a dlopen launcher *)
+    embeddedcore*   = 22; (* embed/export the minimal core in a loading host *)
 
     nilval*         = 0;
 
@@ -81,7 +86,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
 
   TYPE
-    FileName = ARRAY 32 OF CHAR;
+    FileName = ARRAY 128 OF CHAR;
+    ArgumentReader* = PROCEDURE(n: INTEGER; VAR value: ARRAY OF CHAR);
 
   VAR
     currentComment: ARRAY MaxCommentLen OF CHAR;
@@ -106,7 +112,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     currFile*:        INTEGER;  (* current output file *)
     level*:           INTEGER;  (* procedure nesting level *)
     pc*, entno*:      INTEGER;  (* entry number *)
-    modName*:         ARRAY 32 OF CHAR;
+    modName*:         ARRAY ModularNameLen OF CHAR;
     objname*:         ARRAY 64 OF CHAR;
 
     ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber: LONGINT;  (* Limit = start of next line *)
@@ -120,10 +126,15 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     oldSFile, newSFile, HFile, BFile, HIFile: Files.File;
 
     S: INTEGER;
+    argumentCount: INTEGER;
+    argumentReader: ArgumentReader;
 
     InstallDir*:  ARRAY 1024 OF CHAR;
     LibraryDir*:  ARRAY 1024 OF CHAR;
+    BaseLibraryDir: ARRAY 1024 OF CHAR;
     ResourceDir*: ARRAY 1024 OF CHAR;
+    SharedImports*: ARRAY 64 OF ARRAY ModularNameLen OF CHAR;
+    SharedImportCount*: INTEGER;
 
 
   (* ------------------------- Log Output ------------------------- *)
@@ -227,6 +238,24 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   (* --------------- Initialisation and parameter handling ---------------*)
 
+  PROCEDURE SetArguments*(count: INTEGER; reader: ArgumentReader);
+  BEGIN argumentCount := count; argumentReader := reader
+  END SetArguments;
+
+  PROCEDURE CountArguments*(): INTEGER;
+  BEGIN
+    IF argumentReader = NIL THEN RETURN Modules.ArgCount END;
+    RETURN argumentCount
+  END CountArguments;
+
+  PROCEDURE GetArgument(n: INTEGER; VAR value: ARRAY OF CHAR);
+  BEGIN
+    value[0] := 0X;
+    IF argumentReader = NIL THEN Modules.GetArg(n, value)
+    ELSE argumentReader(n, value)
+    END
+  END GetArgument;
+
   PROCEDURE ScanOptions(s: ARRAY OF CHAR);
     VAR i: INTEGER;
   BEGIN
@@ -251,6 +280,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "M": Options := Options / {mainlinkstat}     (* This module is main. Link statically. *)
       | "S": Options := Options / {dontasm}          (* Don't call C compiler *)
       | "c": Options := Options / {dontlink}         (* Don't link. *)
+      | "l": Options := Options / {sharedmodule}     (* Shared library module, not main. *)
+      | "P": Options := Options / {permodules}       (* Minimal runtime, per-module libraries. *)
+      | "d": Options := Options / {dynamicmain}      (* Load the application module at runtime. *)
+      | "D": Options := Options / {embeddedcore}     (* Loading host with an embedded minimal core. *)
 
       (* Miscellaneous *)
       | "f": Options := Options / {notcoloroutput}   (* Disable VT100 control characters in status output. *)
@@ -287,7 +320,8 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE OpenPar*(): BOOLEAN;  (* prepare for a sequence of translations *)
     VAR s: ARRAY 256 OF CHAR;
   BEGIN
-    IF Modules.ArgCount = 1 THEN
+    noerr := TRUE;
+    IF CountArguments() <= 1 THEN
       LogWLn;
       LogWStr("Oberon-2 compiler v"); LogWStr(Configuration.versionLong); LogW(".");                               LogWLn;
       LogWStr("Based on Ofront by J. Templ and Software Templ OEG.");                                              LogWLn;
@@ -317,6 +351,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("    -M   This module is main. Link statically.");                                                   LogWLn;
       LogWStr("    -S   Don't call C compiler");                                                                   LogWLn;
       LogWStr("    -c   Don't link.");                                                                             LogWLn;
+      LogWStr("    -l   Build a loadable module library (ELF, minimal runtime supplied by host).");                LogWLn;
+      LogWStr("    -mP  Main program using the shared minimal runtime and module libraries.");                   LogWLn;
+      LogWStr("    -md  Application module and dlopen host; shared minimal core and dynamic libc.");              LogWLn;
+      LogWStr("    -mD  Application module and dlopen host; embedded minimal core and dynamic libc.");            LogWLn;
+      LogWStr("    -d   Shorthand for -md.");                                                                       LogWLn;
+      LogWStr("    -M cannot be combined with -P/-d/-D; static system linking is not a module-host mode.");        LogWLn;
       LogWLn;
       LogWStr("  Miscellaneous");                                                                                  LogWLn;
       LogWStr("    -f   Disable VT100 control characters in status output.");                                      LogWLn;
@@ -345,10 +385,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       Options := {inxchk, typchk, ptrinit, assert};  (* Default options *)
 
       (* Pick up global option changes from start of command line *)
-      S:=1; s:=""; Modules.GetArg(S, s);
+      S:=1; GetArgument(S, s);
       WHILE s[0] = OptionChar DO
         ScanOptions(s);
-        INC(S); s:=""; Modules.GetArg(S, s)
+        INC(S); GetArgument(S, s)
       END;
 
       (* Record global option settings for this command line *)
@@ -369,13 +409,40 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     Options := GlobalOptions; Model:=GlobalModel; Alignment := GlobalAlignment; AddressSize := GlobalAddressSize;
 
-    s:=""; Modules.GetArg(S, s);
+    GetArgument(S, s);
     WHILE s[0] = OptionChar DO
       ScanOptions(s);
-      INC(S); s:=""; Modules.GetArg(S, s)
+      INC(S); GetArgument(S, s)
     END;
 
     IF mainlinkstat IN Options THEN INCL(Options, mainprog) END;
+    IF (mainlinkstat IN Options) & ((dynamicmain IN Options) OR (embeddedcore IN Options)) THEN
+      LogWStr("-M cannot be combined with -d/-D: loading hosts require dynamic libc; use -md or -mD.");
+      LogWLn; noerr := FALSE; RETURN
+    END;
+    IF (mainlinkstat IN Options) & (permodules IN Options) THEN
+      LogWStr("-MP is not supported: -M means static linking; use -mP or an embedded-core loading host (-mD).");
+      LogWLn; noerr := FALSE; RETURN
+    END;
+    IF embeddedcore IN Options THEN
+      IF ~(mainprog IN Options) THEN
+        LogWStr("-D requires -m; use -mD for an embedded-core loading host."); LogWLn; noerr := FALSE; RETURN
+      END;
+      INCL(Options, dynamicmain)
+    END;
+    IF (sharedmodule IN Options) & ((mainprog IN Options) OR (dynamicmain IN Options)) THEN
+      LogWStr("-l cannot be combined with -m/-M/-d/-D; use -l for a module or -md/-mD for a loading host.");
+      LogWLn; noerr := FALSE; RETURN
+    END;
+    IF dynamicmain IN Options THEN
+      (* Translate the application as a module, not as the launcher's C main. *)
+      EXCL(Options, mainprog); INCL(Options, sharedmodule)
+    END;
+    IF sharedmodule IN Options THEN INCL(Options, permodules) END;
+    IF (permodules IN Options) & ~(mainprog IN Options) & ~(sharedmodule IN Options) THEN
+      LogWStr("-P requires -m, -l or -d."); LogWLn; noerr := FALSE; RETURN
+    END;
+    SharedImportCount := 0;
 
     MaxIndex := SignedMaximum(AddressSize);
     CASE Model[0] OF
@@ -387,7 +454,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     (*IF verbose IN Options THEN VerboseListSizes END;*)
 
-    ResourceDir := InstallDir;
+    ResourceDir := InstallDir; LibraryDir := BaseLibraryDir;
+    IF permodules IN Options THEN
+      Strings.Append("/modular", ResourceDir);
+      Platform.GetEnv("VOCLIBDIR", MODULES);
+      IF MODULES = "" THEN
+        Strings.Append("/voc/modular/", LibraryDir); Strings.Append(Model, LibraryDir)
+      END
+    END;
     IF ResourceDir[0] # 0X THEN
       Strings.Append("/",   ResourceDir);
       Strings.Append(Model, ResourceDir);
@@ -412,9 +486,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     done := FALSE;
     curpos := 0;
-    IF S >= Modules.ArgCount THEN RETURN END ;
+    IF S >= CountArguments() THEN RETURN END ;
 
-    s:=""; Modules.GetArg(S, s);
+    GetArgument(S, s);
 
     NEW(T); Texts.Open(T, s);
     LogWStr(s); LogWStr("  ");
@@ -428,7 +502,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END;
 
     INC(S);
-    level := 0; noerr := TRUE; errpos := curpos; lasterrpos := curpos -10;
+    level := 0; noerr := done; errpos := curpos; lasterrpos := curpos -10;
     ErrorLineStartPos := 0; ErrorLineLimitPos := 0; ErrorLineNumber := 0;
   END Init;
 
@@ -926,6 +1000,7 @@ BEGIN
   MinReal  := -MaxReal;
   MinLReal := -MaxLReal;
   FindInstallDir;
+  COPY(LibraryDir, BaseLibraryDir);
 
   hasComment := FALSE;
   currentComment[0] := 0X;

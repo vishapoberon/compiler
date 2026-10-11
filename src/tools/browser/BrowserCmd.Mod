@@ -12,6 +12,8 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
     W: Texts.Writer;
     option: CHAR;
 
+  PROCEDURE -Standalone(): BOOLEAN 'VOC_MAIN_PROGRAM';
+
   PROCEDURE Ws(s: ARRAY OF CHAR); BEGIN Texts.WriteString(W, s) END Ws;
   PROCEDURE Wc(ch: CHAR);         BEGIN Texts.Write(W, ch)      END Wc;
   PROCEDURE Wi(i: SYSTEM.INT64);  BEGIN Texts.WriteInt(W, i, 0) END Wi;
@@ -269,6 +271,16 @@ MODULE BrowserCmd;  (* RC 29.10.93 *)  (* object model 4.12.93, command line ver
     END
   END WModule;
 
+  PROCEDURE Definition*(name: OPS.Name; detail: CHAR; T: Texts.Text);
+  BEGIN
+    option := detail;
+    Texts.OpenWriter(W);
+    OPM.noerr := TRUE;
+    OPT.Init(name, {}); OPT.SelfName := "AvoidErr154";
+    WModule(name, T);
+    OPT.Close
+  END Definition;
+
   PROCEDURE Ident(VAR name, first: ARRAY OF CHAR);
   VAR i, j: INTEGER; ch: CHAR;
   BEGIN i := 0;
@@ -316,7 +328,9 @@ BEGIN
 END SetDefaultPath;
 
 BEGIN
-  Texts.OpenWriter(W);
-  SetDefaultPath;
-  ShowDef
+  IF Standalone() THEN
+    Texts.OpenWriter(W);
+    SetDefaultPath;
+    ShowDef
+  END
 END BrowserCmd.

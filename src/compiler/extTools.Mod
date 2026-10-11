@@ -1,15 +1,18 @@
 MODULE extTools;
 
-IMPORT Strings, Out, Configuration, Platform, Modules, Heap, OPM;
+IMPORT Strings, Out, Configuration, Platform, Modules, Heap, Files, OPM;
 
-TYPE CommandString = ARRAY 4096 OF CHAR;
+TYPE CommandString = ARRAY 8192 OF CHAR;
+     Path = ARRAY 4096 OF CHAR;
 
 VAR CFLAGS, LDFLAGS, LDLIBS: CommandString;
+    hosted*: BOOLEAN;
 
 
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
   VAR r, status, exitcode: INTEGER; fullcmd: CommandString;
 BEGIN
+  IF ~OPM.noerr THEN RETURN END;
   IF OPM.verbose IN OPM.Options THEN
     Out.String("  "); Out.String(cmd); Out.Ln
   END;
@@ -24,7 +27,7 @@ BEGIN
   END;
 
   (* Get GC to run file finalizers closing generated C files as otherwise Microsoft C cannot open them. *)
-  Heap.GC(FALSE);
+  Heap.GC(hosted);
 
   r := Platform.System(fullcmd);
 
@@ -39,7 +42,10 @@ BEGIN
     IF (status = 0) & (exitcode = 127) THEN
       Out.String("Is the C compiler in the current command path?"); Out.Ln
     END;
-    IF status # 0 THEN Modules.Halt(status) ELSE Modules.Halt(exitcode) END
+    IF hosted THEN OPM.noerr := FALSE
+    ELSIF status # 0 THEN Modules.Halt(status)
+    ELSE Modules.Halt(exitcode)
+    END
   END;
 END execute;
 
@@ -58,22 +64,234 @@ BEGIN
 END InitialiseCompilerCommand;
 
 
+(* ELF modular linking. Libraries deliberately do not DT_NEEDED the core:
+   -md/-mP supply it as a shared library; -mD exports it from the executable.
+   Thus both hosts can use the same module without ever loading two heaps. *)
+
+PROCEDURE Fail(message: ARRAY OF CHAR);
+BEGIN
+  OPM.LogWStr(message); OPM.LogWLn;
+  IF hosted THEN OPM.noerr := FALSE ELSE Platform.Exit(1) END
+END Fail;
+
+PROCEDURE Add(text: ARRAY OF CHAR; VAR target: ARRAY OF CHAR);
+BEGIN
+  IF ~OPM.noerr THEN RETURN END;
+  IF Strings.Length(target) + Strings.Length(text) >= LEN(target) THEN
+    Fail("Compiler/linker command or library path is too long."); RETURN
+  END;
+  Strings.Append(text, target)
+END Add;
+
+PROCEDURE Quote(text: ARRAY OF CHAR; VAR target: ARRAY OF CHAR);
+  VAR i: INTEGER; ch: ARRAY 2 OF CHAR;
+BEGIN
+  Add("'", target); ch[1] := 0X; i := 0;
+  WHILE text[i] # 0X DO
+    IF text[i] = "'" THEN
+      Add("'", target); Add('"', target); Add("'", target);
+      Add('"', target); Add("'", target)
+    ELSE ch[0] := text[i]; Add(ch, target)
+    END;
+    INC(i)
+  END;
+  Add("'", target)
+END Quote;
+
+PROCEDURE IsCore(name: ARRAY OF CHAR): BOOLEAN;
+BEGIN RETURN (name = "SYSTEM") OR (name = "Heap") OR (name = "Platform") OR (name = "Modules") END IsCore;
+
+PROCEDURE SearchPath(VAR path: Path);
+  VAR extra: Path;
+BEGIN
+  path := ".:"; Platform.GetEnv("VOC_MODULE_PATH", extra);
+  IF extra # "" THEN Add(extra, path); Add(":", path) END;
+  Add(OPM.LibraryDir, path)
+END SearchPath;
+
+PROCEDURE NextDirectory(path: ARRAY OF CHAR; VAR pos: INTEGER; VAR dir: Path): BOOLEAN;
+  VAR i: INTEGER;
+BEGIN
+  IF pos < 0 THEN RETURN FALSE END;
+  i := 0;
+  WHILE (path[pos] # 0X) & (path[pos] # ":") DO dir[i] := path[pos]; INC(i); INC(pos) END;
+  dir[i] := 0X;
+  IF path[pos] = 0X THEN pos := -1 ELSE INC(pos) END;
+  IF dir = "" THEN dir := "." END;
+  RETURN TRUE
+END NextDirectory;
+
+PROCEDURE LibraryName(name, extension: ARRAY OF CHAR; VAR file: ARRAY OF CHAR);
+BEGIN
+  COPY("lib", file); Add(Configuration.name, file); Add("-", file); Add(name, file);
+  Add("-O", file); Add(OPM.Model, file); Add(extension, file)
+END LibraryName;
+
+PROCEDURE FindLibrary(name, extension: ARRAY OF CHAR; VAR full: Path);
+  VAR path, dir: Path; file: ARRAY 128 OF CHAR; pos: INTEGER; id: Platform.FileIdentity;
+BEGIN
+  LibraryName(name, extension, file); SearchPath(path); pos := 0;
+  WHILE NextDirectory(path, pos, dir) DO
+    full := dir; Add("/", full); Add(file, full);
+    IF Platform.IdentifyByName(full, id) = 0 THEN RETURN END
+  END;
+  OPM.LogWStr("Shared-module link: missing "); OPM.LogWStr(file); OPM.LogWLn;
+  Fail("Build the dependency first; set VOC_MODULE_PATH/VOCLIBDIR for library directories.")
+END FindLibrary;
+
+PROCEDURE IsTCC(): BOOLEAN;
+  VAR compiler: Path; i, start: INTEGER;
+BEGIN
+  Platform.GetEnv("CC", compiler);
+  IF compiler = "" THEN RETURN Configuration.compiler = "tcc" END;
+  i := 0; start := 0;
+  WHILE (compiler[i] # 0X) & (compiler[i] # " ") DO
+    IF compiler[i] = "/" THEN start := i + 1 END;
+    INC(i)
+  END;
+  RETURN (i - start = 3) & (compiler[start] = "t") &
+    (compiler[start + 1] = "c") & (compiler[start + 2] = "c")
+END IsTCC;
+
+PROCEDURE ModularCommand(VAR cmd: CommandString);
+  VAR compiler, path, dir: Path; pos: INTEGER; include: ARRAY 16 OF CHAR;
+BEGIN
+  IF (Configuration.compiler = "MSC") OR (Configuration.os = "windows") OR
+      (Configuration.os = "cygwin") OR (Configuration.os = "darwin") THEN
+    Fail("-l/-P currently require an ELF target with a GCC-compatible linker."); RETURN
+  END;
+  Platform.GetEnv("CC", compiler);
+  IF compiler = "" THEN COPY(Configuration.compile, cmd) ELSE COPY(compiler, cmd) END;
+  Add(" ", cmd); Platform.GetEnv("CFLAGS", CFLAGS); Add(CFLAGS, cmd);
+  (* SYSTEM.VAL uses type punning. Do not override the chosen C language mode.
+     TCC has no quote-only include option; keep module headers first with -I. *)
+  Add(" -fno-strict-aliasing -fPIC ", cmd); SearchPath(path); pos := 0;
+  IF IsTCC() THEN include := " -I" ELSE include := " -iquote" END;
+  WHILE NextDirectory(path, pos, dir) DO
+    Add(include, cmd); Quote(dir, cmd)
+  END;
+  dir := OPM.ResourceDir; Add("/include", dir); Add(include, cmd); Quote(dir, cmd);
+  Add(" ", cmd)
+END ModularCommand;
+
+PROCEDURE ModularLinkFlags(VAR cmd: CommandString);
+  VAR path: Path;
+BEGIN
+  Platform.GetEnv("LDFLAGS", LDFLAGS); Add(" ", cmd); Add(LDFLAGS, cmd);
+  (* No as-needed dropping: even type-only imports have Oberon initializers. *)
+  IF ~IsTCC() THEN Add(" -Wl,--no-as-needed ", cmd) END;
+  Add(" -Wl,--enable-new-dtags ", cmd);
+  Platform.GetEnv("VOC_RUNPATH", path);
+  IF path = "" THEN path := "$ORIGIN:"; Add(OPM.LibraryDir, path) END;
+  Add(" -Wl,-rpath,", cmd); Quote(path, cmd); Add(" ", cmd)
+END ModularLinkFlags;
+
+PROCEDURE Dependencies(VAR cmd: CommandString);
+  VAR i: INTEGER; full: Path;
+BEGIN
+  i := 0;
+  WHILE i < OPM.SharedImportCount DO
+    IF ~IsCore(OPM.SharedImports[i]) THEN
+      FindLibrary(OPM.SharedImports[i], ".so", full); Quote(full, cmd); Add(" ", cmd)
+    END;
+    INC(i)
+  END
+END Dependencies;
+
+PROCEDURE ExtraLibraries(VAR cmd: CommandString);
+BEGIN Platform.GetEnv("LDLIBS", LDLIBS); Add(" ", cmd); Add(LDLIBS, cmd) END ExtraLibraries;
+
 PROCEDURE Assemble*(moduleName: ARRAY OF CHAR);
-  VAR
-    cmd: CommandString;
-  BEGIN
-    InitialiseCompilerCommand(cmd, "");
-    Strings.Append("-c ",      cmd);
-    Strings.Append(moduleName, cmd);
-    Strings.Append(".c",       cmd);
-    execute("C compile: ", cmd);
-  END Assemble;
+  VAR cmd: CommandString;
+BEGIN
+  IF OPM.permodules IN OPM.Options THEN ModularCommand(cmd)
+  ELSE InitialiseCompilerCommand(cmd, "")
+  END;
+  Strings.Append("-c ", cmd); Strings.Append(moduleName, cmd);
+  Strings.Append(".c", cmd); execute("C compile: ", cmd)
+END Assemble;
+
+PROCEDURE LinkModule*(moduleName: ARRAY OF CHAR);
+  VAR cmd: CommandString; file: ARRAY 128 OF CHAR; full: Path;
+BEGIN
+  IF IsCore(moduleName) THEN Fail("SYSTEM, Platform, Heap and Modules belong to the minimal core, not separate modules.") END;
+  FindLibrary("core", ".a", full); (* Require the matching core development installation. *)
+  ModularCommand(cmd); Add(" -shared ", cmd); Add(moduleName, cmd); Add(".c ", cmd);
+  LibraryName(moduleName, ".so", file);
+  Add(" -Wl,-soname,", cmd); Quote(file, cmd); Add(" -o ", cmd); Quote(file, cmd);
+  ModularLinkFlags(cmd); Dependencies(cmd); ExtraLibraries(cmd);
+  execute("Shared-module link: ", cmd)
+END LinkModule;
+
+PROCEDURE LinkModularMain(moduleName: ARRAY OF CHAR);
+  VAR cmd: CommandString; full: Path;
+BEGIN
+  ModularCommand(cmd); Add(moduleName, cmd); Add(".c -o ", cmd); Quote(moduleName, cmd);
+  ModularLinkFlags(cmd); Dependencies(cmd);
+  FindLibrary("core", ".so", full); Quote(full, cmd);
+  ExtraLibraries(cmd); execute("Modular program link: ", cmd)
+END LinkModularMain;
+
+
+PROCEDURE HostLine(VAR rider: Files.Rider; text: ARRAY OF CHAR);
+BEGIN
+  Files.WriteBytes(rider, text, Strings.Length(text)); Files.Write(rider, 0AX)
+END HostLine;
+
+PROCEDURE GenerateLauncher*(moduleName: ARRAY OF CHAR);
+  VAR file: Files.File; rider: Files.Rider; name: ARRAY 128 OF CHAR; line: ARRAY 256 OF CHAR;
+BEGIN
+  COPY(moduleName, name); Add("__host.c", name);
+  file := Files.New(name);
+  IF file = NIL THEN Fail("Cannot create application launcher source."); RETURN END;
+  Files.Set(rider, file, 0);
+  HostLine(rider, "/* Generated VOC module host. The application is loaded, not linked. */");
+  HostLine(rider, '#include "SYSTEM.h"');
+  HostLine(rider, '#include "ModuleLoader.h"');
+  HostLine(rider, "int main(int argc, char **argv) {");
+  HostLine(rider, "  __INIT(argc, argv);");
+  HostLine(rider, "  __MODULE_IMPORT(ModuleLoader);");
+  (* This name cannot collide with an Oberon source module. In particular, do
+     not register the application's name before its initializer is loaded. *)
+  HostLine(rider, '  __REGMAIN("_VOCModuleHost", 0);');
+  (* Use sizeof on the string, not a model-dependent integer conversion. *)
+  line := '  ModuleLoader_Run((CHAR*)"'; Add(moduleName, line);
+  Add('", sizeof "', line); Add(moduleName, line); Add('");', line);
+  HostLine(rider, line);
+  HostLine(rider, "  __FINI;"); HostLine(rider, "}");
+  IF rider.res # 0 THEN Fail("Cannot write application launcher source.") END;
+  IF ~OPM.noerr THEN RETURN END;
+  Files.Register(file)
+END GenerateLauncher;
+
+PROCEDURE LinkLauncher*(moduleName: ARRAY OF CHAR; embedded: BOOLEAN);
+  VAR cmd: CommandString; full: Path;
+BEGIN
+  ModularCommand(cmd); Add(moduleName, cmd); Add("__host.c -o ", cmd); Quote(moduleName, cmd);
+  ModularLinkFlags(cmd);
+  (* The executable knows only its loader and core, never the application or
+     its imports. Rebuilding an application library cannot change this graph. *)
+  FindLibrary("ModuleLoader", ".so", full); Quote(full, cmd); Add(" ", cmd);
+  IF embedded THEN
+    FindLibrary("core", ".a", full);
+    Add(" -Wl,--export-dynamic -Wl,--whole-archive ", cmd); Quote(full, cmd);
+    Add(" -Wl,--no-whole-archive ", cmd)
+  ELSE
+    FindLibrary("core", ".so", full); Quote(full, cmd)
+  END;
+  (* LDLIBS applies to the application library, not its fixed launcher. *)
+  execute("Module-host link: ", cmd)
+END LinkLauncher;
 
 
 PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; additionalopts: ARRAY OF CHAR);
   VAR
     cmd: CommandString;
   BEGIN
+    IF OPM.permodules IN OPM.Options THEN
+      IF statically THEN Fail("Static system linking cannot be combined with modular program linking; use -mP.") END;
+      LinkModularMain(moduleName); RETURN
+    END;
     InitialiseCompilerCommand(cmd, additionalopts);
     Strings.Append(moduleName,                   cmd);
     Strings.Append(".c ",                        cmd);

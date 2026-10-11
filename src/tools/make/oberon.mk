@@ -71,7 +71,7 @@ assemble:
 	cd $(BUILDDIR) && $(COMPILE) -c OPM.c     extTools.c      OPS.c      OPT.c
 	cd $(BUILDDIR) && $(COMPILE) -c OPC.c     OPV.c           OPB.c      OPP.c
 
-	cd $(BUILDDIR) && $(COMPILE) $(STATICLINK) Compiler.c -o "$(ROOTDIR)/$(OBECOMP)" \
+	cd $(BUILDDIR) && $(COMPILE) -DVOC_MAIN_PROGRAM=1 $(STATICLINK) Compiler.c -o "$(ROOTDIR)/$(OBECOMP)" \
 	SYSTEM.o Configuration.o Platform.o Heap.o  Out.o \
 	Strings.o Modules.o Files.o Reals.o Texts.o \
 	VT100.o extTools.o \
@@ -224,6 +224,8 @@ uninstall-system: uninstall
 
 runtime: FORCE
 	@printf '\nMaking run time library for -O$(MODEL)\n'
+	cp src/runtime/PlatformDirectory.h $(BUILDDIR)/$(MODEL)
+	cp src/runtime/PlatformTermios.h $(BUILDDIR)/$(MODEL)
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Heap.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Out.Mod
@@ -431,6 +433,8 @@ confidence:
 	cd src/test/confidence/intsyntax;       $(RUNTEST)
 	cd src/test/confidence/language;        $(RUNTEST)
 	cd src/test/confidence/arrayassignment; $(RUNTEST)
+	cd src/test/confidence/arrayparameters; $(RUNTEST)
+	cd src/test/confidence/ckeywords;       $(RUNTEST)
 	cd src/test/confidence/texts;           $(RUNTEST)
 	cd src/test/confidence/library;         $(RUNTEST)
 	cd src/test/confidence/isptest;         $(RUNTEST)

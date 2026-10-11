@@ -6,13 +6,15 @@ MODULE Modules;  (* jt 6.1.96 *)
   IMPORT SYSTEM, Platform, Heap; (* Note, must import Platform before Heap *)
 
   CONST
-    ModNameLen* = 20;
+    ModNameLen* = SIZE(Heap.ModuleName);
 
   TYPE
     ModuleName* = Heap.ModuleName;
     Module*     = Heap.Module;
     Cmd*        = Heap.Cmd;
     Command*    = Heap.Command;
+    Retention*  = Heap.Retention;
+    FreeHandler* = PROCEDURE(name: ARRAY OF CHAR; all: BOOLEAN);
   VAR
     res*:       INTEGER;
     resMsg*:    ARRAY 256 OF CHAR;
@@ -23,6 +25,8 @@ MODULE Modules;  (* jt 6.1.96 *)
     ArgCount-:       INTEGER;
     ArgVector-:      SYSTEM.ADDRESS;
     BinaryDir-:      ARRAY 1024 OF CHAR;
+    freeHandler: FreeHandler;
+    freeRetention: Retention;
 
 
 (* Program startup *)
@@ -236,7 +240,11 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE ThisCommand* (mod: Module; name: ARRAY OF CHAR): Command;
     VAR c: Cmd;
-  BEGIN c := mod.cmds;
+  BEGIN
+    IF (mod = NIL) OR (Heap.ModuleState(mod) > 2) THEN
+      res := 1; resMsg := "module is terminating or disabled"; RETURN NIL
+    END;
+    c := mod.cmds;
     WHILE (c # NIL) & (c.name # name) DO c := c.next END ;
     IF c # NIL THEN res := 0; resMsg := ""; RETURN c.cmd
     ELSE res := 2; resMsg := ' command "'; COPY(name, importing);
@@ -247,7 +255,9 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE Free*(name: ARRAY OF CHAR; all: BOOLEAN);
     VAR m, p: Module; refcount: LONGINT;
-  BEGIN m := modules();
+  BEGIN
+    IF freeHandler # NIL THEN freeHandler(name, all); RETURN END;
+    m := modules();
     IF all THEN
       res := 1; resMsg := 'unloading "all" not yet supported'
     ELSE
@@ -263,9 +273,56 @@ MODULE Modules;  (* jt 6.1.96 *)
     END
   END Free;
 
+  PROCEDURE -FreeAddress(handler: FreeHandler): SYSTEM.ADDRESS "(ADDRESS)handler";
+
+  PROCEDURE InstallFreeHandler*(handler: FreeHandler);
+    VAR retention: Retention; released: BOOLEAN;
+  BEGIN
+    Platform.CommandCritical(TRUE);
+    retention := Heap.RetainProcedure(FreeAddress(handler));
+    IF (handler # NIL) & (retention = NIL) THEN
+      res := 1; resMsg := "free handler has no eligible modular owner"
+    ELSE
+      IF freeRetention # NIL THEN released := Heap.ReleaseModule(freeRetention) END;
+      freeHandler := handler; freeRetention := retention;
+      res := 0; resMsg := ""
+    END;
+    Platform.CommandCritical(FALSE)
+  END InstallFreeHandler;
+
+  (* Retentions are explicit leases, held until released even if the caller
+     drops its token. Copies cannot release the same lease twice. *)
+  PROCEDURE Retain*(owner: Module): Retention;
+    VAR r: Retention;
+  BEGIN
+    Platform.CommandCritical(TRUE); r := Heap.RetainModule(owner);
+    Platform.CommandCritical(FALSE);
+    IF r = NIL THEN res := 1; resMsg := "module cannot be retained"
+    ELSE res := 0; resMsg := "" END;
+    RETURN r
+  END Retain;
+
+  PROCEDURE Release*(VAR retention: Retention);
+    VAR released: BOOLEAN;
+  BEGIN
+    Platform.CommandCritical(TRUE); released := Heap.ReleaseModule(retention);
+    retention := NIL; Platform.CommandCritical(FALSE);
+    IF released THEN res := 0; resMsg := ""
+    ELSE res := 1; resMsg := "retention is absent or already released" END
+  END Release;
+
+  PROCEDURE InstallTermHandler*(handler: Command);
+  BEGIN
+    IF Heap.InstallTermHandler(handler) THEN res := 0; resMsg := ""
+    ELSE res := 1; resMsg := "termination handler has no registered modular owner"
+    END
+  END InstallTermHandler;
+
 
 
   (* Run time error reporting. *)
+
+  PROCEDURE -StopRecovery "SYSTEM_StopCommandRecovery()";
 
   PROCEDURE errch(c: CHAR);  (* Here we favour simplicity over efficiency, so no buffering. *)
   VAR e: Platform.ErrorCode;
@@ -310,6 +367,7 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE Halt*(code: SYSTEM.INT32);
   BEGIN
+    StopRecovery;
     Heap.FINALL;
     errstring("Terminated by Halt("); errint(code); errstring("). ");
     IF code < 0 THEN DisplayHaltCode(code) END;
@@ -319,6 +377,7 @@ MODULE Modules;  (* jt 6.1.96 *)
 
   PROCEDURE AssertFail*(code: SYSTEM.INT32);
   BEGIN
+    StopRecovery;
     Heap.FINALL;
     errstring("Assertion failure.");
     IF code # 0 THEN errstring(" ASSERT code "); errint(code); errstring("."); END;

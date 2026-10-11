@@ -9,9 +9,11 @@ IMPORT SYSTEM;
 
 TYPE
   SignalHandler = PROCEDURE(signal: SYSTEM.INT32);
+  Command* = PROCEDURE;
 
   ErrorCode*  = INTEGER;
   FileHandle* = SYSTEM.ADDRESS;
+  DirectoryHandle* = SYSTEM.ADDRESS;
 
   FileIdentity* = RECORD
     volume:    LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
@@ -43,6 +45,13 @@ PROCEDURE -AincludeWindowsWrapper '#include "WindowsWrapper.h"';
 
 
 (* Error code tests *)
+
+(* Recoverable commands are currently a Unix-host facility. *)
+PROCEDURE RunCommand*(command: Command): SYSTEM.INT32;
+BEGIN command; RETURN 0 END RunCommand;
+
+PROCEDURE CommandCritical*(enter: BOOLEAN);
+BEGIN END CommandCritical;
 
 PROCEDURE -ERRORTOOMANYOPENFILES(): ErrorCode 'ERROR_TOO_MANY_OPEN_FILES';
 PROCEDURE -ERRORPATHNOTFOUND():     ErrorCode 'ERROR_PATH_NOT_FOUND';
@@ -241,6 +250,36 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 
 
 (* File system *)
+
+PROCEDURE -ADirectorySupport '#include "PlatformDirectory.h"';
+
+PROCEDURE -openDirectory(path: ARRAY OF CHAR;
+                        VAR handle: DirectoryHandle): ErrorCode
+"VOC_OpenDirectory((char*)path, handle)";
+
+PROCEDURE OpenDirectory*(path: ARRAY OF CHAR;
+                        VAR handle: DirectoryHandle): ErrorCode;
+BEGIN RETURN openDirectory(path, handle) END OpenDirectory;
+
+PROCEDURE -readDirectory(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
+                        VAR done: BOOLEAN): ErrorCode
+"VOC_ReadDirectory(handle, (char*)name, name__len, done)";
+
+PROCEDURE ReadDirectory*(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
+                        VAR done: BOOLEAN): ErrorCode;
+BEGIN RETURN readDirectory(handle, name, done) END ReadDirectory;
+
+PROCEDURE -closeDirectory(VAR handle: DirectoryHandle): ErrorCode
+"VOC_CloseDirectory(handle)";
+
+PROCEDURE CloseDirectory*(VAR handle: DirectoryHandle): ErrorCode;
+BEGIN RETURN closeDirectory(handle) END CloseDirectory;
+
+PROCEDURE -isDirectory(path: ARRAY OF CHAR): BOOLEAN
+"VOC_IsDirectory((char*)path)";
+
+PROCEDURE IsDirectory*(path: ARRAY OF CHAR): BOOLEAN;
+BEGIN RETURN isDirectory(path) END IsDirectory;
 
 PROCEDURE -invalidHandleValue(): SYSTEM.ADDRESS "((ADDRESS)INVALID_HANDLE_VALUE)";
 

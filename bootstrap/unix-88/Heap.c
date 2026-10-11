@@ -99,8 +99,8 @@ static void Heap_MarkStack (INT64 n, INT64 *cand, ADDRESS cand__len);
 export SYSTEM_PTR Heap_NEWBLK (INT64 size);
 export SYSTEM_PTR Heap_NEWREC (INT64 tag);
 static INT64 Heap_NewChunk (INT64 blksz);
-export void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd);
-export SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs);
+export void Heap_REGCMD (Heap_Module m, CHAR *name, Heap_Command cmd);
+export SYSTEM_PTR Heap_REGMOD (CHAR *name, Heap_EnumProc enumPtrs);
 export void Heap_REGTYP (Heap_Module m, INT64 typ);
 export void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize);
 static void Heap_Scan (void);
@@ -130,7 +130,7 @@ void Heap_Unlock (void)
 	}
 }
 
-SYSTEM_PTR Heap_REGMOD (Heap_ModuleName name, Heap_EnumProc enumPtrs)
+SYSTEM_PTR Heap_REGMOD (CHAR *name, Heap_EnumProc enumPtrs)
 {
 	Heap_Module m;
 	if (__STRCMP(name, "Heap") == 0) {
@@ -177,7 +177,7 @@ INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
 	__RETCHK;
 }
 
-void Heap_REGCMD (Heap_Module m, Heap_CmdName name, Heap_Command cmd)
+void Heap_REGCMD (Heap_Module m, CHAR *name, Heap_Command cmd)
 {
 	Heap_Cmd c;
 	if (__STRCMP(m->name, "Heap") == 0) {
