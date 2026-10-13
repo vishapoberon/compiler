@@ -899,6 +899,10 @@ MODULE Heap;
 
 
 
+  (* Keep register-only roots in this frame for every stack scan, including
+     the checks made before unloading a module. *)
+  PROCEDURE -SaveRegisters "__SAVE_REGISTERS()";
+
   PROCEDURE MarkRoots(excluded: Module; markStack: BOOLEAN);
     VAR
       m: Module;
@@ -912,6 +916,7 @@ MODULE Heap;
       m := m^.next
     END;
     IF markStack THEN
+      SaveRegisters;
       (* generate register pressure to force callee saved registers to memory;
          may be simplified by inlining OS calls or processor specific instructions
       *)

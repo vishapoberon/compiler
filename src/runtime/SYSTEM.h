@@ -224,6 +224,15 @@ static inline INT64 SYSTEM_ABS32(INT32 i) {return i >= 0 ? i : -i;}
 static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __ABSFD(x) SYSTEM_ABSD(x)
 
+// Save callee-saved registers in the stack frame scanned by Heap.MarkRoots.
+// Artificial register pressure alone does not do this in unoptimized C.
+#if defined(__GNUC__) || defined(__clang__)
+#define __SAVE_REGISTERS() __builtin_unwind_init()
+#else
+#include <setjmp.h>
+#define __SAVE_REGISTERS() jmp_buf __registers; setjmp(__registers)
+#endif
+
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
 

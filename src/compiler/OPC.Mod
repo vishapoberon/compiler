@@ -1163,7 +1163,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
               IF dim # 0 THEN OPM.WriteInt(dim) END ;
               OPM.WriteString(' = '); Ident(var); OPM.WriteString(LenExt);
               IF dim # 0 THEN OPM.WriteInt(dim) END ;
-              typ := typ^.BaseTyp
+              typ := typ^.BaseTyp; INC(dim)
             UNTIL typ^.comp # OPT.DynArr;
           ELSIF (var^.mode = OPT.VarPar) & (var^.typ^.comp = OPT.Record) THEN
             OPM.WriteString("; ");

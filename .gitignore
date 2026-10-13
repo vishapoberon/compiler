@@ -33,6 +33,13 @@
 !/src/test/confidence/arrayparameters/TestArrayParameters.mod
 !/src/test/confidence/arrayparameters/expected
 !/src/test/confidence/arrayparameters/test.sh
+!/src/test/confidence/arrayparameters/TestOpenArrayRows.mod
+!/src/test/confidence/arrayparameters/TestNestedArrayLengths.mod
+!/src/test/confidence/heaproots/
+!/src/test/confidence/heaproots/TestHeapRoots.mod
+!/src/test/confidence/heaproots/RegisterRoots.inc
+!/src/test/confidence/heaproots/expected
+!/src/test/confidence/heaproots/test.sh
 !/src/test/confidence/ckeywords/
 !/src/test/confidence/ckeywords/TestCKeywords.mod
 !/src/test/confidence/ckeywords/expected

@@ -345,10 +345,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      FOR i := 1 TO dims DO OPM.Write(")") END ;
                      IF n^.typ^.comp = OPT.DynArr THEN
                        (*  element type is OPT.DynArr; finish Horner schema with virtual indices = 0*)
-                       OPM.Write(")");
-                       WHILE i < (d^.typ^.size - 4) DIV 4 DO
+                       (* Count the remaining dimensions from the element type,
+                          not from the size of an open-array descriptor. *)
+                       OPM.Write(")"); typ := n^.typ;
+                       WHILE typ^.comp = OPT.DynArr DO
                          OPM.WriteString(" * "); Len(d, i);
-                         INC(i)
+                         INC(i); typ := typ^.BaseTyp
                        END
                      END ;
                      OPM.Write(CloseBracket)
