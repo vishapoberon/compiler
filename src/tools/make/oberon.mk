@@ -441,4 +441,5 @@ confidence:
 	cd src/test/confidence/isptest;         $(RUNTEST)
 	cd src/test/confidence/lola;            $(RUNTEST)
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
+	if [ "$(PLATFORM)" = "unix" ] && [ "$$(uname -s)" = "Linux" ] ; then cd src/test/confidence/platformwrite; $(RUNTEST); fi
 	@printf '\n\n--- Confidence tests passed ---\n\n'

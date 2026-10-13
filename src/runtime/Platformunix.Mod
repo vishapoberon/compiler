@@ -81,6 +81,8 @@ PROCEDURE -ECONNABORTED(): ErrorCode 'ECONNABORTED';
 PROCEDURE -ENETUNREACH():  ErrorCode 'ENETUNREACH';
 PROCEDURE -EHOSTUNREACH(): ErrorCode 'EHOSTUNREACH';
 PROCEDURE -EINTR():        ErrorCode 'EINTR';
+PROCEDURE -EIO():          ErrorCode 'EIO';
+PROCEDURE -EINVAL():       ErrorCode 'EINVAL';
 
 
 
@@ -580,9 +582,22 @@ BEGIN
 END WriteCount;
 
 PROCEDURE Write*(h: FileHandle; p: SYSTEM.ADDRESS; l: LONGINT): ErrorCode;
-  VAR written: LONGINT;
+  (* WriteCount remains a single attempt. Write must not report success until
+     the complete buffer has been written, including after short writes. *)
+  VAR written: SYSTEM.ADDRESS; e: ErrorCode;
 BEGIN
-  RETURN WriteCount(h, p, l, written)
+  IF l < 0 THEN RETURN EINVAL() END;
+  WHILE l > 0 DO
+    written := writefile(h, p, l);
+    IF written < 0 THEN
+      e := err(); IF ~Interrupted(e) THEN RETURN e END
+    ELSIF written = 0 THEN
+      RETURN EIO()  (* No progress must not become an infinite retry loop. *)
+    ELSE
+      INC(p, written); DEC(l, writecount(written))
+    END
+  END;
+  RETURN 0
 END Write;
 
 

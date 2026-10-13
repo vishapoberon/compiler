@@ -40,6 +40,11 @@
 !/src/test/confidence/heaproots/RegisterRoots.inc
 !/src/test/confidence/heaproots/expected
 !/src/test/confidence/heaproots/test.sh
+!/src/test/confidence/platformwrite/
+!/src/test/confidence/platformwrite/TestPlatformWrite.mod
+!/src/test/confidence/platformwrite/WriteFaults.inc
+!/src/test/confidence/platformwrite/expected
+!/src/test/confidence/platformwrite/test.sh
 !/src/test/confidence/ckeywords/
 !/src/test/confidence/ckeywords/TestCKeywords.mod
 !/src/test/confidence/ckeywords/expected
