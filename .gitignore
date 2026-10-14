@@ -35,6 +35,10 @@
 !/src/test/confidence/arrayparameters/test.sh
 !/src/test/confidence/arrayparameters/TestOpenArrayRows.mod
 !/src/test/confidence/arrayparameters/TestNestedArrayLengths.mod
+!/src/test/confidence/filesafety/
+!/src/test/confidence/filesafety/TestFileStrings.mod
+!/src/test/confidence/filesafety/expected
+!/src/test/confidence/filesafety/test.sh
 !/src/test/confidence/heaproots/
 !/src/test/confidence/heaproots/TestHeapRoots.mod
 !/src/test/confidence/heaproots/RegisterRoots.inc

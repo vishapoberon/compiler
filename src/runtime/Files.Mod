@@ -671,18 +671,27 @@ Especially Length would become fairly complex.
   END ReadLReal;
 
   PROCEDURE ReadString* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-    VAR i: INTEGER; ch: CHAR;
+    VAR i: LONGINT; ch: CHAR;
   BEGIN i := 0;
-    REPEAT Read(R, ch); x[i] := ch; INC(i) UNTIL ch = 0X
+    (* Consume the complete record even when the destination is too small. *)
+    REPEAT Read(R, ch);
+      IF i < LEN(x)-1 THEN x[i] := ch; INC(i) END
+    UNTIL ch = 0X;
+    IF LEN(x) > 0 THEN x[i] := 0X END
   END ReadString;
 
   PROCEDURE ReadLine* (VAR R: Rider; VAR x: ARRAY OF CHAR);
-  VAR i: INTEGER;
+    VAR i: LONGINT; ch: CHAR; truncated: BOOLEAN;
   BEGIN
-    i := 0; REPEAT Read(R, x[i]); INC(i) UNTIL (x[i-1] = 0X) OR (x[i-1] = 0AX);
-    IF x[i-1] = 0AX THEN DEC(i) END;             (* Omit trailing LF *)
-    IF (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END; (* Also omit preceeding trailing CR if present. *)
-    x[i] := 0X;                                  (* Guarantee zero termination. *)
+    i := 0; truncated := FALSE;
+    LOOP
+      Read(R, ch);
+      IF (ch = 0X) OR (ch = 0AX) THEN EXIT END;
+      IF i < LEN(x)-1 THEN x[i] := ch; INC(i) ELSE truncated := TRUE END
+    END;
+    (* Do not mistake a CR at the truncation point for the actual line end. *)
+    IF ~truncated & (i > 0) & (x[i-1] = 0DX) THEN DEC(i) END;
+    IF LEN(x) > 0 THEN x[i] := 0X END
   END ReadLine;
 
   PROCEDURE ReadNum*(VAR R: Rider; VAR x: ARRAY OF SYSTEM.BYTE);
