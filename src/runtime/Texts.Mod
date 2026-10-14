@@ -404,24 +404,56 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     x = 2^(e-127) * 1.m    bit 0: sign, bits 1- 8: e, bits  9-31: m
     x = 2^(e-1023) * 1.m   bit 0: sign, bits 1-11: e, bits 12-63: m *)
 
+  PROCEDURE -IncludeStdlib '#include <stdlib.h>';
+  PROCEDURE -ParseReal(text: ARRAY OF CHAR): REAL 'strtof((const char*)text, 0)';
+  PROCEDURE -ParseLongReal(text: ARRAY OF CHAR): LONGREAL 'strtod((const char*)text, 0)';
+
   PROCEDURE Scan* (VAR S: Scanner);
-    CONST maxD = 32;
-    VAR ch, term: CHAR;
-      neg, negE, hex: BOOLEAN;
-      i, j, h: SHORTINT;
-      e: INTEGER; k: LONGINT;
-      x, f: REAL; y, g: LONGREAL;
+    (* Binary64 rounding boundaries have fewer than 1100 significant decimal
+       digits. Keep that prefix and a sticky digit, without storing the token. *)
+    CONST maxD = 1100;
+    VAR ch, term, swap: CHAR;
+      neg, negE, hex, sticky, tooLong, invalid: BOOLEAN;
+      i, j, n: INTEGER;
+      e, scale: SYSTEM.INT64; k, digit, limit: LONGINT;
       d: ARRAY maxD OF CHAR;
+      number: ARRAY maxD+64 OF CHAR;
+
+    PROCEDURE Digit(ch: CHAR; fraction: BOOLEAN);
+    BEGIN
+      IF (i > 0) OR (ch # "0") THEN
+        IF i < maxD THEN
+          d[i] := ch; INC(i);
+          IF fraction THEN
+            IF scale > MIN(SYSTEM.INT64) THEN DEC(scale) ELSE invalid := TRUE END
+          END
+        ELSE
+          sticky := sticky OR (ch # "0");
+          IF ~fraction THEN
+            tooLong := TRUE;
+            IF scale < MAX(SYSTEM.INT64) THEN INC(scale) ELSE invalid := TRUE END
+          END
+        END
+      ELSIF fraction THEN
+        IF scale > MIN(SYSTEM.INT64) THEN DEC(scale) ELSE invalid := TRUE END
+      END
+    END Digit;
 
     PROCEDURE ReadScaleFactor;
+      VAR seen: BOOLEAN;
     BEGIN Read(S, ch);
       IF ch = "-" THEN negE := TRUE; Read(S, ch)
       ELSE negE := FALSE;
         IF ch = "+" THEN Read(S, ch) END
       END;
+      seen := FALSE;
       WHILE ("0" <= ch) & (ch <= "9") DO
-        e := e*10 + ORD(ch) - 30H; Read(S, ch)
-      END
+        seen := TRUE; digit := ORD(ch)-30H;
+        IF e <= (MAX(SYSTEM.INT64)-digit) DIV 10 THEN e := e*10 + digit
+        ELSE invalid := TRUE END;
+        Read(S, ch)
+      END;
+      IF ~seen THEN invalid := TRUE END
     END ReadScaleFactor;
 
   BEGIN ch := S.nextCh; i := 0;
@@ -437,18 +469,19 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
         OR ("A" > CAP(ch)) & (ch > "9")
         OR ("0" > ch) & (ch # ".") & (ch # "/")  (* << *)
         OR (i = 63);  (* << *)
-      S.s[i] := 0X; S.len := i; S.class := 1
+      S.s[i] := 0X; S.len := SHORT(i); S.class := 1
     ELSIF ch = 22X THEN (*literal string*)
       Read(S, ch);
       WHILE (ch # 22X) & (ch >= " ") & (i # 63) DO  (* << *)
         S.s[i] := ch; INC(i); Read(S, ch)
       END;
-      S.s[i] := 0X; S.len := i+1; Read(S, ch); S.class := 2
+      S.s[i] := 0X; S.len := SHORT(i+1); Read(S, ch); S.class := 2
     ELSE
       IF ch = "-" THEN neg := TRUE; Read(S, ch) ELSE neg := FALSE END ;
       IF ("0" <= ch) & (ch <= "9") THEN (*number*)
-        hex := FALSE; j := 0;
-        LOOP d[i] := ch; INC(i); Read(S, ch);
+        hex := FALSE; sticky := FALSE; tooLong := FALSE; invalid := FALSE;
+        negE := FALSE; scale := 0; e := 0;
+        LOOP Digit(ch, FALSE); Read(S, ch);
           IF ch < "0" THEN EXIT END;
           IF "9" < ch THEN
             IF ("A" <= ch) & (ch <= "F") THEN hex := TRUE; ch := CHR(ORD(ch)-7)
@@ -458,45 +491,63 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
           END
         END;
         IF ch = "H" THEN (*hex number*)
-          Read(S, ch); S.class := 3;
-          IF i-j > 8 THEN j := i-8 END ;
-          k := ORD(d[j]) - 30H; INC(j);
-          IF (i-j = 7) & (k >= 8) THEN DEC(k, 16) END ;
-          WHILE j < i DO k := k*10H + (ORD(d[j]) - 30H); INC(j) END ;
-          IF neg THEN S.i := -k ELSE S.i := k END
+          Read(S, ch); S.class := Int; k := 0;
+          IF tooLong THEN S.class := Inval
+          ELSIF i > 0 THEN
+            IF i > 8 THEN j := i-8 ELSE j := 0 END;
+            k := ORD(d[j])-30H; INC(j);
+            IF (i-j = 7) & (k >= 8) THEN DEC(k, 16) END;
+            WHILE j < i DO k := k*10H + (ORD(d[j])-30H); INC(j) END
+          END;
+          IF neg & (k = MIN(LONGINT)) THEN S.class := Inval
+          ELSIF neg THEN S.i := -k ELSE S.i := k END
         ELSIF ch = "." THEN (*read real*)
-          Read(S, ch); h := i;
-          WHILE ("0" <= ch) & (ch <= "9") DO d[i] := ch; INC(i); Read(S, ch) END ;
-          IF ch = "D" THEN
-            e := 0; y := 0; g := 1;
-            REPEAT y := y*10 + (ORD(d[j]) - 30H); INC(j) UNTIL j = h;
-            WHILE j < i DO g := g/10; y := (ORD(d[j]) - 30H)*g + y; INC(j) END ;
-            ReadScaleFactor;
-            IF negE THEN
-              IF e <= 308 THEN y := y / Reals.TenL(e) ELSE y := 0 END
-            ELSIF e > 0 THEN
-              IF e <= 308 THEN y := Reals.TenL(e) * y ELSE HALT(40) END
-            END ;
-            IF neg THEN y := -y END ;
-            S.class := 5; S.y := y
-          ELSE e := 0; x := 0; f := 1;
-            REPEAT x := x*10 + (ORD(d[j]) - 30H); INC(j) UNTIL j = h;
-            WHILE j < i DO f := f/10; x := (ORD(d[j])-30H)*f + x; INC(j) END;
-            IF ch = "E" THEN ReadScaleFactor END ;
-            IF negE THEN
-              IF e <= 38 THEN x := x / Reals.Ten(e) ELSE x := 0 END
-            ELSIF e > 0 THEN
-              IF e <= 38 THEN x := Reals.Ten(e) * x ELSE HALT(40) END
-            END ;
-            IF neg THEN x := -x END ;
-            S.class := 4; S.x := x
-          END ;
-          IF hex THEN S.class := 0 END
+          Read(S, ch);
+          WHILE ("0" <= ch) & (ch <= "9") DO Digit(ch, TRUE); Read(S, ch) END;
+          term := ch;
+          IF term = "D" THEN S.class := LongReal; ReadScaleFactor
+          ELSE S.class := Real; IF term = "E" THEN ReadScaleFactor END
+          END;
+          IF hex OR invalid THEN S.class := Inval
+          ELSE
+            IF negE THEN e := -e END;
+            IF (e > 0) & (scale > MAX(SYSTEM.INT64)-e) THEN scale := MAX(SYSTEM.INT64)
+            ELSIF (e < 0) & (scale < MIN(SYSTEM.INT64)-e) THEN scale := MIN(SYSTEM.INT64)
+            ELSE INC(scale, e)
+            END;
+            (* Exponents beyond this range cannot affect any binary32/64
+               nonzero result. Clamp only after combining with the mantissa. *)
+            IF scale > 1000000 THEN scale := 1000000
+            ELSIF scale < -1000000 THEN scale := -1000000 END;
+            n := 0;
+            IF neg THEN number[n] := "-"; INC(n) END;
+            IF i = 0 THEN number[n] := "0"; INC(n)
+            ELSE FOR j := 0 TO i-1 DO number[n] := d[j]; INC(n) END
+            END;
+            (* A nonzero discarded tail must round above an exact midpoint.
+               No binary32/64 boundary extends past the retained prefix. *)
+            IF sticky THEN number[n] := "1"; INC(n); DEC(scale) END;
+            (* An integer significand needs no locale-dependent decimal mark. *)
+            number[n] := "E"; INC(n);
+            IF scale < 0 THEN number[n] := "-"; INC(n); scale := -scale END;
+            j := n;
+            REPEAT number[n] := CHR(scale MOD 10 + 30H); scale := scale DIV 10; INC(n) UNTIL scale = 0;
+            number[n] := 0X; DEC(n);
+            WHILE j < n DO swap := number[j]; number[j] := number[n]; number[n] := swap; INC(j); DEC(n) END;
+            IF S.class = LongReal THEN S.y := ParseLongReal(number) ELSE S.x := ParseReal(number) END
+          END
         ELSE (*decimal integer*)
-          S.class := 3; k := 0;
-          REPEAT k := k*10 + (ORD(d[j]) - 30H); INC(j) UNTIL j = i;
-          IF neg THEN S.i := -k ELSE S.i := k END;
-          IF hex THEN S.class := 0 ELSE S.class := 3 END
+          S.class := Int; k := 0; j := 0;
+          limit := MAX(LONGINT) MOD 10; IF neg THEN INC(limit) END;
+          WHILE (j < i) & ~invalid DO
+            digit := ORD(d[j])-30H;
+            IF (digit > 9) OR (k < -(MAX(LONGINT) DIV 10)) OR
+               ((k = -(MAX(LONGINT) DIV 10)) & (digit > limit)) THEN invalid := TRUE
+            ELSE k := k*10-digit; INC(j)
+            END
+          END;
+          IF hex OR tooLong OR invalid THEN S.class := Inval
+          ELSIF neg THEN S.i := k ELSE S.i := -k END
         END
       ELSE S.class := 6;
         IF neg THEN S.c := "-" ELSE S.c := ch; Read(S, ch) END
@@ -556,7 +607,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
   END WriteLn;
 
   PROCEDURE WriteString* (VAR W: Writer; s: ARRAY OF CHAR);
-    VAR i: INTEGER;
+    VAR i: LONGINT;
   BEGIN i := 0;
     WHILE s[i] >= " " DO Write(W, s[i]); INC(i) END
   END WriteString;
