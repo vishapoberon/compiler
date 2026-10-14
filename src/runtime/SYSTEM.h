@@ -192,7 +192,7 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 #define __ROTR(x, n, s) ((INT##s)((UINT##s)(x)>>(n)|(UINT##s)(x)<<(s-(n))))
 #define __ROT(x, n, s)  ((n)>=0? __ROTL(x, n, s): __ROTR(x, -(n), s))
 
-#define __ASHL(x, n)    ((INT64)(x)<<(n))
+#define __ASHL(x, n)    ((INT64)((UINT64)(x)<<(n)))
 #define __ASHR(x, n)    ((INT64)(x)>>(n))
 #define __ASH(x, n)     ((n)>=0?__ASHL(x,n):__ASHR(x,-(n)))
 static inline INT64 SYSTEM_ASH(INT64 x, INT64 n) {return __ASH(x,n);}

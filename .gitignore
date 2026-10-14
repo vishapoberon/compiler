@@ -41,6 +41,8 @@
 !/src/test/confidence/filesafety/TestFileStrings.mod
 !/src/test/confidence/filesafety/expected
 !/src/test/confidence/filesafety/test.sh
+!/src/test/confidence/intsyntax/
+!/src/test/confidence/intsyntax/TestSignedShifts.mod
 !/src/test/confidence/heaproots/
 !/src/test/confidence/heaproots/TestHeapRoots.mod
 !/src/test/confidence/heaproots/RegisterRoots.inc

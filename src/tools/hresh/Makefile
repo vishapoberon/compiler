@@ -190,6 +190,8 @@ test: all test-commands test-unload
 	"$(BUILD)/TestFixedArrayValues"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/filesafety/TestFileStrings.mod"
 	"$(BUILD)/TestFileStrings"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/intsyntax/TestSignedShifts.mod"
+	"$(BUILD)/TestSignedShifts"
 	cd "$(BUILD)" && $(ENV) CFLAGS="$(CFLAGS) -I$(ROOT)/src/test/confidence/heaproots" "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/heaproots/TestHeapRoots.mod"
 	"$(BUILD)/TestHeapRoots"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/ckeywords/TestCKeywords.mod"
