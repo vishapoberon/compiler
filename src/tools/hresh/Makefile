@@ -186,6 +186,8 @@ test: all test-commands test-unload
 	"$(BUILD)/TestOpenArrayRows"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestNestedArrayLengths.mod"
 	"$(BUILD)/TestNestedArrayLengths"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestFixedArrayValues.mod"
+	"$(BUILD)/TestFixedArrayValues"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/filesafety/TestFileStrings.mod"
 	"$(BUILD)/TestFileStrings"
 	cd "$(BUILD)" && $(ENV) CFLAGS="$(CFLAGS) -I$(ROOT)/src/test/confidence/heaproots" "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/heaproots/TestHeapRoots.mod"

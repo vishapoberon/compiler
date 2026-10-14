@@ -418,7 +418,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
           OPM.Write("&"); prec := 9
         ELSE
           IF (comp IN {OPT.Array, OPT.DynArr}) & (n^.class = OPT.Nconst) THEN
-            OPM.WriteString("(CHAR*)")  (* force to unsigned char *)
+            IF comp # OPT.Array THEN OPM.WriteString("(CHAR*)") END  (* force to unsigned char *)
           ELSIF (form = OPT.Pointer) & (typ # n^.typ) & (n^.typ # OPT.niltyp) THEN
             OPM.WriteString("(void*)")  (* type extension *)
           END
@@ -431,6 +431,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         expr(n^.left, prec)  (* avoid cast in lvalue *)
       ELSIF (form = OPT.Int) & (n^.class = OPT.Nconst) THEN
         ParIntLiteral(n.conval.intval, n.typ.size)
+      ELSIF (comp = OPT.Array) & (n^.class = OPT.Nconst) & (n^.typ^.form = OPT.String) THEN
+        (* Pad string literals to the fixed-array parameter size so the callee
+           can copy the entire array. *)
+        OPM.Write("("); OPC.Ident(typ^.strobj); OPM.WriteString("){");
+        expr(n, MinPrec); OPM.Write("}")
       ELSE
         expr(n, prec)
       END;

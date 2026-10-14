@@ -1414,6 +1414,10 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
         ELSIF ap^.class >= OPT.Nconst THEN err(59)
         ELSE DynArrParCheck(fp^.typ, ap^.typ, FALSE)
         END
+      ELSIF (fp^.typ^.comp = OPT.Array) & (ap^.typ^.comp IN {OPT.Array, OPT.DynArr}) & (ap^.typ # fp^.typ) THEN
+        (* A fixed value parameter copies the formal's size in the callee.
+           The wider array-assignment rules cannot safely apply to calls. *)
+        err(113)
       ELSE CheckAssign(fp^.typ, ap)
       END
     END
