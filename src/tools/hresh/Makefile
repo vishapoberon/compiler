@@ -206,6 +206,8 @@ test: all test-commands test-unload
 	"$(BUILD)/compatibility/CompatMain"
 
 test-library: libraries
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestAsciiCodes.mod"
+	"$(BUILD)/TestAsciiCodes"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/tests/LongModuleRegistryNames.Mod"
 	cd "$(BUILD)" && $(ENV) CFLAGS="$(CFLAGS) -I$(SUPPORT)" "$(NEWVOC)" -O$(MODEL) -smD "$(TOOLS)/tests/TestLibraries.Mod"
 	"$(BUILD)/TestLibraries" "$(MODULES)/libraries.list" "$(MODULES)" "$(BUILD)"

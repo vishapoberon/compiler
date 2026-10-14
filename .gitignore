@@ -45,6 +45,8 @@
 !/src/test/confidence/texts/TestScannerNumbers.mod
 !/src/test/confidence/intsyntax/
 !/src/test/confidence/intsyntax/TestSignedShifts.mod
+!/src/test/confidence/library/
+!/src/test/confidence/library/TestAsciiCodes.mod
 !/src/test/confidence/heaproots/
 !/src/test/confidence/heaproots/TestHeapRoots.mod
 !/src/test/confidence/heaproots/RegisterRoots.inc
