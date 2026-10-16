@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -102,13 +102,13 @@ import void OPT_FPrintErr (OPT_Object obj, INT16 errcode);
 import void OPT_FPrintObj (OPT_Object obj);
 import void OPT_FPrintStr (OPT_Struct typ);
 import void OPT_Find (OPT_Object *res);
-import void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res);
+import void OPT_FindField (CHAR *name, OPT_Struct typ, OPT_Object *res);
 import void OPT_FindImport (OPT_Object mod, OPT_Object *res);
 import void OPT_IdFPrint (OPT_Struct typ);
-import void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
-import void OPT_Init (OPS_Name name, UINT32 opt);
+import void OPT_Import (CHAR *aliasName, CHAR *name, BOOLEAN *done);
+import void OPT_Init (CHAR *name, UINT32 opt);
 import void OPT_InitRecno (void);
-import void OPT_Insert (OPS_Name name, OPT_Object *obj);
+import void OPT_Insert (CHAR *name, OPT_Object *obj);
 import void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
 import INT16 OPT_IntSize (INT64 n);
 import OPT_Struct OPT_IntType (INT32 size);

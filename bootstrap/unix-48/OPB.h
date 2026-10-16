@@ -1,10 +1,9 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef OPB__h
 #define OPB__h
 
 #include "SYSTEM.h"
-#include "OPS.h"
 #include "OPT.h"
 
 
@@ -27,7 +26,7 @@ import OPT_Node OPB_NewBoolConst (BOOLEAN boolval);
 import OPT_Node OPB_NewIntConst (INT64 intval);
 import OPT_Node OPB_NewLeaf (OPT_Object obj);
 import OPT_Node OPB_NewRealConst (LONGREAL realval, OPT_Struct typ);
-import OPT_Node OPB_NewString (OPS_String str, INT64 len);
+import OPT_Node OPB_NewString (CHAR *str, INT64 len);
 import OPT_Node OPB_Nil (void);
 import void OPB_Op (INT8 op, OPT_Node *x, OPT_Node y);
 import void OPB_OptIf (OPT_Node *x);

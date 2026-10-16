@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -46,7 +46,29 @@ typedef
 	} Heap_FinDesc;
 
 typedef
+	struct Heap_ImportDesc *Heap_Import;
+
+typedef
 	struct Heap_ModuleDesc *Heap_Module;
+
+typedef
+	struct Heap_ImportDesc {
+		Heap_Import next;
+		Heap_Module imported;
+	} Heap_ImportDesc;
+
+typedef
+	struct Heap_LifetimeDesc *Heap_Lifetime;
+
+typedef
+	struct Heap_LifetimeDesc {
+		Heap_Lifetime next;
+		Heap_Module owner;
+		Heap_Import imports;
+		INT16 state;
+		INT32 retained;
+		INT32 initializer;
+	} Heap_LifetimeDesc;
 
 typedef
 	CHAR Heap_ModuleName[20];
@@ -62,6 +84,51 @@ typedef
 		INT32 reserved1, reserved2;
 	} Heap_ModuleDesc;
 
+typedef
+	void (*Heap_ModuleNotifier)(Heap_Module, INT32);
+
+typedef
+	struct Heap_ProcedureDesc *Heap_Procedure;
+
+typedef
+	struct Heap_ProcedureDesc {
+		Heap_Procedure next;
+		Heap_Module owner;
+		INT32 address;
+	} Heap_ProcedureDesc;
+
+typedef
+	struct Heap_RetentionDesc *Heap_Retention;
+
+typedef
+	struct Heap_RetentionDesc {
+		Heap_Retention next;
+		Heap_Module owner;
+	} Heap_RetentionDesc;
+
+typedef
+	struct Heap_TerminationDesc *Heap_Termination;
+
+typedef
+	struct Heap_TerminationDesc {
+		Heap_Termination next;
+		Heap_Module owner;
+		Heap_Command handler;
+	} Heap_TerminationDesc;
+
+typedef
+	void (*Heap_UnloadHandler)(Heap_Module);
+
+typedef
+	struct Heap_UnloadHookDesc *Heap_UnloadHook;
+
+typedef
+	struct Heap_UnloadHookDesc {
+		Heap_UnloadHook next;
+		Heap_Module owner;
+		Heap_UnloadHandler handler;
+	} Heap_UnloadHookDesc;
+
 
 export SYSTEM_PTR Heap_modules;
 static INT32 Heap_freeList[10];
@@ -73,52 +140,106 @@ export INT32 Heap_heap;
 static INT32 Heap_heapMin, Heap_heapMax;
 export INT32 Heap_heapsize, Heap_heapMinExpand;
 static Heap_FinNode Heap_fin;
+static Heap_Procedure Heap_procedures;
+static Heap_Termination Heap_terminations;
+static Heap_Lifetime Heap_lifetimes;
+static Heap_Retention Heap_retentions;
+static Heap_ModuleNotifier Heap_notifier;
+static Heap_Retention Heap_notifierRetention;
+static Heap_UnloadHook Heap_unloadHooks;
 static INT16 Heap_lockdepth;
 static BOOLEAN Heap_interrupted;
 export INT16 Heap_FileCount;
 
 export ADDRESS *Heap_ModuleDesc__typ;
+export ADDRESS *Heap_ImportDesc__typ;
+export ADDRESS *Heap_LifetimeDesc__typ;
+export ADDRESS *Heap_RetentionDesc__typ;
+export ADDRESS *Heap_UnloadHookDesc__typ;
+export ADDRESS *Heap_ProcedureDesc__typ;
+export ADDRESS *Heap_TerminationDesc__typ;
 export ADDRESS *Heap_CmdDesc__typ;
 export ADDRESS *Heap_FinDesc__typ;
 export ADDRESS *Heap__1__typ;
 
+export void Heap_BeginFree (Heap_Module owner);
 static void Heap_CheckFin (void);
+export INT16 Heap_CheckModule (Heap_Module owner);
+static void Heap_Collect (Heap_Module excluded, BOOLEAN markStack);
+export BOOLEAN Heap_CollectModule (Heap_Module owner);
+export void Heap_CommitFree (Heap_Module owner);
+export void Heap_DetachCallbacks (Heap_Module owner);
+export void Heap_DisableModule (Heap_Module owner);
 static void Heap_ExtendHeap (INT32 blksz);
 export void Heap_FINALL (void);
+export void Heap_FINALMOD (Heap_Module owner);
 static void Heap_Finalize (void);
+export BOOLEAN Heap_Finishable (Heap_Module owner);
 export INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len);
 export void Heap_GC (BOOLEAN markStack);
+export BOOLEAN Heap_HasFinalizers (Heap_Module owner);
 static void Heap_HeapSort (INT32 n, INT32 *a, ADDRESS a__len);
 export void Heap_INCREF (Heap_Module m);
+export Heap_Module Heap_Imported (Heap_Module owner, INT16 index);
 export void Heap_InitHeap (void);
+export BOOLEAN Heap_InstallTermHandler (Heap_Command handler);
+static Heap_Lifetime Heap_Life (Heap_Module owner, BOOLEAN create);
+export BOOLEAN Heap_LiveTypes (Heap_Module owner);
 export void Heap_Lock (void);
+export void Heap_MODREADY (Heap_Module owner, INT32 initializer);
 static void Heap_Mark (INT32 q);
 static void Heap_MarkCandidates (INT32 n, INT32 *cand, ADDRESS cand__len);
 static void Heap_MarkP (SYSTEM_PTR p);
+static void Heap_MarkRoots (Heap_Module excluded, BOOLEAN markStack);
 static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len);
+export INT16 Heap_ModuleState (Heap_Module owner);
 export SYSTEM_PTR Heap_NEWBLK (INT32 size);
 export SYSTEM_PTR Heap_NEWREC (INT32 tag);
+static BOOLEAN Heap_NativeCallbacks (Heap_Module owner);
 static INT32 Heap_NewChunk (INT32 blksz);
+static BOOLEAN Heap_OwnedType (Heap_Module owner, INT32 tag);
+export Heap_Module Heap_ProcedureModule (INT32 address);
 export void Heap_REGCMD (Heap_Module m, CHAR *name, Heap_Command cmd);
+export void Heap_REGIMPORT (Heap_Module owner, Heap_Module imported);
 export SYSTEM_PTR Heap_REGMOD (CHAR *name, Heap_EnumProc enumPtrs);
+export void Heap_REGPROC (Heap_Module m, INT32 address);
 export void Heap_REGTYP (Heap_Module m, INT32 typ);
 export void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize);
+export BOOLEAN Heap_RegisterUnloadHook (Heap_UnloadHandler handler);
+export BOOLEAN Heap_ReleaseModule (Heap_Retention r);
+export Heap_Retention Heap_RetainModule (Heap_Module owner);
+export Heap_Retention Heap_RetainProcedure (INT32 address);
+export INT32 Heap_Retained (Heap_Module owner);
 static void Heap_Scan (void);
+export void Heap_SetModuleNotifier (Heap_ModuleNotifier handler);
 static void Heap_Sift (INT32 l, INT32 r, INT32 *a, ADDRESS a__len);
+static void Heap_Terminate (Heap_Module owner);
+static BOOLEAN Heap_TypeReferences (Heap_Module owner, BOOLEAN markedOnly);
 export void Heap_Unlock (void);
+export BOOLEAN Heap_UnregisterUnloadHook (Heap_UnloadHandler handler);
 
+#define Heap_Active(owner)	SYSTEM_ModuleActive(owner)
+#define Heap_CommandAddress(handler)	(ADDRESS)handler
+#define Heap_CommandCritical(enter)	SYSTEM_CommandCritical(enter)
 extern void *Heap__init();
 extern ADDRESS Modules_MainStackFrame;
 extern ADDRESS Platform_OSAllocate(ADDRESS size);
+#define Heap_FinalizerAddress(handler)	(ADDRESS)handler
 #define Heap_HeapModuleInit()	Heap__init()
+#define Heap_HookAddress(handler)	(ADDRESS)handler
 #define Heap_ModulesHalt(code)	Modules_Halt(code)
 #define Heap_ModulesMainStackFrame()	Modules_MainStackFrame
+#define Heap_NativeCallback(index)	SYSTEM_ModuleCallback(index)
+#define Heap_NotifierAddress(handler)	(ADDRESS)handler
 #define Heap_OSAllocate(size)	Platform_OSAllocate(size)
+#define Heap_SaveRegisters()	__SAVE_REGISTERS()
+#define Heap_TypeTag(link)	link + (__MAXEXT + 24/sizeof(ADDRESS) + 4)*sizeof(ADDRESS)
 #define Heap_uLE(x, y)	((size_t)x <= (size_t)y)
 #define Heap_uLT(x, y)	((size_t)x <  (size_t)y)
 
 void Heap_Lock (void)
 {
+	Heap_CommandCritical(1);
 	Heap_lockdepth += 1;
 }
 
@@ -128,6 +249,7 @@ void Heap_Unlock (void)
 	if ((Heap_interrupted && Heap_lockdepth == 0)) {
 		Heap_ModulesHalt(-9);
 	}
+	Heap_CommandCritical(0);
 }
 
 SYSTEM_PTR Heap_REGMOD (CHAR *name, Heap_EnumProc enumPtrs)
@@ -200,6 +322,447 @@ void Heap_REGTYP (Heap_Module m, INT32 typ)
 void Heap_INCREF (Heap_Module m)
 {
 	m->refcnt += 1;
+}
+
+static Heap_Lifetime Heap_Life (Heap_Module owner, BOOLEAN create)
+{
+	Heap_Lifetime l;
+	l = Heap_lifetimes;
+	while ((l != NIL && l->owner != owner)) {
+		l = l->next;
+	}
+	if ((l == NIL && create)) {
+		__NEW(l, Heap_LifetimeDesc);
+		l->owner = owner;
+		l->state = 1;
+		l->next = Heap_lifetimes;
+		Heap_lifetimes = l;
+	}
+	return l;
+}
+
+INT16 Heap_ModuleState (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 0);
+	if (l == NIL) {
+		return 0;
+	} else {
+		return l->state;
+	}
+	__RETCHK;
+}
+
+void Heap_REGIMPORT (Heap_Module owner, Heap_Module imported)
+{
+	Heap_Lifetime l;
+	Heap_Import i;
+	l = Heap_Life(owner, 1);
+	__NEW(i, Heap_ImportDesc);
+	i->imported = imported;
+	i->next = l->imports;
+	l->imports = i;
+}
+
+void Heap_MODREADY (Heap_Module owner, INT32 initializer)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 1);
+	l->state = 2;
+	l->initializer = initializer;
+	if (Heap_notifier != NIL) {
+		(*Heap_notifier)(owner, initializer);
+	}
+}
+
+void Heap_SetModuleNotifier (Heap_ModuleNotifier handler)
+{
+	Heap_Lifetime l;
+		Heap_notifier = handler;
+	Heap_notifierRetention = Heap_RetainProcedure(Heap_NotifierAddress(handler));
+		l = Heap_lifetimes;
+	while (l != NIL) {
+		if ((l->state == 2 && l->initializer != 0)) {
+			(*Heap_notifier)(l->owner, l->initializer);
+		}
+		l = l->next;
+	}
+}
+
+Heap_Retention Heap_RetainModule (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	Heap_Retention r;
+	if (owner == NIL) {
+		return NIL;
+	}
+	l = Heap_Life(owner, 0);
+	if (l == NIL || l->state != 2) {
+		return NIL;
+	}
+	__NEW(r, Heap_RetentionDesc);
+	r->owner = owner;
+	r->next = Heap_retentions;
+	Heap_retentions = r;
+	l->retained += 1;
+	return r;
+}
+
+BOOLEAN Heap_ReleaseModule (Heap_Retention r)
+{
+	Heap_Retention p, previous;
+	Heap_Lifetime l;
+	p = Heap_retentions;
+	previous = NIL;
+	while ((p != NIL && p != r)) {
+		previous = p;
+		p = p->next;
+	}
+	if (p == NIL) {
+		return 0;
+	}
+	l = Heap_Life(p->owner, 0);
+			l->retained -= 1;
+	if (previous == NIL) {
+		Heap_retentions = p->next;
+	} else {
+		previous->next = p->next;
+	}
+	p->owner = NIL;
+	p->next = NIL;
+	return 1;
+}
+
+INT32 Heap_Retained (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 0);
+	if (l == NIL) {
+		return 0;
+	} else {
+		return l->retained;
+	}
+	__RETCHK;
+}
+
+Heap_Module Heap_Imported (Heap_Module owner, INT16 index)
+{
+	Heap_Lifetime l;
+	Heap_Import i;
+	l = Heap_Life(owner, 0);
+	if (l == NIL) {
+		return NIL;
+	}
+	i = l->imports;
+	while ((i != NIL && index > 0)) {
+		i = i->next;
+		index -= 1;
+	}
+	if (i == NIL) {
+		return NIL;
+	} else {
+		return i->imported;
+	}
+	__RETCHK;
+}
+
+void Heap_REGPROC (Heap_Module m, INT32 address)
+{
+	Heap_Procedure p;
+	__NEW(p, Heap_ProcedureDesc);
+	p->owner = m;
+	p->address = address;
+	p->next = Heap_procedures;
+	Heap_procedures = p;
+}
+
+Heap_Module Heap_ProcedureModule (INT32 address)
+{
+	Heap_Procedure p;
+	p = Heap_procedures;
+	while ((p != NIL && p->address != address)) {
+		p = p->next;
+	}
+	if (p == NIL) {
+		return NIL;
+	} else {
+		return p->owner;
+	}
+	__RETCHK;
+}
+
+Heap_Retention Heap_RetainProcedure (INT32 address)
+{
+	Heap_Module owner;
+	Heap_Lifetime l;
+	Heap_Retention r;
+	owner = Heap_ProcedureModule(address);
+	if (owner == NIL) {
+		return NIL;
+	}
+	l = Heap_Life(owner, 1);
+	if (l->state > 2) {
+		return NIL;
+	}
+	__NEW(r, Heap_RetentionDesc);
+	r->owner = owner;
+	r->next = Heap_retentions;
+	Heap_retentions = r;
+	l->retained += 1;
+	return r;
+}
+
+BOOLEAN Heap_RegisterUnloadHook (Heap_UnloadHandler handler)
+{
+	Heap_UnloadHook h;
+	Heap_Module owner;
+	Heap_Lifetime l;
+	if (handler == NIL) {
+		return 0;
+	}
+	h = Heap_unloadHooks;
+	while ((h != NIL && h->handler != handler)) {
+		h = h->next;
+	}
+	if (h != NIL) {
+		return 1;
+	}
+	owner = Heap_ProcedureModule(Heap_HookAddress(handler));
+	if (owner == NIL) {
+		return 0;
+	}
+	l = Heap_Life(owner, 1);
+	if (l->state > 2) {
+		return 0;
+	}
+	__NEW(h, Heap_UnloadHookDesc);
+	h->owner = owner;
+	h->handler = handler;
+	h->next = Heap_unloadHooks;
+	Heap_unloadHooks = h;
+	l->retained += 1;
+	return 1;
+}
+
+BOOLEAN Heap_UnregisterUnloadHook (Heap_UnloadHandler handler)
+{
+	Heap_UnloadHook h, previous;
+	Heap_Lifetime l;
+	h = Heap_unloadHooks;
+	previous = NIL;
+	while ((h != NIL && h->handler != handler)) {
+		previous = h;
+		h = h->next;
+	}
+	if (h == NIL) {
+		return 0;
+	}
+	l = Heap_Life(h->owner, 0);
+	l->retained -= 1;
+	if (previous == NIL) {
+		Heap_unloadHooks = h->next;
+	} else {
+		previous->next = h->next;
+	}
+	return 1;
+}
+
+void Heap_DetachCallbacks (Heap_Module owner)
+{
+	Heap_UnloadHook h;
+	h = Heap_unloadHooks;
+	while (h != NIL) {
+		(*h->handler)(owner);
+		h = h->next;
+	}
+}
+
+static BOOLEAN Heap_NativeCallbacks (Heap_Module owner)
+{
+	INT16 i;
+	INT32 address;
+	i = 0;
+	while (i < 10) {
+		address = Heap_NativeCallback(i);
+		if ((address != 0 && Heap_ProcedureModule(address) == owner)) {
+			return 1;
+		}
+		i += 1;
+	}
+	return 0;
+}
+
+INT16 Heap_CheckModule (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 0);
+	if (l == NIL) {
+		return 1;
+	}
+	if (l->state != 2) {
+		return 2;
+	}
+	if (owner->refcnt != 1) {
+		return 3;
+	}
+	if (Heap_Active(owner)) {
+		return 4;
+	}
+	if (l->retained != 0 || Heap_NativeCallbacks(owner)) {
+		return 5;
+	}
+	if (Heap_lockdepth != 0) {
+		return 6;
+	}
+	return 0;
+}
+
+void Heap_BeginFree (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 0);
+		l->state = 3;
+}
+
+BOOLEAN Heap_Finishable (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 0);
+	return (((((((((l != NIL && l->state == 3)) && l->retained == 0)) && owner->refcnt == 1)) && !Heap_Active(owner))) && !Heap_NativeCallbacks(owner));
+}
+
+BOOLEAN Heap_HasFinalizers (Heap_Module owner)
+{
+	Heap_FinNode f;
+	f = Heap_fin;
+	while (f != NIL) {
+		if (Heap_ProcedureModule(Heap_FinalizerAddress(f->finalize)) == owner) {
+			return 1;
+		}
+		f = f->next;
+	}
+	return 0;
+}
+
+void Heap_DisableModule (Heap_Module owner)
+{
+	Heap_Lifetime l;
+	l = Heap_Life(owner, 0);
+		l->state = 4;
+	owner->cmds = NIL;
+	owner->enumPtrs = NIL;
+}
+
+void Heap_CommitFree (Heap_Module owner)
+{
+	Heap_Module m, previous;
+	Heap_Lifetime l, lp;
+	Heap_Import i;
+	Heap_Procedure p, pp, pn;
+	Heap_Termination t, tp;
+	l = Heap_lifetimes;
+	lp = NIL;
+	while ((l != NIL && l->owner != owner)) {
+		lp = l;
+		l = l->next;
+	}
+			i = l->imports;
+	while (i != NIL) {
+				i->imported->refcnt -= 1;
+		i = i->next;
+	}
+	if (lp == NIL) {
+		Heap_lifetimes = l->next;
+	} else {
+		lp->next = l->next;
+	}
+	p = Heap_procedures;
+	pp = NIL;
+	while (p != NIL) {
+		pn = p->next;
+		if (p->owner == owner) {
+			if (pp == NIL) {
+				Heap_procedures = pn;
+			} else {
+				pp->next = pn;
+			}
+		} else {
+			pp = p;
+		}
+		p = pn;
+	}
+	t = Heap_terminations;
+	tp = NIL;
+	while ((t != NIL && t->owner != owner)) {
+		tp = t;
+		t = t->next;
+	}
+	if (t != NIL) {
+		if (tp == NIL) {
+			Heap_terminations = t->next;
+		} else {
+			tp->next = t->next;
+		}
+	}
+	m = (Heap_Module)(ADDRESS)Heap_modules;
+	previous = NIL;
+	while ((m != NIL && m != owner)) {
+		previous = m;
+		m = m->next;
+	}
+		if (previous == NIL) {
+		Heap_modules = (SYSTEM_PTR)m->next;
+	} else {
+		previous->next = m->next;
+	}
+	m->cmds = NIL;
+	m->enumPtrs = NIL;
+	m->types = 0;
+	m->next = NIL;
+	m->refcnt = 0;
+}
+
+BOOLEAN Heap_InstallTermHandler (Heap_Command handler)
+{
+	Heap_Module owner;
+	Heap_Termination t;
+	if (handler == NIL) {
+		return 0;
+	}
+	owner = Heap_ProcedureModule(Heap_CommandAddress(handler));
+	if (owner == NIL) {
+		return 0;
+	}
+	if (Heap_ModuleState(owner) > 2) {
+		return 0;
+	}
+	t = Heap_terminations;
+	while ((t != NIL && t->owner != owner)) {
+		t = t->next;
+	}
+	if (t == NIL) {
+		__NEW(t, Heap_TerminationDesc);
+		t->owner = owner;
+		t->next = Heap_terminations;
+		Heap_terminations = t;
+	}
+	t->handler = handler;
+	return 1;
+}
+
+static void Heap_Terminate (Heap_Module owner)
+{
+	Heap_Termination t;
+	Heap_Command handler;
+	t = Heap_terminations;
+	while ((t != NIL && t->owner != owner)) {
+		t = t->next;
+	}
+	if ((t != NIL && t->handler != NIL)) {
+		handler = t->handler;
+		t->handler = NIL;
+		(*handler)();
+	}
 }
 
 static INT32 Heap_NewChunk (INT32 blksz)
@@ -613,11 +1176,48 @@ static void Heap_Finalize (void)
 void Heap_FINALL (void)
 {
 	Heap_FinNode n;
+	Heap_Module m;
+	Heap_Lock();
 	while (Heap_fin != NIL) {
 		n = Heap_fin;
 		Heap_fin = Heap_fin->next;
 		(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
 	}
+	m = (Heap_Module)(ADDRESS)Heap_modules;
+	while (m != NIL) {
+		Heap_Terminate(m);
+		m = m->next;
+	}
+	Heap_Unlock();
+}
+
+void Heap_FINALMOD (Heap_Module owner)
+{
+	Heap_FinNode n, previous, next;
+	if (owner == NIL) {
+		return;
+	}
+	Heap_Lock();
+	n = Heap_fin;
+	previous = NIL;
+	while (n != NIL) {
+		next = n->next;
+		if (Heap_ProcedureModule(Heap_FinalizerAddress(n->finalize)) == owner) {
+			if (previous == NIL) {
+				Heap_fin = next;
+			} else {
+				previous->next = next;
+			}
+			(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
+			n = Heap_fin;
+			previous = NIL;
+		} else {
+			previous = n;
+			n = next;
+		}
+	}
+	Heap_Terminate(owner);
+	Heap_Unlock();
 }
 
 static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len)
@@ -660,20 +1260,20 @@ static void Heap_MarkStack (INT32 n, INT32 *cand, ADDRESS cand__len)
 	}
 }
 
-void Heap_GC (BOOLEAN markStack)
+static void Heap_MarkRoots (Heap_Module excluded, BOOLEAN markStack)
 {
 	Heap_Module m;
 	INT32 i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23;
 	INT32 cand[10000];
-	Heap_Lock();
 	m = (Heap_Module)(ADDRESS)Heap_modules;
 	while (m != NIL) {
-		if (m->enumPtrs != NIL) {
+		if ((m != excluded && m->enumPtrs != NIL)) {
 			(*m->enumPtrs)(Heap_MarkP);
 		}
 		m = m->next;
 	}
 	if (markStack) {
+		Heap_SaveRegisters();
 		i0 = -100;
 		i1 = -101;
 		i2 = -102;
@@ -732,10 +1332,92 @@ void Heap_GC (BOOLEAN markStack)
 			return;
 		}
 	}
+}
+
+static BOOLEAN Heap_OwnedType (Heap_Module owner, INT32 tag)
+{
+	INT32 t;
+	t = owner->types;
+	while (t != 0) {
+		if (Heap_TypeTag(t) == tag) {
+			return 1;
+		}
+		__GET(t, t, INT32);
+	}
+	return 0;
+}
+
+static BOOLEAN Heap_TypeReferences (Heap_Module owner, BOOLEAN markedOnly)
+{
+	INT32 chnk, adr, end, tag, size;
+	BOOLEAN found;
+	chnk = Heap_heap;
+	found = 0;
+	while (chnk != 0) {
+		adr = chnk + 12;
+		__GET(chnk + 4, end, INT32);
+		while (Heap_uLT(adr, end)) {
+			__GET(adr, tag, INT32);
+			if (__ODD(tag)) {
+				tag -= 1;
+				__PUT(adr, tag, INT32);
+				if (Heap_OwnedType(owner, tag)) {
+					found = 1;
+				}
+			} else if (!markedOnly) {
+				if (Heap_OwnedType(owner, tag)) {
+					found = 1;
+				}
+			}
+			__GET(tag, size, INT32);
+			adr += size;
+		}
+		__GET(chnk, chnk, INT32);
+	}
+	return found;
+}
+
+BOOLEAN Heap_LiveTypes (Heap_Module owner)
+{
+	Heap_FinNode n;
+	BOOLEAN found;
+	Heap_Lock();
+	Heap_MarkRoots(owner, 1);
+	n = Heap_fin;
+	while (n != NIL) {
+		if (Heap_ProcedureModule(Heap_FinalizerAddress(n->finalize)) != owner) {
+			Heap_Mark(n->obj);
+		}
+		n = n->next;
+	}
+	found = Heap_TypeReferences(owner, 1);
+	Heap_Unlock();
+	return found;
+}
+
+static void Heap_Collect (Heap_Module excluded, BOOLEAN markStack)
+{
+	Heap_Lock();
+	Heap_MarkRoots(excluded, markStack);
 	Heap_CheckFin();
 	Heap_Scan();
 	Heap_Finalize();
 	Heap_Unlock();
+}
+
+void Heap_GC (BOOLEAN markStack)
+{
+	Heap_Collect(NIL, markStack);
+}
+
+BOOLEAN Heap_CollectModule (Heap_Module owner)
+{
+	BOOLEAN found;
+	Heap_Collect(owner, 1);
+	Heap_Lock();
+	found = Heap_TypeReferences(owner, 0);
+	Heap_Unlock();
+	return !found;
 }
 
 void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
@@ -767,6 +1449,13 @@ void Heap_InitHeap (void)
 	Heap_FileCount = 0;
 	Heap_modules = NIL;
 	Heap_fin = NIL;
+	Heap_procedures = NIL;
+	Heap_terminations = NIL;
+	Heap_lifetimes = NIL;
+	Heap_retentions = NIL;
+	Heap_notifier = NIL;
+	Heap_notifierRetention = NIL;
+	Heap_unloadHooks = NIL;
 	Heap_interrupted = 0;
 	Heap_HeapModuleInit();
 }
@@ -775,9 +1464,21 @@ static void EnumPtrs(void (*P)(void*))
 {
 	P(Heap_modules);
 	P(Heap_fin);
+	P(Heap_procedures);
+	P(Heap_terminations);
+	P(Heap_lifetimes);
+	P(Heap_retentions);
+	P(Heap_notifierRetention);
+	P(Heap_unloadHooks);
 }
 
 __TDESC(Heap_ModuleDesc, 1, 2) = {__TDFLDS("ModuleDesc", 48), {0, 28, -12}};
+__TDESC(Heap_ImportDesc, 1, 2) = {__TDFLDS("ImportDesc", 8), {0, 4, -12}};
+__TDESC(Heap_LifetimeDesc, 1, 3) = {__TDFLDS("LifetimeDesc", 24), {0, 4, 8, -16}};
+__TDESC(Heap_RetentionDesc, 1, 2) = {__TDFLDS("RetentionDesc", 8), {0, 4, -12}};
+__TDESC(Heap_UnloadHookDesc, 1, 2) = {__TDFLDS("UnloadHookDesc", 12), {0, 4, -12}};
+__TDESC(Heap_ProcedureDesc, 1, 2) = {__TDFLDS("ProcedureDesc", 12), {0, 4, -12}};
+__TDESC(Heap_TerminationDesc, 1, 2) = {__TDFLDS("TerminationDesc", 12), {0, 4, -12}};
 __TDESC(Heap_CmdDesc, 1, 1) = {__TDFLDS("CmdDesc", 32), {0, -8}};
 __TDESC(Heap_FinDesc, 1, 1) = {__TDFLDS("FinDesc", 16), {0, -8}};
 __TDESC(Heap__1, 1, 1) = {__TDFLDS("", 8), {4, -8}};
@@ -791,6 +1492,12 @@ export void *Heap__init(void)
 	__REGCMD("Lock", Heap_Lock);
 	__REGCMD("Unlock", Heap_Unlock);
 	__INITYP(Heap_ModuleDesc, Heap_ModuleDesc, 0);
+	__INITYP(Heap_ImportDesc, Heap_ImportDesc, 0);
+	__INITYP(Heap_LifetimeDesc, Heap_LifetimeDesc, 0);
+	__INITYP(Heap_RetentionDesc, Heap_RetentionDesc, 0);
+	__INITYP(Heap_UnloadHookDesc, Heap_UnloadHookDesc, 0);
+	__INITYP(Heap_ProcedureDesc, Heap_ProcedureDesc, 0);
+	__INITYP(Heap_TerminationDesc, Heap_TerminationDesc, 0);
 	__INITYP(Heap_CmdDesc, Heap_CmdDesc, 0);
 	__INITYP(Heap_FinDesc, Heap_FinDesc, 0);
 	__INITYP(Heap__1, Heap__1, 0);

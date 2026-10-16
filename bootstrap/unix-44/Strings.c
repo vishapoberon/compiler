@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16

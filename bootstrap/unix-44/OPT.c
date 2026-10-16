@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -126,10 +126,10 @@ export INT32 OPT_BaseAlignment (OPT_Struct typ);
 export void OPT_Close (void);
 export void OPT_CloseScope (void);
 static void OPT_DebugStruct (OPT_Struct btyp);
-static void OPT_EnterBoolConst (OPS_Name name, INT32 value);
-static void OPT_EnterProc (OPS_Name name, INT16 num);
-static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res);
-static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res);
+static void OPT_EnterBoolConst (CHAR *name, INT32 value);
+static void OPT_EnterProc (CHAR *name, INT16 num);
+static void OPT_EnterTyp (CHAR *name, INT8 form, INT16 size, OPT_Struct *res);
+static void OPT_EnterTypeAlias (CHAR *name, OPT_Object *res);
 export void OPT_Export (BOOLEAN *ext, BOOLEAN *new);
 export void OPT_FPrintErr (OPT_Object obj, INT16 errcode);
 static void OPT_FPrintName (INT32 *fp, CHAR *name, ADDRESS name__len);
@@ -137,10 +137,10 @@ export void OPT_FPrintObj (OPT_Object obj);
 static void OPT_FPrintSign (INT32 *fp, OPT_Struct result, OPT_Object par);
 export void OPT_FPrintStr (OPT_Struct typ);
 export void OPT_Find (OPT_Object *res);
-export void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res);
+export void OPT_FindField (CHAR *name, OPT_Struct typ, OPT_Object *res);
 export void OPT_FindImport (OPT_Object mod, OPT_Object *res);
 export void OPT_IdFPrint (OPT_Struct typ);
-export void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done);
+export void OPT_Import (CHAR *aliasName, CHAR *name, BOOLEAN *done);
 static void OPT_InConstant (INT32 f, OPT_Const conval);
 static OPT_Object OPT_InFld (void);
 static void OPT_InLinks (void);
@@ -151,10 +151,10 @@ static void OPT_InSign (INT8 mno, OPT_Struct *res, OPT_Object *par);
 static void OPT_InStruct (OPT_Struct *typ);
 static OPT_Object OPT_InTProc (INT8 mno);
 static OPT_Struct OPT_InTyp (INT32 tag);
-export void OPT_Init (OPS_Name name, UINT32 opt);
+export void OPT_Init (CHAR *name, UINT32 opt);
 export void OPT_InitRecno (void);
 static void OPT_InitStruct (OPT_Struct *typ, INT8 form);
-export void OPT_Insert (OPS_Name name, OPT_Object *obj);
+export void OPT_Insert (CHAR *name, OPT_Object *obj);
 export void OPT_InsertImport (OPT_Object obj, OPT_Object *root, OPT_Object *old);
 export INT16 OPT_IntSize (INT64 n);
 export OPT_Struct OPT_IntType (INT32 size);
@@ -448,7 +448,7 @@ void OPT_CloseScope (void)
 	OPT_topScope = OPT_topScope->left;
 }
 
-void OPT_Init (OPS_Name name, UINT32 opt)
+void OPT_Init (CHAR *name, UINT32 opt)
 {
 	OPT_topScope = OPT_universe;
 	OPT_OpenScope(0, NIL);
@@ -535,7 +535,7 @@ void OPT_Find (OPT_Object *res)
 	*res = obj;
 }
 
-void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res)
+void OPT_FindField (CHAR *name, OPT_Struct typ, OPT_Object *res)
 {
 	OPT_Object obj = NIL;
 	while (typ != NIL) {
@@ -555,7 +555,7 @@ void OPT_FindField (OPS_Name name, OPT_Struct typ, OPT_Object *res)
 	*res = NIL;
 }
 
-void OPT_Insert (OPS_Name name, OPT_Object *obj)
+void OPT_Insert (CHAR *name, OPT_Object *obj)
 {
 	OPT_Object ob0 = NIL, ob1 = NIL;
 	BOOLEAN left;
@@ -1555,7 +1555,7 @@ static OPT_Object OPT_InObj (INT8 mno)
 	return obj;
 }
 
-void OPT_Import (OPS_Name aliasName, OPS_Name name, BOOLEAN *done)
+void OPT_Import (CHAR *aliasName, CHAR *name, BOOLEAN *done)
 {
 	OPT_Object obj = NIL;
 	INT8 mno;
@@ -1990,7 +1990,7 @@ void OPT_Export (BOOLEAN *ext, BOOLEAN *new)
 	OPT_symExtended = 0;
 	OPT_symNew = 0;
 	nofmod = OPT_nofGmod;
-	OPT_Import((CHAR*)"@self", OPT_SelfName, &done);
+	OPT_Import((OPS_Name){"@self"}, OPT_SelfName, &done);
 	OPT_nofGmod = nofmod;
 	if (OPM_noerr) {
 		OPM_NewSym((void*)OPT_SelfName, 256);
@@ -2039,7 +2039,7 @@ static void OPT_InitStruct (OPT_Struct *typ, INT8 form)
 	(*typ)->idfpdone = 1;
 }
 
-static void OPT_EnterBoolConst (OPS_Name name, INT32 value)
+static void OPT_EnterBoolConst (CHAR *name, INT32 value)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;
@@ -2051,7 +2051,7 @@ static void OPT_EnterBoolConst (OPS_Name name, INT32 value)
 	obj->conval->intval = value;
 }
 
-static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res)
+static void OPT_EnterTyp (CHAR *name, INT8 form, INT16 size, OPT_Struct *res)
 {
 	OPT_Object obj = NIL;
 	OPT_Struct typ = NIL;
@@ -2077,7 +2077,7 @@ static void OPT_EnterTyp (OPS_Name name, INT8 form, INT16 size, OPT_Struct *res)
 	*res = typ;
 }
 
-static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res)
+static void OPT_EnterTypeAlias (CHAR *name, OPT_Object *res)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;
@@ -2089,7 +2089,7 @@ static void OPT_EnterTypeAlias (OPS_Name name, OPT_Object *res)
 	*res = obj;
 }
 
-static void OPT_EnterProc (OPS_Name name, INT16 num)
+static void OPT_EnterProc (CHAR *name, INT16 num)
 {
 	OPT_Object obj = NIL;
 	OPS_Name name__copy;
@@ -2201,64 +2201,64 @@ export void *OPT__init(void)
 	OPT_InitStruct(&OPT_notyp, 10);
 	OPT_InitStruct(&OPT_stringtyp, 8);
 	OPT_InitStruct(&OPT_niltyp, 9);
-	OPT_EnterTyp((CHAR*)"BYTE", 1, 1, &OPT_bytetyp);
-	OPT_EnterTyp((CHAR*)"PTR", 11, -1, &OPT_sysptrtyp);
-	OPT_EnterTyp((CHAR*)"ADDRESS", 4, -1, &OPT_adrtyp);
+	OPT_EnterTyp((OPS_Name){"BYTE"}, 1, 1, &OPT_bytetyp);
+	OPT_EnterTyp((OPS_Name){"PTR"}, 11, -1, &OPT_sysptrtyp);
+	OPT_EnterTyp((OPS_Name){"ADDRESS"}, 4, -1, &OPT_adrtyp);
 	OPT_adrtyp->ref = 12;
-	OPT_EnterTyp((CHAR*)"INT8", 4, 1, &OPT_int8typ);
-	OPT_EnterTyp((CHAR*)"INT16", 4, 2, &OPT_int16typ);
-	OPT_EnterTyp((CHAR*)"INT32", 4, 4, &OPT_int32typ);
-	OPT_EnterTyp((CHAR*)"INT64", 4, 8, &OPT_int64typ);
-	OPT_EnterTyp((CHAR*)"SET32", 7, 4, &OPT_set32typ);
-	OPT_EnterTyp((CHAR*)"SET64", 7, 8, &OPT_set64typ);
-	OPT_EnterProc((CHAR*)"ADR", 20);
-	OPT_EnterProc((CHAR*)"CC", 21);
-	OPT_EnterProc((CHAR*)"LSH", 22);
-	OPT_EnterProc((CHAR*)"ROT", 23);
-	OPT_EnterProc((CHAR*)"GET", 24);
-	OPT_EnterProc((CHAR*)"PUT", 25);
-	OPT_EnterProc((CHAR*)"GETREG", 26);
-	OPT_EnterProc((CHAR*)"PUTREG", 27);
-	OPT_EnterProc((CHAR*)"BIT", 28);
-	OPT_EnterProc((CHAR*)"VAL", 29);
-	OPT_EnterProc((CHAR*)"NEW", 30);
-	OPT_EnterProc((CHAR*)"MOVE", 31);
+	OPT_EnterTyp((OPS_Name){"INT8"}, 4, 1, &OPT_int8typ);
+	OPT_EnterTyp((OPS_Name){"INT16"}, 4, 2, &OPT_int16typ);
+	OPT_EnterTyp((OPS_Name){"INT32"}, 4, 4, &OPT_int32typ);
+	OPT_EnterTyp((OPS_Name){"INT64"}, 4, 8, &OPT_int64typ);
+	OPT_EnterTyp((OPS_Name){"SET32"}, 7, 4, &OPT_set32typ);
+	OPT_EnterTyp((OPS_Name){"SET64"}, 7, 8, &OPT_set64typ);
+	OPT_EnterProc((OPS_Name){"ADR"}, 20);
+	OPT_EnterProc((OPS_Name){"CC"}, 21);
+	OPT_EnterProc((OPS_Name){"LSH"}, 22);
+	OPT_EnterProc((OPS_Name){"ROT"}, 23);
+	OPT_EnterProc((OPS_Name){"GET"}, 24);
+	OPT_EnterProc((OPS_Name){"PUT"}, 25);
+	OPT_EnterProc((OPS_Name){"GETREG"}, 26);
+	OPT_EnterProc((OPS_Name){"PUTREG"}, 27);
+	OPT_EnterProc((OPS_Name){"BIT"}, 28);
+	OPT_EnterProc((OPS_Name){"VAL"}, 29);
+	OPT_EnterProc((OPS_Name){"NEW"}, 30);
+	OPT_EnterProc((OPS_Name){"MOVE"}, 31);
 	OPT_syslink = OPT_topScope->right;
 	OPT_universe = OPT_topScope;
 	OPT_topScope->right = NIL;
-	OPT_EnterTyp((CHAR*)"BOOLEAN", 2, 1, &OPT_booltyp);
-	OPT_EnterTyp((CHAR*)"CHAR", 3, 1, &OPT_chartyp);
-	OPT_EnterTyp((CHAR*)"REAL", 5, 4, &OPT_realtyp);
-	OPT_EnterTyp((CHAR*)"LONGREAL", 6, 8, &OPT_lrltyp);
-	OPT_EnterTyp((CHAR*)"HUGEINT", 4, 8, &OPT_hinttyp);
-	OPT_EnterTyp((CHAR*)"BYTE@", 4, 1, &OPT_cpbytetyp);
-	OPT_EnterTypeAlias((CHAR*)"SHORTINT", &OPT_sintobj);
-	OPT_EnterTypeAlias((CHAR*)"INTEGER", &OPT_intobj);
-	OPT_EnterTypeAlias((CHAR*)"LONGINT", &OPT_lintobj);
-	OPT_EnterTypeAlias((CHAR*)"SET", &OPT_setobj);
-	OPT_EnterBoolConst((CHAR*)"FALSE", 0);
-	OPT_EnterBoolConst((CHAR*)"TRUE", 1);
-	OPT_EnterProc((CHAR*)"HALT", 0);
-	OPT_EnterProc((CHAR*)"NEW", 1);
-	OPT_EnterProc((CHAR*)"ABS", 2);
-	OPT_EnterProc((CHAR*)"CAP", 3);
-	OPT_EnterProc((CHAR*)"ORD", 4);
-	OPT_EnterProc((CHAR*)"ENTIER", 5);
-	OPT_EnterProc((CHAR*)"ODD", 6);
-	OPT_EnterProc((CHAR*)"MIN", 7);
-	OPT_EnterProc((CHAR*)"MAX", 8);
-	OPT_EnterProc((CHAR*)"CHR", 9);
-	OPT_EnterProc((CHAR*)"SHORT", 10);
-	OPT_EnterProc((CHAR*)"LONG", 11);
-	OPT_EnterProc((CHAR*)"SIZE", 12);
-	OPT_EnterProc((CHAR*)"INC", 13);
-	OPT_EnterProc((CHAR*)"DEC", 14);
-	OPT_EnterProc((CHAR*)"INCL", 15);
-	OPT_EnterProc((CHAR*)"EXCL", 16);
-	OPT_EnterProc((CHAR*)"LEN", 17);
-	OPT_EnterProc((CHAR*)"COPY", 18);
-	OPT_EnterProc((CHAR*)"ASH", 19);
-	OPT_EnterProc((CHAR*)"ASSERT", 32);
+	OPT_EnterTyp((OPS_Name){"BOOLEAN"}, 2, 1, &OPT_booltyp);
+	OPT_EnterTyp((OPS_Name){"CHAR"}, 3, 1, &OPT_chartyp);
+	OPT_EnterTyp((OPS_Name){"REAL"}, 5, 4, &OPT_realtyp);
+	OPT_EnterTyp((OPS_Name){"LONGREAL"}, 6, 8, &OPT_lrltyp);
+	OPT_EnterTyp((OPS_Name){"HUGEINT"}, 4, 8, &OPT_hinttyp);
+	OPT_EnterTyp((OPS_Name){"BYTE@"}, 4, 1, &OPT_cpbytetyp);
+	OPT_EnterTypeAlias((OPS_Name){"SHORTINT"}, &OPT_sintobj);
+	OPT_EnterTypeAlias((OPS_Name){"INTEGER"}, &OPT_intobj);
+	OPT_EnterTypeAlias((OPS_Name){"LONGINT"}, &OPT_lintobj);
+	OPT_EnterTypeAlias((OPS_Name){"SET"}, &OPT_setobj);
+	OPT_EnterBoolConst((OPS_Name){"FALSE"}, 0);
+	OPT_EnterBoolConst((OPS_Name){"TRUE"}, 1);
+	OPT_EnterProc((OPS_Name){"HALT"}, 0);
+	OPT_EnterProc((OPS_Name){"NEW"}, 1);
+	OPT_EnterProc((OPS_Name){"ABS"}, 2);
+	OPT_EnterProc((OPS_Name){"CAP"}, 3);
+	OPT_EnterProc((OPS_Name){"ORD"}, 4);
+	OPT_EnterProc((OPS_Name){"ENTIER"}, 5);
+	OPT_EnterProc((OPS_Name){"ODD"}, 6);
+	OPT_EnterProc((OPS_Name){"MIN"}, 7);
+	OPT_EnterProc((OPS_Name){"MAX"}, 8);
+	OPT_EnterProc((OPS_Name){"CHR"}, 9);
+	OPT_EnterProc((OPS_Name){"SHORT"}, 10);
+	OPT_EnterProc((OPS_Name){"LONG"}, 11);
+	OPT_EnterProc((OPS_Name){"SIZE"}, 12);
+	OPT_EnterProc((OPS_Name){"INC"}, 13);
+	OPT_EnterProc((OPS_Name){"DEC"}, 14);
+	OPT_EnterProc((OPS_Name){"INCL"}, 15);
+	OPT_EnterProc((OPS_Name){"EXCL"}, 16);
+	OPT_EnterProc((OPS_Name){"LEN"}, 17);
+	OPT_EnterProc((OPS_Name){"COPY"}, 18);
+	OPT_EnterProc((OPS_Name){"ASH"}, 19);
+	OPT_EnterProc((OPS_Name){"ASSERT"}, 32);
 	OPT_impCtxt.ref[0] = OPT_undftyp;
 	OPT_impCtxt.ref[1] = OPT_bytetyp;
 	OPT_impCtxt.ref[2] = OPT_booltyp;

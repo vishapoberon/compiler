@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -9,11 +9,12 @@
 #include "Configuration.h"
 #include "OPM.h"
 #include "OPT.h"
+#include "Strings.h"
 
 
 static INT16 OPC_indentLevel;
-static INT8 OPC_hashtab[105];
-static CHAR OPC_keytab[50][9];
+static INT8 OPC_hashtab[257];
+static CHAR OPC_keytab[96][32];
 static BOOLEAN OPC_GlbPtrs;
 static CHAR OPC_BodyNameExt[13];
 
@@ -26,6 +27,7 @@ export void OPC_BegStat (void);
 static void OPC_CProcDefs (OPT_Object obj, INT16 vis);
 export void OPC_Case (INT64 caseVal, INT16 form);
 static void OPC_CharacterLiteral (INT64 c);
+export void OPC_CheckInterrupt (void);
 export void OPC_Cmp (INT16 rel);
 export void OPC_CompleteIdent (OPT_Object obj);
 export void OPC_Constant (OPT_Const con, INT16 form);
@@ -47,6 +49,7 @@ export void OPC_ExitBody (void);
 export void OPC_ExitProc (OPT_Object proc, BOOLEAN eoBlock, BOOLEAN implicitRet);
 static void OPC_FieldList (OPT_Struct typ, BOOLEAN last, INT32 *off, INT32 *n, INT32 *curAlign);
 static void OPC_FillGap (INT32 gap, INT32 off, INT32 align, INT32 *n, INT32 *curAlign);
+export void OPC_FinishBody (void);
 export void OPC_GenBdy (OPT_Node n);
 static void OPC_GenDynTypes (OPT_Node n, INT16 vis);
 export void OPC_GenEnumPtrs (OPT_Object var);
@@ -66,18 +69,21 @@ static void OPC_InitKeywords (void);
 export void OPC_InitTDesc (OPT_Struct typ);
 static void OPC_InitTProcs (OPT_Object typ, OPT_Object obj);
 export void OPC_IntLiteral (INT64 n, INT32 size);
+static INT16 OPC_KeywordHash (CHAR *s, ADDRESS s__len);
 export void OPC_Len (OPT_Object obj, OPT_Struct array, INT64 dim);
 static void OPC_LenList (OPT_Object par, BOOLEAN ansiDefine, BOOLEAN showParamName);
 static INT16 OPC_Length (CHAR *s, ADDRESS s__len);
 export BOOLEAN OPC_NeedsRetval (OPT_Object proc);
 export INT32 OPC_NofPtrs (OPT_Struct typ);
-static INT16 OPC_PerfectHash (CHAR *s, ADDRESS s__len);
 static BOOLEAN OPC_Prefixed (OPT_ConstExt x, CHAR *y, ADDRESS y__len);
 static void OPC_ProcHeader (OPT_Object proc, BOOLEAN define);
 static void OPC_ProcPredefs (OPT_Object obj, INT8 vis);
 static void OPC_PutBase (OPT_Struct typ);
 static void OPC_PutPtrOffsets (OPT_Struct typ, INT32 adr, INT32 *cnt);
 static void OPC_RegCmds (OPT_Object obj);
+static void OPC_RegProcs (OPT_Object obj);
+export void OPC_RegisterBody (void);
+static void OPC_RegisterImports (OPT_Object obj);
 export void OPC_SetInclude (BOOLEAN exclude);
 static void OPC_Stars (OPT_Struct typ, BOOLEAN *openClause);
 static void OPC_Str1 (CHAR *s, ADDRESS s__len, INT32 x);
@@ -166,7 +172,7 @@ static INT16 OPC_Length (CHAR *s, ADDRESS s__len)
 	return i;
 }
 
-static INT16 OPC_PerfectHash (CHAR *s, ADDRESS s__len)
+static INT16 OPC_KeywordHash (CHAR *s, ADDRESS s__len)
 {
 	INT16 i, h;
 	i = 0;
@@ -175,7 +181,7 @@ static INT16 OPC_PerfectHash (CHAR *s, ADDRESS s__len)
 		h = 3 * h + (INT16)s[__X(i, s__len)];
 		i += 1;
 	}
-	return (int)__MOD(h, 105);
+	return (int)__MOD(h, 257);
 }
 
 void OPC_Ident (OPT_Object obj)
@@ -185,9 +191,12 @@ void OPC_Ident (OPT_Object obj)
 	level = obj->mnolev;
 	if ((__IN(mode, 0x62, 32) && level > 0) || __IN(mode, 0x14, 32)) {
 		OPM_WriteStringVar((void*)obj->name, 256);
-		h = OPC_PerfectHash((void*)obj->name, 256);
-		if (OPC_hashtab[__X(h, 105)] >= 0) {
-			if (__STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 105)], 50)], obj->name) == 0) {
+		h = OPC_KeywordHash((void*)obj->name, 256);
+		while ((OPC_hashtab[__X(h, 257)] >= 0 && __STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 257)], 96)], obj->name) != 0)) {
+			h = (int)__MOD(h + 1, 257);
+		}
+		if (OPC_hashtab[__X(h, 257)] >= 0) {
+			if (__STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 257)], 96)], obj->name) == 0) {
 				OPM_Write('_');
 			}
 		}
@@ -212,7 +221,7 @@ void OPC_Ident (OPT_Object obj)
 					OPT_GlbMod[__X(-level, 64)]->vis = 1;
 				}
 			} else {
-				OPM_WriteStringVar((void*)OPM_modName, 32);
+				OPM_WriteStringVar((void*)OPM_modName, 64);
 			}
 			OPM_Write('_');
 		} else if (obj == OPT_sysptrtyp->strobj || obj == OPT_bytetyp->strobj) {
@@ -308,7 +317,7 @@ static void OPC_DeclareObj (OPT_Object dcl, BOOLEAN scopeDef)
 void OPC_Andent (OPT_Struct typ)
 {
 	if (typ->strobj == NIL || typ->align >= 65536) {
-		OPM_WriteStringVar((void*)OPM_modName, 32);
+		OPM_WriteStringVar((void*)OPM_modName, 64);
 		OPC_Str1((CHAR*)"__#", 4, __ASHR(typ->align, 16));
 	} else {
 		OPC_Ident(typ->strobj);
@@ -777,8 +786,13 @@ void OPC_TypeDefs (OPT_Object obj, INT16 vis)
 {
 	if (obj != NIL) {
 		OPC_TypeDefs(obj->left, vis);
-		if ((obj->mode == 5 && obj->typ->txtpos > 0)) {
-			OPC_DefineType(obj->typ);
+		if (obj->mode == 5) {
+			if ((((((OPM_currFile == 0 && obj->vis == 1)) && obj->typ->strobj != NIL)) && obj->typ->strobj->mnolev < 0)) {
+				OPT_GlbMod[__X(-obj->typ->strobj->mnolev, 64)]->vis = 1;
+			}
+			if (obj->typ->txtpos > 0) {
+				OPC_DefineType(obj->typ);
+			}
 		}
 		OPC_TypeDefs(obj->right, vis);
 	}
@@ -1005,20 +1019,33 @@ static void OPC_IdentList (OPT_Object obj, INT16 vis)
 static void OPC_AnsiParamList (OPT_Object obj, BOOLEAN showParamNames)
 {
 	CHAR name[32];
+	OPT_Object par = NIL;
+	OPT_Struct typ = NIL;
 	OPM_Write('(');
 	if (obj == NIL || obj->mode == 13) {
 		OPM_WriteString((CHAR*)"void", 5);
 	} else {
 		for (;;) {
-			OPC_DeclareBase(obj);
+			par = obj;
+			if (obj->typ->comp == 2) {
+				__NEW(par, OPT_ObjDesc);
+				__GUARDEQP(par, OPT_ObjDesc) = *obj;
+				__NEW(typ, OPT_StrDesc);
+				typ->form = 11;
+				typ->comp = 1;
+				typ->BaseTyp = obj->typ->BaseTyp;
+				par->typ = typ;
+				par->mode = 1;
+			}
+			OPC_DeclareBase(par);
 			if (showParamNames) {
 				OPM_Write(' ');
-				OPC_DeclareObj(obj, 0);
+				OPC_DeclareObj(par, 0);
 			} else {
-				__COPY(obj->name, name, 32);
-				obj->name[0] = 0x00;
-				OPC_DeclareObj(obj, 0);
-				__COPY(name, obj->name, 256);
+				__COPY(par->name, name, 32);
+				par->name[0] = 0x00;
+				OPC_DeclareObj(par, 0);
+				__COPY(name, par->name, 256);
 			}
 			if (obj->typ->comp == 3) {
 				OPM_WriteString((CHAR*)", ADDRESS ", 11);
@@ -1089,6 +1116,17 @@ static void OPC_Include (CHAR *name, ADDRESS name__len)
 
 static void OPC_IncludeImports (OPT_Object obj, INT16 vis)
 {
+	INT16 i;
+	if (vis == 1) {
+		i = 1;
+		while (i < (INT16)OPT_nofGmod) {
+			if ((INT16)OPT_GlbMod[__X(i, 64)]->vis >= vis) {
+				OPC_Include(OPT_GlbMod[__X(i, 64)]->name, 256);
+			}
+			i += 1;
+		}
+		return;
+	}
 	if (obj != NIL) {
 		OPC_IncludeImports(obj->left, vis);
 		if ((((obj->mode == 11 && obj->mnolev != 0)) && (INT16)OPT_GlbMod[__X(-obj->mnolev, 64)]->vis >= vis)) {
@@ -1134,14 +1172,14 @@ void OPC_GenHdr (OPT_Node n)
 	OPC_ProcPredefs(OPT_topScope->right, 1);
 	OPM_WriteString((CHAR*)"import ", 8);
 	OPM_WriteString((CHAR*)"void *", 7);
-	OPM_WriteStringVar((void*)OPM_modName, 32);
+	OPM_WriteStringVar((void*)OPM_modName, 64);
 	OPM_WriteString(OPC_BodyNameExt, 13);
 	OPC_EndStat();
 	OPM_WriteLn();
 	OPC_CProcDefs(OPT_topScope->right, 1);
 	OPM_WriteLn();
 	OPM_WriteString((CHAR*)"#endif // ", 11);
-	OPM_WriteStringVar((void*)OPM_modName, 32);
+	OPM_WriteStringVar((void*)OPM_modName, 64);
 	OPM_WriteLn();
 }
 
@@ -1199,6 +1237,18 @@ static void OPC_GenHeaderMsg (void)
 				case 18: 
 					OPM_Write('v');
 					break;
+				case 19: 
+					OPM_Write('l');
+					break;
+				case 20: 
+					OPM_Write('P');
+					break;
+				case 21: 
+					OPM_Write('d');
+					break;
+				case 22: 
+					OPM_Write('D');
+					break;
 				default: 
 					OPM_LogWStr((CHAR*)"( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg", 126);
 					OPM_LogWLn();
@@ -1217,11 +1267,11 @@ void OPC_GenHdrIncludes (void)
 	OPC_GenHeaderMsg();
 	OPM_WriteLn();
 	OPM_WriteString((CHAR*)"#ifndef ", 9);
-	OPM_WriteStringVar((void*)OPM_modName, 32);
+	OPM_WriteStringVar((void*)OPM_modName, 64);
 	OPM_WriteString((CHAR*)"__h", 4);
 	OPM_WriteLn();
 	OPM_WriteString((CHAR*)"#define ", 9);
-	OPM_WriteStringVar((void*)OPM_modName, 32);
+	OPM_WriteStringVar((void*)OPM_modName, 64);
 	OPM_WriteString((CHAR*)"__h", 4);
 	OPM_WriteLn();
 	OPM_WriteLn();
@@ -1247,10 +1297,33 @@ void OPC_GenBdy (OPT_Node n)
 	OPM_WriteString((CHAR*)"#define SET      UINT", 22);
 	OPM_WriteInt(__ASHL(OPT_settyp->size, 3));
 	OPM_WriteLn();
+	if (__IN(10, OPM_Options, 32)) {
+		OPM_WriteString((CHAR*)"#define VOC_MAIN_PROGRAM 1", 27);
+		OPM_WriteLn();
+	}
 	OPM_WriteLn();
 	OPC_Include((CHAR*)"SYSTEM", 7);
 	OPC_IncludeImports(OPT_topScope->right, 0);
 	OPM_WriteLn();
+	if (__IN(20, OPM_Options, 32)) {
+		OPM_WriteString((CHAR*)"static void *__module_owner;", 29);
+		OPM_WriteLn();
+	}
+	if (__IN(19, OPM_Options, 32)) {
+		OPC_Include((CHAR*)"Heap", 5);
+		OPM_WriteString((CHAR*)"extern const INT32 VOC_CoreABI;", 32);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"export const void *const ", 26);
+		OPM_WriteStringVar((void*)OPM_modName, 64);
+		OPM_WriteString((CHAR*)"__voc_runtime = &VOC_CoreABI;", 30);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"export const INT32 ", 20);
+		OPM_WriteStringVar((void*)OPM_modName, 64);
+		OPM_WriteString((CHAR*)"__voc_abi[] = {VOC_SHARED_ABI_FORMAT, sizeof(ADDRESS), sizeof(SHORTINT), sizeof(INTEGER),", 90);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"sizeof(LONGINT), sizeof(SET), sizeof(Heap_ModuleDesc), sizeof(Heap_CmdDesc), VOC_CORE_ABI_PROFILE};", 100);
+		OPM_WriteLn();
+	}
 	OPC_DefAnonRecs(n);
 	OPC_TypeDefs(OPT_topScope->right, 0);
 	OPM_WriteLn();
@@ -1270,6 +1343,11 @@ static void OPC_RegCmds (OPT_Object obj)
 		OPC_RegCmds(obj->left);
 		if ((obj->mode == 7 && obj->history != 4)) {
 			if ((((obj->vis != 0 && obj->link == NIL)) && obj->typ == OPT_notyp)) {
+				if ((__IN(20, OPM_Options, 32) && Strings_Length(obj->name, 256) >= 64)) {
+					OPM_LogWStr((CHAR*)"Modular-build command names must fit the 63-character runtime registry.", 72);
+					OPM_LogWLn();
+					OPM_noerr = 0;
+				}
 				OPC_BegStat();
 				OPM_WriteString((CHAR*)"__REGCMD(\"", 11);
 				OPM_WriteStringVar((void*)obj->name, 256);
@@ -1283,11 +1361,78 @@ static void OPC_RegCmds (OPT_Object obj)
 	}
 }
 
+static void OPC_RegProcs (OPT_Object obj)
+{
+	if (obj != NIL) {
+		OPC_RegProcs(obj->left);
+		if ((__IN(obj->mode, 0x20c0, 32) && obj->history != 4)) {
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"Heap_REGPROC(m, (ADDRESS)", 26);
+			OPC_Ident(obj);
+			OPM_WriteString((CHAR*)")", 2);
+			OPC_EndStat();
+			OPC_RegProcs(obj->scope->right);
+		}
+		OPC_RegProcs(obj->right);
+	}
+}
+
+void OPC_RegisterBody (void)
+{
+	if (__IN(20, OPM_Options, 32)) {
+		OPC_RegProcs(OPT_topScope);
+		if (__STRCMP(OPM_modName, "SYSTEM") != 0) {
+			OPC_RegCmds(OPT_topScope);
+		}
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"__ENTERMODULE(m)", 17);
+		OPC_EndStat();
+	}
+}
+
+void OPC_CheckInterrupt (void)
+{
+	if (__IN(20, OPM_Options, 32)) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"SYSTEM_CheckCommandInterrupt()", 31);
+		OPC_EndStat();
+	}
+}
+
 static void OPC_InitImports (OPT_Object obj)
 {
+	INT16 i;
 	if (obj != NIL) {
 		OPC_InitImports(obj->left);
 		if ((obj->mode == 11 && obj->mnolev != 0)) {
+			if (__IN(20, OPM_Options, 32)) {
+				if (__STRCMP(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, "core") == 0) {
+					OPM_LogWStr((CHAR*)"The library name core is reserved for the minimal runtime.", 59);
+					OPM_LogWLn();
+					OPM_noerr = 0;
+					return;
+				}
+				if (Strings_Length(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, 256) >= 64) {
+					OPM_LogWStr((CHAR*)"Modular imports must fit the 63-character runtime registry.", 60);
+					OPM_LogWLn();
+					OPM_noerr = 0;
+					return;
+				}
+				i = 0;
+				while ((i < OPM_SharedImportCount && __STRCMP(OPM_SharedImports[__X(i, 64)], OPT_GlbMod[__X(-obj->mnolev, 64)]->name) != 0)) {
+					i += 1;
+				}
+				if (i == OPM_SharedImportCount) {
+					if (i >= 64) {
+						OPM_LogWStr((CHAR*)"Too many modular imports.", 26);
+						OPM_LogWLn();
+						OPM_noerr = 0;
+						return;
+					}
+					__COPY(OPT_GlbMod[__X(-obj->mnolev, 64)]->name, OPM_SharedImports[__X(i, 64)], 64);
+					OPM_SharedImportCount += 1;
+				}
+			}
 			OPC_BegStat();
 			OPM_WriteString((CHAR*)"__MODULE_IMPORT(", 17);
 			OPM_WriteStringVar((void*)OPT_GlbMod[__X(-obj->mnolev, 64)]->name, 256);
@@ -1295,6 +1440,21 @@ static void OPC_InitImports (OPT_Object obj)
 			OPC_EndStat();
 		}
 		OPC_InitImports(obj->right);
+	}
+}
+
+static void OPC_RegisterImports (OPT_Object obj)
+{
+	if (obj != NIL) {
+		OPC_RegisterImports(obj->left);
+		if ((obj->mode == 11 && obj->mnolev != 0)) {
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"Heap_REGIMPORT(m, ", 19);
+			OPM_WriteStringVar((void*)OPT_GlbMod[__X(-obj->mnolev, 64)]->name, 256);
+			OPM_WriteString((CHAR*)"__init())", 10);
+			OPC_EndStat();
+		}
+		OPC_RegisterImports(obj->right);
 	}
 }
 
@@ -1365,7 +1525,7 @@ void OPC_EnterBody (void)
 		OPM_WriteLn();
 	} else {
 		OPM_WriteString((CHAR*)"void *", 7);
-		OPM_WriteString(OPM_modName, 32);
+		OPM_WriteString(OPM_modName, 64);
 		OPM_WriteString(OPC_BodyNameExt, 13);
 		OPM_WriteLn();
 	}
@@ -1389,20 +1549,46 @@ void OPC_EnterBody (void)
 	} else {
 		OPM_WriteString((CHAR*)"__REGMOD(\"", 11);
 	}
-	OPM_WriteString(OPM_modName, 32);
+	OPM_WriteString(OPM_modName, 64);
 	if (OPC_GlbPtrs) {
 		OPM_WriteString((CHAR*)"\", EnumPtrs)", 13);
 	} else {
 		OPM_WriteString((CHAR*)"\", 0)", 6);
 	}
 	OPC_EndStat();
-	if (__STRCMP(OPM_modName, "SYSTEM") != 0) {
+	if (__IN(20, OPM_Options, 32)) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"__module_owner = m", 19);
+		OPC_EndStat();
+		OPC_RegisterImports(OPT_topScope->right);
+	}
+	if ((!__IN(20, OPM_Options, 32) && __STRCMP(OPM_modName, "SYSTEM") != 0)) {
 		OPC_RegCmds(OPT_topScope);
+	}
+}
+
+void OPC_FinishBody (void)
+{
+	if (__IN(20, OPM_Options, 32)) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"__LEAVEMODULE()", 16);
+		OPC_EndStat();
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"Heap_MODREADY(m, (ADDRESS)", 27);
+		if (__IN(10, OPM_Options, 32)) {
+			OPM_WriteString((CHAR*)"main", 5);
+		} else {
+			OPM_WriteStringVar((void*)OPM_modName, 64);
+			OPM_WriteString((CHAR*)"__init", 7);
+		}
+		OPM_WriteString((CHAR*)")", 2);
+		OPC_EndStat();
 	}
 }
 
 void OPC_ExitBody (void)
 {
+	OPC_FinishBody();
 	OPC_BegStat();
 	if (__IN(10, OPM_Options, 32)) {
 		OPM_WriteString((CHAR*)"__FINI;", 8);
@@ -1444,7 +1630,7 @@ void OPC_DefineInter (OPT_Object proc)
 
 BOOLEAN OPC_NeedsRetval (OPT_Object proc)
 {
-	return (proc->typ != OPT_notyp && !proc->scope->leaf);
+	return (proc->typ != OPT_notyp && (!proc->scope->leaf || __IN(20, OPM_Options, 32)));
 }
 
 void OPC_EnterProc (OPT_Object proc)
@@ -1471,6 +1657,11 @@ void OPC_EnterProc (OPT_Object proc)
 		OPC_BegStat();
 		OPC_Ident(proc->typ->strobj);
 		OPM_WriteString((CHAR*)" __retval", 10);
+		OPC_EndStat();
+	}
+	if (__IN(20, OPM_Options, 32)) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"__ENTERMODULE(__module_owner)", 30);
 		OPC_EndStat();
 	}
 	var = proc->link;
@@ -1564,6 +1755,7 @@ void OPC_EnterProc (OPT_Object proc)
 							OPM_WriteInt(dim);
 						}
 						typ = typ->BaseTyp;
+						dim += 1;
 					} while (!(typ->comp != 3));
 				} else if ((var->mode == 2 && var->typ->comp == 4)) {
 					OPM_WriteString((CHAR*)"; ", 3);
@@ -1613,6 +1805,7 @@ void OPC_EnterProc (OPT_Object proc)
 		OPM_WriteString((CHAR*)"_s", 3);
 		OPC_EndStat();
 	}
+	OPC_CheckInterrupt();
 }
 
 void OPC_ExitProc (OPT_Object proc, BOOLEAN eoBlock, BOOLEAN implicitRet)
@@ -1653,6 +1846,15 @@ void OPC_ExitProc (OPT_Object proc, BOOLEAN eoBlock, BOOLEAN implicitRet)
 				OPC_EndStat();
 			}
 			var = var->link;
+		}
+		if (__IN(20, OPM_Options, 32)) {
+			if (indent) {
+				OPC_BegStat();
+			} else {
+				indent = 1;
+			}
+			OPM_WriteString((CHAR*)"__LEAVEMODULE()", 16);
+			OPC_EndStat();
 		}
 	}
 	if (eoBlock) {
@@ -1922,84 +2124,115 @@ void OPC_Constant (OPT_Const con, INT16 form)
 	}
 }
 
-static struct InitKeywords__46 {
+static struct InitKeywords__48 {
 	INT8 *n;
-	struct InitKeywords__46 *lnk;
-} *InitKeywords__46_s;
+	struct InitKeywords__48 *lnk;
+} *InitKeywords__48_s;
 
-static void Enter__47 (CHAR *s, ADDRESS s__len);
+static void Enter__49 (CHAR *s, ADDRESS s__len);
 
-static void Enter__47 (CHAR *s, ADDRESS s__len)
+static void Enter__49 (CHAR *s, ADDRESS s__len)
 {
 	INT16 h;
 	__DUP(s, s__len, CHAR);
-	h = OPC_PerfectHash((void*)s, s__len);
-	OPC_hashtab[__X(h, 105)] = *InitKeywords__46_s->n;
-	__COPY(s, OPC_keytab[__X(*InitKeywords__46_s->n, 50)], 9);
-	*InitKeywords__46_s->n += 1;
+	h = OPC_KeywordHash((void*)s, s__len);
+	while (OPC_hashtab[__X(h, 257)] >= 0) {
+		h = (int)__MOD(h + 1, 257);
+	}
+	OPC_hashtab[__X(h, 257)] = *InitKeywords__48_s->n;
+	__COPY(s, OPC_keytab[__X(*InitKeywords__48_s->n, 96)], 32);
+	*InitKeywords__48_s->n += 1;
 	__DEL(s);
 }
 
 static void OPC_InitKeywords (void)
 {
-	INT8 n, i;
-	struct InitKeywords__46 _s;
+	INT8 n;
+	INT16 i;
+	struct InitKeywords__48 _s;
 	_s.n = &n;
-	_s.lnk = InitKeywords__46_s;
-	InitKeywords__46_s = &_s;
+	_s.lnk = InitKeywords__48_s;
+	InitKeywords__48_s = &_s;
 	n = 0;
 	i = 0;
-	while (i <= 104) {
-		OPC_hashtab[__X(i, 105)] = -1;
+	while (i <= 256) {
+		OPC_hashtab[__X(i, 257)] = -1;
 		i += 1;
 	}
-	Enter__47((CHAR*)"ADDRESS", 8);
-	Enter__47((CHAR*)"INT16", 6);
-	Enter__47((CHAR*)"INT32", 6);
-	Enter__47((CHAR*)"INT64", 6);
-	Enter__47((CHAR*)"INT8", 5);
-	Enter__47((CHAR*)"UINT16", 7);
-	Enter__47((CHAR*)"UINT32", 7);
-	Enter__47((CHAR*)"UINT64", 7);
-	Enter__47((CHAR*)"UINT8", 6);
-	Enter__47((CHAR*)"asm", 4);
-	Enter__47((CHAR*)"auto", 5);
-	Enter__47((CHAR*)"break", 6);
-	Enter__47((CHAR*)"case", 5);
-	Enter__47((CHAR*)"char", 5);
-	Enter__47((CHAR*)"const", 6);
-	Enter__47((CHAR*)"continue", 9);
-	Enter__47((CHAR*)"default", 8);
-	Enter__47((CHAR*)"do", 3);
-	Enter__47((CHAR*)"double", 7);
-	Enter__47((CHAR*)"else", 5);
-	Enter__47((CHAR*)"enum", 5);
-	Enter__47((CHAR*)"extern", 7);
-	Enter__47((CHAR*)"export", 7);
-	Enter__47((CHAR*)"float", 6);
-	Enter__47((CHAR*)"for", 4);
-	Enter__47((CHAR*)"fortran", 8);
-	Enter__47((CHAR*)"goto", 5);
-	Enter__47((CHAR*)"if", 3);
-	Enter__47((CHAR*)"import", 7);
-	Enter__47((CHAR*)"int", 4);
-	Enter__47((CHAR*)"long", 5);
-	Enter__47((CHAR*)"register", 9);
-	Enter__47((CHAR*)"return", 7);
-	Enter__47((CHAR*)"short", 6);
-	Enter__47((CHAR*)"signed", 7);
-	Enter__47((CHAR*)"sizeof", 7);
-	Enter__47((CHAR*)"size_t", 7);
-	Enter__47((CHAR*)"static", 7);
-	Enter__47((CHAR*)"struct", 7);
-	Enter__47((CHAR*)"switch", 7);
-	Enter__47((CHAR*)"typedef", 8);
-	Enter__47((CHAR*)"union", 6);
-	Enter__47((CHAR*)"unsigned", 9);
-	Enter__47((CHAR*)"void", 5);
-	Enter__47((CHAR*)"volatile", 9);
-	Enter__47((CHAR*)"while", 6);
-	InitKeywords__46_s = _s.lnk;
+	Enter__49((CHAR*)"ADDRESS", 8);
+	Enter__49((CHAR*)"INT16", 6);
+	Enter__49((CHAR*)"INT32", 6);
+	Enter__49((CHAR*)"INT64", 6);
+	Enter__49((CHAR*)"INT8", 5);
+	Enter__49((CHAR*)"UINT16", 7);
+	Enter__49((CHAR*)"UINT32", 7);
+	Enter__49((CHAR*)"UINT64", 7);
+	Enter__49((CHAR*)"UINT8", 6);
+	Enter__49((CHAR*)"asm", 4);
+	Enter__49((CHAR*)"auto", 5);
+	Enter__49((CHAR*)"break", 6);
+	Enter__49((CHAR*)"case", 5);
+	Enter__49((CHAR*)"char", 5);
+	Enter__49((CHAR*)"const", 6);
+	Enter__49((CHAR*)"continue", 9);
+	Enter__49((CHAR*)"default", 8);
+	Enter__49((CHAR*)"do", 3);
+	Enter__49((CHAR*)"double", 7);
+	Enter__49((CHAR*)"else", 5);
+	Enter__49((CHAR*)"enum", 5);
+	Enter__49((CHAR*)"extern", 7);
+	Enter__49((CHAR*)"export", 7);
+	Enter__49((CHAR*)"float", 6);
+	Enter__49((CHAR*)"for", 4);
+	Enter__49((CHAR*)"fortran", 8);
+	Enter__49((CHAR*)"goto", 5);
+	Enter__49((CHAR*)"if", 3);
+	Enter__49((CHAR*)"import", 7);
+	Enter__49((CHAR*)"int", 4);
+	Enter__49((CHAR*)"long", 5);
+	Enter__49((CHAR*)"register", 9);
+	Enter__49((CHAR*)"return", 7);
+	Enter__49((CHAR*)"short", 6);
+	Enter__49((CHAR*)"signed", 7);
+	Enter__49((CHAR*)"sizeof", 7);
+	Enter__49((CHAR*)"size_t", 7);
+	Enter__49((CHAR*)"static", 7);
+	Enter__49((CHAR*)"struct", 7);
+	Enter__49((CHAR*)"switch", 7);
+	Enter__49((CHAR*)"typedef", 8);
+	Enter__49((CHAR*)"union", 6);
+	Enter__49((CHAR*)"unsigned", 9);
+	Enter__49((CHAR*)"void", 5);
+	Enter__49((CHAR*)"volatile", 9);
+	Enter__49((CHAR*)"while", 6);
+	Enter__49((CHAR*)"inline", 7);
+	Enter__49((CHAR*)"restrict", 9);
+	Enter__49((CHAR*)"_Bool", 6);
+	Enter__49((CHAR*)"_Complex", 9);
+	Enter__49((CHAR*)"_Imaginary", 11);
+	Enter__49((CHAR*)"_Alignas", 9);
+	Enter__49((CHAR*)"_Alignof", 9);
+	Enter__49((CHAR*)"_Atomic", 8);
+	Enter__49((CHAR*)"_Generic", 9);
+	Enter__49((CHAR*)"_Noreturn", 10);
+	Enter__49((CHAR*)"_Static_assert", 15);
+	Enter__49((CHAR*)"_Thread_local", 14);
+	Enter__49((CHAR*)"_BitInt", 8);
+	Enter__49((CHAR*)"_Decimal32", 11);
+	Enter__49((CHAR*)"_Decimal64", 11);
+	Enter__49((CHAR*)"_Decimal128", 12);
+	Enter__49((CHAR*)"alignas", 8);
+	Enter__49((CHAR*)"alignof", 8);
+	Enter__49((CHAR*)"bool", 5);
+	Enter__49((CHAR*)"constexpr", 10);
+	Enter__49((CHAR*)"false", 6);
+	Enter__49((CHAR*)"nullptr", 8);
+	Enter__49((CHAR*)"static_assert", 14);
+	Enter__49((CHAR*)"thread_local", 13);
+	Enter__49((CHAR*)"true", 5);
+	Enter__49((CHAR*)"typeof", 7);
+	Enter__49((CHAR*)"typeof_unqual", 14);
+	InitKeywords__48_s = _s.lnk;
 }
 
 
@@ -2009,16 +2242,20 @@ export void *OPC__init(void)
 	__MODULE_IMPORT(Configuration);
 	__MODULE_IMPORT(OPM);
 	__MODULE_IMPORT(OPT);
+	__MODULE_IMPORT(Strings);
 	__REGMOD("OPC", 0);
 	__REGCMD("BegBlk", OPC_BegBlk);
 	__REGCMD("BegStat", OPC_BegStat);
+	__REGCMD("CheckInterrupt", OPC_CheckInterrupt);
 	__REGCMD("EndBlk", OPC_EndBlk);
 	__REGCMD("EndBlk0", OPC_EndBlk0);
 	__REGCMD("EndStat", OPC_EndStat);
 	__REGCMD("EnterBody", OPC_EnterBody);
 	__REGCMD("ExitBody", OPC_ExitBody);
+	__REGCMD("FinishBody", OPC_FinishBody);
 	__REGCMD("GenHdrIncludes", OPC_GenHdrIncludes);
 	__REGCMD("Init", OPC_Init);
+	__REGCMD("RegisterBody", OPC_RegisterBody);
 /* BEGIN */
 	OPC_InitKeywords();
 	__ENDMOD;

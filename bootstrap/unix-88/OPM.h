@@ -1,9 +1,12 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
 
 #include "SYSTEM.h"
+
+typedef
+	void (*OPM_ArgumentReader)(INT16, CHAR*, ADDRESS );
 
 
 import CHAR OPM_Model[10];
@@ -15,14 +18,18 @@ import LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 import BOOLEAN OPM_noerr;
 import INT32 OPM_curpos, OPM_errpos, OPM_breakpc;
 import INT16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
-import CHAR OPM_modName[32];
+import CHAR OPM_modName[64];
 import CHAR OPM_objname[64];
 import CHAR OPM_InstallDir[1024];
+import CHAR OPM_LibraryDir[1024];
 import CHAR OPM_ResourceDir[1024];
+import CHAR OPM_SharedImports[64][64];
+import INT16 OPM_SharedImportCount;
 
 
 import void OPM_CloseFiles (void);
 import void OPM_CloseOldSym (void);
+import INT16 OPM_CountArguments (void);
 import void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len);
 import void OPM_DeleteSym (CHAR *modulename, ADDRESS modulename__len);
 import void OPM_FPrint (INT32 *fp, INT64 val);
@@ -47,6 +54,7 @@ import void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done);
 import void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len);
 import BOOLEAN OPM_OpenPar (void);
 import void OPM_RegisterNewSym (void);
+import void OPM_SetArguments (INT16 count, OPM_ArgumentReader reader);
 import INT64 OPM_SignedMaximum (INT32 bytecount);
 import INT64 OPM_SignedMinimum (INT32 bytecount);
 import void OPM_StoreComment (CHAR *text, ADDRESS text__len);

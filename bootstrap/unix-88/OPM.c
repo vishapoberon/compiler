@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -16,7 +16,10 @@
 #include "VT100.h"
 
 typedef
-	CHAR OPM_FileName[32];
+	void (*OPM_ArgumentReader)(INT16, CHAR*, ADDRESS );
+
+typedef
+	CHAR OPM_FileName[128];
 
 
 static CHAR OPM_currentComment[1024];
@@ -35,7 +38,7 @@ export LONGREAL OPM_MinReal, OPM_MaxReal, OPM_MinLReal, OPM_MaxLReal;
 export BOOLEAN OPM_noerr;
 export INT32 OPM_curpos, OPM_errpos, OPM_breakpc;
 export INT16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
-export CHAR OPM_modName[32];
+export CHAR OPM_modName[64];
 export CHAR OPM_objname[64];
 static INT32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
 static Texts_Reader OPM_inR;
@@ -43,14 +46,20 @@ static Texts_Text OPM_Log, OPM_Errors;
 static Files_Rider OPM_oldSF, OPM_newSF;
 static Files_Rider OPM_R[3];
 static Files_File OPM_oldSFile, OPM_newSFile, OPM_HFile, OPM_BFile, OPM_HIFile;
-static INT16 OPM_S;
+static INT16 OPM_S, OPM_argumentCount;
+static OPM_ArgumentReader OPM_argumentReader;
 export CHAR OPM_InstallDir[1024];
+export CHAR OPM_LibraryDir[1024];
+static CHAR OPM_BaseLibraryDir[1024];
 export CHAR OPM_ResourceDir[1024];
+export CHAR OPM_SharedImports[64][64];
+export INT16 OPM_SharedImportCount;
 
 
 static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F);
 export void OPM_CloseFiles (void);
 export void OPM_CloseOldSym (void);
+export INT16 OPM_CountArguments (void);
 export void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len);
 export void OPM_DeleteSym (CHAR *modulename, ADDRESS modulename__len);
 export void OPM_FPrint (INT32 *fp, INT64 val);
@@ -61,6 +70,7 @@ static void OPM_FindInstallDir (void);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
 static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
+static void OPM_GetArgument (INT16 n, CHAR *value, ADDRESS value__len);
 export void OPM_GetComment (CHAR *text, ADDRESS text__len);
 export void OPM_Init (BOOLEAN *done);
 export void OPM_InitOptions (void);
@@ -82,6 +92,8 @@ export void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len);
 export BOOLEAN OPM_OpenPar (void);
 export void OPM_RegisterNewSym (void);
 static void OPM_ScanOptions (CHAR *s, ADDRESS s__len);
+export void OPM_SetArguments (INT16 count, OPM_ArgumentReader reader);
+static void OPM_SetMaxReals (void);
 static void OPM_ShowLine (INT64 pos);
 export INT64 OPM_SignedMaximum (INT32 bytecount);
 export INT64 OPM_SignedMinimum (INT32 bytecount);
@@ -98,6 +110,7 @@ export void OPM_SymWLReal (LONGREAL lr);
 export void OPM_SymWReal (REAL r);
 export void OPM_SymWSet (UINT64 s);
 export void OPM_Write (CHAR ch);
+static void OPM_WriteExactReal (LONGREAL r);
 export void OPM_WriteHex (INT64 i);
 export void OPM_WriteInt (INT64 i);
 export void OPM_WriteLn (void);
@@ -107,6 +120,8 @@ export void OPM_WriteStringVar (CHAR *s, ADDRESS s__len);
 export BOOLEAN OPM_eofSF (void);
 export void OPM_err (INT16 n);
 
+#include <stdio.h>
+#define OPM_FormatReal(buf, r)	snprintf((char*)(ADDRESS)(buf), 40, "%.17g", r)
 #define OPM_GetAlignment(a)	struct {char c; long long l;} _s; *a = (char*)&_s.l - (char*)&_s
 
 void OPM_LogW (CHAR ch)
@@ -226,6 +241,30 @@ INT16 OPM_Integer (INT64 n)
 	return r;
 }
 
+void OPM_SetArguments (INT16 count, OPM_ArgumentReader reader)
+{
+	OPM_argumentCount = count;
+	OPM_argumentReader = reader;
+}
+
+INT16 OPM_CountArguments (void)
+{
+	if (OPM_argumentReader == NIL) {
+		return Modules_ArgCount;
+	}
+	return OPM_argumentCount;
+}
+
+static void OPM_GetArgument (INT16 n, CHAR *value, ADDRESS value__len)
+{
+	value[0] = 0x00;
+	if (OPM_argumentReader == NIL) {
+		Modules_GetArg(n, (void*)value, value__len);
+	} else {
+		(*OPM_argumentReader)(n, (void*)value, value__len);
+	}
+}
+
 static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
@@ -268,6 +307,18 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 				break;
 			case 'c': 
 				OPM_Options = OPM_Options ^ 0x4000;
+				break;
+			case 'l': 
+				OPM_Options = OPM_Options ^ 0x080000;
+				break;
+			case 'P': 
+				OPM_Options = OPM_Options ^ 0x100000;
+				break;
+			case 'd': 
+				OPM_Options = OPM_Options ^ 0x200000;
+				break;
+			case 'D': 
+				OPM_Options = OPM_Options ^ 0x400000;
 				break;
 			case 'f': 
 				OPM_Options = OPM_Options ^ 0x010000;
@@ -315,7 +366,8 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 BOOLEAN OPM_OpenPar (void)
 {
 	CHAR s[256];
-	if (Modules_ArgCount == 1) {
+	OPM_noerr = 1;
+	if (OPM_CountArguments() <= 1) {
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"Oberon-2 compiler v", 20);
 		OPM_LogWStr(Configuration_versionLong, 76);
@@ -372,6 +424,18 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -c   Don't link.", 21);
 		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -l   Build a loadable module library (ELF, minimal runtime supplied by host).", 82);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -mP  Main program using the shared minimal runtime and module libraries.", 77);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -md  Application module and dlopen host; shared minimal core and dynamic libc.", 83);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -mD  Application module and dlopen host; embedded minimal core and dynamic libc.", 85);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -d   Shorthand for -md.", 28);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -M cannot be combined with -P/-d/-D; static system linking is not a module-host mode.", 90);
+		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Miscellaneous", 16);
 		OPM_LogWLn();
@@ -413,13 +477,11 @@ BOOLEAN OPM_OpenPar (void)
 		__MOVE("2", OPM_Model, 2);
 		OPM_Options = 0xa9;
 		OPM_S = 1;
-		s[0] = 0x00;
-		Modules_GetArg(OPM_S, (void*)s, 256);
+		OPM_GetArgument(OPM_S, (void*)s, 256);
 		while (s[0] == '-') {
 			OPM_ScanOptions(s, 256);
 			OPM_S += 1;
-			s[0] = 0x00;
-			Modules_GetArg(OPM_S, (void*)s, 256);
+			OPM_GetArgument(OPM_S, (void*)s, 256);
 		}
 		OPM_GlobalAddressSize = OPM_AddressSize;
 		OPM_GlobalAlignment = OPM_Alignment;
@@ -439,17 +501,56 @@ void OPM_InitOptions (void)
 	__MOVE(OPM_GlobalModel, OPM_Model, 10);
 	OPM_Alignment = OPM_GlobalAlignment;
 	OPM_AddressSize = OPM_GlobalAddressSize;
-	s[0] = 0x00;
-	Modules_GetArg(OPM_S, (void*)s, 256);
+	OPM_GetArgument(OPM_S, (void*)s, 256);
 	while (s[0] == '-') {
 		OPM_ScanOptions(s, 256);
 		OPM_S += 1;
-		s[0] = 0x00;
-		Modules_GetArg(OPM_S, (void*)s, 256);
+		OPM_GetArgument(OPM_S, (void*)s, 256);
 	}
 	if (__IN(15, OPM_Options, 32)) {
 		OPM_Options |= __SETOF(10,32);
 	}
+	if ((__IN(15, OPM_Options, 32) && (__IN(21, OPM_Options, 32) || __IN(22, OPM_Options, 32)))) {
+		OPM_LogWStr((CHAR*)"-M cannot be combined with -d/-D: loading hosts require dynamic libc; use -md or -mD.", 86);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+		return;
+	}
+	if ((__IN(15, OPM_Options, 32) && __IN(20, OPM_Options, 32))) {
+		OPM_LogWStr((CHAR*)"-MP is not supported: -M means static linking; use -mP or an embedded-core loading host (-mD).", 95);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+		return;
+	}
+	if (__IN(22, OPM_Options, 32)) {
+		if (!__IN(10, OPM_Options, 32)) {
+			OPM_LogWStr((CHAR*)"-D requires -m; use -mD for an embedded-core loading host.", 59);
+			OPM_LogWLn();
+			OPM_noerr = 0;
+			return;
+		}
+		OPM_Options |= __SETOF(21,32);
+	}
+	if ((__IN(19, OPM_Options, 32) && (__IN(10, OPM_Options, 32) || __IN(21, OPM_Options, 32)))) {
+		OPM_LogWStr((CHAR*)"-l cannot be combined with -m/-M/-d/-D; use -l for a module or -md/-mD for a loading host.", 91);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+		return;
+	}
+	if (__IN(21, OPM_Options, 32)) {
+		OPM_Options &= ~__SETOF(10,32);
+		OPM_Options |= __SETOF(19,32);
+	}
+	if (__IN(19, OPM_Options, 32)) {
+		OPM_Options |= __SETOF(20,32);
+	}
+	if ((((__IN(20, OPM_Options, 32) && !__IN(10, OPM_Options, 32))) && !__IN(19, OPM_Options, 32))) {
+		OPM_LogWStr((CHAR*)"-P requires -m, -l or -d.", 26);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+		return;
+	}
+	OPM_SharedImportCount = 0;
 	OPM_MaxIndex = OPM_SignedMaximum(OPM_AddressSize);
 	switch (OPM_Model[0]) {
 		case '2': 
@@ -478,6 +579,15 @@ void OPM_InitOptions (void)
 			break;
 	}
 	__MOVE(OPM_InstallDir, OPM_ResourceDir, 1024);
+	__MOVE(OPM_BaseLibraryDir, OPM_LibraryDir, 1024);
+	if (__IN(20, OPM_Options, 32)) {
+		Strings_Append((CHAR*)"/modular", 9, (void*)OPM_ResourceDir, 1024);
+		Platform_GetEnv((CHAR*)"VOCLIBDIR", 10, (void*)MODULES, 1024);
+		if (MODULES[0] == 0x00) {
+			Strings_Append((CHAR*)"/voc/modular/", 14, (void*)OPM_LibraryDir, 1024);
+			Strings_Append(OPM_Model, 10, (void*)OPM_LibraryDir, 1024);
+		}
+	}
 	if (OPM_ResourceDir[0] != 0x00) {
 		Strings_Append((CHAR*)"/", 2, (void*)OPM_ResourceDir, 1024);
 		Strings_Append(OPM_Model, 10, (void*)OPM_ResourceDir, 1024);
@@ -501,11 +611,10 @@ void OPM_Init (BOOLEAN *done)
 	CHAR s[256];
 	*done = 0;
 	OPM_curpos = 0;
-	if (OPM_S >= Modules_ArgCount) {
+	if (OPM_S >= OPM_CountArguments()) {
 		return;
 	}
-	s[0] = 0x00;
-	Modules_GetArg(OPM_S, (void*)s, 256);
+	OPM_GetArgument(OPM_S, (void*)s, 256);
 	__NEW(T, Texts_TextDesc);
 	Texts_Open(T, s, 256);
 	OPM_LogWStr(s, 256);
@@ -521,7 +630,7 @@ void OPM_Init (BOOLEAN *done)
 	}
 	OPM_S += 1;
 	OPM_level = 0;
-	OPM_noerr = 1;
+	OPM_noerr = *done;
 	OPM_errpos = OPM_curpos;
 	OPM_lasterrpos = OPM_curpos - 10;
 	OPM_ErrorLineStartPos = 0;
@@ -802,8 +911,8 @@ void OPM_OldSym (CHAR *modName, ADDRESS modName__len, BOOLEAN *done)
 	INT16 res;
 	OPM_oldSFile = NIL;
 	*done = 0;
-	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
-	OPM_oldSFile = Files_Old(fileName, 32);
+	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 128, (CHAR*)".sym", 5);
+	OPM_oldSFile = Files_Old(fileName, 128);
 	*done = OPM_oldSFile != NIL;
 	if (*done) {
 		Files_Set(&OPM_oldSF, Files_Rider__typ, OPM_oldSFile, 0);
@@ -860,23 +969,23 @@ void OPM_DeleteSym (CHAR *modulename, ADDRESS modulename__len)
 {
 	OPM_FileName fn;
 	INT16 res;
-	OPM_MakeFileName((void*)modulename, modulename__len, (void*)fn, 32, (CHAR*)".sym", 5);
-	Files_Delete(fn, 32, &res);
+	OPM_MakeFileName((void*)modulename, modulename__len, (void*)fn, 128, (CHAR*)".sym", 5);
+	Files_Delete(fn, 128, &res);
 }
 
 void OPM_DeleteObj (CHAR *modulename, ADDRESS modulename__len)
 {
 	OPM_FileName fn;
 	INT16 res;
-	OPM_MakeFileName((void*)modulename, modulename__len, (void*)fn, 32, (CHAR*)".o", 3);
-	Files_Delete(fn, 32, &res);
+	OPM_MakeFileName((void*)modulename, modulename__len, (void*)fn, 128, (CHAR*)".o", 3);
+	Files_Delete(fn, 128, &res);
 }
 
 void OPM_NewSym (CHAR *modName, ADDRESS modName__len)
 {
 	OPM_FileName fileName;
-	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 32, (CHAR*)".sym", 5);
-	OPM_newSFile = Files_New(fileName, 32);
+	OPM_MakeFileName((void*)modName, modName__len, (void*)fileName, 128, (CHAR*)".sym", 5);
+	OPM_newSFile = Files_New(fileName, 128);
 	if (OPM_newSFile != NIL) {
 		Files_Set(&OPM_newSF, Files_Rider__typ, OPM_newSFile, 0);
 		Files_Write(&OPM_newSF, Files_Rider__typ, 0xf7);
@@ -966,6 +1075,28 @@ void OPM_WriteInt (INT64 i)
 	}
 }
 
+static void OPM_WriteExactReal (LONGREAL r)
+{
+	CHAR s[40];
+	INT16 i;
+	BOOLEAN real;
+	OPM_FormatReal((ADDRESS)s, r);
+	i = 0;
+	real = 0;
+	while (s[__X(i, 40)] != 0x00) {
+		if (s[__X(i, 40)] == '.' || s[__X(i, 40)] == 'e') {
+			real = 1;
+		}
+		i += 1;
+	}
+	if (!real) {
+		s[__X(i, 40)] = '.';
+		s[__X(i + 1, 40)] = '0';
+		s[__X(i + 2, 40)] = 0x00;
+	}
+	OPM_WriteStringVar((void*)s, 40);
+}
+
 void OPM_WriteReal (LONGREAL r, CHAR suffx)
 {
 	Texts_Writer W;
@@ -981,6 +1112,13 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 			OPM_WriteString((CHAR*)"(LONGREAL)", 11);
 		}
 		OPM_WriteInt(__SHORT(__ENTIER(r), 2147483648LL));
+	} else if (__MASK(__ASHR(__VAL(INT64, r), 52), -2048) != 2047) {
+		if (suffx == 'f') {
+			OPM_WriteString((CHAR*)"(REAL)", 7);
+		} else {
+			OPM_WriteString((CHAR*)"(LONGREAL)", 11);
+		}
+		OPM_WriteExactReal(r);
 	} else {
 		Texts_OpenWriter(&W, Texts_Writer__typ);
 		if (suffx == 'f') {
@@ -1035,22 +1173,22 @@ static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F)
 void OPM_OpenFiles (CHAR *moduleName, ADDRESS moduleName__len)
 {
 	OPM_FileName FName;
-	__COPY(moduleName, OPM_modName, 32);
+	__COPY(moduleName, OPM_modName, 64);
 	OPM_HFile = Files_New((CHAR*)"", 1);
 	if (OPM_HFile != NIL) {
 		Files_Set(&OPM_R[0], Files_Rider__typ, OPM_HFile, 0);
 	} else {
 		OPM_err(153);
 	}
-	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, 32, (CHAR*)".c", 3);
-	OPM_BFile = Files_New(FName, 32);
+	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, 128, (CHAR*)".c", 3);
+	OPM_BFile = Files_New(FName, 128);
 	if (OPM_BFile != NIL) {
 		Files_Set(&OPM_R[1], Files_Rider__typ, OPM_BFile, 0);
 	} else {
 		OPM_err(153);
 	}
-	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, 32, (CHAR*)".h", 3);
-	OPM_HIFile = Files_New(FName, 32);
+	OPM_MakeFileName((void*)moduleName, moduleName__len, (void*)FName, 128, (CHAR*)".h", 3);
+	OPM_HIFile = Files_New(FName, 128);
 	if (OPM_HIFile != NIL) {
 		Files_Set(&OPM_R[2], Files_Rider__typ, OPM_HIFile, 0);
 	} else {
@@ -1077,10 +1215,10 @@ void OPM_CloseFiles (void)
 			Files_Register(OPM_HIFile);
 			Files_Register(OPM_BFile);
 		} else {
-			OPM_MakeFileName((void*)OPM_modName, 32, (void*)FName, 32, (CHAR*)".h", 3);
-			Files_Delete(FName, 32, &res);
-			OPM_MakeFileName((void*)OPM_modName, 32, (void*)FName, 32, (CHAR*)".sym", 5);
-			Files_Delete(FName, 32, &res);
+			OPM_MakeFileName((void*)OPM_modName, 64, (void*)FName, 128, (CHAR*)".h", 3);
+			Files_Delete(FName, 128, &res);
+			OPM_MakeFileName((void*)OPM_modName, 64, (void*)FName, 128, (CHAR*)".sym", 5);
+			Files_Delete(FName, 128, &res);
 			Files_Register(OPM_BFile);
 		}
 	}
@@ -1101,7 +1239,7 @@ static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 	CHAR testpath[4096];
 	Platform_FileIdentity identity;
 	__DUP(s, s__len, CHAR);
-	__COPY(OPM_InstallDir, testpath, 4096);
+	__COPY(s, testpath, 4096);
 	Strings_Append((CHAR*)"/lib/lib", 9, (void*)testpath, 4096);
 	Strings_Append((CHAR*)"voc", 4, (void*)testpath, 4096);
 	Strings_Append((CHAR*)"-O2.a", 6, (void*)testpath, 4096);
@@ -1109,13 +1247,13 @@ static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 		__DEL(s);
 		return 0;
 	}
-	__COPY(OPM_InstallDir, testpath, 4096);
+	__COPY(s, testpath, 4096);
 	Strings_Append((CHAR*)"/2/include/Oberon.h", 20, (void*)testpath, 4096);
 	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
 		__DEL(s);
 		return 0;
 	}
-	__COPY(OPM_InstallDir, testpath, 4096);
+	__COPY(s, testpath, 4096);
 	Strings_Append((CHAR*)"/2/sym/Files.sym", 17, (void*)testpath, 4096);
 	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
 		__DEL(s);
@@ -1128,11 +1266,25 @@ static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 static void OPM_FindInstallDir (void)
 {
 	INT16 i;
+	CHAR env[1024];
+	Platform_GetEnv((CHAR*)"VOCROOT", 8, (void*)env, 1024);
+	if (env[0] != 0x00) {
+		__COPY(env, OPM_InstallDir, 1024);
+		Platform_GetEnv((CHAR*)"VOCLIBDIR", 10, (void*)env, 1024);
+		if (env[0] != 0x00) {
+			__COPY(env, OPM_LibraryDir, 1024);
+		} else {
+			__COPY("/usr/local/lib", OPM_LibraryDir, 1024);
+		}
+		return;
+	}
 	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
 	Strings_Append((CHAR*)"/", 2, (void*)OPM_InstallDir, 1024);
 	Strings_Append((CHAR*)"voc", 4, (void*)OPM_InstallDir, 1024);
 	Strings_Append((CHAR*)".d", 3, (void*)OPM_InstallDir, 1024);
 	if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
+		__COPY(OPM_InstallDir, OPM_LibraryDir, 1024);
+		Strings_Append((CHAR*)"/lib", 5, (void*)OPM_LibraryDir, 1024);
 		return;
 	}
 	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
@@ -1143,10 +1295,29 @@ static void OPM_FindInstallDir (void)
 	if ((i > 0 && OPM_InstallDir[__X(i - 1, 1024)] == '/')) {
 		OPM_InstallDir[__X(i - 1, 1024)] = 0x00;
 		if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
+			__COPY(OPM_InstallDir, OPM_LibraryDir, 1024);
+			Strings_Append((CHAR*)"/lib", 5, (void*)OPM_LibraryDir, 1024);
 			return;
 		}
 	}
 	__COPY("", OPM_InstallDir, 1024);
+	__COPY("/usr/local/lib", OPM_LibraryDir, 1024);
+	Platform_GetEnv((CHAR*)"VOCLIBDIR", 10, (void*)env, 1024);
+	if (env[0] != 0x00) {
+		__COPY(env, OPM_LibraryDir, 1024);
+	}
+}
+
+static void OPM_SetMaxReals (void)
+{
+	INT32 i32;
+	INT64 i64;
+	REAL r;
+	i32 = 2139095039;
+	r = __VAL(REAL, i32);
+	OPM_MaxReal = r;
+	i64 = 9218868437227405311LL;
+	OPM_MaxLReal = __VAL(LONGREAL, i64);
 }
 
 static void EnumPtrs(void (*P)(void*))
@@ -1184,11 +1355,11 @@ export void *OPM__init(void)
 	__REGCMD("RegisterNewSym", OPM_RegisterNewSym);
 	__REGCMD("WriteLn", OPM_WriteLn);
 /* BEGIN */
-	OPM_MaxReal =   3.40282346000000e+038;
-	OPM_MaxLReal =   1.79769296342094e+308;
+	OPM_SetMaxReals();
 	OPM_MinReal = -OPM_MaxReal;
 	OPM_MinLReal = -OPM_MaxLReal;
 	OPM_FindInstallDir();
+	__COPY(OPM_LibraryDir, OPM_BaseLibraryDir, 1024);
 	OPM_hasComment = 0;
 	OPM_currentComment[0] = 0x00;
 	__ENDMOD;

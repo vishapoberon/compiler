@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -30,7 +30,7 @@ export ADDRESS *OPP__1__typ;
 static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq);
-static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, OPP_CaseTable tab);
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, struct OPP__1 *tab);
 static void OPP_CheckMark (INT8 *vis);
 static void OPP_CheckSym (INT16 s);
 static void OPP_CheckSysFlag (INT16 *sysflag, INT16 default_);
@@ -43,7 +43,7 @@ static void OPP_FormalParameters (OPT_Object *firstPar, OPT_Struct *resTyp);
 export void OPP_Module (OPT_Node *prog, UINT32 opt);
 static void OPP_PointerType (OPT_Struct *typ);
 static void OPP_ProcedureDeclaration (OPT_Node *x);
-static void OPP_Receiver (INT8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec);
+static void OPP_Receiver (INT8 *mode, CHAR *name, OPT_Struct *typ, OPT_Struct *rec);
 static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Sets (OPT_Node *x);
 static void OPP_SimpleExpression (OPT_Node *x);
@@ -866,7 +866,7 @@ static void OPP_Expression (OPT_Node *x)
 	}
 }
 
-static void OPP_Receiver (INT8 *mode, OPS_Name name, OPT_Struct *typ, OPT_Struct *rec)
+static void OPP_Receiver (INT8 *mode, CHAR *name, OPT_Struct *typ, OPT_Struct *rec)
 {
 	OPT_Object obj = NIL;
 	*typ = OPT_undftyp;
@@ -950,8 +950,14 @@ static void GetCode__19 (void)
 	n = 0;
 	if (OPP_sym == 37) {
 		while (OPS_str[__X(n, 1024)] != 0x00) {
-			(*ext)[__X(n + 1, 1024)] = OPS_str[__X(n, 1024)];
+			if (n < 255) {
+				(*ext)[__X(n + 1, 1024)] = OPS_str[__X(n, 1024)];
+			}
 			n += 1;
+		}
+		if (n > 255) {
+			OPP_err(241);
+			n = 255;
 		}
 		(*ext)[0] = __CHR(n);
 		OPS_Get(&OPP_sym);
@@ -960,10 +966,14 @@ static void GetCode__19 (void)
 			if (OPP_sym == 35) {
 				c = OPS_intval;
 				n += 1;
-				if ((c < 0 || c > 255) || n == 1024) {
+				if (c < 0 || c > 255) {
 					OPP_err(64);
 					c = 1;
 					n = 1;
+				}
+				if (n > 255) {
+					OPP_err(241);
+					n = 255;
 				}
 				OPS_Get(&OPP_sym);
 				(*ext)[__X(n, 1024)] = __CHR(c);
@@ -1180,7 +1190,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 	ProcedureDeclaration__16_s = _s.lnk;
 }
 
-static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, OPP_CaseTable tab)
+static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, struct OPP__1 *tab)
 {
 	OPT_Node x = NIL, y = NIL, lastlab = NIL;
 	INT16 i, f;

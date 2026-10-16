@@ -1,13 +1,15 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspamS */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspamS */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
 #define LONGINT  INT32
 #define SET      UINT32
+#define VOC_MAIN_PROGRAM 1
 
 #include "SYSTEM.h"
 #include "Configuration.h"
 #include "Heap.h"
+#include "Modules.h"
 #include "OPB.h"
 #include "OPC.h"
 #include "OPM.h"
@@ -20,20 +22,50 @@
 #include "extTools.h"
 
 
+static BOOLEAN Compiler_busy;
 
 
+export void Compiler_Abort (void);
+export BOOLEAN Compiler_CompileArguments (INT16 count, OPM_ArgumentReader reader);
 static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectnames__len);
 export void Compiler_Module (BOOLEAN *done);
 static void Compiler_PropagateElementaryTypeSizes (void);
+static BOOLEAN Compiler_Run (void);
 export void Compiler_Translate (void);
 static void Compiler_Trap (INT32 sig);
 
+#define Compiler_Standalone()	VOC_MAIN_PROGRAM
 
 void Compiler_Module (BOOLEAN *done)
 {
 	BOOLEAN ext, new;
 	OPT_Node p = NIL;
 	OPP_Module(&p, OPM_Options);
+	if ((((extTools_hosted && __IN(19, OPM_Options, 32))) && Modules_ThisMod(OPT_SelfName, 256) != NIL)) {
+		OPM_LogWStr((CHAR*)"The module is loaded; free it or restart the host before rebuilding its library.", 81);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+	}
+	if ((__IN(20, OPM_Options, 32) && Strings_Length(OPT_SelfName, 256) >= 64)) {
+		OPM_LogWStr((CHAR*)"Modular-build names must fit the 63-character runtime registry.", 64);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+	}
+	if ((__IN(20, OPM_Options, 32) && __STRCMP(OPT_SelfName, "core") == 0)) {
+		OPM_LogWStr((CHAR*)"The library name core is reserved for the minimal runtime.", 59);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+	}
+	if ((__IN(19, OPM_Options, 32) && (((__STRCMP(OPT_SelfName, "SYSTEM") == 0 || __STRCMP(OPT_SelfName, "Platform") == 0) || __STRCMP(OPT_SelfName, "Heap") == 0) || __STRCMP(OPT_SelfName, "Modules") == 0))) {
+		OPM_LogWStr((CHAR*)"SYSTEM, Platform, Heap and Modules belong to the minimal core, not separate modules.", 85);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+	}
+	if ((__IN(21, OPM_Options, 32) && __STRCMP(OPT_SelfName, "ModuleLoader") == 0)) {
+		OPM_LogWStr((CHAR*)"ModuleLoader is the launcher's loader; build it as a library, not an application.", 82);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+	}
 	if (OPM_noerr) {
 		OPV_Init();
 		OPT_InitRecno();
@@ -136,7 +168,7 @@ static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectname
 	}
 }
 
-void Compiler_Translate (void)
+static BOOLEAN Compiler_Run (void)
 {
 	BOOLEAN done;
 	CHAR linkfiles[2048];
@@ -144,31 +176,91 @@ void Compiler_Translate (void)
 		for (;;) {
 			OPM_Init(&done);
 			if (!done) {
-				return;
+				return OPM_noerr;
 			}
 			OPM_InitOptions();
+			if (!OPM_noerr) {
+				return 0;
+			}
 			Compiler_PropagateElementaryTypeSizes();
-			Heap_GC(0);
+			Heap_GC(extTools_hosted);
 			Compiler_Module(&done);
 			if (!done) {
 				OPM_LogWLn();
 				OPM_LogWStr((CHAR*)"Module compilation failed.", 27);
 				OPM_LogWLn();
-				Platform_Exit(1);
+				return 0;
+			}
+			if (__IN(21, OPM_Options, 32)) {
+				extTools_GenerateLauncher(OPM_modName, 64);
 			}
 			if (!__IN(13, OPM_Options, 32)) {
-				if (__IN(14, OPM_Options, 32)) {
-					extTools_Assemble(OPM_modName, 32);
+				if ((__IN(19, OPM_Options, 32) && !__IN(14, OPM_Options, 32))) {
+					extTools_LinkModule(OPM_modName, 64);
+					if (__IN(21, OPM_Options, 32)) {
+						extTools_LinkLauncher(OPM_modName, 64, __IN(22, OPM_Options, 32));
+					}
+				} else if (__IN(14, OPM_Options, 32)) {
+					extTools_Assemble(OPM_modName, 64);
 				} else {
 					if (!__IN(10, OPM_Options, 32)) {
-						extTools_Assemble(OPM_modName, 32);
+						extTools_Assemble(OPM_modName, 64);
 					} else {
-						Compiler_FindLocalObjectFiles((void*)linkfiles, 2048);
-						extTools_LinkMain((void*)OPM_modName, 32, __IN(15, OPM_Options, 32), linkfiles, 2048);
+						linkfiles[0] = 0x00;
+						if (!__IN(20, OPM_Options, 32)) {
+							Compiler_FindLocalObjectFiles((void*)linkfiles, 2048);
+						}
+						extTools_LinkMain((void*)OPM_modName, 64, __IN(15, OPM_Options, 32), linkfiles, 2048);
 					}
 				}
 			}
+			if (!OPM_noerr) {
+				return 0;
+			}
 		}
+	}
+	return 1;
+}
+
+BOOLEAN Compiler_CompileArguments (INT16 count, OPM_ArgumentReader reader)
+{
+	BOOLEAN done;
+	if (Compiler_busy) {
+		OPM_LogWStr((CHAR*)"compiler is already compiling", 30);
+		OPM_LogWLn();
+		return 0;
+	}
+	Compiler_busy = 1;
+	extTools_hosted = 1;
+	OPM_SetArguments(count, reader);
+	done = Compiler_Run();
+	OPM_SetArguments(0, NIL);
+	extTools_hosted = 0;
+	Compiler_busy = 0;
+	return done;
+}
+
+void Compiler_Abort (void)
+{
+	if (Compiler_busy) {
+		OPM_noerr = 0;
+		OPM_CloseFiles();
+		if (OPT_topScope != NIL) {
+			OPT_Close();
+		}
+		OPM_SetArguments(0, NIL);
+		extTools_hosted = 0;
+		Compiler_busy = 0;
+	}
+}
+
+void Compiler_Translate (void)
+{
+	BOOLEAN done;
+	OPM_SetArguments(0, NIL);
+	done = Compiler_Run();
+	if (!done) {
+		Platform_Exit(1);
 	}
 }
 
@@ -192,6 +284,7 @@ export int main(int argc, char **argv)
 	__INIT(argc, argv);
 	__MODULE_IMPORT(Configuration);
 	__MODULE_IMPORT(Heap);
+	__MODULE_IMPORT(Modules);
 	__MODULE_IMPORT(OPB);
 	__MODULE_IMPORT(OPC);
 	__MODULE_IMPORT(OPM);
@@ -203,11 +296,14 @@ export int main(int argc, char **argv)
 	__MODULE_IMPORT(VT100);
 	__MODULE_IMPORT(extTools);
 	__REGMAIN("Compiler", 0);
+	__REGCMD("Abort", Compiler_Abort);
 	__REGCMD("Translate", Compiler_Translate);
 /* BEGIN */
-	Platform_SetInterruptHandler(Compiler_Trap);
-	Platform_SetQuitHandler(Compiler_Trap);
-	Platform_SetBadInstructionHandler(Compiler_Trap);
-	Compiler_Translate();
+	if (Compiler_Standalone()) {
+		Platform_SetInterruptHandler(Compiler_Trap);
+		Platform_SetQuitHandler(Compiler_Trap);
+		Platform_SetBadInstructionHandler(Compiler_Trap);
+		Compiler_Translate();
+	}
 	__FINI;
 }

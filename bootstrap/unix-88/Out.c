@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -35,10 +35,12 @@ static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16
 void Out_Flush (void)
 {
 	INT16 error;
+	Platform_CommandCritical(1);
 	if (Out_in > 0) {
 		error = Platform_Write(1, (ADDRESS)Out_buf, Out_in);
 	}
 	Out_in = 0;
+	Platform_CommandCritical(0);
 }
 
 void Out_Open (void)
@@ -47,6 +49,7 @@ void Out_Open (void)
 
 void Out_Char (CHAR ch)
 {
+	Platform_CommandCritical(1);
 	if (Out_in >= 128) {
 		Out_Flush();
 	}
@@ -55,6 +58,7 @@ void Out_Char (CHAR ch)
 	if (ch == 0x0a) {
 		Out_Flush();
 	}
+	Platform_CommandCritical(0);
 }
 
 static INT32 Out_Length (CHAR *s, ADDRESS s__len)
@@ -72,6 +76,7 @@ void Out_String (CHAR *str, ADDRESS str__len)
 	INT32 l;
 	INT16 error;
 	__DUP(str, str__len, CHAR);
+	Platform_CommandCritical(1);
 	l = Out_Length((void*)str, str__len);
 	if (Out_in + l > 128) {
 		Out_Flush();
@@ -82,6 +87,7 @@ void Out_String (CHAR *str, ADDRESS str__len)
 		__MOVE((ADDRESS)str, (ADDRESS)&Out_buf[__X(Out_in, 128)], l);
 		Out_in += __SHORT(l, 32768);
 	}
+	Platform_CommandCritical(0);
 	__DEL(str);
 }
 
@@ -255,9 +261,17 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 				x = Out_Ten(-e) * x;
 			}
 			if (x >= (LONGREAL)10) {
-				x =   1.00000000000000e-001 * x;
+				x = (LONGREAL)0.10000000000000001 * x;
 				e += 1;
 			}
+			x0 = Out_Ten(d - 1);
+			x = x0 * x;
+			x = x + (LONGREAL)0.5;
+			if (x >= (LONGREAL)10 * x0) {
+				x = (LONGREAL)0.10000000000000001 * x;
+				e += 1;
+			}
+			m = Out_Entier64(x);
 			en = e < 0;
 			if (en) {
 				e = -e;
@@ -273,14 +287,6 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 			} else {
 				s[__X(i, 30)] = '+';
 			}
-			x0 = Out_Ten(d - 1);
-			x = x0 * x;
-			x = x +   5.00000000000000e-001;
-			if (x >= (LONGREAL)10 * x0) {
-				x =   1.00000000000000e-001 * x;
-				e += 1;
-			}
-			m = Out_Entier64(x);
 		}
 		i -= 1;
 		if (long_) {

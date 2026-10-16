@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -42,7 +42,7 @@ static void OPV_ParIntLiteral (INT64 n, INT32 size);
 static INT16 OPV_Precedence (INT16 class, INT16 subclass, INT16 form, INT16 comp);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
 static void OPV_SizeCast (OPT_Node n, INT32 to);
-static void OPV_Stamp (OPS_Name s);
+static void OPV_Stamp (CHAR *s);
 static OPT_Object OPV_SuperProc (OPT_Node n);
 static void OPV_Traverse (OPT_Object obj, OPT_Object outerScope, BOOLEAN exported);
 static void OPV_TraverseRecord (OPT_Struct typ);
@@ -94,7 +94,7 @@ static void OPV_TraverseRecord (OPT_Struct typ)
 	}
 }
 
-static void OPV_Stamp (OPS_Name s)
+static void OPV_Stamp (CHAR *s)
 {
 	INT16 i, j, k;
 	CHAR n[10];
@@ -550,10 +550,12 @@ static void OPV_design (OPT_Node n, INT16 prec)
 				}
 				if (n->typ->comp == 3) {
 					OPM_Write(')');
-					while (i < __ASHR(d->typ->size - 4, 2)) {
+					typ = n->typ;
+					while (typ->comp == 3) {
 						OPM_WriteString((CHAR*)" * ", 4);
 						OPV_Len(d, i);
 						i += 1;
+						typ = typ->BaseTyp;
 					}
 				}
 				OPM_Write(']');
@@ -670,7 +672,9 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 				prec = 9;
 			} else {
 				if ((__IN(comp, 0x0c, 32) && n->class == 7)) {
-					OPM_WriteString((CHAR*)"(CHAR*)", 8);
+					if (comp != 2) {
+						OPM_WriteString((CHAR*)"(CHAR*)", 8);
+					}
 				} else if ((((form == 11 && typ != n->typ)) && n->typ != OPT_niltyp)) {
 					OPM_WriteString((CHAR*)"(void*)", 8);
 				}
@@ -684,6 +688,12 @@ static void OPV_ActualPar (OPT_Node n, OPT_Object fp)
 			OPV_expr(n->left, prec);
 		} else if ((form == 4 && n->class == 7)) {
 			OPV_ParIntLiteral(n->conval->intval, n->typ->size);
+		} else if ((((comp == 2 && n->class == 7)) && n->typ->form == 8)) {
+			OPM_Write('(');
+			OPC_Ident(typ->strobj);
+			OPM_WriteString((CHAR*)"){", 3);
+			OPV_expr(n, -1);
+			OPM_Write('}');
 		} else {
 			OPV_expr(n, prec);
 		}
@@ -1031,6 +1041,9 @@ static void OPV_expr (OPT_Node n, INT16 prec)
 			}
 			break;
 		case 13: 
+			if ((((__IN(20, OPM_Options, 32) && l->obj != NIL)) && l->obj->mode == 9)) {
+				OPM_WriteString((CHAR*)"__NATIVE_RESULT(", 17);
+			}
 			if ((l->obj != NIL && l->obj->mode == 13)) {
 				if (l->subcl == 1) {
 					proc = OPV_SuperProc(n);
@@ -1046,6 +1059,9 @@ static void OPV_expr (OPT_Node n, INT16 prec)
 				OPV_design(l, 11);
 			}
 			OPV_ActualPar(r, n->obj);
+			if ((((__IN(20, OPM_Options, 32) && l->obj != NIL)) && l->obj->mode == 9)) {
+				OPM_Write(')');
+			}
 			break;
 		default: 
 			OPV_design(n, prec);
@@ -1251,6 +1267,9 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 	OPT_Node l = NIL, r = NIL;
 	while ((n != NIL && OPM_noerr)) {
 		OPM_errpos = OPM_Longint(n->conval->intval);
+		if (!__IN(n->class, 0x044000, 32)) {
+			OPC_CheckInterrupt();
+		}
 		if (n->class != 14) {
 			OPC_BegStat();
 		}
@@ -1264,6 +1283,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 					OPV_DefineTDescs(n->right);
 					OPC_EnterBody();
 					OPV_InitTDescs(n->right);
+					OPC_RegisterBody();
 					OPM_WriteString((CHAR*)"/* BEGIN */", 12);
 					OPM_WriteLn();
 					OPV_stat(n->right, outerProc);
@@ -1427,6 +1447,11 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				}
 				break;
 			case 13: 
+				if ((((__IN(20, OPM_Options, 32) && n->left->obj != NIL)) && n->left->obj->mode == 9)) {
+					OPM_WriteString((CHAR*)"SYSTEM_CommandCritical(1)", 26);
+					OPC_EndStat();
+					OPC_BegStat();
+				}
 				if ((n->left->obj != NIL && n->left->obj->mode == 13)) {
 					if (n->left->subcl == 1) {
 						proc = OPV_SuperProc(n);
@@ -1442,6 +1467,11 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 					OPV_design(n->left, 11);
 				}
 				OPV_ActualPar(n->right, n->obj);
+				if ((((__IN(20, OPM_Options, 32) && n->left->obj != NIL)) && n->left->obj->mode == 9)) {
+					OPC_EndStat();
+					OPC_BegStat();
+					OPM_WriteString((CHAR*)"SYSTEM_CommandCritical(0)", 26);
+				}
 				break;
 			case 20: 
 				if (n->subcl != 32) {
@@ -1466,6 +1496,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				OPV_expr(n->left, 12);
 				OPM_Write(' ');
 				OPC_BegBlk();
+				OPC_CheckInterrupt();
 				OPV_stat(n->right, outerProc);
 				OPC_EndBlk();
 				OPV_exit.level -= 1;
@@ -1474,6 +1505,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				OPV_exit.level += 1;
 				OPM_WriteString((CHAR*)"do ", 4);
 				OPC_BegBlk();
+				OPC_CheckInterrupt();
 				OPV_stat(n->left, outerProc);
 				OPC_EndBlk0();
 				OPM_WriteString((CHAR*)" while (!", 10);
@@ -1487,6 +1519,7 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				OPV_exit.label = -1;
 				OPM_WriteString((CHAR*)"for (;;) ", 10);
 				OPC_BegBlk();
+				OPC_CheckInterrupt();
 				OPV_stat(n->left, outerProc);
 				OPC_EndBlk();
 				if (OPV_exit.label != -1) {
@@ -1512,6 +1545,8 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 				break;
 			case 26: 
 				if (OPM_level == 0) {
+					OPC_FinishBody();
+					OPC_BegStat();
 					if (__IN(10, OPM_Options, 32)) {
 						OPM_WriteString((CHAR*)"__FINI", 7);
 					} else {

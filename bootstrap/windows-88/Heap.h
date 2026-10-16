@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
 
 #ifndef Heap__h
 #define Heap__h
@@ -44,6 +44,21 @@ typedef
 		char _prvt0[8];
 	} Heap_ModuleDesc;
 
+typedef
+	void (*Heap_ModuleNotifier)(Heap_Module, INT64);
+
+typedef
+	struct Heap_RetentionDesc *Heap_Retention;
+
+typedef
+	struct Heap_RetentionDesc {
+		INT64 _prvt0;
+		char _prvt1[8];
+	} Heap_RetentionDesc;
+
+typedef
+	void (*Heap_UnloadHandler)(Heap_Module);
+
 
 import SYSTEM_PTR Heap_modules;
 import INT64 Heap_allocated;
@@ -52,21 +67,46 @@ import INT64 Heap_heapsize, Heap_heapMinExpand;
 import INT16 Heap_FileCount;
 
 import ADDRESS *Heap_ModuleDesc__typ;
+import ADDRESS *Heap_RetentionDesc__typ;
 import ADDRESS *Heap_CmdDesc__typ;
 
+import void Heap_BeginFree (Heap_Module owner);
+import INT16 Heap_CheckModule (Heap_Module owner);
+import BOOLEAN Heap_CollectModule (Heap_Module owner);
+import void Heap_CommitFree (Heap_Module owner);
+import void Heap_DetachCallbacks (Heap_Module owner);
+import void Heap_DisableModule (Heap_Module owner);
 import void Heap_FINALL (void);
+import void Heap_FINALMOD (Heap_Module owner);
+import BOOLEAN Heap_Finishable (Heap_Module owner);
 import INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len);
 import void Heap_GC (BOOLEAN markStack);
+import BOOLEAN Heap_HasFinalizers (Heap_Module owner);
 import void Heap_INCREF (Heap_Module m);
+import Heap_Module Heap_Imported (Heap_Module owner, INT16 index);
 import void Heap_InitHeap (void);
+import BOOLEAN Heap_InstallTermHandler (Heap_Command handler);
+import BOOLEAN Heap_LiveTypes (Heap_Module owner);
 import void Heap_Lock (void);
+import void Heap_MODREADY (Heap_Module owner, INT64 initializer);
+import INT16 Heap_ModuleState (Heap_Module owner);
 import SYSTEM_PTR Heap_NEWBLK (INT64 size);
 import SYSTEM_PTR Heap_NEWREC (INT64 tag);
+import Heap_Module Heap_ProcedureModule (INT64 address);
 import void Heap_REGCMD (Heap_Module m, CHAR *name, Heap_Command cmd);
+import void Heap_REGIMPORT (Heap_Module owner, Heap_Module imported);
 import SYSTEM_PTR Heap_REGMOD (CHAR *name, Heap_EnumProc enumPtrs);
+import void Heap_REGPROC (Heap_Module m, INT64 address);
 import void Heap_REGTYP (Heap_Module m, INT64 typ);
 import void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize);
+import BOOLEAN Heap_RegisterUnloadHook (Heap_UnloadHandler handler);
+import BOOLEAN Heap_ReleaseModule (Heap_Retention r);
+import Heap_Retention Heap_RetainModule (Heap_Module owner);
+import Heap_Retention Heap_RetainProcedure (INT64 address);
+import INT32 Heap_Retained (Heap_Module owner);
+import void Heap_SetModuleNotifier (Heap_ModuleNotifier handler);
 import void Heap_Unlock (void);
+import BOOLEAN Heap_UnregisterUnloadHook (Heap_UnloadHandler handler);
 import void *Heap__init(void);
 
 

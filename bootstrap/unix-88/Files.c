@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -76,12 +76,14 @@ static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *de
 static void Files_Flush (Files_Buffer buf);
 export void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
 export void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
+export BOOLEAN Files_GetSearchPath (CHAR *path, ADDRESS path__len);
 static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len);
 static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len);
 export INT32 Files_Length (Files_File f);
 static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len);
 export Files_File Files_New (CHAR *name, ADDRESS name__len);
 export Files_File Files_Old (CHAR *name, ADDRESS name__len);
+static Files_File Files_OldFile (CHAR *name, ADDRESS name__len);
 export INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ);
 export void Files_Purge (Files_File f);
 export void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x);
@@ -98,6 +100,7 @@ export void Files_ReadSet (Files_Rider *R, ADDRESS *R__typ, UINT32 *x);
 export void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len);
 export void Files_Register (Files_File f);
 export void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res);
+static void Files_RenameFile (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res);
 static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len);
 export void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos);
 export void Files_SetSearchPath (CHAR *path, ADDRESS path__len);
@@ -317,6 +320,7 @@ void Files_Close (Files_File f)
 {
 	INT32 i;
 	INT16 error;
+	Platform_CommandCritical(1);
 	if (f->state != 1 || f->registerName[0] != 0x00) {
 		Files_Create(f);
 		i = 0;
@@ -325,6 +329,7 @@ void Files_Close (Files_File f)
 			i += 1;
 		}
 	}
+	Platform_CommandCritical(0);
 }
 
 INT32 Files_Length (Files_File f)
@@ -431,7 +436,7 @@ static Files_File Files_CacheEntry (Platform_FileIdentity identity)
 	return NIL;
 }
 
-Files_File Files_Old (CHAR *name, ADDRESS name__len)
+static Files_File Files_OldFile (CHAR *name, ADDRESS name__len)
 {
 	Files_File f = NIL;
 	INT32 fd;
@@ -508,11 +513,23 @@ Files_File Files_Old (CHAR *name, ADDRESS name__len)
 	__RETCHK;
 }
 
+Files_File Files_Old (CHAR *name, ADDRESS name__len)
+{
+	Files_File f = NIL;
+	__DUP(name, name__len, CHAR);
+	Platform_CommandCritical(1);
+	f = Files_OldFile(name, name__len);
+	Platform_CommandCritical(0);
+	__DEL(name);
+	return f;
+}
+
 void Files_Purge (Files_File f)
 {
 	INT16 i;
 	Platform_FileIdentity identity;
 	INT16 error;
+	Platform_CommandCritical(1);
 	i = 0;
 	while (i < 4) {
 		if (f->bufs[__X(i, 4)] != NIL) {
@@ -530,15 +547,18 @@ void Files_Purge (Files_File f)
 	f->swapper = -1;
 	error = Platform_Identify(f->fd, &identity, Platform_FileIdentity__typ);
 	Platform_SetMTime(&f->identity, Platform_FileIdentity__typ, identity);
+	Platform_CommandCritical(0);
 }
 
 void Files_GetDate (Files_File f, INT32 *t, INT32 *d)
 {
 	Platform_FileIdentity identity;
 	INT16 error;
+	Platform_CommandCritical(1);
 	Files_Create(f);
 	error = Platform_Identify(f->fd, &identity, Platform_FileIdentity__typ);
 	Platform_MTimeAsClock(identity, &*t, &*d);
+	Platform_CommandCritical(0);
 }
 
 INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ)
@@ -552,6 +572,7 @@ void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos)
 	INT32 org, offset, i, n;
 	Files_Buffer buf = NIL;
 	INT16 error;
+	Platform_CommandCritical(1);
 	if (f != NIL) {
 		if (pos > f->len) {
 			pos = f->len;
@@ -608,12 +629,14 @@ void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos)
 	(*r).offset = offset;
 	(*r).eof = 0;
 	(*r).res = 0;
+	Platform_CommandCritical(0);
 }
 
 void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 {
 	INT32 offset;
 	Files_Buffer buf = NIL;
+	Platform_CommandCritical(1);
 	buf = (*r).buf;
 	offset = (*r).offset;
 	if ((*r).org != buf->org) {
@@ -633,6 +656,7 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 		*x = 0x00;
 		(*r).eof = 1;
 	}
+	Platform_CommandCritical(0);
 }
 
 void Files_ReadByte (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
@@ -644,6 +668,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 {
 	INT32 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
+	Platform_CommandCritical(1);
 	if (n > x__len) {
 		Files_IdxTrap();
 	}
@@ -660,6 +685,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 		if (restInBuf == 0) {
 			(*r).res = n;
 			(*r).eof = 1;
+			Platform_CommandCritical(0);
 			return;
 		} else if (n > restInBuf) {
 			min = restInBuf;
@@ -675,6 +701,7 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 	}
 	(*r).res = 0;
 	(*r).eof = 0;
+	Platform_CommandCritical(0);
 }
 
 Files_File Files_Base (Files_Rider *r, ADDRESS *r__typ)
@@ -686,6 +713,7 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 {
 	Files_Buffer buf = NIL;
 	INT32 offset;
+	Platform_CommandCritical(1);
 	buf = (*r).buf;
 	offset = (*r).offset;
 	Files_Assert(offset <= 4096);
@@ -703,12 +731,14 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 	}
 	(*r).offset = offset + 1;
 	(*r).res = 0;
+	Platform_CommandCritical(0);
 }
 
 void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x__len, INT32 n)
 {
 	INT32 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
+	Platform_CommandCritical(1);
 	if (n > x__len) {
 		Files_IdxTrap();
 	}
@@ -742,17 +772,20 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 		buf->chg = 1;
 	}
 	(*r).res = 0;
+	Platform_CommandCritical(0);
 }
 
 void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res)
 {
 	__DUP(name, name__len, CHAR);
+	Platform_CommandCritical(1);
 	Files_Deregister(name, name__len);
 	*res = Platform_Unlink((void*)name, name__len);
+	Platform_CommandCritical(0);
 	__DEL(name);
 }
 
-void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res)
+static void Files_RenameFile (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res)
 {
 	INT32 fdold, fdnew, n;
 	INT16 error, ignore;
@@ -814,10 +847,22 @@ void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT
 	__DEL(new);
 }
 
+void Files_Rename (CHAR *old, ADDRESS old__len, CHAR *new, ADDRESS new__len, INT16 *res)
+{
+	__DUP(old, old__len, CHAR);
+	__DUP(new, new__len, CHAR);
+	Platform_CommandCritical(1);
+	Files_RenameFile(old, old__len, new, new__len, &*res);
+	Platform_CommandCritical(0);
+	__DEL(old);
+	__DEL(new);
+}
+
 void Files_Register (Files_File f)
 {
 	INT16 idx, errcode;
 	Files_File f1 = NIL;
+	Platform_CommandCritical(1);
 	if ((f->state == 1 && f->registerName[0] != 0x00)) {
 		f->state = 2;
 	}
@@ -832,12 +877,15 @@ void Files_Register (Files_File f)
 		f->registerName[0] = 0x00;
 		f->tempFile = 0;
 	}
+	Platform_CommandCritical(0);
 }
 
 void Files_ChangeDirectory (CHAR *path, ADDRESS path__len, INT16 *res)
 {
 	__DUP(path, path__len, CHAR);
+	Platform_CommandCritical(1);
 	*res = Platform_Chdir((void*)path, path__len);
+	Platform_CommandCritical(0);
 	__DEL(path);
 }
 
@@ -901,31 +949,46 @@ void Files_ReadLReal (Files_Rider *R, ADDRESS *R__typ, LONGREAL *x)
 
 void Files_ReadString (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
-	INT16 i;
+	INT32 i;
 	CHAR ch;
 	i = 0;
 	do {
 		Files_Read(&*R, R__typ, (void*)&ch);
-		x[__X(i, x__len)] = ch;
-		i += 1;
+		if (i < x__len - 1) {
+			x[__X(i, x__len)] = ch;
+			i += 1;
+		}
 	} while (!(ch == 0x00));
+	if (x__len > 0) {
+		x[__X(i, x__len)] = 0x00;
+	}
 }
 
 void Files_ReadLine (Files_Rider *R, ADDRESS *R__typ, CHAR *x, ADDRESS x__len)
 {
-	INT16 i;
+	INT32 i;
+	CHAR ch;
+	BOOLEAN truncated;
 	i = 0;
-	do {
-		Files_Read(&*R, R__typ, (void*)&x[__X(i, x__len)]);
-		i += 1;
-	} while (!(x[__X(i - 1, x__len)] == 0x00 || x[__X(i - 1, x__len)] == 0x0a));
-	if (x[__X(i - 1, x__len)] == 0x0a) {
+	truncated = 0;
+	for (;;) {
+		Files_Read(&*R, R__typ, (void*)&ch);
+		if (ch == 0x00 || ch == 0x0a) {
+			break;
+		}
+		if (i < x__len - 1) {
+			x[__X(i, x__len)] = ch;
+			i += 1;
+		} else {
+			truncated = 1;
+		}
+	}
+	if ((((!truncated && i > 0)) && x[__X(i - 1, x__len)] == 0x0d)) {
 		i -= 1;
 	}
-	if ((i > 0 && x[__X(i - 1, x__len)] == 0x0d)) {
-		i -= 1;
+	if (x__len > 0) {
+		x[__X(i, x__len)] = 0x00;
 	}
-	x[__X(i, x__len)] = 0x00;
 }
 
 void Files_ReadNum (Files_Rider *R, ADDRESS *R__typ, SYSTEM_BYTE *x, ADDRESS x__len)
@@ -1056,15 +1119,29 @@ static void Files_Finalize (SYSTEM_PTR o)
 	}
 }
 
+BOOLEAN Files_GetSearchPath (CHAR *path, ADDRESS path__len)
+{
+	path[0] = 0x00;
+	if (Files_SearchPath != NIL) {
+		if (Strings_Length(Files_SearchPath->data, Files_SearchPath->len[0]) >= path__len) {
+			return 0;
+		}
+		__COPY(Files_SearchPath->data, path, path__len);
+	}
+	return 1;
+}
+
 void Files_SetSearchPath (CHAR *path, ADDRESS path__len)
 {
 	__DUP(path, path__len, CHAR);
+	Platform_CommandCritical(1);
 	if (Strings_Length(path, path__len) != 0) {
 		Files_SearchPath = __NEWARR(NIL, 1, 1, 1, 1, ((ADDRESS)((Strings_Length(path, path__len) + 1))));
 		__COPY(path, Files_SearchPath->data, Files_SearchPath->len[0]);
 	} else {
 		Files_SearchPath = NIL;
 	}
+	Platform_CommandCritical(0);
 	__DEL(path);
 }
 

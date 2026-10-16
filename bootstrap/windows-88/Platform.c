@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -6,6 +6,19 @@
 #define SET      UINT32
 
 #include "SYSTEM.h"
+#include "PlatformNative.h"
+
+typedef
+	void (*Platform_Command)(void);
+
+typedef
+	struct Platform_DirectoryDesc *Platform_Directory;
+
+typedef
+	struct Platform_DirectoryDesc {
+		INT64 search, entry;
+		BOOLEAN first;
+	} Platform_DirectoryDesc;
 
 typedef
 	struct Platform_FileIdentity {
@@ -24,11 +37,14 @@ export INT16 Platform_SeekSet, Platform_SeekCur, Platform_SeekEnd;
 export INT64 Platform_StdIn, Platform_StdOut, Platform_StdErr;
 export CHAR Platform_NL[3];
 
+export ADDRESS *Platform_DirectoryDesc__typ;
 export ADDRESS *Platform_FileIdentity__typ;
 
 export BOOLEAN Platform_Absent (INT16 e);
 export INT16 Platform_Chdir (CHAR *n, ADDRESS n__len);
 export INT16 Platform_Close (INT64 h);
+export INT16 Platform_CloseDirectory (INT64 *handle);
+export void Platform_CommandCritical (BOOLEAN enter);
 export BOOLEAN Platform_ConnectionFailed (INT16 e);
 export void Platform_Delay (INT32 ms);
 export BOOLEAN Platform_DifferentFilesystems (INT16 e);
@@ -43,6 +59,7 @@ export INT16 Platform_IdentifyByName (CHAR *n, ADDRESS n__len, Platform_FileIden
 export BOOLEAN Platform_Inaccessible (INT16 e);
 export BOOLEAN Platform_Interrupted (INT16 e);
 export BOOLEAN Platform_IsConsole (INT64 h);
+export BOOLEAN Platform_IsDirectory (CHAR *path, ADDRESS path__len);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
 export INT16 Platform_MaxNameLength (void);
 export INT16 Platform_MaxPathLength (void);
@@ -52,17 +69,22 @@ export INT64 Platform_OSAllocate (INT64 size);
 export void Platform_OSFree (INT64 address);
 export INT16 Platform_OldRO (CHAR *n, ADDRESS n__len, INT64 *h);
 export INT16 Platform_OldRW (CHAR *n, ADDRESS n__len, INT64 *h);
+export INT16 Platform_OpenDirectory (CHAR *path, ADDRESS path__len, INT64 *handle);
 export INT16 Platform_Read (INT64 h, INT64 p, INT32 l, INT32 *n);
 export INT16 Platform_ReadBuf (INT64 h, SYSTEM_BYTE *b, ADDRESS b__len, INT32 *n);
+export INT16 Platform_ReadDirectory (INT64 handle, CHAR *name, ADDRESS name__len, BOOLEAN *done);
 export INT16 Platform_Rename (CHAR *o, ADDRESS o__len, CHAR *n, ADDRESS n__len);
+export INT32 Platform_RunCommand (Platform_Command command);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export INT16 Platform_Seek (INT64 h, INT32 o, INT16 r);
 export void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
+export INT16 Platform_SetFileMTime (CHAR *n, ADDRESS n__len, INT32 year, INT32 month, INT32 day, INT32 hour, INT32 minute, INT32 second);
 export void Platform_SetMTime (Platform_FileIdentity *target, ADDRESS *target__typ, Platform_FileIdentity source);
 export INT16 Platform_Size (INT64 h, INT32 *l);
 export INT16 Platform_Sync (INT64 h);
 export INT16 Platform_System (CHAR *cmd, ADDRESS cmd__len);
+export INT16 Platform_Tell (INT64 h, INT32 *offset);
 static void Platform_TestLittleEndian (void);
 export INT32 Platform_Time (void);
 export BOOLEAN Platform_TimedOut (INT16 e);
@@ -70,6 +92,7 @@ export BOOLEAN Platform_TooManyFiles (INT16 e);
 export INT16 Platform_Truncate (INT64 h, INT32 limit);
 export INT16 Platform_Unlink (CHAR *n, ADDRESS n__len);
 export INT16 Platform_Write (INT64 h, INT64 p, INT32 l);
+export INT16 Platform_WriteCount (INT64 h, INT64 p, INT32 l, INT32 *n);
 static void Platform_YMDHMStoClock (INT16 ye, INT16 mo, INT16 da, INT16 ho, INT16 mi, INT16 se, INT32 *t, INT32 *d);
 export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len);
 
@@ -95,6 +118,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_SetInterruptHandler(h)	SystemSetInterruptHandler((ADDRESS)h)
 #define Platform_SetQuitHandler(h)	SystemSetQuitHandler((ADDRESS)h)
 #define Platform_allocate(size)	(ADDRESS)((void*)HeapAlloc(GetProcessHeap(), 0, (size_t)size))
+#define Platform_applymtime(h)	(INTEGER)SetFileTime((HANDLE)h, 0, 0, &mft)
 #define Platform_bhfiIndexHigh()	(LONGINT)bhfi.nFileIndexHigh
 #define Platform_bhfiIndexLow()	(LONGINT)bhfi.nFileIndexLow
 #define Platform_bhfiMtimeHigh()	(LONGINT)bhfi.ftLastWriteTime.dwHighDateTime
@@ -126,10 +150,13 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_invalidHandleValue()	((ADDRESS)INVALID_HANDLE_VALUE)
 #define Platform_largeInteger()	LARGE_INTEGER li
 #define Platform_liLongint()	(LONGINT)li.QuadPart
+#define Platform_makemtime()	(INTEGER)SystemTimeToFileTime(&mst, &mft)
 #define Platform_moveFile(o, o__len, n, n__len)	(INTEGER)MoveFileEx((char*)o, (char*)n, MOVEFILE_REPLACE_EXISTING)
+#define Platform_mtimevars()	SYSTEMTIME mst = {0}; FILETIME mft
 #define Platform_opennew(n, n__len)	(ADDRESS)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
 #define Platform_openro(n, n__len)	(ADDRESS)CreateFile((char*)n, GENERIC_READ              , FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 #define Platform_openrw(n, n__len)	(ADDRESS)CreateFile((char*)n, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+#define Platform_openwriteattributes(n, n__len)	(ADDRESS)CreateFile((char*)n, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 #define Platform_processInfo()	PROCESS_INFORMATION pi = {0};
 #define Platform_readfile(fd, p, l, n)	(INTEGER)ReadFile((HANDLE)fd, (void*)p, (DWORD)l, (DWORD*)n, 0)
 #define Platform_seekcur()	FILE_CURRENT
@@ -138,6 +165,8 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_setCurrentDirectory(n, n__len)	(INTEGER)SetCurrentDirectory((char*)n)
 #define Platform_setEndOfFile(h)	(INTEGER)SetEndOfFile((HANDLE)h)
 #define Platform_setFilePointerEx(h, o, r, rc)	li.QuadPart=o; *rc = (INTEGER)SetFilePointerEx((HANDLE)h, li, 0, (DWORD)r)
+#define Platform_setmtimedate(year, month, day)	mst.wYear = (WORD)year; mst.wMonth = (WORD)month; mst.wDay = (WORD)day
+#define Platform_setmtimetime(hour, minute, second)	mst.wHour = (WORD)hour; mst.wMinute = (WORD)minute; mst.wSecond = (WORD)second
 #define Platform_sleep(ms)	Sleep((DWORD)ms)
 #define Platform_stToFt()	FILETIME ft; SystemTimeToFileTime(&st, &ft)
 #define Platform_startupInfo()	STARTUPINFO si = {0}; si.cb = sizeof(si);
@@ -153,6 +182,16 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_uluSec()	(LONGINT)(ul.QuadPart % 1000000LL)
 #define Platform_waitForProcess()	(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)
 #define Platform_writefile(fd, p, l, n)	(INTEGER)WriteFile((HANDLE)fd, (void*)(p), (DWORD)l, (DWORD*)n, 0)
+
+INT32 Platform_RunCommand (Platform_Command command)
+{
+	(*command)();
+	return 0;
+}
+
+void Platform_CommandCritical (BOOLEAN enter)
+{
+}
 
 BOOLEAN Platform_TooManyFiles (INT16 e)
 {
@@ -246,7 +285,7 @@ void Platform_SetBadInstructionHandler (Platform_SignalHandler handler)
 
 static void Platform_YMDHMStoClock (INT16 ye, INT16 mo, INT16 da, INT16 ho, INT16 mi, INT16 se, INT32 *t, INT32 *d)
 {
-	*d = (__ASHL((int)__MOD(ye, 100), 9) + __ASHL((mo + 1), 5)) + da;
+	*d = (__ASHL((int)__MOD(ye, 100), 9) + __ASHL(mo, 5)) + da;
 	*t = (__ASHL(ho, 12) + __ASHL(mi, 6)) + se;
 }
 
@@ -306,6 +345,139 @@ INT16 Platform_Error (void)
 	return Platform_err();
 }
 
+INT16 Platform_OpenDirectory (CHAR *path, ADDRESS path__len, INT64 *handle)
+{
+	Platform_Directory dir = NIL;
+	CHAR pattern[4096];
+	INT32 n, attributes, error;
+	__DUP(path, path__len, CHAR);
+	*handle = 0;
+	attributes = PlatformNative_Attributes(path, path__len);
+	if (PlatformNative_InvalidAttributes(attributes)) {
+		__DEL(path);
+		return __SHORTF(PlatformNative_Error(), 32768);
+	}
+	if (!PlatformNative_Directory(attributes)) {
+		__DEL(path);
+		return __SHORTF(PlatformNative_DirectoryError(), 32768);
+	}
+	n = 0;
+	while ((n < path__len && path[__X(n, path__len)] != 0x00)) {
+		n += 1;
+	}
+	if (n == path__len || n + 3 > 4096) {
+		__DEL(path);
+		return __SHORTF(PlatformNative_NameTooLong(), 32768);
+	}
+	__COPY(path, pattern, 4096);
+	if ((((n > 0 && pattern[__X(n - 1, 4096)] != '/')) && pattern[__X(n - 1, 4096)] != '\\')) {
+		pattern[__X(n, 4096)] = '/';
+		n += 1;
+	}
+	pattern[__X(n, 4096)] = '*';
+	pattern[__X(n + 1, 4096)] = 0x00;
+	dir = (Platform_Directory)(ADDRESS)Platform_OSAllocate(24);
+	if (dir == NIL) {
+		__DEL(path);
+		return __SHORTF(PlatformNative_NoMemory(), 32768);
+	}
+	dir->entry = Platform_OSAllocate(PlatformNative_EntrySize());
+	if (dir->entry == 0) {
+		Platform_OSFree((INT64)(ADDRESS)dir);
+		__DEL(path);
+		return __SHORTF(PlatformNative_NoMemory(), 32768);
+	}
+	dir->search = PlatformNative_First(pattern, 4096, dir->entry);
+	dir->first = dir->search != PlatformNative_Invalid();
+	if (!dir->first) {
+		error = PlatformNative_Error();
+		if (!PlatformNative_NoFiles(error)) {
+			Platform_OSFree(dir->entry);
+			Platform_OSFree((INT64)(ADDRESS)dir);
+			__DEL(path);
+			return __SHORT(error, 32768);
+		}
+	}
+	*handle = (INT64)(ADDRESS)dir;
+	__DEL(path);
+	return 0;
+}
+
+INT16 Platform_ReadDirectory (INT64 handle, CHAR *name, ADDRESS name__len, BOOLEAN *done)
+{
+	Platform_Directory dir = NIL;
+	INT64 address, i;
+	INT32 error;
+	CHAR ch;
+	dir = (Platform_Directory)(ADDRESS)handle;
+	*done = 0;
+	if (name__len > 0) {
+		name[0] = 0x00;
+	}
+	if (dir->search == PlatformNative_Invalid()) {
+		*done = 1;
+		return 0;
+	}
+	if ((!dir->first && !PlatformNative_Next(dir->search, dir->entry))) {
+		*done = 1;
+		error = PlatformNative_Error();
+		if (PlatformNative_NoMoreFiles(error)) {
+			return 0;
+		} else {
+			return __SHORT(error, 32768);
+		}
+	}
+	dir->first = 0;
+	address = PlatformNative_EntryName(dir->entry);
+	i = 0;
+	for (;;) {
+		__GET(address + i, ch, CHAR);
+		if (i >= (INT64)name__len) {
+			return __SHORTF(PlatformNative_NameTooLong(), 32768);
+		}
+		if (i == (INT64)(name__len - 1)) {
+			name[__X(i, name__len)] = 0x00;
+			if (ch != 0x00) {
+				return __SHORTF(PlatformNative_NameTooLong(), 32768);
+			}
+		} else {
+			name[__X(i, name__len)] = ch;
+		}
+		if (ch == 0x00) {
+			return 0;
+		}
+		i += 1;
+	}
+	__RETCHK;
+}
+
+INT16 Platform_CloseDirectory (INT64 *handle)
+{
+	Platform_Directory dir = NIL;
+	INT32 error;
+	if (*handle == 0) {
+		return 0;
+	}
+	dir = (Platform_Directory)(ADDRESS)*handle;
+	*handle = 0;
+	error = 0;
+	if ((dir->search != PlatformNative_Invalid() && !PlatformNative_Close(dir->search))) {
+		error = PlatformNative_Error();
+	}
+	Platform_OSFree(dir->entry);
+	Platform_OSFree((INT64)(ADDRESS)dir);
+	return __SHORT(error, 32768);
+}
+
+BOOLEAN Platform_IsDirectory (CHAR *path, ADDRESS path__len)
+{
+	INT32 attributes;
+	__DUP(path, path__len, CHAR);
+	attributes = PlatformNative_Attributes(path, path__len);
+	__DEL(path);
+	return (!PlatformNative_InvalidAttributes(attributes) && PlatformNative_Directory(attributes));
+}
+
 INT16 Platform_OldRO (CHAR *n, ADDRESS n__len, INT64 *h)
 {
 	INT64 fd;
@@ -351,6 +523,35 @@ INT16 Platform_Close (INT64 h)
 		return Platform_err();
 	} else {
 		return 0;
+	}
+	__RETCHK;
+}
+
+INT16 Platform_SetFileMTime (CHAR *n, ADDRESS n__len, INT32 year, INT32 month, INT32 day, INT32 hour, INT32 minute, INT32 second)
+{
+	INT64 handle;
+	INT16 result, error, closeError;
+	handle = Platform_openwriteattributes(n, n__len);
+	if (handle == Platform_invalidHandleValue()) {
+		return Platform_err();
+	}
+	Platform_mtimevars();
+	Platform_setmtimedate(year, month, day);
+	Platform_setmtimetime(hour, minute, second);
+	result = Platform_makemtime();
+	if (result != 0) {
+		result = Platform_applymtime(handle);
+	}
+	if (result == 0) {
+		error = Platform_err();
+	} else {
+		error = 0;
+	}
+	closeError = Platform_Close(handle);
+	if (error != 0) {
+		return error;
+	} else {
+		return closeError;
 	}
 	__RETCHK;
 }
@@ -448,15 +649,25 @@ INT16 Platform_ReadBuf (INT64 h, SYSTEM_BYTE *b, ADDRESS b__len, INT32 *n)
 	__RETCHK;
 }
 
-INT16 Platform_Write (INT64 h, INT64 p, INT32 l)
+INT16 Platform_WriteCount (INT64 h, INT64 p, INT32 l, INT32 *n)
 {
-	INT32 n;
-	if (Platform_writefile(h, p, l, &n) == 0) {
+	INT16 result;
+	INT32 written;
+	result = Platform_writefile(h, p, l, &written);
+	if (result == 0) {
+		*n = 0;
 		return Platform_err();
 	} else {
+		*n = written;
 		return 0;
 	}
 	__RETCHK;
+}
+
+INT16 Platform_Write (INT64 h, INT64 p, INT32 l)
+{
+	INT32 n;
+	return Platform_WriteCount(h, p, l, &n);
 }
 
 INT16 Platform_Sync (INT64 h)
@@ -475,6 +686,20 @@ INT16 Platform_Seek (INT64 h, INT32 o, INT16 r)
 	Platform_largeInteger();
 	Platform_setFilePointerEx(h, o, r, &rc);
 	if (rc == 0) {
+		return Platform_err();
+	} else {
+		return 0;
+	}
+	__RETCHK;
+}
+
+INT16 Platform_Tell (INT64 h, INT32 *offset)
+{
+	INT16 rc;
+	Platform_largeInteger();
+	Platform_getFilePos(h, &*offset, &rc);
+	if (rc == 0) {
+		*offset = 0;
 		return Platform_err();
 	} else {
 		return 0;
@@ -552,7 +777,7 @@ static void Platform_EnableVT100 (void)
 BOOLEAN Platform_IsConsole (INT64 h)
 {
 	INT32 mode;
-	return Platform_GetConsoleMode(Platform_StdOut, &mode);
+	return Platform_GetConsoleMode(h, &mode);
 }
 
 static void Platform_TestLittleEndian (void)
@@ -562,12 +787,15 @@ static void Platform_TestLittleEndian (void)
 	__GET((ADDRESS)&i, Platform_LittleEndian, BOOLEAN);
 }
 
+__TDESC(Platform_DirectoryDesc, 1, 0) = {__TDFLDS("DirectoryDesc", 24), {-8}};
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 20), {-8}};
 
 export void *Platform__init(void)
 {
 	__DEFMOD;
+	__MODULE_IMPORT(PlatformNative);
 	__REGMOD("Platform", 0);
+	__INITYP(Platform_DirectoryDesc, Platform_DirectoryDesc, 0);
 	__INITYP(Platform_FileIdentity, Platform_FileIdentity, 0);
 /* BEGIN */
 	Platform_TestLittleEndian();

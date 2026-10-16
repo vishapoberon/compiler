@@ -192,7 +192,7 @@ static inline int __str_cmp(CHAR *x, CHAR *y){
 #define __ROTR(x, n, s) ((INT##s)((UINT##s)(x)>>(n)|(UINT##s)(x)<<(s-(n))))
 #define __ROT(x, n, s)  ((n)>=0? __ROTL(x, n, s): __ROTR(x, -(n), s))
 
-#define __ASHL(x, n)    ((INT64)(x)<<(n))
+#define __ASHL(x, n)    ((INT64)((UINT64)(x)<<(n)))
 #define __ASHR(x, n)    ((INT64)(x)>>(n))
 #define __ASH(x, n)     ((n)>=0?__ASHL(x,n):__ASHR(x,-(n)))
 static inline INT64 SYSTEM_ASH(INT64 x, INT64 n) {return __ASH(x,n);}
@@ -223,6 +223,15 @@ static inline INT64 SYSTEM_ABS32(INT32 i) {return i >= 0 ? i : -i;}
 
 static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 #define __ABSFD(x) SYSTEM_ABSD(x)
+
+// Save callee-saved registers in the stack frame scanned by Heap.MarkRoots.
+// Artificial register pressure alone does not do this in unoptimized C.
+#if defined(__GNUC__) || defined(__clang__)
+#define __SAVE_REGISTERS() __builtin_unwind_init()
+#else
+#include <setjmp.h>
+#define __SAVE_REGISTERS() jmp_buf __registers; setjmp(__registers)
+#endif
 
 #define __CAP(ch)       ((CHAR)((ch)&0x5f))
 #define __ODD(x)        ((x)&1)
@@ -282,6 +291,8 @@ extern void       SYSTEM_CommandCritical(BOOLEAN enter);
 extern void       SYSTEM_CheckCommandInterrupt(void);
 extern void       SYSTEM_StopCommandRecovery(void);
 extern INT32      SYSTEM_RunCommand(void (*command)(void));
+/* A native call may invoke Oberon callbacks while holding libc locks. Defer
+   cancellation through the entire call, preserving its value and C type. */
 #if defined(__GNUC__) || defined(__clang__) || defined(__TINYC__)
 #define __NATIVE_RESULT(expression) ({ SYSTEM_CommandCritical(1); \
     __typeof__(expression) __voc_native_result = (expression); \

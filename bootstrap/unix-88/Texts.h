@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef Texts__h
 #define Texts__h
@@ -55,7 +55,7 @@ typedef
 
 typedef
 	struct Texts_FontDesc {
-		char _prvt0[32];
+		CHAR name[32];
 	} Texts_FontDesc;
 
 typedef

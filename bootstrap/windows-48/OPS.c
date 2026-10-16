@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -31,6 +31,9 @@ static void OPS_Number (void);
 static void OPS_Str (INT8 *sym);
 static void OPS_err (INT16 n);
 
+#include <stdlib.h>
+#define OPS_strtod(s)	(LONGREAL)strtod((const char*)(ADDRESS)(s), 0)
+#define OPS_strtof(s)	(REAL)strtof((const char*)(ADDRESS)(s), 0)
 
 static void OPS_err (INT16 n)
 {
@@ -88,31 +91,13 @@ static void OPS_Identifier (INT8 *sym)
 	*sym = 38;
 }
 
-static struct Number__6 {
-	struct Number__6 *lnk;
-} *Number__6_s;
+static struct Number__7 {
+	struct Number__7 *lnk;
+} *Number__7_s;
 
-static INT16 Ord__7 (CHAR ch, BOOLEAN hex);
-static LONGREAL Ten__9 (INT16 e);
+static INT16 Ord__8 (CHAR ch, BOOLEAN hex);
 
-static LONGREAL Ten__9 (INT16 e)
-{
-	LONGREAL x, p;
-	x = (LONGREAL)1;
-	p = (LONGREAL)10;
-	while (e > 0) {
-		if (__ODD(e)) {
-			x = x * p;
-		}
-		e = __ASHR(e, 1);
-		if (e > 0) {
-			p = p * p;
-		}
-	}
-	return x;
-}
-
-static INT16 Ord__7 (CHAR ch, BOOLEAN hex)
+static INT16 Ord__8 (CHAR ch, BOOLEAN hex)
 {
 	if (ch <= '9') {
 		return (INT16)ch - 48;
@@ -127,14 +112,16 @@ static INT16 Ord__7 (CHAR ch, BOOLEAN hex)
 
 static void OPS_Number (void)
 {
-	INT16 i, m, n, d, e;
-	CHAR dig[24];
+	INT16 i, m, n, d, e, k, j;
+	CHAR dig[40];
 	LONGREAL f;
 	CHAR expCh;
 	BOOLEAN neg;
-	struct Number__6 _s;
-	_s.lnk = Number__6_s;
-	Number__6_s = &_s;
+	CHAR num[64];
+	CHAR exp[8];
+	struct Number__7 _s;
+	_s.lnk = Number__7_s;
+	Number__7_s = &_s;
 	i = 0;
 	m = 0;
 	n = 0;
@@ -142,8 +129,8 @@ static void OPS_Number (void)
 	for (;;) {
 		if (('0' <= OPS_ch && OPS_ch <= '9') || (((d == 0 && 'A' <= OPS_ch)) && OPS_ch <= 'F')) {
 			if (m > 0 || OPS_ch != '0') {
-				if (n < 24) {
-					dig[__X(n, 24)] = OPS_ch;
+				if (n < 40) {
+					dig[__X(n, 40)] = OPS_ch;
 					n += 1;
 				}
 				m += 1;
@@ -173,7 +160,7 @@ static void OPS_Number (void)
 				OPS_numtyp = 1;
 				if (n <= 2) {
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X(i, 24)], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__8(dig[__X(i, 40)], 1);
 						i += 1;
 					}
 				} else {
@@ -187,7 +174,7 @@ static void OPS_Number (void)
 						OPS_intval = -1;
 					}
 					while (i < n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X(i, 24)], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__8(dig[__X(i, 40)], 1);
 						i += 1;
 					}
 				} else {
@@ -196,7 +183,7 @@ static void OPS_Number (void)
 			} else {
 				OPS_numtyp = 2;
 				while (i < n) {
-					d = Ord__7(dig[__X(i, 24)], 0);
+					d = Ord__8(dig[__X(i, 40)], 0);
 					i += 1;
 					if (OPS_intval <= __DIV(9223372036854775807LL - (INT64)d, 10)) {
 						OPS_intval = OPS_intval * 10 + (INT64)d;
@@ -212,9 +199,18 @@ static void OPS_Number (void)
 		f = (LONGREAL)0;
 		e = 0;
 		expCh = 'E';
+		num[0] = '0';
+		num[1] = '.';
+		k = 2;
+		j = 0;
+		while (j < n) {
+			num[__X(k, 64)] = dig[__X(j, 40)];
+			k += 1;
+			j += 1;
+		}
 		while (n > 0) {
 			n -= 1;
-			f = (Ord__7(dig[__X(n, 24)], 0) + f) / (LONGREAL)(LONGREAL)10;
+			f = (Ord__8(dig[__X(n, 40)], 0) + f) / (LONGREAL)(LONGREAL)10;
 		}
 		if (OPS_ch == 'E' || OPS_ch == 'D') {
 			expCh = OPS_ch;
@@ -228,7 +224,7 @@ static void OPS_Number (void)
 			}
 			if (('0' <= OPS_ch && OPS_ch <= '9')) {
 				do {
-					n = Ord__7(OPS_ch, 0);
+					n = Ord__8(OPS_ch, 0);
 					OPM_Get(&OPS_ch);
 					if (e <= __DIV(32767 - n, 10)) {
 						e = e * 10 + n;
@@ -244,40 +240,57 @@ static void OPS_Number (void)
 			}
 		}
 		e -= (i - d) - m;
+		num[__X(k, 64)] = 'e';
+		k += 1;
+		if (e < 0) {
+			num[__X(k, 64)] = '-';
+			k += 1;
+		}
+		j = __ABS(e);
+		n = 0;
+		do {
+			exp[__X(n, 8)] = __CHR(48 + (int)__MOD(j, 10));
+			j = __DIV(j, 10);
+			n += 1;
+		} while (!(j == 0));
+		while (n > 0) {
+			n -= 1;
+			num[__X(k, 64)] = exp[__X(n, 8)];
+			k += 1;
+		}
+		num[__X(k, 64)] = 0x00;
 		if (expCh == 'E') {
 			OPS_numtyp = 3;
-			if ((-37 < e && e <= 38)) {
-				if (e < 0) {
-					OPS_realval = (f / (LONGREAL)Ten__9(-e));
-				} else {
-					OPS_realval = (f * Ten__9(e));
-				}
+			if ((e > -400 && e < 400)) {
+				OPS_realval = OPS_strtof((ADDRESS)num);
 			} else {
+				OPS_realval = (REAL)0;
+			}
+			if (OPS_realval > (REAL)3.4028234663852886e+38 || (OPS_realval == (REAL)0 && m > 0)) {
 				OPS_err(203);
 			}
 		} else {
 			OPS_numtyp = 4;
-			if ((-307 < e && e <= 308)) {
-				if (e < 0) {
-					OPS_lrlval = f / (LONGREAL)Ten__9(-e);
-				} else {
-					OPS_lrlval = f * Ten__9(e);
-				}
+			if ((e > -400 && e < 400)) {
+				OPS_lrlval = OPS_strtod((ADDRESS)num);
 			} else {
+				OPS_lrlval = (LONGREAL)0;
+			}
+			if (OPS_lrlval > (LONGREAL)1.7976931348623157e+308 || (OPS_lrlval == (LONGREAL)0 && m > 0)) {
 				OPS_err(203);
 			}
 		}
 	}
-	Number__6_s = _s.lnk;
+	Number__7_s = _s.lnk;
 }
 
-static struct Get__1 {
-	struct Get__1 *lnk;
-} *Get__1_s;
+static struct Get__2 {
+	struct Get__2 *lnk;
+} *Get__2_s;
 
-static void Comment__2 (void);
+static void Comment__3 (void);
 
-static void Comment__2 (void)
+static void Comment__3 (void)
 {
 	BOOLEAN isExported;
 	CHAR commentText[1024];
@@ -371,14 +384,14 @@ static void Comment__2 (void)
 void OPS_Get (INT8 *sym)
 {
 	INT8 s;
-	struct Get__1 _s;
-	_s.lnk = Get__1_s;
-	Get__1_s = &_s;
+	struct Get__2 _s;
+	_s.lnk = Get__2_s;
+	Get__2_s = &_s;
 	OPM_errpos = OPM_curpos - 1;
 	while (OPS_ch <= ' ') {
 		if (OPS_ch == 0x00) {
 			*sym = 64;
-			Get__1_s = _s.lnk;
+			Get__2_s = _s.lnk;
 			return;
 		} else {
 			OPM_Get(&OPS_ch);
@@ -399,7 +412,7 @@ void OPS_Get (INT8 *sym)
 		case '(': 
 			OPM_Get(&OPS_ch);
 			if (OPS_ch == '*') {
-				Comment__2();
+				Comment__3();
 				OPS_Get(&s);
 			} else {
 				s = 30;
@@ -664,7 +677,7 @@ void OPS_Get (INT8 *sym)
 			break;
 	}
 	*sym = s;
-	Get__1_s = _s.lnk;
+	Get__2_s = _s.lnk;
 }
 
 void OPS_Init (void)

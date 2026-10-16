@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #ifndef Files__h
 #define Files__h
@@ -33,6 +33,7 @@ import void Files_Close (Files_File f);
 import void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
 import void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
 import void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
+import BOOLEAN Files_GetSearchPath (CHAR *path, ADDRESS path__len);
 import INT32 Files_Length (Files_File f);
 import Files_File Files_New (CHAR *name, ADDRESS name__len);
 import Files_File Files_Old (CHAR *name, ADDRESS name__len);

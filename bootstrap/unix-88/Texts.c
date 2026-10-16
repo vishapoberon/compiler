@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -8,6 +8,7 @@
 #include "SYSTEM.h"
 #include "Files.h"
 #include "Modules.h"
+#include "Platform.h"
 #include "Reals.h"
 
 typedef
@@ -231,6 +232,9 @@ export void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 
 export void Texts_WriteRealHex (Texts_Writer *W, ADDRESS *W__typ, REAL x);
 export void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len);
 
+#include <stdlib.h>
+#define Texts_ParseLongReal(text, text__len)	strtod((const char*)text, 0)
+#define Texts_ParseReal(text, text__len)	strtof((const char*)text, 0)
 
 static Texts_FontsFont Texts_FontsThis (CHAR *name, ADDRESS name__len)
 {
@@ -425,16 +429,19 @@ static void Texts_HandleAlien (Texts_Elem E, Texts_ElemMsg *msg, ADDRESS *msg__t
 void Texts_OpenBuf (Texts_Buffer B)
 {
 	Texts_Run u = NIL;
+	Platform_CommandCritical(1);
 	__NEW(u, Texts_RunDesc);
 	u->next = u;
 	u->prev = u;
 	B->head = u;
 	B->len = 0;
+	Platform_CommandCritical(0);
 }
 
 void Texts_Copy (Texts_Buffer SB, Texts_Buffer DB)
 {
 	Texts_Run u = NIL, v = NIL, vn = NIL;
+	Platform_CommandCritical(1);
 	u = SB->head->next;
 	v = DB->head->prev;
 	while (u != SB->head) {
@@ -451,18 +458,22 @@ void Texts_Copy (Texts_Buffer SB, Texts_Buffer DB)
 	v->next = DB->head;
 	DB->head->prev = v;
 	DB->len += SB->len;
+	Platform_CommandCritical(0);
 }
 
 void Texts_Recall (Texts_Buffer *B)
 {
+	Platform_CommandCritical(1);
 	*B = Texts_del;
 	Texts_del = NIL;
+	Platform_CommandCritical(0);
 }
 
 void Texts_Save (Texts_Text T, INT32 beg, INT32 end, Texts_Buffer B)
 {
 	Texts_Run u = NIL, v = NIL, w = NIL, wn = NIL;
 	INT32 uo, ud, vo, vd;
+	Platform_CommandCritical(1);
 	Texts_Find(T, &beg, &u, &uo, &ud);
 	Texts_Find(T, &end, &v, &vo, &vd);
 	w = B->head->prev;
@@ -491,6 +502,7 @@ void Texts_Save (Texts_Text T, INT32 beg, INT32 end, Texts_Buffer B)
 	w->next = B->head;
 	B->head->prev = w;
 	B->len += end - beg;
+	Platform_CommandCritical(0);
 }
 
 void Texts_Insert (Texts_Text T, INT32 pos, Texts_Buffer B)
@@ -498,6 +510,7 @@ void Texts_Insert (Texts_Text T, INT32 pos, Texts_Buffer B)
 	Texts_Run u = NIL, un = NIL, v = NIL;
 	Texts_Piece p = NIL, q = NIL;
 	INT32 uo, ud, len;
+	Platform_CommandCritical(1);
 	Texts_Find(T, &pos, &u, &uo, &ud);
 	Texts_Split(ud, &u, &un);
 	len = B->len;
@@ -508,6 +521,7 @@ void Texts_Insert (Texts_Text T, INT32 pos, Texts_Buffer B)
 	B->head->next = B->head;
 	B->head->prev = B->head;
 	B->len = 0;
+	Platform_CommandCritical(0);
 	if (T->notify != NIL) {
 		(*T->notify)(T, 1, pos, pos + len);
 	}
@@ -517,6 +531,7 @@ void Texts_Append (Texts_Text T, Texts_Buffer B)
 {
 	Texts_Run v = NIL;
 	INT32 pos, len;
+	Platform_CommandCritical(1);
 	pos = T->len;
 	len = B->len;
 	v = B->head->next;
@@ -526,6 +541,7 @@ void Texts_Append (Texts_Text T, Texts_Buffer B)
 	B->head->next = B->head;
 	B->head->prev = B->head;
 	B->len = 0;
+	Platform_CommandCritical(0);
 	if (T->notify != NIL) {
 		(*T->notify)(T, 1, pos, pos + len);
 	}
@@ -535,6 +551,7 @@ void Texts_Delete (Texts_Text T, INT32 beg, INT32 end)
 {
 	Texts_Run c = NIL, u = NIL, un = NIL, v = NIL, vn = NIL;
 	INT32 co, uo, ud, vo, vd;
+	Platform_CommandCritical(1);
 	Texts_Find(T, &beg, &u, &uo, &ud);
 	Texts_Split(ud, &u, &un);
 	c = T->cache;
@@ -551,6 +568,7 @@ void Texts_Delete (Texts_Text T, INT32 beg, INT32 end)
 	u->next = vn;
 	vn->prev = u;
 	T->len -= end - beg;
+	Platform_CommandCritical(0);
 	if (T->notify != NIL) {
 		(*T->notify)(T, 2, beg, end);
 	}
@@ -560,6 +578,7 @@ void Texts_ChangeLooks (Texts_Text T, INT32 beg, INT32 end, UINT32 sel, Texts_Fo
 {
 	Texts_Run c = NIL, u = NIL, un = NIL, v = NIL, vn = NIL;
 	INT32 co, uo, ud, vo, vd;
+	Platform_CommandCritical(1);
 	Texts_Find(T, &beg, &u, &uo, &ud);
 	Texts_Split(ud, &u, &un);
 	c = T->cache;
@@ -590,6 +609,7 @@ void Texts_ChangeLooks (Texts_Text T, INT32 beg, INT32 end, UINT32 sel, Texts_Fo
 	Texts_Merge(T, u, &un);
 	u->next = un;
 	un->prev = u;
+	Platform_CommandCritical(0);
 	if (T->notify != NIL) {
 		(*T->notify)(T, 0, beg, end);
 	}
@@ -598,6 +618,7 @@ void Texts_ChangeLooks (Texts_Text T, INT32 beg, INT32 end, UINT32 sel, Texts_Fo
 void Texts_OpenReader (Texts_Reader *R, ADDRESS *R__typ, Texts_Text T, INT32 pos)
 {
 	Texts_Run u = NIL;
+	Platform_CommandCritical(1);
 	if (pos >= T->len) {
 		pos = T->len;
 	}
@@ -607,6 +628,7 @@ void Texts_OpenReader (Texts_Reader *R, ADDRESS *R__typ, Texts_Text T, INT32 pos
 	if (__ISP(u, Texts_PieceDesc, 1)) {
 		Files_Set(&(*R).rider, Files_Rider__typ, __GUARDP(u, Texts_PieceDesc, 1)->file, __GUARDP(u, Texts_PieceDesc, 1)->org + (*R).off);
 	}
+	Platform_CommandCritical(0);
 }
 
 void Texts_Read (Texts_Reader *R, ADDRESS *R__typ, CHAR *ch)
@@ -614,6 +636,7 @@ void Texts_Read (Texts_Reader *R, ADDRESS *R__typ, CHAR *ch)
 	Texts_Run u = NIL;
 	INT32 pos;
 	CHAR nextch;
+	Platform_CommandCritical(1);
 	u = (*R).run;
 	(*R).fnt = u->fnt;
 	(*R).col = u->col;
@@ -652,6 +675,7 @@ void Texts_Read (Texts_Reader *R, ADDRESS *R__typ, CHAR *ch)
 		(*R).run = u;
 		(*R).off = 0;
 	}
+	Platform_CommandCritical(0);
 }
 
 void Texts_ReadElem (Texts_Reader *R, ADDRESS *R__typ)
@@ -716,52 +740,107 @@ void Texts_OpenScanner (Texts_Scanner *S, ADDRESS *S__typ, Texts_Text T, INT32 p
 	(*S).nextCh = ' ';
 }
 
-static struct Scan__31 {
+static struct Scan__34 {
 	Texts_Scanner *S;
 	ADDRESS *S__typ;
 	CHAR *ch;
-	BOOLEAN *negE;
-	INT16 *e;
-	struct Scan__31 *lnk;
-} *Scan__31_s;
+	BOOLEAN *negE, *sticky, *tooLong, *invalid;
+	INT16 *i;
+	INT64 *e, *scale;
+	INT32 *digit;
+	CHAR (*d)[1100];
+	struct Scan__34 *lnk;
+} *Scan__34_s;
 
-static void ReadScaleFactor__32 (void);
+static void Digit__36 (CHAR ch, BOOLEAN fraction);
+static void ReadScaleFactor__38 (void);
 
-static void ReadScaleFactor__32 (void)
+static void Digit__36 (CHAR ch, BOOLEAN fraction)
 {
-	Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
-	if (*Scan__31_s->ch == '-') {
-		*Scan__31_s->negE = 1;
-		Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
-	} else {
-		*Scan__31_s->negE = 0;
-		if (*Scan__31_s->ch == '+') {
-			Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
+	if (*Scan__34_s->i > 0 || ch != '0') {
+		if (*Scan__34_s->i < 1100) {
+			(*Scan__34_s->d)[__X(*Scan__34_s->i, 1100)] = ch;
+			*Scan__34_s->i += 1;
+			if (fraction) {
+				if (*Scan__34_s->scale > (-9223372036854775807LL-1)) {
+					*Scan__34_s->scale -= 1;
+				} else {
+					*Scan__34_s->invalid = 1;
+				}
+			}
+		} else {
+			*Scan__34_s->sticky = *Scan__34_s->sticky || ch != '0';
+			if (!fraction) {
+				*Scan__34_s->tooLong = 1;
+				if (*Scan__34_s->scale < 9223372036854775807LL) {
+					*Scan__34_s->scale += 1;
+				} else {
+					*Scan__34_s->invalid = 1;
+				}
+			}
+		}
+	} else if (fraction) {
+		if (*Scan__34_s->scale > (-9223372036854775807LL-1)) {
+			*Scan__34_s->scale -= 1;
+		} else {
+			*Scan__34_s->invalid = 1;
 		}
 	}
-	while (('0' <= *Scan__31_s->ch && *Scan__31_s->ch <= '9')) {
-		*Scan__31_s->e = (*Scan__31_s->e * 10 + (INT16)*Scan__31_s->ch) - 48;
-		Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
+}
+
+static void ReadScaleFactor__38 (void)
+{
+	BOOLEAN seen;
+	Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+	if (*Scan__34_s->ch == '-') {
+		*Scan__34_s->negE = 1;
+		Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+	} else {
+		*Scan__34_s->negE = 0;
+		if (*Scan__34_s->ch == '+') {
+			Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+		}
+	}
+	seen = 0;
+	while (('0' <= *Scan__34_s->ch && *Scan__34_s->ch <= '9')) {
+		seen = 1;
+		*Scan__34_s->digit = (INT16)*Scan__34_s->ch - 48;
+		if (*Scan__34_s->e <= __DIV(9223372036854775807LL - (INT64)*Scan__34_s->digit, 10)) {
+			*Scan__34_s->e = *Scan__34_s->e * 10 + (INT64)*Scan__34_s->digit;
+		} else {
+			*Scan__34_s->invalid = 1;
+		}
+		Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+	}
+	if (!seen) {
+		*Scan__34_s->invalid = 1;
 	}
 }
 
 void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 {
-	CHAR ch, term;
-	BOOLEAN neg, negE, hex;
-	INT8 i, j, h;
-	INT16 e;
-	INT32 k;
-	REAL x, f;
-	LONGREAL y, g;
-	CHAR d[32];
-	struct Scan__31 _s;
+	CHAR ch, term, swap;
+	BOOLEAN neg, negE, hex, sticky, tooLong, invalid;
+	INT16 i, j, n;
+	INT64 e, scale;
+	INT32 k, digit, limit;
+	CHAR d[1100];
+	CHAR number[1164];
+	INT16 _for__35;
+	struct Scan__34 _s;
 	_s.S = S; _s.S__typ = S__typ;
 	_s.ch = &ch;
 	_s.negE = &negE;
+	_s.sticky = &sticky;
+	_s.tooLong = &tooLong;
+	_s.invalid = &invalid;
+	_s.i = &i;
 	_s.e = &e;
-	_s.lnk = Scan__31_s;
-	Scan__31_s = &_s;
+	_s.scale = &scale;
+	_s.digit = &digit;
+	_s.d = (void*)d;
+	_s.lnk = Scan__34_s;
+	Scan__34_s = &_s;
 	ch = (*S).nextCh;
 	i = 0;
 	for (;;) {
@@ -779,7 +858,7 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 			Texts_Read((void*)&*S, S__typ, &ch);
 		} while (!((((__CAP(ch) > 'Z' && ch != '_') || ('A' > __CAP(ch) && ch > '9')) || ((('0' > ch && ch != '.')) && ch != '/')) || i == 63));
 		(*S).s[__X(i, 64)] = 0x00;
-		(*S).len = i;
+		(*S).len = __SHORT(i, 128);
 		(*S).class = 1;
 	} else if (ch == '"') {
 		Texts_Read((void*)&*S, S__typ, &ch);
@@ -789,7 +868,7 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 			Texts_Read((void*)&*S, S__typ, &ch);
 		}
 		(*S).s[__X(i, 64)] = 0x00;
-		(*S).len = i + 1;
+		(*S).len = __SHORT(i + 1, 128);
 		Texts_Read((void*)&*S, S__typ, &ch);
 		(*S).class = 2;
 	} else {
@@ -801,10 +880,14 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 		}
 		if (('0' <= ch && ch <= '9')) {
 			hex = 0;
-			j = 0;
+			sticky = 0;
+			tooLong = 0;
+			invalid = 0;
+			negE = 0;
+			scale = 0;
+			e = 0;
 			for (;;) {
-				d[__X(i, 32)] = ch;
-				i += 1;
+				Digit__36(ch, 0);
 				Texts_Read((void*)&*S, S__typ, &ch);
 				if (ch < '0') {
 					break;
@@ -824,117 +907,139 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 			if (ch == 'H') {
 				Texts_Read((void*)&*S, S__typ, &ch);
 				(*S).class = 3;
-				if (i - j > 8) {
-					j = i - 8;
-				}
-				k = (INT16)d[__X(j, 32)] - 48;
-				j += 1;
-				if ((i - j == 7 && k >= 8)) {
-					k -= 16;
-				}
-				while (j < i) {
-					k = __ASHL(k, 4) + ((INT16)d[__X(j, 32)] - 48);
+				k = 0;
+				if (tooLong) {
+					(*S).class = 0;
+				} else if (i > 0) {
+					if (i > 8) {
+						j = i - 8;
+					} else {
+						j = 0;
+					}
+					k = (INT16)d[__X(j, 1100)] - 48;
 					j += 1;
+					if ((i - j == 7 && k >= 8)) {
+						k -= 16;
+					}
+					while (j < i) {
+						k = __ASHL(k, 4) + ((INT16)d[__X(j, 1100)] - 48);
+						j += 1;
+					}
 				}
-				if (neg) {
+				if ((neg && k == (-2147483647-1))) {
+					(*S).class = 0;
+				} else if (neg) {
 					(*S).i = -k;
 				} else {
 					(*S).i = k;
 				}
 			} else if (ch == '.') {
 				Texts_Read((void*)&*S, S__typ, &ch);
-				h = i;
 				while (('0' <= ch && ch <= '9')) {
-					d[__X(i, 32)] = ch;
-					i += 1;
+					Digit__36(ch, 1);
 					Texts_Read((void*)&*S, S__typ, &ch);
 				}
-				if (ch == 'D') {
-					e = 0;
-					y = (LONGREAL)0;
-					g = (LONGREAL)1;
-					do {
-						y = y * (LONGREAL)10 + ((INT16)d[__X(j, 32)] - 48);
-						j += 1;
-					} while (!(j == h));
-					while (j < i) {
-						g = g / (LONGREAL)(LONGREAL)10;
-						y = ((INT16)d[__X(j, 32)] - 48) * g + y;
-						j += 1;
-					}
-					ReadScaleFactor__32();
-					if (negE) {
-						if (e <= 308) {
-							y = y / (LONGREAL)Reals_TenL(e);
-						} else {
-							y = (LONGREAL)0;
-						}
-					} else if (e > 0) {
-						if (e <= 308) {
-							y = Reals_TenL(e) * y;
-						} else {
-							__HALT(40);
-						}
-					}
-					if (neg) {
-						y = -y;
-					}
+				term = ch;
+				if (term == 'D') {
 					(*S).class = 5;
-					(*S).y = y;
+					ReadScaleFactor__38();
 				} else {
-					e = 0;
-					x = (REAL)0;
-					f = (REAL)1;
-					do {
-						x = x * (REAL)10 + ((INT16)d[__X(j, 32)] - 48);
-						j += 1;
-					} while (!(j == h));
-					while (j < i) {
-						f = f / (REAL)(REAL)10;
-						x = ((INT16)d[__X(j, 32)] - 48) * f + x;
-						j += 1;
-					}
-					if (ch == 'E') {
-						ReadScaleFactor__32();
-					}
-					if (negE) {
-						if (e <= 38) {
-							x = x / (REAL)Reals_Ten(e);
-						} else {
-							x = (REAL)0;
-						}
-					} else if (e > 0) {
-						if (e <= 38) {
-							x = Reals_Ten(e) * x;
-						} else {
-							__HALT(40);
-						}
-					}
-					if (neg) {
-						x = -x;
-					}
 					(*S).class = 4;
-					(*S).x = x;
+					if (term == 'E') {
+						ReadScaleFactor__38();
+					}
 				}
-				if (hex) {
+				if (hex || invalid) {
 					(*S).class = 0;
+				} else {
+					if (negE) {
+						e = -e;
+					}
+					if ((e > 0 && scale > 9223372036854775807LL - e)) {
+						scale = 9223372036854775807LL;
+					} else if ((e < 0 && scale < (-9223372036854775807LL-1) - e)) {
+						scale = (-9223372036854775807LL-1);
+					} else {
+						scale += e;
+					}
+					if (scale > 1000000) {
+						scale = 1000000;
+					} else if (scale < -1000000) {
+						scale = -1000000;
+					}
+					n = 0;
+					if (neg) {
+						number[__X(n, 1164)] = '-';
+						n += 1;
+					}
+					if (i == 0) {
+						number[__X(n, 1164)] = '0';
+						n += 1;
+					} else {
+						_for__35 = i - 1;
+						j = 0;
+						while (j <= _for__35) {
+							number[__X(n, 1164)] = d[__X(j, 1100)];
+							n += 1;
+							j += 1;
+						}
+					}
+					if (sticky) {
+						number[__X(n, 1164)] = '1';
+						n += 1;
+						scale -= 1;
+					}
+					number[__X(n, 1164)] = 'E';
+					n += 1;
+					if (scale < 0) {
+						number[__X(n, 1164)] = '-';
+						n += 1;
+						scale = -scale;
+					}
+					j = n;
+					do {
+						number[__X(n, 1164)] = __CHR(__MOD(scale, 10) + 48);
+						scale = __DIV(scale, 10);
+						n += 1;
+					} while (!(scale == 0));
+					number[__X(n, 1164)] = 0x00;
+					n -= 1;
+					while (j < n) {
+						swap = number[__X(j, 1164)];
+						number[__X(j, 1164)] = number[__X(n, 1164)];
+						number[__X(n, 1164)] = swap;
+						j += 1;
+						n -= 1;
+					}
+					if ((*S).class == 5) {
+						(*S).y = Texts_ParseLongReal(number, 1164);
+					} else {
+						(*S).x = Texts_ParseReal(number, 1164);
+					}
 				}
 			} else {
 				(*S).class = 3;
 				k = 0;
-				do {
-					k = k * 10 + ((INT16)d[__X(j, 32)] - 48);
-					j += 1;
-				} while (!(j == i));
+				j = 0;
+				limit = 7;
 				if (neg) {
-					(*S).i = -k;
-				} else {
-					(*S).i = k;
+					limit += 1;
 				}
-				if (hex) {
+				while ((j < i && !invalid)) {
+					digit = (INT16)d[__X(j, 1100)] - 48;
+					if ((digit > 9 || k < -214748364) || (k == -214748364 && digit > limit)) {
+						invalid = 1;
+					} else {
+						k = k * 10 - digit;
+						j += 1;
+					}
+				}
+				if ((hex || tooLong) || invalid) {
 					(*S).class = 0;
+				} else if (neg) {
+					(*S).i = k;
 				} else {
-					(*S).class = 3;
+					(*S).i = -k;
 				}
 			}
 		} else {
@@ -948,11 +1053,12 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 		}
 	}
 	(*S).nextCh = ch;
-	Scan__31_s = _s.lnk;
+	Scan__34_s = _s.lnk;
 }
 
 void Texts_OpenWriter (Texts_Writer *W, ADDRESS *W__typ)
 {
+	Platform_CommandCritical(1);
 	__NEW((*W).buf, Texts_BufDesc);
 	Texts_OpenBuf((*W).buf);
 	(*W).fnt = Texts_FontsDefault;
@@ -960,6 +1066,7 @@ void Texts_OpenWriter (Texts_Writer *W, ADDRESS *W__typ)
 	(*W).voff = 0;
 	(*W).file = Files_New((CHAR*)"", 1);
 	Files_Set(&(*W).rider, Files_Rider__typ, (*W).file, 0);
+	Platform_CommandCritical(0);
 }
 
 void Texts_SetFont (Texts_Writer *W, ADDRESS *W__typ, Texts_FontsFont fnt)
@@ -981,6 +1088,7 @@ void Texts_Write (Texts_Writer *W, ADDRESS *W__typ, CHAR ch)
 {
 	Texts_Run u = NIL, un = NIL;
 	Texts_Piece p = NIL;
+	Platform_CommandCritical(1);
 	Files_Write(&(*W).rider, Files_Rider__typ, ch);
 	(*W).buf->len += 1;
 	un = (*W).buf->head;
@@ -1001,11 +1109,13 @@ void Texts_Write (Texts_Writer *W, ADDRESS *W__typ, CHAR ch)
 		p->org = Files_Length((*W).file) - 1;
 		p->ascii = 0;
 	}
+	Platform_CommandCritical(0);
 }
 
 void Texts_WriteElem (Texts_Writer *W, ADDRESS *W__typ, Texts_Elem e)
 {
 	Texts_Run u = NIL, un = NIL;
+	Platform_CommandCritical(1);
 	if (e->base != NIL) {
 		__HALT(99);
 	}
@@ -1020,6 +1130,7 @@ void Texts_WriteElem (Texts_Writer *W, ADDRESS *W__typ, Texts_Elem e)
 	e->prev = u;
 	e->next = un;
 	un->prev = (Texts_Run)e;
+	Platform_CommandCritical(0);
 }
 
 void Texts_WriteLn (Texts_Writer *W, ADDRESS *W__typ)
@@ -1029,7 +1140,7 @@ void Texts_WriteLn (Texts_Writer *W, ADDRESS *W__typ)
 
 void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len)
 {
-	INT16 i;
+	INT32 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	while (s[__X(i, s__len)] >= ' ') {
@@ -1138,13 +1249,13 @@ void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n)
 			x = Reals_Ten(-e) * x;
 		}
 		if (x >= (REAL)10) {
-			x =   1.0000000e-001 * x;
+			x = (REAL)0.10000000149011612 * x;
 			e += 1;
 		}
 		x0 = Reals_Ten(n - 1);
-		x = x0 * x +   5.0000000e-001;
+		x = x0 * x + (REAL)0.5;
 		if (x >= (REAL)10 * x0) {
-			x = x *   1.0000000e-001;
+			x = x * (REAL)0.10000000149011612;
 			e += 1;
 		}
 		Reals_Convert(x, n, (void*)d, 9);
@@ -1167,30 +1278,30 @@ void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n)
 	}
 }
 
-static struct WriteRealFix__53 {
+static struct WriteRealFix__59 {
 	Texts_Writer *W;
 	ADDRESS *W__typ;
 	INT16 *i;
 	CHAR (*d)[9];
-	struct WriteRealFix__53 *lnk;
-} *WriteRealFix__53_s;
+	struct WriteRealFix__59 *lnk;
+} *WriteRealFix__59_s;
 
-static void dig__54 (INT16 n);
-static void seq__56 (CHAR ch, INT16 n);
+static void dig__60 (INT16 n);
+static void seq__62 (CHAR ch, INT16 n);
 
-static void seq__56 (CHAR ch, INT16 n)
+static void seq__62 (CHAR ch, INT16 n)
 {
 	while (n > 0) {
-		Texts_Write(&*WriteRealFix__53_s->W, WriteRealFix__53_s->W__typ, ch);
+		Texts_Write(&*WriteRealFix__59_s->W, WriteRealFix__59_s->W__typ, ch);
 		n -= 1;
 	}
 }
 
-static void dig__54 (INT16 n)
+static void dig__60 (INT16 n)
 {
 	while (n > 0) {
-		*WriteRealFix__53_s->i -= 1;
-		Texts_Write(&*WriteRealFix__53_s->W, WriteRealFix__53_s->W__typ, (*WriteRealFix__53_s->d)[__X(*WriteRealFix__53_s->i, 9)]);
+		*WriteRealFix__59_s->i -= 1;
+		Texts_Write(&*WriteRealFix__59_s->W, WriteRealFix__59_s->W__typ, (*WriteRealFix__59_s->d)[__X(*WriteRealFix__59_s->i, 9)]);
 		n -= 1;
 	}
 }
@@ -1201,23 +1312,23 @@ void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT1
 	CHAR sign;
 	REAL x0;
 	CHAR d[9];
-	struct WriteRealFix__53 _s;
+	struct WriteRealFix__59 _s;
 	_s.W = W; _s.W__typ = W__typ;
 	_s.i = &i;
 	_s.d = (void*)d;
-	_s.lnk = WriteRealFix__53_s;
-	WriteRealFix__53_s = &_s;
+	_s.lnk = WriteRealFix__59_s;
+	WriteRealFix__59_s = &_s;
 	e = Reals_Expo(x);
 	if (k < 0) {
 		k = 0;
 	}
 	if (e == 0) {
-		seq__56(' ', (n - k) - 2);
+		seq__62(' ', (n - k) - 2);
 		Texts_Write(&*W, W__typ, '0');
-		seq__56(' ', k + 1);
+		seq__62(' ', k + 1);
 	} else if (e == 255) {
 		Texts_WriteString(&*W, W__typ, (CHAR*)" NaN", 5);
-		seq__56(' ', n - 4);
+		seq__62(' ', n - 4);
 	} else {
 		e = __ASHR((e - 127) * 77, 8);
 		if (x < (REAL)0) {
@@ -1232,7 +1343,7 @@ void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT1
 			x = Reals_Ten(-e) * x;
 		}
 		if (x >= (REAL)10) {
-			x =   1.0000000e-001 * x;
+			x = (REAL)0.10000000149011612 * x;
 			e += 1;
 		}
 		if (k + e >= 8) {
@@ -1242,7 +1353,7 @@ void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT1
 			x = (REAL)0;
 		}
 		x0 = Reals_Ten(k + e);
-		x = x0 * x +   5.0000000e-001;
+		x = x0 * x + (REAL)0.5;
 		if (x >= (REAL)10 * x0) {
 			e += 1;
 		}
@@ -1250,21 +1361,21 @@ void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT1
 		i = k + e;
 		Reals_Convert(x, i, (void*)d, 9);
 		if (e > 0) {
-			seq__56(' ', ((n - e) - k) - 2);
+			seq__62(' ', ((n - e) - k) - 2);
 			Texts_Write(&*W, W__typ, sign);
-			dig__54(e);
+			dig__60(e);
 			Texts_Write(&*W, W__typ, '.');
-			dig__54(k);
+			dig__60(k);
 		} else {
-			seq__56(' ', (n - k) - 3);
+			seq__62(' ', (n - k) - 3);
 			Texts_Write(&*W, W__typ, sign);
 			Texts_Write(&*W, W__typ, '0');
 			Texts_Write(&*W, W__typ, '.');
-			seq__56('0', -e);
-			dig__54(k + e);
+			seq__62('0', -e);
+			dig__60(k + e);
 		}
 	}
-	WriteRealFix__53_s = _s.lnk;
+	WriteRealFix__59_s = _s.lnk;
 }
 
 void Texts_WriteRealHex (Texts_Writer *W, ADDRESS *W__typ, REAL x)
@@ -1320,13 +1431,13 @@ void Texts_WriteLongReal (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x, INT16 n)
 			x = Reals_TenL(-e) * x;
 		}
 		if (x >= (LONGREAL)10) {
-			x =   1.00000000000000e-001 * x;
+			x = (LONGREAL)0.10000000000000001 * x;
 			e += 1;
 		}
 		x0 = Reals_TenL(n - 1);
-		x = x0 * x +   5.00000000000000e-001;
+		x = x0 * x + (LONGREAL)0.5;
 		if (x >= (LONGREAL)10 * x0) {
-			x =   1.00000000000000e-001 * x;
+			x = (LONGREAL)0.10000000000000001 * x;
 			e += 1;
 		}
 		Reals_ConvertL(x, n, (void*)d, 16);
@@ -1363,48 +1474,48 @@ void Texts_WriteLongRealHex (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x)
 	} while (!(i == 16));
 }
 
-static struct WriteDate__43 {
+static struct WriteDate__49 {
 	Texts_Writer *W;
 	ADDRESS *W__typ;
-	struct WriteDate__43 *lnk;
-} *WriteDate__43_s;
+	struct WriteDate__49 *lnk;
+} *WriteDate__49_s;
 
-static void WritePair__44 (CHAR ch, INT32 x);
+static void WritePair__50 (CHAR ch, INT32 x);
 
-static void WritePair__44 (CHAR ch, INT32 x)
+static void WritePair__50 (CHAR ch, INT32 x)
 {
-	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, ch);
-	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, __CHR(__DIV(x, 10) + 48));
-	Texts_Write(&*WriteDate__43_s->W, WriteDate__43_s->W__typ, __CHR((int)__MOD(x, 10) + 48));
+	Texts_Write(&*WriteDate__49_s->W, WriteDate__49_s->W__typ, ch);
+	Texts_Write(&*WriteDate__49_s->W, WriteDate__49_s->W__typ, __CHR(__DIV(x, 10) + 48));
+	Texts_Write(&*WriteDate__49_s->W, WriteDate__49_s->W__typ, __CHR((int)__MOD(x, 10) + 48));
 }
 
 void Texts_WriteDate (Texts_Writer *W, ADDRESS *W__typ, INT32 t, INT32 d)
 {
-	struct WriteDate__43 _s;
+	struct WriteDate__49 _s;
 	_s.W = W; _s.W__typ = W__typ;
-	_s.lnk = WriteDate__43_s;
-	WriteDate__43_s = &_s;
-	WritePair__44(' ', __MASK(d, -32));
-	WritePair__44('.', __MASK(__ASHR(d, 5), -16));
-	WritePair__44('.', __MASK(__ASHR(d, 9), -128));
-	WritePair__44(' ', __MASK(__ASHR(t, 12), -32));
-	WritePair__44(':', __MASK(__ASHR(t, 6), -64));
-	WritePair__44(':', __MASK(t, -64));
-	WriteDate__43_s = _s.lnk;
+	_s.lnk = WriteDate__49_s;
+	WriteDate__49_s = &_s;
+	WritePair__50(' ', __MASK(d, -32));
+	WritePair__50('.', __MASK(__ASHR(d, 5), -16));
+	WritePair__50('.', __MASK(__ASHR(d, 9), -128));
+	WritePair__50(' ', __MASK(__ASHR(t, 12), -32));
+	WritePair__50(':', __MASK(__ASHR(t, 6), -64));
+	WritePair__50(':', __MASK(t, -64));
+	WriteDate__49_s = _s.lnk;
 }
 
-static struct Load0__16 {
+static struct Load0__17 {
 	Texts_Text *T;
 	INT8 *ecnt;
 	Files_File *f;
 	Texts_FileMsg *msg;
 	CHAR (*mods)[64][32], (*procs)[64][32];
-	struct Load0__16 *lnk;
-} *Load0__16_s;
+	struct Load0__17 *lnk;
+} *Load0__17_s;
 
-static void LoadElem__17 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e);
+static void LoadElem__18 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e);
 
-static void LoadElem__17 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e)
+static void LoadElem__18 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e)
 {
 	Heap_Module M = NIL;
 	Heap_Command Cmd;
@@ -1415,15 +1526,15 @@ static void LoadElem__17 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span
 	Files_ReadLInt(&*r, r__typ, &ew);
 	Files_ReadLInt(&*r, r__typ, &eh);
 	Files_Read(&*r, r__typ, (void*)&eno);
-	if (eno > *Load0__16_s->ecnt) {
-		*Load0__16_s->ecnt = eno;
-		Files_ReadString(&*r, r__typ, (void*)(*Load0__16_s->mods)[__X(eno, 64)], 32);
-		Files_ReadString(&*r, r__typ, (void*)(*Load0__16_s->procs)[__X(eno, 64)], 32);
+	if (eno > *Load0__17_s->ecnt) {
+		*Load0__17_s->ecnt = eno;
+		Files_ReadString(&*r, r__typ, (void*)(*Load0__17_s->mods)[__X(eno, 64)], 32);
+		Files_ReadString(&*r, r__typ, (void*)(*Load0__17_s->procs)[__X(eno, 64)], 32);
 	}
 	org = Files_Pos(&*r, r__typ);
-	M = Modules_ThisMod((*Load0__16_s->mods)[__X(eno, 64)], 32);
+	M = Modules_ThisMod((*Load0__17_s->mods)[__X(eno, 64)], 32);
 	if (M != NIL) {
-		Cmd = Modules_ThisCommand(M, (*Load0__16_s->procs)[__X(eno, 64)], 32);
+		Cmd = Modules_ThisCommand(M, (*Load0__17_s->procs)[__X(eno, 64)], 32);
 		if (Cmd != NIL) {
 			(*Cmd)();
 		}
@@ -1432,25 +1543,25 @@ static void LoadElem__17 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span
 	if (*e != NIL) {
 		(*e)->W = ew;
 		(*e)->H = eh;
-		(*e)->base = *Load0__16_s->T;
-		(*Load0__16_s->msg).pos = pos;
-		(*(*e)->handle)(*e, (void*)&*Load0__16_s->msg, Texts_FileMsg__typ);
+		(*e)->base = *Load0__17_s->T;
+		(*Load0__17_s->msg).pos = pos;
+		(*(*e)->handle)(*e, (void*)&*Load0__17_s->msg, Texts_FileMsg__typ);
 		if (Files_Pos(&*r, r__typ) != org + span) {
 			*e = NIL;
 		}
 	}
 	if (*e == NIL) {
-		Files_Set(&*r, r__typ, *Load0__16_s->f, org + span);
+		Files_Set(&*r, r__typ, *Load0__17_s->f, org + span);
 		__NEW(a, Texts__1);
 		a->W = ew;
 		a->H = eh;
 		a->handle = Texts_HandleAlien;
-		a->base = *Load0__16_s->T;
-		a->file = *Load0__16_s->f;
+		a->base = *Load0__17_s->T;
+		a->file = *Load0__17_s->f;
 		a->org = org;
 		a->span = span;
-		__COPY((*Load0__16_s->mods)[__X(eno, 64)], a->mod, 32);
-		__COPY((*Load0__16_s->procs)[__X(eno, 64)], a->proc, 32);
+		__COPY((*Load0__17_s->mods)[__X(eno, 64)], a->mod, 32);
+		__COPY((*Load0__17_s->procs)[__X(eno, 64)], a->proc, 32);
 		*e = (Texts_Elem)a;
 	}
 }
@@ -1467,15 +1578,15 @@ static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	CHAR mods[64][32], procs[64][32];
 	CHAR name[32];
 	Texts_FontsFont fnts[32];
-	struct Load0__16 _s;
+	struct Load0__17 _s;
 	_s.T = &T;
 	_s.ecnt = &ecnt;
 	_s.f = &f;
 	_s.msg = &msg;
 	_s.mods = (void*)mods;
 	_s.procs = (void*)procs;
-	_s.lnk = Load0__16_s;
-	Load0__16_s = &_s;
+	_s.lnk = Load0__17_s;
+	Load0__17_s = &_s;
 	pos = Files_Pos(&*r, r__typ);
 	f = Files_Base(&*r, r__typ);
 	__NEW(u, Texts_RunDesc);
@@ -1508,7 +1619,7 @@ static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 			un = (Texts_Run)p;
 			un->len = plen;
 		} else {
-			LoadElem__17(&msg.r, Files_Rider__typ, pos - org, -plen, &e);
+			LoadElem__18(&msg.r, Files_Rider__typ, pos - org, -plen, &e);
 			un = (Texts_Run)e;
 			un->len = 1;
 		}
@@ -1526,17 +1637,19 @@ static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	T->corg = 0;
 	Files_ReadLInt(&msg.r, Files_Rider__typ, &T->len);
 	Files_Set(&*r, r__typ, f, Files_Pos(&msg.r, Files_Rider__typ) + T->len);
-	Load0__16_s = _s.lnk;
+	Load0__17_s = _s.lnk;
 }
 
 void Texts_Load (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 {
 	INT16 tag;
+	Platform_CommandCritical(1);
 	Files_ReadInt(&*r, r__typ, &tag);
 	if (tag != -4095) {
 		Files_Set(&*r, r__typ, Files_Base(&*r, r__typ), Files_Pos(&*r, r__typ) - 2);
 	}
 	Texts_Load0(&*r, r__typ, T);
+	Platform_CommandCritical(0);
 }
 
 void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
@@ -1548,6 +1661,7 @@ void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
 	CHAR tag, version;
 	INT32 hlen;
 	__DUP(name, name__len, CHAR);
+	Platform_CommandCritical(1);
 	f = Files_Old(name, name__len);
 	if (f == NIL) {
 		f = Files_New((CHAR*)"", 1);
@@ -1592,28 +1706,29 @@ void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
 		T->cache = T->head;
 		T->corg = 0;
 	}
+	Platform_CommandCritical(0);
 	__DEL(name);
 }
 
-static struct Store__39 {
+static struct Store__45 {
 	INT8 *ecnt;
 	Texts_FileMsg *msg;
 	Texts_IdentifyMsg *iden;
 	CHAR (*mods)[64][32], (*procs)[64][32];
-	struct Store__39 *lnk;
-} *Store__39_s;
+	struct Store__45 *lnk;
+} *Store__45_s;
 
-static void StoreElem__40 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e);
+static void StoreElem__46 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e);
 
-static void StoreElem__40 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e)
+static void StoreElem__46 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e)
 {
 	Files_Rider r1;
 	INT32 org, span;
 	INT8 eno;
-	__COPY((*Store__39_s->iden).mod, (*Store__39_s->mods)[__X(*Store__39_s->ecnt, 64)], 32);
-	__COPY((*Store__39_s->iden).proc, (*Store__39_s->procs)[__X(*Store__39_s->ecnt, 64)], 32);
+	__COPY((*Store__45_s->iden).mod, (*Store__45_s->mods)[__X(*Store__45_s->ecnt, 64)], 32);
+	__COPY((*Store__45_s->iden).proc, (*Store__45_s->procs)[__X(*Store__45_s->ecnt, 64)], 32);
 	eno = 1;
-	while (__STRCMP((*Store__39_s->mods)[__X(eno, 64)], (*Store__39_s->iden).mod) != 0 || __STRCMP((*Store__39_s->procs)[__X(eno, 64)], (*Store__39_s->iden).proc) != 0) {
+	while (__STRCMP((*Store__45_s->mods)[__X(eno, 64)], (*Store__45_s->iden).mod) != 0 || __STRCMP((*Store__45_s->procs)[__X(eno, 64)], (*Store__45_s->iden).proc) != 0) {
 		eno += 1;
 	}
 	Files_Set(&r1, Files_Rider__typ, Files_Base(&*r, r__typ), Files_Pos(&*r, r__typ));
@@ -1621,14 +1736,14 @@ static void StoreElem__40 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Ele
 	Files_WriteLInt(&*r, r__typ, 0);
 	Files_WriteLInt(&*r, r__typ, 0);
 	Files_Write(&*r, r__typ, eno);
-	if (eno == *Store__39_s->ecnt) {
-		*Store__39_s->ecnt += 1;
-		Files_WriteString(&*r, r__typ, (*Store__39_s->iden).mod, 32);
-		Files_WriteString(&*r, r__typ, (*Store__39_s->iden).proc, 32);
+	if (eno == *Store__45_s->ecnt) {
+		*Store__45_s->ecnt += 1;
+		Files_WriteString(&*r, r__typ, (*Store__45_s->iden).mod, 32);
+		Files_WriteString(&*r, r__typ, (*Store__45_s->iden).proc, 32);
 	}
-	(*Store__39_s->msg).pos = pos;
+	(*Store__45_s->msg).pos = pos;
 	org = Files_Pos(&*r, r__typ);
-	(*e->handle)(e, (void*)&*Store__39_s->msg, Texts_FileMsg__typ);
+	(*e->handle)(e, (void*)&*Store__45_s->msg, Texts_FileMsg__typ);
 	span = Files_Pos(&*r, r__typ) - org;
 	Files_WriteLInt(&r1, Files_Rider__typ, -span);
 	Files_WriteLInt(&r1, Files_Rider__typ, e->W);
@@ -1649,14 +1764,14 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	CHAR mods[64][32], procs[64][32];
 	Texts_FontsFont fnts[32];
 	CHAR block[1024];
-	struct Store__39 _s;
+	struct Store__45 _s;
 	_s.ecnt = &ecnt;
 	_s.msg = &msg;
 	_s.iden = &iden;
 	_s.mods = (void*)mods;
 	_s.procs = (void*)procs;
-	_s.lnk = Store__39_s;
-	Store__39_s = &_s;
+	_s.lnk = Store__45_s;
+	Store__45_s = &_s;
 	org = Files_Pos(&*r, r__typ);
 	msg.id = 1;
 	msg.r = *r;
@@ -1698,7 +1813,7 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 			pos += rlen;
 			u = un;
 		} else if (iden.mod[0] != 0x00) {
-			StoreElem__40(&msg.r, Files_Rider__typ, pos, __GUARDP(u, Texts_ElemDesc, 1));
+			StoreElem__46(&msg.r, Files_Rider__typ, pos, __GUARDP(u, Texts_ElemDesc, 1));
 			pos += 1;
 			u = u->next;
 		} else {
@@ -1752,7 +1867,7 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	if (T->notify != NIL) {
 		(*T->notify)(T, 3, 0, 0);
 	}
-	Store__39_s = _s.lnk;
+	Store__45_s = _s.lnk;
 }
 
 void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len)
@@ -1809,6 +1924,7 @@ export void *Texts__init(void)
 	__DEFMOD;
 	__MODULE_IMPORT(Files);
 	__MODULE_IMPORT(Modules);
+	__MODULE_IMPORT(Platform);
 	__MODULE_IMPORT(Reals);
 	__REGMOD("Texts", EnumPtrs);
 	__INITYP(Texts_FontDesc, Texts_FontDesc, 0);

@@ -1,4 +1,4 @@
-/* voc 2.1.0 [2026/07/12]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -9,6 +9,9 @@
 #include "Heap.h"
 #include "Platform.h"
 
+typedef
+	void (*Modules_FreeHandler)(CHAR*, ADDRESS , BOOLEAN);
+
 
 export INT16 Modules_res;
 export CHAR Modules_resMsg[256];
@@ -17,6 +20,8 @@ export INT64 Modules_MainStackFrame;
 export INT16 Modules_ArgCount;
 export INT64 Modules_ArgVector;
 export CHAR Modules_BinaryDir[1024];
+static Modules_FreeHandler Modules_freeHandler;
+static Heap_Retention Modules_freeRetention;
 
 
 static void Modules_Append (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len);
@@ -33,9 +38,13 @@ export void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len);
 export void Modules_GetIntArg (INT16 n, INT32 *val);
 export void Modules_Halt (INT32 code);
 export void Modules_Init (INT32 argc, INT64 argvadr);
+export void Modules_InstallFreeHandler (Modules_FreeHandler handler);
+export void Modules_InstallTermHandler (Heap_Command handler);
 static BOOLEAN Modules_IsAbsolute (CHAR *d, ADDRESS d__len);
 static BOOLEAN Modules_IsFilePresent (CHAR *s, ADDRESS s__len);
 static BOOLEAN Modules_IsOneOf (CHAR c, CHAR *s, ADDRESS s__len);
+export void Modules_Release (Heap_Retention *retention);
+export Heap_Retention Modules_Retain (Heap_Module owner);
 export Heap_Command Modules_ThisCommand (Heap_Module mod, CHAR *name, ADDRESS name__len);
 export Heap_Module Modules_ThisMod (CHAR *name, ADDRESS name__len);
 static void Modules_Trim (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len);
@@ -45,8 +54,10 @@ static void Modules_errstring (CHAR *s, ADDRESS s__len);
 
 extern void Heap_InitHeap();
 extern void *Modules__init(void);
+#define Modules_FreeAddress(handler)	(ADDRESS)handler
 #define Modules_InitHeap()	Heap_InitHeap()
 #define Modules_ModulesInit()	Modules__init()
+#define Modules_StopRecovery()	SYSTEM_StopCommandRecovery()
 #define Modules_modules()	(Heap_Module)Heap_modules
 
 void Modules_Init (INT32 argc, INT64 argvadr)
@@ -59,13 +70,13 @@ void Modules_Init (INT32 argc, INT64 argvadr)
 }
 
 typedef
-	CHAR (*argptr__15)[1024];
+	CHAR (*argptr__16)[1024];
 
 void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len)
 {
-	argptr__15 arg = NIL;
+	argptr__16 arg = NIL;
 	if (n < Modules_ArgCount) {
-		__GET(Modules_ArgVector + (INT64)__ASHL(n, 3), arg, argptr__15);
+		__GET(Modules_ArgVector + (INT64)__ASHL(n, 3), arg, argptr__16);
 		__COPY(*arg, val, val__len);
 	}
 }
@@ -329,6 +340,12 @@ Heap_Command Modules_ThisCommand (Heap_Module mod, CHAR *name, ADDRESS name__len
 {
 	Heap_Cmd c = NIL;
 	__DUP(name, name__len, CHAR);
+	if (mod == NIL || Heap_ModuleState(mod) > 2) {
+		Modules_res = 1;
+		__MOVE("module is terminating or disabled", Modules_resMsg, 34);
+		__DEL(name);
+		return NIL;
+	}
 	c = mod->cmds;
 	while ((c != NIL && __STRCMP(c->name, name) != 0)) {
 		c = c->next;
@@ -357,6 +374,11 @@ void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all)
 	Heap_Module m = NIL, p = NIL;
 	INT32 refcount;
 	__DUP(name, name__len, CHAR);
+	if (Modules_freeHandler != NIL) {
+		(*Modules_freeHandler)(name, name__len, all);
+		__DEL(name);
+		return;
+	}
 	m = Modules_modules();
 	if (all) {
 		Modules_res = 1;
@@ -375,6 +397,70 @@ void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all)
 		}
 	}
 	__DEL(name);
+}
+
+void Modules_InstallFreeHandler (Modules_FreeHandler handler)
+{
+	Heap_Retention retention = NIL;
+	BOOLEAN released;
+	Platform_CommandCritical(1);
+	retention = Heap_RetainProcedure(Modules_FreeAddress(handler));
+	if ((handler != NIL && retention == NIL)) {
+		Modules_res = 1;
+		__MOVE("free handler has no eligible modular owner", Modules_resMsg, 43);
+	} else {
+		if (Modules_freeRetention != NIL) {
+			released = Heap_ReleaseModule(Modules_freeRetention);
+		}
+		Modules_freeHandler = handler;
+		Modules_freeRetention = retention;
+		Modules_res = 0;
+		Modules_resMsg[0] = 0x00;
+	}
+	Platform_CommandCritical(0);
+}
+
+Heap_Retention Modules_Retain (Heap_Module owner)
+{
+	Heap_Retention r = NIL;
+	Platform_CommandCritical(1);
+	r = Heap_RetainModule(owner);
+	Platform_CommandCritical(0);
+	if (r == NIL) {
+		Modules_res = 1;
+		__MOVE("module cannot be retained", Modules_resMsg, 26);
+	} else {
+		Modules_res = 0;
+		Modules_resMsg[0] = 0x00;
+	}
+	return r;
+}
+
+void Modules_Release (Heap_Retention *retention)
+{
+	BOOLEAN released;
+	Platform_CommandCritical(1);
+	released = Heap_ReleaseModule(*retention);
+	*retention = NIL;
+	Platform_CommandCritical(0);
+	if (released) {
+		Modules_res = 0;
+		Modules_resMsg[0] = 0x00;
+	} else {
+		Modules_res = 1;
+		__MOVE("retention is absent or already released", Modules_resMsg, 40);
+	}
+}
+
+void Modules_InstallTermHandler (Heap_Command handler)
+{
+	if (Heap_InstallTermHandler(handler)) {
+		Modules_res = 0;
+		Modules_resMsg[0] = 0x00;
+	} else {
+		Modules_res = 1;
+		__MOVE("termination handler has no registered modular owner", Modules_resMsg, 52);
+	}
 }
 
 static void Modules_errch (CHAR c)
@@ -465,6 +551,7 @@ static void Modules_DisplayHaltCode (INT32 code)
 
 void Modules_Halt (INT32 code)
 {
+	Modules_StopRecovery();
 	Heap_FINALL();
 	Modules_errstring((CHAR*)"Terminated by Halt(", 20);
 	Modules_errint(code);
@@ -478,6 +565,7 @@ void Modules_Halt (INT32 code)
 
 void Modules_AssertFail (INT32 code)
 {
+	Modules_StopRecovery();
 	Heap_FINALL();
 	Modules_errstring((CHAR*)"Assertion failure.", 19);
 	if (code != 0) {
@@ -493,13 +581,18 @@ void Modules_AssertFail (INT32 code)
 	}
 }
 
+static void EnumPtrs(void (*P)(void*))
+{
+	P(Modules_freeRetention);
+}
+
 
 export void *Modules__init(void)
 {
 	__DEFMOD;
 	__MODULE_IMPORT(Heap);
 	__MODULE_IMPORT(Platform);
-	__REGMOD("Modules", 0);
+	__REGMOD("Modules", EnumPtrs);
 /* BEGIN */
 	Modules_FindBinaryDir((void*)Modules_BinaryDir, 1024);
 	__ENDMOD;
