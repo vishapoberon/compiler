@@ -1,0 +1,14 @@
+schema = 1
+package = "bdStrings"
+kind = "library"
+origin = "Norayr Chilingarian's Bron-Dijkstra strings"
+upstream_url = "https://github.com/norayr/Bron-Dijkstra-Strings"
+upstream_revision = "ea77a386d0dbaad1fcc230ddb8d2c0a76be9e5c3"
+revision_status = "pulled, fixing and pushing wide-container regressions before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["bdStrings.Mod"]
+license = "LGPL version 3 in LICENSE, with full referenced GPL version 3 in COPYING; recorded at the author's direction"
+source_map = ["src/bdStrings.Mod -> bdStrings.Mod", "LICENSE and COPYING -> same filenames", "test/*.Mod -> src/test/ports/bdStrings/"]
+adaptations = ["no VOC source changes; upstream now scans containers larger than 65536 bytes instead of truncating 16-bit metadata"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; make modular-library-test"

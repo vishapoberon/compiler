@@ -1,0 +1,18 @@
+schema = 1
+package = "Internet"
+kind = "mixed"
+origin = "Norayr Chilingarian's Internet library and Polpo socket/DNS interfaces"
+upstream_url = "https://github.com/norayr/Internet"
+upstream_revision = "1c0e1bd7430ebd12712a15a24ba609cb63a716a6"
+revision_status = "pulled before import; tested server initialisation fix committed and pushed upstream"
+sources = ["unixNet.Mod", "Kernel.Mod", "Sockets.Mod", "DNS.Mod", "Internet.Mod", "netForker.Mod", "server.Mod", "NetSystem.Mod"]
+license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; retaining source notices"
+source_map = ["src/*.Mod -> same filenames (selected libraries only)", "src/native/NetSystem.Mod -> NetSystem.Mod", "LICENSE and COPYING -> same filenames", "test/test*.Mod -> src/examples/network/Internet/", "test/TestServerInit.Mod -> src/test/ports/Internet/"]
+adaptations = [
+  "keeping implementation sources unchanged at the recorded revision",
+  "building only the Linux model-2 profile; Linux constants and SYS_accept4 are not portable to FreeBSD or Windows",
+  "deferring SIGCHLD changes until server.serve upstream, so importing the library preserves host child waiting",
+  "using source-tree example makefiles rather than upstream dependency fetching",
+]
+build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
+test = "make -C src/test/ports test; make modular-library-test"

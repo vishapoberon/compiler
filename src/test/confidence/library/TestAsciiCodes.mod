@@ -1,5 +1,5 @@
 MODULE TestAsciiCodes;
-  IMPORT oocAscii, ooc2Ascii, Out;
+  IMPORT Ascii, Out;
 
   PROCEDURE Check(dle, soh, del, sp, xon, xoff: CHAR);
   BEGIN
@@ -9,9 +9,7 @@ MODULE TestAsciiCodes;
   END Check;
 
 BEGIN
-  Check(oocAscii.dle, oocAscii.soh, oocAscii.del, oocAscii.sp,
-    oocAscii.xon, oocAscii.xoff);
-  Check(ooc2Ascii.dle, ooc2Ascii.soh, ooc2Ascii.del, ooc2Ascii.sp,
-    ooc2Ascii.xon, ooc2Ascii.xoff);
+  Check(Ascii.dle, Ascii.soh, Ascii.del, Ascii.sp,
+    Ascii.xon, Ascii.xoff);
   Out.String("ascii control code tests passed"); Out.Ln
 END TestAsciiCodes.

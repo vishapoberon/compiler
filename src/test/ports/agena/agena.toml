@@ -1,0 +1,17 @@
+# for AgenaTest: two servers on one port, one directory, different index files
+[[server]]
+name  = "zq-default.example"
+root  = "."
+index = "one.gmi"
+cert  = "cert.pem"
+key   = "key.pem"
+
+[[server]]
+name  = "localhost"
+root  = "."
+index = "two.gmi"
+cert  = "cert.pem"
+key   = "key.pem"
+
+[types]
+zq = "text/x-zq"

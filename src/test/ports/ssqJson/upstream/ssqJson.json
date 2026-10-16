@@ -1,0 +1,27 @@
+{
+  "Package": "ssqJson",
+  "Author":  "sts-q",
+  "License": "GPL 3.0",
+  "Version": "0.1.0",
+  "Description": "JSON parser and printer",
+  "homepage": "https://codeberg.org/sts-q/vishaps-ssqJson",
+  "Test":    "cd <repo>; make; make test",
+  "depends-on" : "none",
+  "imports": ["Out"],
+  "Remote": {
+    "type": "git",                              -- ???
+    "protocol": "https",                        -- ???
+    "path": "https://codeberg.org/sts-q/vishaps-ssqJson.git"
+  },
+  "Build": [
+    "voc -s  src/Json.Mod",
+    "voc -M  src/JsonTest.Mod"
+  ],
+  "long-description": "
+ssqJson is a simple JSON parser for oberon compiler vishaps/voc.
+
+It supports ECMA-404 with miminal extensions.
+Focus is on simplicity. Not on speed or support for large JSON files.
+"
+}
+

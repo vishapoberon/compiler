@@ -3,7 +3,7 @@
 MODULE MersenneTwister;
 
   IMPORT
-    SYS:=SYSTEM,(*Win:=Windows*) SysClock := oocSysClock, MathL := oocLRealMath;
+    SYS:=SYSTEM,(*Win:=Windows*) SysClock, MathL := LRealMath;
 
   CONST
     (* Period parameter *)

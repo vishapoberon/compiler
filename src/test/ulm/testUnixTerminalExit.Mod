@@ -1,6 +1,6 @@
 MODULE testUnixTerminalExit;
 
-IMPORT Terminals := ulmTerminals, UnixTerminals := ulmUnixTerminals;
+IMPORT Terminals, UnixTerminals;
 
 BEGIN
   ASSERT(Terminals.console # NIL);

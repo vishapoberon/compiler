@@ -1,0 +1,16 @@
+schema = 1
+package = "netHost"
+kind = "mixed"
+origin = "VOC host adapter for Polpo networking libraries and applications"
+revision_status = "VOC-local implementation, not an imported FATFiles or filesystem stack"
+sources = ["NetHost.Mod"]
+license = "LGPL version 3 in LICENSE, with referenced GPL version 3 in COPYING"
+adaptations = [
+  "isolating native metadata, directory, stdin and UTC services at this boundary",
+  "using VOC Platform directory handles, with no filesystem/device project dependencies",
+  "creating directories with 0700 and replacing identity files through permission-set private temporaries",
+  "using UTC stat timestamps rather than VOC's local packed date with a two-digit year",
+  "retaining the network profile's model-2 signed 32-bit timestamps (2038 limit)",
+]
+build = "make (Linux model 2); make modular-library"
+test = "make -C src/test/ports test; optional networking application tests"

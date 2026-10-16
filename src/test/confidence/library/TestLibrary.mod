@@ -1,6 +1,6 @@
 MODULE TestLibrary;
 
-IMPORT SYSTEM, Oberon, Texts, Reals, oocLowReal;
+IMPORT SYSTEM, Oberon, Texts, Reals, LowReal;
 
 VAR W: Texts.Writer;
 
@@ -38,7 +38,7 @@ PROCEDURE TestFractionPart(r: REAL);
 BEGIN
   ts("r = ");     tr(r,14);
   ts(", exp = "); ti(Reals.Expo(r),1);
-  r := oocLowReal.fraction(r);
+  r := LowReal.fraction(r);
   ts(" -> r = "); tr(r,14);
   ts(", exp = "); ti(Reals.Expo(r),1); tn;
 END TestFractionPart;
@@ -82,13 +82,13 @@ BEGIN
   TestFractionPart(-32.678);
 
   r := 0.0;
-  ASSERT(~oocLowReal.IsInfinity(r), 3); ASSERT(~oocLowReal.IsNaN(r), 4);
+  ASSERT(~LowReal.IsInfinity(r), 3); ASSERT(~LowReal.IsNaN(r), 4);
 
   r := 0.0; Reals.SetExpo(r, 255);
-  ASSERT(oocLowReal.IsInfinity(r), 5); ASSERT(~oocLowReal.IsNaN(r), 6);
+  ASSERT(LowReal.IsInfinity(r), 5); ASSERT(~LowReal.IsNaN(r), 6);
 
   r := 0.123; Reals.SetExpo(r, 255);
-  ASSERT(~oocLowReal.IsInfinity(r), 7); ASSERT(oocLowReal.IsNaN(r), 8);
+  ASSERT(~LowReal.IsInfinity(r), 7); ASSERT(LowReal.IsNaN(r), 8);
 END RealTests;
 
 

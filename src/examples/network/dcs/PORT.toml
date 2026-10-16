@@ -1,0 +1,12 @@
+schema = 1
+package = "dcs"
+origin = "Norayr Chilingarian's Polpo digital command system"
+upstream_url = "https://github.com/polpo-system/polpo"
+upstream_revision = "e111460d56734e0c71ef7e07437ddd7a3f754ed8"
+sources = ["dcs.Mod", "dcsMain.Mod"]
+adaptation_date = "2026-10-15"
+license = "GPL version 3 in ../LICENSE"
+source_map = ["src/cli/dcs.Mod -> dcs.Mod", "VOC-local dcsMain.Mod -> standalone argv wrapper", "VOC-local ../support/PortArgs.Mod -> standalone/hosted command arguments"]
+adaptations = ["using Out and VOC Files", "using NetHost.ReadInput instead of Linux0/SYSTEM", "keeping standalone argv separate from hosted command text", "retaining upstream default trust None; use /tofu or /pin to require peer continuity", "never building applications in the default distribution profile"]
+build = "make -C src/examples/network/dcs; make -C src/examples/network/dcs native (optional hresh)"
+test = "make -C src/examples/network/dcs test"

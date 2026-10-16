@@ -522,7 +522,15 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     IF obj # NIL THEN
       TypeDefs(obj^.left, vis);
       (* test typ.txtpos to skip types that have been unexported; obj.history # removed is not enough!*)
-      IF (obj^.mode = OPT.Typ) & (obj^.typ^.txtpos > 0) THEN DefineType(obj^.typ) END ;
+      IF obj^.mode = OPT.Typ THEN
+        (* An exported alias needs its defining module's C declarations even
+           when no exported variable or procedure mentions the type. *)
+        IF (OPM.currFile = OPM.HeaderFile) & (obj^.vis = OPT.external) &
+            (obj^.typ^.strobj # NIL) & (obj^.typ^.strobj^.mnolev < 0) THEN
+          OPT.GlbMod[-obj^.typ^.strobj^.mnolev].vis := 1
+        END;
+        IF obj^.typ^.txtpos > 0 THEN DefineType(obj^.typ) END
+      END;
       TypeDefs(obj^.right, vis)
     END
   END TypeDefs;

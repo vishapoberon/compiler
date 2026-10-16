@@ -1,6 +1,6 @@
 MODULE testUnixFiles;
 
-IMPORT Streams := ulmStreams, UnixFiles := ulmUnixFiles, Write := ulmWrite,
+IMPORT Streams, UnixFiles, Write,
   SYSTEM;
 
 VAR

@@ -1,0 +1,14 @@
+schema = 1
+package = "strutils"
+kind = "library"
+origin = "Norayr Chilingarian; source retains oo2c and Ott/IntStr origins and dcwbrown attribution"
+upstream_url = "https://github.com/norayr/strutils"
+upstream_revision = "ec90827c8e5eae4e1dd65490a23c77f60b8ecf5e"
+revision_status = "pulled, fixing and pushing bounds regressions before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["strTypes.Mod", "strUtils.Mod"]
+license = "LGPL version 3 in LICENSE, with full referenced GPL version 3 in COPYING; clarified from GPL-3 at the author's direction; preserving copied-source origins"
+source_map = ["src/*.Mod -> *.Mod", "LICENSE and COPYING -> same filenames", "test/*.Mod -> src/test/ports/strutils/"]
+adaptations = ["no VOC source changes; importing oocStrings from the consolidated oo2c library", "not importing upstream dependency-fetch or build recipes"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; upstream make -f GNUmakefile test-bounds"

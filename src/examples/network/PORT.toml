@@ -1,0 +1,12 @@
+schema = 1
+package = "network-examples"
+license = "GPL version 3 in LICENSE; retaining source notices"
+build = "make -C src/examples/network/<package>; build output defaults to build/examples/network/<package>/2"
+platform = "Linux, model 2; using the checkout's install image; never fetching dependencies"
+source_map = [
+  "Internet/test/{testClient,testServer,testSockets}.Mod -> Internet/ (upstream 1c0e1bd7430ebd12712a15a24ba609cb63a716a6)",
+  "http/test/testHttp.Mod -> http/ (upstream 97e9d4702f246aa294fae7a06efae57bc49452fd)",
+  "tls/src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> tls/ (upstream d66456732c7bf213c153b39edc125dd3674daffb)",
+  "https/src/fetch.Mod and test/testHttps.Mod -> https/ (upstream ea18fdd4f86440496dd583828d521409978332f2)",
+]
+adaptations = ["keeping source modules unchanged", "using source-tree makefiles rather than upstream fetching/installing recipes", "building applications only on request"]

@@ -1,0 +1,28 @@
+schema = 1
+package = "tls"
+kind = "library"
+origin = "Norayr Chilingarian's pure-Oberon TLS 1.3 implementation"
+upstream_url = "https://github.com/norayr/tls"
+upstream_revision = "d66456732c7bf213c153b39edc125dd3674daffb"
+revision_status = "pulled before import; preflight passing all 36 upstream TLS test programs"
+sources = [
+  "TLSBytes.Mod", "TLSSHA256.Mod", "TLSHKDF.Mod", "TLSSHA512.Mod", "TLSNum.Mod",
+  "TLSECDSA.Mod", "TLSX25519.Mod", "TLSAESGCM.Mod", "TLS13Records.Mod", "TLS13Handshake.Mod",
+  "TLS13Keys.Mod", "TLS13Finished.Mod", "TLSBase64.Mod", "TLSPEM.Mod", "TLS13Certs.Mod",
+  "TLSASN1.Mod", "TLSX509.Mod", "TLSX509Validity.Mod", "TLSRSA.Mod", "TLSX509Names.Mod",
+  "TLSX509Ext.Mod", "TLSSig.Mod", "TLSNameConstraints.Mod", "TLSX509Chain.Mod", "TLSCABundle.Mod",
+  "TLS13EncHandshake.Mod", "TLS13ClientFinished.Mod", "TLS13Application.Mod", "TLS13Random.Mod",
+  "TLSNow.Mod", "TLSIdentity.Mod", "TLSCertGen.Mod", "TLS13Live.Mod", "TLS13Server.Mod", "httpsPure.Mod",
+]
+license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; shared ETH BIT retains separate provenance in s3"
+source_map = ["src/*.Mod -> same filenames (35 selected libraries only)", "LICENSE and COPYING -> same filenames", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
+adaptations = [
+  "keeping implementation sources unchanged at the recorded revision",
+  "reusing the ETH BIT in s3 instead of importing a duplicate",
+  "keeping test programs and example applications out of distribution libraries",
+  "building the live Linux model-2 profile only; unixNet assumes 32-bit LONGINT",
+  "preserving upstream warning: arithmetic is not constant-time; this code is not security-audited",
+  "retaining TLSNow's signed 32-bit seconds interface (2038 limit)",
+]
+build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
+test = "make -C src/test/ports test; make modular-library-test; fixtures selected with TLS_TEST_CERTS"

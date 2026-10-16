@@ -1,0 +1,18 @@
+schema = 1
+package = "base64"
+kind = "library"
+origin = "Norayr Chilingarian's string-oriented Base64 library"
+upstream_url = "https://github.com/norayr/base64"
+upstream_revision = "9be2c5c1ded9e1bf9c0f9f32af3346de35a25ed1"
+revision_status = "pulled, fixing and pushing malformed-input regressions before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["StringBase64.Mod"]
+license = "LGPL version 3 in LICENSE, with full referenced GPL version 3 in COPYING; recorded at the author's direction"
+source_map = ["src/Base64.Mod -> StringBase64.Mod", "LICENSE and COPYING -> same filenames", "test/*.Mod -> src/test/ports/base64/"]
+adaptations = [
+  "renaming only the module to StringBase64 to preserve the existing ETH Base64 interface",
+  "renaming Base64 imports in VOC regressions; HTTP must use Base64 := StringBase64",
+  "retaining the upstream default fixToIncludeEOL = TRUE; HTTP explicitly disables it",
+]
+build = "make; make modular-library (model 2); make.cmd (portable libraries only)"
+test = "make -C src/test/ports test; make modular-library-test"

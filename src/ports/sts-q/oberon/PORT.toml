@@ -1,0 +1,30 @@
+schema = 1
+package = "sts-q-oberon"
+kind = "library"
+origin = "sts-q's terminal keyboard and mouse decoder for VOC"
+upstream_url = "https://codeberg.org/sts-q/oberon"
+upstream_revision = "1e5793c9b81525c2cd459abd51d49afa74a83a69"
+revision_status = "clean local upstream checkout; no fetch or upstream changes"
+sources = ["Kbd.Mod"]
+license = "GPL-3.0, retained from the upstream LICENSE; per-file sts-q attribution retained; no VOC runtime exception granted"
+source_map = [
+  "vishaps-voc/modules/Kbd.Mod -> Kbd.Mod",
+  "vishaps-voc/modules/{Char,Clist,Dot,Ink,Int,Line,Path,Random,Str,String,Text,Viewer}.Mod -> src/examples/libraries/sts-q/editor/ (same names)",
+  "vishaps-voc/modules/Sys.Mod -> src/examples/libraries/sts-q/editor/ssqSys.Mod",
+  "VOC-local ssqTypes.Mod -> src/examples/libraries/sts-q/editor/ssqTypes.Mod",
+  "LICENSE -> LICENSE and src/examples/libraries/sts-q/editor/LICENSE",
+]
+adaptations = [
+  "preserving the unchanged fourteen-module import separately in commit 6d0d89cb before applying these adaptations",
+  "building only Kbd as a library, using existing SYSTEM, Platform, Strings and Out modules instead of the editor's generic helpers",
+  "using SYSTEM.INT32 for keys, modifiers and mouse coordinates in both VOC type models, without adding a compatibility library",
+  "keeping key-specific bit masking and bounded description formatting private to Kbd, with the only direct POSIX expression comparing would-block error constants",
+  "leaving terminal modes, descriptor flags and their restoration under the caller's ownership",
+  "moving all other thirteen upstream modules and the VOC-local ssqTypes adapter to the private editor example unchanged from the earlier adaptation",
+  "retaining the example's ssqSys rename, add.c-free implementation, fixed-width types and terminal cleanup without building those modules into a library archive or installing them",
+  "buffering split keyboard sequences, bounding incomplete and malformed input, handling SGR mouse modifiers and rejecting coordinates outside the encoded range",
+  "correcting duplicate Insert escape-table entries while retaining the limited upstream key vocabulary and byte-oriented input",
+  "including only Kbd in the ordinary Unix model-2 libvoc and optional modular bundled-library profile, retaining GPL-3.0 without the VOC runtime exception; leaving Windows and the default model-C profile unchanged",
+]
+build = "ordinary Unix model-2 libvoc and optional modular libraries target; independent build: make -C src/ports/sts-q/oberon, MODEL=2 or MODEL=C; modular target with a matching compiler/runtime"
+test = "make -C src/test/ports/sts-q test-bundled against the ordinary library image (also run by Unix confidence and modular test-library); standalone tests: test, both type models, optional FLAGS=-smP LIBRARY_TARGET=modular; private editor checks: make -C src/examples/libraries/sts-q/editor test"

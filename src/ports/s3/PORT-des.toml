@@ -1,0 +1,14 @@
+schema = 1
+package = "des"
+kind = "library"
+origin = "ETH Oberon DES; source retains Java/VNC and Dave Zimmerman attribution; Norayr Chilingarian's VOC adapter"
+upstream_url = "https://github.com/norayr/des"
+upstream_revision = "5c7a80180412d6d51b3a65d75c573264ba5e5a48"
+revision_status = "pulled, fixing and pushing the narrow-shift helper regression before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["DES.Mod", "TwoComplement.Mod"]
+license = "ETH Oberon licence referenced by preserved DES header; TwoComplement has no explicit licence; redistribution requires review"
+source_map = ["src/DES.Mod -> DES.Mod", "src/TwoComplement.Mod -> TwoComplement.Mod", "test/TestDESLegacy.Mod -> src/test/ports/s3/TestDESLegacy.Mod"]
+adaptations = ["no VOC source changes; sharing ETH BIT", "sharing DES in src/ports/s3 rather than duplicating it in VNC clients", "retaining VNC's reversed-bit key convention rather than silently replacing the interface", "not requiring TCC: GCC and Clang model-2 tests pass with the upstream helper fix", "DES is obsolete cryptography, not a recommendation for new security-sensitive applications"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; make modular-library-test (legacy-key round trips and converted-key standard vector)"

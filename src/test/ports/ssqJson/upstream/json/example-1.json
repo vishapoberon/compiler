@@ -1,0 +1,9 @@
+{
+    "Package": "Package-name",
+    "Author": "Name of author",
+    "License": "License name",
+    "Version": "1.0.0",
+    "Remote": "vishap.oberon.com",
+    "Port": "80"
+}
+

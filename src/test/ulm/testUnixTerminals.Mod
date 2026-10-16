@@ -1,7 +1,6 @@
 MODULE testUnixTerminals;
 
-IMPORT Streams := ulmStreams, Terminals := ulmTerminals,
-  UnixTerminals := ulmUnixTerminals, Write := ulmWrite;
+IMPORT Streams, Terminals, UnixTerminals, Write;
 
 VAR status: Terminals.Status; caps: Terminals.CapabilitySet;
 

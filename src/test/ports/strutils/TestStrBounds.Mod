@@ -1,0 +1,44 @@
+MODULE TestStrBounds;
+IMPORT strUtils, Out;
+VAR source: ARRAY 16 OF CHAR;
+    dest: ARRAY 3 OF CHAR;
+    raw: ARRAY 3 OF CHAR;
+    empty: ARRAY 1 OF CHAR;
+    words: strUtils.pstrings;
+    word: strUtils.pstring;
+    found: BOOLEAN;
+    pos: INTEGER;
+BEGIN
+  empty := '';
+  strUtils.zeroStr(empty); strUtils.copyAll('', empty);
+  strUtils.Assign('abc', empty); strUtils.findChar('a', empty, found, pos);
+  ASSERT(~found); ASSERT(pos = -1);
+  ASSERT(strUtils.Compare(empty, '') = strUtils.equal);
+  raw[0] := 'a'; raw[1] := 'b'; raw[2] := 'c';
+  ASSERT(strUtils.Compare(raw, 'abc') = strUtils.equal);
+  strUtils.Assign(raw, dest); ASSERT(dest = 'ab');
+  ASSERT(strUtils.WordCount('', ' ') = 0);
+  ASSERT(strUtils.WordCount('   ', ' ') = 0);
+  ASSERT(strUtils.WordCount(' a  bc  d ', ' ') = 3);
+  ASSERT(strUtils.Lpos('', 'a') = 0); ASSERT(strUtils.Rpos('', 'a') = 0);
+  ASSERT(strUtils.Pos('a', 'abc', -1) = 0);
+  word := strUtils.ExtractWord(1, 'single', ' '); ASSERT(word^ = 'single');
+  word := strUtils.ExtractWord(2, ' a  bc  d ', ' '); ASSERT(word^ = 'bc');
+  word := strUtils.ExtractWord(4, ' a  bc  d ', ' '); ASSERT(word^ = '');
+  words := strUtils.tokenize('', ' '); ASSERT(words = NIL);
+  words := strUtils.tokenize(' a  bc  d ', ' ');
+  ASSERT(LEN(words^) = 3); ASSERT(words[0]^ = 'a'); ASSERT(words[2]^ = 'd');
+  source := 'abc'; ASSERT(~strUtils.contains(source, 'abcdef'));
+  ASSERT(strUtils.contains(source, '')); ASSERT(strUtils.contains(source, 'bc'));
+  ASSERT(strUtils.contains(raw, 'abc')); ASSERT(~strUtils.contains(raw, 'abcd'));
+  dest := 'xx'; strUtils.copyBytes(raw, dest, 2, 1); ASSERT(dest[2] = 'a');
+  strUtils.copyBytes(raw, dest, -1, 1); ASSERT(dest[0] = 'x');
+  strUtils.copyBytes(raw, dest, 0, 0); ASSERT(dest[0] = 'x');
+  strUtils.getNextWord(source, 0, dest); ASSERT(dest = 'ab');
+  strUtils.getNextWord(source, 3, dest); ASSERT(dest = '');
+  strUtils.getNextAlphaNumWord(source, -1, dest); ASSERT(dest = '');
+  strUtils.getTillEOL(source, -1, dest); ASSERT(dest = 'ab');
+  strUtils.getTillEOL(source, 3, dest); ASSERT(dest = '');
+  dest := 'ab'; strUtils.appendLFCR(dest); ASSERT(dest = 'ab');
+  Out.String('string utility bounds tests passed'); Out.Ln
+END TestStrBounds.

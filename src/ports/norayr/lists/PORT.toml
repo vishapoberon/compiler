@@ -1,0 +1,14 @@
+schema = 1
+package = "lists"
+kind = "library"
+origin = "Norayr Chilingarian's List and StringList"
+upstream_url = "https://github.com/norayr/lists"
+upstream_revision = "b9c229dc3c7925b52ce83c5796ee3d7b85cfe92b"
+revision_status = "pulled, fixing and pushing link and empty-list regressions before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["List.Mod", "StringList.Mod"]
+license = "LGPL version 3 in LICENSE, with full referenced GPL version 3 in COPYING"
+source_map = ["src/*.Mod -> *.Mod", "LICENSE and COPYING -> same filenames", "test/*.Mod -> src/test/ports/lists/"]
+adaptations = ["no VOC source changes; StringList depends on strutils", "empty StringListTopstrings returns NIL (VOC does not allocate zero-length dynamic arrays)", "not importing upstream dependency-fetch or build recipes"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; make modular-library-test"

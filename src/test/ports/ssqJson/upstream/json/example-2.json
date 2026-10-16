@@ -1,0 +1,22 @@
+{
+    "name": "example-2",
+    "description": "example than renerates some syntax warnings",
+    "License": "License name",
+    "Version": "1.0.0",
+    "Remote": "vishap.oberon.com",
+    "Port": "80",
+    "Array": [ "this", "is", "a", "array" ],
+    "Array": [ "this", "is", "a" "array", ];
+    "Files": {
+        "0": "File1.Mod"
+        "1": "File2.Mod",
+        "2": "MakeFile";
+    },
+    "Dependencies": {
+        "lists": "1.0.0",
+        "diaspora": "1.0.0",
+        "vipack": "1.0.0"
+    }
+}
+                                                                                        
+

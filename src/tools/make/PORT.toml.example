@@ -1,0 +1,15 @@
+# Copy this to src/ports/<collection>/<package>/PORT.toml for a new port.
+# Replace the placeholders before recording the first reviewed import.
+schema = 1
+package = "strutils"
+kind = "library" # library, bindings, or mixed
+origin = "upstream project/author"
+upstream_url = "repository URL"
+upstream_revision = "exact imported commit or release plus archive checksum"
+revision_status = "recorded"
+voc_baseline = "VOC commit containing the reviewed import"
+sources = ["*.Mod"]
+license = "upstream licence and its file location"
+adaptations = ["list the naming, runtime and compiler changes that must survive a sync"]
+build = "make"
+test = "package regression/build commands"

@@ -1,0 +1,16 @@
+schema = 1
+package = "raylib"
+kind = "bindings"
+origin = "Tigran Martirosyan's Raylib binding from voc-snake"
+upstream_url = "https://github.com/tmartiro/voc-snake"
+upstream_revision = "33bdb8cf3b064d19588c2d631c84470e615cd33b"
+revision_status = "pulled before import; fixes committed separately, upstream submission pending"
+voc_baseline = "6d07acac"
+sources = ["RaylibNative.Mod", "Raylib.Mod"]
+source_map = ["Raylib.Mod -> Raylib.Mod plus the VOC-local RaylibNative.Mod auxiliary binding", "LICENSE -> LICENSE", "Snake.Mod -> src/examples/games/snake/Snake.Mod"]
+license = "MIT, copyright 2024 Tigran Martirosyan, preserving LICENSE; the native raylib library is not vendored"
+adaptations = ["Using the installed raylib through pkg-config, not a relative source checkout", "Isolating native types and calls in RaylibNative; exporting actual Oberon procedures for modular linking", "Passing size.x and size.y independently in DrawRectangleV", "Returning GetColor through VAR TColor instead of declaring a C struct as SET", "Returning GetTime as LONGREAL to match raylib's double precision", "Fixing Snake integer-to-real conversion, initial window ordering and score coordinates", "Keeping Snake source-only; not importing browser glue or a prebuilt WebAssembly binary"]
+native_libraries = ["raylib"]
+debian_build_dependencies = ["pkg-config", "libraylib-dev"]
+build = "make modular-library-bindings WITH_X11=0 WITH_CAIRO=0"
+test = "make modular-library-bindings-test WITH_X11=0 WITH_CAIRO=0"

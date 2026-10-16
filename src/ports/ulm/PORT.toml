@@ -1,0 +1,16 @@
+schema = 1
+package = "ulm"
+kind = "mixed"
+origin = "University of Ulm Oberon library"
+upstream_url = "http://www.mathematik.uni-ulm.de/oberon/"
+upstream_revision = ""
+revision_status = "legacy import; exact upstream revision not recorded"
+voc_baseline = "9cef5e0bdaa96e8c722c350106a30238efbfa5f6"
+sources = ["*.Mod"]
+license = "GNU Library GPL version 2 or later, as recorded in source headers"
+adaptations = [
+  "VOC host, pointer-size and Unix file/terminal bindings",
+  "52 unprefixed names; retaining ulmASCII, ulmSYSTEM, ulmReals, ulmSets, ulmStrings and ulmTexts",
+]
+build = "make"
+test = "make confidence; make modular-library-test; src/test/ulm smoke tests"

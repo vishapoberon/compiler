@@ -1,0 +1,14 @@
+schema = 1
+package = "toml"
+kind = "library"
+origin = "Norayr Chilingarian's permissive TOML reader"
+upstream_url = "https://github.com/norayr/toml"
+upstream_revision = "ae53817793f640afddf1620f8525c8474b676fd7"
+revision_status = "pulled, fixing and pushing string-helper regressions before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["TOML.Mod"]
+license = "LGPL version 3 in LICENSE, with full referenced GPL version 3 in COPYING; recorded at the author's direction"
+source_map = ["src/TOML.Mod -> TOML.Mod", "LICENSE and COPYING -> same filenames", "test/*.Mod -> src/test/ports/toml/"]
+adaptations = ["no VOC source changes", "retaining upstream extensions, case-insensitive lookup and nested-array flattening; not claiming full TOML conformance"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; make modular-library-test"

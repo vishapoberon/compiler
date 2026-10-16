@@ -1,5 +1,5 @@
 MODULE Platform;
-IMPORT SYSTEM;
+IMPORT SYSTEM, PlatformNative;
 
 CONST
   StdIn-  = 0;
@@ -48,14 +48,18 @@ PROCEDURE -A0Feature '#ifndef _POSIX_C_SOURCE';
 PROCEDURE -A0Feature1 '#define _POSIX_C_SOURCE 200809L';
 PROCEDURE -A0Feature2 '#endif';
 PROCEDURE -Aincludesystime  '#include <sys/time.h>';  (* for gettimeofday *)
-PROCEDURE -Aincludetime     '#include <time.h>';      (* for localtime *)
+PROCEDURE -Aincludetime     '#include <time.h>';      (* for nanosleep and mktime *)
 PROCEDURE -Aincludesystypes '#include <sys/types.h>';
 PROCEDURE -Aincludeunistd   '#include <unistd.h>';
 PROCEDURE -Aincludesysstat  '#include <sys/stat.h>';
 PROCEDURE -Aincludefcntl    '#include <fcntl.h>';
 PROCEDURE -Aincludeerrno    '#include <errno.h>';
 PROCEDURE -Aincludeutime    '#include <utime.h>';
-PROCEDURE -Aincludetermios '#include "PlatformTermios.h"';
+PROCEDURE -Aincludetermios0 '#ifdef __TINYC__';
+PROCEDURE -Aincludetermios1 '#include_next <termios.h>';
+PROCEDURE -Aincludetermios2 '#else';
+PROCEDURE -Aincludetermios3 '#include <termios.h>';
+PROCEDURE -Aincludetermios4 '#endif';
 PROCEDURE -Aincludesysioctl '#include <sys/ioctl.h>';
 PROCEDURE -Astdlib          '#include <stdlib.h>';
 PROCEDURE -Astdio           '#include <stdio.h>';
@@ -193,13 +197,7 @@ BEGIN commandCritical(enter) END CommandCritical;
 PROCEDURE -gettimeval          "struct timeval tv; gettimeofday(&tv,0)";
 PROCEDURE -tvsec():  LONGINT   "tv.tv_sec";
 PROCEDURE -tvusec(): LONGINT   "tv.tv_usec";
-PROCEDURE -sectotm(s: LONGINT) "struct tm *time = localtime((time_t*)&s)";
-PROCEDURE -tmsec():  LONGINT   "(LONGINT)time->tm_sec";
-PROCEDURE -tmmin():  LONGINT   "(LONGINT)time->tm_min";
-PROCEDURE -tmhour(): LONGINT   "(LONGINT)time->tm_hour";
-PROCEDURE -tmmday(): LONGINT   "(LONGINT)time->tm_mday";
-PROCEDURE -tmmon():  LONGINT   "(LONGINT)time->tm_mon";
-PROCEDURE -tmyear(): LONGINT   "(LONGINT)time->tm_year";
+PROCEDURE -tvsec64(): SYSTEM.INT64 "tv.tv_sec";
 
 PROCEDURE YMDHMStoClock(ye,mo,da,ho,mi,se: LONGINT; VAR t, d: LONGINT);
 BEGIN
@@ -207,10 +205,20 @@ BEGIN
   t := ASH(ho, 12)        + ASH(mi, 6)   + se;
 END YMDHMStoClock;
 
+PROCEDURE SecondsToClock(seconds: SYSTEM.INT64; VAR t, d: LONGINT);
+  VAR ye, mo, da, ho, mi, se: LONGINT;
+BEGIN
+  IF PlatformNative.LocalTime(seconds, ye, mo, da, ho, mi, se) THEN
+    YMDHMStoClock(ye, mo, da, ho, mi, se, t, d)
+  ELSE
+    (* The legacy clock API has no error result; return an unavailable clock. *)
+    t := 0; d := 0
+  END
+END SecondsToClock;
+
 PROCEDURE GetClock*(VAR t, d: LONGINT);
 BEGIN
-  gettimeval; sectotm(tvsec());
-  YMDHMStoClock(tmyear(), tmmon(), tmmday(), tmhour(), tmmin(), tmsec(), t, d);
+  gettimeval; SecondsToClock(tvsec64(), t, d);
 END GetClock;
 
 PROCEDURE GetTimeOfDay*(VAR sec, usec: LONGINT);
@@ -256,41 +264,51 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 
 (* File system *)
 
-(* Native helpers stay private: libc headers/macros must not leak through the
-   exported Platform.h into unrelated generated Oberon modules. *)
-PROCEDURE -ADirectorySupport '#include "PlatformDirectory.h"';
-
-PROCEDURE -openDirectory(path: ARRAY OF CHAR;
-                        VAR handle: DirectoryHandle): ErrorCode
-"VOC_OpenDirectory((char*)path, handle)";
-
 PROCEDURE OpenDirectory*(path: ARRAY OF CHAR;
                         VAR handle: DirectoryHandle): ErrorCode;
-BEGIN RETURN openDirectory(path, handle) END OpenDirectory;
+BEGIN
+  handle := PlatformNative.OpenDirectory(path);
+  IF handle = 0 THEN RETURN SHORT(PlatformNative.Error()) ELSE RETURN 0 END
+END OpenDirectory;
 
 (* done distinguishes end-of-directory from errors. An undersized name buffer
    returns an error, never a truncated name. Close every successfully opened
    cursor, including after read errors. Entries include '.' and '..'. *)
-PROCEDURE -readDirectory(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
-                        VAR done: BOOLEAN): ErrorCode
-"VOC_ReadDirectory(handle, (char*)name, name__len, done)";
-
 PROCEDURE ReadDirectory*(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
                         VAR done: BOOLEAN): ErrorCode;
-BEGIN RETURN readDirectory(handle, name, done) END ReadDirectory;
-
-PROCEDURE -closeDirectory(VAR handle: DirectoryHandle): ErrorCode
-"VOC_CloseDirectory(handle)";
+  VAR entry, address, i: SYSTEM.ADDRESS; ch: CHAR;
+BEGIN
+  IF LEN(name) > 0 THEN name[0] := 0X END;
+  PlatformNative.ClearError; entry := PlatformNative.ReadDirectory(handle);
+  done := entry = 0;
+  IF done THEN RETURN SHORT(PlatformNative.Error()) END;
+  address := PlatformNative.EntryName(entry); i := 0;
+  LOOP
+    SYSTEM.GET(address + i, ch);
+    IF i >= LEN(name) THEN RETURN SHORT(PlatformNative.NameTooLong()) END;
+    IF i = LEN(name) - 1 THEN
+      name[i] := 0X;
+      IF ch # 0X THEN RETURN SHORT(PlatformNative.NameTooLong()) END
+    ELSE name[i] := ch
+    END;
+    IF ch = 0X THEN RETURN 0 END;
+    INC(i)
+  END
+END ReadDirectory;
 
 PROCEDURE CloseDirectory*(VAR handle: DirectoryHandle): ErrorCode;
-BEGIN RETURN closeDirectory(handle) END CloseDirectory;
+  VAR result: SYSTEM.INT32;
+BEGIN
+  IF handle = 0 THEN RETURN 0 END;
+  result := PlatformNative.CloseDirectory(handle); handle := 0;
+  IF result < 0 THEN RETURN SHORT(PlatformNative.Error()) ELSE RETURN 0 END
+END CloseDirectory;
 
 (* Follow symlinks, so path completion can descend through directory links. *)
-PROCEDURE -isDirectory(path: ARRAY OF CHAR): BOOLEAN
-"VOC_IsDirectory((char*)path)";
-
 PROCEDURE IsDirectory*(path: ARRAY OF CHAR): BOOLEAN;
-BEGIN RETURN isDirectory(path) END IsDirectory;
+  VAR kind: INTEGER;
+BEGIN RETURN (PlatformNative.PathKind(path, TRUE, kind) = 0) & (kind = 1)
+END IsDirectory;
 
 (* Note: Consider also using flags O_SYNC and O_DIRECT as we do buffering *)
 PROCEDURE -openrw (n: ARRAY OF CHAR): INTEGER "open((char*)n, O_RDWR)";
@@ -372,61 +390,60 @@ PROCEDURE -isatty(fd: LONGINT): INTEGER "isatty(fd)";
 PROCEDURE IsConsole*(h: FileHandle): BOOLEAN;
 BEGIN RETURN isatty(h) # 0 END IsConsole;
 
-PROCEDURE -captureTerminalState(h: FileHandle;
-                                VAR state: TerminalState): INTEGER
-"VOC_CaptureTerminalState(h, state)";
+PROCEDURE TerminalFD(h: FileHandle): BOOLEAN;
+BEGIN RETURN (h >= 0) & (h <= MAX(SYSTEM.INT32)) END TerminalFD;
 
 PROCEDURE CaptureTerminalState*(h: FileHandle;
                                 VAR state: TerminalState): ErrorCode;
+  VAR error: SYSTEM.INT32;
 BEGIN
   state := 0;
-  IF captureTerminalState(h, state) < 0 THEN RETURN err() ELSE RETURN 0 END
+  IF ~TerminalFD(h) THEN RETURN SHORT(PlatformNative.BadFD()) END;
+  state := OSAllocate(PlatformNative.TerminalSize());
+  IF state = 0 THEN RETURN SHORT(PlatformNative.NoMemory()) END;
+  IF PlatformNative.GetTerminal(SYSTEM.VAL(SYSTEM.INT32, h), state) < 0 THEN
+    error := PlatformNative.Error(); OSFree(state); state := 0; RETURN SHORT(error)
+  END;
+  RETURN 0
 END CaptureTerminalState;
-
-PROCEDURE -restoreTerminalState(h: FileHandle; state: TerminalState): INTEGER
-"VOC_RestoreTerminalState(h, state)";
 
 PROCEDURE RestoreTerminalState*(h: FileHandle;
                                 state: TerminalState): ErrorCode;
 BEGIN
   ASSERT(state # 0);
-  IF restoreTerminalState(h, state) < 0 THEN RETURN err() ELSE RETURN 0 END
+  IF ~TerminalFD(h) THEN RETURN SHORT(PlatformNative.BadFD()) END;
+  IF PlatformNative.SetTerminal(SYSTEM.VAL(SYSTEM.INT32, h), state) < 0 THEN RETURN SHORT(PlatformNative.Error()) ELSE RETURN 0 END
 END RestoreTerminalState;
-
-PROCEDURE -releaseTerminalState(state: TerminalState)
-"free((void*)(ADDRESS)state)";
 
 PROCEDURE ReleaseTerminalState*(VAR state: TerminalState);
   VAR address: TerminalState;
 BEGIN
   address := state; state := 0;
-  IF address # 0 THEN releaseTerminalState(address) END
+  IF address # 0 THEN OSFree(address) END
 END ReleaseTerminalState;
-
-PROCEDURE -copyTerminalState(source: TerminalState; VAR copy: TerminalState): INTEGER
-"VOC_CopyTerminalState(source, copy)";
 
 PROCEDURE CopyTerminalState*(source: TerminalState; VAR copy: TerminalState): ErrorCode;
 BEGIN
   ASSERT(source # 0);
-  copy := 0;
-  IF copyTerminalState(source, copy) < 0 THEN RETURN err() ELSE RETURN 0 END
+  copy := OSAllocate(PlatformNative.TerminalSize());
+  IF copy = 0 THEN RETURN SHORT(PlatformNative.NoMemory()) END;
+  SYSTEM.MOVE(source, copy, PlatformNative.TerminalSize()); RETURN 0
 END CopyTerminalState;
 
-PROCEDURE -rawTerminalState(state: TerminalState)
-"VOC_MakeTerminalRaw(state)";
-
 PROCEDURE MakeTerminalRaw*(state: TerminalState);
-BEGIN ASSERT(state # 0); rawTerminalState(state)
+BEGIN
+  ASSERT(state # 0);
+  PlatformNative.SetLocalFlags(state, PlatformNative.LocalFlags(state) - PlatformNative.LocalRawMask());
+  PlatformNative.SetInputFlags(state, PlatformNative.InputFlags(state) - PlatformNative.InputRawMask());
+  PlatformNative.SetControl(state, PlatformNative.MinIndex(), 1);
+  PlatformNative.SetControl(state, PlatformNative.TimeIndex(), 0)
 END MakeTerminalRaw;
-
-PROCEDURE -timeoutTerminalState(state: TerminalState; tenths: INTEGER)
-"VOC_SetTerminalTimeout(state, tenths)";
 
 PROCEDURE SetTerminalTimeout*(state: TerminalState; tenths: INTEGER);
 BEGIN
   ASSERT((state # 0) & (tenths >= 0) & (tenths <= 255));
-  timeoutTerminalState(state, tenths)
+  PlatformNative.SetControl(state, PlatformNative.MinIndex(), 0);
+  PlatformNative.SetControl(state, PlatformNative.TimeIndex(), tenths)
 END SetTerminalTimeout;
 
 PROCEDURE -setTerminalEcho(h: FileHandle; enabled: INTEGER): INTEGER
@@ -464,21 +481,26 @@ BEGIN
   IF setTerminalOutputMode(h, value) < 0 THEN RETURN err() ELSE RETURN 0 END
 END SetTerminalOutputMode;
 
-PROCEDURE -getTerminalDimensions(h: FileHandle; VAR lines, columns: LONGINT; limit: LONGINT): INTEGER
-"VOC_GetTerminalDimensions(h, lines, columns, limit)";
-
 PROCEDURE GetTerminalSize*(h: FileHandle;
                            VAR lines, columns: INTEGER): ErrorCode;
-  VAR rows, cols: LONGINT;
+  VAR rows, cols: SYSTEM.INT32; error: SYSTEM.INT32;
 BEGIN
-  IF getTerminalDimensions(h, rows, cols, MAX(INTEGER)) < 0 THEN RETURN err() END;
-  lines := SHORT(rows); columns := SHORT(cols);
+  IF ~TerminalFD(h) THEN RETURN SHORT(PlatformNative.BadFD()) END;
+  error := PlatformNative.WindowSize(SYSTEM.VAL(SYSTEM.INT32, h), rows, cols);
+  IF error # 0 THEN RETURN SHORT(error) END;
+  IF (rows > MAX(INTEGER)) OR (cols > MAX(INTEGER)) THEN RETURN SHORT(PlatformNative.Overflow()) END;
+  lines := SYSTEM.VAL(INTEGER, rows); columns := SYSTEM.VAL(INTEGER, cols);
   RETURN 0
 END GetTerminalSize;
 
 PROCEDURE GetTerminalDimensions*(h: FileHandle; VAR lines, columns: LONGINT): ErrorCode;
+  VAR rows, cols: SYSTEM.INT32; error: SYSTEM.INT32;
 BEGIN
-  IF getTerminalDimensions(h, lines, columns, MAX(LONGINT)) < 0 THEN RETURN err() ELSE RETURN 0 END
+  IF ~TerminalFD(h) THEN RETURN SHORT(PlatformNative.BadFD()) END;
+  error := PlatformNative.WindowSize(SYSTEM.VAL(SYSTEM.INT32, h), rows, cols);
+  IF error # 0 THEN RETURN SHORT(error) END;
+  IF (rows > MAX(LONGINT)) OR (cols > MAX(LONGINT)) THEN RETURN SHORT(PlatformNative.Overflow()) END;
+  lines := rows; columns := cols; RETURN 0
 END GetTerminalDimensions;
 
 PROCEDURE -sameTerminal(first, second: FileHandle): INTEGER
@@ -534,8 +556,7 @@ END SetMTime;
 
 PROCEDURE MTimeAsClock*(i: FileIdentity; VAR t, d: LONGINT);
 BEGIN
-  sectotm(i.mtime);
-  YMDHMStoClock(tmyear(), tmmon(), tmmday(), tmhour(), tmmin(), tmsec(), t, d);
+  SecondsToClock(i.mtime, t, d);
 END MTimeAsClock;
 
 

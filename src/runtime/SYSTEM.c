@@ -19,9 +19,114 @@
 #endif
 #endif
 #include "SYSTEM.h"
-#include "CommandContext.h"
 #include "stdarg.h"
 #include <signal.h>
+
+/* Compiler-maintained native stack frames and POSIX command recovery.
+   The setjmp frame must remain live until the command returns; cleanup is
+   performed by Oberon code after SYSTEM_RunCommand has returned. */
+static SYSTEM_ModuleFrame *module_frames;
+
+void SYSTEM_EnterModule(SYSTEM_ModuleFrame *frame, void *owner)
+{
+    frame->previous = module_frames;
+    frame->owner = owner;
+    module_frames = frame;
+}
+
+void SYSTEM_LeaveModule(SYSTEM_ModuleFrame *frame)
+{
+    module_frames = frame->previous;
+}
+
+BOOLEAN SYSTEM_ModuleActive(void *owner)
+{
+    SYSTEM_ModuleFrame *frame;
+    for (frame = module_frames; frame; frame = frame->previous)
+        if (frame->owner == owner) return 1;
+    return 0;
+}
+
+#ifndef _WIN32
+#include <errno.h>
+#include <setjmp.h>
+#include <stddef.h>
+
+static sigjmp_buf command_context;
+static volatile sig_atomic_t command_running;
+static volatile sig_atomic_t command_pending;
+static volatile sig_atomic_t command_critical;
+
+static void command_interrupt(int signal)
+{
+    /* A signal must not unwind libc or interrupt a runtime update. */
+    command_pending = signal;
+}
+
+void SYSTEM_CommandCritical(BOOLEAN enter)
+{
+    if (enter) ++command_critical;
+    else --command_critical;
+}
+
+void SYSTEM_CheckCommandInterrupt(void)
+{
+    /* Generated Oberon statement/loop boundaries are safe cancellation points. */
+    if (command_running && command_pending && !command_critical)
+        siglongjmp(command_context, command_pending);
+}
+
+void SYSTEM_StopCommandRecovery(void)
+{
+    command_running = 0;
+}
+
+INT32 SYSTEM_RunCommand(void (*command)(void))
+{
+    SYSTEM_ModuleFrame *saved_frames = module_frames;
+    struct sigaction action = {0}, previous_action;
+    sigset_t interrupt, previous_mask, pending;
+    int result, signal, error;
+
+    if (!command) return -EINVAL;
+    if (command_running || command_critical) return -EBUSY;
+    sigemptyset(&interrupt);
+    sigaddset(&interrupt, SIGINT);
+    if (sigprocmask(SIG_BLOCK, &interrupt, &previous_mask) < 0) return -errno;
+    action.sa_handler = command_interrupt;
+    sigemptyset(&action.sa_mask);
+    /* No SA_RESTART: blocking native calls must return on SIGINT. */
+    if (sigaction(SIGINT, &action, &previous_action) < 0) {
+        error = errno;
+        sigprocmask(SIG_SETMASK, &previous_mask, NULL);
+        return -error;
+    }
+    command_pending = 0;
+    result = sigsetjmp(command_context, 1);
+    if (!result) {
+        command_running = 1;
+        sigprocmask(SIG_SETMASK, &previous_mask, NULL);
+        command();
+    }
+    sigprocmask(SIG_BLOCK, &interrupt, NULL);
+    command_running = 0;
+    module_frames = saved_frames;
+    if (!result) result = command_pending;
+    /* Preserve signals deliberately blocked by the caller. */
+    if (!sigismember(&previous_mask, SIGINT) && sigpending(&pending) == 0 &&
+        sigismember(&pending, SIGINT) && sigwait(&interrupt, &signal) == 0)
+        result = signal;
+    command_pending = 0;
+    sigaction(SIGINT, &previous_action, NULL);
+    sigprocmask(SIG_SETMASK, &previous_mask, NULL);
+    return result;
+}
+#else
+void SYSTEM_CommandCritical(BOOLEAN enter) { (void)enter; }
+void SYSTEM_CheckCommandInterrupt(void) {}
+void SYSTEM_StopCommandRecovery(void) {}
+INT32 SYSTEM_RunCommand(void (*command)(void)) { command(); return 0; }
+#endif
 
 /* Modular libraries resolve this symbol from their host. In particular they
    must not pull a second heap/core into an executable built with -mD. */

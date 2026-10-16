@@ -103,7 +103,9 @@ usage:
 	@echo "  make install-system - Install and update the dynamic linker cache"
 	@echo "                       (Needs root access)"
 	@echo "  make modular-library - Build optional per-module ELF shared libraries"
+	@echo "  make modular-library-bindings - Add optional X11, Cairo and raylib bindings"
 	@echo "  make modular-library-test - Check all bundled shared libraries"
+	@echo "  make modular-library-bindings-test - Check optional bindings without a display"
 	@echo "  make hresh hresh-test hresh-demo - Build/test the optional module shell"
 	@echo ""
 	@echo "Targets for (re)creating and reverting bootstrap C sources:"
@@ -117,7 +119,7 @@ tags:
 	ctags -R --options=oberon.ctags --extras=+q
 
 # Optional ELF runtime and command shell; never replaces the installed compiler.
-.PHONY: hresh hresh-test hresh-demo modular-runtime modular-library modular-library-test
+.PHONY: hresh hresh-test hresh-demo modular-runtime modular-library modular-library-bindings modular-library-test modular-library-bindings-test
 hresh:
 	$(MAKE) -f src/tools/hresh/Makefile all
 
@@ -133,8 +135,14 @@ modular-runtime:
 modular-library:
 	$(MAKE) -f src/tools/hresh/Makefile libraries
 
+modular-library-bindings:
+	$(MAKE) -f src/tools/hresh/Makefile bindings
+
 modular-library-test:
 	$(MAKE) -f src/tools/hresh/Makefile test-library
+
+modular-library-bindings-test:
+	$(MAKE) -f src/tools/hresh/Makefile test-bindings
 
 # Generate config files Configuration.Make and Configuration.Mod
 FORCE:
@@ -229,7 +237,7 @@ browsercmd: configuration
 
 
 
-# library: build all directories under src/library
+# library: build the runtime, VOC libraries and supported src/ports packages
 O2library: configuration
 	@make -f src/tools/make/oberon.mk -s library MODEL=2
 
@@ -242,9 +250,6 @@ OClibrary: configuration
 # Individual library components
 v4: configuration
 	@make -f src/tools/make/oberon.mk -s v4 MODEL=2
-
-ooc2: configuration
-	@make -f src/tools/make/oberon.mk -s ooc2 MODEL=2
 
 ooc: configuration
 	@make -f src/tools/make/oberon.mk -s ooc MODEL=2

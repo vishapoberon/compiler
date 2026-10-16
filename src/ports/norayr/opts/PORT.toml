@@ -1,0 +1,14 @@
+schema = 1
+package = "opts"
+kind = "library"
+origin = "Norayr Chilingarian's CLI option parser"
+upstream_url = "https://github.com/norayr/opts"
+upstream_revision = "96cff0f1f06adc32e49b732264f1b2b94f3caee4"
+revision_status = "pulled, fixing and pushing long-argument regression before importing"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["optsosv.Mod", "opts.Mod"]
+license = "LGPL version 3 in LICENSE, with full referenced GPL version 3 in COPYING"
+source_map = ["src/optsos.Mod -> optsosv.Mod (matching its declared module name)", "src/opts.Mod -> opts.Mod", "LICENSE and COPYING -> same filenames", "test/*.Mod -> src/test/ports/opts/"]
+adaptations = ["no VOC source changes; using the upstream VOC Args adapter", "not importing upstream dependency-fetch or build recipes"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; make modular-library-test"

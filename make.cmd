@@ -188,14 +188,14 @@ echo.    DATAMODEL:  %DATAMODEL%
 
 cd %BUILDDIR%
 
-cl -nologo /Zi -c SYSTEM.c Configuration.c Platform.c Heap.c    || exit /b
+cl -nologo /Zi -c SYSTEM.c Configuration.c PlatformNative.c Platform.c Heap.c || exit /b
 cl -nologo /Zi -c Out.c    Reals.c         Strings.c  Modules.c || exit /b
 cl -nologo /Zi -c Files.c  Texts.c         VT100.c              || exit /b
 cl -nologo /Zi -c OPM.c    extTools.c      OPS.c      OPT.c     || exit /b
 cl -nologo /Zi -c OPC.c    OPV.c           OPB.c      OPP.c     || exit /b
 
 cl -nologo /Zi Compiler.c /Fe%ROOTDIR%\%OBECOMP% /link /INCREMENTAL:NO ^
-SYSTEM.obj  Configuration.obj Platform.obj Heap.obj  Out.obj   Reals.obj ^
+SYSTEM.obj  Configuration.obj PlatformNative.obj Platform.obj Heap.obj Out.obj Reals.obj ^
 Modules.obj Files.obj         Strings.obj  Texts.obj VT100.obj extTools.obj ^
 OPM.obj     OPS.obj           OPT.obj      OPC.obj   OPV.obj   OPB.obj    OPP.obj || exit /b
 
@@ -240,6 +240,7 @@ md %BUILDDIR% 2>nul
 cd %BUILDDIR%
 del *.sym >nul 2>nul
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../Configuration.Mod                  || exit /b
+%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/PlatformNative%PLATFORM%.Mod || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Platform%PLATFORM%.Mod || exit /b
 %ROOTDIR%\%OBECOMP% -SsfFapx -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Heap.Mod               || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Reals.Mod              || exit /b
@@ -277,7 +278,7 @@ cd %BUILDDIR%
 %ROOTDIR%/%OBECOMP% -fSs ../../src/runtime/Oberon.Mod
 %ROOTDIR%/%OBECOMP% -fSm ../../src/tools/browser/BrowserCmd.Mod
 cl -nologo BrowserCmd.c Oberon.c /Feshowdef.exe ^
-  Platform.obj Texts.obj OPT.obj Heap.obj Out.obj SYSTEM.obj OPM.obj OPS.obj OPV.obj ^
+  PlatformNative.obj Platform.obj Texts.obj OPT.obj Heap.obj Out.obj SYSTEM.obj OPM.obj OPS.obj OPV.obj ^
   Files.obj Reals.obj Modules.obj VT100.obj Configuration.obj Strings.obj ^
   OPC.obj
 cd %ROOTDIR%
@@ -290,6 +291,7 @@ goto :eof
 echo.
 echo.Making runtime library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/PlatformNative%PLATFORM%.Mod || exit /b
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Platform%PLATFORM%.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Heap.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Modules.Mod
@@ -307,68 +309,31 @@ cd %ROOTDIR%
 goto :eof
 
 
+:cli
+echo.
+echo.Making command-line library for -O%MODEL%
+cd %BUILDDIR%\%MODEL%
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Args.Mod                       || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Console.Mod                    || exit /b
+cd %ROOTDIR%
+goto :eof
+
 :v4
 echo.
 echo.Making V4 library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/v4/Args.Mod                      || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/v4/Console.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/v4/Printer.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/v4/Sets.Mod                      || exit /b
-cd %ROOTDIR%
-goto :eof
-
-:ooc2
-echo.Making ooc2 library for -O%MODEL%
-cd %BUILDDIR%\%MODEL%
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2Strings.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2Ascii.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2CharClass.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2ConvTypes.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2IntConv.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2IntStr.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc2/ooc2Real0.Mod               || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/v4/Printer.Mod                   || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/v4/Sets.Mod                      || exit /b
 cd %ROOTDIR%
 goto :eof
 
 :ooc
 echo.Making ooc library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLowReal.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLowLReal.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocRealMath.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocOakMath.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLRealMath.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLongInts.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocComplexMath.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLComplexMath.Mod          || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocAscii.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocCharClass.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocStrings.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocConvTypes.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLRealConv.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocLRealStr.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocRealConv.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocRealStr.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocIntConv.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocIntStr.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocMsg.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocSysClock.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocTime.Mod                  || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocChannel.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocProgramArgsHost.Mod       || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocProgramArgs.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocStrings2.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocRts.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFilenames.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocTextRider.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocBinaryRider.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocJulianDay.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFilesHost.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFiles.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocFilenames.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocwrapperlibc.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ooc/oocC%DATAMODEL%.Mod          || exit /b
+for %%N in (LowReal LowLReal RealMath OakMath LRealMath LongInts ComplexMath LComplexMath Ascii CharClass oocStrings ConvTypes LRealConv LRealStr RealConv RealStr IntConv IntStr Msg SysClock Time Channel ProgramArgsHost ProgramArgs Strings2 Rts Filenames TextRider BinaryRider JulianDay FilesHost oocFiles wrapperlibc OakStrings oocRandomNumbers Real0 oo2c2LRealConv) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/ooc/%%N.Mod || exit /b
+)
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/ooc/C%DATAMODEL%.Mod || exit /b
 cd %ROOTDIR%
 goto :eof
 
@@ -379,69 +344,16 @@ goto :eof
 :ulm
 echo.Making ulm library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTypes.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmObjects.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmPriorities.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmDisciplines.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmServices.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSys.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSYSTEM.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmEvents.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmProcess.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmResources.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmForwarders.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmRelatedEvents.Mod         || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreamsHost.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreams.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTerminals.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStrings.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysTypes.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTexts.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysConversions.Mod        || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmErrors.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysErrors.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysStat.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmASCII.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSets.Mod                  || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmIO.Mod                    || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmAssertions.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmIndirectDisciplines.Mod   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreamDisciplines.Mod     || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmIEEE.Mod                  || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmMC68881.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmReals.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmPrint.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmWrite.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmConstStrings.Mod          || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmPlotters.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmSysIO.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmLoader.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmNetIO.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmPersistentObjects.Mod     || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmPersistentDisciplines.Mod || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmOperations.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmScales.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTimes.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmClocks.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTimers.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmConditions.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmStreamConditions.Mod      || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTimeConditions.Mod        || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmCiphers.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmCipherOps.Mod             || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmBlockCiphers.Mod          || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmAsymmetricCiphers.Mod     || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmConclusions.Mod           || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmRandomGenerators.Mod      || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmTCrypt.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/ulm/ulmIntOperations.Mod         || exit /b
+for %%M in (Types Objects Priorities Disciplines Services Sys ulmSYSTEM Events Process Resources Forwarders RelatedEvents StreamsHost Streams Terminals ulmStrings SysTypes ulmTexts SysConversions Errors SysErrors SysStat ulmASCII ulmSets IO Assertions IndirectDisciplines StreamDisciplines IEEE MC68881 ulmReals Print Write ConstStrings Plotters SysIO Loader NetIO PersistentObjects PersistentDisciplines Operations Scales Times Clocks Timers Conditions StreamConditions TimeConditions Ciphers CipherOps BlockCiphers AsymmetricCiphers Conclusions RandomGenerators TCrypt IntOperations) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/ulm/%%M.Mod || exit /b
+)
 cd %ROOTDIR%
 goto :eof
 
 :pow32
 echo.Making pow32 library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/pow/powStrings.Mod               || exit /b
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/pow/powStrings.Mod               || exit /b
 cd %ROOTDIR%
 goto :eof
 
@@ -459,28 +371,23 @@ goto :eof
 :s3
 echo.Making s3 library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethBTrees.Mod                 || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethMD5.Mod                    || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethSets.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZlib.Mod                   || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZlibBuffers.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZlibInflate.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZlibDeflate.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZlibReaders.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZlibWriters.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethZip.Mod                    || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethRandomNumbers.Mod          || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethGZReaders.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethGZWriters.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethUnicode.Mod                || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethDates.Mod                  || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethReals.Mod                  || exit /b
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/s3/ethStrings.Mod                || exit /b
+for %%M in (BTrees MD5 ethSets Zlib ZlibBuffers ZlibInflate ZlibDeflate ZlibReaders ZlibWriters Zip RandomNumbers GZReaders GZWriters Unicode Dates ethReals ethStrings Base64 BIT TwoComplement DES) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/s3/%%M.Mod || exit /b
+)
 cd %ROOTDIR%
 goto :eof
 
 
 
+
+:ports
+echo.Making portable ports for -O%MODEL%
+cd %BUILDDIR%\%MODEL%
+for %%M in (norayr/base64/StringBase64 norayr/bdStrings/bdStrings norayr/strutils/strTypes norayr/strutils/strUtils norayr/lists/List norayr/lists/StringList norayr/opts/optsosv norayr/opts/opts norayr/toml/TOML sts-q/ssqJson/Json) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/%%M.Mod || exit /b
+)
+cd %ROOTDIR%
+goto :eof
 
 :initlibrary
 rd /s /q %BUILDDIR%\%MODEL% >nul 2>nul
@@ -498,13 +405,14 @@ goto :eof
 SET MODEL=2
 call :initlibrary   || exit /b
 call :runtime       || exit /b
+call :cli           || exit /b
 call :v4            || exit /b
-call :ooc2          || exit /b
 call :ooc           || exit /b
 call :ulm           || exit /b
 call :pow32         || exit /b
 call :misc          || exit /b
 call :s3            || exit /b
+call :ports         || exit /b
 lib -nologo %BUILDDIR%\%MODEL%\*.obj -out:%BUILDDIR%\%MODEL%\lib%ONAME%-O%MODEL%.lib || exit /b
 
 SET MODEL=C

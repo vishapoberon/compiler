@@ -1,0 +1,18 @@
+schema = 1
+package = "https"
+kind = "library"
+origin = "Norayr Chilingarian's HTTP/HTTPS URL client"
+upstream_url = "https://github.com/norayr/https"
+upstream_revision = "ea18fdd4f86440496dd583828d521409978332f2"
+revision_status = "pulled before import; including its subsequent licence commit"
+sources = ["https.Mod"]
+license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING"
+source_map = ["src/https.Mod -> https.Mod", "LICENSE and COPYING -> same filenames", "src/fetch.Mod -> src/examples/network/https/fetch.Mod", "test/testHttps.Mod -> src/examples/network/https/testHttps.Mod"]
+adaptations = [
+  "keeping implementation source unchanged at the recorded revision",
+  "building with the Linux Internet/TLS profile, model 2 only",
+  "retaining one fetch from this package rather than Polpo's same-named command",
+  "building commands only through opt-in source-tree makefiles",
+]
+build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
+test = "make -C src/test/ports test; make modular-library-test"

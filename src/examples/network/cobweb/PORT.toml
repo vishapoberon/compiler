@@ -1,0 +1,12 @@
+schema = 1
+package = "cobweb"
+origin = "Norayr Chilingarian's Polpo HTTP/HTTPS server"
+upstream_url = "https://github.com/polpo-system/cobweb"
+upstream_revision = "a86ed1550679a34b5c9013452fed6a5f8895c776"
+sources = ["cobweb.Mod", "cobwebMain.Mod"]
+adaptation_date = "2026-10-15"
+license = "upstream GPL version 3 in LICENSE"
+source_map = ["cobweb.Mod -> cobweb.Mod", "LICENSE -> LICENSE", "test/* -> src/test/ports/cobweb/ (original Polpo tests and public fixtures)", "VOC-local cobwebMain.Mod -> standalone argv wrapper"]
+adaptations = ["using NetHost instead of Kernel time conversion and FATFiles", "using native UTC modification times, avoiding local-time and two-digit-year errors", "aliasing out := Out and Texts := PortArgs", "using VOC Files.Close/garbage-collected descriptor lifetime rather than Polpo ReleaseRead", "using VOC Oberon.OnStop cleanup for optional hresh commands", "adding /listen address for explicit binding and loopback-only regression serving", "retaining one-connection-at-a-time serving and the non-constant-time TLS warning", "not claiming symlink/concurrent-path confinement or production security auditing", "building only on request, on Linux in model 2"]
+build = "make -C src/examples/network/cobweb; make -C src/examples/network/cobweb native (optional hresh)"
+test = "make -C src/examples/network/cobweb test (VOC loopback harness; original Polpo child-process tests retained for reference)"

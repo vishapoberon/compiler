@@ -1,0 +1,62 @@
+{
+        "description": "JSON is a programming language independent lightweight data interchange format",
+        "acronym": "JSON: Java Script Object Notation",
+        "standard": "ECMA-404",
+        "homepage": "https://www.json.org/json-en.html",
+        "pdf": "https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf",
+        "data-types": {
+           "value": "is one of: object, element, list, member, number, boolean, null",
+           "object": {
+                "object": "holds elements, separated by ','",
+                "element 0": "is a key-value-pair",
+                "element 1": "is a name-value-pair, in json language",
+                "name 0": "value",
+                "name 1": "is allways a string",
+                "name 2": "is part of an element, not a value of it's own.",
+                "name 3": "must be unique: a set of names",
+                "name 4": "this parser keeps name duplicates, others may not",
+                "value": "can be of any json data type",
+                "integer": 12,
+                "boolean": true,
+                "symbol": otto,
+                "array": [1,2,3],
+                "object 1": {"object": "as value of parent object"}
+                },
+           "array 0": ["a list of any json values", ["like a nested list"], "or an empty object:", {}],
+           "array 1": ["can be empty, too:", []],
+           "boolean": [true, false],
+           "number": [1, 2, 3, -12],
+           "integer": 1234567,
+           "real": 3.1415,
+           "null": null,
+           "true": TRUE,
+           "false": FALSE,
+           "remark": "objects have elements",
+           "remark": "lists have members"
+       },
+       "Json.Mod": ["This json parsers specifics:",
+              {
+                "case 0": "true, false and null are valid in upper and in lower case",
+                "case 1": "output of TRUE, FALSE, NULL is in lower case",
+                "case 2": [true, TRUE, false, FALSE, null, NULL],
+                "comma 0": "a trailing comma ',' following the last array member is opional",
+                "comma 1": [1,2,3],               -- no error, no warning
+                "comma 2": [1 2 3 4 5,],          -- is accepted but raises too many warnings
+                "symbols": "are not contained in ECMA-404",
+                "symbols": [filestatus, git, _max_, max-12, state++, state--, at_2023-01-28],
+                "comments 0": "this parser skips line comments", 
+                "comments 1": "this parser skips line comments",                  -- this is a line comment
+                "comments 2": "this parser skips line comments",                  -- this is a line comment
+                "comments 3": "this parser skips long comments but does NOT know nested comments",
+                /* "comments": "this parser skips long comments", */
+                /* "comments": "this parser skips long comments", */
+                
+              }],
+       "NOT": "other parsers may follow others standards and as such allow some extensions",
+       "NOT": {
+                "strings": "single quoted",
+                "time/date": "as valid values",
+                },
+        "art": "writing good json is an art as one can go to any depth and complexity"         
+}
+

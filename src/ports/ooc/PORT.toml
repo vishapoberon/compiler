@@ -1,0 +1,20 @@
+schema = 1
+package = "ooc"
+kind = "mixed"
+origin = "oo2c library, with selected newer real-conversion modules"
+upstream_url = "https://github.com/norayr/oolng"
+upstream_revision = ""
+revision_status = "legacy import; exact upstream revision not recorded"
+voc_baseline = "9cef5e0bdaa96e8c722c350106a30238efbfa5f6"
+sources = ["*.Mod"]
+license = "per-file notices, including GNU LGPL-2.0-or-later; preserve the original headers"
+adaptations = [
+  "VOC host/file/address and C-data-model bindings",
+  "natural names matching Polpo; retaining oocFiles, oocStrings and oocRandomNumbers",
+  "one implementation tree; legacy ooc/ooc2 forwarding modules are not shipped",
+  "VOC correctness fixes; keeping oo2c2LRealConv distinct from LRealConv",
+  "formatting the full LONGINT range in both 32-bit and 64-bit type models, including MIN(LONGINT)",
+  "checking negative integer conversion limits without overflow-prone near-MIN division",
+]
+build = "make"
+test = "make confidence; make modular-library-test"

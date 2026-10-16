@@ -1,0 +1,14 @@
+schema = 1
+package = "BIT"
+kind = "library"
+origin = "ETH Oberon; local DES and TLS copies"
+upstream_url = "https://github.com/norayr/des"
+upstream_revision = "5c7a80180412d6d51b3a65d75c573264ba5e5a48"
+revision_status = "recorded; src/BIT.Mod is byte-identical to TLS 7f62aa1ae5a7f083eadac73fefb83573ba3029b0"
+voc_baseline = "3cf3880f17fa02b782f9e16fc97c19b27e24092f"
+sources = ["BIT.Mod"]
+license = "ETH Oberon licence referenced by preserved source header; upstream repository does not include the referenced licence file"
+source_map = ["des/src/BIT.Mod -> src/ports/s3/BIT.Mod", "tls/src/BIT.Mod -> same shared implementation, not a second copy"]
+adaptations = ["no VOC source changes; sharing BIT in the ETH package instead of duplicating it in clients", "building only in model 2; original interfaces assume 8/16/32-bit types"]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; TLS vector tests when the TLS port is integrated"

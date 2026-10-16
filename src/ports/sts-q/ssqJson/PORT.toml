@@ -1,0 +1,19 @@
+schema = 1
+package = "ssqJson"
+kind = "library"
+origin = "sts-q's simple JSON parser and printer for VOC"
+upstream_url = "https://codeberg.org/sts-q/vishaps-ssqJson"
+upstream_revision = "7dacd6e6c9f1a6a11c7aea1a127ec7a91daea553"
+revision_status = "pulled with --ff-only before import; already current"
+sources = ["Json.Mod"]
+license = "GPL version 3 in LICENSE.txt; Copyright (C) 2023 sts-q; integration permission confirmed by the user on 2026-10-15"
+source_map = ["src/Json.Mod -> Json.Mod", "LICENSE.txt -> LICENSE.txt", "src/JsonTest.Mod -> src/test/ports/ssqJson/upstream/JsonTest.Mod", "json/*.json and ssqJson.json -> src/test/ports/ssqJson/upstream/ (same relative paths)"]
+adaptations = [
+  "keeping the library, original demonstration and fixtures byte-identical to upstream",
+  "using distribution import-order manifests and an isolated regression harness, without installing upstream build outputs",
+  "preserving experimental scope: no string-escape decoding, permissive symbols/comments/comma warnings, incomplete real validation and approximate real formatting",
+  "preserving upstream small-input limits: INTEGER indices are 16-bit in model 2; do not use for large or untrusted input",
+  "not claiming strict JSON conformance or full integer-boundary round trips",
+]
+build = "make; make modular-library (model 2); make.cmd"
+test = "make -C src/test/ports test; make modular-library-test; make -C src/test/ports/ssqJson upstream"

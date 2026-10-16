@@ -1,0 +1,18 @@
+schema = 1
+package = "s3"
+kind = "library"
+origin = "ETH Oberon System 3; selected compression fixes also adapted from Polpo"
+upstream_url = "http://www.oberon.ethz.ch/"
+upstream_revision = ""
+revision_status = "legacy ETH import; Polpo snapshot used by VOC commit 9cef5e0b, not a pristine upstream revision"
+voc_baseline = "9cef5e0bdaa96e8c722c350106a30238efbfa5f6"
+sources = ["*.Mod"]
+license = "General ETH Oberon System Source License, referenced in source headers"
+adaptations = [
+  "VOC runtime/file bindings and pointer-sized compression buffer addresses",
+  "15 unprefixed names; retaining ethSets, ethStrings and ethReals",
+  "RandomNumbers selects ETH; oo2c retains oocRandomNumbers",
+  "Polpo compression fixes plus VOC stream, checksum, buffer and ZIP bounds checks",
+]
+build = "make"
+test = "make confidence; make modular-library-test"

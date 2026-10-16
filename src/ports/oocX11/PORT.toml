@@ -1,0 +1,15 @@
+schema = 1
+package = "oocX11"
+kind = "bindings"
+origin = "oo2c X11 bindings and XYplane"
+upstream_url = "https://sourceforge.net/projects/ooc"
+upstream_revision = ""
+revision_status = "legacy import; exact upstream revision not recorded"
+voc_baseline = "9cef5e0bdaa96e8c722c350106a30238efbfa5f6"
+sources = ["oocX11.Mod", "oocXutil.Mod", "oocXYplane.Mod"]
+license = "preserve per-file attribution and X Consortium notices; complete provenance still needs verification"
+adaptations = ["VOC C-data-model and SYSTEM bindings; retaining prefixed X11 names"]
+native_libraries = ["X11"]
+debian_build_dependencies = ["libx11-dev"]
+build = "make modular-library-bindings WITH_CAIRO=0 WITH_RAYLIB=0"
+test = "make modular-library-bindings-test WITH_CAIRO=0 WITH_RAYLIB=0; python3 src/test/examples/test-builds.py --x11"

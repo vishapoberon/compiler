@@ -1,5 +1,5 @@
 MODULE Platform;
-IMPORT SYSTEM;
+IMPORT SYSTEM, PlatformNative;
 
 (* TODO:
    Use Unicode APIs with manual UTF8 conversion and prepend '\\?\' to
@@ -14,6 +14,8 @@ TYPE
   ErrorCode*  = INTEGER;
   FileHandle* = SYSTEM.ADDRESS;
   DirectoryHandle* = SYSTEM.ADDRESS;
+  Directory = POINTER TO DirectoryDesc;
+  DirectoryDesc = RECORD search, entry: SYSTEM.ADDRESS; first: BOOLEAN END;
 
   FileIdentity* = RECORD
     volume:    LONGINT;  (* dev on Unix filesystems, volume serial number on NTFS *)
@@ -251,35 +253,73 @@ PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;
 
 (* File system *)
 
-PROCEDURE -ADirectorySupport '#include "PlatformDirectory.h"';
-
-PROCEDURE -openDirectory(path: ARRAY OF CHAR;
-                        VAR handle: DirectoryHandle): ErrorCode
-"VOC_OpenDirectory((char*)path, handle)";
-
 PROCEDURE OpenDirectory*(path: ARRAY OF CHAR;
                         VAR handle: DirectoryHandle): ErrorCode;
-BEGIN RETURN openDirectory(path, handle) END OpenDirectory;
-
-PROCEDURE -readDirectory(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
-                        VAR done: BOOLEAN): ErrorCode
-"VOC_ReadDirectory(handle, (char*)name, name__len, done)";
+VAR dir: Directory; pattern: ARRAY 4096 OF CHAR; n: LONGINT; attributes, error: SYSTEM.INT32;
+BEGIN
+  handle := 0; attributes := PlatformNative.Attributes(path);
+  IF PlatformNative.InvalidAttributes(attributes) THEN RETURN SHORT(PlatformNative.Error()) END;
+  IF ~PlatformNative.Directory(attributes) THEN RETURN SHORT(PlatformNative.DirectoryError()) END;
+  n := 0; WHILE (n < LEN(path)) & (path[n] # 0X) DO INC(n) END;
+  IF (n = LEN(path)) OR (n + 3 > LEN(pattern)) THEN RETURN SHORT(PlatformNative.NameTooLong()) END;
+  COPY(path, pattern);
+  IF (n > 0) & (pattern[n - 1] # "/") & (pattern[n - 1] # 5CX) THEN pattern[n] := "/"; INC(n) END;
+  pattern[n] := "*"; pattern[n + 1] := 0X;
+  dir := SYSTEM.VAL(Directory, OSAllocate(SIZE(DirectoryDesc)));
+  IF dir = NIL THEN RETURN SHORT(PlatformNative.NoMemory()) END;
+  dir.entry := OSAllocate(PlatformNative.EntrySize());
+  IF dir.entry = 0 THEN OSFree(SYSTEM.VAL(SYSTEM.ADDRESS, dir)); RETURN SHORT(PlatformNative.NoMemory()) END;
+  dir.search := PlatformNative.First(pattern, dir.entry);
+  dir.first := dir.search # PlatformNative.Invalid();
+  IF ~dir.first THEN
+    error := PlatformNative.Error();
+    IF ~PlatformNative.NoFiles(error) THEN
+      OSFree(dir.entry); OSFree(SYSTEM.VAL(SYSTEM.ADDRESS, dir)); RETURN SHORT(error)
+    END
+  END;
+  handle := SYSTEM.VAL(SYSTEM.ADDRESS, dir); RETURN 0
+END OpenDirectory;
 
 PROCEDURE ReadDirectory*(handle: DirectoryHandle; VAR name: ARRAY OF CHAR;
                         VAR done: BOOLEAN): ErrorCode;
-BEGIN RETURN readDirectory(handle, name, done) END ReadDirectory;
-
-PROCEDURE -closeDirectory(VAR handle: DirectoryHandle): ErrorCode
-"VOC_CloseDirectory(handle)";
+VAR dir: Directory; address, i: SYSTEM.ADDRESS; error: SYSTEM.INT32; ch: CHAR;
+BEGIN
+  dir := SYSTEM.VAL(Directory, handle); done := FALSE;
+  IF LEN(name) > 0 THEN name[0] := 0X END;
+  IF dir.search = PlatformNative.Invalid() THEN done := TRUE; RETURN 0 END;
+  IF ~dir.first & ~PlatformNative.Next(dir.search, dir.entry) THEN
+    done := TRUE; error := PlatformNative.Error();
+    IF PlatformNative.NoMoreFiles(error) THEN RETURN 0 ELSE RETURN SHORT(error) END
+  END;
+  dir.first := FALSE; address := PlatformNative.EntryName(dir.entry); i := 0;
+  LOOP
+    SYSTEM.GET(address + i, ch);
+    IF i >= LEN(name) THEN RETURN SHORT(PlatformNative.NameTooLong()) END;
+    IF i = LEN(name) - 1 THEN
+      name[i] := 0X;
+      IF ch # 0X THEN RETURN SHORT(PlatformNative.NameTooLong()) END
+    ELSE name[i] := ch
+    END;
+    IF ch = 0X THEN RETURN 0 END;
+    INC(i)
+  END
+END ReadDirectory;
 
 PROCEDURE CloseDirectory*(VAR handle: DirectoryHandle): ErrorCode;
-BEGIN RETURN closeDirectory(handle) END CloseDirectory;
-
-PROCEDURE -isDirectory(path: ARRAY OF CHAR): BOOLEAN
-"VOC_IsDirectory((char*)path)";
+VAR dir: Directory; error: SYSTEM.INT32;
+BEGIN
+  IF handle = 0 THEN RETURN 0 END;
+  dir := SYSTEM.VAL(Directory, handle); handle := 0; error := 0;
+  IF (dir.search # PlatformNative.Invalid()) & ~PlatformNative.Close(dir.search) THEN error := PlatformNative.Error() END;
+  OSFree(dir.entry); OSFree(SYSTEM.VAL(SYSTEM.ADDRESS, dir)); RETURN SHORT(error)
+END CloseDirectory;
 
 PROCEDURE IsDirectory*(path: ARRAY OF CHAR): BOOLEAN;
-BEGIN RETURN isDirectory(path) END IsDirectory;
+VAR attributes: SYSTEM.INT32;
+BEGIN
+  attributes := PlatformNative.Attributes(path);
+  RETURN ~PlatformNative.InvalidAttributes(attributes) & PlatformNative.Directory(attributes)
+END IsDirectory;
 
 PROCEDURE -invalidHandleValue(): SYSTEM.ADDRESS "((ADDRESS)INVALID_HANDLE_VALUE)";
 

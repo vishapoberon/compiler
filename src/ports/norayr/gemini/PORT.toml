@@ -1,0 +1,22 @@
+schema = 1
+package = "gemini"
+kind = "library"
+origin = "Norayr Chilingarian's Polpo Gemini/Spartan core and gemtext scanner"
+upstream_url = "https://github.com/polpo-system/polpo"
+upstream_revision = "e111460d56734e0c71ef7e07437ddd7a3f754ed8"
+revision_status = "selected tracked origin/main snapshot; preserving existing edits in the local Polpo checkout"
+sources = ["Gemini0.Mod", "Gemtext0.Mod"]
+adaptation_date = "2026-10-15"
+license = "LGPL version 3 in LICENSE, with referenced GPL version 3 in COPYING"
+source_map = ["src/lib/gemini/{Gemini0,Gemtext0}.Mod -> same filenames", "src/cli/dcs.Mod -> src/examples/network/dcs/dcs.Mod", "src/test/GeminiTest.Mod -> src/test/ports/gemini/GeminiTest.Mod"]
+adaptations = [
+  "replacing FATFiles enumeration and missing Files metadata/directory services with NetHost",
+  "writing identity keys via private temporaries with final permissions set before writing",
+  "replacing one SYSTEM.MOVE with a bounds-checked Oberon byte loop",
+  "keeping Gemtext0 unchanged and retaining the VOC Internet/TLS implementation",
+  "adapting regression file cleanup and output, asserting zero failures, and adding a standalone runner",
+  "building only with the Linux model-2 networking profile",
+  "retaining upstream trust policies; DCS defaults to None unless /tofu or /pin is supplied; cryptographic arithmetic is not constant-time",
+]
+build = "make (Linux model 2); make modular-library"
+test = "make -C src/test/ports test; make -C src/examples/network/dcs test"

@@ -1,0 +1,13 @@
+schema = 1
+package = "pow"
+kind = "library"
+origin = "POW! Oberon strings, University of Linz"
+upstream_url = ""
+upstream_revision = ""
+revision_status = "legacy import; upstream location and exact revision not recorded"
+voc_baseline = "9cef5e0bdaa96e8c722c350106a30238efbfa5f6"
+sources = ["powStrings.Mod"]
+license = "POW! team copyright in source headers; licence provenance needs verification"
+adaptations = ["VOC module name powStrings, avoiding existing string interfaces"]
+build = "make"
+test = "make modular-library-test"

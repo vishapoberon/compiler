@@ -1,6 +1,6 @@
 MODULE compatIn;
 (* module created to compile Make utility from Trianus v4 system with less changes in original file ; -- noch *)
-IMPORT Args, IntStr := oocIntStr;
+IMPORT Args, IntStr;
 
 VAR Done* : BOOLEAN;
     argnum : INTEGER;

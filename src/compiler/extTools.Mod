@@ -99,7 +99,8 @@ BEGIN
 END Quote;
 
 PROCEDURE IsCore(name: ARRAY OF CHAR): BOOLEAN;
-BEGIN RETURN (name = "SYSTEM") OR (name = "Heap") OR (name = "Platform") OR (name = "Modules") END IsCore;
+BEGIN RETURN (name = "SYSTEM") OR (name = "Heap") OR (name = "PlatformNative") OR
+  (name = "Platform") OR (name = "Modules") END IsCore;
 
 PROCEDURE SearchPath(VAR path: Path);
   VAR extra: Path;
@@ -214,7 +215,7 @@ END Assemble;
 PROCEDURE LinkModule*(moduleName: ARRAY OF CHAR);
   VAR cmd: CommandString; file: ARRAY 128 OF CHAR; full: Path;
 BEGIN
-  IF IsCore(moduleName) THEN Fail("SYSTEM, Platform, Heap and Modules belong to the minimal core, not separate modules.") END;
+  IF IsCore(moduleName) THEN Fail("SYSTEM, PlatformNative, Platform, Heap and Modules belong to the minimal core, not separate modules.") END;
   FindLibrary("core", ".a", full); (* Require the matching core development installation. *)
   ModularCommand(cmd); Add(" -shared ", cmd); Add(moduleName, cmd); Add(".c ", cmd);
   LibraryName(moduleName, ".so", file);

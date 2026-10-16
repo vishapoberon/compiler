@@ -1,0 +1,14 @@
+schema = 1
+package = "oberon-ip"
+kind = "library"
+origin = "Carlos Une's IPv4 address and subnet library"
+upstream_url = "https://codeberg.org/une/oberon-ip"
+upstream_revision = "9fc1ac53694cacf5a0fb7272679e6cfaa1501241"
+revision_status = "pulled before import; fixes and integration committed separately, upstream submission pending"
+voc_baseline = "6d07acac"
+sources = ["IP.Mod"]
+source_map = ["IP.mod -> IP.Mod (filename case only)", "IPRange.mod -> src/examples/network/ip/IPRange.Mod (filename case only)", "Test.mod -> src/test/ports/une/TestIP.Mod", "COPYING and README.md -> same filenames"]
+license = "GPL-3.0, preserving Carlos Une's copyright notices and COPYING; not relicensed"
+adaptations = ["Using the existing bundled BIT module and supporting the IPv4 /0 network without a full-width shift", "Checking IPRange for missing octets, overflow, trailing or truncated input and full-length /32 addresses", "Renaming the upstream test module to TestIP and aliasing ethRandomNumbers to the canonical RandomNumbers", "Keeping the GPL library out of the default conventional and modular runtime", "Keeping IPRange source-only"]
+build = "make -C src/examples/network/ip (opt-in; builds IPRange and a private IP object)"
+test = "make -C src/test/ports/une test"

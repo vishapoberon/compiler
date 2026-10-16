@@ -1,5 +1,5 @@
 MODULE testTimes;
-  IMPORT Times := ulmTimes, Scales := ulmScales, Out;
+  IMPORT Times, Scales, Out;
   VAR time: Times.Time; scale: Scales.Scale; unit: Scales.Unit;
     name: Scales.UnitName; count: INTEGER;
 BEGIN

@@ -1,0 +1,18 @@
+schema = 1
+package = "http"
+kind = "library"
+origin = "Norayr Chilingarian's HTTP client"
+upstream_url = "https://github.com/norayr/http"
+upstream_revision = "97e9d4702f246aa294fae7a06efae57bc49452fd"
+revision_status = "pulled before import; including upstream d0be5b4 and its subsequent licence commit"
+sources = ["hexIntStr.Mod", "http.Mod"]
+license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; retaining source notices"
+source_map = ["src/hexIntStr.Mod -> hexIntStr.Mod", "src/http.Mod -> http.Mod", "LICENSE and COPYING -> same filenames", "test/testHttp.Mod -> src/examples/network/http/"]
+adaptations = [
+  "aliasing Base64 := StringBase64 to preserve ETH Base64; HTTP already disables the Base64 EOL option",
+  "importing the unified IntStr and ConvTypes modules directly, without legacy oo2c wrappers",
+  "building with the Linux Internet profile, model 2 only",
+  "keeping demonstrations separate from distribution libraries",
+]
+build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
+test = "make -C src/test/ports test; make modular-library-test"
