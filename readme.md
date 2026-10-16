@@ -1,5 +1,3 @@
-![Build status](https://brownsmeet.com/githubhook/vishaps-status)
-
 # Ѵishap Oberon
 
 [Ѵishap Oberon](https://vishap.oberon.am/) is a free and open source (GPLv3)
@@ -11,17 +9,19 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
+[Release notes for 4.0](doc/ReleaseNotes-4.0.md)
+
 ### Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Compiling a 'Hello' application**](#a-hello-application)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Shared modules and the hresh shell**](#shared-modules-and-the-hresh-shell)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Source layout**](#source-layout)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**License**](#license)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Platform support and porting**](#platform-support-and-porting)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Language support and libraries**](#language-support-and-libraries)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[**History**](#history)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[**Roadmap**](#roadmap)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Contributors**](#contributors)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[**Origin of the name "Ѵishap Oberon"**](#origin-of-the-name-Ѵishap-oberon)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Origin of the name "Ѵishap Oberon"**](#origin-of-the-name-ѵishap-oberon)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**References**](#references)<br>
 
 
@@ -175,6 +175,37 @@ DEFINITION Out;
 END Out.
 ```
 
+## Shared modules and the hresh shell
+
+VOC can compile modules as individual shared libraries and load them when they
+are needed. `hresh`, the Hosted Runtime Extensible Shell, calls exported Oberon
+commands such as `Commands.Run` in one process, allowing modules to retain their
+state between calls. A standalone program can use the same libraries without
+the shell.
+
+Start with [**A gentle introduction to shared modules**](/doc/ModuleTutorial.md)
+to write a command module, build an application, and change its implementation
+without rebuilding the executable. [**Shared modules and hresh**](/doc/SharedModules.md)
+describes the compiler options, library organisation and loading rules.
+
+`make modular-library` builds shared-module versions of the bundled libraries.
+For X11, Cairo and raylib, install the [development packages](/src/ports/readme.md#graphics-bindings)
+and run `make modular-library-bindings`. The
+[library examples](/src/examples/shared-libraries/readme.md) show both shell
+commands and standalone applications. Normal `-m` and `-M` compilation uses
+the combined `libvoc` library instead.
+
+## Source layout
+
+| Directory | Contents |
+| --- | --- |
+| `src/compiler` | The Oberon-to-C compiler |
+| `src/runtime` | Core runtime and Oakwood libraries |
+| [`src/library`](/src/library/readme.md) | Command-line, terminal and other library modules |
+| [`src/ports`](/src/ports/readme.md) | Libraries and bindings from other Oberon systems and projects |
+| [`src/examples`](/src/examples/readme.md) | Example programs, games and servers, built separately |
+| `src/test` | Regression tests |
+| `src/tools` | Build tools, symbol browser and `hresh` |
 
 ## License
 
@@ -187,6 +218,9 @@ using these libraries may not be statically linked.
 Voc tools are distributed under GPLv3.
 
 Most of the runtime in libVishapOberon is distributed under GPLv3 with runtime exception.
+
+The bundled Unix model-2 `Kbd` library from sts-q is GPLv3 without that runtime
+exception; see [`src/ports/sts-q/oberon`](src/ports/sts-q/oberon/readme.md).
 
 
 ## Platform support and porting

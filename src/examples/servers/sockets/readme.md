@@ -7,7 +7,11 @@ to compile
 
 run
 
->./s
+>make run
+
+The executable is written under `build/examples/servers/sockets/2`, not into
+this source directory. This historical demonstration is for short, trusted
+input: a full 256-byte request can halt it with an index error.
 
 test
 
