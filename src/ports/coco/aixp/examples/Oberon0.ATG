@@ -1,0 +1,440 @@
+COMPILER Oberon0
+
+(*
+	Alexander Shiryaev, 2012.01
+
+	References:
+		N. Wirth, Compiler Construction, June 2011
+	Modifications:
+		factor production modified:
+			factor = ident selector | ...
+			=>
+			factor = ident ( "(" expression [ "," expression ] ")" | selector ) | ...
+		type production renamed to Type
+*)
+
+IMPORT OSG, OSS, Texts, Oberon;
+
+CONST WordSize = 4;
+
+VAR
+	topScope, universe: OSG.Object;
+	guard: OSG.Object;
+	W: Texts.Writer;
+	id: OSS.Ident; val: LONGINT;
+
+PROCEDURE GetId;
+BEGIN
+	Oberon0S.GetName(Oberon0S.pos, Oberon0S.len, id)
+END GetId;
+
+(* PROCEDURE GetNextId;
+BEGIN
+	Oberon0S.GetName(Oberon0S.pos, Oberon0S.len, id)
+END GetNextId; *)
+
+PROCEDURE GetInt;
+	CONST maxInt = 2147483647;
+	VAR i: LONGINT;
+BEGIN
+	GetId;
+	val := 0;
+	i := 0;
+	WHILE (i < LEN(id)) & (id[i] # 0X) DO
+		ASSERT((id[i] >= "0") & (id[i] <= "9"));
+		IF val <= (maxInt - ORD(id[i]) + ORD("0")) DIV 10 THEN
+			val := 10 * val + (ORD(id[i]) - ORD("0"))
+		ELSE OSS.Mark("number too large"); val := 0
+		END;
+		INC(i)
+	END
+END GetInt;
+
+PROCEDURE NewObj (VAR(*OUT*) obj: OSG.Object; class: INTEGER);
+	VAR new, x: OSG.Object;
+BEGIN x := topScope;
+	GetId;
+	guard.name := id;
+	WHILE x.next.name # id DO x := x.next END;
+	IF x.next = guard THEN
+		NEW(new); new.name := id; new.class := class; new.next := guard;
+		x.next := new; obj := new
+	ELSE obj := x.next; OSS.Mark("mult def")
+	END
+END NewObj;
+
+PROCEDURE find (VAR(*OUT*) obj: OSG.Object);
+	VAR s, x: OSG.Object;
+BEGIN s := topScope;
+	GetId;
+	guard.name := id;
+	REPEAT x := s.next;
+		WHILE x.name # id DO x := x.next END;
+		s := s.dsc
+	UNTIL (x # guard) OR (s = NIL);
+	IF x = guard THEN OSS.Mark("undef") END;
+	obj := x
+END find;
+
+PROCEDURE FindField (VAR(*OUT*) obj: OSG.Object; list: OSG.Object);
+BEGIN
+	GetId;
+	guard.name := id;
+	WHILE list.name # id DO list := list.next END;
+	obj := list
+END FindField;
+
+PROCEDURE CheckInt (CONST x: OSG.Item);
+BEGIN
+	IF x.type.form # OSG.Integer THEN OSS.Mark("not integer") END
+END CheckInt;
+
+PROCEDURE CheckBool (CONST x: OSG.Item);
+BEGIN
+	IF x.type.form # OSG.Boolean THEN OSS.Mark("not Boolean") END
+END CheckBool;
+
+PROCEDURE OpenScope;
+	VAR s: OSG.Object;
+BEGIN NEW(s); s.class := OSG.Head; s.dsc := topScope; s.next := guard; topScope := s
+END OpenScope;
+
+PROCEDURE CloseScope;
+BEGIN topScope := topScope.dsc
+END CloseScope;
+
+PROCEDURE enter (cl: INTEGER; n: INTEGER; name: OSS.Ident; type: OSG.Type);
+	VAR obj: OSG.Object;
+BEGIN NEW(obj);
+	obj.class := cl; obj.val := n; obj.name := name; obj.type := type; obj.dsc := NIL;
+	obj.next := topScope.next; topScope.next := obj
+END enter;
+
+PROCEDURE Init;
+BEGIN Texts.OpenWriter(W);
+	NEW(guard); guard.class := OSG.Var; guard.type := OSG.intType; guard.val := 0;
+	topScope := NIL; OpenScope;
+	enter(OSG.Typ, 1, "BOOLEAN", OSG.boolType);
+	enter(OSG.Typ, 2, "INTEGER", OSG.intType);
+	enter(OSG.Const, 1, "TRUE", OSG.boolType);
+	enter(OSG.Const, 0, "FALSE", OSG.boolType);
+	enter(OSG.SProc, 0, "GET", NIL);
+	enter(OSG.SProc, 1, "PUT", NIL);
+	enter(OSG.SProc, 2, "ORD", OSG.intType);
+	enter(OSG.SProc, 3, "ODD", OSG.boolType);
+	enter(OSG.SProc, 4, "BIT", OSG.boolType);
+	universe := topScope
+END Init;
+
+CHARACTERS
+	tab = CHR(9) .
+	lf = CHR(10) .
+	cr = CHR(13) .
+	letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+	digit = "0123456789" .
+
+TOKENS
+	ident = letter { letter | digit } .
+	integer = digit { digit } .
+
+COMMENTS FROM '(*' TO '*)' NESTED
+
+IGNORE tab + lf + cr
+
+PRODUCTIONS
+	(* Top *)
+	Oberon0 =														(.
+																		Init;
+																		Texts.WriteString(W, "  compiling ")
+																	.)
+		module .
+	module															(. VAR modid: OSS.Ident; dc: LONGINT; .)
+		=															(. OSG.Open; OpenScope; dc := 0 .)
+		"MODULE" ident												(.
+																		GetId; modid := id;
+																		Texts.WriteString(W, modid);
+																		Texts.WriteLn(W);
+																		Texts.Append(Oberon.Log, W.buf)
+																	.)
+		";" declarations<dc>										(. OSG.Header(dc) .)
+		[ "BEGIN" StatementSequence ] "END" ident "."				(.
+																		CloseScope;
+																		IF Oberon0S.errors = 0 THEN
+																			OSG.Close;
+																			Texts.WriteString(W, "code generated");
+																			Texts.WriteInt(W, OSG.pc, 6); Texts.WriteInt(W, dc, 6); Texts.WriteLn(W);
+																			Texts.Append(Oberon.Log, W.buf)
+																		END
+																	.)
+		.
+
+	(* Declarations *)
+	declarations<VAR varsize: LONGINT>								(. VAR obj, first: OSG.Object; x: OSG.Item; tp: OSG.Type; .)
+		=
+		[ "CONST" { ident											(. NewObj(obj, OSG.Const) .)
+			"=" expression<x>										(.
+																		IF x.mode = OSG.Const THEN obj.val := x.a; obj.type := x.type
+																		ELSE OSS.Mark("expression not constant")
+																		END
+																	.)
+				";" } ]
+		[ "TYPE" { ident											(. NewObj(obj, OSG.Typ) .)
+			"=" Type<obj.type> ";" } ]
+		[ "VAR" { IdentList<OSG.Var, first> ":" Type<tp>			(.
+																		obj := first;
+																		WHILE obj # guard DO
+																			obj.type := tp; obj.lev := OSG.curlev;
+																			obj.val := varsize; varsize := varsize + obj.type.size; obj.isparam := FALSE;
+																			obj := obj.next
+																		END
+																	.)
+			";" } ]
+		{ ProcedureDeclaration ";" } .
+	IdentList<class: INTEGER; VAR(*OUT*) first: OSG.Object>			(. VAR obj: OSG.Object; .)
+		= ident														(. NewObj(first, class) .)
+		{ "," ident													(. NewObj(obj, class) .)
+			} .
+
+	(* Types *)
+	Type<VAR(*OUT*) type: OSG.Type>									(. VAR obj: OSG.Object; x: OSG.Item; tp: OSG.Type; .)
+		=															(. type := OSG.intType .)
+		ident														(.
+																		find(obj);
+																		IF obj.class = OSG.Typ THEN type := obj.type ELSE OSS.Mark("type?") END
+																	.)
+			| ArrayType<x, tp>										(.
+																		NEW(type); type.form := OSG.Array; type.base := tp;
+																		type.len := x.a; type.size := type.len * type.size
+																	.)
+			|														(. NEW(type); type.form := OSG.Record; type.size := 0; OpenScope .)
+				RecordType<type>									(. type.fields := topScope.next; CloseScope .)
+				.
+	ArrayType<VAR(*OUT*) x: OSG.Item; VAR(*OUT*) tp: OSG.Type>
+		= "ARRAY" expression<x>										(. IF (x.mode # OSG.Const) OR (x.a < 0) THEN OSS.Mark("bad index") END .)
+		"OF" Type<tp> .
+	RecordType<VAR type: OSG.Type>
+		= "RECORD" FieldList<type> { ";" FieldList<type> } "END" .
+	FieldList<VAR type: OSG.Type>									(. VAR obj, first: OSG.Object; tp: OSG.Type; .)
+		= [ IdentList<OSG.Fld, first> ":" Type<tp>					(.
+																		obj := first;
+																		WHILE obj # guard DO
+																			obj.type := tp; obj.val := type.size; type.size := type.size + obj.type.size;
+																			obj := obj.next
+																		END
+																	.)
+		] .
+
+	(* Procedures *)
+	ProcedureDeclaration											(. VAR proc: OSG.Object; procid: OSS.Ident; locblksize, parblksize: LONGINT; .)
+		= ProcedureHeading<procid, proc, parblksize>				(. locblksize := parblksize; proc.dsc := topScope.next .)
+			";" ProcedureBody<proc, parblksize, locblksize> ident	(. GetId; IF procid # id THEN OSS.Mark("no match") END .)
+			.
+	ProcedureHeading<VAR(*OUT*) procid: OSS.Ident; VAR(*OUT*) proc: OSG.Object; VAR(*OUT*) parblksize: LONGINT>
+																	(. CONST marksize = 4; .)
+		= "PROCEDURE" ident											(.
+																		GetId; procid := id;
+																		NewObj(proc, OSG.Proc); parblksize := marksize;
+																		OSG.IncLevel(1); OpenScope; proc.val := -1
+																	.)
+		[ FormalParameters<parblksize> ] .
+	FormalParameters<VAR parblksize: LONGINT>
+		= "(" [ FPSection<parblksize>
+			{ ";" FPSection<parblksize> } ] ")" .
+	FPSection<VAR parblksize: LONGINT>								(. VAR obj, first: OSG.Object; tp: OSG.Type; parsize: LONGINT; class: INTEGER; .)
+		=															(. class := OSG.Var .)
+			[														(. class := OSG.Par .)
+				"VAR" ] IdentList<class, first> ":" Type<tp>		(. (* FIXME: ident only in original OSP *)
+																		IF first.class = OSG.Var THEN parsize := tp.size;
+																			IF tp.form >= OSG.Array THEN OSS.Mark("no struct params") END
+																		ELSE parsize := WordSize
+																		END;
+																		obj := first;
+																		WHILE obj # guard DO
+																			obj.type := tp; obj.lev := OSG.curlev; obj.val := parblksize; obj.isparam := TRUE;
+																				parblksize := parblksize + parsize;
+																			obj := obj.next
+																		END
+																	.)
+					.
+	ProcedureBody<proc: OSG.Object; parblksize, locblksize: LONGINT>
+		= declarations<locblksize>									(. proc.val := OSG.pc; OSG.Enter(parblksize, locblksize) .)
+			[ "BEGIN" StatementSequence ]							(. OSG.Return(locblksize); CloseScope; OSG.IncLevel(-1) .)
+			"END" .
+
+	(* Expressions *)
+	expression<VAR(*OUT*) x: OSG.Item>								(. VAR op: INTEGER; y: OSG.Item; .)
+		= SimpleExpression<x>
+		[ (															(. op := OSS.eql .)
+			"=" |													(. op := OSS.neq .)
+			"#" |													(. op := OSS.lss .)
+			"<" |													(. op := OSS.leq .)
+			"<=" |													(. op := OSS.gtr .)
+			">" |													(. op := OSS.geq .)
+			">=" )													(. IF x.type.form = OSG.Boolean THEN OSG.Op1(op, x) END .)
+			SimpleExpression<y>										(.
+																		IF x.type = y.type THEN OSG.Relation(op, x, y)
+																		ELSE OSS.Mark("incompatible types")
+																		END;
+																		x.type := OSG.boolType
+																	.)
+			] .
+	SimpleExpression<VAR(*OUT*) x: OSG.Item>						(. VAR y: OSG.Item; op: INTEGER; .)
+		=															(. op := -1 .)
+		[															(. op := OSS.plus .)
+			"+" |													(. op := OSS.minus .)
+			"-" ] term<x>											(.
+																		IF op = OSS.plus THEN CheckInt(x)
+																		ELSIF op = OSS.minus THEN CheckInt(x); OSG.Op1(OSS.minus, x)
+																		END
+																	.)
+			{ (														(. op := OSS.plus; CheckInt(x) .)
+				"+" |												(. op := OSS.minus; CheckInt(x) .)
+				"-" |												(. op := OSS.or; CheckBool(x); OSG.Op1(op, x) .)
+				"OR" ) term<y>										(. IF x.type = y.type THEN OSG.Op2(op, x, y) ELSE OSS.Mark("incompatible types") END .)
+				} .
+	term<VAR(*OUT*) x: OSG.Item>									(. VAR op: INTEGER; y: OSG.Item; .)
+		= factor<x> { (												(. op := OSS.times; CheckInt(x) .)
+			"*" |													(. op := OSS.div; CheckInt(x) .)
+			"DIV" |													(. op := OSS.mod; CheckInt(x) .)
+			"MOD" |													(. op := OSS.and; CheckBool(x); OSG.Op1(op, x) .)
+			"&" ) factor<y>											(. IF x.type = y.type THEN OSG.Op2(op, x, y) ELSE OSS.Mark("incompatible types") END .)
+			} .
+	factor<VAR(*OUT*) x: OSG.Item>									(. VAR obj: OSG.Object; y: OSG.Item; isY: BOOLEAN; .)
+		=															(. OSG.MakeItem(x, guard) .)
+		ident														(. find(obj) .)
+			(														(.
+																		IF obj.class # OSG.SProc THEN OSS.Mark("selector expected")
+																		ELSIF obj.type = NIL THEN OSS.Mark("not a function"); x.type := OSG.intType
+																		END;
+																	.)
+				"(" expression<x>									(. isY := FALSE .)
+					[												(.
+																		isY := TRUE;
+																		IF obj.val # 4 (*BIT*) THEN OSS.Mark("rparen expected") END
+																	.)
+					"," expression<y>
+					]												(.
+																		IF obj.val = 2 (*ORD*) THEN
+																		ELSIF obj.val = 3 (*ODD*) THEN OSG.Odd(x)
+																		ELSIF obj.val = 4 (*BIT*) THEN
+																			IF isY THEN OSG.Bit(x, y)
+																			ELSE OSS.Mark("comma expected")
+																			END
+																		END;
+																		x.type := obj.type
+																	.)
+				")" |												(.
+																		IF obj.class = OSG.SProc THEN
+																			OSS.Mark("param missing");
+																			OSG.MakeConstItem(x, OSG.intType, 0)
+																		END;
+																		OSG.MakeItem(x, obj)
+																	.) 
+				selector<x> )
+		| integer													(. GetInt; OSG.MakeConstItem(x, OSG.intType, val) .)
+		| "(" expression<x> ")" | "~" factor<x>						(. CheckBool(x); OSG.Op1(OSS.not, x) .)
+		.
+	selector<VAR x: OSG.Item>										(. VAR y: OSG.Item; obj: OSG.Object; .)
+		= { "." ident												(.
+																		FindField(obj, x.type.fields);
+																		IF obj # guard THEN OSG.Field(x, obj); x.type := obj.type
+																		ELSE OSS.Mark("undef")
+																		END
+																	.)
+			| "[" expression<y>										(.
+																		IF x.type.form = OSG.Array THEN
+																			CheckInt(y); OSG.Index(x, y); x.type := x.type.base
+																		ELSE OSS.Mark("not an array")
+																		END
+																	.)
+			"]" } .
+
+	(* Statements *)
+	StatementSequence = statement									(. OSG.CheckRegs .)
+		{ ";" statement												(. OSG.CheckRegs .)
+		} .
+	statement = [ AssignmentOrProcedureCall
+		| IfStatement | WhileStatement | RepeatStatement ] .
+	IfStatement														(. VAR x: OSG.Item; L: LONGINT; isElse: BOOLEAN; .)
+		= "IF" expression<x>										(. CheckBool(x); OSG.CFJump(x) .)
+		"THEN" StatementSequence									(. L := 0 .)
+		{															(. OSG.FJump(L); OSG.FixLink(x.a) .)
+			"ELSIF" expression<x>									(. CheckBool(x); OSG.CFJump(x) .)
+			"THEN" StatementSequence }								(. isElse := FALSE .)
+		[															(.
+																		isElse := TRUE;
+																		OSG.FJump(L); OSG.FixLink(x.a)
+																	.)
+			"ELSE" StatementSequence ]								(.
+																		IF ~isElse THEN OSG.FixLink(x.a) END;
+																		OSG.FixLink(L)
+																	.)
+		"END" .
+	WhileStatement													(. VAR x: OSG.Item; L: LONGINT; .)
+		=															(. L := OSG.pc .)
+			"WHILE" expression<x>									(. CheckBool(x); OSG.CFJump(x) .)
+			"DO" StatementSequence									(. OSG.BJump(L); OSG.FixLink(x.a) .)
+			"END" .
+	RepeatStatement													(. VAR x: OSG.Item; L: LONGINT; .)
+		=															(. L := OSG.pc .)
+			"REPEAT" StatementSequence "UNTIL" expression<x>		(. CheckBool(x); OSG.CBJump(x, L) .)
+			.
+	AssignmentOrProcedureCall										(. VAR par, obj: OSG.Object; x, y: OSG.Item; nParams: LONGINT; .)
+		=															(. obj := guard .)
+		ident														(. find(obj); OSG.MakeItem(x, obj) .)
+		( selector<x> ":=" expression<y>							(. IF (x.type.form IN {OSG.Boolean, OSG.Integer}) & (x.type.form = y.type.form) THEN OSG.Store(x, y) END .)
+		|															(.
+																		IF x.mode = OSG.Proc THEN
+																			par := obj.dsc
+																		ELSIF x.mode = OSG.SProc THEN
+																			IF obj.type # NIL THEN OSS.Mark("not a proper procedure") END
+																		ELSE OSS.Mark("statement?")
+																		END;
+																		nParams := 0
+																	.)
+			[ ActualParameters<x, par, obj, nParams> ]				(.
+																		IF x.mode = OSG.Proc THEN
+																			IF obj.val < 0 THEN OSS.Mark("forward call")
+																			ELSE OSG.Call(x);
+																				IF par.isparam THEN OSS.Mark("too few parameters") END
+																			END
+																		ELSIF x.mode = OSG.SProc THEN
+																			IF nParams = 1 THEN OSS.Mark("comma expected") END
+																		END
+																	.)
+		) .
+	ActualParameters<VAR x: OSG.Item; VAR par, obj: OSG.Object; VAR nParams: LONGINT>	(. VAR y, z: OSG.Item; .)
+		=
+		"(" [ expression<y>											(.
+																		nParams := 1;
+																		IF x.mode = OSG.Proc THEN
+																			IF par.isparam THEN
+																				IF y.type = par.type THEN OSG.Parameter(y, par.class) ELSE OSS.Mark("bad param type") END;
+																				par := par.next
+																			ELSE OSS.Mark("too many parameters")
+																			END
+																		ELSIF x.mode = OSG.SProc THEN
+																			z := y
+																		END
+																	.)
+			{ "," expression<y>										(.
+																		INC(nParams);
+																		IF x.mode = OSG.Proc THEN (* copy of ^ *)
+																			IF par.isparam THEN
+																				IF y.type = par.type THEN OSG.Parameter(y, par.class) ELSE OSS.Mark("bad param type") END;
+																				par := par.next
+																			ELSE OSS.Mark("too many parameters")
+																			END
+																		ELSIF x.mode = OSG.SProc THEN
+																			IF nParams = 3 THEN OSS.Mark("rparen expected")
+																			ELSIF nParams = 2 THEN
+																				IF x.a = 0 THEN (*GET*) OSG.Put(z, y)
+																				ELSIF x.a = 1 THEN (*PUT*) OSG.Put(z, y)
+																				END
+																			END
+																		END
+																	.)
+			} ]
+		")" .
+
+END Oberon0.

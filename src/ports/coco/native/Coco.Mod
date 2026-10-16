@@ -1,11 +1,11 @@
 (* Implementation restrictions
        3  too many nodes in graph (>1500)                         CRG.NewNode
-       4  too many sets (ANY-symbols or SYNC symbols)     CRT.NewAnySet, 
+       4  too many sets (ANY-symbols or SYNC symbols)     CRT.NewAnySet,
                                                                                CRT.ComputeSyncSet
        6  too many symbols (>300)                                   CRT.NewSym
        7  too many character classes (>50)                        CRT.NewClass
        9  too many conditions in generated code (>100)        CRX.NewCondSet
-       
+
    Trace output (ddt settings: ${digit})
     0  Prints states of automaton
     1  Prints start symbols and followers of nonterminals (also option /s)
@@ -19,7 +19,7 @@
 ==========================================================================*)
 MODULE Coco;
 
-IMPORT (*Oberon, TextFrames,*) Texts := CmdlnTexts,(* Viewers,*) CRS, CRP, CRT, Out := Console;
+IMPORT Oberon, Texts, CRS, CRP, CRT;
 
 CONST minErrDist = 8;
 
@@ -27,13 +27,11 @@ VAR w: Texts.Writer; lastErrPos: LONGINT;
 
 
 PROCEDURE Error (n: INTEGER; pos: LONGINT);
-  
+
   PROCEDURE Msg (s: ARRAY OF CHAR);
-  BEGIN 
-  (*Texts.WriteString(w, s)*)
-  Out.String(s);
+  BEGIN Texts.WriteString(w, s)
   END Msg;
-  
+
 BEGIN
   INC(CRS.errors);
   IF pos < lastErrPos + minErrDist THEN lastErrPos := pos; RETURN END;
@@ -97,8 +95,7 @@ BEGIN
   | 53: Msg("invalid Declaration")
   | 54: Msg("this symbol not expected in CR")
   | 55: Msg("invalid CR")
-    ELSE (*Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)*)
-        Out.String("error "); Out.Int(n, 0)
+    ELSE Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)
     END
   ELSE
     CASE n OF
@@ -128,12 +125,10 @@ BEGIN
     | 224: Msg("tokens must not contain blanks")
     | 225: Msg("comment delimiter must not exceed 2 characters")
     | 226: Msg("character set contains more than one character")
-    ELSE (*Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)*)
-         Out.String("error "); Out.Int(n, 0);
+    ELSE Texts.WriteString(w, "error "); Texts.WriteInt(w, n, 0)
     END
   END;
-(*Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf)*)
-Out.Ln
+Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf)
 END Error;
 
 PROCEDURE Options(VAR s: Texts.Scanner);
@@ -151,56 +146,24 @@ BEGIN
   END;
 END Options;
 
-PROCEDURE Options0(VAR s: ARRAY OF CHAR);
-  VAR i: INTEGER;
-BEGIN
-  IF s.nextCh = "\" THEN Texts.Scan(s); Texts.Scan(s);
-    IF s.class = Texts.Name THEN i := 0;
-      WHILE s.s[i] # 0X DO
-        IF CAP(s.s[i]) = "X" THEN CRT.ddt[7] := TRUE
-        ELSIF CAP(s.s[i]) = "S" THEN CRT.ddt[1] := TRUE
-        END;
-        INC(i)
-      END
-    END
-  END;
-END Options;
-
 
 PROCEDURE Compile*;
-  VAR v: Viewers.Viewer; f: TextFrames.Frame; s: Texts.Scanner; src, t: Texts.Text;
+  VAR s: Texts.Scanner; src, t: Texts.Text;
     pos, beg, end, time: LONGINT; i: INTEGER;
 BEGIN
   Texts.OpenScanner(s, Oberon.Par.text, Oberon.Par.pos); Texts.Scan(s);
-  f := Oberon.Par.frame(TextFrames.Frame);
-  src := NIL; pos := 0;
-  IF (s.class = Texts.Char) & (s.c = "^") THEN
-    Oberon.GetSelection(t, beg, end, time);
-    IF time >= 0 THEN Texts.OpenScanner(s, t, beg); Texts.Scan(s) END
-  END;
-  IF s.class = Texts.Name THEN
     NEW(src); Texts.Open(src, s.s);
-  ELSIF (s.class = Texts.Char) & (s.c = "*") THEN
-    v := Oberon.MarkedViewer();
-    IF (v # NIL) & (v.dsc.next IS TextFrames.Frame) THEN
-      src := v.dsc.next(TextFrames.Frame).text;
-      Texts.OpenScanner(s, v.dsc(TextFrames.Frame).text, 0); Texts.Scan(s)
-    END
-  ELSIF (s.class = Texts.Char) & (s.c = "@") THEN
-    Oberon.GetSelection(t, beg, end, time);
-    IF time >= 0 THEN src := t; pos := beg; s.s := " " END
-  END;
-  IF src # NIL THEN
+    IF src # NIL THEN
     Texts.WriteString (w, "Coco/R - Compiler-Compiler V2.2"); Texts.Append(Oberon.Log, w.buf);
     i := 0; WHILE i < 10 DO CRT.ddt[i] := FALSE; INC(i) END;
     Options(s);
-    Texts.WriteLn(w); Texts.WriteString(w, s.s); Texts.Append(Oberon.Log, w.buf);
-    CRS.Reset(src, pos, Error); lastErrPos := -10;
+    Texts.WriteLn(w); Texts.WriteString(w, s.s); Texts.WriteLn(w); Texts.Append(Oberon.Log, w.buf);
+    CRS.Reset(src, 0, Error); lastErrPos := -10;
     CRP.Parse
   END
 END Compile;
 
 BEGIN
-  Texts.OpenWriter(w)
+  Texts.OpenWriter(w);
+  Compile
 END Coco.
-

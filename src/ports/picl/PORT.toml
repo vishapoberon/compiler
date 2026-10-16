@@ -1,0 +1,13 @@
+schema = 1
+package = "picl"
+kind = "tool"
+origin = "Niklaus Wirth's PICL compiler, adapted for VOC"
+upstream_url = "https://github.com/vishapoberon/vpicl"
+upstream_revision = "66138deab9e862429e60a9d9e56e44729c61e9c7"
+revision_status = "local checkout at the recorded revision"
+sources = ["src/POutput.Mod", "src/PErrors.Mod", "src/PICS.Mod", "src/PICL.Mod"]
+source_map = ["src/*.Mod -> src/ (same names)", "tests/*.picl -> tests/ (same names)", "readme.md -> readme.md", "vpicl.png -> picl.png"]
+license = "No licence file in the source repository; original module headers retained"
+adaptations = ["building the compiler and its private modules under build/ports/picl/<model>", "using the local screenshot in the upstream README", "replacing the upstream makefiles with an opt-in build and compilation tests"]
+build = "make -C src/ports/picl"
+test = "make -C src/ports/picl test"

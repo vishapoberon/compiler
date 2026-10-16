@@ -1,7 +1,7 @@
-# Library ports
+# Ports
 
-This directory contains libraries and bindings from other Oberon systems and
-projects, grouped by author or collection.
+This directory contains libraries, bindings and tools from other Oberon
+systems and projects, grouped by author or collection.
 
 | Directory | Contents |
 | --- | --- |
@@ -10,6 +10,8 @@ projects, grouped by author or collection.
 | [`une/`](une/readme.md) | Carlos Une's Cairo, IPv4 and astronomy modules |
 | `tmartiro/` | Tigran Martirosyan's raylib binding |
 | `v4/`, `ooc/`, `oocX11/`, `ulm/`, `pow/`, `s3/` | Libraries from Ofront, oo2c, Ulm, POW! and ETH Oberon |
+| [`picl/`](picl/readme.md) | Niklaus Wirth's PICL compiler |
+| [`coco/`](coco/readme.md) | Coco/R from Native Oberon and the version with A. V. Shiryaev's additions |
 
 Applications using these libraries are in [`src/examples`](../examples/readme.md).
 Ofront's `Args` and `Console`, along with terminal utilities, are in
@@ -31,6 +33,33 @@ make modular-library-test
 
 These targets require ELF Unix and use the VOC build in `install/`.
 Linux networking libraries are included unless `WITH_NETWORK=0` is set.
+
+### Compiler tools
+
+PICL and both Coco/R versions build separately using VOC in `install/`.
+The default is model 2; set `MODEL=C` for model C. Tests need Python 3.
+
+```sh
+make -C src/ports/picl
+make -C src/ports/coco/native  # Native Oberon version
+make -C src/ports/coco/aixp    # Version with Shiryaev's additions
+```
+
+To build and run each tool's tests:
+
+```sh
+make -C src/ports/picl test
+make -C src/ports/coco/native test
+make -C src/ports/coco/aixp test
+```
+
+`make -C src/ports/coco` builds both Coco/R versions;
+`make -C src/ports/coco test` builds and tests both.
+
+Executables are `build/ports/picl/2/PICL`, `build/ports/coco/native/2/Coco`
+and `build/ports/coco/aixp/2/Coco`. Each Coco/R build directory also contains
+its scanner and parser frames; the `aixp` version includes a driver frame.
+Run Coco/R from that directory with the grammar filename as its argument.
 
 ### Graphics bindings
 
@@ -69,8 +98,8 @@ that exception.
 
 Each `PORT.toml` records the source repository, imported revision, selected
 files and local changes. A blank revision means the original import has not
-yet been traced. `kind` describes the package as a `library`, `bindings` or
-`mixed`; it does not determine which build includes it.
+yet been traced. `kind` describes the package as a `library`, `bindings`,
+`mixed` or `tool`; it does not determine which build includes it.
 
 Some module names differ from upstream to avoid clashes. For example,
 `StringBase64` is the string-oriented library used by HTTP, while `Base64` is

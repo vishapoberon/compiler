@@ -1,0 +1,13 @@
+schema = 1
+package = "coco-aixp"
+kind = "tool"
+origin = "Coco/R with A. V. Shiryaev's 2012.01 additions, adapted for VOC"
+upstream_url = "https://github.com/norayr/cocor_voc"
+upstream_revision = "c83c342601759d5a38fc99942f7ccedbb9cd6269"
+revision_status = "tracked new/ directory at the recorded revision"
+sources = ["CRS.Mod", "CRT.Mod", "CRA.Mod", "CRX.Mod", "CRP.Mod", "Coco.Mod"]
+source_map = ["new/*.{Mod,ATG,FRM} -> ./ (same names)", "new/examples/ -> examples/", "new/tests/ -> tests/", "readme.md -> ../readme.md"]
+license = "CRX.Mod refers to the General ETH Oberon System Source License; source notices retained; no licence file in the repository"
+adaptations = ["starting the scanner at byte zero instead of an uninitialised local offset", "building Coco and its private modules under build/ports/coco/aixp/<model>", "compiling the bundled v4 Sets module in the tool's build directory", "copying scanner, parser and driver frames beside the executable", "replacing the upstream makefile with an opt-in build and generator tests", "updating the shared README for the native/aixp directory names"]
+build = "make -C src/ports/coco/aixp"
+test = "make -C src/ports/coco/aixp test"

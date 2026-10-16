@@ -1,0 +1,21 @@
+MODULE A;
+
+	CONST data = -56; ctrl = -52;
+
+	VAR x: INTEGER;
+
+	PROCEDURE WriteLn; BEGIN PUT(ctrl, 0); END WriteLn;
+
+	PROCEDURE P (z: INTEGER);
+		VAR y: INTEGER;
+	BEGIN
+		y := z;
+		y := y + 1;
+		x := y
+	END P;
+
+BEGIN
+	x := 5;
+	PUT(data, x); WriteLn;
+	P(x + 1); PUT(data, x); WriteLn
+END A.

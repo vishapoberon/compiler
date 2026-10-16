@@ -1,0 +1,72 @@
+COMPILER HTML
+(* Attempt to describe a fairly large subset of HTML (HyperText Markup Language)
+   This is incomplete, and parts are not properly described anyway!
+   P.D. Terry and P.D. Koeslag, Rhodes University, 1995 *)
+
+CHARACTERS
+  tab     = CHR(9) .
+  lf      = CHR(10) .
+  cr      = CHR(13) .
+  space   = CHR(32) .
+  eol     = CHR(13) .
+  Special = '<>&"=' .
+  Letter  = ANY - Special - tab - lf - cr - space - CHR(0) .
+  Noquote = ANY - '"' - eol .
+
+TOKENS
+  Word    = Letter { Letter } .
+  String  = '"' { Noquote } '"' .
+
+IGNORE CASE
+IGNORE tab + lf + cr + space
+
+PRODUCTIONS
+  HTML           = ( "<HTML>" HeadPart BodyPart "</HTML>"
+                     | HeadPart BodyPart ) EOF .
+  HeadPart       = "<HEAD>" TitleField "</HEAD>" | TitleField .
+  BodyPart       = "<BODY>" { Field } "</BODY>" | { Field } .
+  TitleField     = "<TITLE>" { TextOrImage } "</TITLE>" .
+
+  Field          = Heading | Anchor | UnNumList | NumList | Address |
+                   Paragraph | DefList | PreFormatted | TextOrImage .
+                   
+  Heading        = ("<H1" Alignment ">" { TextOrImage } "</H1>") |
+                   ("<H2" Alignment ">" { TextOrImage } "</H2>") |
+                   ("<H3" Alignment ">" { TextOrImage } "</H3>") |
+                   ("<H4" Alignment ">" { TextOrImage } "</H4>") .
+                   
+  Alignment      = [ "ALIGN" "=" ( "TOP" | "MIDDLE" | "CENTER" ) ] .
+  
+  Anchor         = "<A" ( "HREF" | "NAME" ) "=" FilePath ">"
+                    TextOrImage { TextOrImage } "</A>" .
+                    
+  FilePath       = Word | String .
+  TextOrImage    = InlineText | Image .
+
+  UnNumList      = "<UL>" { ListElement } "</UL>" .
+  NumList        = "<OL>" { ListElement } "</OL>" .
+  ListElement    = "<LI>" { Field } .
+  
+  Address        = "<ADDRESS>" InlineText { InlineText } "</ADDRESS>" .
+  
+  Format         =   "<DFN>"    { InlineText } "</DFN>"
+                   | "<EM>"     { InlineText } "</EM>"
+                   | "<CITE>"   { InlineText } "</CITE>"
+                   | "<CODE>"   { InlineText } "</CODE>"
+                   | "<STRONG>" { InlineText } "</STRONG>" .
+                   
+  Paragraph      = "<P" Alignment ">" .
+  
+  DefList        = "<DL>" DefListElement { DefListElement } "</DL>" .
+  DefListElement = "<DT>" { Field } "<DD>" { Field } .
+  
+  PreFormatted   = "<PRE>" { InlineText } "</PRE>" .
+  
+  Image          = "<IMG" Alignment "SRC" "=" FilePath [ Alignment ]
+                    [ "ALT" "=" String ] ">" .
+                    
+  InlineText     = Word | String | Escape | Control | Format .
+  Escape         = "&lt;" | "&gt;" | "&amp;" | "&quot;" .
+  Control        = "</P>" | "<BR>" | "<HR>" .
+
+END HTML.

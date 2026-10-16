@@ -1,0 +1,79 @@
+COMPILER Oberon0
+
+(*
+	Alexander Shiryaev, 2012.01
+
+	References:
+		N. Wirth, Compiler Construction, June 2011
+	Modifications:
+		factor production modified
+			factor = ident selector | ...
+			=>
+			factor = ident ( "(" expression [ "," expression ] ")" | selector ) | ...
+*)
+
+CHARACTERS
+	tab = CHR(9) .
+	lf = CHR(10) .
+	cr = CHR(13) .
+	letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+	digit = "0123456789" .
+
+TOKENS
+	ident = letter { letter | digit } .
+	integer = digit { digit } .
+
+COMMENTS FROM '(*' TO '*)' NESTED
+
+IGNORE tab + lf + cr
+
+PRODUCTIONS
+	(* Top *)
+	Oberon0 = module .
+	module = "MODULE" ident ";" declarations
+		[ "BEGIN" StatementSequence ] "END" ident "." .
+
+	(* Declarations *)
+	declarations =
+		[ "CONST" { ident "=" expression ";" } ]
+		[ "TYPE" { ident "=" type ";" } ]
+		[ "VAR" { IdentList ":" type ";" } ]
+		{ ProcedureDeclaration ";" } .
+	IdentList = ident { "," ident } .
+
+	(* Types *)
+	type = ident | ArrayType | RecordType .
+	ArrayType = "ARRAY" expression "OF" type .
+	RecordType = "RECORD" FieldList { ";" FieldList } "END" .
+	FieldList = [ IdentList ":" type ] .
+
+	(* Procedures *)
+	ProcedureDeclaration = ProcedureHeading ";" ProcedureBody ident .
+	ProcedureHeading = "PROCEDURE" ident [ FormalParameters ] .
+	FormalParameters = "(" [ FPSection { ";" FPSection } ] ")" .
+	FPSection = [ "VAR" ] IdentList ":" type .
+	ProcedureBody = declarations [ "BEGIN" StatementSequence ] "END" .
+
+	(* Expressions *)
+	expression = SimpleExpression
+		[ ( "=" | "#" | "<" | "<=" | ">" | ">=" ) SimpleExpression ] .
+	SimpleExpression = [ "+" | "-" ] term { ( "+" | "-" | "OR" ) term } .
+	term = factor { ( "*" | "DIV" | "MOD" | "&" ) factor } .
+	(* factor = ident selector | integer | "(" expression ")" | "~" factor . *)
+	factor = ident ( "(" expression [ "," expression ] ")" | selector ) | integer | "(" expression ")" | "~" factor .
+	selector = { "." ident | "[" expression "]" } .
+
+	(* Statements *)
+	StatementSequence = statement { ";" statement } .
+	statement = [ AssignmentOrProcedureCall
+		| IfStatement | WhileStatement | RepeatStatement ] .
+	IfStatement = "IF" expression "THEN" StatementSequence
+		{ "ELSIF" expression "THEN" StatementSequence }
+		[ "ELSE" StatementSequence ] "END" .
+	WhileStatement = "WHILE" expression "DO" StatementSequence "END" .
+	RepeatStatement = "REPEAT" StatementSequence "UNTIL" expression .
+	AssignmentOrProcedureCall =
+		ident ( selector ":=" expression | [ ActualParameters ] ) .
+	ActualParameters = "(" [ expression { "," expression } ] ")" .
+
+END Oberon0.

@@ -202,7 +202,7 @@ the combined `libvoc` library instead.
 | `src/compiler` | The Oberon-to-C compiler |
 | `src/runtime` | Core runtime and Oakwood libraries |
 | [`src/library`](/src/library/readme.md) | Command-line, terminal and other library modules |
-| [`src/ports`](/src/ports/readme.md) | Libraries and bindings from other Oberon systems and projects |
+| [`src/ports`](/src/ports/readme.md) | Libraries, bindings and tools from other Oberon systems and projects |
 | [`src/examples`](/src/examples/readme.md) | Example programs, games and servers, built separately |
 | `src/test` | Regression tests |
 | `src/tools` | Build tools, symbol browser and `hresh` |

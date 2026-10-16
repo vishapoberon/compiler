@@ -1,0 +1,25 @@
+COMPILER EBNF
+
+CHARACTERS
+  letter   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+  digit    = "0123456789" .
+  lowline  = "_" .
+  noquote1 = ANY - "'" - CHR(13) .
+  noquote2 = ANY - '"' - CHR(13) .
+
+TOKENS
+  nonterminal = letter { letter | lowline | digit } .
+  terminal = "'" noquote1 { noquote1 } "'" | '"' noquote2 { noquote2 } '"' .
+
+PRODUCTIONS
+  EBNF = { Production } .
+  Production = nonterminal "=" Expression "." .
+  Expression = Term { "|" Term } .
+  Term = Factor { Factor } .
+  Factor = nonterminal
+         | terminal
+         | "[" Expression "]"
+         | "(" Expression ")"
+         | "{" Expression "}" .
+
+END EBNF.

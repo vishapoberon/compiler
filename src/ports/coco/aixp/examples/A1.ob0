@@ -1,0 +1,29 @@
+MODULE A1;
+
+	CONST data = -56; ctrl = -52;
+
+	VAR
+		i: INTEGER;
+
+	PROCEDURE WriteLn; BEGIN PUT(ctrl, 0) END WriteLn;
+	PROCEDURE WriteInt (x: INTEGER); BEGIN PUT(data, x) END WriteInt;
+
+	PROCEDURE GCD (VAR x: INTEGER; y: INTEGER);
+	BEGIN
+		WriteInt(x); WriteInt(y);
+		WHILE x # y DO
+			IF x > y THEN
+				x := x - y
+			ELSE
+				y := y - x
+			END
+		END;
+		WriteInt(x); WriteLn
+	END GCD;
+
+BEGIN
+	i := 0;
+	WHILE i < 10 DO WriteInt(i); i := i + 1 END; WriteLn;
+	i := 2 * 3 * 5;
+	GCD(i, 2 * 5 * 11)
+END A1.

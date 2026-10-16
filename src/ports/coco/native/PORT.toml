@@ -1,0 +1,13 @@
+schema = 1
+package = "coco-native"
+kind = "tool"
+origin = "Coco/R V2.2 from Native Oberon, adapted for VOC"
+upstream_url = "https://github.com/norayr/cocor_voc"
+upstream_revision = "c83c342601759d5a38fc99942f7ccedbb9cd6269"
+revision_status = "tracked old/ directory at the recorded revision"
+sources = ["CRS.Mod", "CRT.Mod", "CRX.Mod", "CRA.Mod", "CRP.Mod", "Coco.Mod"]
+source_map = ["old/src/*.{Mod,ATG,FRM} -> ./ (same names)", "old/EBNF/*.atg -> examples/ (same names)", "readme.md -> ../readme.md"]
+license = "No licence file in the source repository; original source headers retained"
+adaptations = ["starting the scanner at byte zero instead of an uninitialised local offset", "building Coco and its private modules under build/ports/coco/native/<model>", "compiling the bundled v4 Sets module in the tool's build directory", "copying the scanner and parser frames beside the executable", "replacing the upstream makefile with an opt-in build and generator tests", "updating the shared README for the native/aixp directory names"]
+build = "make -C src/ports/coco/native"
+test = "make -C src/ports/coco/native test"

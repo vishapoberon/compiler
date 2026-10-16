@@ -1,0 +1,59 @@
+COMPILER A
+
+IMPORT Out;
+
+PROCEDURE D (x: INTEGER);
+	VAR name, nextName: ARRAY 32 OF CHAR;
+BEGIN
+	AS.GetName(AS.pos, AS.len, name); AS.GetName(AS.nextPos, AS.nextLen, nextName);
+	Out.String("D "); Out.Int(x, 0); Out.String(" pos="); Out.Int(AS.pos, 0); Out.String(" len="); Out.Int(AS.len, 0);
+		Out.String(" name="); Out.String(name); Out.String(" sym="); Out.Int(sym, 0); Out.String(" nextPos=");
+		Out.Int(AS.nextPos, 0); Out.String(" nextLen="); Out.Int(AS.nextLen, 0); Out.String(" nextName="); Out.String(nextName);
+		Out.Ln
+END D;
+
+PROCEDURE ZZZ (): BOOLEAN;
+BEGIN
+RETURN FALSE
+END ZZZ;
+
+CHARACTERS
+	tab = CHR(9) .
+	lf = CHR(10) .
+	cr = CHR(13) .
+
+TOKENS
+	iddent = "abcdefg" .
+	nnumber = "0123" .
+	AAA = "AAA" .
+	B = "B" .
+	Z = "Z" .
+
+COMMENTS
+	FROM '(*' TO '*)' NESTED
+
+IGNORE tab + lf + cr
+
+PRODUCTIONS
+
+	A =
+		IF(ZZZ())															(. D(1) .)
+		AAA																	(. D(2) .)
+		|																	(. D(3) .)
+		AAA																	(. D(4) .)
+		"B"																	(. D(5) .)
+		|																	(. D(6) .)
+		"C"																	(. D(7) .)
+		|																	(. D(8) .)
+		"D"																	(. D(9) .)
+		|																	(. D(10) .)
+		"E"																	(. D(11) .)
+		|																	(. D(12) .)
+		"F"																	(. D(13) .)
+		|																	(. D(14) .)
+		"G"																	(. D(15) .)
+		|																	(. D(16) .)
+		"H"																	(. D(17) .)
+		.
+
+END A.
