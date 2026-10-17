@@ -1,0 +1,12 @@
+schema = 1
+package = "xattr"
+kind = "library"
+origin = "Norayr Chilingarian's extended-attributes module"
+upstream_url = "https://github.com/norayr/xattr"
+upstream_revision = "03ab85cfdbbbf10164c3f1e42d1841a36fca5fe6"
+revision_status = "imported from v0.1.0; import adapted to VOC 4 module names"
+sources = ["xattr.Mod"]
+license = "LGPL version 3; retaining upstream LICENSE"
+source_map = ["src/xattr.Mod -> xattr.Mod", "LICENSE -> LICENSE"]
+adaptations = ["use bundled oocStrings module name; Linux xattr API"]
+build = "make modular-library (Linux model 2)"

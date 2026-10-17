@@ -54,6 +54,7 @@ LIBRARY_SOURCES = $(addprefix $(ROOT)/src/library/,$(addsuffix .Mod,$(MODULAR_CL
  $(addprefix $(ROOT)/src/library/misc/,$(addsuffix .Mod,$(MODULAR_MISC))) \
  $(addprefix $(ROOT)/src/ports/s3/,$(addsuffix .Mod,$(MODULAR_S3))) \
  $(addprefix $(ROOT)/src/ports/,$(addsuffix .Mod,$(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS) \
+ $(if $(filter Linux,$(shell uname -s)),$(MODULAR_LINUX_BASE_PORTS)) \
  $(if $(filter 1,$(WITH_NETWORK)),$(MODULAR_LINUX_PORTS))))
 BINDING_NAMES = $(if $(filter 1,$(WITH_X11)),$(MODULAR_X11)) \
  $(if $(filter 1,$(WITH_CAIRO)),$(MODULAR_CAIRO)) \
@@ -204,8 +205,9 @@ $(MODULES)/libraries.stamp: $(MODULES)/modules.stamp $(MODULES)/tools.stamp $(MO
 	cd "$(MODULES)" && for name in $(filter-out $(MODULAR_ARCHIVE),$(MODULAR_S3)); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/s3/$$name.Mod" || exit; done
 	cd "$(MODULES)" && for name in $(MODULAR_PORTABLE); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done
 	cd "$(MODULES)" && for name in $(MODULAR_UNIX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done
+	if [ "$(shell uname -s)" = Linux ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_BASE_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
 	if [ "$(WITH_NETWORK)" = 1 ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
-	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser xxs system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) C $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
+	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser xxs system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) C $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
 	touch "$@"
 
 # This target alone needs the development packages for extra native APIs.

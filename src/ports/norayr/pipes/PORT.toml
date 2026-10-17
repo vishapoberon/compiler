@@ -1,0 +1,12 @@
+schema = 1
+package = "pipes"
+kind = "library"
+origin = "Norayr Chilingarian's pipes module"
+upstream_url = "https://github.com/norayr/pipes"
+upstream_revision = "ef0629a71853b145def2b8b27300d3d02b228739"
+revision_status = "imported from v0.9.0; imports adapted to VOC 4 module names"
+sources = ["pipes.Mod"]
+license = "GPL version 2; retaining upstream LICENSE"
+source_map = ["src/pipes.Mod -> pipes.Mod", "LICENSE -> LICENSE"]
+adaptations = ["use bundled Ascii and oocStrings module names"]
+build = "make modular-library (Linux model 2)"

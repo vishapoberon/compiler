@@ -58,4 +58,5 @@ MODULAR_TLS = norayr/tls/TLSBytes norayr/tls/TLSSHA256 norayr/tls/TLSHKDF \
  norayr/tls/TLS13Live norayr/tls/TLS13Server norayr/tls/httpsPure
 MODULAR_HTTPS = norayr/https/https
 MODULAR_GEMINI = norayr/netHost/NetHost norayr/gemini/Gemini0 norayr/gemini/Gemtext0
+MODULAR_LINUX_BASE_PORTS = norayr/pipes/pipes norayr/xattr/xattr
 MODULAR_LINUX_PORTS = $(MODULAR_INTERNET) $(MODULAR_HTTP) $(MODULAR_TLS) $(MODULAR_HTTPS) $(MODULAR_GEMINI)

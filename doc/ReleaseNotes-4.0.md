@@ -1,5 +1,10 @@
 # Vishap Oberon 4.0
 
+## 4.0.1
+
+The Linux modular library profile now includes Norayr's `pipes` and `xattr`
+modules, using the bundled runtime libraries instead of separate packages.
+
 Vishap Oberon 4.0 adds shared Oberon modules and `hresh`, a command shell
 where modules keep their state between calls. Programs can also load shared
 modules without using the shell. VOC still translates Oberon-2 to C; normal
