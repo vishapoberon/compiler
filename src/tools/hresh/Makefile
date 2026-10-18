@@ -46,6 +46,7 @@ include $(ROOT)/src/tools/make/modular-libraries.mk
 # libc-backed ports remain in the ordinary library profile. Only bindings to
 # additional native libraries belong to the explicitly requested add-on.
 TERMINAL_SOURCES = $(addprefix $(TERMINAL)/,$(addsuffix .Mod,$(MODULAR_TERMINAL)))
+STANDARD_SOURCES = $(addprefix $(ROOT)/src/library/,$(addsuffix .Mod,Out In Files Math MathL Oberon Reals Strings))
 LIBRARY_SOURCES = $(addprefix $(ROOT)/src/library/,$(addsuffix .Mod,$(MODULAR_CLI))) \
  $(addprefix $(ROOT)/src/ports/v4/,$(addsuffix .Mod,$(MODULAR_V4))) \
  $(addprefix $(ROOT)/src/ports/ooc/,$(addsuffix .Mod,$(MODULAR_OOC) C$(C_MODEL))) \
@@ -142,7 +143,7 @@ $(MODULES)/libvoc-core-O$(MODEL).so: $(NEWVOC) $(COMPILER)/CoreSource $(ROOT)/sr
 
 # The dependency order is the Oberon import order. The compiler discovers the
 # actual DT_NEEDED edges itself; no list of commands/imports is generated here.
-$(MODULES)/modules.stamp: $(MODULES)/libvoc-core-O$(MODEL).so $(wildcard $(ROOT)/src/runtime/*.Mod) $(TERMINAL_SOURCES) $(ROOT)/src/ports/ooc/oocStrings.Mod $(ROOT)/src/tools/make/modular-libraries.mk $(TOOLS)/Makefile
+$(MODULES)/modules.stamp: $(MODULES)/libvoc-core-O$(MODEL).so $(wildcard $(ROOT)/src/runtime/*.Mod) $(STANDARD_SOURCES) $(TERMINAL_SOURCES) $(ROOT)/src/ports/ooc/oocStrings.Mod $(ROOT)/src/tools/make/modular-libraries.mk $(TOOLS)/Makefile
 	@for name in $(addprefix ooc,$(filter-out ooc% Real0 oo2c2LRealConv,$(MODULAR_OOC)) C) $(addprefix ooc2,$(filter-out ooc% oo2c2LRealConv,$(MODULAR_OOC))) ooc2Strings; do \
 	  if [ -e "$(MODULES)/$$name.sym" ] || [ -e "$(MODULES)/libvoc-$$name-O$(MODEL).so" ]; then \
 	    echo "Obsolete oo2c module $$name in $(MODULES); rebuild in a fresh BUILD directory."; exit 1; \
@@ -150,7 +151,14 @@ $(MODULES)/modules.stamp: $(MODULES)/libvoc-core-O$(MODEL).so $(wildcard $(ROOT)
 	done
 	cd "$(MODULES)" && $(LIBRARY_ENV) CFLAGS="$(CFLAGS) -D_GNU_SOURCE -DVOC_RESOURCE_ROOT='\"$(RESOURCE_ROOT)\"'" LDLIBS="$(DL_LIBS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(SUPPORT)/NativeModules.Mod"
 	cd "$(MODULES)" && for name in ModulePaths ModuleImages NativeLibraries ModuleLoader; do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(SUPPORT)/$$name.Mod" || exit; done
-	cd "$(MODULES)" && for name in Out Reals Strings In Files Math MathL Texts Oberon VT100; do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/runtime/$$name.Mod" || exit; done
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/Out.Mod"
+	cd "$(MODULES)" && for name in Reals Strings; do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/$$name.Mod" || exit; done
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/Files.Mod"
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/In.Mod"
+	cd "$(MODULES)" && for name in Math MathL; do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/$$name.Mod" || exit; done
+	cd "$(MODULES)" && for name in Texts; do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/runtime/$$name.Mod" || exit; done
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/Oberon.Mod"
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/runtime/VT100.Mod"
 	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/ooc/oocStrings.Mod"
 	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(SUPPORT)/CommandSymbols.Mod"
 	cd "$(MODULES)" && for name in $(MODULAR_TERMINAL); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TERMINAL)/$$name.Mod" || exit; done

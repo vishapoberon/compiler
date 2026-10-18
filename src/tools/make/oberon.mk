@@ -115,11 +115,11 @@ translate:
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/PlatformNative$(PLATFORM).Mod
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrFapx -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Heap.Mod
-	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Reals.Mod
-	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Strings.Mod
-	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Out.Mod
+	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/Reals.Mod
+	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/Strings.Mod
+	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/Out.Mod
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Modules.Mod
-	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Files.Mod
+	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/Files.Mod
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Texts.Mod
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/VT100.Mod
 	cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -SsrF    -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/compiler/OPM.Mod
@@ -141,7 +141,7 @@ translate:
 
 browsercmd:
 	@printf '\nMaking symbol browser\n'
-	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Ss -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/runtime/Oberon.Mod
+	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Ss -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/library/Oberon.Mod
 	@cd $(BUILDDIR); "$(ROOTDIR)/$(OBECOMP)" -Sm -A$(ADRSIZE)$(ALIGNMENT) -O$(MODEL) ../../src/tools/browser/BrowserCmd.Mod
 	@cd $(BUILDDIR); $(COMPILE) BrowserCmd.c Oberon.c -o showdef \
 	  PlatformNative.o Platform.o Texts.o OPT.o Heap.o Out.o SYSTEM.o OPM.o OPS.o OPV.o \
@@ -229,17 +229,17 @@ runtime: FORCE
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/PlatformNative$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Platform$(PLATFORM).Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Heap.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Out.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/Out.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Modules.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Reals.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Strings.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/In.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/Reals.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/Strings.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/In.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/VT100.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Files.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Math.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/MathL.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/Files.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/Math.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/MathL.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Texts.Mod
-	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/runtime/Oberon.Mod
+	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/library/Oberon.Mod
 
 
 cli:

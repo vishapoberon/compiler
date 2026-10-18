@@ -3,6 +3,7 @@
 | Sources | Purpose |
 | --- | --- |
 | `Args.Mod`, `Console.Mod` | Command-line arguments and console output, from Josef Templ's Ofront |
+| `Out.Mod`, `In.Mod`, `Files.Mod`, `Reals.Mod`, `Strings.Mod`, `Math.Mod`, `MathL.Mod`, `Oberon.Mod` | Standard I/O, utility, math, and system modules used by runtime components |
 | `terminal/` | `LineEditor` for line editing; `termios` and `UnixTermios` for Unix terminal settings |
 | `misc/` | Other libraries, including `crt`, `Listen`, `MersenneTwister` and multidimensional arrays |
 

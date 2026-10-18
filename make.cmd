@@ -243,11 +243,11 @@ del *.sym >nul 2>nul
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/PlatformNative%PLATFORM%.Mod || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Platform%PLATFORM%.Mod || exit /b
 %ROOTDIR%\%OBECOMP% -SsfFapx -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Heap.Mod               || exit /b
-%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Reals.Mod              || exit /b
-%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Strings.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Out.Mod                || exit /b
+%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/library/Reals.Mod              || exit /b
+%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/library/Strings.Mod            || exit /b
+%ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/library/Out.Mod                || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Modules.Mod            || exit /b
-%ROOTDIR%\%OBECOMP% -SsfFx   -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Files.Mod              || exit /b
+%ROOTDIR%\%OBECOMP% -SsfFx   -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/library/Files.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/Texts.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/runtime/VT100.Mod              || exit /b
 %ROOTDIR%\%OBECOMP% -SsfF    -A%ADRSIZE%%ALIGNMENT% -O%MODEL% ../../src/compiler/OPM.Mod               || exit /b
@@ -275,7 +275,7 @@ goto :eof
 echo.
 echo.Making symbol browser
 cd %BUILDDIR%
-%ROOTDIR%/%OBECOMP% -fSs ../../src/runtime/Oberon.Mod
+%ROOTDIR%/%OBECOMP% -fSs ../../src/library/Oberon.Mod
 %ROOTDIR%/%OBECOMP% -fSm ../../src/tools/browser/BrowserCmd.Mod
 cl -nologo BrowserCmd.c Oberon.c /Feshowdef.exe ^
   PlatformNative.obj Platform.obj Texts.obj OPT.obj Heap.obj Out.obj SYSTEM.obj OPM.obj OPS.obj OPV.obj ^
@@ -295,16 +295,16 @@ cd %BUILDDIR%\%MODEL%
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Platform%PLATFORM%.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Heap.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Modules.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Reals.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Strings.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Out.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/In.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Reals.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Strings.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Out.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/In.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/VT100.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Files.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Math.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/MathL.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Files.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Math.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/MathL.Mod
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Texts.Mod
-%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/runtime/Oberon.Mod
+%ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/library/Oberon.Mod
 cd %ROOTDIR%
 goto :eof
 
