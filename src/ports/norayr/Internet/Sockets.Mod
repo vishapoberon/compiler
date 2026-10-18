@@ -383,8 +383,10 @@ END ReceiveFrom;
 
 BEGIN
   res := 0;
-  IF Linux0.ARCH = "MIPS" THEN
+  IF (Linux0.ARCH = "MIPS") OR (Linux0.ARCH = "MIPSBE") THEN
     sockStream := 2; sockDgram := 1; solSocket := 0FFFFH; soReuseAddr := 4; soRcvTimeo := 1006H; soSndTimeo := 1005H
+  ELSIF Linux0.ARCH = "PPC" THEN  (* polpo: PowerPC has SO_RCVTIMEO 18, SO_SNDTIMEO 19 *)
+    sockStream := 1; sockDgram := 2; solSocket := 1; soReuseAddr := 2; soRcvTimeo := 18; soSndTimeo := 19
   ELSE sockStream := 1; sockDgram := 2; solSocket := 1; soReuseAddr := 2; soRcvTimeo := 20; soSndTimeo := 21
   END
 END Sockets.
