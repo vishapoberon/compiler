@@ -113,11 +113,13 @@ END FromAddress;
 
 (* can fd be read without blocking (data, a request or the end), waiting at most ms milliseconds? *)
 PROCEDURE Ready(fd: LONGINT; ms: LONGINT): BOOLEAN;
-VAR set: ARRAY 128 OF CHAR; tv: ARRAY 2 OF LONGINT; i, r: LONGINT;
+VAR set: ARRAY 32 OF SET; tv: ARRAY 2 OF LONGINT; i, r: LONGINT;
 BEGIN
   IF (fd < 0) OR (fd >= 1024) THEN RETURN FALSE END;
-  i := 0; WHILE i < LEN(set) DO set[i] := 0X; INC(i) END;
-  set[fd DIV 8] := CHR(ASH(1, fd MOD 8));
+  (* the fd_set of the kernel is made of words: bit fd MOD 32 of word fd DIV 32, in the byte order
+    of the machine (a byte array put the bit into the wrong byte on big-endian machines) *)
+  i := 0; WHILE i < LEN(set) DO set[i] := {}; INC(i) END;
+  INCL(set[fd DIV 32], fd MOD 32);
   tv[0] := ms DIV 1000; tv[1] := ms MOD 1000 * 1000;
   r := Linux0.Select0(fd + 1, SYSTEM.ADR(set[0]), 0, 0, SYSTEM.ADR(tv[0]));
   RETURN r > 0
