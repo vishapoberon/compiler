@@ -1,7 +1,7 @@
 schema = 1
 package = "ooc"
 kind = "mixed"
-origin = "oo2c library, with selected newer real-conversion modules"
+origin = "oo2c library, with selected newer real-conversion and Unicode support modules"
 upstream_url = "https://github.com/norayr/oolng"
 upstream_revision = ""
 revision_status = "legacy import; exact upstream revision not recorded"
@@ -15,6 +15,9 @@ adaptations = [
   "VOC correctness fixes; keeping oo2c2LRealConv distinct from LRealConv",
   "formatting the full LONGINT range in both 32-bit and 64-bit type models, including MIN(LONGINT)",
   "checking negative integer conversion limits without overflow-prone near-MIN division",
+  "preserving UTF-16 code units through oocUnicode, LongStrings and Msg",
+  "updating Channel and its file/text rider users for Unicode-safe diagnostics",
+  "providing seekable memory channels through IOMemory",
 ]
 build = "make"
-test = "make confidence; make modular-library-test"
+test = "make -C src/ports/ooc test; make confidence; make modular-library-test"

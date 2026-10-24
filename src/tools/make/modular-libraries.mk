@@ -6,7 +6,7 @@ MODULAR_V4 = Printer Sets
 MODULAR_OOC = LowReal LowLReal RealMath OakMath LRealMath \
  LongInts ComplexMath LComplexMath Ascii CharClass oocStrings \
  ConvTypes LRealConv LRealStr RealConv RealStr IntConv \
- IntStr Msg SysClock Time Channel ProgramArgsHost \
+ IntStr oocUnicode LongStrings Msg SysClock Time Channel IOMemory ProgramArgsHost \
  ProgramArgs Strings2 Rts Filenames TextRider BinaryRider \
  JulianDay FilesHost oocFiles wrapperlibc OakStrings oocRandomNumbers \
  Real0 oo2c2LRealConv

@@ -23,7 +23,7 @@ MODULE TextRider;
 *)
 
 IMPORT
-  Ascii, Channel, CharClass, Strings := oocStrings, LRealStr, RealStr, IntStr, LRealConv, ConvTypes, Msg;
+  Ascii, Channel, CharClass, Strings := oocStrings, LRealStr, RealStr, IntStr, LRealConv, ConvTypes, Msg, LongStrings;
 
 CONST
   done* = Channel.done;
@@ -178,7 +178,7 @@ PROCEDURE (context: ErrorContext) GetTemplate* (msg: Msg.Msg; VAR templ: Msg.LSt
       context. GetTemplate^ (msg, templ)
     END;
     IF (str # "") THEN
-      COPY (str, templ)
+      LongStrings.Long (str, templ)
     END
   END GetTemplate;
 

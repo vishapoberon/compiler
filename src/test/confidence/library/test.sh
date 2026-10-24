@@ -14,6 +14,18 @@ $OBECOMP TestOocUnified.mod -m
 ./TestOocUnified >result
 printf 'unified oo2c library tests passed\n' >result-expected
 diff -b result-expected result
+$OBECOMP TestLongStrings.mod -m
+./TestLongStrings >result
+printf 'LongStrings checks passed\n' >result-expected
+diff -b result-expected result
+$OBECOMP TestMessages.mod -m
+./TestMessages >result
+printf 'Unicode message checks passed\n' >result-expected
+diff -b result-expected result
+$OBECOMP TestOocChannels.mod -m
+./TestOocChannels >result
+printf 'oo2c channel compatibility checks passed\n' >result-expected
+diff -b result-expected result
 $OBECOMP TypeAliases.mod -s
 $OBECOMP TestTypeAliases.mod -m
 ./TestTypeAliases >result

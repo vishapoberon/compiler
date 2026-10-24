@@ -4,7 +4,7 @@ MODULE oocFiles;
 IMPORT
   Host := FilesHost,
   Channel, Time, JulianDay,
-  Strings := oocStrings, IntStr, Msg;
+  Strings := oocStrings, IntStr, Msg, LongStrings;
 
 TYPE
   Result* = Channel.Result;
@@ -121,7 +121,7 @@ BEGIN
     str := "";
     context.GetTemplate^(msg, templ)
   END;
-  IF str # "" THEN COPY(str, templ) END
+  IF str # "" THEN LongStrings.Long(str, templ) END
 END GetTemplate;
 
 PROCEDURE ReaderFile(r: Reader): File;
