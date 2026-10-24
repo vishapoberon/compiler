@@ -39,12 +39,12 @@ CONST
 
 PROCEDURE IsAlpha* (ch: CHAR): BOOLEAN;
   BEGIN
-    RETURN ("A" <= CAP (ch)) & (CAP (ch) <= "Z")
+    RETURN ("A" <= ch) & (ch <= "Z") OR ("a" <= ch) & (ch <= "z")
   END IsAlpha;
 
 PROCEDURE SkipAlpha* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
-    IF ("A" <= CAP (str[pos])) & (CAP (str[pos]) <= "Z") THEN
+    IF IsAlpha (str[pos]) THEN
       INC (pos);
       RETURN TRUE
     ELSE
@@ -136,7 +136,8 @@ PROCEDURE SkipUnreserved* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
 PROCEDURE SkipEscaped* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   PROCEDURE SkipHex (ch: CHAR): BOOLEAN;
     BEGIN
-      RETURN ("0" <= ch) & (ch <= "9") OR ("A" <= CAP(ch)) & (CAP(ch) <= "F")
+      RETURN ("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F") OR
+             ("a" <= ch) & (ch <= "f")
     END SkipHex;
 
   BEGIN

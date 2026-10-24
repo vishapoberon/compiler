@@ -49,6 +49,10 @@ BEGIN
 
   octets[0] := "A"; octets[1] := 0FFX; octets[2] := 0X;
   S.Long(octets, a); ASSERT((a[0] = 41H) & (a[1] = 255) & (a[2] = 0), 48);
+  ASSERT(S.Equal8(a, octets), 86);
+  ASSERT(~S.Equal8(a, "A"), 87);
+  ASSERT(~S.Equal8(a, ""), 88);
+  a[1] := 1FFH; ASSERT(~S.Equal8(a, octets), 89); a[1] := 0FFH;
   S.Short(a, "?", octets); ASSERT((octets[0] = "A") & (octets[1] = 0FFX), 49);
   a[0] := 531H; a[1] := -1; a[2] := 0;
   S.Short(a, "?", octets); ASSERT(octets = "??", 50);
@@ -167,6 +171,10 @@ BEGIN
   S.Concat(a, b, empty^); S.Long("abc", empty^); S.Append8("abc", empty^);
   S.Short(a, "?", empty8^);
   ASSERT((empty[0] = 0) & (empty8[0] = 0X), 75);
+  ASSERT(S.Equal8(empty^, empty8^), 90);
+  empty[0] := ORD("x"); empty8[0] := "x";
+  ASSERT(~S.Equal8(empty^, empty8^), 91);
+  empty[0] := 0; empty8[0] := 0X;
   ASSERT(S.CanAssignAll(0, empty^) & S.CanInsertAll(0, 0, empty^) &
          S.CanReplaceAll(0, 0, empty^) & S.CanAppendAll(0, empty^) &
          S.CanConcatAll(0, 0, empty^) & ~S.CanAssignAll(1, empty^), 81);
@@ -182,5 +190,6 @@ BEGIN
   S.Extract(large^, 39999, 3, a);
   ASSERT((a[0] = 531H) & (a[1] = 561H) & (a[2] = 0), 79);
   S.Delete(large^, 39999, MAX(LONGINT)); ASSERT(S.Length(large^) = 39999, 80);
+  S.Long(large8^, large^); ASSERT(S.Equal8(large^, large8^), 92);
   Out.String("LongStrings checks passed"); Out.Ln
 END TestLongStrings.

@@ -81,6 +81,11 @@ BEGIN
   Bad("http:/bad%"); Bad("http:/bad%A"); Bad("http:/bad%Q0");
   Bad("1http:/bad"); Bad("http:/bad path");
   Bad("file:/bad%00name");
+  FOR i := 128 TO 255 DO
+    ASSERT(~URICharClass.IsAlpha(CHR(i)), 42);
+    text[0] := "%"; text[1] := CHR(i); text[2] := "0"; text[3] := 0X; pos := 0;
+    ASSERT(~URICharClass.SkipEscaped(text, pos) & (pos = 0), 43)
+  END;
   FOR i := 0 TO LEN(bytes)-1 DO bytes[i] := "x" END;
   uri := URIParser.NewURI(bytes, NIL, res);
   ASSERT((uri = NIL) & (res # NIL), 40);

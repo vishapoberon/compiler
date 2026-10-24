@@ -420,6 +420,19 @@ PROCEDURE Equal* (stringVal1, stringVal2: ARRAY OF LONGCHAR): BOOLEAN;
     RETURN (stringVal1[i] = 0) & (stringVal2[i] = 0)
   END Equal;
 
+PROCEDURE Equal8* (wide: ARRAY OF LONGCHAR; narrow: ARRAY OF CHAR): BOOLEAN;
+(**Compares UTF-16 code units with unsigned Latin-1 bytes. *)
+  VAR i: LONGINT;
+  BEGIN
+    i := 0;
+    WHILE (i < LEN (wide)) & (i < LEN (narrow)) DO
+      IF wide[i] # ORD (narrow[i]) THEN RETURN FALSE END;
+      IF wide[i] = 0 THEN RETURN TRUE END;
+      INC (i)
+    END;
+    RETURN FALSE
+  END Equal8;
+
 PROCEDURE FindNext* (pattern, stringToSearch: ARRAY OF LONGCHAR; startPos: LONGINT;
                      VAR patternFound: BOOLEAN; VAR posOfPattern: LONGINT);
 (**Looks forward for next occurrence of @oparam{pattern} in

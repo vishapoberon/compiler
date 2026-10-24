@@ -11,7 +11,8 @@ It uses `LONGINT` storage so VOC's Oberon-2 model preserves the unsigned
 16-bit range. Supplementary characters use surrogate pairs. Positions and
 lengths count code units, independently of the storage width.
 
-`LongStrings` copies, edits and searches these strings. `Msg.GetLText`
+`LongStrings` copies, edits and searches these strings. `Equal8` compares
+UTF-16 code units with Latin-1 bytes without narrowing. `Msg.GetLText`
 preserves their code units in diagnostic attributes and expanded templates;
 `Msg.GetText` converts to Latin-1 with replacement for unrepresentable units.
 `Channel`, `TextRider` and `oocFiles` widen their narrow error templates
@@ -59,6 +60,8 @@ delimiters. Source provenance is recorded in [URI-provenance.md](URI-provenance.
 
 `TestOocURI` covers RFC relative-resolution examples, percent escapes,
 malformed input, cloning, 40,000-byte URIs, and file/memory channels.
+Character-class checks use explicit ASCII ranges so high-bit UTF-8 bytes
+remain percent-escaped under VOC's `CAP` semantics.
 
 ## Source provenance
 
