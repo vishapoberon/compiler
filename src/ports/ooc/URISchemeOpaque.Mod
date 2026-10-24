@@ -1,5 +1,5 @@
 (* 	$Id: Opaque.Mod,v 1.1.1.1 2000/07/10 15:24:44 mva Exp $	 *)
-MODULE URI:Scheme:Opaque;
+MODULE URISchemeOpaque;
 (*  Implementation of the generic opaque URI.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,7 +20,8 @@ MODULE URI:Scheme:Opaque;
 
 
 IMPORT
-  TextRider, CC := CharClass, URI, URI:Error, URI:CharClass, URI:String;
+  TextRider, CC := CharClass, URI,
+  Error := URIError, CharClass := URICharClass, String := URIString;
 
 
 TYPE
@@ -55,7 +56,7 @@ PROCEDURE New* (schemeId, opaque: URI.StringPtr): Generic;
     RETURN uri
   END New;
 
-PROCEDURE (uri: Generic) Clone* (): Generic;
+PROCEDURE (uri: Generic) Clone* (): URI.URI;
   VAR
     copy: Generic;
   BEGIN
@@ -104,16 +105,16 @@ PROCEDURE (uri: Generic) ParseOpaquePart* (str: URI.StringPtr; offset: URI.Offse
 
 PROCEDURE (uri: Generic) WriteXML* (w: TextRider.Writer);
   BEGIN
-    w. WriteString (CC.eol+"<opaque-uri>");
+    w. WriteChar (CC.eol); w. WriteString ("<opaque-uri>");
     IF (uri. schemeId # NIL) THEN
-      w. WriteString (CC.eol+"<scheme>");
+      w. WriteChar (CC.eol); w. WriteString ("<scheme>");
       w. WriteString (uri. schemeId^);
       w. WriteString ("</scheme>")
     END;
-    w. WriteString (CC.eol+"<opaque-part>");
+    w. WriteChar (CC.eol); w. WriteString ("<opaque-part>");
     w. WriteString (uri. opaque^);
     w. WriteString ("</opaque-part>");
-    w. WriteString (CC.eol+"</opaque-uri>")
+    w. WriteChar (CC.eol); w. WriteString ("</opaque-uri>")
   END WriteXML;
 
 PROCEDURE (uri: Generic) GetString* (VAR str: ARRAY OF CHAR);
@@ -127,4 +128,4 @@ BEGIN
   opaqueContext := Error.NewContext ("URI:Scheme:Opaque");
   opaqueContext. SetString (illegalOpaqueChar,
     "Illegal character for opaque component of an URI");
-END URI:Scheme:Opaque.
+END URISchemeOpaque.

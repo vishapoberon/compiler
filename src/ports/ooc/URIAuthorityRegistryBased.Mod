@@ -1,5 +1,5 @@
 (* 	$Id: RegistryBased.Mod,v 1.2 2000/07/31 14:24:36 mva Exp $	 *)
-MODULE URI:Authority:RegistryBased;
+MODULE URIAuthorityRegistryBased;
 (*  Implements class for registry-based authority components.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,8 +20,8 @@ MODULE URI:Authority:RegistryBased;
 
 
 IMPORT
-  Strings, CC := CharClass, TextRider,
-  URI, URI:CharClass, URI:String, URI:Error;
+  CC := CharClass, TextRider, URI,
+  CharClass := URICharClass, String := URIString, Error := URIError;
 
 TYPE
   Authority* = POINTER TO AuthorityDesc;
@@ -59,7 +59,7 @@ PROCEDURE New* (regName: URI.StringPtr): Authority;
     RETURN auth
   END New;
 
-PROCEDURE (auth: Authority) Clone* (): Authority;
+PROCEDURE (auth: Authority) Clone* (): URI.Authority;
   VAR
     copy: Authority;
   BEGIN
@@ -94,14 +94,14 @@ PROCEDURE (auth: Authority) ParseAuthority* (str: URI.StringPtr; offset: URI.Off
 
 PROCEDURE (auth: Authority) WriteXML* (w: TextRider.Writer);
   BEGIN
-    w. WriteString (CC.eol+"<authority-registry-based>");
+    w. WriteChar (CC.eol); w. WriteString ("<authority-registry-based>");
     w. WriteString (auth. regName^);
     w. WriteString ("</authority-registry-based>")
   END WriteXML;
 
 PROCEDURE (auth: Authority) Append* (VAR str: ARRAY OF CHAR);
   BEGIN
-    Strings.Append ("//", str);
+    String.Append ("//", str);
     String.AppendEscaped (auth. regName^, "$,;:@&=+", str)
   END Append;
 
@@ -111,4 +111,4 @@ BEGIN
     "Illegal character in registry-based naming authority");
   regNameContext. SetString (emptyRegName,
     "Registry-based naming authority must not be empty");
-END URI:Authority:RegistryBased.
+END URIAuthorityRegistryBased.

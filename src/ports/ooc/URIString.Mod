@@ -1,5 +1,5 @@
 (* 	$Id: String.Mod,v 1.1.1.2 2000/07/10 20:31:52 mva Exp $	 *)
-MODULE URI:String;
+MODULE URIString;
 (*  Auxiliary string functions for URI parser.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,21 +20,42 @@ MODULE URI:String;
 
 
 IMPORT
-  Strings, URI:CharClass;
+  CharClass := URICharClass;
 
 
 TYPE
   String* = ARRAY OF CHAR;
   StringPtr* = POINTER TO String;
-  Offset* = INTEGER;
+  Offset* = LONGINT;
 
 
-PROCEDURE Extract* (str: String; start, end: INTEGER): StringPtr;
+PROCEDURE Length* (str: ARRAY OF CHAR): LONGINT;
+  VAR i: LONGINT;
+  BEGIN
+    i := 0;
+    WHILE (i < LEN (str)) & (str[i] # 0X) DO INC (i) END;
+    RETURN i
+  END Length;
+
+PROCEDURE Append* (source: ARRAY OF CHAR; VAR dest: ARRAY OF CHAR);
+  VAR i, j: LONGINT;
+  BEGIN
+    IF LEN (dest) = 0 THEN RETURN END;
+    i := 0; j := Length (dest);
+    IF j = LEN (dest) THEN DEC (j) END;
+    WHILE (i < LEN (source)) & (source[i] # 0X) & (j < LEN (dest)-1) DO
+      dest[j] := source[i]; INC (i); INC (j)
+    END;
+    dest[j] := 0X
+  END Append;
+
+PROCEDURE Extract* (str: String; start, end: LONGINT): StringPtr;
 (**Creates a copy of the character sequence @samp{str[start,end[}.  *)
   VAR
-    i: INTEGER;
+    i: LONGINT;
     ptr: StringPtr;
   BEGIN
+    ASSERT ((start >= 0) & (start <= end) & (end <= LEN (str)));
     NEW (ptr, end-start+1);
     i := 0;
     WHILE (start # end) DO
@@ -47,7 +68,7 @@ PROCEDURE Extract* (str: String; start, end: INTEGER): StringPtr;
 PROCEDURE Copy* (str: String): StringPtr;
 (**Creates a copy of @oparam{str}.  *)
   BEGIN
-    RETURN Extract (str, 0, Strings.Length (str))
+    RETURN Extract (str, 0, Length (str))
   END Copy;
 
 PROCEDURE Unescape* (str: StringPtr): StringPtr;
@@ -62,7 +83,7 @@ PROCEDURE Unescape* (str: StringPtr): StringPtr;
     i, j: Offset;
     res: StringPtr;
   
-  PROCEDURE Hex (ch: CHAR): INTEGER;
+  PROCEDURE Hex (ch: CHAR): LONGINT;
     BEGIN
       CASE ch OF
       | "0".."9":
@@ -71,6 +92,8 @@ PROCEDURE Unescape* (str: StringPtr): StringPtr;
         RETURN ORD(ch)-(ORD("a")-10)
       | "A".."F":
         RETURN ORD(ch)-(ORD("A")-10)
+      ELSE
+        HALT (127); RETURN 0
       END
     END Hex;
   
@@ -111,9 +134,9 @@ PROCEDURE AppendEscaped* (source, unreserved: ARRAY OF CHAR;
    @samp{H} is a hex digit from @samp{[0-9A-F]}.  If @oparam{dest} cannot 
    hold the whole result, then the result string is truncated.  *)
   VAR
-    i, j: INTEGER;
+    i, j: LONGINT;
   
-  PROCEDURE ToHex (i: INTEGER): CHAR;
+  PROCEDURE ToHex (i: LONGINT): CHAR;
     BEGIN
       IF (i < 10) THEN
         RETURN CHR (i+ORD ("0"))
@@ -123,7 +146,8 @@ PROCEDURE AppendEscaped* (source, unreserved: ARRAY OF CHAR;
     END ToHex;
   
   BEGIN
-    i := 0; j := Strings.Length (dest);
+    IF LEN (dest) = 0 THEN RETURN END;
+    i := 0; j := Length (dest);
     WHILE (source[i] # 0X) DO
       IF ~CharClass.IsUnreserved (source[i]) &
          ~CharClass.IsMember (source[i], unreserved) THEN
@@ -150,4 +174,4 @@ PROCEDURE AppendEscaped* (source, unreserved: ARRAY OF CHAR;
     END
   END AppendEscaped;
 
-END URI:String.
+END URIString.

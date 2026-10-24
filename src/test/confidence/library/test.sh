@@ -26,6 +26,10 @@ $OBECOMP TestOocChannels.mod -m
 ./TestOocChannels >result
 printf 'oo2c channel compatibility checks passed\n' >result-expected
 diff -b result-expected result
+$OBECOMP TestOocURI.mod -m
+./TestOocURI >result
+printf 'URI checks passed\n' >result-expected
+diff -b result-expected result
 $OBECOMP TypeAliases.mod -s
 $OBECOMP TestTypeAliases.mod -m
 ./TestTypeAliases >result

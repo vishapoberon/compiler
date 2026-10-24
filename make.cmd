@@ -330,7 +330,7 @@ goto :eof
 :ooc
 echo.Making ooc library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-for %%N in (LowReal LowLReal RealMath OakMath LRealMath LongInts ComplexMath LComplexMath Ascii CharClass oocStrings ConvTypes LRealConv LRealStr RealConv RealStr IntConv IntStr oocUnicode LongStrings Msg SysClock Time Channel IOMemory ProgramArgsHost ProgramArgs Strings2 Rts Filenames TextRider BinaryRider JulianDay FilesHost oocFiles wrapperlibc OakStrings oocRandomNumbers Real0 oo2c2LRealConv) do (
+for %%N in (LowReal LowLReal RealMath OakMath LRealMath LongInts ComplexMath LComplexMath Ascii CharClass oocStrings ConvTypes LRealConv LRealStr RealConv RealStr IntConv IntStr oocUnicode LongStrings Msg SysClock Time Channel IOMemory ProgramArgsHost ProgramArgs Strings2 Rts Filenames TextRider BinaryRider JulianDay FilesHost oocFiles wrapperlibc OakStrings oocRandomNumbers Real0 oo2c2LRealConv URICharClass URIString URIError URI URIAuthorityUnparsed URIAuthorityRegistryBased URIAuthorityServerBased URIQueryUnparsed URIFragmentUnparsed URISchemeHierarchical URISchemeOpaque URISchemeCurrentDoc URIParser URISchemeFile URISchemeMemory URISchemeMailTo) do (
   %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/ooc/%%N.Mod || exit /b
 )
 %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/ooc/C%DATAMODEL%.Mod || exit /b

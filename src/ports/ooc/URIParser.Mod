@@ -1,5 +1,5 @@
 (* 	$Id: Parser.Mod,v 1.1.1.2 2000/07/10 20:31:52 mva Exp $	 *)
-MODULE URI:Parser;
+MODULE URIParser;
 (*  Implements the URI parser.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,8 +20,9 @@ MODULE URI:Parser;
 
 
 IMPORT
-  Strings, URI, URI:Error, URI:CharClass, Str := URI:String,
-  URI:Scheme:Hierarchical, URI:Scheme:Opaque, URI:Scheme:CurrentDoc;
+  URI, Error := URIError, CharClass := URICharClass, Str := URIString,
+  Hierarchical := URISchemeHierarchical, Opaque := URISchemeOpaque,
+  CurrentDoc := URISchemeCurrentDoc;
 
 
 CONST                                    (* error codes *)
@@ -75,11 +76,14 @@ PROCEDURE NewURI* (str: URI.String; baseURI: URI.HierarchicalURI;
         INC (i)
       END;
       substr := Str.Extract (str, start, i);
-      res := hierURI. ParsePath (substr, absolute, start)
+       res := hierURI. ParsePath (substr, absolute, start)
     END Path;
   
   BEGIN
-    res := NIL;
+    res := NIL; i := 0;
+    IF Str.Length (str) = LEN (str) THEN
+      res := Error.New (uriContext, junkAfterURI, i); RETURN NIL
+    END;
     IF (str = "") THEN
       RETURN CurrentDoc.New()
     END;
@@ -202,9 +206,9 @@ PROCEDURE NewURI* (str: URI.String; baseURI: URI.HierarchicalURI;
       
       uri := protoURI. Clone();
       uri. SetSchemeId (schemeId);
-      substr := Str.Extract (str, i, Strings.Length (str));
+      substr := Str.Extract (str, i, Str.Length (str));
       res := uri(URI.OpaqueURI). ParseOpaquePart (substr, i);
-      i := Strings.Length (str)
+      i := Str.Length (str)
     END;
     
     IF (res = NIL) & (str[i] # 0X) THEN
@@ -236,6 +240,10 @@ PROCEDURE NewReference* (str: URI.String; baseURI: URI.HierarchicalURI;
     ch: CHAR;
   BEGIN
     i := 0;
+    IF Str.Length (str) = LEN (str) THEN
+      res := Error.New (uriContext, junkAfterURI, i);
+      RETURN NIL
+    END;
     WHILE (str[i] # 0X) & (str[i] # "#") DO
       INC (i)
     END;
@@ -250,7 +258,7 @@ PROCEDURE NewReference* (str: URI.String; baseURI: URI.HierarchicalURI;
         RETURN URI.NewReference (uri, NIL)
       ELSE
         fragment := fragmentPrototype. Clone();
-        substr := Str.Extract (str, i+1, Strings.Length (str));
+        substr := Str.Extract (str, i+1, Str.Length (str));
         res := fragment. ParseFragment (substr, i+1);
         IF (res = NIL) THEN
           RETURN URI.NewReference (uri, fragment)
@@ -288,4 +296,4 @@ BEGIN
     "The opaque part of an URI must not be empty");
   uriContext. SetString (invalidRelativeReference,
     "Cannot resolve relative URI reference without known base URI");
-END URI:Parser.
+END URIParser.

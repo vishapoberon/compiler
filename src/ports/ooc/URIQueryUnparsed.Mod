@@ -1,5 +1,5 @@
 (* 	$Id: Unparsed.Mod,v 1.1.1.2 2000/07/10 20:31:53 mva Exp $	 *)
-MODULE URI:Query:Unparsed;
+MODULE URIQueryUnparsed;
 (*  Implements class for unparsed query components.
     Copyright (C) 2000  Michael van Acken
 
@@ -19,8 +19,8 @@ MODULE URI:Query:Unparsed;
 *)
 
 IMPORT
-  Strings, TextRider, CC := CharClass, 
-  URI, URI:Error, URI:String, URI:CharClass;
+  TextRider, CC := CharClass, URI,
+  Error := URIError, String := URIString, CharClass := URICharClass;
 
 
 TYPE
@@ -58,7 +58,7 @@ PROCEDURE New* (unparsed: URI.StringPtr): Query;
     RETURN query
   END New;
 
-PROCEDURE (query: Query) Clone* (): Query;
+PROCEDURE (query: Query) Clone* (): URI.Query;
   VAR
     copy: Query;
   BEGIN
@@ -91,19 +91,19 @@ PROCEDURE (query: Query) ParseQuery* (str: URI.StringPtr; offset: URI.Offset): E
 
 PROCEDURE (query: Query) WriteXML* (w: TextRider.Writer);
   BEGIN
-    w. WriteString (CC.eol+"<query-unparsed>");
+    w. WriteChar (CC.eol); w. WriteString ("<query-unparsed>");
     w. WriteString (query. unparsed^);
     w. WriteString ("</query-unparsed>");
   END WriteXML;
 
 PROCEDURE (query: Query) Append* (VAR str: ARRAY OF CHAR);
   BEGIN
-    Strings.Append ("?", str);
-    Strings.Append (query. unparsed^, str)
+    String.Append ("?", str);
+    String.Append (query. unparsed^, str)
   END Append;
 
 BEGIN
   queryContext := Error.NewContext ("URI:Query:Unparsed");
   queryContext. SetString (illegalQueryChar,
     "Illegal character in query component");
-END URI:Query:Unparsed.
+END URIQueryUnparsed.

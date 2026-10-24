@@ -1,5 +1,5 @@
 (* 	$Id: URI.Mod,v 1.6 2000/08/27 15:12:41 mva Exp $	 *)
-MODULE URI [OOC_EXTENSIONS];
+MODULE URI;
 (*  Implements RFC2396 "Uniform Resource Identifiers: Generic Syntax"
     Copyright (C) 2000  Michael van Acken
 
@@ -38,7 +38,8 @@ MODULE URI [OOC_EXTENSIONS];
    implement concrete authority, query, and fragment instances.  *)
 
 IMPORT
-  Strings, Msg, Channel, CharClass, TextRider, Str := URI:String, URI:Error;
+  Msg, Channel, CharClass, TextRider, LongStrings,
+  Str := URIString, Error := URIError;
 
 TYPE
   String* = Str.String;
@@ -52,7 +53,7 @@ TYPE
   
 TYPE
   URI* = POINTER TO URIDesc;
-  URIDesc* = RECORD [ABSTRACT]
+  URIDesc* = RECORD
   (**Abstract base type of all URI variants.  This class has one concrete
      (@otype{*URI:Scheme:CurrentDoc.CurrentDoc}) and two abstract
      specializations (@otype{HierarchicalURI} and @otype{OpaqueURI}) in this
@@ -65,7 +66,7 @@ TYPE
 
 TYPE
   Authority* = POINTER TO AuthorityDesc;
-  AuthorityDesc* = RECORD [ABSTRACT]
+  AuthorityDesc* = RECORD
   (**Authority component of an URI.  See @omodule{*URI:Authority:Unparsed},
      @omodule{*URI:Authority:ServerBased}, or
      @omodule{*URI:Authority:RegistryBased} for concrete examples.  *)
@@ -73,14 +74,14 @@ TYPE
 
 TYPE
   Query* = POINTER TO QueryDesc;
-  QueryDesc* = RECORD [ABSTRACT]
+  QueryDesc* = RECORD
   (**Query component of an URI.  See @omodule{*URI:Query:Unparsed} for a
      concrete example.  *)
   END;
 
 TYPE
   Fragment* = POINTER TO FragmentDesc;
-  FragmentDesc* = RECORD [ABSTRACT]
+  FragmentDesc* = RECORD
   (**Fragment identifier of an URI.  See @omodule{*URI:Fragment:Unparsed} for a
      concrete example.  *)
   END;
@@ -88,7 +89,7 @@ TYPE
 
 TYPE
   HierarchicalURI* = POINTER TO HierarchicalURIDesc;
-  HierarchicalURIDesc* = RECORD [ABSTRACT]
+  HierarchicalURIDesc* = RECORD
   (**Holds a hierachical URI.  *)
     (URIDesc)
     authority-: Authority;
@@ -101,7 +102,7 @@ TYPE
 
 TYPE
   OpaqueURI* = POINTER TO OpaqueURIDesc;
-  OpaqueURIDesc* = RECORD [ABSTRACT]
+  OpaqueURIDesc* = RECORD
   (**Holds an opaque URI.  *)
     (URIDesc)
   END;
@@ -177,8 +178,10 @@ PROCEDURE (context: ErrorContext) GetTemplate* (msg: Error.Msg; VAR templ: Error
     CASE msg. code OF
     | noChannelAvailable:
       t := "The URI `${uri}' does not support channel access"
+    ELSE
+      t := "Unknown URI error"
     END;
-    COPY (t, templ)
+    LongStrings.Long (t, templ)
   END GetTemplate;
 
 
@@ -190,9 +193,10 @@ PROCEDURE InitURI* (uri: URI; schemeId: StringPtr);
     uri. schemeId := schemeId
   END InitURI;
 
-PROCEDURE (uri: URI) [ABSTRACT] Clone* (): URI;
+PROCEDURE (uri: URI) Clone* (): URI;
 (**Creates a deep copy of the URI referenced by @oparam{uri}.  That is, it
    creates a new instance of @oparam{uri} and calls @oproc{URI.Copy} on it.  *)
+  BEGIN HALT (127); RETURN NIL
   END Clone;
 
 PROCEDURE (uri: URI) Copy* (dest: URI);
@@ -217,24 +221,26 @@ PROCEDURE (uri: URI) SetSchemeId* (schemeId: StringPtr);
     uri. schemeId := schemeId
   END SetSchemeId;
 
-PROCEDURE (uri: URI) [ABSTRACT] WriteXML* (w: TextRider.Writer);
+PROCEDURE (uri: URI) WriteXML* (w: TextRider.Writer);
 (**Writes an XML fragment describing the URI @oparam{uri} to the writer
    @oparam{w}.  *)
+  BEGIN HALT (127)
   END WriteXML;
 
-PROCEDURE (uri: URI) [ABSTRACT] GetString* (VAR str: ARRAY OF CHAR);
+PROCEDURE (uri: URI) GetString* (VAR str: ARRAY OF CHAR);
 (**Converts the URI @oparam{uri} to its string representation @oparam{str}.
    Reserved characters in the URI and characters that may not appear in a valid
    URI are escaped where necessary.  If @oparam{str} is not large enough to
    hold the string, the result is truncated.  *)
+  BEGIN HALT (127)
   END GetString;
 
 PROCEDURE (uri: URI) AppendScheme* (VAR str: ARRAY OF CHAR);
 (**Appends the scheme component of @oparam{uri} to the string @oparam{str}.  *)
   BEGIN
     IF (uri. schemeId # NIL) THEN
-      Strings.Append (uri. schemeId^, str);
-      Strings.Append (":", str)
+      Str.Append (uri. schemeId^, str);
+      Str.Append (":", str)
     END
   END AppendScheme;
 
@@ -305,13 +311,14 @@ PROCEDURE InitOpaqueURI* (uri: OpaqueURI; schemeId: StringPtr);
     InitURI (uri, schemeId)
   END InitOpaqueURI;
 
-PROCEDURE (uri: OpaqueURI) [ABSTRACT] ParseOpaquePart* (str: StringPtr; offset: Offset): Error.Msg;
+PROCEDURE (uri: OpaqueURI) ParseOpaquePart* (str: StringPtr; offset: Offset): Error.Msg;
 (**Parses the opaque component @oparam{str} of an URI.  On success, the data is
    stored in the URI @oparam{uri} and the result is @code{NIL}.  In case of 
    error, e.g., because @oparam{str} contains characters that are not allowed
    in an URI, an error message is returned and @oparam{uri} is not modified.
    A character position in an error message refers to an index in @oparam{str},
    incremented by the value of @oparam{offset}.  *)
+  BEGIN HALT (127); RETURN NIL
   END ParseOpaquePart;
 
 
@@ -322,37 +329,42 @@ PROCEDURE InitAuthority* (auth: Authority);
   BEGIN
   END InitAuthority;
 
-PROCEDURE (auth: Authority) [ABSTRACT] Clone* (): Authority;
+PROCEDURE (auth: Authority) Clone* (): Authority;
 (**Creates a deep copy of the authority component referenced by
    @oparam{auth}.  *)
+  BEGIN HALT (127); RETURN NIL
   END Clone;
 
-PROCEDURE (auth: Authority) [ABSTRACT] Copy* (dest: Authority);
+PROCEDURE (auth: Authority) Copy* (dest: Authority);
 (**Copies contents of source @oparam{auth} to target @oparam{dest}.
 
    @precond
    The dynamic type of @oparam{dest} is an extension of the dynamic type
    of @oparam{auth}.
    @end precond  *)
+  BEGIN HALT (127)
   END Copy;
 
-PROCEDURE (auth: Authority) [ABSTRACT] ParseAuthority* (str: StringPtr; offset: Offset): Error.Msg;
+PROCEDURE (auth: Authority) ParseAuthority* (str: StringPtr; offset: Offset): Error.Msg;
 (**Parses the authority component @oparam{str} of an hierarchical URI.  On
    success, the data is stored in the authority object @oparam{auth} and the
    result is @code{NIL}.  In case of error, a message object is returned and
    @oparam{auth} is not modified.  A character position in an error message
    refers to an index in @oparam{str}, incremented by the value of
    @oparam{offset}.  *)
+  BEGIN HALT (127); RETURN NIL
   END ParseAuthority;
 
-PROCEDURE (auth: Authority) [ABSTRACT] WriteXML* (w: TextRider.Writer);
+PROCEDURE (auth: Authority) WriteXML* (w: TextRider.Writer);
 (**Writes an XML fragment describing the authority component to the writer
    @oparam{w}.  *)
+  BEGIN HALT (127)
   END WriteXML;
 
-PROCEDURE (auth: Authority) [ABSTRACT] Append* (VAR str: ARRAY OF CHAR);
+PROCEDURE (auth: Authority) Append* (VAR str: ARRAY OF CHAR);
 (**Appends the textual representation of the authority component
    @oparam{auth} to the string @oparam{str}.  *)
+  BEGIN HALT (127)
   END Append;
 
 
@@ -363,37 +375,42 @@ PROCEDURE InitQuery* (query: Query);
   BEGIN
   END InitQuery;
 
-PROCEDURE (query: Query) [ABSTRACT] Clone* (): Query;
+PROCEDURE (query: Query) Clone* (): Query;
 (**Creates a deep copy of the queryority component referenced by
    @oparam{query}.  *)
+  BEGIN HALT (127); RETURN NIL
   END Clone;
 
-PROCEDURE (query: Query) [ABSTRACT] Copy* (dest: Query);
+PROCEDURE (query: Query) Copy* (dest: Query);
 (**Copies contents of source @oparam{query} to target @oparam{dest}.
 
    @precond
    The dynamic type of @oparam{dest} is an extension of the dynamic type
    of @oparam{query}.
    @end precond  *)
+  BEGIN HALT (127)
   END Copy;
 
-PROCEDURE (query: Query) [ABSTRACT] ParseQuery* (str: StringPtr; offset: Offset): Error.Msg;
+PROCEDURE (query: Query) ParseQuery* (str: StringPtr; offset: Offset): Error.Msg;
 (**Parses the query component @oparam{str} of an hierarchical URI.  On
    success, the data is stored in the query object @oparam{query} and the
    result is @code{NIL}.  In case of error, a message object is returned and
    @oparam{query} is not modified.  A character position in an error message
    refers to an index in @oparam{str}, incremented by the value of
    @oparam{offset}.  *)
+  BEGIN HALT (127); RETURN NIL
   END ParseQuery;
 
-PROCEDURE (query: Query) [ABSTRACT] WriteXML* (w: TextRider.Writer);
+PROCEDURE (query: Query) WriteXML* (w: TextRider.Writer);
 (**Writes an XML fragment describing the query component to the writer
    @oparam{w}.  *)
+  BEGIN HALT (127)
   END WriteXML;
 
-PROCEDURE (query: Query) [ABSTRACT] Append* (VAR str: ARRAY OF CHAR);
+PROCEDURE (query: Query) Append* (VAR str: ARRAY OF CHAR);
 (**Appends the textual representation of the query component
    @oparam{query} to the string @oparam{str}.  *)
+  BEGIN HALT (127)
   END Append;
 
 
@@ -425,10 +442,11 @@ PROCEDURE (uri: HierarchicalURI) Copy* (dest: URI);
     END
   END Copy;
 
-PROCEDURE (uri: HierarchicalURI) [ABSTRACT] NewAuthority*(): Authority;
+PROCEDURE (uri: HierarchicalURI) NewAuthority*(): Authority;
 (**Creates a new instance of the authority component of URI @oparam{uri}.
    The new object is subsequently filled in by parsing the authority component
    of the URI string (see @oproc{*URI:Authority.ParseAuthority}).  *)
+  BEGIN HALT (127); RETURN NIL
   END NewAuthority;
 
 PROCEDURE (uri: HierarchicalURI) SetAuthority* (auth: Authority);
@@ -438,10 +456,11 @@ PROCEDURE (uri: HierarchicalURI) SetAuthority* (auth: Authority);
     uri. authority := auth
   END SetAuthority;
 
-PROCEDURE (uri: HierarchicalURI) [ABSTRACT] NewQuery*(): Query;
+PROCEDURE (uri: HierarchicalURI) NewQuery*(): Query;
 (**Creates a new instance of the query component of URI @oparam{uri}.
    The new object is subsequently filled in by parsing the query component
    of the URI string (see @oproc{*URI:Query.ParseQuery}).  *)
+  BEGIN HALT (127); RETURN NIL
   END NewQuery;
 
 PROCEDURE (uri: HierarchicalURI) SetQuery* (query: Query);
@@ -464,18 +483,20 @@ PROCEDURE (uri: HierarchicalURI) ResolveRelative* (baseURI: HierarchicalURI);
     END
   END ResolveRelative;
 
-PROCEDURE (uri: HierarchicalURI) [ABSTRACT] ClearPath*;
+PROCEDURE (uri: HierarchicalURI) ClearPath*;
 (**Sets the path component of @oparam{uri} to the empty path.  Unlike the
    authority or query component, an URI always includes a path component.  *)
+  BEGIN HALT (127)
   END ClearPath;
 
-PROCEDURE (uri: HierarchicalURI) [ABSTRACT] ParsePath* (str: StringPtr; absolute: BOOLEAN; offset: Offset): Error.Msg;
+PROCEDURE (uri: HierarchicalURI) ParsePath* (str: StringPtr; absolute: BOOLEAN; offset: Offset): Error.Msg;
 (**Parses the path component @oparam{str} of an URI.  The parameter
    @oparam{absolute} indicates, whether the path is absolute or relative.  On
    success, the data is stored in the URI @oparam{uri} and the result is
    @code{NIL}.  In case of error, an error message is returned and @oparam{uri}
    is not modified.  A character position in an error message refers to an
    index in @oparam{str}, incremented by the value of @oparam{offset}.  *)
+  BEGIN HALT (127); RETURN NIL
   END ParsePath;
 
 PROCEDURE (uri: HierarchicalURI) MakeRelative* (baseURI: HierarchicalURI): URI;
@@ -485,6 +506,8 @@ PROCEDURE (uri: HierarchicalURI) MakeRelative* (baseURI: HierarchicalURI): URI;
   BEGIN
     IF (baseURI = NIL) THEN
       (* no base URI given; cannot make a relative URI from this *)
+      RETURN uri
+    ELSIF (uri. schemeId = NIL) OR (baseURI. schemeId = NIL) THEN
       RETURN uri
     ELSIF (uri. schemeId^ # baseURI. schemeId^) THEN
       (* URIs use different schemes: cannot make a relative path *)
@@ -511,9 +534,10 @@ PROCEDURE (uri: HierarchicalURI) MakeRelative* (baseURI: HierarchicalURI): URI;
     RETURN copy(HierarchicalURI)
   END MakeRelative;
 
-PROCEDURE (uri: HierarchicalURI) [ABSTRACT] AppendPath* (VAR str: ARRAY OF CHAR);
+PROCEDURE (uri: HierarchicalURI) AppendPath* (VAR str: ARRAY OF CHAR);
 (**Appends the textual representation of the path component of @oparam{uri}
    to the string @oparam{str}.  *)
+  BEGIN HALT (127)
   END AppendPath;
 
 
@@ -524,37 +548,42 @@ PROCEDURE InitFragment* (frag: Fragment);
   BEGIN
   END InitFragment;
 
-PROCEDURE (frag: Fragment) [ABSTRACT] Clone* (): Fragment;
+PROCEDURE (frag: Fragment) Clone* (): Fragment;
 (**Creates a deep copy of the fragment component referenced by
    @oparam{frag}.  *)
+  BEGIN HALT (127); RETURN NIL
   END Clone;
 
-PROCEDURE (frag: Fragment) [ABSTRACT] Copy* (dest: Fragment);
+PROCEDURE (frag: Fragment) Copy* (dest: Fragment);
 (**Copies contents of source @oparam{frag} to target @oparam{dest}.
 
    @precond
    The dynamic type of @oparam{dest} is an extension of the dynamic type
    of @oparam{frag}.
    @end precond  *)
+  BEGIN HALT (127)
   END Copy;
 
-PROCEDURE (frag: Fragment) [ABSTRACT] ParseFragment* (str: StringPtr; offset: Offset): Error.Msg;
+PROCEDURE (frag: Fragment) ParseFragment* (str: StringPtr; offset: Offset): Error.Msg;
 (**Parses the fragment component @oparam{str} of an URI.  On
    success, the data is stored in the fragment object @oparam{frag} and the
    result is @code{NIL}.  In case of error, a message object is returned and
    @oparam{frag} is not modified.  A character position in an error message
    refers to an index in @oparam{str}, incremented by the value of
    @oparam{offset}.  *)
+  BEGIN HALT (127); RETURN NIL
   END ParseFragment;
 
-PROCEDURE (frag: Fragment) [ABSTRACT] WriteXML* (w: TextRider.Writer);
+PROCEDURE (frag: Fragment) WriteXML* (w: TextRider.Writer);
 (**Writes an XML fragment describing the fragment identifier to the writer
    @oparam{w}.  *)
+  BEGIN HALT (127)
   END WriteXML;
 
-PROCEDURE (frag: Fragment) [ABSTRACT] Append* (VAR str: ARRAY OF CHAR);
+PROCEDURE (frag: Fragment) Append* (VAR str: ARRAY OF CHAR);
 (**Appends the textual representation of the fragment identifier
    @oparam{frag} to the string @oparam{str}.  *)
+  BEGIN HALT (127)
   END Append;
 
 
@@ -575,12 +604,12 @@ PROCEDURE (ref: Reference) WriteXML* (w: TextRider.Writer);
 (**Writes an XML fragment describing the URI reference @oparam{ref} to the
    writer @oparam{w}.  *)
   BEGIN
-    w. WriteString (CharClass.eol+"<uri-reference>");
+    w. WriteChar (CharClass.eol); w. WriteString ("<uri-reference>");
     ref. uri. WriteXML (w);
     IF (ref. fragment # NIL) THEN
       ref. fragment. WriteXML (w)
     END;
-    w. WriteString (CharClass.eol+"</uri-reference>")
+    w. WriteChar (CharClass.eol); w. WriteString ("</uri-reference>")
   END WriteXML;
 
 PROCEDURE (ref: Reference) GetString* (VAR str: ARRAY OF CHAR);
@@ -676,10 +705,10 @@ PROCEDURE (attr: URIAttribute) ReplacementText* (VAR text: Msg.LString);
     str: ARRAY 2*1024 OF CHAR;
   BEGIN
     IF (attr. uri = NIL) THEN
-      COPY ("NIL", text)
+      LongStrings.Long ("NIL", text)
     ELSE
       attr. uri. GetString (str);
-      COPY (str, text)
+      LongStrings.Long (str, text)
     END
   END ReplacementText;
 

@@ -1,5 +1,5 @@
 (* 	$Id: Memory.Mod,v 1.3 2000/07/31 18:20:01 mva Exp $	 *)
-MODULE URI:Scheme:Memory;
+MODULE URISchemeMemory;
 (*  Implementation of the "memory" URI scheme.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,8 +20,10 @@ MODULE URI:Scheme:Memory;
 
 
 IMPORT
-  Msg, Strings, IO:Memory, URI0 := URI, URI:Error, URI:CharClass, URI:String, 
-  URI:Scheme:Hierarchical, URI:Authority:ServerBased, URI:Parser;
+  Msg, Channel, Memory := IOMemory, URI0 := URI,
+  Error := URIError, CharClass := URICharClass, String := URIString,
+  Hierarchical := URISchemeHierarchical, ServerBased := URIAuthorityServerBased,
+  Parser := URIParser;
 
 
 TYPE
@@ -62,7 +64,7 @@ PROCEDURE (file: URI) NewQuery* (): URI0.Query;
     RETURN NIL
   END NewQuery;
 
-PROCEDURE (file: URI) Clone* (): URI;
+PROCEDURE (file: URI) Clone* (): URI0.URI;
   VAR
     copy: URI;
   BEGIN
@@ -81,25 +83,35 @@ PROCEDURE (file: URI) GetPath* (VAR filePath: ARRAY OF CHAR);
     segm := file. pathList;
     WHILE (segm # NIL) DO
       IF (segm # file. pathList) OR file. absolutePath THEN
-        Strings.Append ("/", filePath)
+        String.Append ("/", filePath)
       END;
-      Strings.Append (segm. string^, filePath);
+      String.Append (segm. string^, filePath);
       segm := segm. next
     END
   END GetPath;
 
-PROCEDURE (file: URI) GetChannel* (mode: URI0.ChannelMode; VAR res: Error.Msg): Memory.Channel;
+PROCEDURE (file: URI) GetChannel* (mode: URI0.ChannelMode; VAR res: Error.Msg): Channel.Channel;
   VAR
-    filePath: ARRAY 2*1024 OF CHAR;
+    filePath: URI0.StringPtr;
+    segm: Hierarchical.Segment;
+    length: LONGINT;
   BEGIN
-    file. GetPath (filePath);
+    length := 0; segm := file. pathList;
+    WHILE segm # NIL DO
+      INC (length, String.Length (segm. string^)+1);
+      segm := segm. next
+    END;
+    NEW (filePath, length+1);
+    file. GetPath (filePath^);
     CASE mode OF
     | URI0.channelNew:
-      RETURN Memory.New (filePath, {Memory.read, Memory.write}, res)
+      RETURN Memory.New (filePath^, {Memory.read, Memory.write}, res)
     | URI0.channelTmp:
-      RETURN Memory.Tmp (filePath, {Memory.read, Memory.write}, res)
+      RETURN Memory.Tmp (filePath^, {Memory.read, Memory.write}, res)
     | URI0.channelOld:
-      RETURN Memory.Old (filePath, {Memory.read}, res)
+      RETURN Memory.Old (filePath^, {Memory.read}, res)
+    ELSE
+      RETURN file. GetChannel^ (mode, res)
     END
   END GetChannel;
 
@@ -114,12 +126,16 @@ PROCEDURE ToURI* (filePath: ARRAY OF CHAR): URI;
    are not valid within an URI are escaped.  *)
   VAR
     uri: URI0.URI;
-    uriString: ARRAY 4*1024 OF CHAR;
+    uriString: URI0.StringPtr;
+    length: LONGINT;
     res: Msg.Msg;
   BEGIN
-    uriString := "memory:";
-    String.AppendEscaped (filePath, CharClass.unreservedPChar+"/", uriString);
-    uri := Parser.NewURI (uriString, NIL, res);
+    length := String.Length (filePath);
+    IF (length = 0) OR (length > (MAX (LONGINT)-8) DIV 3) THEN RETURN NIL END;
+    NEW (uriString, 3*length+8);
+    COPY ("memory:", uriString^);
+    String.AppendEscaped (filePath, ":@&=+$,/", uriString^);
+    uri := Parser.NewURI (uriString^, NIL, res);
     IF (uri = NIL) THEN
       RETURN NIL
     ELSE
@@ -129,4 +145,4 @@ PROCEDURE ToURI* (filePath: ARRAY OF CHAR): URI;
 
 BEGIN
   URI0.RegisterScheme (NewPrototype())
-END URI:Scheme:Memory.
+END URISchemeMemory.

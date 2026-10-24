@@ -9,7 +9,10 @@ MODULAR_OOC = LowReal LowLReal RealMath OakMath LRealMath \
  IntStr oocUnicode LongStrings Msg SysClock Time Channel IOMemory ProgramArgsHost \
  ProgramArgs Strings2 Rts Filenames TextRider BinaryRider \
  JulianDay FilesHost oocFiles wrapperlibc OakStrings oocRandomNumbers \
- Real0 oo2c2LRealConv
+  Real0 oo2c2LRealConv URICharClass URIString URIError URI \
+ URIAuthorityUnparsed URIAuthorityRegistryBased URIAuthorityServerBased \
+ URIQueryUnparsed URIFragmentUnparsed URISchemeHierarchical URISchemeOpaque \
+ URISchemeCurrentDoc URIParser URISchemeFile URISchemeMemory URISchemeMailTo
 MODULAR_ULM = Types Objects Priorities Disciplines Services \
  Sys ulmSYSTEM Events Process Resources Forwarders \
  RelatedEvents StreamsHost Streams Terminals ulmStrings \

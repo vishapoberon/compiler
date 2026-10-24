@@ -1,5 +1,5 @@
 (* 	$Id: ServerBased.Mod,v 1.1.1.2 2000/07/10 20:31:53 mva Exp $	 *)
-MODULE URI:Authority:ServerBased;
+MODULE URIAuthorityServerBased;
 (*  Implements class for registry-based authority components.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,8 +20,8 @@ MODULE URI:Authority:ServerBased;
 
 
 IMPORT
-  Strings, IntStr, TextRider, CC := CharClass,
-  URI, URI:CharClass, URI:String, URI:Error;
+  IntStr, TextRider, CC := CharClass, URI,
+  CharClass := URICharClass, String := URIString, Error := URIError;
 
 CONST
   defaultPort = -1;
@@ -86,7 +86,7 @@ PROCEDURE New* (userinfo, host: String.StringPtr; port, defaultPort: Port): Auth
     RETURN auth
   END New;
 
-PROCEDURE (auth: Authority) Clone* (): Authority;
+PROCEDURE (auth: Authority) Clone* (): URI.Authority;
   VAR
     copy: Authority;
   BEGIN
@@ -104,7 +104,7 @@ PROCEDURE (auth: Authority) Copy* (dest: URI.Authority);
       ELSE
         dest. userinfo := NIL
       END;
-      IF (dest. host # NIL) THEN
+      IF (auth. host # NIL) THEN
         dest. host := String.Copy (auth. host^)
       ELSE
         dest. host := NIL
@@ -134,7 +134,7 @@ PROCEDURE ParseHost (str: URI.StringPtr; offset: URI.Offset): Error.Msg;
   
   PROCEDURE SkipDigits (): BOOLEAN;
     VAR
-      start, val: INTEGER;
+      start, val: LONGINT;
     BEGIN
       IF CharClass.IsDigit (str[i]) &
          ((str[i] # "0") OR ~CharClass.IsDigit (str[i+1])) THEN
@@ -204,12 +204,15 @@ PROCEDURE ParseHost (str: URI.StringPtr; offset: URI.Offset): Error.Msg;
         RETURN Error.New (serverContext, malformedHostName, i+offset)
       END
     END;
+    IF str[i] # 0X THEN
+      RETURN Error.New (serverContext, malformedHostName, i+offset)
+    END;
     RETURN NIL
   END ParseHost;
 
 PROCEDURE (auth: Authority) ParseAuthority* (str: URI.StringPtr; offset: URI.Offset): Error.Msg;
   VAR
-    i, start: INTEGER;
+    i, start: LONGINT;
     res: Error.Msg;
     userinfo, host: String.StringPtr;
     port: LONGINT;
@@ -254,7 +257,7 @@ PROCEDURE (auth: Authority) ParseAuthority* (str: URI.StringPtr; offset: URI.Off
     port := defaultPort;
     IF (str[i] = ":") THEN
       INC (i);
-      start := i+1;
+      start := i;
       IF (str[i] # 0X) THEN
         port := 0;
         WHILE CharClass.IsDigit (str[i]) DO
@@ -287,38 +290,38 @@ PROCEDURE (auth: Authority) WriteXML* (w: TextRider.Writer);
   VAR
     str: ARRAY 32 OF CHAR;
   BEGIN
-    w. WriteString (CC.eol+"<authority-server-based>");
+    w. WriteChar (CC.eol); w. WriteString ("<authority-server-based>");
     IF (auth. userinfo # NIL) THEN
-      w. WriteString (CC.eol+"<userinfo>");
+      w. WriteChar (CC.eol); w. WriteString ("<userinfo>");
       w. WriteString (auth. userinfo^);
       w. WriteString ("</userinfo>");
     END;
-    w. WriteString (CC.eol+"<host>");
+    w. WriteChar (CC.eol); w. WriteString ("<host>");
     w. WriteString (auth. host^);
     w. WriteString ("</host>");
     IF (auth. port >= 0) THEN
-      w. WriteString (CC.eol+"<port>");
+      w. WriteChar (CC.eol); w. WriteString ("<port>");
       IntStr.IntToStr (auth. port, str);
       w. WriteString (str);
       w. WriteString ("</port>");
     END;
-    w. WriteString (CC.eol+"</authority-server-based>");
+    w. WriteChar (CC.eol); w. WriteString ("</authority-server-based>");
   END WriteXML;
 
 PROCEDURE (auth: Authority) Append* (VAR str: ARRAY OF CHAR);
   VAR
     s: ARRAY 32 OF CHAR;
   BEGIN
-    Strings.Append ("//", str);
+    String.Append ("//", str);
     IF (auth. userinfo # NIL) THEN
       String.AppendEscaped (auth. userinfo^, CharClass.unreservedUserinfo, str);
-      Strings.Append ("@", str)
+      String.Append ("@", str)
     END;
-    Strings.Append (auth. host^, str);
+    String.Append (auth. host^, str);
     IF (auth. port >= 0) & (auth. port # auth. defaultPort) THEN
-      Strings.Append (":", str);
+      String.Append (":", str);
       IntStr.IntToStr (auth. port, s);
-      Strings.Append (s, str)
+      String.Append (s, str)
     END
   END Append;
 
@@ -338,4 +341,4 @@ BEGIN
     "Port number out of range in authority component");
   serverContext. SetString (junkAfterAuthority,
     "Junk after authority component");
-END URI:Authority:ServerBased.
+END URIAuthorityServerBased.

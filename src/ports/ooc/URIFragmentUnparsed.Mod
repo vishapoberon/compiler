@@ -1,5 +1,5 @@
 (* 	$Id: Unparsed.Mod,v 1.2 2000/07/28 15:12:57 mva Exp $	 *)
-MODULE URI:Fragment:Unparsed;
+MODULE URIFragmentUnparsed;
 (*  Implements class for unparsed fragment identifiers.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,8 +20,8 @@ MODULE URI:Fragment:Unparsed;
 
 
 IMPORT
-  Strings, TextRider, CC := CharClass,
-  URI, URI:String, URI:CharClass, URI:Error;
+  TextRider, CC := CharClass, URI,
+  String := URIString, CharClass := URICharClass, Error := URIError;
 
 TYPE
   Fragment* = POINTER TO FragmentDesc;
@@ -72,7 +72,7 @@ PROCEDURE New* (unparsed: String.StringPtr): Fragment;
     RETURN frag
   END New;
 
-PROCEDURE (frag: Fragment) Clone* (): Fragment;
+PROCEDURE (frag: Fragment) Clone* (): URI.Fragment;
   VAR
     copy: Fragment;
   BEGIN
@@ -105,19 +105,19 @@ PROCEDURE (frag: Fragment) ParseFragment* (str: URI.StringPtr; offset: URI.Offse
 
 PROCEDURE (frag: Fragment) WriteXML* (w: TextRider.Writer);
   BEGIN
-    w. WriteString (CC.eol+"<fragment-unparsed>");
+    w. WriteChar (CC.eol); w. WriteString ("<fragment-unparsed>");
     w. WriteString (frag. unparsed^);
     w. WriteString ("</fragment-unparsed>")
   END WriteXML;
 
 PROCEDURE (frag: Fragment) Append* (VAR str: ARRAY OF CHAR);
   BEGIN
-    Strings.Append ("#", str);
-    Strings.Append (frag. unparsed^, str)
+    String.Append ("#", str);
+    String.Append (frag. unparsed^, str)
   END Append;
 
 BEGIN
   fragContext := Error.NewContext ("URI:Fragment:Unparsed");
   fragContext. SetString (illegalFragmentChar,
     "Illegal character in fragment component");
-END URI:Fragment:Unparsed.
+END URIFragmentUnparsed.

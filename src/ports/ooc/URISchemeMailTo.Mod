@@ -1,5 +1,5 @@
 (* 	$Id: MailTo.Mod,v 1.1.1.2 2000/07/10 20:31:53 mva Exp $	 *)
-MODULE URI:Scheme:MailTo;
+MODULE URISchemeMailTo;
 (*  Implementation of the "mailto" URI scheme.
     Copyright (C) 2000  Michael van Acken
 
@@ -20,7 +20,7 @@ MODULE URI:Scheme:MailTo;
 
 
 IMPORT
-  URI0 := URI, URI:String, URI:Scheme:Opaque;
+  URI0 := URI, String := URIString, Opaque := URISchemeOpaque;
 
 
 TYPE
@@ -46,7 +46,7 @@ PROCEDURE New* (schemeId, opaque: URI0.StringPtr): URI;
     RETURN mailto
   END New;
 
-PROCEDURE (mailto: URI) Clone* (): URI;
+PROCEDURE (mailto: URI) Clone* (): URI0.URI;
   VAR
     copy: URI;
   BEGIN
@@ -62,4 +62,4 @@ PROCEDURE NewPrototype*(): URI;
 
 BEGIN
   URI0.RegisterScheme (NewPrototype())
-END URI:Scheme:MailTo.
+END URISchemeMailTo.

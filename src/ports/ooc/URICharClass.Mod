@@ -1,5 +1,5 @@
 (* 	$Id: CharClass.Mod,v 1.3 2000/08/08 16:22:41 mva Exp $	 *)
-MODULE URI:CharClass;
+MODULE URICharClass;
 (*  Predicates and auxiliary functions for URI character classes.
     Copyright (C) 2000  Michael van Acken
 
@@ -42,7 +42,7 @@ PROCEDURE IsAlpha* (ch: CHAR): BOOLEAN;
     RETURN ("A" <= CAP (ch)) & (CAP (ch) <= "Z")
   END IsAlpha;
 
-PROCEDURE SkipAlpha* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipAlpha* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     IF ("A" <= CAP (str[pos])) & (CAP (str[pos]) <= "Z") THEN
       INC (pos);
@@ -57,7 +57,7 @@ PROCEDURE IsDigit* (ch: CHAR): BOOLEAN;
     RETURN ("0" <= ch) & (ch <= "9")
   END IsDigit;
 
-PROCEDURE SkipDigit* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipDigit* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     IF ("0" <= str[pos]) & (str[pos] <= "9") THEN
       INC (pos);
@@ -72,14 +72,14 @@ PROCEDURE IsAlphaNum* (ch: CHAR): BOOLEAN;
     RETURN IsAlpha (ch) OR IsDigit (ch)
   END IsAlphaNum;
 
-PROCEDURE SkipAlphaNum* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipAlphaNum* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     RETURN SkipAlpha (str, pos) OR SkipDigit (str, pos)
   END SkipAlphaNum;
 
 PROCEDURE IsMember* (ch: CHAR; set: ARRAY OF CHAR): BOOLEAN;
   VAR
-    i: INTEGER;
+    i: LONGINT;
   BEGIN
     i := 0;
     WHILE (set[i] # 0X) & (set[i] # ch) DO
@@ -93,7 +93,7 @@ PROCEDURE IsReserved* (ch: CHAR): BOOLEAN;
     RETURN IsMember (ch, reserved)
   END IsReserved;
 
-PROCEDURE SkipReserved* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipReserved* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     IF IsMember (str[pos], reserved) THEN
       INC (pos);
@@ -113,7 +113,7 @@ PROCEDURE IsMark* (ch: CHAR): BOOLEAN;
     END
   END IsMark;
 
-PROCEDURE SkipMark* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipMark* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     IF IsMark (str[pos]) THEN
       INC (pos);
@@ -128,19 +128,21 @@ PROCEDURE IsUnreserved* (ch: CHAR): BOOLEAN;
     RETURN IsAlphaNum (ch) OR IsMark (ch)
   END IsUnreserved;
 
-PROCEDURE SkipUnreserved* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipUnreserved* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     RETURN SkipAlphaNum (str, pos) OR SkipMark (str, pos)
   END SkipUnreserved;
 
-PROCEDURE SkipEscaped* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipEscaped* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   PROCEDURE SkipHex (ch: CHAR): BOOLEAN;
     BEGIN
       RETURN ("0" <= ch) & (ch <= "9") OR ("A" <= CAP(ch)) & (CAP(ch) <= "F")
     END SkipHex;
 
   BEGIN
-    IF (str[pos] = "%") & SkipHex (str[pos+1]) & SkipHex (str[pos+2]) THEN
+    IF (str[pos] = "%") & (pos < LEN (str)-2) &
+       SkipHex (str[pos+1]) & SkipHex (str[pos+2]) &
+       ((str[pos+1] # "0") OR (str[pos+2] # "0")) THEN
       INC (pos, 3);
       RETURN TRUE
     ELSE
@@ -148,7 +150,7 @@ PROCEDURE SkipEscaped* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
     END
   END SkipEscaped;
 
-PROCEDURE SkipPChar* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipPChar* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     IF IsMember (str[pos], unreservedPChar) THEN
       INC (pos);
@@ -158,14 +160,14 @@ PROCEDURE SkipPChar* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
     END
   END SkipPChar;
 
-PROCEDURE SkipURIC* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipURIC* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     RETURN SkipUnreserved (str, pos) OR
            SkipReserved (str, pos) OR
            SkipEscaped (str, pos)
   END SkipURIC;
 
-PROCEDURE SkipMember* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER;
+PROCEDURE SkipMember* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT;
                        set: ARRAY OF CHAR): BOOLEAN;
   BEGIN
     IF IsMember (str[pos], set) THEN
@@ -176,12 +178,11 @@ PROCEDURE SkipMember* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER;
     END
   END SkipMember;
 
-PROCEDURE SkipAuthChar* (VAR str: ARRAY OF CHAR; VAR pos: INTEGER): BOOLEAN;
+PROCEDURE SkipAuthChar* (VAR str: ARRAY OF CHAR; VAR pos: LONGINT): BOOLEAN;
   BEGIN
     RETURN SkipUnreserved (str, pos) OR
            SkipEscaped (str, pos) OR
            SkipMember (str, pos, "$,;:@&=+")
   END SkipAuthChar;
 
-END URI:CharClass.
-
+END URICharClass.

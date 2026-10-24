@@ -18,6 +18,7 @@ adaptations = [
   "preserving UTF-16 code units through oocUnicode, LongStrings and Msg",
   "updating Channel and its file/text rider users for Unicode-safe diagnostics",
   "providing seekable memory channels through IOMemory",
+  "adapting ooc-libxml URI parsing and file/memory schemes with LONGINT offsets",
 ]
 build = "make"
 test = "make -C src/ports/ooc test; make confidence; make modular-library-test"

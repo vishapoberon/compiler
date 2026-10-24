@@ -31,7 +31,7 @@ Unicode strings and messages, memory channels, file diagnostics, text and
 binary riders, and command-line channels. `make modular-library-test` also
 checks the shared-library build.
 
-For an isolated rebuild and the six ooc regression programs, use an installed
+For an isolated rebuild and the seven ooc regression programs, use an installed
 VOC compiler with matching runtime libraries:
 
 ```sh
@@ -41,6 +41,24 @@ make -C src/ports/ooc test
 This creates `build/ports/ooc/2`. Override `VOC`, `BUILD`, `CC` or `CFLAGS`
 as needed. XML can use this directory's symbol files, headers and objects
 directly while testing from source.
+
+## URI references
+
+`URIParser` parses RFC 2396 URI references and resolves relative paths.
+The `URI` types expose components, cloning and serialization. `URIString`
+and `URICharClass` use `LONGINT` byte offsets for the Oberon-2 model.
+`URISchemeFile`, `URISchemeMemory` and `URISchemeMailTo` register their
+schemes when imported. File channels use `oocFiles` and `FilesHost`;
+memory channels use `IOMemory`.
+
+File access accepts local authorities (empty host or `localhost`) and
+checks path capacity before opening. URI parsing rejects `%00`, since
+decoded components use zero-terminated strings. `URISchemeFile.ToURI`
+escapes file names, including relative names containing spaces or URI
+delimiters. Source provenance is recorded in [URI-provenance.md](URI-provenance.md).
+
+`TestOocURI` covers RFC relative-resolution examples, percent escapes,
+malformed input, cloning, 40,000-byte URIs, and file/memory channels.
 
 ## Source provenance
 

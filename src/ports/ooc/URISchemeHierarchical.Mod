@@ -1,5 +1,5 @@
 (* 	$Id: Hierarchical.Mod,v 1.4 2001/10/17 23:09:51 mva Exp $	 *)
-MODULE URI:Scheme:Hierarchical;
+MODULE URISchemeHierarchical;
 (*  Implementation of the generic hierarchical URI.
     Copyright (C) 2000, 2001  Michael van Acken
 
@@ -20,9 +20,9 @@ MODULE URI:Scheme:Hierarchical;
 
 
 IMPORT
-  Strings, TextRider, CC := CharClass, 
-  URI, Str := URI:String, URI:Error, URI:CharClass,
-  UnparsedAuth := URI:Authority:Unparsed, UnparsedQuery := URI:Query:Unparsed;
+  TextRider, CC := CharClass, URI,
+  Str := URIString, Error := URIError, CharClass := URICharClass,
+  UnparsedAuth := URIAuthorityUnparsed, UnparsedQuery := URIQueryUnparsed;
 
 
 TYPE
@@ -107,7 +107,7 @@ PROCEDURE (param: Parameter) Clone* (): Parameter;
 
 PROCEDURE (param: Parameter) WriteXML* (w: TextRider.Writer);
   BEGIN
-    w. WriteString (CC.eol+"<parameter>");
+    w. WriteChar (CC.eol); w. WriteString ("<parameter>");
     w. WriteString (param. string^);
     w. WriteString ("</parameter>");
   END WriteXML;
@@ -159,6 +159,7 @@ PROCEDURE (segm: Segment) Copy* (dest: Segment);
   BEGIN
     dest. next := segm. next;
     dest. string := Str.Copy (segm. string^);
+    dest. hasEscapes := segm. hasEscapes;
     dest. paramList := NIL;
     param := segm. paramList;
     WHILE (param # NIL) DO
@@ -180,8 +181,8 @@ PROCEDURE (segm: Segment) WriteXML* (w: TextRider.Writer);
   VAR
     param: Parameter;
   BEGIN
-    w. WriteString (CC.eol+"<segment>");
-    w. WriteString (CC.eol+"<value>");
+    w. WriteChar (CC.eol); w. WriteString ("<segment>");
+    w. WriteChar (CC.eol); w. WriteString ("<value>");
     w. WriteString (segm. string^);
     w. WriteString ("</value>");
     param := segm. paramList;
@@ -189,17 +190,22 @@ PROCEDURE (segm: Segment) WriteXML* (w: TextRider.Writer);
       param. WriteXML (w);
       param := param. next
     END;
-    w. WriteString (CC.eol+"</segment>");
+    w. WriteChar (CC.eol); w. WriteString ("</segment>");
   END WriteXML;
 
 PROCEDURE (segm: Segment) Append* (VAR str: ARRAY OF CHAR);
   VAR
     param: Parameter;
   BEGIN
-    Str.AppendEscaped (segm. string^, CharClass.unreservedPChar, str);
+    IF segm. hasEscapes & ((segm. string^ = ".") OR (segm. string^ = "..")) THEN
+      Str.Append ("%2E", str);
+      IF segm. string^ = ".." THEN Str.Append ("%2E", str) END
+    ELSE
+      Str.AppendEscaped (segm. string^, CharClass.unreservedPChar, str)
+    END;
     param := segm. paramList;
     WHILE (param # NIL) DO
-      Strings.Append (";", str);
+      Str.Append (";", str);
       param. Append (str);
       param := param. next
     END;
@@ -299,7 +305,7 @@ PROCEDURE (uri: Generic) StripSegments* (n: LONGINT);
     dummy := Strip (uri. pathList, n)
   END StripSegments;
 
-PROCEDURE (uri: Generic) Clone* (): Generic;
+PROCEDURE (uri: Generic) Clone* (): URI.URI;
   VAR
     copy: Generic;
   BEGIN
@@ -392,7 +398,8 @@ PROCEDURE (uri: Generic) ResolveRelative* (baseURI: URI.HierarchicalURI);
   
   PROCEDURE RemoveDot (VAR segm: Segment);
     BEGIN
-      WHILE (segm # NIL) & (segm. string^ = ".") & ~segm. hasEscapes DO
+      WHILE (segm # NIL) & (segm. string^ = ".") & ~segm. hasEscapes &
+            (segm. paramList = NIL) DO
         IF (segm. next = NIL) THEN
           segm. string := Str.Copy ("")
         ELSE
@@ -410,8 +417,8 @@ PROCEDURE (uri: Generic) ResolveRelative* (baseURI: URI.HierarchicalURI);
         IF (segm # NIL) &
            ((segm. string^ # "..") OR segm. hasEscapes) &
            (segm. next # NIL) &
-           (segm. next. string^ = "..") &
-           ~segm. next. hasEscapes THEN
+            (segm. next. string^ = "..") &
+            ~segm. next. hasEscapes & (segm. next. paramList = NIL) THEN
           IF (segm. next. next = NIL) THEN
             segm. string := Str.Copy ("");
             segm. next := NIL
@@ -428,6 +435,14 @@ PROCEDURE (uri: Generic) ResolveRelative* (baseURI: URI.HierarchicalURI);
     END RemoveDotDot;
   
   BEGIN
+    IF ~uri. absolutePath & (uri. authority = NIL) &
+       (uri. pathList # NIL) & (uri. pathList. next = NIL) &
+       (uri. pathList. string^ = "") & (uri. pathList. paramList = NIL) THEN
+      copy := baseURI. Clone();
+      uri. pathList := copy(Generic). pathList;
+      uri. absolutePath := copy(Generic). absolutePath;
+      IF uri. query = NIL THEN uri. SetQuery (copy(URI.HierarchicalURI). query) END
+    END;
     uri. ResolveRelative^ (baseURI);
     IF ~uri. absolutePath THEN
       copy := baseURI. Clone();
@@ -460,7 +475,7 @@ PROCEDURE (uri: Generic) ResolveRelative* (baseURI: URI.HierarchicalURI);
     END    
   END ResolveRelative;
 
-PROCEDURE (uri: Generic) MakeRelative* (baseURI: URI.HierarchicalURI): Generic;
+PROCEDURE (uri: Generic) MakeRelative* (baseURI: URI.HierarchicalURI): URI.URI;
   VAR
     relURI: Generic;
     super: URI.URI;
@@ -525,9 +540,9 @@ PROCEDURE (uri: Generic) WriteXML* (w: TextRider.Writer);
     segm: Segment;
     pathTag: ARRAY 32 OF CHAR;
   BEGIN
-    w. WriteString (CC.eol+"<hierarchical-uri>");
+    w. WriteChar (CC.eol); w. WriteString ("<hierarchical-uri>");
     IF (uri. schemeId # NIL) THEN
-      w. WriteString (CC.eol+"<scheme>");
+      w. WriteChar (CC.eol); w. WriteString ("<scheme>");
       w. WriteString (uri. schemeId^);
       w. WriteString ("</scheme>");
     END;
@@ -535,26 +550,26 @@ PROCEDURE (uri: Generic) WriteXML* (w: TextRider.Writer);
       uri. authority. WriteXML (w)
     END;
     IF uri. absolutePath THEN
-      pathTag := CC.eol+"<absolute-path>"
+      pathTag := "<absolute-path>"
     ELSE
-      pathTag := CC.eol+"<relative-path>"
+      pathTag := "<relative-path>"
     END;
-    w. WriteString (pathTag);
+    w. WriteChar (CC.eol); w. WriteString (pathTag);
     segm := uri. pathList;
     WHILE (segm # NIL) DO
       segm. WriteXML (w);
       segm := segm. next
     END;
     IF uri. absolutePath THEN
-      pathTag := CC.eol+"</absolute-path>"
+      pathTag := "</absolute-path>"
     ELSE
-      pathTag := CC.eol+"</relative-path>"
+      pathTag := "</relative-path>"
     END;
-    w. WriteString (pathTag);
+    w. WriteChar (CC.eol); w. WriteString (pathTag);
     IF (uri. query # NIL) THEN
       uri. query. WriteXML (w)
     END;
-    w. WriteString (CC.eol+"</hierarchical-uri>");
+    w. WriteChar (CC.eol); w. WriteString ("</hierarchical-uri>");
   END WriteXML;
 
 PROCEDURE (uri: Generic) AppendPath* (VAR str: ARRAY OF CHAR);
@@ -563,12 +578,12 @@ PROCEDURE (uri: Generic) AppendPath* (VAR str: ARRAY OF CHAR);
   BEGIN
     IF (uri. pathList # NIL) THEN
       IF uri. absolutePath THEN
-        Strings.Append ("/", str)
+        Str.Append ("/", str)
       END;
       segm := uri. pathList;
       WHILE (segm # NIL) DO
         IF (segm # uri. pathList) THEN
-          Strings.Append ("/", str)
+          Str.Append ("/", str)
         END;
         segm. Append (str);
         segm := segm. next
@@ -593,4 +608,4 @@ BEGIN
   pathContext := Error.NewContext ("URI:Scheme:Hierarchical");
   pathContext. SetString (illegalPathChar,
     "Illegal character in path component of the URI");
-END URI:Scheme:Hierarchical.
+END URISchemeHierarchical.

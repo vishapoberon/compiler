@@ -1,5 +1,5 @@
 (* 	$Id: Error.Mod,v 1.2 2000/07/31 14:24:18 mva Exp $	 *)
-MODULE URI:Error;
+MODULE URIError;
 (*  Error handling for URI parser.
     Copyright (C) 2000  Michael van Acken
 
@@ -19,7 +19,7 @@ MODULE URI:Error;
 *)
 
 IMPORT
-  Ascii, LongStrings, M := Msg, Str := URI:String;
+  Ascii, LongStrings, M := Msg, Str := URIString;
 
 
 TYPE
@@ -49,25 +49,31 @@ TYPE
 PROCEDURE (context: Context) GetTemplate* (msg: Msg; VAR templ: LString);
   VAR
     m: Mapping;
-  CONST
-    eol = Ascii.lf;
+  PROCEDURE AppendLine (text: ARRAY OF CHAR);
+    VAR suffix: ARRAY 128 OF M.LChar;
+    BEGIN
+      suffix[0] := ORD (Ascii.lf); suffix[1] := 0;
+      LongStrings.Append (suffix, templ);
+      LongStrings.Long (text, suffix);
+      LongStrings.Append (suffix, templ)
+    END AppendLine;
   BEGIN
     m := context. mapping;
     WHILE (m # NIL) & (m. code # msg. code) DO
       m := m. next
     END;
     IF (m # NIL) THEN
-      COPY (m. text^, templ)
+      LongStrings.Assign (m. text^, templ)
     ELSE
-      COPY ("--unknown error code--", templ);
-      LongStrings.Append (eol+"msg_context=${MSG_CONTEXT}"+
-                          eol+"msg_code=${MSG_CODE}", templ)
+      LongStrings.Long ("--unknown error code--", templ);
+      AppendLine ("msg_context=${MSG_CONTEXT}");
+      AppendLine ("msg_code=${MSG_CODE}")
     END;
     IF (msg. GetAttribute ("uri") # NIL) THEN
-      LongStrings.Append (eol+"uri=${uri}", templ)
+      AppendLine ("uri=${uri}")
     END;
     IF (msg. GetAttribute ("uri_pos") # NIL) THEN
-      LongStrings.Append (eol+"uri_pos=${uri_pos}", templ)
+      AppendLine ("uri_pos=${uri_pos}")
     END;
   END GetTemplate;
 
@@ -82,10 +88,10 @@ PROCEDURE (context: Context) SetString* (code: Code; str: String);
         NEW (mlist);
         mlist. next := NIL;
         mlist. code := code;
-        COPY (str, str16);
+        LongStrings.Long (str, str16);
         mlist. text := M.GetLStringPtr (str16)
       ELSIF (mlist. code = code) THEN
-        COPY (str, str16);
+        LongStrings.Long (str, str16);
         mlist. text := M.GetLStringPtr (str16)
       ELSE
         Append (mlist. next)
@@ -127,4 +133,4 @@ PROCEDURE New* (context: Context; code: Code; pos: Str.Offset): Msg;
     RETURN msg
   END New;
 
-END URI:Error.
+END URIError.

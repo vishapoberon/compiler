@@ -9,7 +9,7 @@ C_MODEL ?= $(shell $(CC) -dM -E - < /dev/null | awk '$$2=="__SIZEOF_POINTER__" {
 include $(ROOT)/src/tools/make/modular-libraries.mk
 
 MODULES := $(MODULAR_OOC) C$(C_MODEL)
-TESTS := TestLongStrings TestMessages TestOocChannels TestOocUnified TestIntStr TestAsciiCodes
+TESTS := TestLongStrings TestMessages TestOocChannels TestOocURI TestOocUnified TestIntStr TestAsciiCodes
 
 .PHONY: all test clean
 all:

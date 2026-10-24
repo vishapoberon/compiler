@@ -1,5 +1,5 @@
 (* 	$Id: Unparsed.Mod,v 1.1.1.2 2000/07/10 20:31:53 mva Exp $	 *)
-MODULE URI:Authority:Unparsed;
+MODULE URIAuthorityUnparsed;
 (*  Implements class for unparsed authority components.
     Copyright (C) 2000  Michael van Acken
 
@@ -19,8 +19,8 @@ MODULE URI:Authority:Unparsed;
 *)
 
 IMPORT
-  Strings, TextRider, CC := CharClass,
-  URI, URI:Error, URI:String, URI:CharClass;
+  TextRider, CC := CharClass, URI,
+  Error := URIError, String := URIString, CharClass := URICharClass;
 
 
 TYPE
@@ -58,7 +58,7 @@ PROCEDURE New* (unparsed: URI.StringPtr): Authority;
     RETURN auth
   END New;
 
-PROCEDURE (auth: Authority) Clone* (): Authority;
+PROCEDURE (auth: Authority) Clone* (): URI.Authority;
   VAR
     copy: Authority;
   BEGIN
@@ -91,19 +91,19 @@ PROCEDURE (auth: Authority) ParseAuthority* (str: URI.StringPtr; offset: URI.Off
 
 PROCEDURE (auth: Authority) WriteXML* (w: TextRider.Writer);
   BEGIN
-    w. WriteString (CC.eol+"<authority-unparsed>");
+    w. WriteChar (CC.eol); w. WriteString ("<authority-unparsed>");
     w. WriteString (auth. unparsed^);
     w. WriteString ("</authority-unparsed>")
   END WriteXML;
 
 PROCEDURE (auth: Authority) Append* (VAR str: ARRAY OF CHAR);
   BEGIN
-    Strings.Append ("//", str);
-    Strings.Append (auth. unparsed^, str)
+    String.Append ("//", str);
+    String.Append (auth. unparsed^, str)
   END Append;
 
 BEGIN
   authContext := Error.NewContext ("URI:Authority:Unparsed");
   authContext. SetString (illegalAuthChar,
     "Illegal character in authority component");
-END URI:Authority:Unparsed.
+END URIAuthorityUnparsed.
