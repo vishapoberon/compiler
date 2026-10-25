@@ -12,10 +12,11 @@ MODULES := $(MODULAR_OOC) C$(C_MODEL)
 TESTS := TestLongStrings TestMessages TestOocChannels TestOocURI TestOocUnified TestIntStr TestAsciiCodes
 
 .PHONY: all test clean
+# Local symbol files make the linker select these objects over installed copies.
 all:
 	mkdir -p "$(BUILD)"
 	cd "$(BUILD)" && for name in $(MODULES); do \
-		$(VOC) -O$(MODEL) -s "$(SOURCE)/$$name.Mod" || exit; \
+		$(VOC) -O$(MODEL) -s -F "$(SOURCE)/$$name.Mod" || exit; \
 	done
 
 test: all

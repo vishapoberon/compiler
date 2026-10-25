@@ -35,6 +35,22 @@ MODULE TestIntStr;
     ASSERT(result = expected); ASSERT(parsed = 123)
   END Reject;
 
+  PROCEDURE LongInput;
+    VAR text: ARRAY 70002 OF CHAR; i, parsed: LONGINT;
+      result: IntStr.ConvResults;
+  BEGIN
+    FOR i := 0 TO 69999 DO text[i] := "0" END;
+    text[70000] := "7"; text[70001] := 0X;
+    IntStr.StrToInt(text, parsed, result);
+    ASSERT((result = IntStr.strAllRight) & (parsed = 7));
+    text[70000] := "x"; Reject(text, IntStr.strWrongFormat);
+    FOR i := 0 TO 69999 DO text[i] := " " END;
+    text[70000] := 0X; Reject(text, IntStr.strEmpty);
+    text[70000] := "7"; text[70001] := 0X;
+    IntStr.StrToInt(text, parsed, result);
+    ASSERT((result = IntStr.strAllRight) & (parsed = 7))
+  END LongInput;
+
 BEGIN
   IF SIZE(LONGINT) = 8 THEN
     Check(MIN(LONGINT), "-9223372036854775808");
@@ -72,5 +88,6 @@ BEGIN
   IF SIZE(LONGINT) = 8 THEN ASSERT(guarded.text = "-92")
   ELSE ASSERT(guarded.text = "-21") END;
   ASSERT(guarded.before = "L"); ASSERT(guarded.after = "R");
+  LongInput;
   Out.String("oo2c integer string tests passed"); Out.Ln
 END TestIntStr.

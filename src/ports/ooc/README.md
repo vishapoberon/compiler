@@ -42,6 +42,13 @@ make -C src/ports/ooc test
 This creates `build/ports/ooc/2`. Override `VOC`, `BUILD`, `CC` or `CFLAGS`
 as needed. XML can use this directory's symbol files, headers and objects
 directly while testing from source.
+The isolated build forces local symbol files so executables link these rebuilt
+objects even when installed modules have identical interfaces.
+
+`IntConv` and `IntStr` scan decimal input using `LONGINT` positions. Numeric
+tests include 70,000-character leading-zero and whitespace sequences, trailing
+invalid characters and the full signed integer range. Conversion failures leave
+the caller's value unchanged.
 
 ## URI references
 

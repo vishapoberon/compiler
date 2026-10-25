@@ -23,7 +23,7 @@ MODULE IntConv;
 *)
  
 IMPORT
-  Char := CharClass, Str := oocStrings, Conv := ConvTypes;
+  Char := CharClass, Conv := ConvTypes;
  
 TYPE
   ConvResults* = Conv.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
@@ -115,12 +115,13 @@ PROCEDURE FormatInt*(str: ARRAY OF CHAR): ConvResults;
 VAR
   ch: CHAR;
   int: LONGINT;
-  len, index, digit: INTEGER;
+  index: LONGINT;
+  digit: INTEGER;
   state: Conv.ScanState;
   positive: BOOLEAN;
   prev, class: Conv.ScanClass;
 BEGIN
-  len:=Str.Length(str); index:=0;
+  index:=0;
   class:=Conv.padding; prev:=class;
   state:=SI; int:=0; positive:=TRUE;
   LOOP
@@ -175,16 +176,17 @@ PROCEDURE ValueInt*(str: ARRAY OF CHAR): LONGINT;
   *)
 VAR
   ch: CHAR;
-  len, index, digit: INTEGER;
+  index: LONGINT;
+  digit: INTEGER;
   int: LONGINT;  
   state: Conv.ScanState;
   positive: BOOLEAN;
   class: Conv.ScanClass;  
 BEGIN
   IF FormatInt(str)=strAllRight THEN
-    len:=Str.Length(str); index:=0;
+    index:=0;
     state:=SI; int:=0; positive:=TRUE;
-    FOR index:=0 TO len-1 DO
+    WHILE str[index] # 0X DO
       ch:=str[index];
       state.p(ch, class, state);
       IF class=Conv.valid THEN
@@ -196,7 +198,8 @@ BEGIN
           ELSE int:=int*10-digit
           END
         END
-      END
+      END;
+      INC(index)
     END;
     RETURN int
   ELSE RETURN 0 (* raise exception here *)
