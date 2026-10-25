@@ -1,5 +1,33 @@
 # Vishap Oberon 4.0
 
+## 4.0.2
+
+The terminal editor is renamed from `xxs` to `none`, with the single exported
+command `none.Open`; the `Fit` alias has been removed.
+It also builds independently as `none file`: run `make none` with an installed
+VOC compiler. Full Unix builds include the executable in `install/bin/`.
+
+The bundled Oberon-2 library now includes the native Oberon XML parser, DTD
+validator, namespace processing, writer and canonical output, together with
+shared Unicode codecs and URI support. Additive limited constructors provide
+resource budgets for parser and built-in builder work. Continue using trusted
+XML while broader adversarial review remains pending; see
+[XML security](../src/ports/xml/doc/Security.md) and
+[conformance coverage](../src/ports/xml/doc/Conformance.md).
+
+Shared oo2c support now includes Unicode code-unit types, long strings, channels,
+diagnostics, memory files and URI component parsers. Regression coverage includes
+the preserved codec, URI and XML fixtures, bounded hostile inputs and deterministic
+XML mutations.
+
+The compiler's signed integer-limit calculation now avoids an overflowing
+intermediate when determining the 64-bit maximum.
+
+Clean GCC, Clang and TCC builds pass the confidence suite on Linux x86-64;
+the editor also has pseudo-terminal and sanitizer coverage. See
+[release validation](ReleaseValidation-4.0.2.md) for commands, coverage and
+remaining platform checks.
+
 ## 4.0.1
 
 The Linux modular library profile now includes Norayr's `pipes` and `xattr`
@@ -14,14 +42,14 @@ modules without using the shell. VOC still translates Oberon-2 to C; normal
 
 `hresh` provides line editing, command history, and completion of command and
 file names. It includes a compiler (`compiler.Compile`), definition browser
-(`browser.ShowDef`) and text editor (`xxs.Open`). The editor supports selection,
+(`browser.ShowDef`) and text editor (`none.Open`). The editor supports selection,
 block editing, search, copy/paste, and plain or rich text.
 
 Modules can be unloaded, edited and recompiled without restarting the shell:
 
 ```text
 > system.Free Commands
-> xxs.Open Commands.Mod
+> none.Open Commands.Mod
 > compiler.Compile -sl Commands.Mod
 > system.ShowCommands Commands
 > Commands.Run
