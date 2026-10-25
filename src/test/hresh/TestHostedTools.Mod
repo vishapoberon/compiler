@@ -1,6 +1,6 @@
 MODULE TestHostedTools;
 
-  IMPORT compiler, browser, Modules, Heap, Files, Texts, Oberon, Out, Strings;
+  IMPORT SYSTEM, compiler, browser, OPM, Modules, Heap, Files, Texts, Oberon, Out, Strings;
 
   VAR original: Oberon.ParList; argc: INTEGER;
 
@@ -44,6 +44,14 @@ MODULE TestHostedTools;
   END LongCodeSource;
 
 BEGIN
+  ASSERT(OPM.SignedMaximum(1) = MAX(SYSTEM.INT8));
+  ASSERT(OPM.SignedMaximum(2) = MAX(SYSTEM.INT16));
+  ASSERT(OPM.SignedMaximum(4) = MAX(SYSTEM.INT32));
+  ASSERT(OPM.SignedMaximum(8) = MAX(SYSTEM.INT64));
+  ASSERT(OPM.SignedMinimum(1) = MIN(SYSTEM.INT8));
+  ASSERT(OPM.SignedMinimum(2) = MIN(SYSTEM.INT16));
+  ASSERT(OPM.SignedMinimum(4) = MIN(SYSTEM.INT32));
+  ASSERT(OPM.SignedMinimum(8) = MIN(SYSTEM.INT64));
   (* Importing the compiler and browser must not run their standalone startup. *)
   original := Oberon.Par; argc := Modules.ArgCount;
   Source("HostedToolProbe.Mod",

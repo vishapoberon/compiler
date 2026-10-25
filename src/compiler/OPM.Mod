@@ -198,8 +198,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   VAR result: SYSTEM.INT64;
   BEGIN
     result := 1;
-    result := SYSTEM.LSH(result, bytecount*8-1);
-    RETURN result - 1;
+    (* Keep every intermediate below the signed 64-bit sign bit. *)
+    result := SYSTEM.LSH(result, bytecount*8-2);
+    RETURN result + (result - 1);
   END SignedMaximum;
 
   PROCEDURE SignedMinimum*(bytecount: LONGINT): SYSTEM.INT64;
