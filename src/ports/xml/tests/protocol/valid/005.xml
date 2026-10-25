@@ -1,0 +1,4 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+]>
+<doc>foo<![CDATA[frobozz]]> bar &amp; yow!</doc>

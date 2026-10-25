@@ -1,0 +1,8 @@
+<!DOCTYPE doc [
+<!ELEMENT doc EMPTY>
+<!ATTLIST doc a CDATA #IMPLIED>
+<!ENTITY % e '<!ENTITY f "a&#xD;&#xA;b">'>
+%e;
+]>
+<!-- this test is taken from the 2000-07-27 errata list: E86 -->
+<doc a="&f;"/>

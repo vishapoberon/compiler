@@ -1,0 +1,8 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE doc [
+<!ELEMENT elem EMPTY>
+<!ELEMENT doc (elem)+>
+]>
+<doc>
+  <elem/><elem/>
+</doc>

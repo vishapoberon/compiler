@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/003.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <end-dtd>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>42</char-index>
+      <line>2</line>
+      <column>2</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <namespace-declaration>
+      <namespace-uri>http://localhost</namespace-uri>
+    </namespace-declaration>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>45</char-index>
+      <line>3</line>
+      <column>1</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <namespace-declaration>
+    <namespace-uri>http://localhost</namespace-uri>
+  </namespace-declaration>
+  
+  <attributes-done>
+    <locator>
+      <char-index>73</char-index>
+      <line>3</line>
+      <column>29</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <characters>
+    <chars>
+  </chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>74</char-index>
+      <line>3</line>
+      <column>30</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>79</char-index>
+      <line>4</line>
+      <column>3</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <namespace-declaration/>
+  
+  <attributes-done>
+    <locator>
+      <char-index>92</char-index>
+      <line>4</line>
+      <column>16</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>93</char-index>
+      <line>4</line>
+      <column>17</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <characters>
+    <chars>
+</chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>93</char-index>
+      <line>4</line>
+      <column>17</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-element>
+    <namespace-declaration>
+      <namespace-uri>http://localhost</namespace-uri>
+    </namespace-declaration>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>97</char-index>
+      <line>5</line>
+      <column>2</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>103</char-index>
+      <line>6</line>
+      <column>0</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

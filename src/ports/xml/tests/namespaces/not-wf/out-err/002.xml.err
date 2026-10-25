@@ -1,0 +1,3 @@
+In file not-wf/002.xml: 
+line=0, column=3
+3: This name must not contain a colon character `:'

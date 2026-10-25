@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/007.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <end-dtd>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>71</char-index>
+      <line>3</line>
+      <column>2</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <namespace-declaration>
+      <prefix>ns</prefix>
+      <namespace-uri>http://localhost</namespace-uri>
+    </namespace-declaration>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>74</char-index>
+      <line>4</line>
+      <column>1</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <namespace-declaration>
+    <prefix>ns</prefix>
+    <namespace-uri>http://localhost</namespace-uri>
+  </namespace-declaration>
+  
+  <attributes-done>
+    <locator>
+      <char-index>108</char-index>
+      <line>4</line>
+      <column>35</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <characters>
+    <chars>
+  </chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>109</char-index>
+      <line>4</line>
+      <column>36</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-element>
+    <namespace-declaration>
+      <prefix>ns</prefix>
+      <namespace-uri>http://localhost/a</namespace-uri>
+    </namespace-declaration>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>114</char-index>
+      <line>5</line>
+      <column>3</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <namespace-declaration>
+    <prefix>ns</prefix>
+    <namespace-uri>http://localhost/a</namespace-uri>
+  </namespace-declaration>
+  
+  <namespace-declaration>
+    <prefix>attr</prefix>
+    <namespace-uri>http://localhost/attribute</namespace-uri>
+  </namespace-declaration>
+  
+  <attribute>
+    <namespace-declaration>
+      <prefix>attr</prefix>
+      <namespace-uri>http://localhost/attribute</namespace-uri>
+    </namespace-declaration>
+    <local-name>v1</local-name>
+    <value>abc</value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>189</char-index>
+      <line>5</line>
+      <column>78</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attributes-done>
+    <locator>
+      <char-index>203</char-index>
+      <line>5</line>
+      <column>92</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <namespace-declaration>
+      <prefix>ns</prefix>
+      <namespace-uri>http://localhost/a</namespace-uri>
+    </namespace-declaration>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>204</char-index>
+      <line>5</line>
+      <column>93</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <characters>
+    <chars>
+</chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>204</char-index>
+      <line>5</line>
+      <column>93</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-element>
+    <namespace-declaration>
+      <prefix>ns</prefix>
+      <namespace-uri>http://localhost</namespace-uri>
+    </namespace-declaration>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>208</char-index>
+      <line>6</line>
+      <column>2</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>217</char-index>
+      <line>7</line>
+      <column>0</column>
+      <base-uri>valid/007.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

@@ -1,0 +1,6 @@
+<!DOCTYPE doc SYSTEM "003.ent" [
+<!ENTITY general1 "internal">
+<!ENTITY general2 PUBLIC "public" "003.ent">
+<!ENTITY general3 PUBLIC "public" "003.ent" NDATA furbie>
+]>
+<doc></doc>

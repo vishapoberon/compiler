@@ -1,0 +1,5 @@
+In file not-wf/012.xml: 
+line=3, column=5
+52: Malformed URI reference: Illegal character in scheme component
+uri==abc=:
+uri_pos=0

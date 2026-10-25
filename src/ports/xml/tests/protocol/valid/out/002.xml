@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/002.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <notation>
+    <name>notation-in-DTD-1</name>
+    <public-identifier>foobar</public-identifier>
+    <locator>
+      <char-index>45</char-index>
+      <line>1</line>
+      <column>11</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </notation>
+  
+  <notation>
+    <name>notation-in-DTD-2</name>
+    <system-identifier>file://absolute2</system-identifier>
+    <public-identifier>foobar</public-identifier>
+    <base-uri>file://absolute2</base-uri>
+    <locator>
+      <char-index>92</char-index>
+      <line>2</line>
+      <column>11</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </notation>
+  
+  <notation>
+    <name>notation-in-DTD-3</name>
+    <system-identifier>file://absolute3</system-identifier>
+    <base-uri>file://absolute3</base-uri>
+    <locator>
+      <char-index>158</char-index>
+      <line>3</line>
+      <column>11</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </notation>
+  
+  <notation>
+    <name>notation-external-DTD-1</name>
+    <public-identifier>foobar</public-identifier>
+    <locator>
+      <char-index>11</char-index>
+      <line>0</line>
+      <column>11</column>
+      <base-uri>valid/002.ent</base-uri>
+    </locator>
+  </notation>
+  
+  <end-dtd>
+    <entity>
+      <type>external DTD subset</type>
+      <system-identifier>002.ent</system-identifier>
+      <base-uri>valid/002.ent</base-uri>
+    </entity>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>206</char-index>
+      <line>4</line>
+      <column>2</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>209</char-index>
+      <line>5</line>
+      <column>1</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attributes-done>
+    <locator>
+      <char-index>212</char-index>
+      <line>5</line>
+      <column>4</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>215</char-index>
+      <line>5</line>
+      <column>7</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>221</char-index>
+      <line>6</line>
+      <column>0</column>
+      <base-uri>valid/002.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

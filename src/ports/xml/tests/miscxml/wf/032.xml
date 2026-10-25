@@ -1,0 +1,24 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (e+)>
+<!ELEMENT e EMPTY>
+<!ATTLIST e a NMTOKENS #IMPLIED>
+<!ATTLIST e b CDATA #IMPLIED>
+
+<!ENTITY d "&#xD;">
+<!ENTITY a "&#xA;">
+<!ENTITY da "&#xD;&#xA;">
+]>
+<!-- this test is taken from the 2000-07-27 errata list: E70 -->
+<doc>
+  <e a="
+
+xyz"/>
+  <e a="&d;&d;A&a;&a;B&da;"/>
+  <e a="&#xd;&#xd;A&#xa;&#xa;B&#xd;&#xa;"/>
+
+  <e  b="
+
+xyz"/>
+  <e b="&d;&d;A&a;&a;B&da;"/>
+  <e b="&#xd;&#xd;A&#xa;&#xa;B&#xd;&#xa;"/>
+</doc>

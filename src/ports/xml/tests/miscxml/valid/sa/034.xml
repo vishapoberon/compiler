@@ -1,0 +1,15 @@
+<!DOCTYPE doc [
+<!-- this tests all legal declarations of the predefined entities;
+     see E103 -->
+<!ENTITY lt "&#38;#60;">
+<!ENTITY amp "&#38;#38;">
+
+<!ENTITY gt "&#38;#62;">
+<!ENTITY gt ">">
+<!ENTITY apos "&#38;#39;">
+<!ENTITY apos "'">
+<!ENTITY quote "&#38;#34;">
+<!ENTITY quote '"'>
+<!ELEMENT doc EMPTY>
+]>
+<doc/>

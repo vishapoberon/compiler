@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/004.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <end-dtd>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>42</char-index>
+      <line>2</line>
+      <column>2</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>45</char-index>
+      <line>3</line>
+      <column>1</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <namespace-declaration>
+    <prefix>ns</prefix>
+    <namespace-uri>http://localhost</namespace-uri>
+  </namespace-declaration>
+  
+  <attributes-done>
+    <locator>
+      <char-index>76</char-index>
+      <line>3</line>
+      <column>32</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <characters>
+    <chars>
+</chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>77</char-index>
+      <line>3</line>
+      <column>33</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>81</char-index>
+      <line>4</line>
+      <column>2</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>87</char-index>
+      <line>5</line>
+      <column>0</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

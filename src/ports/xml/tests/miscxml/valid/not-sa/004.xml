@@ -1,0 +1,8 @@
+<!DOCTYPE doc [
+ <!ATTLIST doc a CDATA "D4A">
+ <!ENTITY % x SYSTEM "004-1.ent">
+ %x;
+ <!ATTLIST doc b CDATA "D4B">
+ <!ELEMENT doc (#PCDATA)>
+ ]>
+<doc>Hello.</doc>

@@ -1,0 +1,4 @@
+<!DOCTYPE doc SYSTEM "002-1.ent" [
+<!ELEMENT doc (#PCDATA)>
+]>
+<doc>&book;</doc>

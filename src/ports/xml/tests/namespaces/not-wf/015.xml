@@ -1,0 +1,7 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+]>
+<a:doc xmlns:a="http://localhost" 
+       xmlns:b="http://localhost"
+       a:v1="abc"
+       b:v1="def"/>

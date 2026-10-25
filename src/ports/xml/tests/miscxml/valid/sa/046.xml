@@ -1,0 +1,15 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE doc [
+<!ELEMENT a EMPTY>
+<!ELEMENT b EMPTY>
+<!ELEMENT c EMPTY>
+<!ELEMENT elem ((a?,b) | (a?,c))> 
+<!-- the content model is not deterministic -->
+<!ELEMENT doc (elem)*>
+]>
+<doc>
+  <elem><a/><b/></elem>
+  <elem><a/><c/></elem>
+  <elem><b/></elem>
+  <elem><c/></elem>
+</doc>

@@ -1,0 +1,6 @@
+<!DOCTYPE doc SYSTEM "002.ent" [
+<!NOTATION notation-in-DTD-1 PUBLIC "foobar">
+<!NOTATION notation-in-DTD-2 PUBLIC "foobar" "file://absolute2">
+<!NOTATION notation-in-DTD-3 SYSTEM "file://absolute3">
+]>
+<doc></doc>

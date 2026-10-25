@@ -341,6 +341,15 @@ goto :eof
 echo No X11 support on plain Windows - use cygwin and build with cygwin make.
 goto :eof
 
+:xml
+echo.Making XML library for -O%MODEL%
+cd %BUILDDIR%\%MODEL%
+for %%N in (XMLUnicodeCodec XMLUnicodeCodecASCII XMLUnicodeCodecLatin1 XMLUnicodeCodecUTF8 XMLUnicodeCodecUTF16 XMLUnicodeCodecImportAll XMLLimits XMLInputBuffer XMLUnicodeBuffer XMLDTD XMLEntityResolver XMLError XMLLocator XMLBuilder XMLParser XMLBuilderNamespaces XMLRegexp XMLBuilderValidation XMLWriter XMLBuilderCanonical XMLBuilderParserProtocol XMLBasicElement XMLBasicDataType XMLBasicParser) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/xml/%%N.Mod || exit /b
+)
+cd %ROOTDIR%
+goto :eof
+
 :ulm
 echo.Making ulm library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
@@ -408,6 +417,7 @@ call :runtime       || exit /b
 call :cli           || exit /b
 call :v4            || exit /b
 call :ooc           || exit /b
+call :xml           || exit /b
 call :ulm           || exit /b
 call :pow32         || exit /b
 call :misc          || exit /b

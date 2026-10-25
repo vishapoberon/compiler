@@ -1,0 +1,3 @@
+# Preserve the original XML bytes and reference snapshots across checkouts.
+** -text
+voc/** text eol=lf

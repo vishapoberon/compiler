@@ -1,0 +1,12 @@
+<!-- a fatal error should disable all callbacks: -- -->
+<?pi before DTD?>
+<!--before DTD-->
+<!DOCTYPE doc SYSTEM "001.ent" [
+<?pi in internal DTD?>
+<!--in internal DTD-->
+]>
+<?pi after internal DTD?>
+<!--after internal DTD-->
+<doc></doc>
+<?pi after element?>
+<!--after element-->

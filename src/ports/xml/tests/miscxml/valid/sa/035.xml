@@ -1,0 +1,7 @@
+<!DOCTYPE doc [
+<!-- test corresponds to E104 -->
+<!ENTITY % e '<!ENTITY f "a&#xD;&#xA;b">'>
+%e;
+<!ELEMENT doc (#PCDATA)>
+]>
+<doc>&f;</doc>

@@ -1,0 +1,7 @@
+<!DOCTYPE root [
+<!ELEMENT root EMPTY>
+<!ATTLIST root affiliated NOTATION (a|b|b) 'a'>
+<!NOTATION a PUBLIC "-//something/EN">
+<!NOTATION b PUBLIC "-//something else/EN">
+]>
+<root/>

@@ -1,0 +1,5 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (doc?)>
+]>
+<doc xmlns:ns="http://localhost">
+</doc>

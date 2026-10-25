@@ -1,0 +1,9 @@
+<!DOCTYPE ns:doc [
+<!ELEMENT ns:doc (ns:a, ns:b)>
+<!ELEMENT ns:a EMPTY>
+<!ELEMENT ns:b EMPTY>
+]>
+<ns:doc xmlns:ns="http://localhost">
+  <ns:a xmlns:ns="http://localhost/a"/>
+  <ns:b/>
+</ns:doc>

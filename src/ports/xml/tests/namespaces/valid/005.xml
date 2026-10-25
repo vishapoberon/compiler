@@ -1,0 +1,5 @@
+<!DOCTYPE ns:doc [
+<!ELEMENT ns:doc (ns:doc?)>
+]>
+<ns:doc xmlns:ns="http://localhost">
+</ns:doc>

@@ -1,0 +1,331 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/004.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <end-dtd>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>205</char-index>
+      <line>7</line>
+      <column>2</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>208</char-index>
+      <line>8</line>
+      <column>1</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attributes-done>
+    <locator>
+      <char-index>211</char-index>
+      <line>8</line>
+      <column>4</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <characters>
+    <chars>
+  </chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>212</char-index>
+      <line>8</line>
+      <column>5</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-element>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>217</char-index>
+      <line>9</line>
+      <column>3</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attribute>
+    <local-name>v1</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#REQUIRED</default-type>
+    <value></value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>219</char-index>
+      <line>9</line>
+      <column>5</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attribute>
+    <local-name>v3</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#DEFAULT</default-type>
+    <value> foo  bar   </value>
+    <specified>no</specified>
+  </attribute>
+  
+  <attribute>
+    <local-name>v4</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#FIXED</default-type>
+    <value>furbie</value>
+    <specified>no</specified>
+  </attribute>
+  
+  <attributes-done>
+    <locator>
+      <char-index>226</char-index>
+      <line>9</line>
+      <column>12</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>227</char-index>
+      <line>9</line>
+      <column>13</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <characters>
+    <chars>
+  </chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>227</char-index>
+      <line>9</line>
+      <column>13</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-element>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>232</char-index>
+      <line>10</line>
+      <column>3</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attribute>
+    <local-name>v1</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#REQUIRED</default-type>
+    <value>1</value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>234</char-index>
+      <line>10</line>
+      <column>5</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attribute>
+    <local-name>v2</local-name>
+    <attr-type>NMTOKENS</attr-type>
+    <default-type>#IMPLIED</default-type>
+    <value>a b</value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>241</char-index>
+      <line>10</line>
+      <column>12</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attribute>
+    <local-name>v3</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#DEFAULT</default-type>
+    <value> foo  bar   </value>
+    <specified>no</specified>
+  </attribute>
+  
+  <attribute>
+    <local-name>v4</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#FIXED</default-type>
+    <value>furbie</value>
+    <specified>no</specified>
+  </attribute>
+  
+  <attributes-done>
+    <locator>
+      <char-index>255</char-index>
+      <line>10</line>
+      <column>26</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>256</char-index>
+      <line>10</line>
+      <column>27</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <characters>
+    <chars>
+  </chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>256</char-index>
+      <line>10</line>
+      <column>27</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-element>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>261</char-index>
+      <line>11</line>
+      <column>3</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attribute>
+    <local-name>v1</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#REQUIRED</default-type>
+    <value>2</value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>263</char-index>
+      <line>11</line>
+      <column>5</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attribute>
+    <local-name>v2</local-name>
+    <attr-type>NMTOKENS</attr-type>
+    <default-type>#IMPLIED</default-type>
+    <value>a b</value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>270</char-index>
+      <line>11</line>
+      <column>12</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attribute>
+    <local-name>v3</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#DEFAULT</default-type>
+    <value>no-default</value>
+    <specified>yes</specified>
+    <locator>
+      <char-index>284</char-index>
+      <line>11</line>
+      <column>26</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attribute>
+  
+  <attribute>
+    <local-name>v4</local-name>
+    <attr-type>CDATA</attr-type>
+    <default-type>#FIXED</default-type>
+    <value>furbie</value>
+    <specified>no</specified>
+  </attribute>
+  
+  <attributes-done>
+    <locator>
+      <char-index>300</char-index>
+      <line>11</line>
+      <column>42</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>a</local-name>
+    <locator>
+      <char-index>301</char-index>
+      <line>11</line>
+      <column>43</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <characters>
+    <chars>
+</chars>
+    <element-whitespace>unknown</element-whitespace>
+    <locator>
+      <char-index>301</char-index>
+      <line>11</line>
+      <column>43</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>305</char-index>
+      <line>12</line>
+      <column>2</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>311</char-index>
+      <line>13</line>
+      <column>0</column>
+      <base-uri>valid/004.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

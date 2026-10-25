@@ -1,0 +1,7 @@
+In file not-wf/005.xml: 
+line=0, column=10
+10: Invalid use of colon in a qualified name
+line=1, column=10
+28: Invalid use of colon in a qualified name
+line=3, column=1
+50: Invalid use of colon in a qualified name

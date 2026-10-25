@@ -1,0 +1,96 @@
+diff -Nru sun.orig/valid/not-sa02.xml sun/valid/not-sa02.xml
+--- sun.orig/valid/not-sa02.xml	Tue Mar 20 22:47:44 2001
++++ sun/valid/not-sa02.xml	Tue Mar 20 22:48:10 2001
+@@ -16,7 +16,8 @@
+ <attributes
+     notation =	" nonce "
+     nmtoken =	" this-gets-normalized "
+-    nmtokens =	" this&#x0d;&#x0a; also	 gets&#x20; normalized "
++    nmtokens =	" this
++ also	 gets&#x20; normalized "
+     id =	"	&internal; "
+     idref =	" &internal;
+     "
+diff -Nru sun.orig/valid/out/not-sa02.xml sun/valid/out/not-sa02.xml
+--- sun.orig/valid/out/not-sa02.xml	Tue Aug  8 17:03:39 2000
++++ sun/valid/out/not-sa02.xml	Tue Aug  8 17:03:47 2000
+@@ -3,4 +3,4 @@
+ <!NOTATION foo PUBLIC '-//public id//foo' 'file:/dev/null'>
+ <!NOTATION nonce SYSTEM 'file:/dev/null'>
+ ]>
+-<attributes cdata="nothing happens to this one!" entities="unparsed-1 unparsed-2" entity="unparsed-1" id="number99" idref="number99" idrefs="number99 number99 number99" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" notation="nonce" token="a"></attributes>
+\ No newline at end of file
++<attributes cdata="nothing happens to this one!" entities="unparsed-1 unparsed-2" entity="unparsed-1" id="number99" idref="number99" idrefs="number99 number99 number99" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" notation="nonce" token="a"></attributes>
+\ No newline at end of file
+diff -Nru sun.orig/valid/sa02.xml sun/valid/sa02.xml
+--- sun.orig/valid/sa02.xml	Tue Mar 20 22:56:58 2001
++++ sun/valid/sa02.xml	Tue Mar 20 22:57:23 2001
+@@ -40,7 +40,8 @@
+ <attributes
+     notation =	" nonce "
+     nmtoken =	" this-gets-normalized "
+-    nmtokens =	" this&#x0d;&#x0a; also	 gets&#x20; normalized "
++    nmtokens =	" this
++ also	 gets&#x20; normalized "
+     id =	"	&internal; "
+     idref =	" &internal;
+     "
+diff -Nru sun.orig/valid/out/sa02.xml sun/valid/out/sa02.xml
+--- sun.orig/valid/out/sa02.xml  Fri Jul  9 04:42:38 1999
++++ sun/valid/out/sa02.xml  Tue Aug  8 17:11:02 2000
+@@ -3,4 +3,4 @@
+ <!NOTATION foo PUBLIC '-//public id//foo' 'file:/dev/null'>
+ <!NOTATION nonce SYSTEM 'file:/dev/null'>
+ ]>
+-<attributes cdata="nothing happens to this one!" entities="unparsed-1 unparsed-2" entity="unparsed-1" id="internal42" idref="internal42" idrefs="internal42 internal42 internal42" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" notation="nonce" token="a"></attributes>
+\ No newline at end of file
++<attributes cdata="nothing happens to this one!" entities="unparsed-1 unparsed-2" entity="unparsed-1" id="internal42" idref="internal42" idrefs="internal42 internal42 internal42" nmtoken="this-gets-normalized" nmtokens="this also gets normalized" notation="nonce" token="a"></attributes>
+\ No newline at end of file
+diff -Nru sun.orig/invalid/attr11.xml sun/invalid/attr11.xml
+--- sun.orig/invalid/attr11.xml	Fri Jul  9 04:42:40 1999
++++ sun/invalid/attr11.xml	Sat Mar 17 22:08:29 2001
+@@ -2,7 +2,7 @@
+ 
+ <!ELEMENT reference EMPTY>
+ <!ATTLIST reference
+-    value	ENTITY	"worldbook"
++    value	ENTITY	"2orldbook"
+     >
+     <!-- tests the "attribute default legal" vc -->
+ 
+diff -Nru sun.orig/invalid/attr12.xml sun/invalid/attr12.xml
+--- sun.orig/invalid/attr12.xml	Fri Jul  9 04:42:40 1999
++++ sun/invalid/attr12.xml	Sat Mar 17 22:08:36 2001
+@@ -2,7 +2,7 @@
+ 
+ <!ELEMENT references EMPTY>
+ <!ATTLIST references
+-    value	ENTITIES	"brittannica worldbook"
++    value	ENTITIES	"brittannica 2orldbook"
+     >
+     <!-- tests the "attribute default legal" vc -->
+ 
+diff -Nru sun.orig/invalid/not-sa02.xml sun/invalid/not-sa02.xml
+--- sun.orig/invalid/not-sa02.xml	Sun Mar 18 13:21:39 2001
++++ sun/invalid/not-sa02.xml	Sun Mar 18 13:22:11 2001
+@@ -18,7 +18,8 @@
+ <attributes
+     notation =	" nonce "
+     nmtoken =	" this-gets-normalized "
+-    nmtokens =	" this&#x0d;&#x0a; also	 gets&#x20; normalized "
++    nmtokens =	" this
++ also	 gets&#x20; normalized "
+     id =	"	&internal; "
+     idref =	" &internal;
+     "
+diff -Nru sun.orig/invalid/not-sa08.xml sun/invalid/not-sa08.xml
+--- sun.orig/invalid/not-sa08.xml	Fri Jul  9 04:42:40 1999
++++ sun/invalid/not-sa08.xml	Sun Mar 18 14:46:12 2001
+@@ -8,5 +8,6 @@
+ 
+ <attributes
+     token =	"b"
+-    nmtokens =	" this&#x0d;&#x0a; also	 gets&#x20; normalized "
++    nmtokens =	" this
++ also	 gets&#x20; normalized "
+     />

@@ -1,0 +1,5 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+<!ATTLIST doc a::b CDATA #IMPLIED>
+]>
+<doc a::b="furbie"/>

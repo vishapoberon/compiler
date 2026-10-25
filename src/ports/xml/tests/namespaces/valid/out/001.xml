@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/001.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <end-dtd>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>45</char-index>
+      <line>2</line>
+      <column>2</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>48</char-index>
+      <line>3</line>
+      <column>1</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <namespace-declaration/>
+  
+  <attributes-done>
+    <locator>
+      <char-index>61</char-index>
+      <line>3</line>
+      <column>14</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>62</char-index>
+      <line>3</line>
+      <column>15</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>64</char-index>
+      <line>4</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

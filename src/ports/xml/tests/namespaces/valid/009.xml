@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE ns:doc [
+<!ELEMENT ns:doc (ns:doc?)>
+]>
+<ns:doc xmlns:ns="http://localhost/umlaut-ä">
+</ns:doc>

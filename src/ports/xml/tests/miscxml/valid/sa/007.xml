@@ -1,0 +1,8 @@
+<!DOCTYPE doc [
+<!ENTITY example "<p>An ampersand (&#38;#38;) may be escaped
+numerically (&#38;#38;#38;) or with a general entity
+(&amp;amp;).</p>">
+<!ELEMENT doc (p)>
+<!ELEMENT p (#PCDATA)>
+]>
+<doc>&example;</doc>

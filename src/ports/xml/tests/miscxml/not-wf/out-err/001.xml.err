@@ -1,0 +1,3 @@
+In file not-wf/001.xml: 
+line=4, column=2
+95: While expanding entity `e': Expected name token

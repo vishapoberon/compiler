@@ -1,0 +1,6 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+<!ENTITY e1 "&quot;">
+<!ENTITY e2 "&e1;">
+]>
+<doc>&e2;</doc>

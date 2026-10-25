@@ -268,6 +268,11 @@ oocX11:
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/ports/oocX11/oocXutil.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/ports/oocX11/oocXYplane.Mod
 
+xml: ooc
+	@printf '\nMaking XML library for -O$(MODEL)\n'
+	@test "$(MODEL)" = 2 || { echo 'The XML port targets model 2.'; exit 1; }
+	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_XML); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/xml/$$name.Mod" || exit; done
+
 ulm:
 	@printf '\nMaking ulm library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_ULM); do \
@@ -304,7 +309,7 @@ ports:
 	  cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_LINUX_PORTS); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/$$name.Mod" || exit; done; \
 	else echo 'Skipping the Linux networking profile.'; fi
 
-O2library: runtime terminal cli v4 ooc ulm pow32 misc s3 ports
+O2library: runtime terminal cli v4 ooc xml ulm pow32 misc s3 ports
 
 OClibrary: runtime terminal
 
@@ -345,6 +350,7 @@ confidence:
 	cd src/test/confidence/ckeywords;       $(RUNTEST)
 	cd src/test/confidence/texts;           $(RUNTEST)
 	cd src/test/confidence/library;         $(RUNTEST)
+	@if [ "$(MODEL)" = 2 ]; then $(MAKE) -C src/ports/xml test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/xml-tests"; fi
 	$(MAKE) -C src/test/ports test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/port-tests"
 	@if [ "$(PLATFORM)" = unix ] && [ "$(MODEL)" = 2 ]; then \
 	  $(MAKE) -C src/test/ports/sts-q test-bundled VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/kbd-tests"; \

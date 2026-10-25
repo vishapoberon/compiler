@@ -1,0 +1,8 @@
+<!DOCTYPE doc [
+<!ATTLIST doc a1 CDATA #IMPLIED>
+<!ELEMENT doc (#PCDATA)>
+<!ENTITY e "&#xD;&#xA;">
+]>
+<doc a1="foo&e;bar"></doc>
+<!-- The character references in &e; are replaced with their values
+and are subsequently normalized to a single space -->

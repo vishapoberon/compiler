@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/005.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <end-dtd>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>45</char-index>
+      <line>2</line>
+      <column>2</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>48</char-index>
+      <line>3</line>
+      <column>1</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attributes-done>
+    <locator>
+      <char-index>51</char-index>
+      <line>3</line>
+      <column>4</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <characters>
+    <chars>foo</chars>
+    <element-whitespace>no</element-whitespace>
+    <locator>
+      <char-index>52</char-index>
+      <line>3</line>
+      <column>5</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-cdata>
+    <locator>
+      <char-index>55</char-index>
+      <line>3</line>
+      <column>8</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </start-cdata>
+  
+  <characters>
+    <chars>frobozz</chars>
+    <element-whitespace>no</element-whitespace>
+    <locator>
+      <char-index>64</char-index>
+      <line>3</line>
+      <column>17</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-cdata>
+    <locator>
+      <char-index>74</char-index>
+      <line>3</line>
+      <column>27</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </end-cdata>
+  
+  <characters>
+    <chars> bar </chars>
+    <element-whitespace>no</element-whitespace>
+    <locator>
+      <char-index>74</char-index>
+      <line>3</line>
+      <column>27</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <start-entity name='amp'>
+    <locator>
+      <char-index>79</char-index>
+      <line>3</line>
+      <column>32</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </start-entity>
+  
+  <characters>
+    <chars>&amp;</chars>
+    <element-whitespace>no</element-whitespace>
+    <locator>
+      <char-index>79</char-index>
+      <line>3</line>
+      <column>32</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-entity name='amp'>
+    <locator>
+      <char-index>84</char-index>
+      <line>3</line>
+      <column>37</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </end-entity>
+  
+  <characters>
+    <chars> yow!</chars>
+    <element-whitespace>no</element-whitespace>
+    <locator>
+      <char-index>84</char-index>
+      <line>3</line>
+      <column>37</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </characters>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>91</char-index>
+      <line>3</line>
+      <column>44</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>97</char-index>
+      <line>4</line>
+      <column>0</column>
+      <base-uri>valid/005.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

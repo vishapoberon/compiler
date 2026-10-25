@@ -1,0 +1,4 @@
+<!DOCTYPE foo::bar [
+<!ELEMENT foo::bar (#PCDATA)>
+]>
+<foo::bar/>

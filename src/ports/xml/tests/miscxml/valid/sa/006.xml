@@ -1,0 +1,6 @@
+<!DOCTYPE doc [
+<!ENTITY e "&#xD;&#xA;">
+<!ELEMENT doc (#PCDATA)>
+<!ATTLIST doc a CDATA #IMPLIED>
+]>
+<doc a="&e;">&e;</doc>

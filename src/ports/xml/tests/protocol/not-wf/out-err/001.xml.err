@@ -1,0 +1,3 @@
+In file not-wf/001.xml: 
+line=0, column=49
+49: String `--' not allowed in comment

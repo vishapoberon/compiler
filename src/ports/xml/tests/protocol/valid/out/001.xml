@@ -1,0 +1,187 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/001.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <processing-instruction>
+    <target>pi</target>
+    <content>before DTD</content>
+    <base-uri>valid/001.xml</base-uri>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </processing-instruction>
+  
+  <comment>
+    <content>before DTD</content>
+    <locator>
+      <char-index>19</char-index>
+      <line>1</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </comment>
+  
+  <start-dtd>
+    <locator>
+      <char-index>38</char-index>
+      <line>2</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <processing-instruction>
+    <target>pi</target>
+    <content>in internal DTD</content>
+    <base-uri>valid/001.xml</base-uri>
+    <locator>
+      <char-index>72</char-index>
+      <line>3</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </processing-instruction>
+  
+  <comment>
+    <content>in internal DTD</content>
+    <locator>
+      <char-index>96</char-index>
+      <line>4</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </comment>
+  
+  <processing-instruction>
+    <target>pi</target>
+    <content>in external DTD subset</content>
+    <base-uri>valid/001.ent</base-uri>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/001.ent</base-uri>
+    </locator>
+  </processing-instruction>
+  
+  <comment>
+    <content>in external DTD subset</content>
+    <locator>
+      <char-index>30</char-index>
+      <line>1</line>
+      <column>0</column>
+      <base-uri>valid/001.ent</base-uri>
+    </locator>
+  </comment>
+  
+  <end-dtd>
+    <entity>
+      <type>external DTD subset</type>
+      <system-identifier>001.ent</system-identifier>
+      <base-uri>valid/001.ent</base-uri>
+    </entity>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>122</char-index>
+      <line>5</line>
+      <column>2</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <processing-instruction>
+    <target>pi</target>
+    <content>after internal DTD</content>
+    <base-uri>valid/001.xml</base-uri>
+    <locator>
+      <char-index>124</char-index>
+      <line>6</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </processing-instruction>
+  
+  <comment>
+    <content>after internal DTD</content>
+    <locator>
+      <char-index>151</char-index>
+      <line>7</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </comment>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>179</char-index>
+      <line>8</line>
+      <column>1</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attributes-done>
+    <locator>
+      <char-index>182</char-index>
+      <line>8</line>
+      <column>4</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>185</char-index>
+      <line>8</line>
+      <column>7</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <processing-instruction>
+    <target>pi</target>
+    <content>after element</content>
+    <base-uri>valid/001.xml</base-uri>
+    <locator>
+      <char-index>191</char-index>
+      <line>9</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </processing-instruction>
+  
+  <comment>
+    <content>after element</content>
+    <locator>
+      <char-index>213</char-index>
+      <line>10</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </comment>
+  
+  <end-document>
+    <locator>
+      <char-index>235</char-index>
+      <line>11</line>
+      <column>0</column>
+      <base-uri>valid/001.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

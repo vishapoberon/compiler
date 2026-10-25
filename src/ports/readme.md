@@ -10,6 +10,7 @@ systems and projects, grouped by author or collection.
 | [`une/`](une/readme.md) | Carlos Une's Cairo, IPv4 and astronomy modules |
 | `tmartiro/` | Tigran Martirosyan's raylib binding |
 | `v4/`, `ooc/`, `oocX11/`, `ulm/`, `pow/`, `s3/` | Libraries from Ofront, oo2c, Ulm, POW! and ETH Oberon |
+| [`xml/`](xml/README.md) | Native Oberon XML parsing, DTD validation, namespace builders and writing |
 | [`picl/`](picl/readme.md) | Niklaus Wirth's PICL compiler |
 | [`coco/`](coco/readme.md) | Coco/R from Native Oberon and the version with A. V. Shiryaev's additions |
 
@@ -20,7 +21,7 @@ Ofront's `Args` and `Console`, along with terminal utilities, are in
 ## Building
 
 Run `make` at the repository root to build VOC and its libraries. The default
-model-2 library includes `v4`, `ooc`, `ulm`, `pow`, `s3`, `base64`, `bdStrings`,
+model-2 library includes `v4`, `ooc`, `xml`, `ulm`, `pow`, `s3`, `base64`, `bdStrings`,
 `strutils`, `lists`, `opts`, `toml` and `ssqJson`. Unix builds also include `Kbd`.
 The IP and astronomy modules in `une/` are built with their examples instead.
 
@@ -106,5 +107,4 @@ Some module names differ from upstream to avoid clashes. For example,
 the ETH interface. ETH's `BIT`, `DES` and `TwoComplement` are in `s3/`.
 `DES` uses the reversed-bit key convention required by VNC; it is obsolete
 cryptography and should not be used for new protocols.
-
 

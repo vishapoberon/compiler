@@ -1,0 +1,3 @@
+In file invalid/001.xml: 
+line=3, column=2
+80: Duplicate token `b' in enumerated attribute type `root/@affiliated'

@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parser-protocol>
+  <start-document>
+    <entity>
+      <type>document</type>
+      <base-uri>valid/003.xml</base-uri>
+    </entity>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-document>
+  
+  <start-dtd>
+    <locator>
+      <char-index>0</char-index>
+      <line>0</line>
+      <column>0</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-dtd>
+  
+  <entity>
+    <type>internal general</type>
+    <name>general1</name>
+    <content>internal</content>
+    <locator>
+      <char-index>43</char-index>
+      <line>1</line>
+      <column>9</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </entity>
+  
+  <entity>
+    <type>external general</type>
+    <name>general2</name>
+    <system-identifier>003.ent</system-identifier>
+    <public-identifier>public</public-identifier>
+    <base-uri>valid/003.ent</base-uri>
+    <locator>
+      <char-index>74</char-index>
+      <line>2</line>
+      <column>9</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </entity>
+  
+  <entity>
+    <type>external general unparsed</type>
+    <name>general3</name>
+    <system-identifier>003.ent</system-identifier>
+    <public-identifier>public</public-identifier>
+    <base-uri>valid/003.ent</base-uri>
+    <notation>furbie</notation>
+    <locator>
+      <char-index>120</char-index>
+      <line>3</line>
+      <column>9</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </entity>
+  
+  <entity>
+    <type>internal general</type>
+    <name>general4</name>
+    <content>internal</content>
+    <locator>
+      <char-index>9</char-index>
+      <line>0</line>
+      <column>9</column>
+      <base-uri>valid/003.ent</base-uri>
+    </locator>
+  </entity>
+  
+  <end-dtd>
+    <entity>
+      <type>external DTD subset</type>
+      <system-identifier>003.ent</system-identifier>
+      <base-uri>valid/003.ent</base-uri>
+    </entity>
+    <all-declarations-processed>yes</all-declarations-processed>
+    <locator>
+      <char-index>172</char-index>
+      <line>4</line>
+      <column>2</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-dtd>
+  
+  <start-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>175</char-index>
+      <line>5</line>
+      <column>1</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </start-element>
+  
+  <attributes-done>
+    <locator>
+      <char-index>178</char-index>
+      <line>5</line>
+      <column>4</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </attributes-done>
+  
+  <end-element>
+    <local-name>doc</local-name>
+    <locator>
+      <char-index>181</char-index>
+      <line>5</line>
+      <column>7</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-element>
+  
+  <end-document>
+    <locator>
+      <char-index>187</char-index>
+      <line>6</line>
+      <column>0</column>
+      <base-uri>valid/003.xml</base-uri>
+    </locator>
+  </end-document>
+</parser-protocol>

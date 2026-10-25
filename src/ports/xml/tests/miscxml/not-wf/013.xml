@@ -1,0 +1,7 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+<!ENTITY lt "<">
+<!ENTITY lt "&#60;">
+<!ENTITY amp "&#38;">
+]>
+<doc></doc>

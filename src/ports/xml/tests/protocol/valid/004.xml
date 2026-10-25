@@ -1,0 +1,13 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (a)*>
+<!ELEMENT a EMPTY>
+<!ATTLIST a v1 CDATA #REQUIRED>
+<!ATTLIST a v2 NMTOKENS #IMPLIED>
+<!ATTLIST a v3 CDATA " foo  bar   ">
+<!ATTLIST a v4 CDATA #FIXED "furbie">
+]>
+<doc>
+  <a v1="" />
+  <a v1="1" v2=" a  b   "/>
+  <a v1="2" v2=" a  b   " v3="no-default"/>
+</doc>

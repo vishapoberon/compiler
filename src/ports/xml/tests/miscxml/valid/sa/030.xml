@@ -1,0 +1,6 @@
+<!DOCTYPE doc [
+<!ELEMENT doc (#PCDATA)>
+<!ATTLIST doc a CDATA #REQUIRED>
+<!ENTITY e "&quot;yes&quot;">
+]>
+<doc a="&e;"></doc>

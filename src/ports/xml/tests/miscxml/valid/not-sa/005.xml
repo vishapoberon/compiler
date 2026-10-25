@@ -1,0 +1,5 @@
+<!DOCTYPE doc [
+<!ENTITY % aml SYSTEM "005-1.ent">
+%aml;
+]>
+<doc/>

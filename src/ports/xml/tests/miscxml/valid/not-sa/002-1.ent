@@ -1,0 +1,4 @@
+<!ENTITY % pub    "&#xc9;ditions Gallimard" >
+<!ENTITY   rights "All rights reserved" >
+<!ENTITY   book   "La Peste: Albert Camus,
+ &#xA9; 1947 %pub;. &rights;" >

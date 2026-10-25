@@ -1,0 +1,7 @@
+In file not-wf/013.xml: 
+line=2, column=9
+52: Invalid redefinition of a predefined internal entity
+line=3, column=9
+70: Invalid redefinition of a predefined internal entity
+line=4, column=9
+92: Invalid redefinition of a predefined internal entity

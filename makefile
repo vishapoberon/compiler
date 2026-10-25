@@ -254,6 +254,9 @@ v4: configuration
 ooc: configuration
 	@make -f src/tools/make/oberon.mk -s ooc MODEL=2
 
+xml: configuration
+	@make -f src/tools/make/oberon.mk -s xml MODEL=2
+
 ulm: configuration
 	@make -f src/tools/make/oberon.mk -s ulm MODEL=2
 

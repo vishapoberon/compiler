@@ -1,0 +1,5 @@
+In file invalid/003.xml: 
+line=9, column=16
+185: Expected tags: c
+line=10, column=12
+205: Expected tags: b
