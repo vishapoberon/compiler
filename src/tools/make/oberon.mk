@@ -172,6 +172,10 @@ makeinstalldir:
 	@mkdir -p "$(ROOTDIR)/install/lib"
 	@cp $(BUILDDIR)/2/lib$(ONAME)* "$(ROOTDIR)/install/lib/"
 	@cp $(BUILDDIR)/C/lib$(ONAME)* "$(ROOTDIR)/install/lib/"
+	@if [ "$(PLATFORM)" = unix ]; then \
+	  $(MAKE) -C src/tools/none VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/editor" && \
+	  cp "$(BUILDDIR)/editor/none" "$(ROOTDIR)/install/bin/none"; \
+	fi
 
 
 # instructions: Advice on completion of local build
@@ -192,6 +196,7 @@ FORCE:
 #              host dynamic linker configuration.
 uninstall:
 	@rm -f "$(DESTDIR)$(BINDIR)/$(OBECOMP)" "$(DESTDIR)$(BINDIR)/showdef$(BINEXT)"
+	@if [ "$(PLATFORM)" = unix ]; then rm -f "$(DESTDIR)$(BINDIR)/none"; fi
 	@rm -rf "$(DESTDIR)$(INSTALLDIR)/2" "$(DESTDIR)$(INSTALLDIR)/C"
 	@rm -f "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-O2.a" "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-O2$(DYNEXT)"
 	@rm -f "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-OC.a" "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-OC$(DYNEXT)"
@@ -204,6 +209,7 @@ install:
 	@mkdir -p "$(DESTDIR)$(BINDIR)"
 	@cp "$(ROOTDIR)/install/bin/$(OBECOMP)" "$(DESTDIR)$(BINDIR)/$(OBECOMP)"
 	@-cp "$(ROOTDIR)/install/bin/showdef$(BINEXT)" "$(DESTDIR)$(BINDIR)"
+	@if [ "$(PLATFORM)" = unix ]; then cp "$(ROOTDIR)/install/bin/none" "$(DESTDIR)$(BINDIR)/none"; fi
 
 	@mkdir -p "$(DESTDIR)$(INSTALLDIR)/2" "$(DESTDIR)$(INSTALLDIR)/C"
 	@cp -rf "$(ROOTDIR)/install/2/." "$(DESTDIR)$(INSTALLDIR)/2/"
@@ -360,5 +366,6 @@ confidence:
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/platform; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/terminal; $(RUNTEST); fi
+	@if [ "$(PLATFORM)" = unix ]; then python3 src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
 	if [ "$(PLATFORM)" = "unix" ] && [ "$$(uname -s)" = "Linux" ] ; then cd src/test/confidence/platformwrite; $(RUNTEST); fi
 	@printf '\n\n--- Confidence tests passed ---\n\n'

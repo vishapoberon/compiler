@@ -193,7 +193,7 @@ modules, but are not commands in the shell.
 The Oberon-2 modular profile includes lowercase command modules:
 
 ```text
-> xxs.Open Commands.Mod
+> none.Open Commands.Mod
 > compiler.Compile -sl Commands.Mod
 > browser.ShowDef Commands
 > Commands.Run
@@ -217,7 +217,7 @@ Each module's reference count includes one persistent runtime pin, applied
 before its initialization body executes, plus references from importing modules.
 Explicitly retained references are shown separately.
 
-`xxs.Open` and `xxs.Fit` edit a file in the terminal. Ctrl-O saves, Ctrl-X exits,
+`none.Open` edits a file in the terminal. Ctrl-O saves, Ctrl-X exits,
 Ctrl-W searches, and Ctrl-G shows help. Shift with movement keys selects text;
 Ctrl-B selects a rectangular block. Ctrl-C copies, Ctrl-K cuts and Ctrl-V or
 Ctrl-U pastes. The editor supports bracketed paste and restores the terminal
@@ -227,6 +227,22 @@ switches between plain and Oberon text storage.
 These commands read parameters with `Texts.Scanner` from `Oberon.Par.text`, not
 from the process's startup arguments. Use double quotes for paths containing
 spaces or punctuation. The scanner accepts arguments of at most 62 characters.
+
+The same editor also builds as a standalone executable against the conventional
+VOC library, using an installed compiler:
+
+```sh
+make none
+build/none/none 'Commands.Mod'
+make none-test
+```
+
+`make -C src/tools/none` builds it directly. Set `VOC` to select the compiler
+and `BUILD` to select the output directory. The standalone command takes one
+file name directly from its command-line arguments; shell quoting preserves
+spaces. File names remain subject to the `Files` module's resolved-path limits.
+`none --help` shows usage. A full Unix build includes
+`none` in `install/bin/`, and `make install` installs it alongside `voc`.
 
 ### Stopping commands and cleaning up modules
 
@@ -280,7 +296,7 @@ resource updates, pair `Platform.CommandCritical(TRUE)` and
 This facility is single-threaded and does not recover from `HALT`, assertions,
 or faults. Commands must not replace the host's SIGINT handler.
 
-`xxs` keeps Ctrl-C for copying text. An external SIGINT stops the editor and runs
+`none` keeps Ctrl-C for copying text. In `hresh`, an external SIGINT stops the editor and runs
 its terminal-restoration cleanup. Ordinary editor exit restores the terminal too.
 
 ### Checked unloading and rebuilding
@@ -320,7 +336,7 @@ After a successful free, edit and rebuild normally:
 
 ```text
 > system.Free Commands
-> xxs.Open Commands.Mod
+> none.Open Commands.Mod
 > compiler.Compile -sl Commands.Mod
 > system.ShowCommands Commands
 > Commands.NewCommand

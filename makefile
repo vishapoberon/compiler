@@ -96,6 +96,8 @@ usage:
 	@echo "  make clean         - Clean out the build directory"
 	@echo "  make compiler      - Build the compiler but not the library"
 	@echo "  make browsercmd    - Build the symbol browser (showdef)"
+	@echo "  make none          - Build the standalone terminal editor"
+	@echo "  make none-test     - Test the standalone terminal editor"
 	@echo "  make library       - Build all library files and make library"
 	@echo "  make O2library     - Build all library files with Oberon-2 type sizes"
 	@echo "  make OClibrary     - Build all library files with Component Pascal type sizes"
@@ -117,6 +119,14 @@ usage:
 .PHONY: tags
 tags: 
 	ctags -R --options=oberon.ctags --extras=+q
+
+# Standalone terminal editor using the selected installed compiler.
+.PHONY: none none-test
+none:
+	$(MAKE) -C src/tools/none all
+
+none-test:
+	$(MAKE) -C src/tools/none test
 
 # Optional ELF runtime and command shell; never replaces the installed compiler.
 .PHONY: hresh hresh-test hresh-demo modular-runtime modular-library modular-library-bindings modular-library-test modular-library-bindings-test

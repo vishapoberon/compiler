@@ -188,6 +188,11 @@ to write a command module, build an application, and change its implementation
 without rebuilding the executable. [**Shared modules and hresh**](/doc/SharedModules.md)
 describes the compiler options, library organisation and loading rules.
 
+The terminal editor opens files with `none.Open file` in `hresh` or `none file`
+as a standalone program. A full Unix build includes `install/bin/none`.
+With an installed compiler, `make none` builds just the editor in
+`build/none/none`; `make none-test` checks editing and terminal restoration.
+
 `make modular-library` builds shared-module versions of the bundled libraries.
 For X11, Cairo and raylib, install the [development packages](/src/ports/readme.md#graphics-bindings)
 and run `make modular-library-bindings`. The

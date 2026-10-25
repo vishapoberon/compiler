@@ -8,6 +8,7 @@ MODEL ?= 2
 BUILD ?= $(ROOT)/build/hresh
 BUILD := $(abspath $(BUILD))
 TOOLS := $(ROOT)/src/tools/hresh
+EDITOR := $(ROOT)/src/tools/none
 TESTS := $(ROOT)/src/test/hresh
 SUPPORT := $(ROOT)/src/runtime
 TERMINAL := $(ROOT)/src/library/terminal
@@ -66,7 +67,7 @@ BINDING_SOURCES = $(if $(filter 1,$(WITH_X11)),$(addprefix $(ROOT)/src/ports/ooc
  $(if $(filter 1,$(WITH_RAYLIB)),$(addprefix $(ROOT)/src/ports/tmartiro/raylib/,$(addsuffix .Mod,$(MODULAR_RAYLIB))))
 
 .PHONY: all compiler modules tools archives libraries bindings test test-tools test-commands test-unload test-hosted-unload test-library test-bindings test-archives demo install-modular install-modular-bindings FORCE
-all: $(BUILD)/hresh
+all: $(BUILD)/hresh $(BUILD)/none
 ifeq ($(MODEL),2)
 all: tools archives
 tools: $(MODULES)/tools.stamp
@@ -168,11 +169,12 @@ $(MODULES)/modules.stamp: $(MODULES)/libvoc-core-O$(MODEL).so $(wildcard $(ROOT)
 
 # In-process tools share the shell's core and library instances. Loading the
 # compiler or browser never invokes their conventional command-line startup.
-$(MODULES)/tools.stamp: $(MODULES)/modules.stamp $(wildcard $(ROOT)/src/compiler/*.Mod) $(ROOT)/src/tools/browser/BrowserCmd.Mod $(TOOLS)/compiler.Mod $(TOOLS)/browser.Mod $(TOOLS)/xxs.Mod $(TOOLS)/system.Mod
+$(MODULES)/tools.stamp: $(MODULES)/modules.stamp $(wildcard $(ROOT)/src/compiler/*.Mod) $(ROOT)/src/tools/browser/BrowserCmd.Mod $(TOOLS)/compiler.Mod $(TOOLS)/browser.Mod $(EDITOR)/none.Mod $(TOOLS)/system.Mod
 	cd "$(MODULES)" && $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(COMPILER)/Configuration.Mod"
 	cd "$(MODULES)" && for name in OPM OPS OPT OPC OPV OPB OPP extTools Compiler; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/compiler/$$name.Mod" || exit; done
 	cd "$(MODULES)" && $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/tools/browser/BrowserCmd.Mod"
-	cd "$(MODULES)" && for name in compiler browser xxs system; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/$$name.Mod" || exit; done
+	cd "$(MODULES)" && for name in compiler browser system; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/$$name.Mod" || exit; done
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(EDITOR)/none.Mod"
 	touch "$@"
 
 FORCE:
@@ -217,7 +219,7 @@ $(MODULES)/libraries.stamp: $(MODULES)/modules.stamp $(MODULES)/tools.stamp $(MO
 	cd "$(MODULES)" && for name in $(MODULAR_UNIX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done
 	if [ "$(shell uname -s)" = Linux ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_BASE_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
 	if [ "$(WITH_NETWORK)" = 1 ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
-	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser xxs system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) C $(if $(filter 2,$(MODEL)),$(MODULAR_XML)) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
+	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser none system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) C $(if $(filter 2,$(MODEL)),$(MODULAR_XML)) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
 	touch "$@"
 
 # This target alone needs the development packages for extra native APIs.
@@ -241,6 +243,9 @@ $(MODULES)/bindings.stamp: $(MODULES)/libraries.stamp $(MODULES)/bindings.config
 
 $(BUILD)/hresh: $(TOOLS)/hresh.Mod $(MODULES)/modules.stamp
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TOOLS)/hresh.Mod"
+
+$(BUILD)/none: $(EDITOR)/none.Mod $(MODULES)/modules.stamp
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$<"
 
 test: all test-commands test-unload
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestModulePaths.Mod"
@@ -346,6 +351,7 @@ test-archives: archives $(BUILD)/hresh
 	python3 "$(TESTS)/test-archives.py" "$(BUILD)/hresh" "$(MODULES)" "$(BUILD)"
 
 test-tools: all test-hosted-unload
+	python3 "$(EDITOR)/test-editor.py" "$(BUILD)/none" --hresh "$(BUILD)/hresh" --modules "$(MODULES)" --work "$(BUILD)/editor-tests"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestHostedTools.Mod"
 	cd "$(BUILD)" && $(ENV) ./TestHostedTools
 	cd "$(MODULES)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFSl "$(TESTS)/TestTerminalNative.Mod"

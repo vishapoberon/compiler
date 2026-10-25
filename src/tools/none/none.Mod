@@ -1,7 +1,7 @@
-MODULE xxs;  (** a small nano-like editor for the console, the size that fits every terminal *)
+MODULE none;  (** a small nano-like editor for Oberon texts and plain files *)
 
-(* xxs.Open file   edit a file, a new one when it does not exist
-   xxs.Fit file    the same
+(* none.Open file   edit a file, a new one when it does not exist
+   none file        standalone invocation
 
    Plain files stay plain, Oberon texts keep their fonts and colours; in the Write Out
    prompt (^O), ^T switches between storing as Oberon text and as plain text.
@@ -15,7 +15,7 @@ MODULE xxs;  (** a small nano-like editor for the console, the size that fits ev
    they act on every line of it (a block of width 0 types into all its lines: indenting). Copies
    go to the terminal's clipboard too (OSC 52); a paste from the terminal is taken as it is. *)
 
-IMPORT SYSTEM, Platform, Heap, Files, Texts, termios, Oberon, Out;
+IMPORT SYSTEM, Platform, Heap, Files, Texts, termios, Oberon, Out, Modules;
 
 CONST
   ESC = 1BX; CR = 0DX; LF = 0AX; TAB = 09X;
@@ -46,6 +46,8 @@ VAR
   W: Texts.Writer;
 
 (* ----- terminal ----- *)
+
+PROCEDURE -Standalone(): BOOLEAN 'VOC_MAIN_PROGRAM';
 
 PROCEDURE Flush;
 VAR error: Platform.ErrorCode; offset, written: LONGINT;
@@ -647,7 +649,7 @@ VAR i, p, ln, sb, se, first, last, l, r, hb, he, ucol, e: LONGINT; eolSel: BOOLE
 BEGIN
   GetSize; Follow;
   CSI("?25l"); Goto(1, 1);
-  Attr(7); Str("  xxs  "); Str(name);
+  Attr(7); Str("  none  "); Str(name);
   IF plain THEN Str("  [plain text]") ELSE Str("  [Oberon text]") END;
   IF modified THEN Str("  Modified") END;
   CSI("K"); Attr(0);
@@ -761,7 +763,7 @@ PROCEDURE ShowHelp;
 VAR k: LONGINT;
 BEGIN
   Goto(1, 1); CSI("2J"); Goto(1, 1);
-  Str("xxs - a nano-like editor for Oberon texts and plain files"); Ch(CR); Ch(LF); Ch(CR); Ch(LF);
+  Str("none - a nano-like editor for Oberon texts and plain files"); Ch(CR); Ch(LF); Ch(CR); Ch(LF);
   Str("^O  Write Out: store the file; in the prompt ^T stores as plain or Oberon text"); Ch(CR); Ch(LF);
   Str("^X  Exit, asking to store changes"); Ch(CR); Ch(LF);
   Str("Shift+arrows, Home, End, PgUp, PgDn  select;  ^A  select all"); Ch(CR); Ch(LF);
@@ -922,10 +924,11 @@ BEGIN
   p := 0
 END Location;
 
-PROCEDURE Edit(VAR fname: ARRAY OF CHAR);
+PROCEDURE Edit(VAR fname: ARRAY OF CHAR): BOOLEAN;
 VAR f: Files.File; R: Files.Rider; c: CHAR; k: LONGINT; input: Texts.Writer;
 BEGIN
-  IF raw THEN Out.String("xxs is already editing"); Out.Ln; RETURN END;
+  IF raw THEN Out.String("none is already editing"); Out.Ln; RETURN FALSE END;
+  IF ~Raw() THEN Out.String("none: an interactive terminal is required"); Out.Ln; RETURN FALSE END;
   COPY(fname, name); NEW(T);
   f := Files.Old(name);
   IF f # NIL THEN
@@ -945,7 +948,6 @@ BEGIN
   cur := 0; top := 0; hcol := 0; goalCol := -1; modified := FALSE; lastCut := FALSE; clip := NIL; clipBlock := FALSE;
   selOn := FALSE; block := FALSE; marking := FALSE; mods := 0;
   Texts.OpenWriter(W);
-  IF ~Raw() THEN Out.String("xxs.Open: an interactive terminal is required"); Out.Ln; RETURN END;
   running := TRUE;
   WHILE running DO
     Draw;
@@ -954,27 +956,38 @@ BEGIN
     Key(k)
   END;
   Restore;
-  T := NIL; clip := NIL; blockText := NIL
+  T := NIL; clip := NIL; blockText := NIL;
+  RETURN TRUE
 END Edit;
 
-(** xxs.Open file -- edit file, a new one when it does not exist *)
+(** none.Open file -- edit file, a new one when it does not exist *)
 PROCEDURE Open*;
-VAR A: Texts.Scanner; fname: ARRAY 256 OF CHAR;
+VAR A: Texts.Scanner; fname: ARRAY 256 OF CHAR; opened: BOOLEAN;
 BEGIN
   Texts.OpenScanner(A, Oberon.Par.text, Oberon.Par.pos); Texts.Scan(A);
   IF ((A.class = Texts.Name) OR (A.class = Texts.String)) &
       (A.s # "") & (A.len < LEN(A.s) - 1) THEN
-    COPY(A.s, fname); Edit(fname)
+    COPY(A.s, fname); opened := Edit(fname)
   ELSE
-    Out.String("usage: xxs.Open file"); Out.Ln
+    Out.String("usage: none.Open file"); Out.Ln
   END
 END Open;
 
-(** xxs.Fit file -- the same, the size that fits *)
-PROCEDURE Fit*;
-BEGIN Open
-END Fit;
+PROCEDURE Main;
+VAR fname: ARRAY 257 OF CHAR; length: LONGINT;
+BEGIN
+  IF Modules.ArgCount # 2 THEN Out.String("usage: none file"); Out.Ln; Platform.Exit(2) END;
+  Modules.GetArg(1, fname);
+  IF fname = "--help" THEN Out.String("usage: none file"); Out.Ln; RETURN END;
+  length := 0;
+  WHILE (length < LEN(fname) - 1) & (fname[length] # 0X) DO INC(length) END;
+  IF (length = 0) OR (length >= LEN(name)) THEN
+    Out.String("none: file name must contain 1 to 255 bytes"); Out.Ln; Platform.Exit(2)
+  END;
+  IF ~Edit(fname) THEN Platform.Exit(2) END
+END Main;
 
 BEGIN
-  raw := FALSE; opos := 0; search := ""
-END xxs.
+  raw := FALSE; opos := 0; search := "";
+  IF Standalone() THEN Main END
+END none.
