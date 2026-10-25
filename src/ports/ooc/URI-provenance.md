@@ -7,6 +7,12 @@ in a baseline commit before the VOC adaptations. The original CVS branches
 and release tags remain preserved in that repository. Copyright and LGPL
 notices are retained in each source file.
 
+The unchanged `tests/uri/` text fixtures are preserved under `tests/uri/` in
+this package. `src/test/confidence/library/TestOocURIFixtures.mod` adapts the
+original `src/TestURI.Mod` driver to VOC's arguments and memory channels.
+`tests/check-uri.py` checks every fixture and records the two historical
+expectation corrections described in the package README.
+
 | VOC source file | Original path under `src/` |
 | --- | --- |
 | `URI.Mod` | `URI.Mod` |

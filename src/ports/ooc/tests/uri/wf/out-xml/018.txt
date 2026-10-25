@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<test-parse-uri>
+<uri-reference>
+<hierarchical-uri>
+<scheme>http</scheme>
+<authority-server-based>
+<host>a</host>
+<port>80</port>
+</authority-server-based>
+<absolute-path>
+<segment>
+<value>b</value>
+</segment>
+<segment>
+<value>c</value>
+</segment>
+<segment>
+<value>g</value>
+</segment>
+</absolute-path>
+<query-unparsed>y</query-unparsed>
+</hierarchical-uri>
+</uri-reference>
+<uri-string>http://a/b/c/g?y</uri-string>
+</test-parse-uri>

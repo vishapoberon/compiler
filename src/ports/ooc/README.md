@@ -70,6 +70,15 @@ malformed input, cloning, 40,000-byte URIs, and file/memory channels.
 Character-class checks use explicit ASCII ranges so high-bit UTF-8 bytes
 remain percent-escaped under VOC's `CAP` semantics.
 
+The isolated `test` target also replays all 77 preserved ooc-libxml URI
+fixtures: 50 parsing/resolution cases, nine malformed references and 18
+absolute-to-relative conversions. Positive cases compare component traces and
+serialized references byte-for-byte. The runner records two historical output
+corrections: query-only references preserve the base path, and escaped dot
+segments retain their escapes when serialized. Its test-only HTTP prototype
+exercises server-based authorities and queries using the shared component
+parsers. These fixture checks perform no network access.
+
 ## Source provenance
 
 The Unicode-safe support implementations and their regression tests were

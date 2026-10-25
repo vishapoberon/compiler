@@ -1,0 +1,2 @@
+TEST	http://foo.bar/a
+BASE	http://foo.bar/a

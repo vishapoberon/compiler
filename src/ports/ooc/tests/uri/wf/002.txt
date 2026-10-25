@@ -1,0 +1,2 @@
+TEST	foo:/abc
+BASE	bar://auth

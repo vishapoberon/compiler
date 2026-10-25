@@ -23,8 +23,11 @@ test: all
 	cd "$(BUILD)" && for name in $(TESTS); do \
 		$(VOC) -O$(MODEL) -s -m "$(ROOT)/src/test/confidence/library/$$name.mod" && \
 		"./$$name" || exit; \
-	done
+		done
+	cd "$(BUILD)" && $(VOC) -O$(MODEL) -s -F -m "$(ROOT)/src/test/confidence/library/TestOocURIFixtures.mod"
+	python3 "$(SOURCE)/tests/check-uri.py" "$(BUILD)/TestOocURIFixtures" --work "$(BUILD)/uri-fixtures"
 
 clean:
+	rm -f "$(BUILD)/TestOocURIFixtures" $(foreach ext,c h o sym,"$(BUILD)/TestOocURIFixtures.$(ext)")
 	rm -f $(foreach name,$(MODULES) $(TESTS),$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) \
 		$(foreach name,$(TESTS),"$(BUILD)/$(name)")

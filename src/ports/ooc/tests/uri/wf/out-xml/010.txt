@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<test-parse-uri>
+<uri-reference>
+<current-document/>
+</uri-reference>
+<uri-string></uri-string>
+</test-parse-uri>

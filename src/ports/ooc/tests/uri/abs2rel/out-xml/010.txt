@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<test-absolute-to-relative>
+<hierarchical-uri>
+<scheme>http</scheme>
+<authority-server-based>
+<host>foo.bar</host>
+<port>80</port>
+</authority-server-based>
+<absolute-path>
+<segment>
+<value>a</value>
+</segment>
+<segment>
+<value>b</value>
+</segment>
+</absolute-path>
+</hierarchical-uri>
+<uri-string>http://foo.bar/a/b</uri-string>
+</test-absolute-to-relative>

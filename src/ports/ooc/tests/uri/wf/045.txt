@@ -1,0 +1,2 @@
+TEST	#s
+BASE	http://a/b/c/d;p?q

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<test-parse-uri>
+<uri-reference>
+<hierarchical-uri>
+<scheme>foo</scheme>
+<absolute-path>
+<segment>
+<value>abc</value>
+</segment>
+</absolute-path>
+</hierarchical-uri>
+</uri-reference>
+<uri-string>foo:/abc</uri-string>
+</test-parse-uri>

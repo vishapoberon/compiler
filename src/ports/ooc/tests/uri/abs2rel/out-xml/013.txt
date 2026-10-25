@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<test-absolute-to-relative>
+<hierarchical-uri>
+<relative-path>
+<segment>
+<value>..</value>
+</segment>
+<segment>
+<value>..</value>
+</segment>
+<segment>
+<value></value>
+</segment>
+</relative-path>
+</hierarchical-uri>
+<uri-string>../../</uri-string>
+</test-absolute-to-relative>

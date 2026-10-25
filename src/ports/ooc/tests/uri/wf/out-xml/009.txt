@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<test-parse-uri>
+<uri-reference>
+<opaque-uri>
+<scheme>foobar</scheme>
+<opaque-part>a b</opaque-part>
+</opaque-uri>
+</uri-reference>
+<uri-string>foobar:a%20b</uri-string>
+</test-parse-uri>

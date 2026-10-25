@@ -1,0 +1,1 @@
+TEST	http://user@host.com:8080/furbie;test?foo=bar
