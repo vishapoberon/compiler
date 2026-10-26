@@ -28,12 +28,18 @@ budgets, matched publication results, retrieval limits and trusted-publisher
 notification parsing. Payloadless items, retractions, purge/deletion events,
 duplicate IDs and shared payload-byte budgets are covered.
 
-Twenty-four Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
+Presence tests add 167 checks for explicit subscription construction, multilingual
+status parsing, all 110 transport split sizes, recipient checks, per-resource
+selection, watch/resource/text limits, reentrant callbacks and disconnect cleanup.
+
+Twenty-six Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
 credentials, messages and domains, certificate and protocol-version rejection,
 binding failures, stalled reads/handshakes, ping/version/discovery dispatch,
 roster retrieval/edits/pushes and PubSub publish/retrieve/retract/notification
-round trips. Roster/PEP fixtures use synthetic accounts and local peers;
-live interoperability remains pending.
+round trips, plus availability and all four subscription stanzas. Fixtures use
+synthetic accounts and local peers. Live-server coverage includes verified
+STARTTLS publication and exact-item retrieval with matching Atom text; live
+roster/presence testing and broader server interoperability remain pending.
 The shared IDNA suite has 38
 conversion and rejection cases. The TLS regression target also runs the 36
 existing TLS programs, HTTP/TLS loopback tests and 40 Gemini checks.
@@ -46,7 +52,7 @@ also pass against a modular VOC image.
 
 Shared-module tests cover XMPP and publisher interfaces and bundled library
 ABI/loading. The publisher's 21 payload/configuration checks, 22 file/XML
-cases and 19 TLS loopback cases pass both conventionally and with shared modules.
+cases and 24 TLS loopback cases pass both conventionally and with shared modules.
 
 Live-server coverage also includes a UTF-8 (Armenian language) account and domain,
 verified STARTTLS, PLAIN authentication, resource binding, an Armenian/supplementary

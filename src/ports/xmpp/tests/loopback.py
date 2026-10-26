@@ -236,6 +236,28 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                     assert request.get("type") == "set" and retract.get("node") == node and retract.get("notify") == "1"
                     assert retract.find(f"{{{pubsub}}}item").get("id") == item_id
                     send(connection, f'<iq type="result" id="{request.get("id")}"/>')
+                if mode == "presence":
+                    friend = "friend@ծոց.հայ"
+                    initial = peer.event()
+                    assert initial.tag == f"{{{CLIENT}}}presence" and initial.get("type") is None and initial.get("to") is None
+                    assert initial.find(f"{{{CLIENT}}}show").text == "chat"
+                    assert initial.find(f"{{{CLIENT}}}status").text == "Բարեւ 😀"
+                    assert initial.find(f"{{{CLIENT}}}priority").text == "5"
+                    request = peer.event()
+                    assert request.tag == f"{{{CLIENT}}}presence" and request.get("type") == "subscribe" and request.get("to") == friend
+                    send(connection, f'<presence type="subscribed" from="{friend}"/>', 3)
+                    send(connection, f'<presence type="subscribe" from="{friend}"><status>request</status></presence>', 7)
+                    send(connection, f'<presence from="{friend}/a"><priority>10</priority></presence>', 5)
+                    send(connection, f'<presence from="{friend}/b"><show>away</show><priority>5</priority></presence>', 3)
+                    for kind in ("subscribed", "unsubscribe"):
+                        request = peer.event()
+                        assert request.tag == f"{{{CLIENT}}}presence" and request.get("type") == kind and request.get("to") == friend
+                    send(connection, f'<presence type="unsubscribed" from="{friend}"/>')
+                    send(connection, f'<presence type="unavailable" from="{friend}"/>', 5)
+                    request = peer.event()
+                    assert request.get("type") == "unsubscribed" and request.get("to") == friend
+                    request = peer.event()
+                    assert request.get("type") == "unavailable" and request.get("to") is None
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
@@ -284,3 +306,5 @@ if __name__ == "__main__":
     case("extensions", direct=True, certificate="idn", domain="ծոց.հայ")
     case("roster-pep")
     case("roster-pep", direct=True, certificate="idn", domain="ծոց.հայ")
+    case("presence")
+    case("presence", direct=True, certificate="idn", domain="ծոց.հայ")

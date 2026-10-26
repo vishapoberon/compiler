@@ -11,6 +11,7 @@ import ssl
 import subprocess
 import sys
 import uuid
+import xml.etree.ElementTree as ET
 
 build = Path(sys.argv[1]).resolve()
 shared = runpy.run_path(sys.argv[2], run_name="xmpp_test_peer")
@@ -127,6 +128,24 @@ def case(mode, direct=False, domain="localhost", certificate="server"):
                 send(connection, result + content + '</iq>', 3)
                 if mode in {"wrong-item", "wrong-node", "wrong-namespace", "malformed"}:
                     return
+                if mode.startswith("verify"):
+                    request = peer.event()
+                    assert request.get("type") == "get" and request.get("to") == bare
+                    items = request.find(f"{{{PUBSUB}}}pubsub/{{{PUBSUB}}}items")
+                    assert items.get("node") == NODE and items.get("max_items") == "1"
+                    assert items.find(f"{{{PUBSUB}}}item").get("id") == item_id
+                    returned = "wrong" if mode == "verify-id" else item_id
+                    if mode == "verify-text":
+                        entry.find(f"{{{ATOM}}}content").text = "wrong"
+                    if mode == "verify-error":
+                        send(connection, f'<iq type="error" id="{request.get("id")}"><error type="cancel">'
+                             '<item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/></error></iq>')
+                        return
+                    send(connection, f'<iq type="result" id="{request.get("id")}"><pubsub xmlns="{PUBSUB}">'
+                         f'<items node="{NODE}"><item id="{returned}">{ET.tostring(entry, encoding="unicode")}'
+                         '</item></items></pubsub></iq>', 5)
+                    if mode != "verify":
+                        return
                 assert peer.event().tag == "{http://etherx.jabber.org/streams}stream"
                 send(connection, '</s:stream>')
                 try:
@@ -144,8 +163,9 @@ def case(mode, direct=False, domain="localhost", certificate="server"):
             "XMPP_ALLOW_PLAIN": "yes", "XMPP_TLS": "direct" if direct else "starttls", "XMPP_TIMEOUT_MS": "2000",
         }
         Path(config["XMPP_CONFIG"]).write_text("# local synthetic test\n")
-        result = subprocess.run([build / "XmppPublish"], cwd=build, env=env | config, capture_output=True, timeout=10)
-        success = mode in {"result", "empty", "spoof", "omitted-from"}
+        command = [build / "XmppPublishProbe", str(uuid.uuid4())] if mode.startswith("verify") else [build / "XmppPublish"]
+        result = subprocess.run(command, cwd=build, env=env | config, capture_output=True, timeout=10)
+        success = mode in {"result", "empty", "spoof", "omitted-from", "verify"}
         assert (result.returncode == 0) == success, (mode, result.stdout, result.stderr)
         assert config["XMPP_PASSWORD"].encode() not in result.stdout + result.stderr
         server.result(timeout=10)
@@ -160,3 +180,6 @@ case("result", domain="ծոց.հայ", certificate="idn")
 case("result", direct=True, domain="XN--CBBU1A.XN--Y9A3AQ", certificate="idn")
 case("wrong-host", certificate="wrong")
 case("untrusted", direct=True, certificate="untrusted")
+for mode in ("verify", "verify-text", "verify-id", "verify-error"):
+    case(mode)
+case("verify", direct=True, domain="ծոց.հայ", certificate="idn")

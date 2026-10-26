@@ -4,7 +4,7 @@ IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   TCP := XmppTCP, Client := XmppClient, Core := XmppCore,
   Messenger := XmppMessenger, Sasl := XmppSasl, TLS := TLS13Live, HS := TLS13EncHandshake,
   IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
-  Roster := XmppRoster, PubSub := XmppPubSub;
+  Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -15,6 +15,8 @@ TYPE
   ActionDesc = RECORD (IQ.ActionDesc) calls: LONGINT; kind: SHORTINT END;
   RosterHook = POINTER TO RosterHookDesc;
   RosterHookDesc = RECORD (Roster.HookDesc) loads, changes: LONGINT END;
+  PresenceHook = POINTER TO PresenceHookDesc;
+  PresenceHookDesc = RECORD (Track.HookDesc) notices: LONGINT END;
 
 VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Client.Client;
   domain: ARRAY 256 OF CHAR;
@@ -23,6 +25,7 @@ VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Clie
   router: IQ.Router; ping: Ping.Pinger; version: Version.Version; disco: Disco.Disco;
   action: Action; request: IQ.Request; name, number, os: T.String;
   roster: Roster.Roster; rosterHook: RosterHook; events: LONGINT;
+  tracker: Track.Tracker; presenceHook: PresenceHook;
 
 PROCEDURE (a: Action) Done(router: IQ.Router; request: IQ.Request);
 BEGIN
@@ -37,6 +40,8 @@ PROCEDURE (h: RosterHook) Loaded(roster: Roster.Roster; request: IQ.Request; acc
 BEGIN ASSERT(accepted); INC(h.loads) END Loaded;
 PROCEDURE (h: RosterHook) Changed(roster: Roster.Roster; entry: Roster.Entry);
 BEGIN INC(h.changes) END Changed;
+PROCEDURE (h: PresenceHook) Notice(tracker: Track.Tracker; event: P.Event; applied: BOOLEAN);
+BEGIN INC(h.notices) END Notice;
 
 PROCEDURE (h: Hook) Ready(client: Client.Client; jid: T.String);
   VAR expected: T.String;
@@ -51,6 +56,7 @@ END Ready;
 PROCEDURE (h: Hook) Received(client: Client.Client; stanza: Core.Stanza);
   VAR body, expected, node: T.String; event: PubSub.Event;
 BEGIN
+  IF (mode = "presence") & (stanza.kind = Core.presence) THEN RETURN END;
   IF mode = "roster-pep" THEN
     expected := Items.UTF8("friend@ծոց.հայ"); node := Items.Latin1("urn:xmpp:microblog:0");
     event := PubSub.ReadEvent(stanza, expected^, node^);
@@ -123,16 +129,35 @@ BEGIN
   ASSERT(PubSub.Retracted(request) & (router.count = 0)); hook.sent := 0
 END RosterPEP;
 
+PROCEDURE PresenceTest;
+  VAR empty, jid, show, status: T.String; best: P.Event;
+BEGIN
+  empty := Items.Latin1(""); jid := Items.UTF8("friend@ծոց.հայ");
+  show := Items.Latin1("chat"); status := Items.UTF8("Բարեւ 😀");
+  stanza := P.Available(empty^, show^, status^, 5); client.Send(stanza, error); ASSERT(error = NIL);
+  stanza := P.Subscription(jid^, empty^, P.subscribe); client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (presenceHook.notices = 4) OR (state = Client.failed);
+  ASSERT((tracker.count = 2) & (hook.sent = 2)); best := tracker.Best(jid^); ASSERT((best # NIL) & (best.priority = 10));
+  stanza := P.Subscription(jid^, empty^, P.subscribed); client.Send(stanza, error); ASSERT(error = NIL);
+  stanza := P.Subscription(jid^, empty^, P.unsubscribe); client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (presenceHook.notices = 6) OR (state = Client.failed);
+  ASSERT(tracker.count = 0);
+  stanza := P.Subscription(jid^, empty^, P.unsubscribed); client.Send(stanza, error); ASSERT(error = NIL);
+  stanza := P.Unavailable(empty^, empty^); client.Send(stanza, error); ASSERT(error = NIL); hook.sent := 0
+END PresenceTest;
+
 BEGIN
   InvalidConfiguration;
   Args.Get(1, port); Args.Get(2, mode); Args.Get(3, direct);
   Args.Get(4, domain); IF domain = "" THEN domain := "localhost" END;
-  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep");
+  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence");
   transport := TCP.Open("127.0.0.1", port, domain, direct = "yes", 2000, error);
   IF transport = NIL THEN ASSERT(~success & (error # NIL))
   ELSE
     NEW(hook); user := Items.UTF8("օգտվող"); password := Items.UTF8("գաղտնի😀"); resource := Items.UTF8("մուտք😀");
-    router := IQ.New(hook); ping := Ping.New(router); ASSERT(ping # NIL);
+    NEW(presenceHook); tracker := Track.New(hook, presenceHook); ASSERT(tracker # NIL);
+    name := Items.UTF8("friend@ծոց.հայ"); ASSERT(tracker.Watch(name^));
+    router := IQ.New(tracker); ping := Ping.New(router); ASSERT(ping # NIL);
     name := Items.UTF8("VOC Հայերեն😀"); number := Items.Latin1("4.0.2"); os := Items.Latin1("");
     version := Version.New(router, name^, number^, os^); ASSERT(version # NIL);
     name := Items.Latin1("client"); number := Items.Latin1("console");
@@ -156,13 +181,15 @@ BEGIN
         hook.sent := 0
       END;
       IF mode = "roster-pep" THEN RosterPEP END;
+      IF mode = "presence" THEN PresenceTest END;
       to := Items.Latin1("friend@localhost"); body := Items.UTF8("Բարեւ 😀");
       stanza := Messenger.NewMessage(to^, body^); client.Send(stanza, error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (hook.received > 0) OR (state = Client.failed);
       ASSERT((state = Client.online) & (hook.received = 1) & (hook.sent = 1));
       client.Close(error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (state = Client.closed) OR (state = Client.failed);
-      ASSERT((state = Client.closed) & (hook.closed = 1) & (hook.errors = 0))
+      ASSERT((state = Client.closed) & (hook.closed = 1) & (hook.errors = 0));
+      ASSERT(~tracker.active & (tracker.count = 0))
     END
   END;
   FailureReset;

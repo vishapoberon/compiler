@@ -6,8 +6,8 @@ ROOT := $(abspath $(SOURCE)/../../..)
 BUILD ?= $(ROOT)/build/ports/xmpp/2
 BUILD := $(abspath $(BUILD))
 MODULES := XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen XmppConnections \
- XmppStrings XmppCore XmppMessenger XmppPresence XmppWire XmppSasl XmppClient \
- XmppIQ XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
+ XmppStrings XmppCore XmppMessenger XmppWire XmppSasl XmppClient \
+ XmppIQ XmppPresence XmppPresenceTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
 
 include $(ROOT)/src/tools/make/modular-libraries.mk
 NETWORK_MODULES := $(MODULAR_INTERNET) $(filter-out norayr/tls/httpsPure,$(MODULAR_TLS))
@@ -31,6 +31,7 @@ test: all
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppClient.Mod" && timeout 30 ./TestXmppClient
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIQ.Mod" && timeout 30 ./TestXmppIQ
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppRosterPubSub.Mod" && timeout 30 ./TestXmppRosterPubSub
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppPresence.Mod" && timeout 30 ./TestXmppPresence
 
 network: all
 	@test "$$(uname -s)" = Linux || { echo "The XMPP TCP/TLS driver currently requires Linux."; exit 1; }
@@ -57,4 +58,4 @@ tls-regression: network
 	cd "$(ROOT)/src/test/ports" && sh ./gemini/test.sh "$(VOC)" "$(BUILD)" 2 "-sFm"
 
 clean:
-	rm -f $(foreach name,$(MODULES) XmppTCP XmppProbe TestXmppStream TestXmppCore TestXmppClient TestXmppIQ TestXmppRosterPubSub TestXmppNetwork,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppStream" "$(BUILD)/TestXmppCore" "$(BUILD)/TestXmppClient" "$(BUILD)/TestXmppIQ" "$(BUILD)/TestXmppRosterPubSub" "$(BUILD)/TestXmppNetwork" "$(BUILD)/XmppProbe"
+	rm -f $(foreach name,$(MODULES) XmppTCP XmppProbe TestXmppStream TestXmppCore TestXmppClient TestXmppIQ TestXmppRosterPubSub TestXmppPresence TestXmppNetwork,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppStream" "$(BUILD)/TestXmppCore" "$(BUILD)/TestXmppClient" "$(BUILD)/TestXmppIQ" "$(BUILD)/TestXmppRosterPubSub" "$(BUILD)/TestXmppPresence" "$(BUILD)/TestXmppNetwork" "$(BUILD)/XmppProbe"

@@ -3,19 +3,20 @@ package = "xmpp-publish"
 kind = "mixed"
 origin = "norayr's XMPP PEP/Atom microblog publisher"
 upstream_url = "https://github.com/norayr/xmpp-publish"
-upstream_revision = "6f2c514bcf91b699f3069d5acf7ac68ab7fb1afb"
+upstream_revision = "501ec7c64b7c082d4a840c4d3b3c23a10992538f"
 original_revision = "dd8a9ca481366bfc3f04d5719837dd0a1940fff5"
-revision_status = "native sources copied unchanged from the committed standalone port; original snapshot preserved"
+revision_status = "native implementation sources copied unchanged from upstream_revision; original snapshot preserved"
 license = "not specified in upstream repository; confirmation pending"
 sources = ["XmppPEP.Mod", "XmppPublishConfig.Mod", "XmppPublisher.Mod"]
 build = "make -C src/examples/network/xmpp-publish"
 test = "make -C src/examples/network/xmpp-publish test"
-source_map = ["src/XmppPEP.Mod, src/XmppPublishConfig.Mod, src/XmppPublisher.Mod -> package root", "src/XmppPublish.Mod -> src/examples/network/xmpp-publish/XmppPublish.Mod", "tests, upstream -> same paths"]
+source_map = ["src/XmppPEP.Mod, src/XmppPublishConfig.Mod, src/XmppPublisher.Mod -> package root", "src/XmppPublish.Mod -> src/examples/network/xmpp-publish/XmppPublish.Mod", "tools/XmppPublishProbe.Mod -> src/examples/network/xmpp-publish/XmppPublishProbe.Mod", "tests, upstream -> same paths"]
 adaptations = [
   "building XEP-0060/0277 payloads through shared XmppPubSub operations and checked XML output",
   "using native verified TLS, SASL PLAIN and bounded peer-checked IQ request correlation",
   "retaining UTF-8 configuration fields and environment overrides with explicit PLAIN opt-in",
   "validating publication acknowledgements, deadlines, UUIDs, timestamps and input bounds",
+  "providing a caller-selected item ID and exact-item read-back verification example",
   "preserving all nine original files and their source hashes",
   "providing portable payload/configuration modules and a separate Linux publisher example",
 ]
