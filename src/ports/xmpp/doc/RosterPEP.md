@@ -51,6 +51,7 @@ without partial updates. Unknown foreign-namespace item extensions are ignored.
 Oversized pushes receive `resource-constraint`. Full fetches use unversioned
 roster requests. Presence subscription decisions remain application-owned;
 explicitly request or authorize presence separately from editing roster entries.
+See [presence](Presence.md) for subscription builders and resource tracking.
 
 ## Publishing and retrieving personal events
 
@@ -105,4 +106,6 @@ provides configuration, login and one-shot publishing.
 
 Offline and verified local TLS tests cover roster and PubSub operations,
 including Unicode accounts/domains, spoofed pushes and notifications, stale
-fetches and bounded malformed input. Live roster/PEP interoperability remains pending.
+fetches and bounded malformed input. Live-server tests cover verified STARTTLS,
+publication and exact-item retrieval with matching Atom text. Live roster
+testing and broader PEP interoperability remain pending.

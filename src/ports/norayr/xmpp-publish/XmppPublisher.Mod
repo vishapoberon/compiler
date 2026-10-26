@@ -5,14 +5,17 @@ MODULE XmppPublisher;
 
 IMPORT Msg, S := LongStrings, Time, JulianDay, Random := TLS13Random,
   T := XmppTypes, Items := XmppItems, J := XmppStrings, C := XmppClient, TCP := XmppTCP,
-  IQ := XmppIQ, Ping := XmppPing, Sasl := XmppSasl, PEP := XmppPEP, Config := XmppPublishConfig;
+  IQ := XmppIQ, Ping := XmppPing, Sasl := XmppSasl, PEP := XmppPEP,
+  PubSub := XmppPubSub, Config := XmppPublishConfig;
 
-CONST configurationError* = 1; publishError* = 2; deadlineError* = 3;
+CONST configurationError* = 1; publishError* = 2; deadlineError* = 3; verificationError* = 4;
 TYPE
   Hook = POINTER TO HookDesc;
   HookDesc = RECORD (C.HookDesc) END;
   Action = POINTER TO ActionDesc;
-  ActionDesc = RECORD (IQ.ActionDesc) accepted: BOOLEAN; itemID: ARRAY 37 OF CHAR END;
+  ActionDesc = RECORD (IQ.ActionDesc)
+    accepted, verifying: BOOLEAN; itemID: ARRAY 65 OF CHAR; expected: T.String;
+  END;
   Context = POINTER TO ContextDesc;
   ContextDesc = RECORD (Msg.ContextDesc) END;
 
@@ -23,12 +26,24 @@ BEGIN
   CASE message.code OF
   | configurationError: S.Long("Invalid XMPP publisher configuration, timestamp or random source", text)
   | deadlineError: S.Long("XMPP publish deadline exceeded", text)
+  | verificationError: S.Long("Published XMPP item could not be verified by retrieval", text)
   ELSE S.Long("XMPP publication was not acknowledged with a valid IQ result", text)
   END
 END GetTemplate;
 
 PROCEDURE (a: Action) Done(router: IQ.Router; request: IQ.Request);
-BEGIN a.accepted := PEP.Accepted(request, a.itemID) END Done;
+  VAR items, item, entry, content: Items.Item; text, type: T.String; node: Items.Content;
+BEGIN
+  IF ~a.verifying THEN a.accepted := PEP.Accepted(request, a.itemID); RETURN END;
+  a.accepted := FALSE; items := PubSub.ReadItems(request); IF items = NIL THEN RETURN END;
+  item := items.First(PEP.pubsubURI, "item"); IF item = NIL THEN RETURN END;
+  entry := item.First(PEP.atomURI, "entry"); IF entry = NIL THEN RETURN END;
+  content := entry.First(PEP.atomURI, "content"); IF content = NIL THEN RETURN END;
+  type := content.GetAttribute("", "type"); IF (type # NIL) & ~S.Equal8(type^, "text") THEN RETURN END;
+  node := content.content;
+  WHILE node # NIL DO IF node.element # NIL THEN RETURN END; node := node.next END;
+  text := content.Text(); a.accepted := S.Equal(text^, a.expected^)
+END Done;
 
 PROCEDURE UUID(VAR id: ARRAY OF CHAR): BOOLEAN;
   VAR bytes: ARRAY 16 OF CHAR; hex: ARRAY 17 OF CHAR; i, pos, value: LONGINT;
@@ -64,7 +79,7 @@ BEGIN
   IF elapsed < 0 THEN RETURN MAX(LONGINT) END; RETURN elapsed
 END Age;
 
-PROCEDURE Run*(VAR cfg: Config.Config; VAR error: Msg.Msg): BOOLEAN;
+PROCEDURE RunItem*(VAR cfg: Config.Config; itemID: ARRAY OF CHAR; verify: BOOLEAN; VAR error: Msg.Msg): BOOLEAN;
   VAR jid, password, message: T.String; domainBytes: Items.Bytes;
     user, domain, resource, bare: ARRAY IQ.maxJIDUnits+1 OF T.CodeUnit;
     host: ARRAY 1024 OF CHAR; stamp: ARRAY 21 OF CHAR; payload: Items.Item;
@@ -76,7 +91,7 @@ BEGIN
   Config.Wipe(cfg); message := Items.UTF8(cfg.message);
   IF jid # NIL THEN jid := IQ.CanonicalJID(jid^) END;
   IF (jid = NIL) OR (password = NIL) OR (message = NIL) OR ~cfg.allowPlain OR
-     (cfg.timeoutMS <= 0) OR (cfg.timeoutMS > 60000) THEN
+     (cfg.timeoutMS <= 0) OR (cfg.timeoutMS > 60000) OR (S.Length8(itemID) > 64) THEN
     Sasl.Wipe(password); error := Msg.New(context, configurationError); RETURN FALSE
   END;
   IF (S.Length(password^) = 0) OR (S.Length(password^) > Sasl.maxFieldUnits) THEN
@@ -87,7 +102,7 @@ BEGIN
   J.ServerFromJid(jid^, domain, status); J.ResourceFromJid(jid^, resource); J.GetShortJidFromFullJid(jid^, bare);
   IF resource[0] = 0 THEN S.Long("voc-publish", resource) END;
   domainBytes := Items.UTF8Bytes(domain); Stamp(stamp);
-  IF ~UUID(action.itemID) THEN Sasl.Wipe(password); error := Msg.New(context, configurationError); RETURN FALSE END;
+  COPY(itemID, action.itemID); action.expected := message;
   payload := PEP.Build(domainBytes^, message^, action.itemID, stamp);
   IF payload = NIL THEN Sasl.Wipe(password); error := Msg.New(context, configurationError); RETURN FALSE END;
   IF cfg.host[0] = 0X THEN COPY(domainBytes^, host) ELSE COPY(cfg.host, host) END;
@@ -110,6 +125,17 @@ BEGIN
     END;
     ok := ok & action.accepted
   END;
+  IF ok & verify THEN
+    action.verifying := TRUE; action.accepted := FALSE;
+    message := Items.Latin1(PEP.microblogNode); jid := Items.Latin1(action.itemID);
+    request := PubSub.Fetch(router, bare, message^, jid^, 1, cfg.timeoutMS, action, error);
+    ok := (request # NIL) & (error = NIL);
+    WHILE ok & (request.status = IQ.pending) DO
+      state := client.Step(); INC(steps); elapsed := Age(start);
+      ok := (state = C.online) & (steps < 10000) & (elapsed < cfg.timeoutMS)
+    END;
+    ok := ok & action.accepted
+  END;
   IF ok THEN
     client.Close(error); ok := error = NIL;
     WHILE ok & (client.state # C.closed) DO
@@ -120,10 +146,18 @@ BEGIN
   IF ~ok & (error = NIL) THEN
     IF client.error # NIL THEN error := client.error
     ELSIF Age(start) >= cfg.timeoutMS THEN error := Msg.New(context, deadlineError)
+    ELSIF action.verifying THEN error := Msg.New(context, verificationError)
     ELSE error := Msg.New(context, publishError)
     END
   END;
   router.Stop; client.Abort; RETURN ok
+END RunItem;
+
+PROCEDURE Run*(VAR cfg: Config.Config; VAR error: Msg.Msg): BOOLEAN;
+  VAR id: ARRAY 37 OF CHAR;
+BEGIN
+  IF ~UUID(id) THEN Config.Wipe(cfg); error := Msg.New(context, configurationError); RETURN FALSE END;
+  RETURN RunItem(cfg, id, FALSE, error)
 END Run;
 
 BEGIN NEW(context); Msg.InitContext(context, "XmppPublisher")

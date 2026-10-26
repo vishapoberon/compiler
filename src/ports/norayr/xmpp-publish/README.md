@@ -78,31 +78,44 @@ automatic SRV discovery and SCRAM remain pending in the XMPP library.
 - `XmppPublisher.Run(config, error)` logs in, publishes to the bound account's
   bare JID, checks its correlated acknowledgement and closes the stream.
   It clears its password copies and the configuration password on return.
+- `XmppPublisher.RunItem(config, itemID, verify, error)` uses a caller-selected
+  item ID. With `verify = TRUE`, it also retrieves that exact item and checks
+  its stored Atom text. A verification failure can follow a successful publish;
+  retain the ID and check the stored item before deciding to send again.
 
-Messages are limited to 4,096 UTF-16 code units. Configuration files have a
-64 KiB limit and lines a 16 KiB limit; overlong fields fail instead of truncating.
-The runner generates a random UUIDv4 for each item, bounds event processing and
-checks an overall wall-clock deadline between client steps. A blocked socket
+The [publish-and-read-back example](../../../examples/network/xmpp-publish/readme.md#publish-and-verify-stored-text)
+shows the configuration, build command and invocation. It keeps account details
+in a local file and leaves the verified post on the microblog node.
+
+Messages are accepted as UTF-8 and sent as UTF-8 XML. The publisher limits each
+message to 4,096 UTF-16 code units in its internal string representation.
+Armenian and other BMP characters use one unit each; supplementary characters
+use two. Configuration files have a 64 KiB limit and lines a 16 KiB limit;
+overlong fields fail instead of truncating.
+`Run` generates a random UUIDv4 for each item; `RunItem` accepts an ID containing
+1–64 ASCII letters, digits or hyphens. Both bound event processing and
+check an overall wall-clock deadline between client steps. A blocked socket
 operation can last until its own timeout; DNS/connect use the existing transport
 behavior. Clock rollback fails the run. The shared UTC clock currently uses
 signed 32-bit Unix seconds, with the existing 2038 limit.
 
 There are no automatic retries: failure after sending can leave publication
 outcome uncertain. Applications requiring resumable/idempotent publication
-should retain their own item IDs through the payload API. Password wiping is
-best effort; environment variables and the configuration file remain owned by
-the caller.
+should retain their own item IDs through `RunItem` or the payload API. Password
+wiping is best effort; environment variables and the configuration file remain
+owned by the caller.
 
 ## Status and sources
 
 Offline tests check payload construction, Unicode/XML escaping, timestamps,
 bounds and configuration precedence. Local TLS peers check acknowledged and
 empty results, spoofed/malformed replies, stanza errors, timeouts, input floods,
-Unicode accounts/domains and certificate rejection. Live PEP interoperability
-has not yet been tested.
+Unicode accounts/domains, certificate rejection and exact-item read-back checks.
+Live-server tests cover verified STARTTLS, publication and exact-item retrieval
+with matching Atom text. Testing across additional servers remains pending.
 
 On x86-64 Linux, all 21 payload/configuration checks, 22 configuration/XML cases
-and 19 publisher loopback cases pass with GCC/C23, Clang/C23, TCC and Clang
+and 24 publisher loopback cases pass with GCC/C23, Clang/C23, TCC and Clang
 ASan/UBSan. The integrated example also passes as a shared-module consumer.
 
 The source project is [norayr/xmpp-publish](https://github.com/norayr/xmpp-publish),
