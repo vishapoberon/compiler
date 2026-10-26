@@ -5,7 +5,8 @@ for connections. It handles Unicode JIDs and messages, STARTTLS or direct TLS,
 SASL PLAIN authentication, resource binding and incoming/outgoing stanzas.
 
 The port is under development. Login, binding and a Unicode self-message round
-trip have been tested against a live server with an Armenian account and domain.
+trip have been tested against a live server with a UTF-8 (Armenian language)
+account and domain.
 The original extension dispatch, roster, discovery, file transfers, scheduling
 and DIGEST-MD5 authentication still need porting. Applications currently drive
 the synchronous client with `Start`, `Step`, `Send` and `Close`.
@@ -22,14 +23,12 @@ make -C src/ports/xmpp probe VOC="$PWD/install/bin/voc"
 ```
 
 The first command builds the portable library and offline tests. The network
-targets require Linux, libidn2 development files and `pkg-config`; the loopback
-tests also need Python 3.13+ and OpenSSL. Output goes into `build/ports/xmpp/2`.
+targets require Linux; the loopback tests also need Python 3.13+ and OpenSSL.
+Output goes into `build/ports/xmpp/2`.
 Override `BUILD`, `VOC`, `CC` or `CFLAGS` as needed.
 
 The portable modules are included in VOC's normal Oberon-2 and modular library
-builds. `XmppTCP` and the shared `IDNA` binding are built separately by the
-network target. Programs linking them need
-`LDLIBS="$(pkg-config --libs libidn2)"` when invoking VOC.
+builds. `XmppTCP` is built separately by the network target.
 
 ## Use
 
@@ -46,7 +45,8 @@ Component Pascal type widths and their VOC representations.
 
 Domains such as `ծոց.հայ` can be passed directly. XML stream identities remain
 Unicode; DNS, TLS SNI and certificate matching use the corresponding A-labels.
-This version uses libidn2 for domain normalization and validation.
+VOC's native domain-name modules provide non-transitional UTS #46 mapping,
+Unicode 16.0 NFC and IDNA2008 validation.
 
 `XmppProbe` reads a password from standard input and can send a test message
 to its own bound resource. See [client setup and the probe](doc/Client.md) for
@@ -63,11 +63,16 @@ Security review is ongoing; use trusted XML during development.
 ## Sources
 
 The standalone project is [norayr/xmpp](https://github.com/norayr/xmpp), continuing
-the VOC port started in 2019. This directory contains its native modules,
+the VOC port started in 2019. The original BlackBox component is by Pyotr
+Mikhailovich Kushnir (Пётр Михайлович Кушнир), as recorded on OberonCore's
+[component page](https://oberoncore.ru/bbcc/subs/xmpp/start) and in the
+[history record](doc/History.md). This directory contains its native modules,
 tests and the preserved Component Pascal snapshot at revision
 `a2cde5435bea63de16239c2c31e399ad0fd43ad2`.
 
 `upstream/` retains all 88 supplied files, including 31 paired `.txt`/`.odc`
 modules. The manifest records their sizes and SHA-256 hashes. The `.odc`
 documents retain Unicode text that was lost in some text exports. Original
-notices are retained; the supplied subsystem has no explicit license grant.
+notices are retained. Some headers refer to `Docu/BB-License`, which is absent
+from the recovered history and supplied snapshot; licensing confirmation is
+still needed.

@@ -23,7 +23,7 @@ MODULE agena;  (** a Gemini server (gemini://, port 1965) over the TLS 1.3 of sr
    The certificate must have an ECDSA P-256 key (TLS13Server); agena.Help shows how to make one. *)
 
 (* VOC port: no FATFiles stack; use native host metadata and VOC command cleanup. *)
-IMPORT SYSTEM, Linux0 := unixNet, Files, NetHost, Sockets, TLSBytes, TLS13Live, TLS13Server, TOML, Texts := PortArgs, out := Out, Oberon;
+IMPORT SYSTEM, Linux0 := unixNet, Files, NetHost, Sockets, TLSBytes, TLS13Live, TLS13Server, TOML, Texts := PortArgs, out := Out, Oberon, IDNA;
 
 CONST
   DefaultPort = 1965;
@@ -132,81 +132,16 @@ END Encode;
 
 (* ----- host names ----- *)
 
-PROCEDURE Digit(d: LONGINT): CHAR;
-BEGIN
-  IF d < 26 THEN RETURN CHR(ORD("a") + d) END;
-  RETURN CHR(ORD("0") + d - 26)
-END Digit;
-
-PROCEDURE Adapt(delta, points: LONGINT; first: BOOLEAN): LONGINT;
-VAR k: LONGINT;
-BEGIN
-  IF first THEN delta := delta DIV 700 ELSE delta := delta DIV 2 END;
-  delta := delta + delta DIV points; k := 0;
-  WHILE delta > 455 DO delta := delta DIV 35; INC(k, 36) END;  (* (36 - 1) * 26 DIV 2 *)
-  RETURN k + 36 * delta DIV (delta + 38)
-END Adapt;
-
-(* appends to out the punycode (RFC 3492) of the code points cp[0..n) *)
-PROCEDURE Punycode(VAR cp: ARRAY OF LONGINT; n: LONGINT; VAR out: ARRAY OF CHAR);
-VAR i, j, b, h, m, c, delta, bias, q, k, t: LONGINT;
-BEGIN
-  j := Len(out); b := 0; i := 0;
-  WHILE i < n DO IF cp[i] < 128 THEN out[j] := CHR(cp[i]); INC(j); INC(b) END; INC(i) END;
-  IF b > 0 THEN out[j] := "-"; INC(j) END;
-  c := 128; delta := 0; bias := 72; h := b;
-  WHILE (h < n) & (j < LEN(out) - 8) DO
-    m := MAX(LONGINT); i := 0;
-    WHILE i < n DO IF (cp[i] >= c) & (cp[i] < m) THEN m := cp[i] END; INC(i) END;
-    delta := delta + (m - c) * (h + 1); c := m; i := 0;
-    WHILE i < n DO
-      IF cp[i] < c THEN INC(delta)
-      ELSIF cp[i] = c THEN
-        q := delta; k := 36;
-        LOOP
-          IF k <= bias THEN t := 1 ELSIF k >= bias + 26 THEN t := 26 ELSE t := k - bias END;
-          IF q < t THEN EXIT END;
-          IF j < LEN(out) - 1 THEN out[j] := Digit(t + (q - t) MOD (36 - t)); INC(j) END;
-          q := (q - t) DIV (36 - t); INC(k, 36)
-        END;
-        IF j < LEN(out) - 1 THEN out[j] := Digit(q); INC(j) END;
-        bias := Adapt(delta, h + 1, h = b); delta := 0; INC(h)
-      END;
-      INC(i)
-    END;
-    INC(delta); INC(c)
-  END;
-  out[j] := 0X
-END Punycode;
-
-(** out := the host name in (UTF-8) as clients send it: labels with letters beyond ASCII in
-  punycode (xn--...), in lower case (ASCII and Armenian capitals are lowered) *)
+(** out := the checked ASCII host name, or empty on invalid input or insufficient
+  space. UTF-8 names use non-transitional UTS #46, NFC and IDNA2008 validation. *)
 PROCEDURE ToASCII*(VAR in, out: ARRAY OF CHAR);
-VAR cp: ARRAY 64 OF LONGINT; i, n, c, k: LONGINT; ascii: BOOLEAN; label: ARRAY 256 OF CHAR;
+VAR unicode, ascii: IDNA.String; result, n: LONGINT;
 BEGIN
-  out[0] := 0X; i := 0;
-  LOOP
-    n := 0; ascii := TRUE;
-    WHILE (in[i] # 0X) & (in[i] # ".") DO
-      c := ORD(in[i]); INC(i); k := 0;
-      IF c >= 0F0H THEN c := c MOD 8; k := 3 ELSIF c >= 0E0H THEN c := c MOD 16; k := 2
-      ELSIF c >= 0C0H THEN c := c MOD 32; k := 1
-      END;
-      WHILE (k > 0) & (ORD(in[i]) >= 80H) & (ORD(in[i]) < 0C0H) DO c := c * 64 + ORD(in[i]) MOD 64; INC(i); DEC(k) END;
-      IF (c >= ORD("A")) & (c <= ORD("Z")) THEN INC(c, 20H)
-      ELSIF (c >= 531H) & (c <= 556H) THEN INC(c, 30H)  (* Armenian capitals *)
-      END;
-      IF c >= 128 THEN ascii := FALSE END;
-      IF n < LEN(cp) THEN cp[n] := c; INC(n) END
-    END;
-    label := "";
-    IF ascii THEN k := 0; WHILE k < n DO label[k] := CHR(cp[k]); INC(k) END; label[n] := 0X
-    ELSE label := "xn--"; Punycode(cp, n, label)
-    END;
-    Append(out, label);
-    IF in[i] # "." THEN EXIT END;
-    Append(out, "."); INC(i)
-  END
+  IF LEN(out) = 0 THEN RETURN END;
+  IDNA.Names(in, unicode, ascii, result); out[0] := 0X;
+  IF result # 0 THEN RETURN END;
+  n := 0; WHILE ascii[n] # 0X DO INC(n) END;
+  IF n < LEN(out) THEN COPY(ascii^, out) END
 END ToASCII;
 
 (* the server named name (ASCII), NIL if none *)
@@ -346,10 +281,14 @@ BEGIN
   IF ~SameName(url, "gemini") THEN url[i] := ":"; status := 53; RETURN END;  (* a proxy request *)
   url[i] := ":"; INC(i, 3); j := 0;
   WHILE (url[i] # 0X) & (url[i] # "/") & (url[i] # ":") & (url[i] # "?") & (url[i] # "#") DO
-    IF (url[i] = "%") & (Hex(url[i + 1]) >= 0) & (Hex(url[i + 2]) >= 0) THEN
-      IF j < LEN(h) - 1 THEN h[j] := CHR(Hex(url[i + 1]) * 16 + Hex(url[i + 2])); INC(j) END; INC(i, 3)
+    IF j >= LEN(h)-1 THEN status := 59; RETURN END;
+    IF url[i] = "%" THEN
+      IF i+2 >= LEN(url) THEN status := 59; RETURN END;
+      a := Hex(url[i+1]); b := Hex(url[i+2]);
+      IF (a < 0) OR (b < 0) OR (a*16+b = 0) THEN status := 59; RETURN END;
+      h[j] := CHR(a*16+b); INC(j); INC(i, 3)
     ELSE
-      IF j < LEN(h) - 1 THEN h[j] := url[i]; INC(j) END; INC(i)
+      h[j] := url[i]; INC(j); INC(i)
     END
   END;
   h[j] := 0X;
@@ -383,6 +322,9 @@ BEGIN
   Parse(url, h, path, status);
   IF status = 0 THEN
     ToASCII(h, ah);
+    IF ah[0] = 0X THEN status := 59 END
+  END;
+  IF status = 0 THEN
     IF byName & (TLS13Server.serverName[0] = 0X) THEN current := FindHost(ah) END;  (* no SNI: by the URL *)
     IF (current = NIL) OR (current.name[0] # 0X) & (current.name # ah) THEN status := 53
     ELSE
@@ -581,6 +523,9 @@ PROCEDURE NewHost(VAR name, root, index, cert, key: ARRAY OF CHAR): BOOLEAN;
 VAR h, p: Host;
 BEGIN
   NEW(h); ToASCII(name, h.name); COPY(root, h.root); COPY(index, h.index); h.next := NIL;
+  IF (name[0] # 0X) & (h.name[0] = 0X) THEN
+    out.String("agena: invalid host name"); out.Ln; RETURN FALSE
+  END;
   WHILE (Len(h.root) > 1) & (h.root[Len(h.root) - 1] = "/") DO h.root[Len(h.root) - 1] := 0X END;
   IF h.index[0] = 0X THEN h.index := "index.gmi" END;
   IF ~TLS13Server.Load(cert, key, h.id) THEN

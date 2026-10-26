@@ -263,6 +263,10 @@ v4:
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/ports/v4/Printer.Mod
 	cd $(BUILDDIR)/$(MODEL); "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) ../../../src/ports/v4/Sets.Mod
 
+punycode:
+	@printf '\nMaking Punycode and domain-name library for -O$(MODEL)\n'
+	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_PUNYCODE); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/punycode/$$name.Mod" || exit; done
+
 ooc:
 	@printf '\nMaking unified oo2c library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_OOC); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/ooc/$$name.Mod" || exit; done
@@ -319,7 +323,7 @@ ports:
 	  cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_LINUX_PORTS); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/$$name.Mod" || exit; done; \
 	else echo 'Skipping the Linux networking profile.'; fi
 
-O2library: runtime terminal cli v4 ooc xml xmpp ulm pow32 misc s3 ports
+O2library: runtime terminal cli v4 ooc punycode xml xmpp ulm pow32 misc s3 ports
 
 OClibrary: runtime terminal
 

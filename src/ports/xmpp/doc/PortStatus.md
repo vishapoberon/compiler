@@ -45,7 +45,7 @@ exports and native `.odc` documents.
 | `StringsDyn`, `StringsUtf`, BlackBox `Strings` | Shared `oocUnicode`, `LongStrings`, XML codecs and dynamic UTF-16 arrays in the adapted foundation. |
 | `CommStreams`, `Services` | `XmppWire` transport and `XmppTCP` synchronous socket/TLS driver; event-loop scheduling remains application-owned. |
 | `ListsLinear`, `ListsMap`, `ListsIterable` | Ordered stanza content is implemented in `XmppItems`; extension registries/maps remain pending. |
-| `ypkEncBase64`, `ypkCryptMd5`, `ypkMathRandom`, `ypkEncPunycode` | PLAIN encodes its binary UTF-8 response directly; native TLS supplies handshake randomness. Shared `IDNA`/libidn2 normalizes internationalized domains. Original DIGEST-MD5 and full username/resource preparation remain pending. |
+| `ypkEncBase64`, `ypkCryptMd5`, `ypkMathRandom`, `ypkEncPunycode` | PLAIN encodes its binary UTF-8 response directly; native TLS supplies handshake randomness. Native `IDNA` prepares internationalized domains with UTS #46, NFC and IDNA2008 checks. Original DIGEST-MD5 and full username/resource preparation remain pending. |
 | `ypkSysActions`, `ypkProxyCmds`, `ypkCommSrv`, `AbfBus` | Pending application scheduling, proxy and bus adapters. |
 | `Kernel`, `Meta`, `SYSTEM` | Pending module/extension dispatch review; use explicit native registration where needed. |
 | `Files`, `Dates`, `Math` | Pending portable file-transfer and time helpers; reuse VOC interfaces. |

@@ -132,7 +132,7 @@ def request(port, data, secure=True, server_name="localhost"):
             return response
 
 
-with server("agena", [], 14) as port:
+with server("agena", [], 20) as port:
     def gemini(path, status, host="localhost"):
         response = request(port, ("gemini://%s:%d%s\r\n" % (host, port, path)).encode())
         head, body = response.split(b"\r\n", 1)
@@ -149,6 +149,12 @@ with server("agena", [], 14) as port:
     listing = gemini("/listing/", 20)
     assert b"a%26b.txt" in listing and b".hidden" not in listing, listing
     gemini("/", 53, "wrong.test")
+    gemini("/", 59, "localhost%00evil")
+    gemini("/", 59, "localhost%")
+    gemini("/", 59, "localhost%GG")
+    gemini("/", 59, "localhost.")
+    gemini("/", 59, "a"*256)
+    assert gemini("/", 20, "local%68ost") == b"# VOC Gemini\n"
     assert request(port, b"bad request\r\n").startswith(b"59 ")
     url = "gemini://localhost:%d/index.gmi" % port
     target = fixtures / "saved body.gmi"
@@ -188,12 +194,12 @@ print("DCS certificate fingerprint and pin: passed", flush=True)
 (site / "x.zq").write_text("custom type\n")
 configuration = fixtures / "agena.toml"
 text = ""
-for host, index in [("default.test", "one.gmi"), ("localhost", "two.gmi")]:
+for host, index in [("default.test", "one.gmi"), ("localhost", "two.gmi"), ("ծոց.հայ", "one.gmi")]:
     text += ('[[server]]\nname = "%s"\nroot = "%s"\nindex = "%s"\n'
              'cert = "%s"\nkey = "%s"\n\n' %
              (host, site, index, fixtures / "cert.pem", fixtures / "cert.key"))
 configuration.write_text(text + '[types]\nzq = "text/x-test"\n')
-with server("agena", [], 5, configuration=configuration) as port:
+with server("agena", [], 8, configuration=configuration) as port:
     def virtual(host, name, path="/"):
         return request(port, ("gemini://%s:%d%s\r\n" % (host, port, path)).encode(), server_name=name)
     assert virtual("localhost", "localhost").endswith(b"localhost host\n")
@@ -201,6 +207,9 @@ with server("agena", [], 5, configuration=configuration) as port:
     assert virtual("localhost", None).endswith(b"localhost host\n")
     assert virtual("localhost", "localhost", "/x.zq") == b"20 text/x-test\r\ncustom type\n"
     assert virtual("wrong.test", "localhost").startswith(b"53 ")
+    assert virtual("ծոց.հայ", "xn--cbbu1a.xn--y9a3aq").endswith(b"default host\n")
+    assert virtual("ԾՈՑ.ՀԱՅ", "xn--cbbu1a.xn--y9a3aq").endswith(b"default host\n")
+    assert virtual("xn--cbbu1a.xn--y9a3aq", "xn--cbbu1a.xn--y9a3aq").endswith(b"default host\n")
 print("Agena TOML configuration, SNI/URL virtual hosts and custom types: passed", flush=True)
 
 output = dcs("NewIdent", "Ada Example", "ada@example.org", "/years", "2")

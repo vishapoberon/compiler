@@ -12,8 +12,6 @@ include $(ROOT)/src/tools/make/modular-libraries.mk
 NETWORK_MODULES := $(MODULAR_INTERNET) $(filter-out norayr/tls/httpsPure,$(MODULAR_TLS))
 # Linux's openat/syscall declarations are hidden in strict C language modes.
 NETWORK_CFLAGS = $(CFLAGS) -D_DEFAULT_SOURCE
-PKG_CONFIG ?= pkg-config
-IDNA_LIBS ?= $(shell $(PKG_CONFIG) --libs libidn2)
 
 .PHONY: all dependencies test network network-test probe tls-regression clean
 dependencies:
@@ -40,11 +38,11 @@ network: all
 
 network-test: network
 	$(MAKE) -C "$(SOURCE)/../ooc" BUILD="$(BUILD)" VOC="$(VOC)" test-idna
-	cd "$(BUILD)" && LDLIBS="$(LDLIBS) $(IDNA_LIBS)" $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppNetwork.Mod"
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppNetwork.Mod"
 	python3 "$(SOURCE)/tests/loopback.py" "$(BUILD)"
 
 probe: network
-	cd "$(BUILD)" && LDLIBS="$(LDLIBS) $(IDNA_LIBS)" $(VOC) $(OFLAGS) -m "$(SOURCE)/tools/XmppProbe.Mod"
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tools/XmppProbe.Mod"
 
 tls-regression: network
 	cd "$(BUILD)" && for name in norayr/strutils/strTypes norayr/strutils/strUtils \
