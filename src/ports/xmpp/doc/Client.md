@@ -6,6 +6,9 @@ and ooc-xml stream interfaces. `XmppWire.Transport` is its byte-channel boundary
 Applications implement `XmppClient.HookDesc` methods for readiness, received/sent
 stanzas, errors and stream closure.
 
+For correlated IQ requests and explicitly registered ping, version and discovery
+handlers, place an [IQ router](IQ.md) between the client and application hook.
+
 ## Creating a client
 
 The service domain is the account's domain as a UTF-8 byte string. For example,
@@ -166,6 +169,10 @@ From the VOC repository root:
 ```sh
 make -C src/ports/xmpp test network-test tls-regression VOC="$PWD/install/bin/voc"
 ```
+
+From the standalone XMPP checkout, use `make test network-test tls-regression`
+with `VOC` and `VOCSRC` set for the matching VOC installation and sources.
+The probe is built by `make probe` and placed in `build/2/XmppProbe`.
 
 The offline client suite fragments complete negotiations, checks invalid state
 transitions, mechanism policy, identity mismatches, binding correlation and

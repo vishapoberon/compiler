@@ -177,6 +177,23 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                 send(connection, f'<iq id="{identifier}" type="result"><bind xmlns="{BIND}"><jid>{jid}</jid></bind></iq>')
                 if mode in {"bind-wrong", "bad-id"}:
                     return
+                if mode == "extensions":
+                    request = peer.event()
+                    assert request.find("{urn:xmpp:ping}ping") is not None
+                    assert request.get("type") == "get"
+                    for identifier, uri, child in (
+                        ("peer-ping", "urn:xmpp:ping", "ping"),
+                        ("peer-version", "jabber:iq:version", "query"),
+                        ("peer-disco", "http://jabber.org/protocol/disco#info", "query"),
+                    ):
+                        send(connection, f'<iq type="get" id="{identifier}"><{child} xmlns="{uri}"/></iq>')
+                        response = peer.event()
+                        assert response.get("type") == "result" and response.get("id") == identifier
+                        if identifier == "peer-version":
+                            assert response.find("{jabber:iq:version}query/{jabber:iq:version}name").text == "VOC Հայերեն😀"
+                        if identifier == "peer-disco":
+                            assert response.find("{http://jabber.org/protocol/disco#info}query") is not None
+                    send(connection, f'<iq type="result" id="{request.get("id")}"/>')
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
@@ -200,23 +217,26 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
         print(f"XMPP {mode} ({'direct TLS' if direct else 'STARTTLS'}): passed", flush=True)
 
 
-case("starttls")
-case("direct", direct=True)
-case("no-tls")
-case("pipelined")
-case("wrong-host", certificate="wrong")
-case("untrusted", certificate="untrusted")
-case("tls12", tls12=True)
-case("wrong-host", direct=True, certificate="wrong")
-case("untrusted", direct=True, certificate="untrusted")
-case("auth-refused")
-case("no-bind")
-case("bind-wrong")
-case("bad-id")
-case("read-stall")
-case("tls-stall")
-case("tls-stall", direct=True)
-case("unicode", certificate="idn", domain="ծոց.հայ")
-case("unicode", direct=True, certificate="idn", domain="ԾՈՑ.ՀԱՅ")
-case("alabel", certificate="idn", domain="xn--cbbu1a.xn--y9a3aq")
-case("wrong-host", certificate="server", domain="ծոց.հայ")
+if __name__ == "__main__":
+    case("starttls")
+    case("direct", direct=True)
+    case("no-tls")
+    case("pipelined")
+    case("wrong-host", certificate="wrong")
+    case("untrusted", certificate="untrusted")
+    case("tls12", tls12=True)
+    case("wrong-host", direct=True, certificate="wrong")
+    case("untrusted", direct=True, certificate="untrusted")
+    case("auth-refused")
+    case("no-bind")
+    case("bind-wrong")
+    case("bad-id")
+    case("read-stall")
+    case("tls-stall")
+    case("tls-stall", direct=True)
+    case("unicode", certificate="idn", domain="ծոց.հայ")
+    case("unicode", direct=True, certificate="idn", domain="ԾՈՑ.ՀԱՅ")
+    case("alabel", certificate="idn", domain="xn--cbbu1a.xn--y9a3aq")
+    case("wrong-host", certificate="server", domain="ծոց.հայ")
+    case("extensions")
+    case("extensions", direct=True, certificate="idn", domain="ծոց.հայ")

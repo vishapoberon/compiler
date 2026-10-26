@@ -13,6 +13,7 @@ systems and projects, grouped by author or collection.
 | [`xml/`](xml/README.md) | Native Oberon XML parsing, DTD validation, namespace builders and writing |
 | [`punycode/`](punycode/README.md) | RFC 3492 Punycode, Unicode NFC and checked internationalized host names |
 | [`xmpp/`](xmpp/README.md) | Unicode XMPP streams, stanzas and client negotiation; optional Linux TCP/TLS transport |
+| [`norayr/xmpp-publish/`](norayr/xmpp-publish/README.md) | PEP/Atom microblog publishing with the native XMPP library |
 | [`picl/`](picl/readme.md) | Niklaus Wirth's PICL compiler |
 | [`coco/`](coco/readme.md) | Coco/R from Native Oberon and the version with A. V. Shiryaev's additions |
 

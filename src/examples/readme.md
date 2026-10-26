@@ -23,6 +23,7 @@ separately from the compiler and libraries.
 | [`libraries/sts-q/editor`](libraries/sts-q/editor/readme.md) | sts-q's editor components; modules only, no executable | Unix |
 | [`libraries/stars`](libraries/stars/readme.md) | Star positions | None |
 | [`network/ip`](network/ip/readme.md) | IPv4 subnet calculator | None |
+| [`network/xmpp-publish`](network/xmpp-publish/readme.md) | Publish a Unicode XMPP microblog entry | Linux; XMPP account with PEP support |
 | `servers/sockets` | Forking socket server | Unix |
 | `utilities/sound` | Audio generation | `oggenc` and `ogg123` |
 | `gui/x11/simple`, `gui/x11/ifs` | XYplane drawing | X11 development files; a display to run |

@@ -362,8 +362,11 @@ goto :eof
 :xmpp
 echo.Making XMPP library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-for %%N in (XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen XmppConnections XmppStrings XmppCore XmppMessenger XmppPresence XmppWire XmppSasl XmppClient) do (
+for %%N in (XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen XmppConnections XmppStrings XmppCore XmppMessenger XmppPresence XmppWire XmppSasl XmppClient XmppIQ XmppPing XmppVersion XmppDisco) do (
   %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/xmpp/%%N.Mod || exit /b
+)
+for %%N in (XmppPEP XmppPublishConfig) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/norayr/xmpp-publish/%%N.Mod || exit /b
 )
 cd %ROOTDIR%
 goto :eof

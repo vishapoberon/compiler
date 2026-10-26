@@ -283,9 +283,10 @@ xml: ooc
 	@test "$(MODEL)" = 2 || { echo 'The XML port targets model 2.'; exit 1; }
 	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_XML); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/xml/$$name.Mod" || exit; done
 
-xmpp: xml
+xmpp: xml punycode
 	@printf '\nMaking XMPP library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_XMPP); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/xmpp/$$name.Mod" || exit; done
+	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_XMPP_PUBLISH); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/norayr/xmpp-publish/$$name.Mod" || exit; done
 
 ulm:
 	@printf '\nMaking ulm library for -O$(MODEL)\n'

@@ -1,0 +1,41 @@
+{
+  "revision": "dd8a9ca481366bfc3f04d5719837dd0a1940fff5",
+  "files": {
+    "makefile": {
+      "size": 56,
+      "sha256": "1482b3c51b76ea3879060ef8dcb9f54f4f621e4d7cd211398a01ea017bcd8c39"
+    },
+    "src/CStr.Mod": {
+      "size": 477,
+      "sha256": "a1d80c6f32fe6b99c86ab4843ea1465954860ed1cca3be77b3927ab5119282a6"
+    },
+    "src/Clock.Mod": {
+      "size": 2052,
+      "sha256": "f08a54fed2cda74af8a16b41ac4c48aa9ea98b41b67a7899be9568742201ed95"
+    },
+    "src/Config.Mod": {
+      "size": 4080,
+      "sha256": "eea1532eee99d4dbde221b0db6b2156523726bcafd41eecca419bad2d48d04c6"
+    },
+    "src/Dump.Mod": {
+      "size": 1328,
+      "sha256": "3a12541528591b9cfc6fe49957094830cc21dcd34e131075115e824e52da98c1"
+    },
+    "src/Main.Mod": {
+      "size": 4517,
+      "sha256": "77cca089a57cc026023b5f86cbdc722158ab3d61bb84a0db67ef707f90f2583d"
+    },
+    "src/Pep.Mod": {
+      "size": 4504,
+      "sha256": "633333b92360535c1775468552048f7711fa442079154a6d22f5f937fe77429c"
+    },
+    "src/Runtime.Mod": {
+      "size": 342,
+      "sha256": "31b6ba93af1ea10db880c6ddffb8a57848188560c8eb761cce54a1423ebfae8b"
+    },
+    "src/Strophe.Mod": {
+      "size": 4553,
+      "sha256": "9faa5766bb0b760e0f3dd3d7f8645f7de7bb9a5dc209d31bfdff0fc2770c3db0"
+    }
+  }
+}
