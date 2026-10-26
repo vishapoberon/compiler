@@ -1,0 +1,35 @@
+Punycode's encoder is adapted from Norayr Chilingarian's agena.Mod,
+https://github.com/polpo-system/agena at d3bfb6197b00425dd6a5bc93fd5cf640267f5eca,
+as carried in VOC's src/examples/network/agena/. See LICENSE (GPL version 3).
+
+data/idnadata.py, data/uts46data.py, tests/reference/core.py and
+tests/reference/intranges.py are preserved from kjd/idna v3.11:
+https://github.com/kjd/idna/tree/v3.11
+Copyright (c) 2013-2025, Kim Davies and contributors. See NOTICE-IDNA.
+The generated IDNAMapping and IDNAData tables retain this data attribution.
+IDNA's context and bidirectional checks follow the same published RFC rules
+and the BSD-licensed reference implementation.
+
+The Unicode 16.0 IDNA fixtures are from
+https://www.unicode.org/Public/idna/16.0.0/IdnaTestV2.txt
+Copyright 2024 Unicode, Inc. See NOTICE-UNICODE.
+The generation-time unicodedata properties and normalization data are Unicode
+16.0.0 data distributed with Python 3.14. They have the same Unicode notice.
+
+Pinned SHA-256 source hashes are checked in tools/generate.py and
+tests/check-vectors.py. The generated modules and bundled fixtures require no
+network access at build or test time.
+
+tests/rfc3492.txt reproduces section 7.1's sample strings from RFC 3492,
+Adam M. Costello, March 2003, https://www.rfc-editor.org/rfc/rfc3492.
+Copyright (C) The Internet Society (2003). All Rights Reserved.
+RFC 3492 appendix B states:
+
+Regarding this entire document or any portion of it (including the
+pseudocode and C code), the author makes no guarantees and is not
+responsible for any damage resulting from its use. The author grants
+irrevocable permission to anyone to use, modify, and distribute it in
+any way that does not diminish the rights of anyone else to use,
+modify, and distribute it, provided that redistributed derivative
+works do not contain misleading author or version information.
+Derivative works need not be licensed under similar terms.

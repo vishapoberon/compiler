@@ -24,6 +24,12 @@ The sanitizer build uses an uninstrumented conservative core runtime, with
 `UBSAN_OPTIONS=halt_on_error=1`. Shared IDNA and all 14 XMPP module consumers
 also pass against a modular VOC image.
 
+Native domain preparation uses the shared Punycode/IDNA package. Its 47,844
+Unicode fixture, RFC 3492, differential codec and NFC checks pass with GCC/C23,
+Clang/C23, TCC and ASan/UBSan, including the 38 existing IDNA regressions.
+XMPP's 20 loopback cases and shared TLS regressions pass with the native
+implementation. Conventional and modular consumers pass their ABI/load checks.
+
 Live-server coverage also includes a UTF-8 (Armenian language) account and domain,
 verified STARTTLS, PLAIN authentication, resource binding, an Armenian/supplementary
 self-message round trip and clean shutdown.

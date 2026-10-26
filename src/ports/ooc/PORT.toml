@@ -19,7 +19,6 @@ adaptations = [
   "updating Channel and its file/text rider users for Unicode-safe diagnostics",
   "providing seekable memory channels through IOMemory",
   "adapting ooc-libxml URI parsing and file/memory schemes with LONGINT offsets",
-  "providing optional UTF-8 IDNA name normalization through libidn2",
 ]
 build = "make"
 test = "make -C src/ports/ooc test; make confidence; make modular-library-test"

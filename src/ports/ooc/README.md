@@ -79,33 +79,12 @@ segments retain their escapes when serialized. Its test-only HTTP prototype
 exercises server-based authorities and queries using the shared component
 parsers. These fixture checks perform no network access.
 
-## Optional internationalized DNS names
+## Internationalized DNS names
 
-`IDNA.Names(input, unicodeName, asciiName, result)` accepts a zero-terminated
-UTF-8 domain name and returns both its canonical UTF-8 U-labels and ASCII
-A-labels. It uses libidn2's non-transitional UTS #46 mapping, normalization
-and IDNA2008 validation. The module additionally checks DNS label syntax,
-the 63-byte label limit and the 253-byte name limit. Input is limited to
-1,023 bytes. Trailing root dots and address delimiters are rejected.
-
-On success `result = 0` and both outputs are Oberon-owned arrays. On failure
-both outputs are `NIL`; `result` is a libidn2 error or `IDNA.invalidName`.
-The interface always uses UTF-8, independently of the process locale.
-Mapped punctuation is checked before acceptance, including full-width address
-delimiters, so malformed input cannot silently lose those delimiters.
-
-Build and test this optional module with libidn2 development files and
-`pkg-config` installed:
-
-```sh
-make -C src/ports/ooc test-idna VOC="$PWD/install/bin/voc"
-```
-
-The normal ooc build retains its existing dependencies. Programs using `IDNA`
-link with `LDLIBS="$(pkg-config --libs libidn2)"`; `IDNA_CFLAGS`, `IDNA_LIBS`
-and `PKG_CONFIG` can be overridden for the isolated target. Its 38 checks cover
-Armenian domains, A-label round trips, case/NFC mapping, non-transitional sharp-s,
-Chinese labels, invalid UTF-8, contextual/bidirectional rules and bounded input.
+The [`punycode` package](../punycode/README.md) provides `IDNA.Names` for checked
+UTF-8 host names, returning canonical Unicode and ASCII names. Its documentation
+describes the preparation policy, limits and tests. The `idna` and `test-idna`
+targets here forward to that package.
 
 ## Source provenance
 

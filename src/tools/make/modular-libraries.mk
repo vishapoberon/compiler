@@ -3,6 +3,7 @@
 MODULAR_CLI = Args Console
 MODULAR_TERMINAL = termios UnixTermios LineEditor
 MODULAR_V4 = Printer Sets
+MODULAR_PUNYCODE = Punycode IDNAMapping IDNAData UnicodeNFC IDNA
 MODULAR_OOC = LowReal LowLReal RealMath OakMath LRealMath \
  LongInts ComplexMath LComplexMath Ascii CharClass oocStrings \
  ConvTypes LRealConv LRealStr RealConv RealStr IntConv \

@@ -270,6 +270,9 @@ xml: configuration
 xmpp: configuration
 	@make -f src/tools/make/oberon.mk -s xmpp MODEL=2
 
+punycode: configuration
+	@make -f src/tools/make/oberon.mk -s punycode MODEL=2
+
 ulm: configuration
 	@make -f src/tools/make/oberon.mk -s ulm MODEL=2
 

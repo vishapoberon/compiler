@@ -19,4 +19,8 @@ applications:
 	done
 
 test: applications
+	@case "$(PROFILE)" in conventional) target=test-names ;; native) target=native-test-names ;; esac; \
+	$(MAKE) -C "$(ROOT)/src/examples/network/agena" "$$target" \
+	  BUILD="$(BUILD)/agena" HRESH_BUILD="$(HRESH_BUILD)" \
+	  VOC="$(VOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)"
 	python3 ./test.py "$(BUILD)" "$(PROFILE)" "$(HRESH_BUILD)"

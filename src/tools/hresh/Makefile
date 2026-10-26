@@ -51,6 +51,7 @@ STANDARD_SOURCES = $(addprefix $(ROOT)/src/library/,$(addsuffix .Mod,Out In File
 LIBRARY_SOURCES = $(addprefix $(ROOT)/src/library/,$(addsuffix .Mod,$(MODULAR_CLI))) \
  $(addprefix $(ROOT)/src/ports/v4/,$(addsuffix .Mod,$(MODULAR_V4))) \
  $(addprefix $(ROOT)/src/ports/ooc/,$(addsuffix .Mod,$(MODULAR_OOC) C$(C_MODEL))) \
+ $(addprefix $(ROOT)/src/ports/punycode/,$(addsuffix .Mod,$(MODULAR_PUNYCODE))) \
  $(if $(filter 2,$(MODEL)),$(addprefix $(ROOT)/src/ports/xml/,$(addsuffix .Mod,$(MODULAR_XML)))) \
  $(if $(filter 2,$(MODEL)),$(addprefix $(ROOT)/src/ports/xmpp/,$(addsuffix .Mod,$(MODULAR_XMPP)))) \
  $(addprefix $(ROOT)/src/ports/ulm/,$(addsuffix .Mod,$(MODULAR_ULM))) \
@@ -210,6 +211,7 @@ $(MODULES)/libraries.stamp: $(MODULES)/modules.stamp $(MODULES)/tools.stamp $(MO
 	cd "$(MODULES)" && for name in $(MODULAR_CLI); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/library/$$name.Mod" || exit; done
 	cd "$(MODULES)" && for name in $(MODULAR_V4); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/v4/$$name.Mod" || exit; done
 	cd "$(MODULES)" && for name in $(MODULAR_OOC); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/ooc/$$name.Mod" || exit; done
+	cd "$(MODULES)" && for name in $(MODULAR_PUNYCODE); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/punycode/$$name.Mod" || exit; done
 	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/ooc/C$(C_MODEL).Mod"
 	@if [ "$(MODEL)" = 2 ]; then cd "$(MODULES)" && for name in $(MODULAR_XML); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/xml/$$name.Mod" || exit; done; fi
 	@if [ "$(MODEL)" = 2 ]; then cd "$(MODULES)" && for name in $(MODULAR_XMPP); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/xmpp/$$name.Mod" || exit; done; fi
@@ -221,7 +223,7 @@ $(MODULES)/libraries.stamp: $(MODULES)/modules.stamp $(MODULES)/tools.stamp $(MO
 	cd "$(MODULES)" && for name in $(MODULAR_UNIX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done
 	if [ "$(shell uname -s)" = Linux ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_BASE_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
 	if [ "$(WITH_NETWORK)" = 1 ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
-	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser none system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) C $(if $(filter 2,$(MODEL)),$(MODULAR_XML) $(MODULAR_XMPP)) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
+	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser none system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) $(MODULAR_PUNYCODE) C $(if $(filter 2,$(MODEL)),$(MODULAR_XML) $(MODULAR_XMPP)) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
 	touch "$@"
 
 # This target alone needs the development packages for extra native APIs.
@@ -312,6 +314,8 @@ test: all test-commands test-unload
 	"$(BUILD)/compatibility/CompatMain"
 
 test-library: libraries
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestIDNA.mod" && ./TestIDNA
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/ports/punycode/tests/TestPunycode.Mod" && ./TestPunycode
 	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && for name in TestParser TestStream TestValidation TestWriter TestBasic; do $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/xml/tests/voc/$$name.Mod" && "./$$name" || exit; done; fi
 	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && for name in TestXmppStream TestXmppCore TestXmppClient; do $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/xmpp/tests/$$name.Mod" && "./$$name" || exit; done; fi
 	$(MAKE) -C "$(ROOT)/src/test/ports" test VOC="$(NEWVOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(MODULES)" SYMBOLS="$(MODULES)" MODEL=$(MODEL) FLAGS=-smD NETWORK=$(WITH_NETWORK) BUILD="$(BUILD)/port-tests"

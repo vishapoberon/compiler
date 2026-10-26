@@ -1,0 +1,17 @@
+schema = 1
+package = "punycode"
+kind = "library"
+origin = "checked extraction of Norayr Chilingarian's agena RFC 3492 encoder, with native Unicode domain preparation"
+sources = ["Punycode.Mod", "IDNAMapping.Mod", "IDNAData.Mod", "UnicodeNFC.Mod", "IDNA.Mod"]
+license = "GPL version 3; retaining BSD-3-Clause IDNA data/reference and Unicode data notices"
+unicode_version = "16.0.0"
+idna_reference = "https://github.com/kjd/idna/tree/v3.11"
+build = "make -C src/ports/punycode"
+test = "make -C src/ports/punycode test conformance"
+adaptations = [
+  "checking scalar ranges, arithmetic, input counts and destination capacity",
+  "adding bounded RFC 3492 decoding and native Unicode NFC",
+  "preparing host names through non-transitional UTS #46 and IDNA2008",
+  "preserving the IDNA.Names UTF-8 Unicode/ASCII output interface",
+  "checking all Unicode 16.0 IDNA fixtures and deterministic differential vectors",
+]

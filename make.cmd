@@ -337,6 +337,15 @@ for %%N in (LowReal LowLReal RealMath OakMath LRealMath LongInts ComplexMath LCo
 cd %ROOTDIR%
 goto :eof
 
+:punycode
+echo.Making Punycode and domain-name library for -O%MODEL%
+cd %BUILDDIR%\%MODEL%
+for %%N in (Punycode IDNAMapping IDNAData UnicodeNFC IDNA) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/punycode/%%N.Mod || exit /b
+)
+cd %ROOTDIR%
+goto :eof
+
 :oocX11
 echo No X11 support on plain Windows - use cygwin and build with cygwin make.
 goto :eof
@@ -426,6 +435,7 @@ call :runtime       || exit /b
 call :cli           || exit /b
 call :v4            || exit /b
 call :ooc           || exit /b
+call :punycode      || exit /b
 call :xml           || exit /b
 call :xmpp          || exit /b
 call :ulm           || exit /b

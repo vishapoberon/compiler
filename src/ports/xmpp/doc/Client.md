@@ -15,9 +15,11 @@ literal IP addresses.
 
 The transport's `DomainName(domain, canonical)` method supplies the validated,
 canonical UTF-8 identity used by `XmppClient`. The base `XmppWire` policy accepts
-ASCII DNS names; `XmppTCP` uses the shared optional `IDNA` module with libidn2
-for non-transitional UTS #46 processing, NFC, case mapping and IDNA2008 checks.
+ASCII DNS names; `XmppTCP` uses VOC's native `IDNA` module for non-transitional
+UTS #46 processing, Unicode 16.0 NFC, case mapping and IDNA2008 checks.
 ASCII A-label input is accepted and converted to canonical Unicode U-labels.
+The host-name profile rejects trailing root dots and address delimiters, checks
+canonical A-label round trips and applies RFC 5893 bidi rules across the domain.
 
 XML stream `to` values remain Unicode. Only DNS lookup, TLS SNI and DNS
 certificate matching use the corresponding ASCII A-label name. Received stream
@@ -173,6 +175,6 @@ exchanges Armenian/supplementary messages and tests certificate, TLS-version,
 authentication and binding failures, plus stalled read/handshake timeouts.
 It also checks shared TLS failure diagnostics and identity-state reset after
 both ordinary connection failures and invalid-descriptor upgrades.
-It requires Python 3.13+, OpenSSL, libidn2 development files and `pkg-config`.
+It requires Python 3.13+ and OpenSSL.
 All network fixtures use `127.0.0.1`; generated certificates and keys stay in
 the selected build directory.
