@@ -1,0 +1,21 @@
+schema = 1
+package = "xmpp-publish"
+kind = "mixed"
+origin = "norayr's XMPP PEP/Atom microblog publisher"
+upstream_url = "https://github.com/norayr/xmpp-publish"
+upstream_revision = "3f03501bd54b4b46acb1e1d4f1054f80a7aec67d"
+original_revision = "dd8a9ca481366bfc3f04d5719837dd0a1940fff5"
+revision_status = "native sources copied unchanged from the standalone port; original snapshot preserved"
+license = "not specified in upstream repository; confirmation pending"
+sources = ["XmppPEP.Mod", "XmppPublishConfig.Mod", "XmppPublisher.Mod"]
+build = "make -C src/examples/network/xmpp-publish"
+test = "make -C src/examples/network/xmpp-publish test"
+source_map = ["src/XmppPEP.Mod, src/XmppPublishConfig.Mod, src/XmppPublisher.Mod -> package root", "src/XmppPublish.Mod -> src/examples/network/xmpp-publish/XmppPublish.Mod", "tests, upstream -> same paths"]
+adaptations = [
+  "building XEP-0060/0277 payloads with namespace-aware native XMPP trees and checked XML output",
+  "using native verified TLS, SASL PLAIN and bounded peer-checked IQ request correlation",
+  "retaining UTF-8 configuration fields and environment overrides with explicit PLAIN opt-in",
+  "validating publication acknowledgements, deadlines, UUIDs, timestamps and input bounds",
+  "preserving all nine original files and their source hashes",
+  "providing portable payload/configuration modules and a separate Linux publisher example",
+]

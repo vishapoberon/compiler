@@ -12,23 +12,31 @@ They include 232 input split sizes, a 40,002-code-unit message and 665
 TLS/SASL/binding negotiation checks. The snapshot check verifies all 88
 preserved upstream files by size and SHA-256.
 
-Twenty Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
+In the standalone checkout, `make history-test` restores and verifies the
+preserved Mercurial repository and checks the imported Git history. See
+[the history record](History.md) for source revisions and the conversion checks.
+
+The IQ tests add 145 checks covering namespace dispatch, all 110 transport split
+sizes, Unicode peers, full/bare/domain address matching, spoofed and duplicate
+replies, malformed payloads, cancellation, reentrant callbacks, queue limits,
+stream closure and synchronous write failure.
+
+Twenty-two Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
 credentials, messages and domains, certificate and protocol-version rejection,
-binding failures and stalled reads/handshakes. The shared IDNA suite has 38
+binding failures, stalled reads/handshakes and ping/version/discovery dispatch.
+The shared IDNA suite has 38
 conversion and rejection cases. The TLS regression target also runs the 36
 existing TLS programs, HTTP/TLS loopback tests and 40 Gemini checks.
 
 These pass on x86-64 Linux with GCC/C23, Clang/C23, TCC and Clang ASan/UBSan.
 The sanitizer build uses an uninstrumented conservative core runtime, with
 `ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_return=0` and
-`UBSAN_OPTIONS=halt_on_error=1`. Shared IDNA and all 14 XMPP module consumers
+`UBSAN_OPTIONS=halt_on_error=1`. Shared IDNA and the XMPP module consumers
 also pass against a modular VOC image.
 
-Native domain preparation uses the shared Punycode/IDNA package. Its 47,844
-Unicode fixture, RFC 3492, differential codec and NFC checks pass with GCC/C23,
-Clang/C23, TCC and ASan/UBSan, including the 38 existing IDNA regressions.
-XMPP's 20 loopback cases and shared TLS regressions pass with the native
-implementation. Conventional and modular consumers pass their ABI/load checks.
+The current extension/publisher integration passes 296 bundled shared-library
+ABI/load checks. The publisher's 21 payload/configuration checks, 22 file/XML
+cases and 19 TLS loopback cases pass both conventionally and with shared modules.
 
 Live-server coverage also includes a UTF-8 (Armenian language) account and domain,
 verified STARTTLS, PLAIN authentication, resource binding, an Armenian/supplementary

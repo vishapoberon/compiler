@@ -2,13 +2,15 @@
 
 An Oberon-2 XMPP library using ooc-xml for XML streams and VOC's TCP/TLS modules
 for connections. It handles Unicode JIDs and messages, STARTTLS or direct TLS,
-SASL PLAIN authentication, resource binding and incoming/outgoing stanzas.
+SASL PLAIN authentication, resource binding, incoming/outgoing stanzas and
+bounded IQ requests with ping, software version and service discovery.
 
 The port is under development. Login, binding and a Unicode self-message round
 trip have been tested against a live server with a UTF-8 (Armenian language)
 account and domain.
-The original extension dispatch, roster, discovery, file transfers, scheduling
-and DIGEST-MD5 authentication still need porting. Applications currently drive
+The original roster, file transfers, scheduling and DIGEST-MD5 authentication
+still need porting. IQ extensions use explicit registration and bounded request
+correlation. Applications drive
 the synchronous client with `Start`, `Step`, `Send` and `Close`.
 
 ## Build
@@ -52,6 +54,10 @@ Unicode 16.0 NFC and IDNA2008 validation.
 to its own bound resource. See [client setup and the probe](doc/Client.md) for
 the API, examples, timeouts and credential handling. The XML stream API is
 documented in [Streaming.md](../xml/doc/Streaming.md).
+
+See [IQ extensions](doc/IQ.md) for handler setup, reply matching and deadlines.
+The separate [xmpp-publish example](../../examples/network/xmpp-publish/readme.md)
+publishes a Unicode PEP/Atom microblog entry with this library.
 
 ## Tests and status
 

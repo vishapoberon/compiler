@@ -6,7 +6,8 @@ ROOT := $(abspath $(SOURCE)/../../..)
 BUILD ?= $(ROOT)/build/ports/xmpp/2
 BUILD := $(abspath $(BUILD))
 MODULES := XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen XmppConnections \
- XmppStrings XmppCore XmppMessenger XmppPresence XmppWire XmppSasl XmppClient
+ XmppStrings XmppCore XmppMessenger XmppPresence XmppWire XmppSasl XmppClient \
+ XmppIQ XmppPing XmppVersion XmppDisco
 
 include $(ROOT)/src/tools/make/modular-libraries.mk
 NETWORK_MODULES := $(MODULAR_INTERNET) $(filter-out norayr/tls/httpsPure,$(MODULAR_TLS))
@@ -16,6 +17,7 @@ NETWORK_CFLAGS = $(CFLAGS) -D_DEFAULT_SOURCE
 .PHONY: all dependencies test network network-test probe tls-regression clean
 dependencies:
 	$(MAKE) -C "$(SOURCE)/../xml" BUILD="$(BUILD)" VOC="$(VOC)" all
+	$(MAKE) -C "$(SOURCE)/../punycode" BUILD="$(BUILD)" VOC="$(VOC)" all
 
 all: dependencies
 	cd "$(BUILD)" && for name in $(MODULES); do \
@@ -27,6 +29,7 @@ test: all
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppStream.Mod" && timeout 30 ./TestXmppStream
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppCore.Mod" && timeout 30 ./TestXmppCore
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppClient.Mod" && timeout 30 ./TestXmppClient
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIQ.Mod" && timeout 30 ./TestXmppIQ
 
 network: all
 	@test "$$(uname -s)" = Linux || { echo "The XMPP TCP/TLS driver currently requires Linux."; exit 1; }
@@ -53,4 +56,4 @@ tls-regression: network
 	cd "$(ROOT)/src/test/ports" && sh ./gemini/test.sh "$(VOC)" "$(BUILD)" 2 "-sFm"
 
 clean:
-	rm -f $(foreach name,$(MODULES) XmppTCP XmppProbe TestXmppStream TestXmppCore TestXmppClient TestXmppNetwork,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppStream" "$(BUILD)/TestXmppCore" "$(BUILD)/TestXmppClient" "$(BUILD)/TestXmppNetwork" "$(BUILD)/XmppProbe"
+	rm -f $(foreach name,$(MODULES) XmppTCP XmppProbe TestXmppStream TestXmppCore TestXmppClient TestXmppIQ TestXmppNetwork,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppStream" "$(BUILD)/TestXmppCore" "$(BUILD)/TestXmppClient" "$(BUILD)/TestXmppIQ" "$(BUILD)/TestXmppNetwork" "$(BUILD)/XmppProbe"
