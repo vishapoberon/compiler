@@ -319,7 +319,7 @@ test-library: libraries
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestIDNA.mod" && ./TestIDNA
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/ports/punycode/tests/TestPunycode.Mod" && ./TestPunycode
 	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && for name in TestParser TestStream TestValidation TestWriter TestBasic; do $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/xml/tests/voc/$$name.Mod" && "./$$name" || exit; done; fi
-	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && for name in TestXmppStream TestXmppCore TestXmppClient TestXmppIQ; do $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/xmpp/tests/$$name.Mod" && "./$$name" || exit; done; fi
+	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && for name in TestXmppStream TestXmppCore TestXmppClient TestXmppIQ TestXmppRosterPubSub; do $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/xmpp/tests/$$name.Mod" && "./$$name" || exit; done; fi
 	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/norayr/xmpp-publish/tests/TestXmppPublish.Mod" && ./TestXmppPublish; fi
 	$(MAKE) -C "$(ROOT)/src/test/ports" test VOC="$(NEWVOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(MODULES)" SYMBOLS="$(MODULES)" MODEL=$(MODEL) FLAGS=-smD NETWORK=$(WITH_NETWORK) BUILD="$(BUILD)/port-tests"
 	$(MAKE) -C "$(ROOT)/src/test/ports/sts-q" test-bundled VOC="$(NEWVOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(MODULES)" SYMBOLS="$(MODULES)" MODEL=$(MODEL) FLAGS=-smD BUILD="$(BUILD)/kbd-tests"

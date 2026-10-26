@@ -34,6 +34,11 @@ Add features explicitly with `AddFeature`, including ping/version when enabled.
 Unknown nonempty discovery nodes receive `item-not-found`. Custom IQ handlers
 extend `HandlerDesc` and return `Response` or `ErrorReply`; unknown requests
 receive `service-unavailable`. Replies to replies are never generated.
+`Handler.Accept(router, request)` defaults to `TRUE`; override it to silently
+discard unauthorized requests before malformed envelopes generate error replies.
+The router calls it for registered payloads present in a get/set stanza.
+`XmppRoster` uses this filter for the RFC 6121 roster-push sender rule.
+See [rosters and PEP](RosterPEP.md) for its cache and the PubSub helpers.
 
 ## Bounds and lifecycle
 

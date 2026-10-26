@@ -25,10 +25,11 @@ their remaining session actions and extension behavior.
 | `XmlStream`, `XmlGen`, `Connections` | Native receive framing, stanza trees, bounded output, owner callbacks, counters and stream restarts. `XmppTCP` supplies synchronous TCP/TLS. |
 | `Core` | Stanza metadata, feature lookup, language inheritance and session hooks. `XmppClient` adds TLS/SASL/resource-binding negotiation; `XmppIQ` supplies explicit IQ handler registration and bounded request correlation. |
 | `Strings` | UTF-16 JID splitting/joining and structural checks. Native TCP supplies Unicode-domain normalization through shared `IDNA`. ID generation and full username/resource preparation remain pending. |
-| `Messenger`, `Presence` | Basic message-body and presence-status construction. Original delivery tracking, receipts, roster state and scheduling remain pending. |
+| `Messenger`, `Presence` | Basic message-body and presence-status construction. Delivery tracking, receipts, subscription-presence behavior and scheduling remain pending. |
 | `Sasl` | Bounded Unicode SASL PLAIN response with explicit opt-in over verified TLS. Original DIGEST-MD5 remains pending; SCRAM is an additional planned mechanism. |
 | `Disco`, `Ping`, `Version` | Bounded IQ routing, XEP-0199 ping, opt-in XEP-0092 metadata and XEP-0030 info/items queries and configured replies. Discovery exposes the checked reply tree; dynamic discovery nodes remain application-owned. |
-| `Roster`, `Register`, `Muc` | Pending extension behavior and tests. |
+| `Roster` | Bounded full retrieval, contact edits/removals and sender-checked pushes with atomic snapshots and stale-fetch protection. Roster versioning and presence-subscription automation remain pending. |
+| `Register`, `Muc` | Pending extension behavior and tests. |
 | `Ibb`, `ByteStreams`, `StreamInit`, `Files` | Pending file-transfer state, sockets and file adapters. |
 | `DateTime`, `Stuff` | Pending portable helpers and scheduling/collection replacements. |
 | `Session`, `Bus`, `StdBus`, `ObxBus` | `XmppClient` supplies the authenticated client lifecycle. Original session management, remaining extension lifecycle and bus/service integration remain pending. |
@@ -61,7 +62,8 @@ PLAIN login, Unicode resource binding, a Unicode self-message round trip and
 orderly closure.
 The IQ layer now handles ping, version and discovery with address-checked
 responses, cancellation and caller-driven deadlines; see [IQ extensions](IQ.md).
-The next stages adapt roster/presence behavior, scheduling and remaining
-authentication functionality.
+Roster and reusable PubSub/PEP operations now have offline and local TLS
+coverage; see [rosters and PEP](RosterPEP.md). The next stages adapt
+presence-subscription behavior, scheduling and remaining authentication functionality.
 Broader interoperability, full username/resource preparation and adversarial
 security review remain pending.
