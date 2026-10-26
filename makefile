@@ -267,6 +267,9 @@ ooc: configuration
 xml: configuration
 	@make -f src/tools/make/oberon.mk -s xml MODEL=2
 
+xmpp: configuration
+	@make -f src/tools/make/oberon.mk -s xmpp MODEL=2
+
 ulm: configuration
 	@make -f src/tools/make/oberon.mk -s ulm MODEL=2
 

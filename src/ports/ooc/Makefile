@@ -10,8 +10,11 @@ include $(ROOT)/src/tools/make/modular-libraries.mk
 
 MODULES := $(MODULAR_OOC) C$(C_MODEL)
 TESTS := TestLongStrings TestMessages TestOocChannels TestOocURI TestOocUnified TestIntStr TestAsciiCodes
+PKG_CONFIG ?= pkg-config
+IDNA_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags libidn2)
+IDNA_LIBS ?= $(shell $(PKG_CONFIG) --libs libidn2)
 
-.PHONY: all test clean
+.PHONY: all test idna test-idna clean
 # Local symbol files make the linker select these objects over installed copies.
 all:
 	mkdir -p "$(BUILD)"
@@ -27,7 +30,16 @@ test: all
 	cd "$(BUILD)" && $(VOC) -O$(MODEL) -s -F -m "$(ROOT)/src/test/confidence/library/TestOocURIFixtures.mod"
 	python3 "$(SOURCE)/tests/check-uri.py" "$(BUILD)/TestOocURIFixtures" --work "$(BUILD)/uri-fixtures"
 
+idna:
+	@$(PKG_CONFIG) --exists libidn2 || { echo "IDNA requires libidn2 development files and pkg-config."; exit 1; }
+	mkdir -p "$(BUILD)"
+	cd "$(BUILD)" && CFLAGS="$(CFLAGS) $(IDNA_CFLAGS)" LDLIBS="$(LDLIBS) $(IDNA_LIBS)" $(VOC) -O$(MODEL) -s -F "$(SOURCE)/IDNA.Mod"
+
+test-idna: idna
+	cd "$(BUILD)" && LDLIBS="$(LDLIBS) $(IDNA_LIBS)" $(VOC) -O$(MODEL) -s -F -m "$(ROOT)/src/test/confidence/library/TestIDNA.mod" && ./TestIDNA
+
 clean:
+	rm -f "$(BUILD)/TestIDNA" $(foreach name,IDNA TestIDNA,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)"))
 	rm -f "$(BUILD)/TestOocURIFixtures" $(foreach ext,c h o sym,"$(BUILD)/TestOocURIFixtures.$(ext)")
 	rm -f $(foreach name,$(MODULES) $(TESTS),$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) \
 		$(foreach name,$(TESTS),"$(BUILD)/$(name)")

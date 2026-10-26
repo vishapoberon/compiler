@@ -62,6 +62,7 @@
 !/src/test/confidence/library/TestTypeAliases.mod
 !/src/test/confidence/library/TypeAliases.mod
 !/src/test/confidence/library/TestIntStr.mod
+!/src/test/confidence/library/TestIDNA.mod
 !/src/test/confidence/heaproots/
 !/src/test/confidence/heaproots/TestHeapRoots.mod
 !/src/test/confidence/heaproots/RegisterRoots.inc

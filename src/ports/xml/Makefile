@@ -13,7 +13,7 @@ endif
 include $(ROOT)/src/tools/make/modular-libraries.mk
 
 TESTS := TestUnicodeCodecs TestUnicodeMessages TestMemoryBuffers TestDTDResolver \
- TestParser TestNamespaces TestValidation TestWriter TestBasic TestProtocol TestEntityPolicy TestLimits
+ TestParser TestNamespaces TestStream TestValidation TestWriter TestBasic TestProtocol TestEntityPolicy TestLimits
 
 .PHONY: all test xmlcheck conformance limits fuzz clean
 all:

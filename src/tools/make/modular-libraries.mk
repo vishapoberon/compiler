@@ -16,9 +16,12 @@ MODULAR_OOC = LowReal LowLReal RealMath OakMath LRealMath \
 MODULAR_XML = XMLUnicodeCodec XMLUnicodeCodecASCII XMLUnicodeCodecLatin1 \
  XMLUnicodeCodecUTF8 XMLUnicodeCodecUTF16 XMLUnicodeCodecImportAll \
  XMLLimits XMLInputBuffer XMLUnicodeBuffer XMLDTD XMLEntityResolver \
- XMLError XMLLocator XMLBuilder XMLParser XMLBuilderNamespaces XMLRegexp \
+ XMLError XMLLocator XMLBuilder XMLParser XMLBuilderNamespaces XMLStream XMLRegexp \
  XMLBuilderValidation XMLWriter XMLBuilderCanonical XMLBuilderParserProtocol \
  XMLBasicElement XMLBasicDataType XMLBasicParser
+MODULAR_XMPP = XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen \
+ XmppConnections XmppStrings XmppCore XmppMessenger XmppPresence \
+ XmppWire XmppSasl XmppClient
 MODULAR_ULM = Types Objects Priorities Disciplines Services \
  Sys ulmSYSTEM Events Process Resources Forwarders \
  RelatedEvents StreamsHost Streams Terminals ulmStrings \

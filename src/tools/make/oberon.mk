@@ -279,6 +279,10 @@ xml: ooc
 	@test "$(MODEL)" = 2 || { echo 'The XML port targets model 2.'; exit 1; }
 	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_XML); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/xml/$$name.Mod" || exit; done
 
+xmpp: xml
+	@printf '\nMaking XMPP library for -O$(MODEL)\n'
+	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_XMPP); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/xmpp/$$name.Mod" || exit; done
+
 ulm:
 	@printf '\nMaking ulm library for -O$(MODEL)\n'
 	cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_ULM); do \
@@ -315,7 +319,7 @@ ports:
 	  cd $(BUILDDIR)/$(MODEL) && for name in $(MODULAR_LINUX_PORTS); do "$(ROOTDIR)/$(OBECOMP)" -Fs -O$(MODEL) "$(ROOTDIR)/src/ports/$$name.Mod" || exit; done; \
 	else echo 'Skipping the Linux networking profile.'; fi
 
-O2library: runtime terminal cli v4 ooc xml ulm pow32 misc s3 ports
+O2library: runtime terminal cli v4 ooc xml xmpp ulm pow32 misc s3 ports
 
 OClibrary: runtime terminal
 

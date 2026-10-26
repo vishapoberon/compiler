@@ -62,6 +62,8 @@ BEGIN
   s.clientAppSeq := 0;
   s.serverAppSeq := 0;
   s.closeNotify := FALSE; s.alert := 0;
+  TLSBytes.Init(s.clientAppKey); TLSBytes.Init(s.clientAppIV);
+  TLSBytes.Init(s.serverAppKey); TLSBytes.Init(s.serverAppIV);
   TLSBytes.Init(s.clientAppSecret); TLSBytes.Init(s.serverAppSecret); TLSBytes.Init(s.postHs);
   TLSBytes.Init(s.pending);
   s.pendingPos := 0
@@ -317,7 +319,16 @@ BEGIN
   RETURN TRUE
 END CheckCapturedCertificateChain;
 
-PROCEDURE Handshake(host, port: ARRAY OF CHAR; VAR s: State): BOOLEAN;
+PROCEDURE Prepare(host: ARRAY OF CHAR; VAR s: State);
+BEGIN
+  Init(s); lastError := ""; alertDesc := 0; hsKeys := FALSE;
+  pinned := FALSE; keyPin := ""; certPin := ""; identitySent := FALSE;
+  TLS13EncHandshake.verbose := verbose;
+  TLS13EncHandshake.ResetState;
+  TLS13EncHandshake.SetExpectedHost(host)
+END Prepare;
+
+PROCEDURE Handshake(host: ARRAY OF CHAR; VAR s: State): BOOLEAN;
 VAR
   privArr, pubArr, sharedArr: ARRAY 32 OF CHAR;
   i: LONGINT;
@@ -331,13 +342,6 @@ VAR
   serverHSSeq, clientHSSeq: LONGINT;
   why: ARRAY 128 OF CHAR;
 BEGIN
-  Init(s); lastError := ""; alertDesc := 0; hsKeys := FALSE; pinned := FALSE; keyPin := ""; certPin := ""; identitySent := FALSE;
-  TLS13EncHandshake.verbose := verbose;
-  TLS13EncHandshake.ResetState;
-  TLS13EncHandshake.SetExpectedHost(host);
-  IF ~Internet.Connect(host, port, s.fd) THEN RETURN FALSE END;
-  s.connected := TRUE;
-
   IF ~TLS13Random.Fill(privArr, 32) THEN RETURN FALSE END;
   TLSX25519.ScalarMultBase(pubArr, privArr);
   IF ~FillBufferRandom(clientRandom, 32) THEN RETURN FALSE END;
@@ -490,16 +494,32 @@ BEGIN
   RETURN TRUE
 END Handshake;
 
-(** a TLS 1.3 connection to host: the server authenticated (a trusted chain for the host name,
-  CertificateVerify and Finished); FALSE and nothing open otherwise (lastError says why) *)
-PROCEDURE Connect*(host, port: ARRAY OF CHAR; VAR s: State): BOOLEAN;
+(** Authenticate host over an already connected socket, including STARTTLS upgrades.
+  Use an inactive state.
+  Takes ownership of fd and closes it on failure. All preceding protocol bytes must
+  have been consumed; the TLS handshake reads directly from the socket. *)
+PROCEDURE Start*(host: ARRAY OF CHAR; fd: Internet.Socket; VAR s: State): BOOLEAN;
 BEGIN
-  IF Handshake(host, port, s) THEN RETURN TRUE END;
+  Prepare(host, s);
+  s.fd := fd; s.connected := fd >= 0;
+  IF s.connected & Handshake(host, s) THEN RETURN TRUE END;
   IF lastError = "" THEN COPY("no connection", lastError) END;
   IF s.connected & (alertDesc > 0) THEN SendAlert(s, alertDesc, hsKeys) END;
   IF s.connected THEN Internet.Disconnect(s.fd) END;
+  Wipe(s.clientAppKey); Wipe(s.clientAppIV); Wipe(s.serverAppKey); Wipe(s.serverAppIV);
+  Wipe(s.clientAppSecret); Wipe(s.serverAppSecret);
   Init(s);
   RETURN FALSE
+END Start;
+
+(** a TLS 1.3 connection to host: the server authenticated (a trusted chain for the host name,
+  CertificateVerify and Finished); FALSE and nothing open otherwise (lastError says why) *)
+PROCEDURE Connect*(host, port: ARRAY OF CHAR; VAR s: State): BOOLEAN;
+  VAR fd: Internet.Socket;
+BEGIN
+  Prepare(host, s);
+  IF ~Internet.Connect(host, port, fd) THEN COPY("no connection", lastError); RETURN FALSE END;
+  RETURN Start(host, fd, s)
 END Connect;
 
 (** Connect, for protocols that trust on first use (Gemini): a server not verified by a CA (its

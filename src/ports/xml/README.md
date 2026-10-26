@@ -4,6 +4,8 @@ This package provides Michael van Acken's ooc-libxml 3.2.0 XML parser, DTD
 validator, namespace builders, Unicode codecs and XML writer for VOC's
 Oberon-2 (`-O2`) model. It also provides canonical output, callback traces and
 application-object construction through the Basic element interfaces.
+`XMLStream` supplies bounded, byte-fed element streams with retained namespace
+context and exact event boundaries for long-lived protocols such as XMPP.
 
 ## Building and testing
 
@@ -22,21 +24,20 @@ regression programs. Override `VOC`, `BUILD`, `CC` or `CFLAGS` as needed.
 build directory. `make modular-library` builds the loadable XML modules;
 `make modular-library-test` includes XML consumer tests and module loading.
 
-The source-build tests cover 13 XML programs, 114 original codec vectors in
+The source-build tests cover 14 XML programs, 114 original codec vectors in
 two output-buffer configurations, seven shared ooc programs and 77 original
 URI fixtures. Conformance checks cover 2,687 XML, namespace, DTD, protocol and
 reference-output cases. The resource suite has 53 process-bounded hostile
 inputs; deterministic truncation/mutation testing adds 2,655 invocations.
+The element-stream program adds 232 chunk-size runs, 486 malformed-input
+mutations, lifetime-budget checks and restart/consumption regressions.
 These pass with GCC/C23, Clang/C23, TCC and Clang ASan/UBSan on Linux.
 The model-2 modular-library test also passes with networking disabled,
 including all bundled module-loading checks and XML consumer programs.
 Full compiler-image and native-Windows release validation is tracked
 separately from these source-build results.
-The existing compiler binary in the development checkout still rejects the
-unchanged ooc `LowReal.Mod` constant at line 87 (`err 203`) before `make xml`
-reaches XML. The isolated build uses the installed compiler; modular testing
-builds a fresh compiler and passes. Rebuilding the conventional compiler image
-remains a VOC release-validation task.
+Use a matching rebuilt compiler and runtime installation, such as VOC 4.0.2,
+when testing changes to the shared ooc dependencies.
 
 ## Using the library
 
@@ -68,6 +69,7 @@ callbacks while adding parser and built-in builder accounting. See:
 - [Conformance coverage and historical fixture corrections](doc/Conformance.md)
 - [Writing XML](doc/WritingXML.md)
 - [Basic element objects and callback traces](doc/BasicElements.md)
+- [Incremental XML element streams](doc/Streaming.md)
 
 `make -C src/ports/xml xmlcheck` builds `build/ports/xml/2/XMLCheck`.
 It disables external references by default and accepts `--namespaces`,
@@ -78,10 +80,11 @@ XML/resource diagnostics and 2 for usage, opening or output errors.
 ## Source records
 
 The implementation is imported from
-[voc-ooc-xml, commit ff8ab3d](https://github.com/norayr/voc-ooc-xml/tree/ff8ab3d).
+[voc-ooc-xml, commit 894d92c](https://github.com/norayr/voc-ooc-xml/tree/894d92c).
 That repository preserves the complete CVS ancestry, original branches and
 release tags. The 24 implementation files are copied unchanged, with flattened
-file paths recorded in [PORT.toml](PORT.toml). Reusable strings, Unicode types,
+file paths recorded in [PORT.toml](PORT.toml). The additive `XMLStream` module
+is included in that source revision. Reusable strings, Unicode types,
 diagnostics, channels, memory files and URI implementations live in
 [`../ooc`](../ooc/README.md).
 

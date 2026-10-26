@@ -1,0 +1,2 @@
+# Preserve the supplied source documents, text exports and resource bytes.
+upstream/** -text

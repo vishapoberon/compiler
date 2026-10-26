@@ -1,0 +1,445 @@
+{
+  "revision": "a2cde5435bea63de16239c2c31e399ad0fd43ad2",
+  "files": [
+    {
+      "path": ".hg_archival.txt",
+      "bytes": 174,
+      "sha256": "4f4afb30d9050ae1f1193218b2c1a74c08162d15ed6acfcbd8f22d0d6b4da673"
+    },
+    {
+      "path": ".hgignore",
+      "bytes": 19,
+      "sha256": "92e4a32f9608fd47843fd212d1ca921f2f2fb7db34087677d6e4f3181c7ef4c6"
+    },
+    {
+      "path": "Docu/Basic.odc",
+      "bytes": 2780,
+      "sha256": "1428431184290f6a7564e6405f554775e1016091fdaaecf509d9d2dd058f1899"
+    },
+    {
+      "path": "Docu/Concept-Doc.odc",
+      "bytes": 2157,
+      "sha256": "49b06378f17708771c5adf106f3c54a7d75b342e45b0e4dc28c6e2a0ea2371b4"
+    },
+    {
+      "path": "Docu/Connections.odc",
+      "bytes": 5125,
+      "sha256": "cdf0f772f4e18f01cdc615f57cdb1d387ca227f59befd6912aa6adc1a60da8ea"
+    },
+    {
+      "path": "Docu/Console.odc",
+      "bytes": 2815,
+      "sha256": "bb995027c5cea3b5a41d22ae1597c16ffcab490c7064498c0bd695619f4c518a"
+    },
+    {
+      "path": "Docu/Const.odc",
+      "bytes": 2840,
+      "sha256": "c1e5a7c249b4abd041fd638c45c15bacdfdf3b445441264553429e922287cf49"
+    },
+    {
+      "path": "Docu/Core.odc",
+      "bytes": 9711,
+      "sha256": "834d7b9872dabb9ccb7a8c830e08cb9439adf7c9c359c28f174e84c2c65e98bc"
+    },
+    {
+      "path": "Docu/Dev-Tool.odc",
+      "bytes": 1749,
+      "sha256": "ce90b46e535128b258c5f6ab51fde77b43e51af075f7b2ad940d56e5d3f051df"
+    },
+    {
+      "path": "Docu/Sasl.odc",
+      "bytes": 4743,
+      "sha256": "e51df6d63994fd5e5aa2a653242f3056ec64341a5d83f84b627831ed59d12ca7"
+    },
+    {
+      "path": "Docu/Session-Initializing.odc",
+      "bytes": 4978,
+      "sha256": "a24454dacbf3aa56bebe1e17bd63821a483899c2bb086156f4d3d4ffb2f7f1a9"
+    },
+    {
+      "path": "Docu/Strings.odc",
+      "bytes": 3450,
+      "sha256": "e4e41d4635209a79e373fb906780bd49a946886743196a8423f6f1783c37da71"
+    },
+    {
+      "path": "Docu/Tool-Map.odc",
+      "bytes": 3178,
+      "sha256": "96c36e72f75f59b021d69b00ecf101fdd3fb2e909d943deefc72f950358aeeaf"
+    },
+    {
+      "path": "Docu/XmlGen.odc",
+      "bytes": 1222,
+      "sha256": "c8bc7fb63c64e02d839aaae0d6869c2b74d84abfb5e9257b012dac6253cdd95a"
+    },
+    {
+      "path": "Docu/XmlStream.odc",
+      "bytes": 13801,
+      "sha256": "af16f1d38c1c8cb7e32dcd4213864d0c1f255322ddf18e849321d78a3a169d9b"
+    },
+    {
+      "path": "Mod/Basic.odc",
+      "bytes": 2451,
+      "sha256": "a6a19481ad509dab71047e092719e10cc3755e223b059f827b4521cf359e32f7"
+    },
+    {
+      "path": "Mod/Basic.txt",
+      "bytes": 1515,
+      "sha256": "7f38905773b34f5da6d38281b475b780e9a92ed378978521fe332ed571f03b15"
+    },
+    {
+      "path": "Mod/Bus.odc",
+      "bytes": 11193,
+      "sha256": "810fef39dbb98752b29dcfad337253e1b3159dbcabb78b922bb401ed0c39ce12"
+    },
+    {
+      "path": "Mod/Bus.txt",
+      "bytes": 8566,
+      "sha256": "7ec5aee89d5c960132c055f2433fb7536ddb0285f14ecc265bfdc1ed4b0fb34c"
+    },
+    {
+      "path": "Mod/ByteStreams.odc",
+      "bytes": 17847,
+      "sha256": "5863cf2e741864bca7f8c24b227270fc47afa8ec338d187c90ac6d2db0749379"
+    },
+    {
+      "path": "Mod/ByteStreams.txt",
+      "bytes": 15758,
+      "sha256": "fe8daf70d83da51ce3b796bc9a6c5664f960bdb1e8935779dcfeb34eac3a31ce"
+    },
+    {
+      "path": "Mod/Cmds.odc",
+      "bytes": 6131,
+      "sha256": "1f5f8168b71b1ab35676d4018ceb916eb84720ac01f333376d86b7352d4c73d0"
+    },
+    {
+      "path": "Mod/Cmds.txt",
+      "bytes": 3624,
+      "sha256": "b80cdc7206dc8f5ed18e00d2b8a5f5bcdf26a09b98f79e4ee63149340ca6dc70"
+    },
+    {
+      "path": "Mod/Connections.odc",
+      "bytes": 9051,
+      "sha256": "0d87edca60738400426b1750e852a97adf7658dfc7b11590a1f62b7b08c694f2"
+    },
+    {
+      "path": "Mod/Connections.txt",
+      "bytes": 6516,
+      "sha256": "7c1db1f84e92218bbcbb57b9322365d36518de37f8843f581d3e694bbf5a528a"
+    },
+    {
+      "path": "Mod/Console.odc",
+      "bytes": 3137,
+      "sha256": "23d1e421bbdd585bb96c68b4207025ec769de0970261f0b0f7dc7b1160cea218"
+    },
+    {
+      "path": "Mod/Console.txt",
+      "bytes": 1565,
+      "sha256": "01256adbddd8c5bce1e6cd27659b4d38084aeedc5761e17a9c0c39b1c6859c0d"
+    },
+    {
+      "path": "Mod/ConsoleForm.odc",
+      "bytes": 9910,
+      "sha256": "19c526507f33936157acd9392ba4b05425b3984a5169d3a5273a33c98ace0236"
+    },
+    {
+      "path": "Mod/ConsoleForm.txt",
+      "bytes": 8267,
+      "sha256": "51c77ed4457ba133675dc27209c26ae9717b606073e90e18ed96b37fe90fd187"
+    },
+    {
+      "path": "Mod/Const.odc",
+      "bytes": 2594,
+      "sha256": "81c7dc925d8e9dfd02a6e637113b4f8c117613a0833b9964f6ca0ba6d0de1826"
+    },
+    {
+      "path": "Mod/Const.txt",
+      "bytes": 1650,
+      "sha256": "2779262a704ef30b0c8d4cf76bd3d5cde71e3adae23a0b455f0e2682e32a1da8"
+    },
+    {
+      "path": "Mod/Core.odc",
+      "bytes": 33562,
+      "sha256": "a6696d0c38b28702588ed232c27137f969dc8b130bc4671b97dd832f7d1c1f9f"
+    },
+    {
+      "path": "Mod/Core.txt",
+      "bytes": 28670,
+      "sha256": "53a3d2102b8f77ff693e04749bb028c799b0e0a69467a68feba29cf524bcced0"
+    },
+    {
+      "path": "Mod/DateTime.odc",
+      "bytes": 10046,
+      "sha256": "39ea656b3845a9722d87754da6408cda97bcb5c3abc2f63fd6938d4745001a51"
+    },
+    {
+      "path": "Mod/DateTime.txt",
+      "bytes": 5632,
+      "sha256": "cef178faed05aedc3e00e1407fcebc568f0a6c8438fe96921b9dabfe7b1b991f"
+    },
+    {
+      "path": "Mod/Disco.odc",
+      "bytes": 11288,
+      "sha256": "a369953acd7e1f9a55b9b1292295101c215319079c3eda1e08db74643bc52b26"
+    },
+    {
+      "path": "Mod/Disco.txt",
+      "bytes": 9695,
+      "sha256": "7a8de0c79a9cb3c3bf03459682729241bdd90325b8eb9b130e89f4daa6a53128"
+    },
+    {
+      "path": "Mod/Extended.odc",
+      "bytes": 12435,
+      "sha256": "df3ceed369908ac762c3ea79187bd32b63f976a85dd5cb68a34da9ed5d7fe06e"
+    },
+    {
+      "path": "Mod/Extended.txt",
+      "bytes": 10045,
+      "sha256": "5ca421e47fee33eae9f66b1875353430b1913d49233484f76f7aeeb44038ff35"
+    },
+    {
+      "path": "Mod/Files.odc",
+      "bytes": 3302,
+      "sha256": "184c6d90692653d2cc3f2c320730e826564d3d8220f1043d5a348a3981577ad5"
+    },
+    {
+      "path": "Mod/Files.txt",
+      "bytes": 792,
+      "sha256": "605da23d9e128293ca22f2cd512665f0b0a6542dd199a282617a0be687a7cb00"
+    },
+    {
+      "path": "Mod/Ibb.odc",
+      "bytes": 12875,
+      "sha256": "e7f591f67b7d35c1b61ec80c4234071d0b48401959761e2398dae4855b5c78b1"
+    },
+    {
+      "path": "Mod/Ibb.txt",
+      "bytes": 10883,
+      "sha256": "b77f8ae8146a86dffd2102a7a5c7813eb3555cb634d95f81d50db24a80b3e257"
+    },
+    {
+      "path": "Mod/Messenger.odc",
+      "bytes": 9727,
+      "sha256": "343f2b42ec9159f005146415c49d993eead651cad97b2207e25a4542f9a1cb92"
+    },
+    {
+      "path": "Mod/Messenger.txt",
+      "bytes": 7521,
+      "sha256": "942a2ebe6994dfd00551192e23893d8b5001e3f3850a971492fcd8ed27a5eb2c"
+    },
+    {
+      "path": "Mod/Muc.odc",
+      "bytes": 3357,
+      "sha256": "18a519dbc75f4ee33e0506797b9c7c3b954d6ade41b89ef841fc0ff4d2222d85"
+    },
+    {
+      "path": "Mod/Muc.txt",
+      "bytes": 1521,
+      "sha256": "427de53cc3f975a25751ee3a477076506977f20fdef79fe0ed5ac03ff98e4f8d"
+    },
+    {
+      "path": "Mod/Obx.odc",
+      "bytes": 8925,
+      "sha256": "536943f24bd5ae4da3957ff9be8f33aee22d6e5fb6200e87bf3e2577725b39d9"
+    },
+    {
+      "path": "Mod/Obx.txt",
+      "bytes": 6045,
+      "sha256": "e1be136dc2a9aa1b9bb1079c7d790aea29f3bfc73c832ba24c63681d8368fe9f"
+    },
+    {
+      "path": "Mod/ObxBus.odc",
+      "bytes": 5119,
+      "sha256": "9f813618c3935a4598c9eca015f99fe4f7e77f2f0ff066088768dcb85dcfddf9"
+    },
+    {
+      "path": "Mod/ObxBus.txt",
+      "bytes": 2091,
+      "sha256": "ebc682936d1919beac3b9865162b876b366407002d76f2f51e75b6b5bd1b7c87"
+    },
+    {
+      "path": "Mod/Ping.odc",
+      "bytes": 7587,
+      "sha256": "d06ea25060ca740611cba3caf42227693f6a446f12daa1d6d72ef31aa9977dab"
+    },
+    {
+      "path": "Mod/Ping.txt",
+      "bytes": 4124,
+      "sha256": "88d5a195499fa9fab8ced24df69a9568d9c5aecc62ea48cb58f07ad5bc916b89"
+    },
+    {
+      "path": "Mod/Presence.odc",
+      "bytes": 9193,
+      "sha256": "6f4da8ec7ed370aab871e336d920c71d4280528931ee5d32cb4d91b2855a6b80"
+    },
+    {
+      "path": "Mod/Presence.txt",
+      "bytes": 6593,
+      "sha256": "8d66915a6ec5902fd3d29d8f856ef6aa7dded44b5f306e73dc165031fda454d1"
+    },
+    {
+      "path": "Mod/Register.odc",
+      "bytes": 11041,
+      "sha256": "0667a9f370f3d56bceaac0e8ea6e05fe46bd141e37efa9251ba1a10f521f2d04"
+    },
+    {
+      "path": "Mod/Register.txt",
+      "bytes": 8087,
+      "sha256": "4581dfb51b24d95432e60fae62d1a7194959abdb466de66caffb3a01c8135922"
+    },
+    {
+      "path": "Mod/Roster.odc",
+      "bytes": 11123,
+      "sha256": "113262bc75a443d17cacb3b312aba90949e29afd47a1f5a3ada31cf2bb17bbfd"
+    },
+    {
+      "path": "Mod/Roster.txt",
+      "bytes": 8535,
+      "sha256": "561874c57ca6f418d9f62875764de1defc0e6118bf2b845d26703b20b592754e"
+    },
+    {
+      "path": "Mod/Sasl.odc",
+      "bytes": 6592,
+      "sha256": "f67becfe312078b07d5fde543472f57baa170a2064e86320640f5ba00acdb4c4"
+    },
+    {
+      "path": "Mod/Sasl.txt",
+      "bytes": 3652,
+      "sha256": "2ee829a4ac9313326ce1ec5703f46736855dd30927f567bb337ccb945a7c56b6"
+    },
+    {
+      "path": "Mod/Session.odc",
+      "bytes": 27594,
+      "sha256": "69455335c3140b17d9002a49906a1a998c447c6dd6d91fcf97a7f41074b5056a"
+    },
+    {
+      "path": "Mod/Session.txt",
+      "bytes": 25229,
+      "sha256": "f894ac5c4cdc11b9caa9dd07bc578261c9c11ec73ef2e9107b8c7347b4d0d52a"
+    },
+    {
+      "path": "Mod/StdBus.odc",
+      "bytes": 18186,
+      "sha256": "1d50e18be8d454c88fa636252685e8f28db91f1687b30ae0716b1e1249befaf2"
+    },
+    {
+      "path": "Mod/StdBus.txt",
+      "bytes": 15379,
+      "sha256": "99902e1f79004d7f5b64249c8b6e07a75574dd4e1e6d2e42b94193a191cc7021"
+    },
+    {
+      "path": "Mod/StreamInit.odc",
+      "bytes": 12830,
+      "sha256": "73290edaae148c8ba9e18a31aaecccaa6d48634f445507fad5b84530ed0f9f19"
+    },
+    {
+      "path": "Mod/StreamInit.txt",
+      "bytes": 9365,
+      "sha256": "41237040b1d7b6ea64d2048dc96bc2d980f93f9573ba58bd550241c849234bc6"
+    },
+    {
+      "path": "Mod/Strings.odc",
+      "bytes": 5474,
+      "sha256": "3208c92354c92f74776b2a8ddf9cd3bcc80b3832969944c7e3da528fad8ca54c"
+    },
+    {
+      "path": "Mod/Strings.txt",
+      "bytes": 2660,
+      "sha256": "392c17bb160d37ee50d050fb50dd1a4f72a5785e4e9f3ad148ac5bb08fc94993"
+    },
+    {
+      "path": "Mod/Stuff.odc",
+      "bytes": 3594,
+      "sha256": "e9d47a89abe3381e20a190122b036612423a1183074e998954e77c29c9ea4cea"
+    },
+    {
+      "path": "Mod/Stuff.txt",
+      "bytes": 1312,
+      "sha256": "409021e6976bbe11dbe0c179bdb332ef33e75c29ef8d66b7365405ece19a4892"
+    },
+    {
+      "path": "Mod/Version.odc",
+      "bytes": 5203,
+      "sha256": "7f1b540618ff78bfb4035fd607373d307df9e8e80cb07757c750d57d406e4408"
+    },
+    {
+      "path": "Mod/Version.txt",
+      "bytes": 2944,
+      "sha256": "23a9f620c95a5912cb04da448e4126c7a6414945ce2401eeb24df79799d9426d"
+    },
+    {
+      "path": "Mod/XmlGen.odc",
+      "bytes": 4908,
+      "sha256": "8ad16e28c8e2783e3fbf05d25ee19fc5397b0d1b75730bda963c026582b7135a"
+    },
+    {
+      "path": "Mod/XmlGen.txt",
+      "bytes": 2661,
+      "sha256": "24a794b8c1b15544d866602528556745bc578cd81d08f641a8c6aaefdd3470db"
+    },
+    {
+      "path": "Mod/XmlStream.odc",
+      "bytes": 15454,
+      "sha256": "25ad2f3665df52fbe90fc8f1aea4f7d8b0960c3339d44d64ff96d23deb1b462e"
+    },
+    {
+      "path": "Mod/XmlStream.txt",
+      "bytes": 13125,
+      "sha256": "cfccd2b3da5d33f08cf06fbe453cf37487eab8b5b5a9b6c88545eb4701cb12cf"
+    },
+    {
+      "path": "Rsrc/Basic.odc",
+      "bytes": 1878,
+      "sha256": "229829cc610662f468805a1e795dbb17fee10b79b97362f23534e32f896fb763"
+    },
+    {
+      "path": "Rsrc/Console.odc",
+      "bytes": 2080,
+      "sha256": "082b5e04eab71fefa67f5e09eca802c15d6f4aa7a6cc81d2e6f041b9b5093227"
+    },
+    {
+      "path": "Rsrc/Extended.odc",
+      "bytes": 3306,
+      "sha256": "be1ea6f6d0ddf6f6e95bdb5e49006ba378a8de68bf25175fe52320883e9c6cfb"
+    },
+    {
+      "path": "Rsrc/Icons/jabber.png",
+      "bytes": 2066,
+      "sha256": "bed84bf5f97cb3a74f8160c69459f625f37b91a921c506b44c707f65c5caad13"
+    },
+    {
+      "path": "Rsrc/Obx.odc",
+      "bytes": 3381,
+      "sha256": "d8263f71d3f76db66e3bb43d53e4cfbadfba40d8c0ceb83707ce3e95d419695c"
+    },
+    {
+      "path": "Rsrc/Strings.odc",
+      "bytes": 1156,
+      "sha256": "6a18cd9f650ef52dfbbc2754f9adeb3cfd4332cad44fe15bce0352878a9ad52e"
+    },
+    {
+      "path": "Rsrc/dummy-type.odc",
+      "bytes": 3816,
+      "sha256": "5aeecfd0f8ec557c43dac6e35766bd676d38879122c0e4ca05ecb8c53ea36292"
+    },
+    {
+      "path": "Rsrc/dummy-xep.odc",
+      "bytes": 4782,
+      "sha256": "62dcc6c7c3b111084deccef02918d0d3626d3f314a23a220944ebf1a88a20fe4"
+    },
+    {
+      "path": "Rsrc/old.odc",
+      "bytes": 9713,
+      "sha256": "c387c7ff6ca978e985e2f9a4c7c561330393beba678bd4e5a2291b728682f853"
+    },
+    {
+      "path": "Rsrc/old2.odc",
+      "bytes": 19296,
+      "sha256": "1bb15e90eb37ab944340e4885369cd717e1a24c9b7b648a4e195e83ad4d2057d"
+    },
+    {
+      "path": "Rsrc/test.odc",
+      "bytes": 3825,
+      "sha256": "4cd34dacfc40aca102d455301e2ad36c1a10b039fa03a84660a98048e6d1c015"
+    }
+  ]
+}

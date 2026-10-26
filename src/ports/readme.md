@@ -11,6 +11,7 @@ systems and projects, grouped by author or collection.
 | `tmartiro/` | Tigran Martirosyan's raylib binding |
 | `v4/`, `ooc/`, `oocX11/`, `ulm/`, `pow/`, `s3/` | Libraries from Ofront, oo2c, Ulm, POW! and ETH Oberon |
 | [`xml/`](xml/README.md) | Native Oberon XML parsing, DTD validation, namespace builders and writing |
+| [`xmpp/`](xmpp/README.md) | Unicode XMPP streams, stanzas and client negotiation; optional Linux TCP/TLS transport |
 | [`picl/`](picl/readme.md) | Niklaus Wirth's PICL compiler |
 | [`coco/`](coco/readme.md) | Coco/R from Native Oberon and the version with A. V. Shiryaev's additions |
 
@@ -21,7 +22,7 @@ Ofront's `Args` and `Console`, along with terminal utilities, are in
 ## Building
 
 Run `make` at the repository root to build VOC and its libraries. The default
-model-2 library includes `v4`, `ooc`, `xml`, `ulm`, `pow`, `s3`, `base64`, `bdStrings`,
+model-2 library includes `v4`, `ooc`, `xml`, `xmpp`, `ulm`, `pow`, `s3`, `base64`, `bdStrings`,
 `strutils`, `lists`, `opts`, `toml` and `ssqJson`. Unix builds also include `Kbd`.
 The IP and astronomy modules in `une/` are built with their examples instead.
 
@@ -34,6 +35,11 @@ make modular-library-test
 
 These targets require ELF Unix and use the VOC build in `install/`.
 Linux networking libraries are included unless `WITH_NETWORK=0` is set.
+
+The portable XMPP modules build with the normal library. Its Linux TCP/TLS
+driver and shared IDNA binding build through `make -C src/ports/xmpp network`;
+they require libidn2 development files and `pkg-config`. See the package README
+for tests and the login probe.
 
 ### Compiler tools
 
@@ -107,4 +113,3 @@ Some module names differ from upstream to avoid clashes. For example,
 the ETH interface. ETH's `BIT`, `DES` and `TwoComplement` are in `s3/`.
 `DES` uses the reversed-bit key convention required by VNC; it is obsolete
 cryptography and should not be used for new protocols.
-
