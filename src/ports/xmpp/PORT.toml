@@ -1,0 +1,24 @@
+schema = 1
+package = "xmpp"
+kind = "library"
+origin = "VOC port of the supplied oberoncore-xmpp Component Pascal subsystem"
+upstream_url = "https://github.com/norayr/xmpp"
+upstream_revision = "612d0f4751b85482fecaa8400e613d6c5827b258"
+original_revision = "a2cde5435bea63de16239c2c31e399ad0fd43ad2"
+revision_status = "native sources copied unchanged from the standalone port; original snapshot preserved"
+license = "not specified in supplied subsystem; confirmation pending"
+sources = ["Xmpp*.Mod"]
+build = "make xmpp; make -C src/ports/xmpp network"
+test = "make -C src/ports/xmpp test"
+source_map = ["src/Xmpp*.Mod -> Xmpp*.Mod", "tests, tools, doc, upstream -> same paths"]
+adaptations = [
+  "recording Component Pascal widths explicitly for VOC's Oberon-2 model",
+  "receiving byte-fed bounded stanzas through XMLStream and the namespace-aware ooc-xml parser",
+  "replacing Xmlcore DOM coupling with UTF-16 stanza trees and checked ooc-xml output",
+  "delivering transport-independent stream, stanza, feature and session events",
+  "adding verified direct TLS and STARTTLS through VOC networking and TLS13Live.Start",
+  "negotiating explicitly enabled SASL PLAIN, stream restarts and correlated resource binding",
+  "preserving Unicode XML service identities while using shared IDNA conversion for DNS and TLS",
+  "including portable modules in conventional, Windows and modular Oberon-2 library manifests",
+  "preserving 88 original files, including all 31 native BlackBox documents and text exports",
+]

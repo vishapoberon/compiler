@@ -344,8 +344,17 @@ goto :eof
 :xml
 echo.Making XML library for -O%MODEL%
 cd %BUILDDIR%\%MODEL%
-for %%N in (XMLUnicodeCodec XMLUnicodeCodecASCII XMLUnicodeCodecLatin1 XMLUnicodeCodecUTF8 XMLUnicodeCodecUTF16 XMLUnicodeCodecImportAll XMLLimits XMLInputBuffer XMLUnicodeBuffer XMLDTD XMLEntityResolver XMLError XMLLocator XMLBuilder XMLParser XMLBuilderNamespaces XMLRegexp XMLBuilderValidation XMLWriter XMLBuilderCanonical XMLBuilderParserProtocol XMLBasicElement XMLBasicDataType XMLBasicParser) do (
+for %%N in (XMLUnicodeCodec XMLUnicodeCodecASCII XMLUnicodeCodecLatin1 XMLUnicodeCodecUTF8 XMLUnicodeCodecUTF16 XMLUnicodeCodecImportAll XMLLimits XMLInputBuffer XMLUnicodeBuffer XMLDTD XMLEntityResolver XMLError XMLLocator XMLBuilder XMLParser XMLBuilderNamespaces XMLStream XMLRegexp XMLBuilderValidation XMLWriter XMLBuilderCanonical XMLBuilderParserProtocol XMLBasicElement XMLBasicDataType XMLBasicParser) do (
   %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/xml/%%N.Mod || exit /b
+)
+cd %ROOTDIR%
+goto :eof
+
+:xmpp
+echo.Making XMPP library for -O%MODEL%
+cd %BUILDDIR%\%MODEL%
+for %%N in (XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen XmppConnections XmppStrings XmppCore XmppMessenger XmppPresence XmppWire XmppSasl XmppClient) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/xmpp/%%N.Mod || exit /b
 )
 cd %ROOTDIR%
 goto :eof
@@ -418,6 +427,7 @@ call :cli           || exit /b
 call :v4            || exit /b
 call :ooc           || exit /b
 call :xml           || exit /b
+call :xmpp          || exit /b
 call :ulm           || exit /b
 call :pow32         || exit /b
 call :misc          || exit /b
