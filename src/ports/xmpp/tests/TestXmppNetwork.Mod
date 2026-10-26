@@ -3,7 +3,8 @@ MODULE TestXmppNetwork;
 IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   TCP := XmppTCP, Client := XmppClient, Core := XmppCore,
   Messenger := XmppMessenger, Sasl := XmppSasl, TLS := TLS13Live, HS := TLS13EncHandshake,
-  IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco;
+  IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
+  Roster := XmppRoster, PubSub := XmppPubSub;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -11,7 +12,9 @@ TYPE
     ready, received, sent, errors, closed: LONGINT;
   END;
   Action = POINTER TO ActionDesc;
-  ActionDesc = RECORD (IQ.ActionDesc) calls: LONGINT END;
+  ActionDesc = RECORD (IQ.ActionDesc) calls: LONGINT; kind: SHORTINT END;
+  RosterHook = POINTER TO RosterHookDesc;
+  RosterHookDesc = RECORD (Roster.HookDesc) loads, changes: LONGINT END;
 
 VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Client.Client;
   domain: ARRAY 256 OF CHAR;
@@ -19,9 +22,21 @@ VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Clie
   error: Msg.Msg; state: SHORTINT; steps: LONGINT; success: BOOLEAN;
   router: IQ.Router; ping: Ping.Pinger; version: Version.Version; disco: Disco.Disco;
   action: Action; request: IQ.Request; name, number, os: T.String;
+  roster: Roster.Roster; rosterHook: RosterHook; events: LONGINT;
 
 PROCEDURE (a: Action) Done(router: IQ.Router; request: IQ.Request);
-BEGIN ASSERT(IQ.EmptyResult(request)); INC(a.calls) END Done;
+BEGIN
+  IF a.kind = 1 THEN ASSERT(PubSub.Published(request))
+  ELSIF a.kind = 2 THEN ASSERT(PubSub.ReadItems(request) # NIL)
+  ELSE ASSERT(IQ.EmptyResult(request))
+  END;
+  INC(a.calls)
+END Done;
+
+PROCEDURE (h: RosterHook) Loaded(roster: Roster.Roster; request: IQ.Request; accepted: BOOLEAN);
+BEGIN ASSERT(accepted); INC(h.loads) END Loaded;
+PROCEDURE (h: RosterHook) Changed(roster: Roster.Roster; entry: Roster.Entry);
+BEGIN INC(h.changes) END Changed;
 
 PROCEDURE (h: Hook) Ready(client: Client.Client; jid: T.String);
   VAR expected: T.String;
@@ -34,8 +49,16 @@ BEGIN
 END Ready;
 
 PROCEDURE (h: Hook) Received(client: Client.Client; stanza: Core.Stanza);
-  VAR body, expected: T.String;
+  VAR body, expected, node: T.String; event: PubSub.Event;
 BEGIN
+  IF mode = "roster-pep" THEN
+    expected := Items.UTF8("friend@ծոց.հայ"); node := Items.Latin1("urn:xmpp:microblog:0");
+    event := PubSub.ReadEvent(stanza, expected^, node^);
+    IF event # NIL THEN
+      ASSERT((event.count = 2) & (event.updates[0].kind = PubSub.published) & (event.updates[1].kind = PubSub.retracted));
+      INC(events); RETURN
+    END
+  END;
   ASSERT(stanza.kind = Core.message); body := Messenger.Body(stanza); expected := Items.UTF8("Բարեւ 😀");
   ASSERT(S.Equal(body^, expected^)); INC(h.received)
 END Received;
@@ -75,11 +98,36 @@ BEGIN
   ASSERT(~TLS.pinned & ~TLS.identitySent & (HS.CapturedCertCount() = 0) & ~HS.HostnameOK())
 END FailureReset;
 
+PROCEDURE RosterPEP;
+  VAR jid, text, empty, node, id: T.String; groups: ARRAY 1 OF T.String;
+    item: Items.Item;
+BEGIN
+  request := roster.Fetch(2000, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (rosterHook.loads = 1) OR (state = Client.failed);
+  ASSERT(roster.complete & (roster.snapshot.count = 1));
+  REPEAT state := client.Step() UNTIL (rosterHook.changes = 1) OR (state = Client.failed);
+  jid := Items.UTF8("friend@ծոց.հայ"); ASSERT(roster.Find(jid^) # NIL);
+  NEW(action); text := Items.UTF8("Ընկեր😀"); groups[0] := Items.UTF8("Ընկերներ");
+  request := Roster.Set(router, jid^, text^, groups, FALSE, 2000, action, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (action.calls = 1) OR (state = Client.failed);
+  ASSERT((action.calls = 1) & (roster.snapshot.count = 1));
+  empty := Items.Latin1(""); node := Items.Latin1("urn:xmpp:microblog:0"); id := Items.UTF8("գրառում😀");
+  item := Items.New("entry", "http://www.w3.org/2005/Atom"); item.AddText(text^, 0, S.Length(text^)); action.kind := 1;
+  request := PubSub.Publish(router, empty^, node^, id^, item, 2000, action, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (action.calls = 2) OR (state = Client.failed);
+  action.kind := 2; request := PubSub.Fetch(router, jid^, node^, id^, 1, 2000, action, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (action.calls = 3) OR (state = Client.failed);
+  REPEAT state := client.Step() UNTIL (events = 1) OR (state = Client.failed);
+  action.kind := 0; request := PubSub.Retract(router, empty^, node^, id^, TRUE, 2000, action, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (action.calls = 4) OR (state = Client.failed);
+  ASSERT(PubSub.Retracted(request) & (router.count = 0)); hook.sent := 0
+END RosterPEP;
+
 BEGIN
   InvalidConfiguration;
   Args.Get(1, port); Args.Get(2, mode); Args.Get(3, direct);
   Args.Get(4, domain); IF domain = "" THEN domain := "localhost" END;
-  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions");
+  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep");
   transport := TCP.Open("127.0.0.1", port, domain, direct = "yes", 2000, error);
   IF transport = NIL THEN ASSERT(~success & (error # NIL))
   ELSE
@@ -89,6 +137,7 @@ BEGIN
     version := Version.New(router, name^, number^, os^); ASSERT(version # NIL);
     name := Items.Latin1("client"); number := Items.Latin1("console");
     disco := Disco.New(router, name^, number^, os^); ASSERT(disco # NIL);
+    NEW(rosterHook); roster := Roster.New(router, rosterHook); ASSERT(roster # NIL);
     client := Client.New(transport, router, domain, user^, password^, resource^, TRUE, error);
     Sasl.Wipe(password); ASSERT((client # NIL) & (error = NIL)); ASSERT(client.Start()); steps := 0;
     REPEAT state := client.Step(); INC(steps); ASSERT(steps < 10000)
@@ -106,6 +155,7 @@ BEGIN
         ASSERT((action.calls = 1) & (router.count = 0) & (hook.sent = 4));
         hook.sent := 0
       END;
+      IF mode = "roster-pep" THEN RosterPEP END;
       to := Items.Latin1("friend@localhost"); body := Items.UTF8("Բարեւ 😀");
       stanza := Messenger.NewMessage(to^, body^); client.Send(stanza, error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (hook.received > 0) OR (state = Client.failed);

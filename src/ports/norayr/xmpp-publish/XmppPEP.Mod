@@ -2,7 +2,8 @@ MODULE XmppPEP;
 
 (* Building bounded XEP-0277 microblog entries for XEP-0060 personal publishing. *)
 
-IMPORT S := LongStrings, Strings := oocStrings, IDNA, JulianDay, T := XmppTypes, Items := XmppItems, IQ := XmppIQ;
+IMPORT S := LongStrings, Strings := oocStrings, IDNA, JulianDay, T := XmppTypes,
+  Items := XmppItems, IQ := XmppIQ, PubSub := XmppPubSub;
 
 CONST
   pubsubURI* = "http://jabber.org/protocol/pubsub";
@@ -40,7 +41,7 @@ BEGIN
 END Text;
 
 PROCEDURE Build*(domain: ARRAY OF CHAR; text: ARRAY OF T.CodeUnit; itemID, stamp: ARRAY OF CHAR): Items.Item;
-  VAR pubsub, publish, item, entry, child: Items.Item; value: T.String;
+  VAR entry, child: Items.Item; value, node, id: T.String;
     unicode, ascii: IDNA.String; status, i, length: LONGINT;
     tag: ARRAY 512 OF CHAR;
 BEGIN
@@ -51,10 +52,7 @@ BEGIN
          ((itemID[i] >= "0") & (itemID[i] <= "9")) OR (itemID[i] = "-")) THEN RETURN NIL END
   END;
   IDNA.Names(domain, unicode, ascii, status); IF status # 0 THEN RETURN NIL END;
-  pubsub := Items.New("pubsub", pubsubURI); publish := Items.New("publish", pubsubURI);
-  value := Items.Latin1(microblogNode); publish.SetParam("node", value^); pubsub.AddChild(publish);
-  item := Items.New("item", pubsubURI); value := Items.Latin1(itemID); item.SetParam("id", value^); publish.AddChild(item);
-  entry := Items.New("entry", atomURI); item.AddChild(entry);
+  entry := Items.New("entry", atomURI);
   child := Text(entry, "title", Items.Copy16(text)); value := Items.Latin1("text"); child.SetParam("type", value^);
   child := Text(entry, "content", Items.Copy16(text)); child.SetParam("type", value^);
   tag := "tag:"; Strings.Append(ascii^, tag); Strings.Append(",", tag);
@@ -62,25 +60,17 @@ BEGIN
   Strings.Append(":posts-", tag); Strings.Append(itemID, tag);
   child := Text(entry, "id", Items.Latin1(tag));
   child := Text(entry, "published", Items.Latin1(stamp)); child := Text(entry, "updated", Items.Latin1(stamp));
-  RETURN pubsub
+  node := Items.Latin1(microblogNode); id := Items.Latin1(itemID);
+  RETURN PubSub.BuildPublish(node^, id^, entry)
 END Build;
 
 PROCEDURE Accepted*(request: IQ.Request; itemID: ARRAY OF CHAR): BOOLEAN;
-  VAR pubsub, publish, item: Items.Item; content: Items.Content; value: T.String; count: LONGINT;
+  VAR publish, item: Items.Item; value: T.String;
 BEGIN
-  IF IQ.EmptyResult(request) THEN RETURN TRUE END;
-  pubsub := IQ.Payload(request, pubsubURI, "pubsub"); IF pubsub = NIL THEN RETURN FALSE END;
-  publish := pubsub.First(pubsubURI, "publish"); IF publish = NIL THEN RETURN FALSE END;
+  IF ~PubSub.Published(request) THEN RETURN FALSE END;
+  publish := request.payload.First(pubsubURI, "publish"); IF publish = NIL THEN RETURN FALSE END;
   value := publish.GetAttribute("", "node"); IF (value = NIL) OR ~S.Equal8(value^, microblogNode) THEN RETURN FALSE END;
-  content := pubsub.content; count := 0;
-  WHILE content # NIL DO IF content.element # NIL THEN INC(count) END; content := content.next END;
-  IF count # 1 THEN RETURN FALSE END;
-  content := publish.content; count := 0; item := NIL;
-  WHILE content # NIL DO
-    IF content.element # NIL THEN INC(count); item := content.element END;
-    content := content.next
-  END;
-  IF (count # 1) OR ~IQ.Named(item, pubsubURI, "item") OR ~IQ.Empty(item) THEN RETURN FALSE END;
+  item := publish.First(pubsubURI, "item"); IF item = NIL THEN RETURN FALSE END;
   value := item.GetAttribute("", "id"); RETURN (value # NIL) & S.Equal8(value^, itemID)
 END Accepted;
 

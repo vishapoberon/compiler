@@ -194,6 +194,48 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                         if identifier == "peer-disco":
                             assert response.find("{http://jabber.org/protocol/disco#info}query") is not None
                     send(connection, f'<iq type="result" id="{request.get("id")}"/>')
+                if mode == "roster-pep":
+                    roster = "jabber:iq:roster"
+                    pubsub = "http://jabber.org/protocol/pubsub"
+                    event = pubsub + "#event"
+                    node, item_id = "urn:xmpp:microblog:0", "գրառում😀"
+                    friend = "friend@ծոց.հայ"
+                    request = peer.event()
+                    assert request.get("type") == "get" and request.find(f"{{{roster}}}query") is not None
+                    send(connection, f'<iq type="result" id="{request.get("id")}"><query xmlns="{roster}">'
+                         f'<item jid="{friend}" subscription="both"/></query></iq>', 3)
+                    for sender, identifier in (("attacker@example.net", "spoof"), (f"օգտվող@{server_domain}", "push")):
+                        send(connection, f'<iq type="set" id="{identifier}" from="{sender}"><query xmlns="{roster}">'
+                             f'<item jid="{friend}" name="Ընկեր😀" subscription="both"/></query></iq>', 5)
+                    response = peer.event()
+                    assert response.get("id") == "push" and response.get("type") == "result"
+                    request = peer.event()
+                    contact = request.find(f"{{{roster}}}query/{{{roster}}}item")
+                    assert request.get("type") == "set" and contact.get("jid") == friend
+                    assert contact.get("name") == "Ընկեր😀" and contact.find(f"{{{roster}}}group").text == "Ընկերներ"
+                    send(connection, f'<iq type="result" id="{request.get("id")}"/>')
+                    request = peer.event()
+                    publish = request.find(f"{{{pubsub}}}pubsub/{{{pubsub}}}publish")
+                    assert request.get("type") == "set" and publish.get("node") == node
+                    assert publish.find(f"{{{pubsub}}}item").get("id") == item_id
+                    send(connection, f'<iq type="result" id="{request.get("id")}"><pubsub xmlns="{pubsub}">'
+                         f'<publish node="{node}"><item id="{item_id}"/></publish></pubsub></iq>')
+                    request = peer.event()
+                    items = request.find(f"{{{pubsub}}}pubsub/{{{pubsub}}}items")
+                    assert request.get("type") == "get" and request.get("to") == friend
+                    assert items.get("node") == node and items.get("max_items") == "1"
+                    assert items.find(f"{{{pubsub}}}item").get("id") == item_id
+                    send(connection, f'<iq type="result" from="{friend}" id="{request.get("id")}">'
+                         f'<pubsub xmlns="{pubsub}"><items node="{node}"><item id="{item_id}">'
+                         '<entry xmlns="http://www.w3.org/2005/Atom">Ընկեր😀</entry></item></items></pubsub></iq>', 7)
+                    send(connection, f'<message type="headline" from="{friend}"><event xmlns="{event}">'
+                         f'<items node="{node}"><item id="{item_id}"><entry xmlns="http://www.w3.org/2005/Atom"/>'
+                         '</item><retract id="old"/></items></event></message>', 3)
+                    request = peer.event()
+                    retract = request.find(f"{{{pubsub}}}pubsub/{{{pubsub}}}retract")
+                    assert request.get("type") == "set" and retract.get("node") == node and retract.get("notify") == "1"
+                    assert retract.find(f"{{{pubsub}}}item").get("id") == item_id
+                    send(connection, f'<iq type="result" id="{request.get("id")}"/>')
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
@@ -240,3 +282,5 @@ if __name__ == "__main__":
     case("wrong-host", certificate="server", domain="ծոց.հայ")
     case("extensions")
     case("extensions", direct=True, certificate="idn", domain="ծոց.հայ")
+    case("roster-pep")
+    case("roster-pep", direct=True, certificate="idn", domain="ծոց.հայ")

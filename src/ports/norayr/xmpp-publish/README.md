@@ -69,6 +69,9 @@ automatic SRV discovery and SCRAM remain pending in the XMPP library.
   payload or `NIL`. The caller supplies the item ID and timestamp. It emits
   escaped Atom text content/title, an A-label `tag:` URI, and matching UTC
   publication/update timestamps.
+  Construction and acknowledgement checks use the XMPP library's reusable
+  `XmppPubSub` operations; retrieval, retraction and notification parsing are
+  available through that module.
 - `XmppPEP.Accepted(request, itemID)` accepts an empty successful IQ result or
   a successful pubsub result with the expected node and item ID.
 - `XmppPublishConfig.Load` reads bounded configuration without publishing.

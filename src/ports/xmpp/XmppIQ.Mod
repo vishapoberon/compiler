@@ -185,6 +185,10 @@ BEGIN END Done;
 PROCEDURE (h: Handler) Handle*(router: Router; request: Core.Stanza; payload: Items.Item): Core.Stanza;
 BEGIN RETURN ErrorReply(request, "cancel", "service-unavailable") END Handle;
 
+PROCEDURE (h: Handler) Accept*(router: Router; request: Core.Stanza): BOOLEAN;
+(* Filters a registered request before structural errors generate a reply. *)
+BEGIN RETURN TRUE END Accept;
+
 PROCEDURE Finish(router: Router; slot: LONGINT; status: SHORTINT; reply: Core.Stanza);
   VAR request: Request;
 BEGIN
@@ -343,6 +347,10 @@ BEGIN
       IF (stanza.from[0] = 0) & (stanza.item.GetAttribute("", "from") # NIL) THEN RETURN END;
       IF stanza.from[0] # 0 THEN
         from := CanonicalJID(stanza.from^); IF from = NIL THEN RETURN END
+      END;
+      FOR i := 0 TO router.routes-1 DO
+        IF (stanza.item.First(router.handlers[i].uri^, router.handlers[i].name^) # NIL) &
+           ~router.handlers[i].handler.Accept(router, stanza) THEN RETURN END
       END;
       IF (count # 1) OR (errors # 0) THEN response := ErrorReply(stanza, "modify", "bad-request")
       ELSE
