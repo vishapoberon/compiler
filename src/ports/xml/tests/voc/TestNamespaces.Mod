@@ -98,6 +98,17 @@ BEGIN
   Check(b.attrs[0], "a", "urn:default")
 END BasicChecks;
 
+PROCEDURE RelativeChecks;
+  VAR b: Capture;
+BEGIN
+  b := Good('<vCard xmlns="vcard-temp"><PHOTO/></vCard>');
+  Check(b.elements[0], "vCard", "vcard-temp"); Check(b.elements[1], "PHOTO", "vcard-temp");
+  b := Good('<r xmlns:p="../names?x=1#part" p:a="v"><p:s/></r>');
+  Check(b.elements[1], "s", "../names?x=1#part"); Check(b.attrs[0], "a", "../names?x=1#part");
+  Bad('<r xmlns="relative%XX"/>');
+  b := Good('<r xmlns="relative name"/>'); Check(b.elements[0], "r", "relative%20name")
+END RelativeChecks;
+
 PROCEDURE UnicodeChecks;
   VAR text: ARRAY 128 OF CHAR; b: Capture;
 BEGIN
@@ -133,7 +144,7 @@ BEGIN
 END GrowthChecks;
 
 BEGIN
-  BasicChecks; UnicodeChecks; GrowthChecks;
+  BasicChecks; RelativeChecks; UnicodeChecks; GrowthChecks;
   Bad("<p:r/>"); Bad('<r xmlns="urn:def" p:a="v"/>');
   Bad('<r xmlns:p="urn:one" xmlns:q="urn:one" p:a="1" q:a="2"/>');
   Bad('<r xmlns:p=""/>'); Bad('<r xmlns:p="urn:one" p:a:b="v"/>');

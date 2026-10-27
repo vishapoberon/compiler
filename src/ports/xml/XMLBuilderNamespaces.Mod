@@ -21,7 +21,7 @@ MODULE XMLBuilderNamespaces;
 
 IMPORT
   Msg, LongStrings, URI, URIParser, String := URIString, Limits := XMLLimits,
-  Unparsed := URIFragmentUnparsed,
+  Unparsed := URIFragmentUnparsed, Hierarchical := URISchemeHierarchical,
   Error := XMLError, DTD := XMLDTD, Locator := XMLLocator,
   B := XMLBuilder, EntityResolver := XMLEntityResolver;
 
@@ -211,7 +211,11 @@ PROCEDURE (b: Builder) Attribute* (namespaceDecl: DTD.NamespaceDeclaration;
       IF (baseURI # NIL) & (baseURI IS URI.HierarchicalURI) THEN
         uriRef := URIParser.NewReference (str8^, baseURI(URI.HierarchicalURI), fragm, res)
       ELSE
-        uriRef := URIParser.NewReference (str8^, NIL, fragm, res)
+        (* Namespace names retain their literal URI reference. A synthetic
+           hierarchical base permits syntax checking of relative names in
+           memory documents; no resolved URI is used or opened. *)
+        baseURI := Hierarchical.New (NIL, NIL, NIL);
+        uriRef := URIParser.NewReference (str8^, baseURI(URI.HierarchicalURI), fragm, res)
       END;
       IF (res # NIL) THEN
         err := ReportError (b, malformedURIRef, b. parserLocator^);

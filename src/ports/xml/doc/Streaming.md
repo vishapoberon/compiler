@@ -29,6 +29,12 @@ frame boundary on a stream without an error. Transport EOF is separate:
 
 ## Parsing and namespace context
 
+Namespace names are validated as URI references and retain their literal
+spelling after URI character escaping. Relative namespace names, including
+the legacy `vcard-temp` name, are accepted in memory-backed streams without
+a document base URI. A synthetic hierarchical base is used only for syntax
+validation; no URI is retrieved or substituted into the namespace name.
+
 The adapter buffers one bounded stanza. It frames markup across chunk boundaries,
 then checks the complete frame with the existing `XMLParser`, UTF-8 codec and
 namespace builder. Each stanza is parsed inside the saved opening element and
