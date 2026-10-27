@@ -34,6 +34,11 @@ remain pending. The XMPP and publisher packages record unresolved upstream
 licensing; review their source records before redistribution. Continue using
 trusted XML while broader adversarial review remains pending.
 
+Clean GCC, Clang and TCC builds pass the confidence and library suites on
+Linux x86-64. Shared-module profiles pass 250 ABI/load checks without networking
+and 299 with networking. The editor and protocol/library suites also pass a
+Clang ASan/UBSan profile.
+
 ## 4.0.2
 
 The terminal editor is renamed from `xxs` to `none`, with the single exported
