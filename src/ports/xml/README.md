@@ -82,7 +82,7 @@ XML/resource diagnostics and 2 for usage, opening or output errors.
 The implementation is imported from
 [voc-ooc-xml, commit 8d1b5c0](https://github.com/norayr/voc-ooc-xml/tree/8d1b5c0).
 That repository preserves the complete CVS ancestry, original branches and
-release tags. The 24 implementation files are copied unchanged, with flattened
+release tags. The 25 implementation files are copied unchanged, with flattened
 file paths recorded in [PORT.toml](PORT.toml). The additive `XMLStream` module
 is included in that source revision. Reusable strings, Unicode types,
 diagnostics, channels, memory files and URI implementations live in
