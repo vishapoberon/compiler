@@ -1,5 +1,42 @@
 # Vishap Oberon 4.0
 
+## 4.0.3
+
+The Oberon-2 library now includes native XMPP modules for UTF-8 XML streams,
+session negotiation, messages, presence and explicit subscriptions. Bounded
+per-resource presence tracking, correlated IQ requests, ping, software version,
+service discovery, rosters and PubSub/PEP operations provide reusable client
+interfaces. The Linux transport supports verified STARTTLS and direct TLS;
+SASL PLAIN requires explicit opt-in after TLS verification. See the
+[XMPP library](../src/ports/xmpp/README.md) for APIs and examples.
+
+The [microblog publisher](../src/examples/network/xmpp-publish/readme.md)
+publishes escaped UTF-8 Atom entries through XMPP. Its reusable interfaces
+support caller-selected item IDs and exact-item retrieval to verify stored
+text. Configuration and credentials stay in a local file or environment;
+publication has no automatic retry.
+
+Shared native Oberon modules provide bounded Punycode, Unicode NFC and
+IDNA2008/Unicode 16.0 non-transitional UTS #46 host-name preparation. XMPP and
+the `agena` Gemini server use the same implementation. Unicode identities stay
+in XML while checked ASCII host names are used for DNS and TLS. See
+[host-name preparation](../src/ports/punycode/README.md) for the policy and
+47,844-case conformance suite.
+
+The XML library adds a bounded, byte-fed element-stream interface with
+namespace context, restart handling and explicit input-consumption results.
+Namespace validation accepts relative URI names such as `vcard-temp` in memory
+documents without fetching or replacing them. Existing parser and builder
+interfaces remain available; see [XML streams](../src/ports/xml/doc/Streaming.md).
+
+Automatic XMPP SRV discovery, SCRAM and complete username/resource preparation
+remain pending. The XMPP and publisher packages record unresolved upstream
+licensing; review their source records before redistribution. Continue using
+trusted XML while broader adversarial review remains pending.
+
+See [release validation](ReleaseValidation-4.0.3.md) for reproducible commands,
+coverage and platform limitations.
+
 ## 4.0.2
 
 The terminal editor is renamed from `xxs` to `none`, with the single exported

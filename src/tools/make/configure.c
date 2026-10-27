@@ -8,7 +8,7 @@
 // Derived from vocparam.c originally by J. Templ 23.6.95
 
 
-#define O_VER 4.0.2   // Version number to be reported by compiler.
+#define O_VER 4.0.3   // Version number to be reported by compiler.
 #define O_NAME voc    // Compiler name used for binary, install dir and references in text.
 
 
