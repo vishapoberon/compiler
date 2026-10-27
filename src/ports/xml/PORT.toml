@@ -3,7 +3,7 @@ package = "xml"
 kind = "library"
 origin = "Michael van Acken's ooc-libxml 3.2.0, ported to VOC Oberon-2"
 upstream_url = "https://github.com/norayr/voc-ooc-xml"
-upstream_revision = "894d92c7fb8005818ff02cbb89db67a4dde38d5f"
+upstream_revision = "8d1b5c01372d2cc6ab80da7936734feea27e0fbd"
 revision_status = "tested standalone port; original CVS history, branches and release tags preserved upstream"
 voc_baseline = "c664ef40"
 sources = ["XML*.Mod"]
@@ -40,6 +40,7 @@ source_map = [
 ]
 adaptations = [
   "adding bounded byte-fed XML element streams while preserving the existing parser and builder APIs",
+  "validating relative namespace URI references in memory documents without retrieving or replacing names",
   "flattening implementation paths while keeping all 24 tested implementation files byte-for-byte",
   "building against VOC's shared ooc Unicode, strings, diagnostics, channels, file/memory and URI modules",
   "adding model-2 conventional, modular and Windows library manifests and isolated regression targets",
