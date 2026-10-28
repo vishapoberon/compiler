@@ -3,13 +3,13 @@ package = "Internet"
 kind = "mixed"
 origin = "Norayr Chilingarian's Internet library and Polpo socket/DNS interfaces"
 upstream_url = "https://github.com/norayr/Internet"
-upstream_revision = "1c0e1bd7430ebd12712a15a24ba609cb63a716a6"
-revision_status = "pulled before import; tested server initialisation fix committed and pushed upstream"
+upstream_revision = "09bb5a97eea13d2fceaac99325e42c38fbe83fed"
+revision_status = "synchronized with the committed and pushed upstream nonblocking socket APIs and NetSystem async opening"
 sources = ["unixNet.Mod", "Kernel.Mod", "Sockets.Mod", "DNS.Mod", "Internet.Mod", "netForker.Mod", "server.Mod", "NetSystem.Mod"]
 license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; retaining source notices"
-source_map = ["src/*.Mod -> same filenames (selected libraries only)", "src/native/NetSystem.Mod -> NetSystem.Mod", "LICENSE and COPYING -> same filenames", "test/test*.Mod -> src/examples/network/Internet/", "test/TestServerInit.Mod -> src/test/ports/Internet/"]
+source_map = ["src/*.Mod -> same filenames (selected libraries only)", "src/native/NetSystem.Mod -> NetSystem.Mod", "LICENSE and COPYING -> same filenames", "test/test*.Mod -> src/examples/network/Internet/", "test/TestServerInit.Mod, test/TestAsync*.Mod and test/async-netsystem.py -> src/test/ports/Internet/"]
 adaptations = [
-  "keeping implementation sources unchanged at the recorded revision",
+  "keeping implementation sources synchronized with the recorded upstream revision",
   "building only the Linux model-2 profile; Linux constants and SYS_accept4 are not portable to FreeBSD or Windows",
   "deferring SIGCHLD changes until server.serve upstream, so importing the library preserves host child waiting",
   "using source-tree example makefiles rather than upstream dependency fetching",

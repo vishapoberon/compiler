@@ -1,5 +1,19 @@
 # Vishap Oberon 4.0
 
+## 4.0.4
+
+The Oberon-2 libraries include native PNG, JPEG and GIF readers, writers and
+console commands from Polpo. Unix builds install `voc-png`, `voc-jpeg` and
+`voc-gif`. Codec implementations and fixtures retain their upstream bytes;
+VOC supplies argument handling and build integration. Three targeted zlib
+fixes correct checksum accumulation, inflate window space and stored blocks.
+See the [picture codecs](../src/ports/polpo/README.md).
+
+The Linux Internet port adds nonblocking sockets and asynchronous connection
+opening in NetSystem, synchronized with upstream revision
+`09bb5a97eea13d2fceaac99325e42c38fbe83fed`. Existing blocking interfaces remain
+available. See [validation](ReleaseValidation-4.0.4.md) for tested coverage.
+
 ## 4.0.3
 
 The Oberon-2 library now includes native XMPP modules for UTF-8 XML streams,

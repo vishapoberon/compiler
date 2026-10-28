@@ -416,6 +416,9 @@ cd %BUILDDIR%\%MODEL%
 for %%M in (norayr/base64/StringBase64 norayr/bdStrings/bdStrings norayr/strutils/strTypes norayr/strutils/strUtils norayr/lists/List norayr/lists/StringList norayr/opts/optsosv norayr/opts/opts norayr/toml/TOML sts-q/ssqJson/Json) do (
   %ROOTDIR%\%OBECOMP% -Ffs -O%MODEL% ../../../src/ports/%%M.Mod || exit /b
 )
+if "%MODEL%"=="2" for %%M in (polpo/PictureArgs polpo/png-codec/src/PNG0 polpo/jpeg-codec/src/JPEG0 polpo/gif-codec/src/GIF0 polpo/png-codec/src/png polpo/jpeg-codec/src/jpeg polpo/gif-codec/src/gif) do (
+  %ROOTDIR%\%OBECOMP% -Ffs -O2 ../../../src/ports/%%M.Mod || exit /b
+)
 cd %ROOTDIR%
 goto :eof
 

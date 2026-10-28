@@ -176,6 +176,12 @@ makeinstalldir:
 	  $(MAKE) -C src/tools/none VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/editor" && \
 	  cp "$(BUILDDIR)/editor/none" "$(ROOTDIR)/install/bin/none"; \
 	fi
+	@if [ "$(PLATFORM)" = unix ]; then \
+	  $(MAKE) -C src/tools/pictures VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/pictures" && \
+	  cp "$(BUILDDIR)/pictures/PngCmd" "$(ROOTDIR)/install/bin/voc-png" && \
+	  cp "$(BUILDDIR)/pictures/JpegCmd" "$(ROOTDIR)/install/bin/voc-jpeg" && \
+	  cp "$(BUILDDIR)/pictures/GifCmd" "$(ROOTDIR)/install/bin/voc-gif"; \
+	fi
 
 
 # instructions: Advice on completion of local build
@@ -197,6 +203,7 @@ FORCE:
 uninstall:
 	@rm -f "$(DESTDIR)$(BINDIR)/$(OBECOMP)" "$(DESTDIR)$(BINDIR)/showdef$(BINEXT)"
 	@if [ "$(PLATFORM)" = unix ]; then rm -f "$(DESTDIR)$(BINDIR)/none"; fi
+	@if [ "$(PLATFORM)" = unix ]; then rm -f "$(DESTDIR)$(BINDIR)/voc-png" "$(DESTDIR)$(BINDIR)/voc-jpeg" "$(DESTDIR)$(BINDIR)/voc-gif"; fi
 	@rm -rf "$(DESTDIR)$(INSTALLDIR)/2" "$(DESTDIR)$(INSTALLDIR)/C"
 	@rm -f "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-O2.a" "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-O2$(DYNEXT)"
 	@rm -f "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-OC.a" "$(DESTDIR)$(LIBDIR)/lib$(ONAME)-OC$(DYNEXT)"
@@ -210,6 +217,7 @@ install:
 	@cp "$(ROOTDIR)/install/bin/$(OBECOMP)" "$(DESTDIR)$(BINDIR)/$(OBECOMP)"
 	@-cp "$(ROOTDIR)/install/bin/showdef$(BINEXT)" "$(DESTDIR)$(BINDIR)"
 	@if [ "$(PLATFORM)" = unix ]; then cp "$(ROOTDIR)/install/bin/none" "$(DESTDIR)$(BINDIR)/none"; fi
+	@if [ "$(PLATFORM)" = unix ]; then cp "$(ROOTDIR)/install/bin/voc-png" "$(ROOTDIR)/install/bin/voc-jpeg" "$(ROOTDIR)/install/bin/voc-gif" "$(DESTDIR)$(BINDIR)/"; fi
 
 	@mkdir -p "$(DESTDIR)$(INSTALLDIR)/2" "$(DESTDIR)$(INSTALLDIR)/C"
 	@cp -rf "$(ROOTDIR)/install/2/." "$(DESTDIR)$(INSTALLDIR)/2/"
@@ -366,6 +374,7 @@ confidence:
 	cd src/test/confidence/texts;           $(RUNTEST)
 	cd src/test/confidence/library;         $(RUNTEST)
 	@if [ "$(MODEL)" = 2 ]; then $(MAKE) -C src/ports/xml test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/xml-tests"; fi
+	@if [ "$(MODEL)" = 2 ]; then $(MAKE) -C src/ports/polpo test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/picture-tests"; fi
 	$(MAKE) -C src/test/ports test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/port-tests"
 	@if [ "$(PLATFORM)" = unix ] && [ "$(MODEL)" = 2 ]; then \
 	  $(MAKE) -C src/test/ports/sts-q test-bundled VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/kbd-tests"; \

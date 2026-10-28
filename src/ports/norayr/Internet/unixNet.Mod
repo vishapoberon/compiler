@@ -21,6 +21,7 @@ PROCEDURE -AAincUnistd "#include <unistd.h>";
 PROCEDURE -AAincFcntl "#include <fcntl.h>";
 PROCEDURE -AAincErrno "#include <errno.h>";
 PROCEDURE -AAincSyscall "#include <sys/syscall.h>";
+PROCEDURE -AAincPoll "#include <poll.h>";
 
 PROCEDURE -errno(): LONGINT "(LONGINT)errno";
 
@@ -36,6 +37,21 @@ PROCEDURE -close0(fd: LONGINT): LONGINT "(LONGINT)close(fd)";
 PROCEDURE -read0(fd: LONGINT; buf: SYSTEM.ADDRESS; num: LONGINT): LONGINT "(LONGINT)read(fd, (void*)buf, num)";
 PROCEDURE -write0(fd: LONGINT; buf: SYSTEM.ADDRESS; num: LONGINT): LONGINT "(LONGINT)write(fd, (void*)buf, num)";
 PROCEDURE -socket0(domain, type, protocol: LONGINT): LONGINT "(LONGINT)socket(domain, type, protocol)";
+PROCEDURE -socketnb0(domain, type, protocol: LONGINT): LONGINT
+  "(LONGINT)socket(domain, type | SOCK_NONBLOCK | SOCK_CLOEXEC, protocol)";
+PROCEDURE -acceptnb0(fd: LONGINT; addr, lenadr: SYSTEM.ADDRESS): LONGINT
+  "(LONGINT)syscall(SYS_accept4, fd, (void*)addr, (void*)lenadr, SOCK_NONBLOCK | SOCK_CLOEXEC)";
+PROCEDURE -pending0(result: LONGINT): BOOLEAN "(result == -EINPROGRESS || result == -EALREADY)";
+PROCEDURE -wouldblock0(result: LONGINT): BOOLEAN "(result == -EAGAIN || result == -EWOULDBLOCK)";
+PROCEDURE -interrupted0(result: LONGINT): BOOLEAN "(result == -EINTR)";
+PROCEDURE -socketerror0(fd: LONGINT): LONGINT
+  "({int e = 0; socklen_t n = sizeof e; getsockopt(fd, SOL_SOCKET, SO_ERROR, &e, &n) < 0 ? -(LONGINT)errno : -(LONGINT)e;})";
+PROCEDURE -abortive0(fd: LONGINT): LONGINT
+  "({struct linger l = {1, 0}; (LONGINT)setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof l);})";
+PROCEDURE -poll0(fd: LONGINT; write: BOOLEAN; ms: LONGINT): LONGINT
+  "({struct pollfd p = {fd, write ? POLLOUT : POLLIN, 0}; int r = poll(&p, 1, ms); r < 0 ? -(LONGINT)errno : ((p.revents & POLLNVAL) ? -(LONGINT)EBADF : (LONGINT)r);})";
+PROCEDURE -setblocking0(fd: LONGINT; blocking: BOOLEAN): LONGINT
+  "({int f = fcntl(fd, F_GETFL); f < 0 ? -1 : fcntl(fd, F_SETFL, blocking ? (f & ~O_NONBLOCK) : (f | O_NONBLOCK));})";
 PROCEDURE -connect0(fd: LONGINT; addr: SYSTEM.ADDRESS; len: LONGINT): LONGINT
   "(LONGINT)connect(fd, (struct sockaddr*)addr, len)";
 PROCEDURE -bind0(fd: LONGINT; addr: SYSTEM.ADDRESS; len: LONGINT): LONGINT
@@ -94,6 +110,38 @@ END Write0;
 PROCEDURE Socket0*(domain, type, protocol: LONGINT): LONGINT;
 BEGIN RETURN Res(socket0(domain, type, protocol))
 END Socket0;
+
+PROCEDURE SocketNonblocking0*(domain, type, protocol: LONGINT): LONGINT;
+BEGIN RETURN Res(socketnb0(domain, type, protocol)) END SocketNonblocking0;
+
+PROCEDURE AcceptNonblocking0*(fd: LONGINT; addr, lenadr: SYSTEM.ADDRESS): LONGINT;
+BEGIN RETURN Res(acceptnb0(fd, addr, lenadr)) END AcceptNonblocking0;
+
+PROCEDURE Pending0*(result: LONGINT): BOOLEAN;
+BEGIN RETURN pending0(result) END Pending0;
+
+PROCEDURE WouldBlock0*(result: LONGINT): BOOLEAN;
+BEGIN RETURN wouldblock0(result) END WouldBlock0;
+
+PROCEDURE Interrupted0*(result: LONGINT): BOOLEAN;
+BEGIN RETURN interrupted0(result) END Interrupted0;
+
+PROCEDURE SocketError0*(fd: LONGINT): LONGINT;
+BEGIN RETURN socketerror0(fd) END SocketError0;
+
+PROCEDURE Abortive0*(fd: LONGINT): LONGINT;
+BEGIN RETURN Res(abortive0(fd)) END Abortive0;
+
+(** Poll one descriptor: zero on timeout, positive when ready, negative error.
+    POLLHUP and POLLERR are readiness events; POLLNVAL is a bad descriptor. *)
+PROCEDURE Poll0*(fd: LONGINT; write: BOOLEAN; ms: LONGINT): LONGINT;
+BEGIN
+  IF fd < 0 THEN RETURN -9 END;
+  RETURN poll0(fd, write, ms)
+END Poll0;
+
+PROCEDURE SetBlocking0*(fd: LONGINT; blocking: BOOLEAN): LONGINT;
+BEGIN RETURN Res(setblocking0(fd, blocking)) END SetBlocking0;
 
 PROCEDURE Connect0*(fd: LONGINT; addr: SYSTEM.ADDRESS; len: LONGINT): LONGINT;
 BEGIN RETURN Res(connect0(fd, addr, len))

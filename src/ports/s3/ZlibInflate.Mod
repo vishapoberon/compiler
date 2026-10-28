@@ -462,7 +462,9 @@ MODULE ZlibInflate;  (** eos  **)
       END;
       IF wavail = 0 THEN
         Flush(s);
-        IF (s.write = WindowSize) & (s.read # 0) THEN
+        (* Flush can move both window positions; recompute the free space. *)
+        IF s.write < s.read THEN wavail := s.read - s.write - 1 ELSE wavail := WindowSize - s.write END;
+        IF (wavail = 0) & (s.write = WindowSize) & (s.read # 0) THEN
           s.write := 0; wavail := s.read-1;
         END;
         IF wavail = 0 THEN
@@ -946,6 +948,8 @@ MODULE ZlibInflate;  (** eos  **)
         END;
         s.res.code := Ok;
         FreeCodes(s);
+        (* Compressed blocks update the positions used by the next block. *)
+        IF s.write < s.read THEN wavail := s.read - s.write - 1 ELSE wavail := WindowSize - s.write END;
         IF s.block.last THEN s.block.state := BlkDry
         ELSE s.block.state := BlkType
         END

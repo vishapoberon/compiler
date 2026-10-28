@@ -128,6 +128,13 @@ none:
 none-test:
 	$(MAKE) -C src/tools/none test
 
+.PHONY: pictures pictures-test
+pictures:
+	$(MAKE) -C src/tools/pictures all
+
+pictures-test:
+	$(MAKE) -C src/ports/polpo test
+
 # Optional ELF runtime and command shell; never replaces the installed compiler.
 .PHONY: hresh hresh-test hresh-demo modular-runtime modular-library modular-library-bindings modular-library-test modular-library-bindings-test
 hresh:

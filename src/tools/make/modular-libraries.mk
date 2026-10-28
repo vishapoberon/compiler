@@ -46,9 +46,13 @@ MODULAR_X11 = oocX11 oocXutil oocXYplane
 MODULAR_CAIRO = Cairo
 MODULAR_RAYLIB = RaylibNative Raylib
 # Independently syncable portable ports, in import order under src/ports.
+MODULAR_PICTURES = polpo/PictureArgs polpo/png-codec/src/PNG0 \
+ polpo/jpeg-codec/src/JPEG0 polpo/gif-codec/src/GIF0 \
+ polpo/png-codec/src/png polpo/jpeg-codec/src/jpeg polpo/gif-codec/src/gif
 MODULAR_PORTABLE = norayr/base64/StringBase64 norayr/bdStrings/bdStrings \
  norayr/strutils/strTypes norayr/strutils/strUtils norayr/lists/List norayr/lists/StringList \
- norayr/opts/optsosv norayr/opts/opts norayr/toml/TOML sts-q/ssqJson/Json
+ norayr/opts/optsosv norayr/opts/opts norayr/toml/TOML sts-q/ssqJson/Json \
+ $(if $(filter 2,$(MODEL)),$(MODULAR_PICTURES))
 
 # Unix libc-backed ports, with no extra native-library dependencies.
 MODULAR_UNIX_PORTS = sts-q/oberon/Kbd
