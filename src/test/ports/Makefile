@@ -19,6 +19,7 @@ test:
 	mkdir -p "$(BUILD)"
 	$(TEST_ENV) sh ./test.sh "$(abspath $(VOC))" "$(BUILD)" "$(MODEL)" "$(FLAGS)"
 	@if [ "$(NETWORK)" = 1 ] || { [ "$(NETWORK)" = auto ] && [ -f "$(SYMBOLS)/Internet.sym" ]; }; then \
+	  $(TEST_ENV) sh ./Internet/test.sh "$(abspath $(VOC))" "$(BUILD)/Internet" "$(MODEL)" "$(FLAGS)" && \
 	  $(TEST_ENV) sh ./tls/test.sh "$(abspath $(VOC))" "$(BUILD)/tls" "$(MODEL)" "$(FLAGS)" && \
 	  $(TEST_ENV) sh ./gemini/test.sh "$(abspath $(VOC))" "$(BUILD)/gemini" "$(MODEL)" "$(FLAGS)"; \
 	fi

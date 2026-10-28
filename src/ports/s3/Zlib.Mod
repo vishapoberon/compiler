@@ -69,7 +69,7 @@ VAR
 PROCEDURE Adler32*(adler: LONGINT; VAR buf: ARRAY OF CHAR; offset, len: LONGINT): LONGINT;
 CONST
   base = 65521;  (* largest prim smaller than 65536 *)
-  nmax = 5552;  (* largest n such that 255n(n + 1) / 2 + (n + 1)(base - 1) <= 2^32 - 1 *)
+  nmax = 3854;  (* signed 32-bit bound: 255n(n + 1) / 2 + (n + 1)(base - 1) <= 2^31 - 1 *)
 VAR
   s1, s2, k, offset0, len0: LONGINT;
 BEGIN

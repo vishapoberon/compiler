@@ -1,0 +1,10 @@
+{
+  "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+  "README.md": "4fb27c8cd948a3dc2898035347c7411be7c82ab245f2ee6ed79381a8a53c5a21",
+  "src/GIF0.Mod": "8c21937c977fa7f65ebd0350645a01116db1307d350fff8406d0cb59a230a18f",
+  "src/gif.Mod": "c707d9873da5e4d113c484c99666ed867c560ee875a9a3d913cdafe8c73bb37b",
+  "test/GIFTest.Mod": "71c67ca67b50ad0b8d5dd9c74841ba4a4111f2a6c171476d8642433fabfde1ee",
+  "test/PngSuite.LICENSE": "71e1f5bf865131b5d9996e76a78372146283e5089e50f900ae927a6458b62101",
+  "test/gifsuite.list": "fe3d7785a6c26dc6fccb537b3e432526599059d97ebe10c56b61cb05e70d1456",
+  "test/gifsuite.tgz": "19c0e116cfc2fda6fc323bb7e663362fd2eb8c0d133d0225e9d8fa37d9a6abc3"
+}

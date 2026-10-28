@@ -57,6 +57,8 @@
 !/src/test/confidence/intsyntax/
 !/src/test/confidence/intsyntax/TestSignedShifts.mod
 !/src/test/confidence/library/
+!/src/test/confidence/library/ZlibTest.Mod
+!/src/test/confidence/library/TestZlib.mod
 !/src/test/confidence/library/TestAsciiCodes.mod
 !/src/test/confidence/library/TestOocUnified.mod
 !/src/test/confidence/library/TestTypeAliases.mod

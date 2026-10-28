@@ -38,3 +38,6 @@
 # Set the language to Oberon
 *.Mod linguist-language=Oberon
 *.mod linguist-language=Oberon
+
+# Preserve upstream picture fixtures, CRC lists and their notices byte-for-byte.
+/src/ports/polpo/*/test/** -text

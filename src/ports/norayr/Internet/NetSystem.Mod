@@ -13,7 +13,7 @@ MODULE NetSystem;  (** the NetSystem of ETH Native Oberon, over Sockets and DNS 
      NetSystem.Hosts section of Oberon.Text is not read.
    - GetName asks DNS.Reverse: /etc/hosts, then the PTR record; "" if there is none, as in
      Native Oberon.
-   - The local port of an active connection is chosen by the system (locPort is not used).
+   - OpenConnection keeps its system-chosen local port; AsyncOpenConnection honors locPort.
    - CloseConnection closes the connection in both directions, at once: read what you want
      first. In Native Oberon the connection could still receive after it (state in).
    - Passwords are kept in memory as in Native Oberon, but SetUser, which read them from the
@@ -113,17 +113,24 @@ END FromAddress;
 
 (* can fd be read without blocking (data, a request or the end), waiting at most ms milliseconds? *)
 PROCEDURE Ready(fd: LONGINT; ms: LONGINT): BOOLEAN;
-VAR set: ARRAY 32 OF SET; tv: ARRAY 2 OF LONGINT; i, r: LONGINT;
 BEGIN
-  IF (fd < 0) OR (fd >= 1024) THEN RETURN FALSE END;
-  (* the fd_set of the kernel is made of words: bit fd MOD 32 of word fd DIV 32, in the byte order
-    of the machine (a byte array put the bit into the wrong byte on big-endian machines) *)
-  i := 0; WHILE i < LEN(set) DO set[i] := {}; INC(i) END;
-  INCL(set[fd DIV 32], fd MOD 32);
-  tv[0] := ms DIV 1000; tv[1] := ms MOD 1000 * 1000;
-  r := Linux0.Select0(fd + 1, SYSTEM.ADR(set[0]), 0, 0, SYSTEM.ADR(tv[0]));
-  RETURN r > 0
+  RETURN Linux0.Poll0(fd, FALSE, ms) > 0
 END Ready;
+
+(* Complete asynchronous opening once readiness says the connect has finished.
+   Restore blocking I/O for NetSystem's existing exact-read/write operations. *)
+PROCEDURE ProgressConnect(C: Connection);
+VAR r: LONGINT;
+BEGIN
+  IF C.state # waitCon THEN RETURN END;
+  r := Sockets.PollConnect(C.s);
+  IF r = 1 THEN C.res := done; RETURN END;
+  IF (r = 0) & Sockets.SetBlocking(C.s, TRUE) THEN
+    C.state := inout; C.res := done
+  ELSE
+    Sockets.Close(C.s); C.s := NIL; C.state := errorCon; C.res := error
+  END
+END ProgressConnect;
 
 (* the peer has closed its side: receiving ends *)
 PROCEDURE PeerClosed(C: Connection);
@@ -153,7 +160,9 @@ END Fill;
 PROCEDURE Receive(C: Connection; VAR buf: ARRAY OF SYSTEM.BYTE; beg, len: LONGINT);
 VAR n: LONGINT;
 BEGIN
-  IF (beg < 0) OR (len < 0) OR (beg + len > LEN(buf)) THEN C.res := error; RETURN END;
+  ProgressConnect(C);
+  IF (beg < 0) OR (len < 0) OR (beg > LEN(buf)) OR (len > LEN(buf)-beg) OR
+     ~((C.state = inout) OR (C.state = in)) THEN C.res := error; RETURN END;
   C.res := done;
   WHILE (len > 0) & (C.res = done) DO
     Fill(C, TRUE);
@@ -171,7 +180,8 @@ END Receive;
 PROCEDURE Send(C: Connection; VAR buf: ARRAY OF SYSTEM.BYTE; beg, len: LONGINT);
 VAR n: LONGINT;
 BEGIN
-  IF (beg < 0) OR (len < 0) OR (beg + len > LEN(buf)) OR (C.s = NIL)
+  ProgressConnect(C);
+  IF (beg < 0) OR (len < 0) OR (beg > LEN(buf)) OR (len > LEN(buf)-beg) OR (C.s = NIL)
     OR ~((C.state = inout) OR (C.state = out)) THEN C.res := error; RETURN
   END;
   C.res := done;
@@ -255,11 +265,23 @@ BEGIN
   C.res := res
 END OpenConnection;
 
-(** Like OpenConnection, but this procedure may return immediately and delay the actual opening of the connection.
-  In this case State() should be checked to wait for the connection status to change from waitCon. *)
+(** Start opening without waiting for the TCP handshake. res = done means the
+    attempt was started; poll State(C) until waitCon becomes inout or errorCon.
+    Once connected, the normal NetSystem reads and writes remain blocking. *)
 PROCEDURE AsyncOpenConnection*(VAR C: Connection; locPort: INTEGER; remIP: IPAdr; remPort: INTEGER; VAR res: INTEGER);
+VAR local, remote: Sockets.Address; s: Sockets.Socket;
 BEGIN
-  OpenConnection(C, locPort, remIP, remPort, res)  (* synchronously, as in Native Oberon *)
+  IF (remIP = anyIP) OR (remPort = anyport) THEN
+    OpenConnection(C, locPort, remIP, remPort, res); RETURN
+  END;
+  C := NewConnection(NIL, errorCon); res := error;
+  IF remIP = allIP THEN C.res := error; RETURN END;
+  Sockets.AnyAddress(Sockets.Inet4, local); ToAddress(remIP, remote);
+  s := Sockets.ConnectFromPort(local, remote, PortNum(locPort), PortNum(remPort));
+  IF s = NIL THEN C.res := error; RETURN END;
+  C.s := s; C.rip := remIP; C.rport := remPort; C.state := waitCon;
+  IF ~Sockets.Pending(s.res) THEN ProgressConnect(C) END;
+  res := C.res
 END AsyncOpenConnection;
 
 (** Procedure closes the connection. Connection can not be used for send operations afterwards.
@@ -268,7 +290,7 @@ PROCEDURE CloseConnection*(C: Connection);
 BEGIN
   IF C # NIL THEN
     IF C.s # NIL THEN
-      IF C.state # listening THEN Sockets.Shutdown(C.s, SHUTWR) END;
+      IF (C.state = inout) OR (C.state = in) OR (C.state = out) THEN Sockets.Shutdown(C.s, SHUTWR) END;
       Sockets.Close(C.s); C.s := NIL
     END;
     C.state := closed; C.bpos := 0; C.blen := 0; C.res := done
@@ -301,6 +323,7 @@ END Accept;
 (** Procedure returns the state of a connection (see constant section). *)
 PROCEDURE State*(C: Connection): INTEGER;
 BEGIN
+  ProgressConnect(C);
   Fill(C, FALSE);  (* notices that the peer has closed *)
   RETURN C.state
 END State;
@@ -308,6 +331,9 @@ END State;
 (** Returns the number of bytes which may be read without blocking. *)
 PROCEDURE Available*(C: Connection): LONGINT;
 BEGIN
+  ProgressConnect(C);
+  IF C.state = waitCon THEN C.res := done; RETURN 0 END;
+  IF C.state = errorCon THEN C.res := error; RETURN 0 END;
   IF C.state = listening THEN C.res := error; RETURN 0 END;
   Fill(C, FALSE); C.res := done;
   RETURN C.blen - C.bpos

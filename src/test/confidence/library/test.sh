@@ -49,3 +49,8 @@ $OBECOMP TestCompression.mod -m
 ./TestCompression >result
 printf 'compression library tests passed\n' >result-expected
 diff -b result-expected result
+$OBECOMP ZlibTest.Mod -s
+$OBECOMP TestZlib.mod -m
+./TestZlib >result
+printf 'ZlibTest: 14 checks, 0 failed\n' >result-expected
+diff -b result-expected result

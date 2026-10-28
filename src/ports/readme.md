@@ -12,6 +12,7 @@ systems and projects, grouped by author or collection.
 | `v4/`, `ooc/`, `oocX11/`, `ulm/`, `pow/`, `s3/` | Libraries from Ofront, oo2c, Ulm, POW! and ETH Oberon |
 | [`xml/`](xml/README.md) | Native Oberon XML parsing, DTD validation, namespace builders and writing |
 | [`punycode/`](punycode/README.md) | RFC 3492 Punycode, Unicode NFC and checked internationalized host names |
+| [`polpo/`](polpo/README.md) | Native PNG, JPEG and GIF readers/writers and console commands |
 | [`xmpp/`](xmpp/README.md) | Unicode XMPP clients, IQ extensions, rosters and PubSub/PEP; optional Linux TCP/TLS transport |
 | [`norayr/xmpp-publish/`](norayr/xmpp-publish/README.md) | PEP/Atom microblog publishing with the native XMPP library |
 | [`picl/`](picl/readme.md) | Niklaus Wirth's PICL compiler |

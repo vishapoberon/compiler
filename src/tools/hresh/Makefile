@@ -316,6 +316,9 @@ test: all test-commands test-unload
 	"$(BUILD)/compatibility/CompatMain"
 
 test-library: libraries
+	@if [ "$(MODEL)" = 2 ]; then $(ENV) python3 "$(ROOT)/src/ports/polpo/check-codecs.py" --shared --voc "$(NEWVOC)" --build "$(BUILD)/picture-tests"; fi
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/test/confidence/library/ZlibTest.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestZlib.mod" && ./TestZlib
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestIDNA.mod" && ./TestIDNA
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/ports/punycode/tests/TestPunycode.Mod" && ./TestPunycode
 	@if [ "$(MODEL)" = 2 ]; then cd "$(BUILD)" && for name in TestParser TestStream TestValidation TestWriter TestBasic; do $(ENV) "$(NEWVOC)" -O2 -smD "$(ROOT)/src/ports/xml/tests/voc/$$name.Mod" && "./$$name" || exit; done; fi

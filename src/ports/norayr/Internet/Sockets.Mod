@@ -26,6 +26,12 @@ TYPE
     res*: LONGINT  (** the last error, negative, 0 if none *)
   END;
 
+  Endpoint* = RECORD
+    address*: Address;
+    port*: LONGINT;
+    scope*: HUGEINT
+  END;
+
 VAR
   res*: LONGINT;  (** the error of the last procedure that did not get a socket *)
   sockStream, sockDgram, solSocket, soReuseAddr, soRcvTimeo, soSndTimeo: LONGINT;  (* MIPS numbers them differently *)
@@ -343,6 +349,196 @@ BEGIN
   IF r >= 0 THEN r := Linux0.SetSockOpt0(s.fd, solSocket, soSndTimeo, SYSTEM.ADR(tv[0]), 8) END;
   IF r < 0 THEN s.res := r END
 END SetTimeout;
+
+(* ----- nonblocking TCP ----- *)
+
+(** Negative results retain the native error number, including temporary errors.
+    SendSome and ReceiveSome perform one operation and report exact progress. *)
+PROCEDURE Pending*(result: LONGINT): BOOLEAN;
+BEGIN RETURN Linux0.Pending0(result) END Pending;
+
+PROCEDURE WouldBlock*(result: LONGINT): BOOLEAN;
+BEGIN RETURN Linux0.WouldBlock0(result) END WouldBlock;
+
+PROCEDURE Interrupted*(result: LONGINT): BOOLEAN;
+BEGIN RETURN Linux0.Interrupted0(result) END Interrupted;
+
+PROCEDURE NewNonblocking(family: INTEGER): Socket;
+VAR s: Socket; f, fd: LONGINT;
+BEGIN
+  IF family = Inet6 THEN f := AFINET6
+  ELSIF family = Inet4 THEN f := AFINET
+  ELSE res := -22; RETURN NIL
+  END;
+  fd := Linux0.SocketNonblocking0(f, sockStream, 0);
+  IF fd < 0 THEN res := fd; RETURN NIL END;
+  NEW(s); s.fd := fd; s.res := 0; res := 0; RETURN s
+END NewNonblocking;
+
+PROCEDURE BindNonblocking(s: Socket; VAR local: Address; port: LONGINT; reuse: BOOLEAN): BOOLEAN;
+VAR sa: ARRAY 28 OF CHAR; len, one, r: LONGINT;
+BEGIN
+  one := 1;
+  IF local.family = Inet6 THEN
+    r := Linux0.SetSockOpt0(s.fd, IPPROTOIPV6, IPV6V6ONLY, SYSTEM.ADR(one), 4);
+    IF r < 0 THEN s.res := r; RETURN FALSE END
+  END;
+  IF reuse THEN
+    r := Linux0.SetSockOpt0(s.fd, solSocket, soReuseAddr, SYSTEM.ADR(one), 4);
+    IF r < 0 THEN s.res := r; RETURN FALSE END
+  END;
+  SockAddr(local, port, sa, len);
+  r := Linux0.Bind0(s.fd, SYSTEM.ADR(sa[0]), len); s.res := r; RETURN r = 0
+END BindNonblocking;
+
+(** Connect from the chosen local address and port (zero: system-selected port).
+    A pending connection has Pending(s.res); PollConnect checks its completion. *)
+PROCEDURE ConnectFromPort*(VAR local, remote: Address; localPort, port: LONGINT): Socket;
+VAR s: Socket; sa: ARRAY 28 OF CHAR; len, r: LONGINT;
+BEGIN
+  IF (localPort < 0) OR (localPort > 65535) OR (port < 1) OR (port > 65535) OR
+     (local.family # remote.family) THEN res := -22; RETURN NIL END;
+  s := NewNonblocking(local.family); IF s = NIL THEN RETURN NIL END;
+  IF ~BindNonblocking(s, local, localPort, FALSE) THEN res := s.res; Close(s); RETURN NIL END;
+  SockAddr(remote, port, sa, len);
+  r := Linux0.Connect0(s.fd, SYSTEM.ADR(sa[0]), len); s.res := r;
+  IF (r < 0) & ~Pending(r) THEN res := r; Close(s); RETURN NIL END;
+  res := r; RETURN s
+END ConnectFromPort;
+
+PROCEDURE ConnectFrom*(VAR local, remote: Address; port: LONGINT): Socket;
+BEGIN RETURN ConnectFromPort(local, remote, 0, port) END ConnectFrom;
+
+(** Listen without blocking, IPv6-only for an IPv6 address. Port zero requests an
+    ephemeral port; LocalEndpoint returns the port assigned by the system. *)
+PROCEDURE ListenNonblocking*(VAR local: Address; port, backlog: LONGINT): Socket;
+VAR s: Socket; r: LONGINT;
+BEGIN
+  IF (port < 0) OR (port > 65535) OR (backlog < 1) THEN res := -22; RETURN NIL END;
+  s := NewNonblocking(local.family); IF s = NIL THEN RETURN NIL END;
+  IF ~BindNonblocking(s, local, port, TRUE) THEN res := s.res; Close(s); RETURN NIL END;
+  r := Linux0.Listen0(s.fd, backlog);
+  IF r < 0 THEN res := r; Close(s); RETURN NIL END;
+  RETURN s
+END ListenNonblocking;
+
+PROCEDURE DecodeEndpoint(VAR sa: ARRAY OF CHAR; len: LONGINT; VAR endpoint: Endpoint): BOOLEAN;
+VAR family: INTEGER; scope: LONGINT;
+BEGIN
+  IF (len < 16) OR (len > LEN(sa)) THEN RETURN FALSE END;
+  SYSTEM.GET(SYSTEM.ADR(sa[0]), family);
+  IF (family = AFINET6) & (len = 28) THEN
+    SYSTEM.GET(SYSTEM.ADR(sa[24]), scope); endpoint.scope := scope;
+    IF scope < 0 THEN INC(endpoint.scope, 4294967296) END
+  ELSIF (family = AFINET) & (len = 16) THEN endpoint.scope := 0
+  ELSE RETURN FALSE
+  END;
+  FromSockAddr(sa, endpoint.address, endpoint.port); RETURN TRUE
+END DecodeEndpoint;
+
+PROCEDURE AcceptNonblocking*(listener: Socket; VAR peer: Endpoint): Socket;
+VAR s: Socket; sa: ARRAY 28 OF CHAR; len, fd, r: LONGINT;
+BEGIN
+  IF (listener = NIL) OR (listener.fd < 0) THEN res := -9; RETURN NIL END;
+  len := LEN(sa); fd := Linux0.AcceptNonblocking0(listener.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  IF fd < 0 THEN listener.res := fd; res := fd; RETURN NIL END;
+  IF ~DecodeEndpoint(sa, len, peer) THEN r := Linux0.Close0(fd); listener.res := -22; res := -22; RETURN NIL END;
+  NEW(s); s.fd := fd; s.res := 0; listener.res := 0; res := 0; RETURN s
+END AcceptNonblocking;
+
+PROCEDURE ConnectError*(s: Socket): LONGINT;
+BEGIN
+  IF (s = NIL) OR (s.fd < 0) THEN RETURN -9 END;
+  s.res := Linux0.SocketError0(s.fd); RETURN s.res
+END ConnectError;
+
+(** Check connection completion without waiting: 0 connected, 1 still pending,
+    negative error. SO_ERROR is read only after writable/error readiness. *)
+PROCEDURE PollConnect*(s: Socket): LONGINT;
+VAR r: LONGINT;
+BEGIN
+  IF (s = NIL) OR (s.fd < 0) THEN RETURN -9 END;
+  r := Linux0.Poll0(s.fd, TRUE, 0);
+  IF (r = 0) OR Interrupted(r) THEN RETURN 1 END;
+  IF r < 0 THEN s.res := r; RETURN r END;
+  r := ConnectError(s);
+  IF Pending(r) THEN RETURN 1 END;
+  RETURN r
+END PollConnect;
+
+(** Change status flags while retaining descriptor ownership and close-on-exec. *)
+PROCEDURE SetBlocking*(s: Socket; blocking: BOOLEAN): BOOLEAN;
+BEGIN
+  IF (s = NIL) OR (s.fd < 0) THEN RETURN FALSE END;
+  s.res := Linux0.SetBlocking0(s.fd, blocking); RETURN s.res = 0
+END SetBlocking;
+
+PROCEDURE LocalEndpoint*(s: Socket; VAR endpoint: Endpoint): BOOLEAN;
+VAR sa: ARRAY 28 OF CHAR; len, r: LONGINT;
+BEGIN
+  IF (s = NIL) OR (s.fd < 0) THEN RETURN FALSE END;
+  len := LEN(sa); r := Linux0.GetSockName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  IF r < 0 THEN s.res := r; RETURN FALSE END;
+  IF ~DecodeEndpoint(sa, len, endpoint) THEN s.res := -22; RETURN FALSE END;
+  s.res := 0; RETURN TRUE
+END LocalEndpoint;
+
+PROCEDURE PeerEndpoint*(s: Socket; VAR endpoint: Endpoint): BOOLEAN;
+VAR sa: ARRAY 28 OF CHAR; len, r: LONGINT;
+BEGIN
+  IF (s = NIL) OR (s.fd < 0) THEN RETURN FALSE END;
+  len := LEN(sa); r := Linux0.GetPeerName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  IF r < 0 THEN s.res := r; RETURN FALSE END;
+  IF ~DecodeEndpoint(sa, len, endpoint) THEN s.res := -22; RETURN FALSE END;
+  s.res := 0; RETURN TRUE
+END PeerEndpoint;
+
+(** Checked byte spans on a borrowed descriptor; ownership stays with the caller. *)
+PROCEDURE WriteDescriptor*(fd: LONGINT; VAR bytes: ARRAY OF CHAR; offset, length: LONGINT): LONGINT;
+BEGIN
+  IF fd < 0 THEN RETURN -9 END;
+  IF (offset < 0) OR (length < 0) OR (offset > LEN(bytes)) OR (length > LEN(bytes)-offset) THEN RETURN -22 END;
+  IF length = 0 THEN RETURN 0 END;
+  RETURN Linux0.SendTo0(fd, SYSTEM.ADR(bytes[offset]), length, MSGNOSIGNAL, 0, 0)
+END WriteDescriptor;
+
+PROCEDURE ReadDescriptor*(fd: LONGINT; VAR bytes: ARRAY OF CHAR; offset, length: LONGINT): LONGINT;
+BEGIN
+  IF fd < 0 THEN RETURN -9 END;
+  IF (offset < 0) OR (length < 0) OR (offset > LEN(bytes)) OR (length > LEN(bytes)-offset) THEN RETURN -22 END;
+  IF length = 0 THEN RETURN 0 END;
+  RETURN Linux0.RecvFrom0(fd, SYSTEM.ADR(bytes[offset]), length, 0, 0, 0)
+END ReadDescriptor;
+
+PROCEDURE SendSome*(s: Socket; VAR bytes: ARRAY OF CHAR; offset, length: LONGINT): LONGINT;
+VAR n: LONGINT;
+BEGIN
+  IF s = NIL THEN RETURN -9 END;
+  n := WriteDescriptor(s.fd, bytes, offset, length); s.res := 0; IF n < 0 THEN s.res := n END;
+  RETURN n
+END SendSome;
+
+PROCEDURE ReceiveSome*(s: Socket; VAR bytes: ARRAY OF CHAR; offset, length: LONGINT): LONGINT;
+VAR n: LONGINT;
+BEGIN
+  IF s = NIL THEN RETURN -9 END;
+  n := ReadDescriptor(s.fd, bytes, offset, length); s.res := 0; IF n < 0 THEN s.res := n END;
+  RETURN n
+END ReceiveSome;
+
+PROCEDURE AbortDescriptor*(fd: LONGINT): BOOLEAN;
+BEGIN
+  IF fd < 0 THEN res := -9; RETURN FALSE END;
+  res := Linux0.Abortive0(fd); RETURN res = 0
+END AbortDescriptor;
+
+(** Transfer descriptor ownership without closing it. The socket becomes closed. *)
+PROCEDURE Release*(s: Socket): LONGINT;
+VAR fd: LONGINT;
+BEGIN
+  IF s = NIL THEN RETURN -1 END;
+  fd := s.fd; s.fd := -1; RETURN fd
+END Release;
 
 (* ----- UDP ----- *)
 

@@ -1,0 +1,11 @@
+schema = 1
+package = "gif-codec"
+kind = "mixed"
+upstream_url = "https://github.com/polpo-system/gif-codec"
+upstream_revision = "c36c17a56afe5e87a2c4c62c840559aeeb59c985"
+upstream_tag = "v0.1.0"
+license = "GPL-3; preserving the separate PngSuite fixture licence"
+sources = ["src/GIF0.Mod", "src/gif.Mod"]
+adaptations = ["retaining GIF0 unchanged", "using PictureArgs over VOC Args and Out for console commands and tests"]
+build = "make; make -C src/ports/polpo"
+test = "make -C src/ports/polpo test"
