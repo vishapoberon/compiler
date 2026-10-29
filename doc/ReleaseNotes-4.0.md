@@ -1,5 +1,20 @@
 # Vishap Oberon 4.0
 
+## 4.0.5
+
+The Linux Internet library uses a 32-bit `LONGINT` for `Endpoint.scope`,
+preserving the IPv6 scope ID's bits and matching Polpo's implementation.
+`Sockets`, `DNS`, `Internet` and `NetSystem` match upstream Internet revision
+`7abf3c1f539aec3fe2e73625c031af1f8219dc04`; their Polpo counterparts differ
+only in imports.
+
+Rebuild programs and shared modules using the Internet library: the exported
+`Endpoint` record layout changed. Scope values with the high bit set are
+represented as negative numbers rather than widened unsigned values.
+
+The socket and asynchronous NetSystem regressions pass; see
+[validation](ReleaseValidation-4.0.5.md).
+
 ## 4.0.4
 
 The Oberon-2 libraries include native PNG, JPEG and GIF readers, writers and
