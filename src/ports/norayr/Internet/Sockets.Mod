@@ -29,7 +29,7 @@ TYPE
   Endpoint* = RECORD
     address*: Address;
     port*: LONGINT;
-    scope*: HUGEINT
+    scope*: LONGINT  (** the 32 bits of the IPv6 scope (unsigned: below 0 from 2^31 on) *)
   END;
 
 VAR
@@ -428,8 +428,7 @@ BEGIN
   IF (len < 16) OR (len > LEN(sa)) THEN RETURN FALSE END;
   SYSTEM.GET(SYSTEM.ADR(sa[0]), family);
   IF (family = AFINET6) & (len = 28) THEN
-    SYSTEM.GET(SYSTEM.ADR(sa[24]), scope); endpoint.scope := scope;
-    IF scope < 0 THEN INC(endpoint.scope, 4294967296) END
+    SYSTEM.GET(SYSTEM.ADR(sa[24]), scope); endpoint.scope := scope
   ELSIF (family = AFINET) & (len = 16) THEN endpoint.scope := 0
   ELSE RETURN FALSE
   END;
