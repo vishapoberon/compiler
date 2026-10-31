@@ -1,5 +1,7 @@
 MODULE JPEG0;  (** JPEG pictures: decoding (baseline and progressive) and encoding (baseline), on Files *)
 
+(* VOC adaptation, 2026-10-31: bounded memory-file entry points and buffer validation. *)
+
 (** ITU-T T.81 (ISO/IEC 10918-1) with JFIF. Decode reads JPEG pictures with Huffman coding and 8 bits
   a sample, baseline or progressive: grey, YCbCr, RGB, CMYK or YCCK, any sampling factors that divide
   the largest ones, with or without restart intervals, into an Image of 8-bit red, green, blue and
@@ -33,6 +35,7 @@ CONST
   Grey = 0; YCbCr = 1; RGB = 2; CMYK = 3; YCCK = 4;
 
 TYPE
+  Bytes* = Files.Bytes;
   Image* = POINTER TO ImageDesc;
   ImageDesc* = RECORD
     width*, height*: LONGINT;
@@ -45,7 +48,6 @@ TYPE
     progressive*: BOOLEAN
   END;
 
-  Bytes = POINTER TO ARRAY OF CHAR;
   Coefs = POINTER TO ARRAY OF INTEGER;
 
   Huff = POINTER TO HuffDesc;
@@ -73,7 +75,7 @@ TYPE
     fake: LONGINT;  (* the last bits of acc are 0 bits put after the marker *)
     short: BOOLEAN;  (* bits after the marker were used: the MCUs that follow are left 0, as libjpeg *)
     res: LONGINT;
-    width, height, ncomp, hmax, vmax, mcux, mcuy, restart, eobrun: LONGINT;
+    width, height, ncomp, hmax, vmax, mcux, mcuy, restart, eobrun, pixelLimit: LONGINT;
     progressive, frame, jfif, adobe: BOOLEAN;
     transform: LONGINT;  (* of the Adobe marker *)
     comp: ARRAY 4 OF Comp;
@@ -251,7 +253,7 @@ BEGIN
   IF (d.width = 0) OR (d.ncomp # 1) & (d.ncomp # 3) & (d.ncomp # 4) OR (len # 8 + 3 * d.ncomp) THEN
     d.res := badFormat; RETURN
   END;
-  IF d.width > MaxPixels DIV d.height THEN d.res := tooLarge; RETURN END;
+  IF d.width > d.pixelLimit DIV d.height THEN d.res := tooLarge; RETURN END;
   d.hmax := 1; d.vmax := 1; i := 0;
   WHILE i < d.ncomp DO
     d.comp[i].id := Byte(d); k := Byte(d); d.comp[i].h := k DIV 16; d.comp[i].v := k MOD 16; d.comp[i].tq := Byte(d);
@@ -724,6 +726,7 @@ BEGIN
   NEW(d); d.R := R; d.res := ok; d.acc := 0; d.nbits := 0; d.marker := 0; d.fake := 0; d.short := FALSE;
   d.frame := FALSE; d.progressive := FALSE; d.jfif := FALSE; d.adobe := FALSE; d.transform := 0;
   d.restart := 0; d.eobrun := 0; d.ncomp := 0;
+  d.pixelLimit := MaxPixels;
   i := 0; WHILE i < 4 DO d.qok[i] := FALSE; d.dc[i] := NIL; d.ac[i] := NIL; INC(i) END;
   RETURN d
 END NewDecoder;
@@ -749,11 +752,10 @@ BEGIN
   res := d.res
 END ReadInfo;
 
-(** decode the picture at R into img (NIL if res # ok) *)
-PROCEDURE Decode*(VAR R: Files.Rider; VAR img: Image; VAR res: LONGINT);
+PROCEDURE DecodeLimited(VAR R: Files.Rider; pixelLimit: LONGINT; VAR img: Image; VAR res: LONGINT);
 VAR d: Decoder; m, scans: LONGINT;
 BEGIN
-  img := NIL; d := NewDecoder(R);
+  img := NIL; d := NewDecoder(R); d.pixelLimit := pixelLimit;
   IF (Byte(d) # 0FFH) OR (Byte(d) # SOI) THEN res := notJPEG; RETURN END;
   scans := 0;
   LOOP
@@ -776,7 +778,32 @@ BEGIN
   IF (d.res = ok) & d.progressive THEN Transform(d) END;
   IF d.res = ok THEN img := NewImage(d.width, d.height); Output(d, img) END;
   R := d.R; res := d.res
-END Decode;
+END DecodeLimited;
+
+(** decode the picture at R into img (NIL if res # ok) *)
+PROCEDURE Decode*(VAR R: Files.Rider; VAR img: Image; VAR res: LONGINT);
+BEGIN DecodeLimited(R, MaxPixels, img, res) END Decode;
+
+(** inspect the logical prefix data[0..length), entirely in memory *)
+PROCEDURE ReadInfoBytes*(data: ARRAY OF CHAR; length: LONGINT; VAR info: Info; VAR res: LONGINT);
+VAR f: Files.File; R: Files.Rider;
+BEGIN
+  f := Files.FromBytes(data, length);
+  IF f = NIL THEN res := badFormat; RETURN END;
+  Files.Set(R, f, 0); ReadInfo(R, info, res)
+END ReadInfoBytes;
+
+(** decode an in-memory prefix, enforcing pixelLimit before allocating component planes
+    or progressive coefficients; pixelLimit must be in 1..MaxPixels. *)
+PROCEDURE DecodeBytes*(data: ARRAY OF CHAR; length, pixelLimit: LONGINT; VAR img: Image; VAR res: LONGINT);
+VAR f: Files.File; R: Files.Rider;
+BEGIN
+  img := NIL;
+  IF (pixelLimit < 1) OR (pixelLimit > MaxPixels) THEN res := tooLarge; RETURN END;
+  f := Files.FromBytes(data, length);
+  IF f = NIL THEN res := badFormat; RETURN END;
+  Files.Set(R, f, 0); DecodeLimited(R, pixelLimit, img, res)
+END DecodeBytes;
 
 (* encoding *)
 
@@ -925,6 +952,8 @@ BEGIN
   IF (img = NIL) OR (img.pix = NIL) OR (img.width <= 0) OR (img.height <= 0) THEN res := noImage; RETURN END;
   w := img.width; h := img.height;
   IF (w > 65535) OR (h > 65535) THEN res := tooLarge; RETURN END;
+  IF w > MaxPixels DIV h THEN res := tooLarge; RETURN END;
+  IF w * h > LEN(img.pix^) DIV 4 THEN res := noImage; RETURN END;
   IF quality < 1 THEN quality := 1 ELSIF quality > 100 THEN quality := 100 END;
   IF quality < 50 THEN scale := 5000 DIV quality ELSE scale := 200 - 2 * quality END;  (* as libjpeg *)
   t := 0;
@@ -996,6 +1025,18 @@ BEGIN
   WriteMarker(W, EOI);
   res := ok
 END Encode;
+
+(** encode into a memory-only buffer of at most maxBytes bytes. Only data[0..length)
+    is valid; data is NIL and length is 0 on failure, including an output-capacity failure. *)
+PROCEDURE EncodeBytes*(img: Image; quality, maxBytes: LONGINT; VAR data: Bytes; VAR length, res: LONGINT);
+VAR f: Files.File; W: Files.Rider;
+BEGIN
+  data := NIL; length := 0;
+  IF maxBytes < 1 THEN res := tooLarge; RETURN END;
+  f := Files.NewMemory(maxBytes); Files.Set(W, f, 0); Encode(W, img, quality, res);
+  IF Files.MemoryFailed(f) THEN res := tooLarge END;
+  IF res = ok THEN data := Files.MemoryData(f, length) END
+END EncodeBytes;
 
 (* tables *)
 

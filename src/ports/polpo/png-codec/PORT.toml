@@ -6,6 +6,6 @@ upstream_revision = "3c51353b6d6302e07ce73cde5c6d8731300826fa"
 upstream_tag = "v0.1.1"
 license = "GPL-3; preserving the separate PngSuite fixture licence"
 sources = ["src/PNG0.Mod", "src/png.Mod"]
-adaptations = ["retaining PNG0 unchanged", "using PictureArgs over VOC Args and Out for console commands and tests"]
+adaptations = ["adding memory-only byte-array APIs with per-call pixel and output limits", "checking chunk lengths before allocating and validating encoder pixel buffers", "avoiding overflow in wide-row sizes and filter scores", "using PictureArgs over VOC Args and Out for console commands and tests"]
 build = "make; make -C src/ports/polpo"
 test = "make -C src/ports/polpo test"

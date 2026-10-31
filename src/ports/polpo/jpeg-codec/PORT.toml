@@ -6,6 +6,6 @@ upstream_revision = "84e0c1078089fdd7bed496fa423b2d22c8372c7e"
 upstream_tag = "v0.1.0"
 license = "GPL-3; preserving upstream fixture attribution"
 sources = ["src/JPEG0.Mod", "src/jpeg.Mod"]
-adaptations = ["retaining JPEG0 unchanged", "using PictureArgs over VOC Args and Out for console commands and tests"]
+adaptations = ["adding memory-only byte-array APIs with per-call pixel and output limits", "validating encoder pixel buffers", "using PictureArgs over VOC Args and Out for console commands and tests"]
 build = "make; make -C src/ports/polpo"
 test = "make -C src/ports/polpo test"
