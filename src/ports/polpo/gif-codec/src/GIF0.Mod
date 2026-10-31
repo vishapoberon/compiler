@@ -1,5 +1,7 @@
 MODULE GIF0;  (** GIF pictures: decoding and encoding (one image), on Files *)
 
+(* VOC adaptation, 2026-10-31: bounded memory-file entry points and buffer validation. *)
+
 (** GIF87a and GIF89a. Decode reads the first image of a GIF file (of an animation, its first frame),
   with its global or local colour table, interlaced or not, with the transparent colour of its
   graphic control extension, into an Image of 8-bit red, green, blue and alpha of the size of the
@@ -29,6 +31,7 @@ CONST
   Cells = 32768;  (* colours of 5 bits a component, for the median cut *)
 
 TYPE
+  Bytes* = Files.Bytes;
   Image* = POINTER TO ImageDesc;
   ImageDesc* = RECORD
     width*, height*: LONGINT;
@@ -43,8 +46,8 @@ TYPE
     interlaced*, transparent*: BOOLEAN  (** the first image *)
   END;
 
-  Bytes = POINTER TO ARRAY OF CHAR;
   Longs = POINTER TO ARRAY OF LONGINT;
+  Totals = POINTER TO ARRAY OF HUGEINT;
 
   Palette = RECORD
     n: LONGINT;
@@ -241,8 +244,7 @@ BEGIN
   IF (res = ok) & (info.images = 0) THEN res := badFormat END
 END ReadInfo;
 
-(** decode the first image of the GIF picture at R into img (NIL if res # ok) *)
-PROCEDURE Decode*(VAR R: Files.Rider; VAR img: Image; VAR res: LONGINT);
+PROCEDURE DecodeLimited(VAR R: Files.Rider; pixelLimit: LONGINT; VAR img: Image; VAR res: LONGINT);
 VAR sig: ARRAY 7 OF CHAR; gct, lct: Palette; i, b, n, flags, sw, sh, left, top, w, h, cw, ch, transparent, minSize,
   got, x, y, k, p, ci: LONGINT; idx: Bytes; rows: Longs;
 BEGIN
@@ -277,7 +279,7 @@ BEGIN
   cw := sw; IF left + w > cw THEN cw := left + w END;
   ch := sh; IF top + h > ch THEN ch := top + h END;
   IF (cw = 0) OR (ch = 0) THEN res := badFormat; RETURN END;
-  IF cw > MaxPixels DIV ch THEN res := tooLarge; RETURN END;
+  IF cw > pixelLimit DIV ch THEN res := tooLarge; RETURN END;
   img := NewImage(cw, ch); got := 0;
   IF (w > 0) & (h > 0) THEN
     NEW(idx, w * h); got := Decompress(R, minSize, idx, w * h, res);
@@ -299,7 +301,32 @@ BEGIN
     INC(k)
   END;
   res := ok
-END Decode;
+END DecodeLimited;
+
+(** decode the first image of the GIF picture at R into img (NIL if res # ok) *)
+PROCEDURE Decode*(VAR R: Files.Rider; VAR img: Image; VAR res: LONGINT);
+BEGIN DecodeLimited(R, MaxPixels, img, res) END Decode;
+
+(** inspect the logical prefix data[0..length), entirely in memory *)
+PROCEDURE ReadInfoBytes*(data: ARRAY OF CHAR; length: LONGINT; VAR info: Info; VAR res: LONGINT);
+VAR f: Files.File; R: Files.Rider;
+BEGIN
+  f := Files.FromBytes(data, length);
+  IF f = NIL THEN res := badFormat; RETURN END;
+  Files.Set(R, f, 0); ReadInfo(R, info, res)
+END ReadInfoBytes;
+
+(** decode an in-memory prefix, enforcing pixelLimit on the complete canvas, including
+    frame offsets; pixelLimit must be in 1..MaxPixels. No temporary files are created. *)
+PROCEDURE DecodeBytes*(data: ARRAY OF CHAR; length, pixelLimit: LONGINT; VAR img: Image; VAR res: LONGINT);
+VAR f: Files.File; R: Files.Rider;
+BEGIN
+  img := NIL;
+  IF (pixelLimit < 1) OR (pixelLimit > MaxPixels) THEN res := tooLarge; RETURN END;
+  f := Files.FromBytes(data, length);
+  IF f = NIL THEN res := badFormat; RETURN END;
+  Files.Set(R, f, 0); DecodeLimited(R, pixelLimit, img, res)
+END DecodeBytes;
 
 (* writing *)
 
@@ -441,7 +468,8 @@ END Slice;
 (* max colours for the opaque pixels of img by median cut: the box of the most pixels split at the median of
   its longest side, until there are max boxes; each colour the mean of the pixels of its box *)
 PROCEDURE MedianCut(img: Image; max: LONGINT; VAR p: Palette);
-VAR hist, sr, sg, sb: Longs; boxes: ARRAY 256 OF Box; nb, i, j, k, n, a, len, best, m, sum, half, r, g, b: LONGINT;
+VAR hist: Longs; sr, sg, sb: Totals; boxes: ARRAY 256 OF Box;
+  nb, i, j, k, n, a, len, best, m, sum, half, r, g, b: LONGINT; rt, gt, bt: HUGEINT;
 BEGIN
   NEW(hist, Cells); NEW(sr, Cells); NEW(sg, Cells); NEW(sb, Cells);
   i := 0; WHILE i < Cells DO hist[i] := 0; sr[i] := 0; sg[i] := 0; sb[i] := 0; INC(i) END;
@@ -475,19 +503,22 @@ BEGIN
   END;
   p.n := nb; j := 0;
   WHILE j < nb DO
-    sum := 0; r := 0; g := 0; b := 0; i := boxes[j].lo[0];
+    sum := 0; rt := 0; gt := 0; bt := 0; i := boxes[j].lo[0];
     WHILE i <= boxes[j].hi[0] DO
       k := boxes[j].lo[1];
       WHILE k <= boxes[j].hi[1] DO
         m := boxes[j].lo[2];
         WHILE m <= boxes[j].hi[2] DO
-          a := (i * 32 + k) * 32 + m; INC(sum, hist[a]); INC(r, sr[a]); INC(g, sg[a]); INC(b, sb[a]); INC(m)
+          a := (i * 32 + k) * 32 + m; INC(sum, hist[a]); INC(rt, sr[a]); INC(gt, sg[a]); INC(bt, sb[a]); INC(m)
         END;
         INC(k)
       END;
       INC(i)
     END;
-    IF sum > 0 THEN p.r[j] := (r + sum DIV 2) DIV sum; p.g[j] := (g + sum DIV 2) DIV sum; p.b[j] := (b + sum DIV 2) DIV sum
+    IF sum > 0 THEN
+      p.r[j] := SHORT((rt + sum DIV 2) DIV sum);
+      p.g[j] := SHORT((gt + sum DIV 2) DIV sum);
+      p.b[j] := SHORT((bt + sum DIV 2) DIV sum)
     ELSE p.r[j] := 0; p.g[j] := 0; p.b[j] := 0
     END;
     INC(j)
@@ -539,6 +570,8 @@ VAR table: ARRAY 256 OF LONGINT; hash: ARRAY Buckets OF LONGINT; p: Palette; idx
 BEGIN
   IF (img = NIL) OR (img.pix = NIL) OR (img.width <= 0) OR (img.height <= 0) THEN res := noImage; RETURN END;
   IF (img.width > 65535) OR (img.height > 65535) THEN res := tooLarge; RETURN END;
+  IF img.width > MaxPixels DIV img.height THEN res := tooLarge; RETURN END;
+  IF img.width * img.height > LEN(img.pix^) DIV 4 THEN res := noImage; RETURN END;
   n := img.width * img.height; transparent := FALSE; i := 0;
   WHILE ~transparent & (i < n) DO transparent := img.pix[4 * i + 3] < 80X; INC(i) END;
   IF transparent THEN max := 255 ELSE max := 256 END;
@@ -583,5 +616,17 @@ BEGIN
   Files.Write(W, 3BX);
   res := ok
 END Encode;
+
+(** encode into a memory-only buffer of at most maxBytes bytes. Only data[0..length)
+    is valid; data is NIL and length is 0 on failure, including an output-capacity failure. *)
+PROCEDURE EncodeBytes*(img: Image; maxBytes: LONGINT; VAR data: Bytes; VAR length, res: LONGINT);
+VAR f: Files.File; W: Files.Rider;
+BEGIN
+  data := NIL; length := 0;
+  IF maxBytes < 1 THEN res := tooLarge; RETURN END;
+  f := Files.NewMemory(maxBytes); Files.Set(W, f, 0); Encode(W, img, res);
+  IF Files.MemoryFailed(f) THEN res := tooLarge END;
+  IF res = ok THEN data := Files.MemoryData(f, length) END
+END EncodeBytes;
 
 END GIF0.

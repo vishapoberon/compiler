@@ -20,6 +20,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   TYPE
     FileName = ARRAY 256 OF CHAR;
+    Bytes*   = POINTER TO ARRAY OF CHAR;
     File*    = POINTER TO FileDesc;
     Buffer   = POINTER TO BufDesc;
 
@@ -34,6 +35,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
       swapper:      INTEGER;
       state:        INTEGER;
       next:         POINTER [1] TO FileDesc;
+      memory:       Bytes;
+      memoryCapacity: LONGINT;
+      memoryFailed: BOOLEAN;
     END;
 
     BufDesc = RECORD
@@ -213,6 +217,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR
       i: LONGINT;  error: Platform.ErrorCode;
   BEGIN
+    IF f.memory # NIL THEN RETURN END;
     Platform.CommandCritical(TRUE);
     IF (f.state # create) OR (f.registerName # "") THEN
       Create(f); i := 0;
@@ -231,6 +236,43 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     f.fd := NoDesc; f.state := create; f.len := 0; f.pos := 0; f.swapper := -1; (*all f.buf[i] = NIL*)
     RETURN f
   END New;
+
+  (* Explicitly memory-only: capacity is fixed, and no OS file is created. *)
+  PROCEDURE NewMemory*(capacity: LONGINT): File;
+    VAR f: File;
+  BEGIN
+    IF capacity < 0 THEN RETURN NIL END;
+    f := New(""); f.memoryCapacity := capacity;
+    IF capacity = 0 THEN NEW(f.memory, 1) ELSE NEW(f.memory, capacity) END;
+    f.memoryFailed := FALSE;
+    RETURN f
+  END NewMemory;
+
+  (* Copy the logical prefix; the caller's input remains independent. *)
+  PROCEDURE FromBytes*(data: ARRAY OF CHAR; length: LONGINT): File;
+    VAR f: File; i: LONGINT;
+  BEGIN
+    IF (length < 0) OR (length > LEN(data)) THEN RETURN NIL END;
+    f := NewMemory(length);
+    FOR i := 0 TO length - 1 DO f.memory[i] := data[i] END;
+    f.len := length; RETURN f
+  END FromBytes;
+
+  PROCEDURE IsMemory*(f: File): BOOLEAN;
+  BEGIN RETURN (f # NIL) & (f.memory # NIL) END IsMemory;
+
+  (* An output-capacity failure stays set until Purge. *)
+  PROCEDURE MemoryFailed*(f: File): BOOLEAN;
+  BEGIN RETURN (f = NIL) OR ((f.memory # NIL) & f.memoryFailed) END MemoryFailed;
+
+  (* Return the owned buffer and its valid prefix, without copying or I/O.
+     NIL and length 0 indicate a non-memory file or a capacity failure. *)
+  PROCEDURE MemoryData*(f: File; VAR length: LONGINT): Bytes;
+  BEGIN
+    length := 0;
+    IF ~IsMemory(f) OR f.memoryFailed THEN RETURN NIL END;
+    length := f.len; RETURN f.memory
+  END MemoryData;
 
   PROCEDURE ScanPath(VAR pos: INTEGER; VAR dir: ARRAY OF CHAR);
   (* Extract next individual directory from searchpath starting at pos,
@@ -344,7 +386,9 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   PROCEDURE Purge* (f: File);
     VAR i: INTEGER;  identity: Platform.FileIdentity;  error: Platform.ErrorCode;
-  BEGIN Platform.CommandCritical(TRUE); i := 0;
+  BEGIN
+    IF f.memory # NIL THEN f.len := 0; f.memoryFailed := FALSE; RETURN END;
+    Platform.CommandCritical(TRUE); i := 0;
     WHILE i < NumBufs DO
       IF f.bufs[i] # NIL THEN f.bufs[i].org := -1; f.bufs[i] := NIL END;
       INC(i)
@@ -362,6 +406,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
     VAR
       identity: Platform.FileIdentity;  error: Platform.ErrorCode;
   BEGIN
+    IF f.memory # NIL THEN t := 0; d := 0; RETURN END;
     Platform.CommandCritical(TRUE);
     Create(f); error := Platform.Identify(f.fd, identity);
     Platform.MTimeAsClock(identity, t, d);
@@ -370,6 +415,7 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
 
   PROCEDURE Pos* (VAR r: Rider): LONGINT;
   BEGIN
+    IF (r.buf # NIL) & (r.buf.f.memory # NIL) THEN RETURN r.offset END;
     Assert(r.offset <= BufSize);
     RETURN r.org + r.offset
   END Pos;
@@ -377,6 +423,12 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Set* (VAR r: Rider; f: File; pos: LONGINT);
     VAR org, offset, i, n: LONGINT;  buf: Buffer;  error: Platform.ErrorCode;
   BEGIN
+    IF (f # NIL) & (f.memory # NIL) THEN
+      IF pos < 0 THEN pos := 0 ELSIF pos > f.len THEN pos := f.len END;
+      IF f.bufs[0] = NIL THEN NEW(f.bufs[0]); f.bufs[0].f := f END;
+      r.buf := f.bufs[0]; r.org := 0; r.offset := pos; r.eof := FALSE; r.res := 0;
+      RETURN
+    END;
     Platform.CommandCritical(TRUE);
     IF f # NIL THEN
       IF pos > f.len THEN pos := f.len ELSIF pos < 0 THEN pos := 0 END;
@@ -413,6 +465,13 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Read* (VAR r: Rider; VAR x: SYSTEM.BYTE);
     VAR offset: LONGINT; buf: Buffer;
   BEGIN
+    IF r.buf.f.memory # NIL THEN
+      IF r.offset < r.buf.f.len THEN
+        x := r.buf.f.memory[r.offset]; INC(r.offset); r.eof := FALSE
+      ELSE x := 0X; r.eof := TRUE
+      END;
+      RETURN
+    END;
     Platform.CommandCritical(TRUE);
     buf := r.buf; offset := r.offset;
     IF r.org # buf.org THEN
@@ -439,6 +498,15 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE ReadBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
+    IF r.buf.f.memory # NIL THEN
+      IF n > LEN(x) THEN IdxTrap END;
+      xpos := 0;
+      WHILE (xpos < n) & (r.offset < r.buf.f.len) DO
+        x[xpos] := r.buf.f.memory[r.offset]; INC(xpos); INC(r.offset)
+      END;
+      IF n > xpos THEN r.res := n - xpos; r.eof := TRUE ELSE r.res := 0; r.eof := FALSE END;
+      RETURN
+    END;
     Platform.CommandCritical(TRUE);
     IF n > LEN(x) THEN IdxTrap END;
     xpos   := 0;
@@ -466,6 +534,15 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE Write* (VAR r: Rider; x: SYSTEM.BYTE);
     VAR buf: Buffer; offset: LONGINT;
   BEGIN
+    IF r.buf.f.memory # NIL THEN
+      IF r.offset > r.buf.f.len THEN r.offset := r.buf.f.len END;
+      IF r.buf.f.memoryFailed OR (r.offset >= r.buf.f.memoryCapacity) THEN
+        r.buf.f.memoryFailed := TRUE; r.res := 1; RETURN
+      END;
+      r.buf.f.memory[r.offset] := SYSTEM.VAL(CHAR, x); INC(r.offset);
+      IF r.offset > r.buf.f.len THEN r.buf.f.len := r.offset END;
+      r.res := 0; RETURN
+    END;
     Platform.CommandCritical(TRUE);
     buf := r.buf; offset := r.offset;
     Assert(offset <= BufSize);
@@ -486,6 +563,17 @@ MODULE Files;  (* J. Templ 1.12. 89/12.4.95 Oberon files mapped onto Unix files 
   PROCEDURE WriteBytes* (VAR r: Rider; VAR x: ARRAY OF SYSTEM.BYTE; n: LONGINT);
     VAR xpos, min, restInBuf, offset: LONGINT; buf: Buffer;
   BEGIN
+    IF r.buf.f.memory # NIL THEN
+      IF n > LEN(x) THEN IdxTrap END;
+      IF n <= 0 THEN r.res := 0; RETURN END;
+      IF r.offset > r.buf.f.len THEN r.offset := r.buf.f.len END;
+      IF r.buf.f.memoryFailed OR (n > r.buf.f.memoryCapacity - r.offset) THEN
+        r.buf.f.memoryFailed := TRUE; r.res := n; RETURN
+      END;
+      FOR xpos := 0 TO n - 1 DO r.buf.f.memory[r.offset] := SYSTEM.VAL(CHAR, x[xpos]); INC(r.offset) END;
+      IF r.offset > r.buf.f.len THEN r.buf.f.len := r.offset END;
+      r.res := 0; RETURN
+    END;
     Platform.CommandCritical(TRUE);
     IF n > LEN(x) THEN IdxTrap END;
     xpos := 0; buf := r.buf; offset := r.offset;

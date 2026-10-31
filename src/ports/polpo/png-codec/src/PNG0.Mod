@@ -1,5 +1,7 @@
 MODULE PNG0;  (** PNG pictures: decoding and encoding, on Files and the zlib of ETH Oberon *)
 
+(* VOC adaptation, 2026-10-31: bounded memory-file entry points and buffer validation. *)
+
 (** PNG 1.2 (ISO/IEC 15948): Decode reads every kind of PNG picture (grey, grey with alpha,
   RGB, RGB with alpha, palette; 1, 2, 4, 8 and 16 bits per sample; interlaced or not; with a
   tRNS chunk) into an Image of 8-bit red, green, blue and alpha; Encode writes an Image as an
@@ -28,6 +30,7 @@ CONST
   Grey = 0; RGB = 2; Palette = 3; GreyAlpha = 4; RGBAlpha = 6;
 
 TYPE
+  Bytes* = Files.Bytes;
   Image* = POINTER TO ImageDesc;
   ImageDesc* = RECORD
     width*, height*: LONGINT;
@@ -41,8 +44,6 @@ TYPE
     colorType*: LONGINT;  (** 0 grey, 2 RGB, 3 palette, 4 grey and alpha, 6 RGB and alpha *)
     interlaced*: BOOLEAN
   END;
-
-  Bytes = POINTER TO ARRAY OF CHAR;
 
 VAR
   signature: ARRAY 8 OF CHAR;
@@ -92,7 +93,9 @@ END Read32;
 
 (* the bytes of a row of w pixels *)
 PROCEDURE RowBytes(w, channels, depth: LONGINT): LONGINT;
-BEGIN RETURN (w * channels * depth + 7) DIV 8
+BEGIN
+  IF depth >= 8 THEN RETURN w * channels * (depth DIV 8) END;
+  RETURN (w * channels * depth + 7) DIV 8
 END RowBytes;
 
 PROCEDURE Channels(colorType: LONGINT): LONGINT;
@@ -224,8 +227,7 @@ BEGIN
   END
 END ReadInfo;
 
-(** decode the PNG picture read from R into img *)
-PROCEDURE Decode*(VAR R: Files.Rider; VAR img: Image; VAR res: LONGINT);
+PROCEDURE DecodeLimited(VAR R: Files.Rider; pixelLimit: LONGINT; VAR img: Image; VAR res: LONGINT);
 VAR info: Info; len, crc, i, k, channels, bpp, rawLen, done, p, pw, ph, rb, at, y, x, dst, v, g: LONGINT;
   type: ARRAY 5 OF CHAR; data, raw, cur, buf: Bytes; prior: Bytes; size: LONGINT;
   pal: ARRAY 256 * 4 OF CHAR; palN: LONGINT; trns: BOOLEAN; tr, tg, tb: LONGINT;
@@ -233,6 +235,7 @@ VAR info: Info; len, crc, i, k, channels, bpp, rawLen, done, p, pw, ph, rb, at, 
 BEGIN
   img := NIL;
   ReadInfo(R, info, res); IF res # ok THEN RETURN END;
+  IF info.width > pixelLimit DIV info.height THEN res := tooLarge; RETURN END;
   channels := Channels(info.colorType);
   bpp := channels * info.depth DIV 8; IF bpp < 1 THEN bpp := 1 END;
   i := 0; WHILE i < 256 DO pal[4 * i] := 0X; pal[4 * i + 1] := 0X; pal[4 * i + 2] := 0X; pal[4 * i + 3] := 0FFX; INC(i) END;
@@ -241,6 +244,7 @@ BEGIN
   LOOP  (* the chunks after IHDR *)
     len := Read32(R); Files.ReadBytes(R, type, 4); type[4] := 0X;  (* compared with strings *)
     IF R.eof OR (len < 0) OR (len > MaxChunk - 12) THEN res := badFormat; RETURN END;
+    IF len > Files.Length(Files.Base(R)) - Files.Pos(R) - 4 THEN res := badFormat; RETURN END;
     NEW(buf, len + 4);  (* the type and the data, for the CRC *)
     IF len > 0 THEN Files.ReadBytes(R, buf^, len); i := len - 1; WHILE i >= 0 DO buf[i + 4] := buf[i]; DEC(i) END END;
     i := 0; WHILE i < 4 DO buf[i] := type[i]; INC(i) END;
@@ -250,8 +254,12 @@ BEGIN
     IF type = "IDAT" THEN
       IF endOfIDAT THEN res := badFormat; RETURN END;
       seenIDAT := TRUE;
+      IF len > MAX(LONGINT) - size THEN res := tooLarge; RETURN END;
       IF size + len > LEN(data^) THEN  (* grow *)
-        k := LEN(data^) * 2; WHILE k < size + len DO k := k * 2 END;
+        k := LEN(data^);
+        WHILE k < size + len DO
+          IF k > MAX(LONGINT) DIV 2 THEN k := size + len ELSE k := k * 2 END
+        END;
         NEW(raw, k); i := 0; WHILE i < size DO raw[i] := data[i]; INC(i) END; data := raw
       END;
       i := 0; WHILE i < len DO data[size + i] := buf[4 + i]; INC(i) END; INC(size, len)
@@ -356,7 +364,32 @@ BEGIN
     INC(p)
   END;
   res := ok
-END Decode;
+END DecodeLimited;
+
+(** decode the PNG picture read from R into img *)
+PROCEDURE Decode*(VAR R: Files.Rider; VAR img: Image; VAR res: LONGINT);
+BEGIN DecodeLimited(R, MaxPixels, img, res) END Decode;
+
+(** inspect the logical prefix data[0..length), entirely in memory *)
+PROCEDURE ReadInfoBytes*(data: ARRAY OF CHAR; length: LONGINT; VAR info: Info; VAR res: LONGINT);
+VAR f: Files.File; R: Files.Rider;
+BEGIN
+  f := Files.FromBytes(data, length);
+  IF f = NIL THEN res := badFormat; RETURN END;
+  Files.Set(R, f, 0); ReadInfo(R, info, res)
+END ReadInfoBytes;
+
+(** decode an in-memory prefix, enforcing pixelLimit before allocating pixels or scanlines;
+    pixelLimit must be in 1..MaxPixels. No temporary files are created. *)
+PROCEDURE DecodeBytes*(data: ARRAY OF CHAR; length, pixelLimit: LONGINT; VAR img: Image; VAR res: LONGINT);
+VAR f: Files.File; R: Files.Rider;
+BEGIN
+  img := NIL;
+  IF (pixelLimit < 1) OR (pixelLimit > MaxPixels) THEN res := tooLarge; RETURN END;
+  f := Files.FromBytes(data, length);
+  IF f = NIL THEN res := badFormat; RETURN END;
+  Files.Set(R, f, 0); DecodeLimited(R, pixelLimit, img, res)
+END DecodeBytes;
 
 (* ----- writing ----- *)
 
@@ -378,10 +411,13 @@ END Chunk;
 (** write img to W as a PNG picture: RGB, or RGB and alpha if img.alpha; level the zlib
   compression level 0..9, or -1 for the default *)
 PROCEDURE Encode*(VAR W: Files.Rider; img: Image; level: LONGINT; VAR res: LONGINT);
-VAR hdr: ARRAY 17 OF CHAR; iend: ARRAY 4 OF CHAR; bpp, rb, rawLen, y, x, i, f, best, sum, bestSum, a, b, c, v, src, zlen, at: LONGINT;
+VAR hdr: ARRAY 17 OF CHAR; iend: ARRAY 4 OF CHAR; bpp, rb, rawLen, y, x, i, f, best, a, b, c, v, src, zlen, at: LONGINT;
+  sum, bestSum: HUGEINT;
   raw, out, row, prior, trial: Bytes; zres: LONGINT;
 BEGIN
   IF (img = NIL) OR (img.pix = NIL) OR (img.width <= 0) OR (img.height <= 0) THEN res := noImage; RETURN END;
+  IF img.width > MaxPixels DIV img.height THEN res := tooLarge; RETURN END;
+  IF img.width * img.height > LEN(img.pix^) DIV 4 THEN res := noImage; RETURN END;
   IF img.alpha THEN bpp := 4 ELSE bpp := 3 END;
   rb := img.width * bpp; rawLen := img.height * (rb + 1);
   NEW(raw, rawLen); NEW(row, rb); NEW(prior, rb); NEW(trial, rb);
@@ -395,7 +431,7 @@ BEGIN
       INC(i, bpp); INC(src, 4); INC(x)
     END;
     (* the filter with the least sum of the bytes taken as signed numbers *)
-    best := 0; bestSum := MAX(LONGINT); f := 0;
+    best := 0; bestSum := MAX(HUGEINT); f := 0;
     WHILE f <= 4 DO
       sum := 0; i := 0;
       WHILE i < rb DO
@@ -448,6 +484,18 @@ BEGIN
   Chunk(W, iend, 0);
   res := ok
 END Encode;
+
+(** encode into a memory-only buffer of at most maxBytes bytes. Only data[0..length)
+    is valid; data is NIL and length is 0 on failure, including an output-capacity failure. *)
+PROCEDURE EncodeBytes*(img: Image; level, maxBytes: LONGINT; VAR data: Bytes; VAR length, res: LONGINT);
+VAR f: Files.File; W: Files.Rider;
+BEGIN
+  data := NIL; length := 0;
+  IF maxBytes < 1 THEN res := tooLarge; RETURN END;
+  f := Files.NewMemory(maxBytes); Files.Set(W, f, 0); Encode(W, img, level, res);
+  IF Files.MemoryFailed(f) THEN res := tooLarge END;
+  IF res = ok THEN data := Files.MemoryData(f, length) END
+END EncodeBytes;
 
 BEGIN
   signature[0] := 89X; signature[1] := "P"; signature[2] := "N"; signature[3] := "G";

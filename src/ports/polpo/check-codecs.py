@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tarfile
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -26,14 +27,17 @@ def compile(path, main=False):
                    cwd=build, check=True)
 
 
+compile(root / 'src/library/Files.Mod')
 for name in ('Zlib', 'ZlibBuffers', 'ZlibInflate', 'ZlibDeflate'):
     compile(root / 'src/ports/s3' / (name + '.Mod'))
 compile(source / 'PictureArgs.Mod')
 for kind in ('png', 'jpeg', 'gif'):
     package = source / (kind + '-codec')
+    adapted = json.loads((package / 'voc-sha256.json').read_text())
     for relative, digest in json.loads((package / 'upstream-sha256.json').read_text()).items():
         path = package / relative
         if path.name == kind.upper() + '0.Mod' or path.suffix in ('.list', '.tgz', '.LICENSE'):
+            digest = adapted.get(relative, digest)
             assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, path
     for name in (kind.upper() + '0', kind):
         compile(package / 'src' / (name + '.Mod'))
@@ -67,6 +71,34 @@ for kind in ('png', 'jpeg', 'gif'):
     if kind == 'png':
         assert decoded.read_bytes() == picture.read_bytes()
 if not args.build_only:
+    compile(source / 'test/PictureMemoryTest.Mod')
+    for entry, name in (('Run', 'PictureMemoryCheck'), ('RunFiles', 'PictureFileCheck'),
+                        ('RunFixtures', 'PictureMemoryFixtures')):
+        wrapper = build / (name + '.Mod')
+        wrapper.write_text(f'MODULE {name}; IMPORT PictureMemoryTest; BEGIN PictureMemoryTest.{entry} END {name}.\n')
+        compile(wrapper, True)
+        if entry == 'RunFixtures':
+            continue
+        command = [str(build / name)]
+        trace = None
+        if entry == 'Run' and sys.platform.startswith('linux') and shutil.which('strace'):
+            trace = build / 'picture-memory-files.trace'
+            command = ['strace', '-f', '-e', 'trace=%file,memfd_create', '-o', str(trace), *command]
+        result = subprocess.run(command, cwd=build, capture_output=True,
+                                text=True, timeout=120)
+        print(result.stdout, end='', flush=True)
+        result.check_returncode()
+        assert '0 failed' in result.stdout and 'FAIL' not in result.stdout
+        if trace:
+            text = trace.read_text()
+            assert all(marker not in text for marker in ('O_CREAT', 'O_TMPFILE', 'creat(', 'memfd_create(', 'unlink(')), text
+            print('Memory picture I/O: no OS files created', flush=True)
+    for kind in ('png', 'jpeg', 'gif'):
+        result = subprocess.run([str(build / 'PictureMemoryFixtures'), kind, kind+'suite.list'],
+                                cwd=build, capture_output=True, text=True, timeout=120)
+        print(result.stdout, end='', flush=True)
+        result.check_returncode()
+        assert '0 failed' in result.stdout and 'FAIL' not in result.stdout
     compile(root / 'src/test/confidence/library/ZlibTest.Mod')
     wrapper = build / 'ZlibCheck.Mod'
     wrapper.write_text('MODULE ZlibCheck; IMPORT ZlibTest; BEGIN ZlibTest.Run END ZlibCheck.\n')

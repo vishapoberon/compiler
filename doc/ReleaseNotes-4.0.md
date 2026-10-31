@@ -1,5 +1,29 @@
 # Vishap Oberon 4.0
 
+## 4.0.6
+
+`Files` adds explicit, fixed-capacity memory files. Create one with
+`Files.NewMemory(capacity)`, or copy an existing byte prefix with
+`Files.FromBytes(data, length)`, then use the usual rider operations.
+`Files.MemoryData` returns the backing buffer and valid length without copying;
+`Files.MemoryFailed` reports an output-capacity failure until `Files.Purge`.
+Memory files stay entirely in memory. Existing disk-file operations, including
+`Files.New("")`, retain their behavior.
+
+The native PNG, JPEG and GIF codecs add `ReadInfoBytes`, `DecodeBytes` and
+`EncodeBytes`. Decoding enforces a caller-selected pixel limit before allocating
+image or component buffers; encoding uses fixed output capacity. Encoders
+validate pixel buffers, PNG checks chunk lengths before allocation and avoids
+wide-row arithmetic overflow, and GIF uses wider colour totals. PNG retains
+RGBA transparency; GIF retains first-frame decoding.
+
+Rebuild the VOC libraries and dependent programs and shared modules together:
+the `Files` record layout and codec symbol interfaces changed. Pixel and output
+limits apply per call and are not a total-process-memory budget.
+
+See [memory-file usage and codec APIs](../src/ports/polpo/README.md) and
+[release validation](ReleaseValidation-4.0.6.md) for details and test coverage.
+
 ## 4.0.5
 
 The Linux Internet library uses a 32-bit `LONGINT` for `Endpoint.scope`,
