@@ -4,7 +4,8 @@ IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   TCP := XmppTCP, Client := XmppClient, Core := XmppCore,
   Messenger := XmppMessenger, Sasl := XmppSasl, TLS := TLS13Live, HS := TLS13EncHandshake,
   IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
-  Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker;
+  Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker,
+  Muc := XmppMuc;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -26,11 +27,13 @@ VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Clie
   action: Action; request: IQ.Request; name, number, os: T.String;
   roster: Roster.Roster; rosterHook: RosterHook; events: LONGINT;
   tracker: Track.Tracker; presenceHook: PresenceHook;
+  mucPresences, mucMessages, mucSubjects, mucRejected, mucInvitations: LONGINT;
 
 PROCEDURE (a: Action) Done(router: IQ.Router; request: IQ.Request);
 BEGIN
   IF a.kind = 1 THEN ASSERT(PubSub.Published(request))
   ELSIF a.kind = 2 THEN ASSERT(PubSub.ReadItems(request) # NIL)
+  ELSIF a.kind = 3 THEN ASSERT(Muc.ReadConfiguration(request) # NIL)
   ELSE ASSERT(IQ.EmptyResult(request))
   END;
   INC(a.calls)
@@ -54,9 +57,39 @@ BEGIN
 END Ready;
 
 PROCEDURE (h: Hook) Received(client: Client.Client; stanza: Core.Stanza);
-  VAR body, expected, node: T.String; event: PubSub.Event;
+  VAR body, expected, node: T.String; event: PubSub.Event; occupant: Muc.Occupant;
+    message: Muc.Message; invitation: Muc.Invitation;
 BEGIN
   IF (mode = "presence") & (stanza.kind = Core.presence) THEN RETURN END;
+  IF mode = "muc" THEN
+    node := Items.Latin1("room@conference.example.org");
+    IF stanza.kind = Core.presence THEN
+      occupant := Muc.ReadPresence(stanza, node^);
+      IF occupant = NIL THEN INC(mucRejected)
+      ELSE
+        ASSERT(occupant.HasStatus(110)); expected := Items.UTF8("Անի😀"); ASSERT(S.Equal(occupant.nick^, expected^));
+        IF mucPresences = 0 THEN ASSERT(occupant.presence.kind = P.available)
+        ELSE ASSERT((mucPresences = 1) & (occupant.presence.kind = P.unavailable))
+        END;
+        INC(mucPresences)
+      END;
+      RETURN
+    ELSIF S.Equal8(stanza.type^, "groupchat") THEN
+      message := Muc.ReadMessage(stanza, node^); ASSERT(message # NIL);
+      IF message.bodyCount > 0 THEN expected := Items.UTF8("Բարեւ 😀"); ASSERT(S.Equal(message.body^, expected^)); INC(mucMessages)
+      ELSE expected := Items.UTF8("Թեմա😀"); ASSERT(S.Equal(message.subject^, expected^)); INC(mucSubjects)
+      END;
+      RETURN
+    ELSIF stanza.kind = Core.iq THEN
+      INC(mucRejected); RETURN
+    ELSIF stanza.kind = Core.message THEN
+      invitation := Muc.ReadInvitation(stanza, node^);
+      IF invitation # NIL THEN
+        ASSERT(~invitation.declined & S.Equal8(invitation.peer^, "person@example.org"));
+        ASSERT(S.Equal8(invitation.password^, "room-secret")); INC(mucInvitations); RETURN
+      END
+    END
+  END;
   IF mode = "roster-pep" THEN
     expected := Items.UTF8("friend@ծոց.հայ"); node := Items.Latin1("urn:xmpp:microblog:0");
     event := PubSub.ReadEvent(stanza, expected^, node^);
@@ -146,11 +179,58 @@ BEGIN
   stanza := P.Unavailable(empty^, empty^); client.Send(stanza, error); ASSERT(error = NIL); hook.sent := 0
 END PresenceTest;
 
+PROCEDURE WaitRoomRequest;
+BEGIN
+  ASSERT((request # NIL) & (error = NIL));
+  REPEAT state := client.Step() UNTIL (request.status # IQ.pending) OR (state = Client.failed);
+  ASSERT(request.status = IQ.result)
+END WaitRoomRequest;
+
+PROCEDURE MucTest;
+  VAR room, nick, password, empty, text, peer, role: T.String; form, field, value: Items.Item;
+BEGIN
+  room := Items.Latin1("room@conference.example.org"); nick := Items.UTF8("Անի😀");
+  password := Items.Latin1("room-secret"); empty := Items.Latin1("");
+  stanza := Muc.Join(room^, nick^, password^, 0); ASSERT(stanza # NIL);
+  client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (mucPresences = 1) OR (state = Client.failed);
+  ASSERT((mucPresences = 1) & (mucRejected = 1));
+  text := Items.UTF8("Բարեւ 😀"); stanza := Muc.GroupMessage(room^, text^); client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (mucMessages = 1) OR (state = Client.failed);
+  ASSERT(mucMessages = 1);
+  text := Items.UTF8("Թեմա😀"); stanza := Muc.Subject(room^, text^); client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (mucSubjects = 1) OR (state = Client.failed);
+  ASSERT(mucSubjects = 1);
+  peer := Items.Latin1("person@example.org"); text := Items.UTF8("Միացիր😀");
+  stanza := Muc.Invite(room^, peer^, text^); client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (mucInvitations = 1) OR (state = Client.failed);
+  ASSERT(mucInvitations = 1);
+  stanza := Muc.Decline(room^, peer^, text^); client.Send(stanza, error); ASSERT(error = NIL);
+  NEW(action); action.kind := 3;
+  request := Muc.RequestConfiguration(router, room^, 2000, action, error); WaitRoomRequest;
+  ASSERT(mucRejected = 2); action.kind := 0;
+  form := Items.New("x", Muc.formURI); text := Items.Latin1("submit"); form.SetParam("type", text^);
+  field := Items.New("field", Muc.formURI); text := Items.Latin1("FORM_TYPE"); field.SetParam("var", text^);
+  value := Items.New("value", Muc.formURI); text := Items.Latin1(Muc.configURI);
+  value.AddText(text^, 0, S.Length(text^)); field.AddChild(value); form.AddChild(field);
+  request := Muc.SubmitConfiguration(router, room^, form, 2000, action, error); WaitRoomRequest;
+  request := Muc.ConfigureDefault(router, room^, FALSE, 2000, action, error); WaitRoomRequest;
+  role := Items.Latin1("visitor"); text := Items.UTF8("Կարգ😀");
+  request := Muc.SetRole(router, room^, nick^, role^, text^, 2000, action, error); WaitRoomRequest;
+  role := Items.Latin1("member");
+  request := Muc.SetAffiliation(router, room^, peer^, role^, text^, 2000, action, error); WaitRoomRequest;
+  stanza := Muc.Leave(room^, nick^, empty^); client.Send(stanza, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (mucPresences = 2) OR (state = Client.failed);
+  ASSERT(mucPresences = 2);
+  request := Muc.Destroy(router, room^, empty^, text^, 2000, action, error); WaitRoomRequest;
+  ASSERT((hook.sent = 12) & (action.calls = 6)); hook.sent := 0
+END MucTest;
+
 BEGIN
   InvalidConfiguration;
   Args.Get(1, port); Args.Get(2, mode); Args.Get(3, direct);
   Args.Get(4, domain); IF domain = "" THEN domain := "localhost" END;
-  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence");
+  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence") OR (mode = "muc");
   transport := TCP.Open("127.0.0.1", port, domain, direct = "yes", 2000, error);
   IF transport = NIL THEN ASSERT(~success & (error # NIL))
   ELSE
@@ -182,6 +262,7 @@ BEGIN
       END;
       IF mode = "roster-pep" THEN RosterPEP END;
       IF mode = "presence" THEN PresenceTest END;
+      IF mode = "muc" THEN MucTest END;
       to := Items.Latin1("friend@localhost"); body := Items.UTF8("Բարեւ 😀");
       stanza := Messenger.NewMessage(to^, body^); client.Send(stanza, error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (hook.received > 0) OR (state = Client.failed);

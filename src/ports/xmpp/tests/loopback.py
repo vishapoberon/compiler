@@ -20,6 +20,8 @@ CLIENT = "jabber:client"
 TLS = "urn:ietf:params:xml:ns:xmpp-tls"
 SASL = "urn:ietf:params:xml:ns:xmpp-sasl"
 BIND = "urn:ietf:params:xml:ns:xmpp-bind"
+MUC = "http://jabber.org/protocol/muc"
+MUC_USER = MUC + "#user"
 
 
 def openssl(*args):
@@ -258,6 +260,74 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                     assert request.get("type") == "unsubscribed" and request.get("to") == friend
                     request = peer.event()
                     assert request.get("type") == "unavailable" and request.get("to") is None
+                if mode == "muc":
+                    room = "room@conference.example.org"
+                    occupant = room + "/Անի😀"
+                    request = peer.event()
+                    assert request.tag == f"{{{CLIENT}}}presence" and request.get("to") == occupant
+                    assert request.get("type") is None
+                    join = request.find(f"{{{MUC}}}x")
+                    assert join.find(f"{{{MUC}}}password").text == "room-secret"
+                    assert join.find(f"{{{MUC}}}history").get("maxstanzas") == "0"
+                    extension = (f'<x xmlns="{MUC_USER}"><item affiliation="member" '
+                                 'role="participant"/><status code="110"/></x>')
+                    send(connection, f'<presence from="room@elsewhere.example/Անի😀">{extension}</presence>', 3)
+                    send(connection, f'<presence from="{occupant}">{extension}</presence>', 1)
+                    request = peer.event()
+                    assert request.tag == f"{{{CLIENT}}}message" and request.get("to") == room
+                    assert request.get("type") == "groupchat" and request.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
+                    send(connection, f'<message from="{occupant}" type="groupchat"><body>Բարեւ 😀</body></message>', 5)
+                    request = peer.event()
+                    assert request.get("to") == room and request.get("type") == "groupchat"
+                    assert request.find(f"{{{CLIENT}}}subject").text == "Թեմա😀"
+                    send(connection, f'<message from="{room}" type="groupchat"><subject>Թեմա😀</subject></message>', 3)
+                    request = peer.event()
+                    invitation = request.find(f"{{{MUC_USER}}}x/{{{MUC_USER}}}invite")
+                    assert request.get("to") == room and invitation.get("to") == "person@example.org"
+                    assert invitation.find(f"{{{MUC_USER}}}reason").text == "Միացիր😀"
+                    send(connection, f'<message from="{room}"><x xmlns="{MUC_USER}">'
+                         '<invite from="person@example.org"><reason>Միացիր😀</reason></invite>'
+                         '<password>room-secret</password></x></message>', 1)
+                    request = peer.event()
+                    assert request.get("to") == room
+                    assert request.find(f"{{{MUC_USER}}}x/{{{MUC_USER}}}decline").get("to") == "person@example.org"
+                    owner, admin, forms = MUC + "#owner", MUC + "#admin", "jabber:x:data"
+                    request = peer.event()
+                    assert request.get("to") == room and request.get("type") == "get"
+                    assert request.find(f"{{{owner}}}query") is not None
+                    payload = f'<query xmlns="{owner}"><x xmlns="{forms}" type="form"><title>Սրահ😀</title></x></query>'
+                    send(connection, f'<iq from="{occupant}" type="result" id="{request.get("id")}">{payload}</iq>', 3)
+                    send(connection, f'<iq from="{room}" type="result" id="{request.get("id")}">{payload}</iq>', 1)
+                    for default in (False, True):
+                        request = peer.event()
+                        assert request.get("to") == room and request.get("type") == "set"
+                        form = request.find(f"{{{owner}}}query/{{{forms}}}x")
+                        assert form.get("type") == "submit"
+                        if default:
+                            assert len(form) == 0
+                        else:
+                            field = form.find(f"{{{forms}}}field")
+                            assert field.get("var") == "FORM_TYPE"
+                            assert field.find(f"{{{forms}}}value").text == MUC + "#roomconfig"
+                        send(connection, f'<iq from="{room}" type="result" id="{request.get("id")}"/>', 3)
+                    for attribute, target, value in (("role", "nick", "visitor"), ("affiliation", "jid", "member")):
+                        request = peer.event()
+                        assert request.get("to") == room and request.get("type") == "set"
+                        item = request.find(f"{{{admin}}}query/{{{admin}}}item")
+                        assert item.get(attribute) == value
+                        assert item.get(target) == ("Անի😀" if target == "nick" else "person@example.org")
+                        assert item.find(f"{{{admin}}}reason").text == "Կարգ😀"
+                        send(connection, f'<iq from="{room}" type="result" id="{request.get("id")}"/>', 5)
+                    request = peer.event()
+                    assert request.tag == f"{{{CLIENT}}}presence" and request.get("to") == occupant
+                    assert request.get("type") == "unavailable"
+                    send(connection, f'<presence from="{occupant}" type="unavailable"><x xmlns="{MUC_USER}">'
+                         '<item affiliation="member" role="none"/><status code="110"/></x></presence>', 7)
+                    request = peer.event()
+                    assert request.get("to") == room and request.get("type") == "set"
+                    destroy = request.find(f"{{{owner}}}query/{{{owner}}}destroy")
+                    assert destroy is not None and destroy.find(f"{{{owner}}}reason").text == "Կարգ😀"
+                    send(connection, f'<iq from="{room}" type="result" id="{request.get("id")}"/>', 3)
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
@@ -308,3 +378,5 @@ if __name__ == "__main__":
     case("roster-pep", direct=True, certificate="idn", domain="ծոց.հայ")
     case("presence")
     case("presence", direct=True, certificate="idn", domain="ծոց.հայ")
+    case("muc")
+    case("muc", direct=True, certificate="idn", domain="ծոց.հայ")

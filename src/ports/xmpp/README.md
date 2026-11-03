@@ -4,7 +4,8 @@ An Oberon-2 XMPP library using ooc-xml for XML streams and VOC's TCP/TLS modules
 for connections. It handles Unicode JIDs and messages, STARTTLS or direct TLS,
 SASL PLAIN authentication, resource binding, incoming/outgoing stanzas and
 bounded IQ requests, ping, software version, service discovery, rosters and
-personal publishing, presence subscriptions and per-resource availability.
+personal publishing, presence subscriptions, per-resource availability and core
+multi-user-chat stanzas.
 
 The port is under development. Login, binding and a Unicode self-message round
 trip have been tested against a live server with a UTF-8 (Armenian language)
@@ -15,7 +16,11 @@ and notifications have offline and local TLS coverage.
 Presence construction/decoding and explicit-contact resource tracking have the
 same local coverage; subscription approvals remain application decisions.
 IQ extensions use explicit registration and bounded request
-correlation. Applications drive
+correlation. Multi-user chat has join/leave, nickname, group-message, subject and
+invitation builders, with bounded room-checked decoding. Configuration forms and
+explicit role/affiliation changes, typed admin lists and destruction use
+exact-room IQ matching. Room state remains pending; applications choose
+configuration and administration policy. Applications drive
 the synchronous client with `Start`, `Step`, `Send` and `Close`.
 
 ## Build
@@ -63,8 +68,14 @@ documented in [Streaming.md](../xml/doc/Streaming.md).
 See [IQ extensions](doc/IQ.md) for handler setup, reply matching and deadlines.
 See [rosters and PEP](doc/RosterPEP.md) for cache updates and personal publishing.
 See [presence](doc/Presence.md) for subscriptions, resource selection and cleanup.
+See [multi-user chat](doc/MUC.md) for room stanzas, occupant decoding and limits.
 The separate [xmpp-publish example](../../examples/network/xmpp-publish/readme.md)
 publishes a Unicode PEP/Atom microblog entry with this library.
+
+[Barev for libpurple](https://github.com/norayr/barev-purple-oberon) uses the
+installed XML stream, item and UTF-8 serialization interfaces for direct peer
+connections. Its protocol and connection state remain in the plugin; the
+library's authenticated server client and MUC interfaces are separate APIs.
 
 ## Tests and status
 

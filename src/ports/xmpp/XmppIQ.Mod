@@ -27,6 +27,7 @@ TYPE
     payload-: Items.Item;
     remaining: LONGINT;
     action: Action;
+    exactPeer: BOOLEAN;
   END;
   Route = RECORD uri, name: Items.Bytes; handler: Handler END;
   RouterDesc* = RECORD (Client.HookDesc)
@@ -263,8 +264,8 @@ BEGIN
   router.routes := count; RETURN removed
 END Unregister;
 
-PROCEDURE (router: Router) Query*(peer: ARRAY OF T.CodeUnit; payload: Items.Item; set: BOOLEAN;
-                                  timeoutMS: LONGINT; action: Action; VAR error: Msg.Msg): Request;
+PROCEDURE Query(router: Router; peer: ARRAY OF T.CodeUnit; payload: Items.Item; set, exactPeer: BOOLEAN;
+                timeoutMS: LONGINT; action: Action; VAR error: Msg.Msg): Request;
   VAR request: Request; stanza: Core.Stanza; item: Items.Item; text, target: T.String;
     number: ARRAY 24 OF CHAR; id: ARRAY 48 OF T.CodeUnit; slot: LONGINT;
 BEGIN
@@ -284,11 +285,21 @@ BEGIN
   item.SetParam("type", text^); IF target[0] # 0 THEN item.SetParam("to", target^) END;
   item.AddChild(payload); stanza := Core.Wrap(item, NIL);
   NEW(request); request.id := Items.Copy16(id); request.peer := target;
+  request.exactPeer := exactPeer;
   request.action := action; request.remaining := timeoutMS; request.payload := payload;
   router.requests[slot] := request; INC(router.count); router.client.Send(stanza, error);
   IF (error # NIL) & (router.requests[slot] = request) THEN Finish(router, slot, sendFailed, NIL) END;
   RETURN request
 END Query;
+
+PROCEDURE (router: Router) Query*(peer: ARRAY OF T.CodeUnit; payload: Items.Item; set: BOOLEAN;
+                                timeoutMS: LONGINT; action: Action; VAR error: Msg.Msg): Request;
+BEGIN RETURN Query(router, peer, payload, set, FALSE, timeoutMS, action, error) END Query;
+
+PROCEDURE (router: Router) QueryExact*(peer: ARRAY OF T.CodeUnit; payload: Items.Item; set: BOOLEAN;
+                                     timeoutMS: LONGINT; action: Action; VAR error: Msg.Msg): Request;
+(* Room services answer as the bare room, never as one of its occupants. *)
+BEGIN RETURN Query(router, peer, payload, set, TRUE, timeoutMS, action, error) END QueryExact;
 
 PROCEDURE Addressed(router: Router; stanza: Core.Stanza): BOOLEAN;
   VAR to: T.String;
@@ -311,6 +322,7 @@ BEGIN
     RETURN S.Equal(from^, router.domain^) OR S.Equal(from^, router.bare^) OR S.Equal(from^, router.full^)
   END;
   IF S.Equal(from^, request.peer^) THEN RETURN TRUE END;
+  IF request.exactPeer THEN RETURN FALSE END;
   bare := Bare(from);
   (* A request to a bare account can be answered by one of that account's resources. *)
   J.UsernameFromJid(request.peer^, user, status);

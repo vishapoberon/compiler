@@ -61,7 +61,11 @@ timers do not interrupt them. The application must bound its overall run time.
 
 A reply must match the request ID, its peer and the local bound full/bare JID
 when `to` is present. A full peer JID requires that exact resource; a bare
-account may reply from one of its resources. Domain-only peers require that
+account may reply from one of its resources. `router.QueryExact` has the same
+arguments as `Query` but disables that resource fallback, so a MUC occupant
+cannot answer a management request sent to the bare room. The matching mode is
+set before sending, including for reentrant transport callbacks.
+Domain-only peers require that
 domain without a resource. An omitted peer addresses the local server; replies
 may omit `from` or identify that server or the local account. Explicit empty
 addresses are rejected. Foreign, duplicate, unknown-ID and late replies remain

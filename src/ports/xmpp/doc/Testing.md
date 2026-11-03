@@ -21,6 +21,12 @@ sizes, Unicode peers, full/bare/domain address matching, spoofed and duplicate
 replies, malformed payloads, cancellation, reentrant callbacks, queue limits,
 stream closure and synchronous write failure.
 
+Room-management integration adds 153 IQ checks, including 110 configuration-form
+input split sizes, exact-room reply matching, form submission validation,
+role/affiliation changes, configuration cancellation, destruction and deadlines.
+Typed admin lists cover canonical identities, optional undisclosed fields,
+filter checks, duplicates, empty lists and exact entry-capacity limits.
+
 Roster and PubSub/PEP tests add 176 checks, including 110 push split sizes,
 Unicode contact/group/item data, forged pushes, atomic snapshots, stale fetches,
 reentrant completion, cancellation, synchronous failures, contact/group/text
@@ -32,11 +38,21 @@ Presence tests add 167 checks for explicit subscription construction, multilingu
 status parsing, all 110 transport split sizes, recipient checks, per-resource
 selection, watch/resource/text limits, reentrant callbacks and disconnect cleanup.
 
-Twenty-six Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
+Multi-user-chat tests add 607 checks for join/leave, group-message and subject
+construction, room-checked occupant decoding, roles, affiliations, disclosed JIDs,
+nickname changes, removals, destruction, errors, mediated invitations/declines,
+continued-chat invitations and language/text/status limits.
+They include 160 input split sizes each for Unicode occupant presence and group
+messages and invitations, plus byte-fragmented UTF-8 output round trips.
+
+Twenty-eight Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
 credentials, messages and domains, certificate and protocol-version rejection,
 binding failures, stalled reads/handshakes, ping/version/discovery dispatch,
 roster retrieval/edits/pushes and PubSub publish/retrieve/retract/notification
-round trips, plus availability and all four subscription stanzas. Fixtures use
+round trips, plus availability and all four subscription stanzas, and room
+join/message/subject/leave exchanges with spoofed-room rejection, invitations,
+configuration forms, role/affiliation changes, destruction and occupant-address
+IQ spoof rejection. Fixtures use
 synthetic accounts and local peers. Live-server coverage includes verified
 STARTTLS publication and exact-item retrieval with matching Atom text; live
 roster/presence testing and broader server interoperability remain pending.
@@ -49,6 +65,15 @@ The sanitizer build uses an uninstrumented conservative core runtime, with
 `ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_return=0` and
 `UBSAN_OPTIONS=halt_on_error=1`. Shared IDNA and the XMPP module consumers
 also pass against a modular VOC image.
+
+On 2026-11-03, fresh GCC x86-64 Linux builds passed the conventional XMPP suite
+with 607 MUC and 285 IQ checks, all 28 local TLS cases and the shared-library
+suite. Admin-list tests subsequently brought the IQ suite to 298 checks, passing
+both conventionally and with shared libraries. Clang ASan/UBSan passed the
+607 MUC and 298 IQ checks with the XMPP
+modules and test entry points instrumented; the conservative runtime and
+non-XMPP dependencies remained uninstrumented. The complete compiler matrix
+has not yet been repeated for the latest additions.
 
 Shared-module tests cover XMPP and publisher interfaces and bundled library
 ABI/loading. The publisher's 21 payload/configuration checks, 22 file/XML
