@@ -1,7 +1,7 @@
 (* Oberon Portable Scanner (front end) *)
 MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
 
-  IMPORT OPM, SYSTEM;
+  IMPORT OPM, SYSTEM, Reals;
 
   CONST
     MaxStrLen* = 1024;
@@ -89,15 +89,12 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     name[i] := 0X; sym := ident
   END Identifier;
 
-  (* the decimal constants of the scanner, correctly rounded by the C library *)
-  PROCEDURE -Astdlib '#include <stdlib.h>';
-  PROCEDURE -strtod(s: SYSTEM.ADDRESS): LONGREAL '(LONGREAL)strtod((const char*)(ADDRESS)(s), 0)';
-  PROCEDURE -strtof(s: SYSTEM.ADDRESS): REAL '(REAL)strtof((const char*)(ADDRESS)(s), 0)';
-
   PROCEDURE Number;
     CONST maxhexdigits = 16;
-    VAR i, m, n, d, e, k, j: INTEGER; dig: ARRAY 40 OF CHAR; f: LONGREAL; expCh: CHAR; neg: BOOLEAN;
-      num: ARRAY 64 OF CHAR; exp: ARRAY 8 OF CHAR;
+    VAR i, m, d, e, decimalShift, power: SYSTEM.INT64;
+      n, k, j: INTEGER; dig: ARRAY Reals.MaxDecimalDigits OF CHAR;
+      expCh: CHAR; neg, sticky: BOOLEAN;
+      num: ARRAY Reals.MaxDecimalDigits+32 OF CHAR; exp: ARRAY 24 OF CHAR;
 
     PROCEDURE Ord(ch: CHAR; hex: BOOLEAN): INTEGER;
     BEGIN (* ("0" <= ch) & (ch <= "9") OR ("A" <= ch) & (ch <= "F") *)
@@ -108,11 +105,12 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     END Ord;
 
   BEGIN (* ("0" <= ch) & (ch <= "9") *)
-    i := 0; m := 0; n := 0; d := 0;
+    i := 0; m := 0; n := 0; d := 0; sticky := FALSE;
     LOOP (* read mantissa *)
       IF ("0" <= ch) & (ch <= "9") OR (d = 0) & ("A" <= ch) & (ch <= "F") THEN
         IF (m > 0) OR (ch # "0") THEN (* ignore leading zeros *)
-          IF n < LEN(dig) THEN dig[n] := ch; INC(n) END;
+          IF n < LEN(dig) THEN dig[n] := ch; INC(n)
+          ELSE sticky := sticky OR (ch # "0") END;
           INC(m)
         END;
         OPM.Get(ch); INC(i)
@@ -147,17 +145,17 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
       ELSE err(203)
       END
     ELSE (* fraction *)
-      f := 0; e := 0; expCh := "E";
-      num[0] := "0"; num[1] := "."; k := 2; j := 0;  (* "0.digits" for strtod, with "e" exp below *)
-      WHILE j < n DO num[k] := dig[j]; INC(k); INC(j) END;
-      WHILE n > 0 DO (* 0 <= f < 1 *) DEC(n); f := (Ord(dig[n], FALSE) + f)/10 END;
+      e := 0; expCh := "E";
+      num[0] := "0"; num[1] := "."; k := 2; j := 0;
+      WHILE j < n DO num[k] := CHR(Ord(dig[j], FALSE)+ORD("0")); INC(k); INC(j) END;
+      IF sticky THEN num[k] := "1"; INC(k) END;
       IF (ch = "E") OR (ch = "D") THEN expCh := ch; OPM.Get(ch); neg := FALSE;
         IF ch = "-" THEN neg := TRUE; OPM.Get(ch)
         ELSIF ch = "+" THEN OPM.Get(ch)
         END;
         IF ("0" <= ch) & (ch <= "9") THEN
           REPEAT n := Ord(ch, FALSE); OPM.Get(ch);
-            IF e <= (MAX(INTEGER) - n) DIV 10 THEN e := e*10 + n
+            IF e <= (MAX(SYSTEM.INT64) - n) DIV 10 THEN e := e*10 + n
             ELSE err(203)
             END
           UNTIL (ch < "0") OR ("9" < ch);
@@ -165,18 +163,23 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
         ELSE err(2)
         END
       END;
-      DEC(e, i-d-m); (* decimal point shift *)
+      decimalShift := i-d-m;
+      IF (decimalShift < 0) & (e > MAX(SYSTEM.INT64)+decimalShift) THEN e := MAX(SYSTEM.INT64)
+      ELSIF (decimalShift > 0) & (e < MIN(SYSTEM.INT64)+decimalShift) THEN e := MIN(SYSTEM.INT64)
+      ELSE DEC(e, decimalShift) END;
+      IF e > 1000000 THEN e := 1000000 ELSIF e < -1000000 THEN e := -1000000 END;
       num[k] := "e"; INC(k); IF e < 0 THEN num[k] := "-"; INC(k) END;
-      j := ABS(e); n := 0; REPEAT exp[n] := CHR(ORD("0") + j MOD 10); j := j DIV 10; INC(n) UNTIL j = 0;
+      power := ABS(e); n := 0;
+      REPEAT exp[n] := CHR(ORD("0") + power MOD 10); power := power DIV 10; INC(n) UNTIL power = 0;
       WHILE n > 0 DO DEC(n); num[k] := exp[n]; INC(k) END;
       num[k] := 0X;
-      (* the range is that of the result: infinite, or 0 from digits that are not, is too large
-         (was: the decimal exponent within MaxRExp, MaxLExp, which refused 1.17549435E-38) *)
+      (* Check the converted value, including finite subnormals, rather than
+         rejecting a token from its literal decimal exponent alone. *)
       IF expCh = "E" THEN numtyp := real;
-        IF (e > -400) & (e < 400) THEN realval := strtof(SYSTEM.ADR(num)) ELSE realval := 0 END;
+        IF (e > -400) & (e < 400) THEN realval := Reals.ParseReal(num) ELSE realval := 0 END;
         IF (realval > MAX(REAL)) OR (realval = 0) & (m > 0) THEN err(203) END
       ELSE numtyp := longreal;
-        IF (e > -400) & (e < 400) THEN lrlval := strtod(SYSTEM.ADR(num)) ELSE lrlval := 0 END;
+        IF (e > -400) & (e < 400) THEN lrlval := Reals.ParseLongReal(num) ELSE lrlval := 0 END;
         IF (lrlval > MAX(LONGREAL)) OR (lrlval = 0) & (m > 0) THEN err(203) END
       END
     END

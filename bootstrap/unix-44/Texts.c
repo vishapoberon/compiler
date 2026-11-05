@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -232,9 +232,6 @@ export void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 
 export void Texts_WriteRealHex (Texts_Writer *W, ADDRESS *W__typ, REAL x);
 export void Texts_WriteString (Texts_Writer *W, ADDRESS *W__typ, CHAR *s, ADDRESS s__len);
 
-#include <stdlib.h>
-#define Texts_ParseLongReal(text, text__len)	strtod((const char*)text, 0)
-#define Texts_ParseReal(text, text__len)	strtof((const char*)text, 0)
 
 static Texts_FontsFont Texts_FontsThis (CHAR *name, ADDRESS name__len)
 {
@@ -740,7 +737,7 @@ void Texts_OpenScanner (Texts_Scanner *S, ADDRESS *S__typ, Texts_Text T, INT32 p
 	(*S).nextCh = ' ';
 }
 
-static struct Scan__34 {
+static struct Scan__31 {
 	Texts_Scanner *S;
 	ADDRESS *S__typ;
 	CHAR *ch;
@@ -749,71 +746,71 @@ static struct Scan__34 {
 	INT64 *e, *scale;
 	INT32 *digit;
 	CHAR (*d)[1100];
-	struct Scan__34 *lnk;
-} *Scan__34_s;
+	struct Scan__31 *lnk;
+} *Scan__31_s;
 
-static void Digit__36 (CHAR ch, BOOLEAN fraction);
-static void ReadScaleFactor__38 (void);
+static void Digit__33 (CHAR ch, BOOLEAN fraction);
+static void ReadScaleFactor__35 (void);
 
-static void Digit__36 (CHAR ch, BOOLEAN fraction)
+static void Digit__33 (CHAR ch, BOOLEAN fraction)
 {
-	if (*Scan__34_s->i > 0 || ch != '0') {
-		if (*Scan__34_s->i < 1100) {
-			(*Scan__34_s->d)[__X(*Scan__34_s->i, 1100)] = ch;
-			*Scan__34_s->i += 1;
+	if (*Scan__31_s->i > 0 || ch != '0') {
+		if (*Scan__31_s->i < 1100) {
+			(*Scan__31_s->d)[__X(*Scan__31_s->i, 1100)] = ch;
+			*Scan__31_s->i += 1;
 			if (fraction) {
-				if (*Scan__34_s->scale > (-9223372036854775807LL-1)) {
-					*Scan__34_s->scale -= 1;
+				if (*Scan__31_s->scale > (-9223372036854775807LL-1)) {
+					*Scan__31_s->scale -= 1;
 				} else {
-					*Scan__34_s->invalid = 1;
+					*Scan__31_s->invalid = 1;
 				}
 			}
 		} else {
-			*Scan__34_s->sticky = *Scan__34_s->sticky || ch != '0';
+			*Scan__31_s->sticky = *Scan__31_s->sticky || ch != '0';
 			if (!fraction) {
-				*Scan__34_s->tooLong = 1;
-				if (*Scan__34_s->scale < 9223372036854775807LL) {
-					*Scan__34_s->scale += 1;
+				*Scan__31_s->tooLong = 1;
+				if (*Scan__31_s->scale < 9223372036854775807LL) {
+					*Scan__31_s->scale += 1;
 				} else {
-					*Scan__34_s->invalid = 1;
+					*Scan__31_s->invalid = 1;
 				}
 			}
 		}
 	} else if (fraction) {
-		if (*Scan__34_s->scale > (-9223372036854775807LL-1)) {
-			*Scan__34_s->scale -= 1;
+		if (*Scan__31_s->scale > (-9223372036854775807LL-1)) {
+			*Scan__31_s->scale -= 1;
 		} else {
-			*Scan__34_s->invalid = 1;
+			*Scan__31_s->invalid = 1;
 		}
 	}
 }
 
-static void ReadScaleFactor__38 (void)
+static void ReadScaleFactor__35 (void)
 {
 	BOOLEAN seen;
-	Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
-	if (*Scan__34_s->ch == '-') {
-		*Scan__34_s->negE = 1;
-		Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+	Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
+	if (*Scan__31_s->ch == '-') {
+		*Scan__31_s->negE = 1;
+		Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
 	} else {
-		*Scan__34_s->negE = 0;
-		if (*Scan__34_s->ch == '+') {
-			Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+		*Scan__31_s->negE = 0;
+		if (*Scan__31_s->ch == '+') {
+			Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
 		}
 	}
 	seen = 0;
-	while (('0' <= *Scan__34_s->ch && *Scan__34_s->ch <= '9')) {
+	while (('0' <= *Scan__31_s->ch && *Scan__31_s->ch <= '9')) {
 		seen = 1;
-		*Scan__34_s->digit = (INT16)*Scan__34_s->ch - 48;
-		if (*Scan__34_s->e <= __DIV(9223372036854775807LL - (INT64)*Scan__34_s->digit, 10)) {
-			*Scan__34_s->e = *Scan__34_s->e * 10 + (INT64)*Scan__34_s->digit;
+		*Scan__31_s->digit = (INT16)*Scan__31_s->ch - 48;
+		if (*Scan__31_s->e <= __DIV(9223372036854775807LL - (INT64)*Scan__31_s->digit, 10)) {
+			*Scan__31_s->e = *Scan__31_s->e * 10 + (INT64)*Scan__31_s->digit;
 		} else {
-			*Scan__34_s->invalid = 1;
+			*Scan__31_s->invalid = 1;
 		}
-		Texts_Read((void*)&*Scan__34_s->S, Scan__34_s->S__typ, &*Scan__34_s->ch);
+		Texts_Read((void*)&*Scan__31_s->S, Scan__31_s->S__typ, &*Scan__31_s->ch);
 	}
 	if (!seen) {
-		*Scan__34_s->invalid = 1;
+		*Scan__31_s->invalid = 1;
 	}
 }
 
@@ -826,8 +823,8 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 	INT32 k, digit, limit;
 	CHAR d[1100];
 	CHAR number[1164];
-	INT16 _for__35;
-	struct Scan__34 _s;
+	INT16 _for__32;
+	struct Scan__31 _s;
 	_s.S = S; _s.S__typ = S__typ;
 	_s.ch = &ch;
 	_s.negE = &negE;
@@ -839,8 +836,8 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 	_s.scale = &scale;
 	_s.digit = &digit;
 	_s.d = (void*)d;
-	_s.lnk = Scan__34_s;
-	Scan__34_s = &_s;
+	_s.lnk = Scan__31_s;
+	Scan__31_s = &_s;
 	ch = (*S).nextCh;
 	i = 0;
 	for (;;) {
@@ -887,7 +884,7 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 			scale = 0;
 			e = 0;
 			for (;;) {
-				Digit__36(ch, 0);
+				Digit__33(ch, 0);
 				Texts_Read((void*)&*S, S__typ, &ch);
 				if (ch < '0') {
 					break;
@@ -936,17 +933,17 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 			} else if (ch == '.') {
 				Texts_Read((void*)&*S, S__typ, &ch);
 				while (('0' <= ch && ch <= '9')) {
-					Digit__36(ch, 1);
+					Digit__33(ch, 1);
 					Texts_Read((void*)&*S, S__typ, &ch);
 				}
 				term = ch;
 				if (term == 'D') {
 					(*S).class = 5;
-					ReadScaleFactor__38();
+					ReadScaleFactor__35();
 				} else {
 					(*S).class = 4;
 					if (term == 'E') {
-						ReadScaleFactor__38();
+						ReadScaleFactor__35();
 					}
 				}
 				if (hex || invalid) {
@@ -976,9 +973,9 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 						number[__X(n, 1164)] = '0';
 						n += 1;
 					} else {
-						_for__35 = i - 1;
+						_for__32 = i - 1;
 						j = 0;
-						while (j <= _for__35) {
+						while (j <= _for__32) {
 							number[__X(n, 1164)] = d[__X(j, 1100)];
 							n += 1;
 							j += 1;
@@ -1012,9 +1009,9 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 						n -= 1;
 					}
 					if ((*S).class == 5) {
-						(*S).y = Texts_ParseLongReal(number, 1164);
+						(*S).y = Reals_ParseLongReal(number, 1164);
 					} else {
-						(*S).x = Texts_ParseReal(number, 1164);
+						(*S).x = Reals_ParseReal(number, 1164);
 					}
 				}
 			} else {
@@ -1053,7 +1050,7 @@ void Texts_Scan (Texts_Scanner *S, ADDRESS *S__typ)
 		}
 	}
 	(*S).nextCh = ch;
-	Scan__34_s = _s.lnk;
+	Scan__31_s = _s.lnk;
 }
 
 void Texts_OpenWriter (Texts_Writer *W, ADDRESS *W__typ)
@@ -1236,7 +1233,7 @@ void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n)
 			Texts_Write(&*W, W__typ, ' ');
 			n -= 1;
 		} while (!(n <= 8));
-		if (x < (REAL)0) {
+		if (x < (REAL)0.0e0) {
 			Texts_Write(&*W, W__typ, '-');
 			x = -x;
 		} else {
@@ -1248,14 +1245,14 @@ void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n)
 		} else {
 			x = Reals_Ten(-e) * x;
 		}
-		if (x >= (REAL)10) {
-			x = (REAL)0.10000000149011612 * x;
+		if (x >= (REAL)1.0e1) {
+			x = (REAL)1.0000000149011612e-1 * x;
 			e += 1;
 		}
 		x0 = Reals_Ten(n - 1);
-		x = x0 * x + (REAL)0.5;
-		if (x >= (REAL)10 * x0) {
-			x = x * (REAL)0.10000000149011612;
+		x = x0 * x + (REAL)5.0e-1;
+		if (x >= (REAL)1.0e1 * x0) {
+			x = x * (REAL)1.0000000149011612e-1;
 			e += 1;
 		}
 		Reals_Convert(x, n, (void*)d, 9);
@@ -1278,30 +1275,30 @@ void Texts_WriteReal (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n)
 	}
 }
 
-static struct WriteRealFix__59 {
+static struct WriteRealFix__56 {
 	Texts_Writer *W;
 	ADDRESS *W__typ;
 	INT16 *i;
 	CHAR (*d)[9];
-	struct WriteRealFix__59 *lnk;
-} *WriteRealFix__59_s;
+	struct WriteRealFix__56 *lnk;
+} *WriteRealFix__56_s;
 
-static void dig__60 (INT16 n);
-static void seq__62 (CHAR ch, INT16 n);
+static void dig__57 (INT16 n);
+static void seq__59 (CHAR ch, INT16 n);
 
-static void seq__62 (CHAR ch, INT16 n)
+static void seq__59 (CHAR ch, INT16 n)
 {
 	while (n > 0) {
-		Texts_Write(&*WriteRealFix__59_s->W, WriteRealFix__59_s->W__typ, ch);
+		Texts_Write(&*WriteRealFix__56_s->W, WriteRealFix__56_s->W__typ, ch);
 		n -= 1;
 	}
 }
 
-static void dig__60 (INT16 n)
+static void dig__57 (INT16 n)
 {
 	while (n > 0) {
-		*WriteRealFix__59_s->i -= 1;
-		Texts_Write(&*WriteRealFix__59_s->W, WriteRealFix__59_s->W__typ, (*WriteRealFix__59_s->d)[__X(*WriteRealFix__59_s->i, 9)]);
+		*WriteRealFix__56_s->i -= 1;
+		Texts_Write(&*WriteRealFix__56_s->W, WriteRealFix__56_s->W__typ, (*WriteRealFix__56_s->d)[__X(*WriteRealFix__56_s->i, 9)]);
 		n -= 1;
 	}
 }
@@ -1312,26 +1309,26 @@ void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT1
 	CHAR sign;
 	REAL x0;
 	CHAR d[9];
-	struct WriteRealFix__59 _s;
+	struct WriteRealFix__56 _s;
 	_s.W = W; _s.W__typ = W__typ;
 	_s.i = &i;
 	_s.d = (void*)d;
-	_s.lnk = WriteRealFix__59_s;
-	WriteRealFix__59_s = &_s;
+	_s.lnk = WriteRealFix__56_s;
+	WriteRealFix__56_s = &_s;
 	e = Reals_Expo(x);
 	if (k < 0) {
 		k = 0;
 	}
 	if (e == 0) {
-		seq__62(' ', (n - k) - 2);
+		seq__59(' ', (n - k) - 2);
 		Texts_Write(&*W, W__typ, '0');
-		seq__62(' ', k + 1);
+		seq__59(' ', k + 1);
 	} else if (e == 255) {
 		Texts_WriteString(&*W, W__typ, (CHAR*)" NaN", 5);
-		seq__62(' ', n - 4);
+		seq__59(' ', n - 4);
 	} else {
 		e = __ASHR((e - 127) * 77, 8);
-		if (x < (REAL)0) {
+		if (x < (REAL)0.0e0) {
 			sign = '-';
 			x = -x;
 		} else {
@@ -1342,40 +1339,40 @@ void Texts_WriteRealFix (Texts_Writer *W, ADDRESS *W__typ, REAL x, INT16 n, INT1
 		} else {
 			x = Reals_Ten(-e) * x;
 		}
-		if (x >= (REAL)10) {
-			x = (REAL)0.10000000149011612 * x;
+		if (x >= (REAL)1.0e1) {
+			x = (REAL)1.0000000149011612e-1 * x;
 			e += 1;
 		}
 		if (k + e >= 8) {
 			k = 8 - e;
 		} else if (k + e < 0) {
 			k = -e;
-			x = (REAL)0;
+			x = (REAL)0.0e0;
 		}
 		x0 = Reals_Ten(k + e);
-		x = x0 * x + (REAL)0.5;
-		if (x >= (REAL)10 * x0) {
+		x = x0 * x + (REAL)5.0e-1;
+		if (x >= (REAL)1.0e1 * x0) {
 			e += 1;
 		}
 		e += 1;
 		i = k + e;
 		Reals_Convert(x, i, (void*)d, 9);
 		if (e > 0) {
-			seq__62(' ', ((n - e) - k) - 2);
+			seq__59(' ', ((n - e) - k) - 2);
 			Texts_Write(&*W, W__typ, sign);
-			dig__60(e);
+			dig__57(e);
 			Texts_Write(&*W, W__typ, '.');
-			dig__60(k);
+			dig__57(k);
 		} else {
-			seq__62(' ', (n - k) - 3);
+			seq__59(' ', (n - k) - 3);
 			Texts_Write(&*W, W__typ, sign);
 			Texts_Write(&*W, W__typ, '0');
 			Texts_Write(&*W, W__typ, '.');
-			seq__62('0', -e);
-			dig__60(k + e);
+			seq__59('0', -e);
+			dig__57(k + e);
 		}
 	}
-	WriteRealFix__59_s = _s.lnk;
+	WriteRealFix__56_s = _s.lnk;
 }
 
 void Texts_WriteRealHex (Texts_Writer *W, ADDRESS *W__typ, REAL x)
@@ -1418,7 +1415,7 @@ void Texts_WriteLongReal (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x, INT16 n)
 			Texts_Write(&*W, W__typ, ' ');
 			n -= 1;
 		} while (!(n <= 16));
-		if (x < (LONGREAL)0) {
+		if (x < (LONGREAL)0.0e0) {
 			Texts_Write(&*W, W__typ, '-');
 			x = -x;
 		} else {
@@ -1430,14 +1427,14 @@ void Texts_WriteLongReal (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x, INT16 n)
 		} else {
 			x = Reals_TenL(-e) * x;
 		}
-		if (x >= (LONGREAL)10) {
-			x = (LONGREAL)0.10000000000000001 * x;
+		if (x >= (LONGREAL)1.0e1) {
+			x = (LONGREAL)1.0000000000000001e-1 * x;
 			e += 1;
 		}
 		x0 = Reals_TenL(n - 1);
-		x = x0 * x + (LONGREAL)0.5;
-		if (x >= (LONGREAL)10 * x0) {
-			x = (LONGREAL)0.10000000000000001 * x;
+		x = x0 * x + (LONGREAL)5.0e-1;
+		if (x >= (LONGREAL)1.0e1 * x0) {
+			x = (LONGREAL)1.0000000000000001e-1 * x;
 			e += 1;
 		}
 		Reals_ConvertL(x, n, (void*)d, 16);
@@ -1474,48 +1471,48 @@ void Texts_WriteLongRealHex (Texts_Writer *W, ADDRESS *W__typ, LONGREAL x)
 	} while (!(i == 16));
 }
 
-static struct WriteDate__49 {
+static struct WriteDate__46 {
 	Texts_Writer *W;
 	ADDRESS *W__typ;
-	struct WriteDate__49 *lnk;
-} *WriteDate__49_s;
+	struct WriteDate__46 *lnk;
+} *WriteDate__46_s;
 
-static void WritePair__50 (CHAR ch, INT32 x);
+static void WritePair__47 (CHAR ch, INT32 x);
 
-static void WritePair__50 (CHAR ch, INT32 x)
+static void WritePair__47 (CHAR ch, INT32 x)
 {
-	Texts_Write(&*WriteDate__49_s->W, WriteDate__49_s->W__typ, ch);
-	Texts_Write(&*WriteDate__49_s->W, WriteDate__49_s->W__typ, __CHR(__DIV(x, 10) + 48));
-	Texts_Write(&*WriteDate__49_s->W, WriteDate__49_s->W__typ, __CHR((int)__MOD(x, 10) + 48));
+	Texts_Write(&*WriteDate__46_s->W, WriteDate__46_s->W__typ, ch);
+	Texts_Write(&*WriteDate__46_s->W, WriteDate__46_s->W__typ, __CHR(__DIV(x, 10) + 48));
+	Texts_Write(&*WriteDate__46_s->W, WriteDate__46_s->W__typ, __CHR((int)__MOD(x, 10) + 48));
 }
 
 void Texts_WriteDate (Texts_Writer *W, ADDRESS *W__typ, INT32 t, INT32 d)
 {
-	struct WriteDate__49 _s;
+	struct WriteDate__46 _s;
 	_s.W = W; _s.W__typ = W__typ;
-	_s.lnk = WriteDate__49_s;
-	WriteDate__49_s = &_s;
-	WritePair__50(' ', __MASK(d, -32));
-	WritePair__50('.', __MASK(__ASHR(d, 5), -16));
-	WritePair__50('.', __MASK(__ASHR(d, 9), -128));
-	WritePair__50(' ', __MASK(__ASHR(t, 12), -32));
-	WritePair__50(':', __MASK(__ASHR(t, 6), -64));
-	WritePair__50(':', __MASK(t, -64));
-	WriteDate__49_s = _s.lnk;
+	_s.lnk = WriteDate__46_s;
+	WriteDate__46_s = &_s;
+	WritePair__47(' ', __MASK(d, -32));
+	WritePair__47('.', __MASK(__ASHR(d, 5), -16));
+	WritePair__47('.', __MASK(__ASHR(d, 9), -128));
+	WritePair__47(' ', __MASK(__ASHR(t, 12), -32));
+	WritePair__47(':', __MASK(__ASHR(t, 6), -64));
+	WritePair__47(':', __MASK(t, -64));
+	WriteDate__46_s = _s.lnk;
 }
 
-static struct Load0__17 {
+static struct Load0__16 {
 	Texts_Text *T;
 	INT8 *ecnt;
 	Files_File *f;
 	Texts_FileMsg *msg;
 	CHAR (*mods)[64][32], (*procs)[64][32];
-	struct Load0__17 *lnk;
-} *Load0__17_s;
+	struct Load0__16 *lnk;
+} *Load0__16_s;
 
-static void LoadElem__18 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e);
+static void LoadElem__17 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e);
 
-static void LoadElem__18 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e)
+static void LoadElem__17 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span, Texts_Elem *e)
 {
 	Heap_Module M = NIL;
 	Heap_Command Cmd;
@@ -1526,15 +1523,15 @@ static void LoadElem__18 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span
 	Files_ReadLInt(&*r, r__typ, &ew);
 	Files_ReadLInt(&*r, r__typ, &eh);
 	Files_Read(&*r, r__typ, (void*)&eno);
-	if (eno > *Load0__17_s->ecnt) {
-		*Load0__17_s->ecnt = eno;
-		Files_ReadString(&*r, r__typ, (void*)(*Load0__17_s->mods)[__X(eno, 64)], 32);
-		Files_ReadString(&*r, r__typ, (void*)(*Load0__17_s->procs)[__X(eno, 64)], 32);
+	if (eno > *Load0__16_s->ecnt) {
+		*Load0__16_s->ecnt = eno;
+		Files_ReadString(&*r, r__typ, (void*)(*Load0__16_s->mods)[__X(eno, 64)], 32);
+		Files_ReadString(&*r, r__typ, (void*)(*Load0__16_s->procs)[__X(eno, 64)], 32);
 	}
 	org = Files_Pos(&*r, r__typ);
-	M = Modules_ThisMod((*Load0__17_s->mods)[__X(eno, 64)], 32);
+	M = Modules_ThisMod((*Load0__16_s->mods)[__X(eno, 64)], 32);
 	if (M != NIL) {
-		Cmd = Modules_ThisCommand(M, (*Load0__17_s->procs)[__X(eno, 64)], 32);
+		Cmd = Modules_ThisCommand(M, (*Load0__16_s->procs)[__X(eno, 64)], 32);
 		if (Cmd != NIL) {
 			(*Cmd)();
 		}
@@ -1543,25 +1540,25 @@ static void LoadElem__18 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, INT32 span
 	if (*e != NIL) {
 		(*e)->W = ew;
 		(*e)->H = eh;
-		(*e)->base = *Load0__17_s->T;
-		(*Load0__17_s->msg).pos = pos;
-		(*(*e)->handle)(*e, (void*)&*Load0__17_s->msg, Texts_FileMsg__typ);
+		(*e)->base = *Load0__16_s->T;
+		(*Load0__16_s->msg).pos = pos;
+		(*(*e)->handle)(*e, (void*)&*Load0__16_s->msg, Texts_FileMsg__typ);
 		if (Files_Pos(&*r, r__typ) != org + span) {
 			*e = NIL;
 		}
 	}
 	if (*e == NIL) {
-		Files_Set(&*r, r__typ, *Load0__17_s->f, org + span);
+		Files_Set(&*r, r__typ, *Load0__16_s->f, org + span);
 		__NEW(a, Texts__1);
 		a->W = ew;
 		a->H = eh;
 		a->handle = Texts_HandleAlien;
-		a->base = *Load0__17_s->T;
-		a->file = *Load0__17_s->f;
+		a->base = *Load0__16_s->T;
+		a->file = *Load0__16_s->f;
 		a->org = org;
 		a->span = span;
-		__COPY((*Load0__17_s->mods)[__X(eno, 64)], a->mod, 32);
-		__COPY((*Load0__17_s->procs)[__X(eno, 64)], a->proc, 32);
+		__COPY((*Load0__16_s->mods)[__X(eno, 64)], a->mod, 32);
+		__COPY((*Load0__16_s->procs)[__X(eno, 64)], a->proc, 32);
 		*e = (Texts_Elem)a;
 	}
 }
@@ -1578,15 +1575,15 @@ static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	CHAR mods[64][32], procs[64][32];
 	CHAR name[32];
 	Texts_FontsFont fnts[32];
-	struct Load0__17 _s;
+	struct Load0__16 _s;
 	_s.T = &T;
 	_s.ecnt = &ecnt;
 	_s.f = &f;
 	_s.msg = &msg;
 	_s.mods = (void*)mods;
 	_s.procs = (void*)procs;
-	_s.lnk = Load0__17_s;
-	Load0__17_s = &_s;
+	_s.lnk = Load0__16_s;
+	Load0__16_s = &_s;
 	pos = Files_Pos(&*r, r__typ);
 	f = Files_Base(&*r, r__typ);
 	__NEW(u, Texts_RunDesc);
@@ -1619,7 +1616,7 @@ static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 			un = (Texts_Run)p;
 			un->len = plen;
 		} else {
-			LoadElem__18(&msg.r, Files_Rider__typ, pos - org, -plen, &e);
+			LoadElem__17(&msg.r, Files_Rider__typ, pos - org, -plen, &e);
 			un = (Texts_Run)e;
 			un->len = 1;
 		}
@@ -1637,7 +1634,7 @@ static void Texts_Load0 (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	T->corg = 0;
 	Files_ReadLInt(&msg.r, Files_Rider__typ, &T->len);
 	Files_Set(&*r, r__typ, f, Files_Pos(&msg.r, Files_Rider__typ) + T->len);
-	Load0__17_s = _s.lnk;
+	Load0__16_s = _s.lnk;
 }
 
 void Texts_Load (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
@@ -1710,25 +1707,25 @@ void Texts_Open (Texts_Text T, CHAR *name, ADDRESS name__len)
 	__DEL(name);
 }
 
-static struct Store__45 {
+static struct Store__42 {
 	INT8 *ecnt;
 	Texts_FileMsg *msg;
 	Texts_IdentifyMsg *iden;
 	CHAR (*mods)[64][32], (*procs)[64][32];
-	struct Store__45 *lnk;
-} *Store__45_s;
+	struct Store__42 *lnk;
+} *Store__42_s;
 
-static void StoreElem__46 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e);
+static void StoreElem__43 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e);
 
-static void StoreElem__46 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e)
+static void StoreElem__43 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Elem e)
 {
 	Files_Rider r1;
 	INT32 org, span;
 	INT8 eno;
-	__COPY((*Store__45_s->iden).mod, (*Store__45_s->mods)[__X(*Store__45_s->ecnt, 64)], 32);
-	__COPY((*Store__45_s->iden).proc, (*Store__45_s->procs)[__X(*Store__45_s->ecnt, 64)], 32);
+	__COPY((*Store__42_s->iden).mod, (*Store__42_s->mods)[__X(*Store__42_s->ecnt, 64)], 32);
+	__COPY((*Store__42_s->iden).proc, (*Store__42_s->procs)[__X(*Store__42_s->ecnt, 64)], 32);
 	eno = 1;
-	while (__STRCMP((*Store__45_s->mods)[__X(eno, 64)], (*Store__45_s->iden).mod) != 0 || __STRCMP((*Store__45_s->procs)[__X(eno, 64)], (*Store__45_s->iden).proc) != 0) {
+	while (__STRCMP((*Store__42_s->mods)[__X(eno, 64)], (*Store__42_s->iden).mod) != 0 || __STRCMP((*Store__42_s->procs)[__X(eno, 64)], (*Store__42_s->iden).proc) != 0) {
 		eno += 1;
 	}
 	Files_Set(&r1, Files_Rider__typ, Files_Base(&*r, r__typ), Files_Pos(&*r, r__typ));
@@ -1736,14 +1733,14 @@ static void StoreElem__46 (Files_Rider *r, ADDRESS *r__typ, INT32 pos, Texts_Ele
 	Files_WriteLInt(&*r, r__typ, 0);
 	Files_WriteLInt(&*r, r__typ, 0);
 	Files_Write(&*r, r__typ, eno);
-	if (eno == *Store__45_s->ecnt) {
-		*Store__45_s->ecnt += 1;
-		Files_WriteString(&*r, r__typ, (*Store__45_s->iden).mod, 32);
-		Files_WriteString(&*r, r__typ, (*Store__45_s->iden).proc, 32);
+	if (eno == *Store__42_s->ecnt) {
+		*Store__42_s->ecnt += 1;
+		Files_WriteString(&*r, r__typ, (*Store__42_s->iden).mod, 32);
+		Files_WriteString(&*r, r__typ, (*Store__42_s->iden).proc, 32);
 	}
-	(*Store__45_s->msg).pos = pos;
+	(*Store__42_s->msg).pos = pos;
 	org = Files_Pos(&*r, r__typ);
-	(*e->handle)(e, (void*)&*Store__45_s->msg, Texts_FileMsg__typ);
+	(*e->handle)(e, (void*)&*Store__42_s->msg, Texts_FileMsg__typ);
 	span = Files_Pos(&*r, r__typ) - org;
 	Files_WriteLInt(&r1, Files_Rider__typ, -span);
 	Files_WriteLInt(&r1, Files_Rider__typ, e->W);
@@ -1764,14 +1761,14 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	CHAR mods[64][32], procs[64][32];
 	Texts_FontsFont fnts[32];
 	CHAR block[1024];
-	struct Store__45 _s;
+	struct Store__42 _s;
 	_s.ecnt = &ecnt;
 	_s.msg = &msg;
 	_s.iden = &iden;
 	_s.mods = (void*)mods;
 	_s.procs = (void*)procs;
-	_s.lnk = Store__45_s;
-	Store__45_s = &_s;
+	_s.lnk = Store__42_s;
+	Store__42_s = &_s;
 	org = Files_Pos(&*r, r__typ);
 	msg.id = 1;
 	msg.r = *r;
@@ -1813,7 +1810,7 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 			pos += rlen;
 			u = un;
 		} else if (iden.mod[0] != 0x00) {
-			StoreElem__46(&msg.r, Files_Rider__typ, pos, __GUARDP(u, Texts_ElemDesc, 1));
+			StoreElem__43(&msg.r, Files_Rider__typ, pos, __GUARDP(u, Texts_ElemDesc, 1));
 			pos += 1;
 			u = u->next;
 		} else {
@@ -1867,7 +1864,7 @@ void Texts_Store (Files_Rider *r, ADDRESS *r__typ, Texts_Text T)
 	if (T->notify != NIL) {
 		(*T->notify)(T, 3, 0, 0);
 	}
-	Store__45_s = _s.lnk;
+	Store__42_s = _s.lnk;
 }
 
 void Texts_Close (Texts_Text T, CHAR *name, ADDRESS name__len)

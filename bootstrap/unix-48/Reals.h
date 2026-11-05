@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
 
 #ifndef Reals__h
 #define Reals__h
@@ -14,6 +14,9 @@ import void Reals_ConvertHL (LONGREAL x, CHAR *d, ADDRESS d__len);
 import void Reals_ConvertL (LONGREAL x, INT16 n, CHAR *d, ADDRESS d__len);
 import INT16 Reals_Expo (REAL x);
 import INT16 Reals_ExpoL (LONGREAL x);
+import void Reals_FormatLongReal (LONGREAL value, CHAR *text, ADDRESS text__len);
+import LONGREAL Reals_ParseLongReal (CHAR *text, ADDRESS text__len);
+import REAL Reals_ParseReal (CHAR *text, ADDRESS text__len);
 import void Reals_SetExpo (REAL *x, INT16 ex);
 import void Reals_SetExpoL (LONGREAL *x, INT16 ex);
 import REAL Reals_Ten (INT16 e);

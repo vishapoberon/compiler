@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/06] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -11,6 +11,7 @@
 #include "Modules.h"
 #include "Out.h"
 #include "Platform.h"
+#include "Reals.h"
 #include "Strings.h"
 #include "Texts.h"
 #include "VT100.h"
@@ -121,8 +122,6 @@ export void OPM_WriteStringVar (CHAR *s, ADDRESS s__len);
 export BOOLEAN OPM_eofSF (void);
 export void OPM_err (INT16 n);
 
-#include <stdio.h>
-#define OPM_FormatReal(buf, r)	snprintf((char*)(ADDRESS)(buf), 40, "%.17g", r)
 #define OPM_GetAlignment(a)	struct {char c; long long l;} _s; *a = (char*)&_s.l - (char*)&_s
 
 void OPM_LogW (CHAR ch)
@@ -1079,22 +1078,7 @@ void OPM_WriteInt (INT64 i)
 static void OPM_WriteExactReal (LONGREAL r)
 {
 	CHAR s[40];
-	INT16 i;
-	BOOLEAN real;
-	OPM_FormatReal((ADDRESS)s, r);
-	i = 0;
-	real = 0;
-	while (s[__X(i, 40)] != 0x00) {
-		if (s[__X(i, 40)] == '.' || s[__X(i, 40)] == 'e') {
-			real = 1;
-		}
-		i += 1;
-	}
-	if (!real) {
-		s[__X(i, 40)] = '.';
-		s[__X(i + 1, 40)] = '0';
-		s[__X(i + 2, 40)] = 0x00;
-	}
+	Reals_FormatLongReal(r, (void*)s, 40);
 	OPM_WriteStringVar((void*)s, 40);
 }
 
@@ -1106,14 +1090,7 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 	CHAR s[32];
 	CHAR ch;
 	INT16 i;
-	if ((((r < OPM_SignedMaximum(OPM_LongintSize) && r > OPM_SignedMinimum(OPM_LongintSize))) && r == (__SHORT(__ENTIER(r), 2147483648LL)))) {
-		if (suffx == 'f') {
-			OPM_WriteString((CHAR*)"(REAL)", 7);
-		} else {
-			OPM_WriteString((CHAR*)"(LONGREAL)", 11);
-		}
-		OPM_WriteInt(__SHORT(__ENTIER(r), 2147483648LL));
-	} else if (__MASK(__ASHR(__VAL(INT64, r), 52), -2048) != 2047) {
+	if (__MASK(__ASHR(__VAL(INT64, r), 52), -2048) != 2047) {
 		if (suffx == 'f') {
 			OPM_WriteString((CHAR*)"(REAL)", 7);
 		} else {
@@ -1350,6 +1327,7 @@ export void *OPM__init(void)
 	__MODULE_IMPORT(Modules);
 	__MODULE_IMPORT(Out);
 	__MODULE_IMPORT(Platform);
+	__MODULE_IMPORT(Reals);
 	__MODULE_IMPORT(Strings);
 	__MODULE_IMPORT(Texts);
 	__MODULE_IMPORT(VT100);

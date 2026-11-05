@@ -4,7 +4,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   31.1.2007 jt synchronized with BlackBox version, in particular PromoteIntConstToLInt added
 *)
 
-  IMPORT SYSTEM, Texts, Files, Platform, Modules, Out, Configuration, VT100, Strings;
+  IMPORT SYSTEM, Texts, Files, Platform, Modules, Out, Configuration, VT100, Strings, Reals;
 
   CONST
     OptionChar* = "-";
@@ -829,28 +829,17 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END;
   END WriteInt;
 
-  (* r with 17 significant digits, which read back as the same double: 15 digits lost precision,
-     and very small values (as LowLReal.small) came out as 0 *)
-  PROCEDURE -AAincludeStdio '#include <stdio.h>';
-  PROCEDURE -FormatReal(buf: SYSTEM.ADDRESS; r: LONGREAL) 'snprintf((char*)(ADDRESS)(buf), 40, "%.17g", r)';
-
   PROCEDURE WriteExactReal(r: LONGREAL);
-    VAR s: ARRAY 40 OF CHAR; i: INTEGER; real: BOOLEAN;
+    VAR s: ARRAY 40 OF CHAR;
   BEGIN
-    FormatReal(SYSTEM.ADR(s), r);
-    i := 0; real := FALSE;
-    WHILE s[i] # 0X DO IF (s[i] = ".") OR (s[i] = "e") THEN real := TRUE END; INC(i) END;
-    IF ~real THEN s[i] := "."; s[i+1] := "0"; s[i+2] := 0X END;  (* not an integer constant in C *)
+    Reals.FormatLongReal(r, s);
     WriteStringVar(s)
   END WriteExactReal;
 
   PROCEDURE WriteReal* (r: LONGREAL; suffx: CHAR);
     VAR W: Texts.Writer; T: Texts.Text; R: Texts.Reader; s: ARRAY 32 OF CHAR; ch: CHAR; i: INTEGER;
   BEGIN
-    IF (r < SignedMaximum(LongintSize)) & (r > SignedMinimum(LongintSize)) & (r = ENTIER(r)) THEN
-      IF suffx = "f" THEN WriteString("(REAL)") ELSE WriteString("(LONGREAL)") END ;
-      WriteInt(ENTIER(r))
-    ELSIF SYSTEM.VAL(SYSTEM.INT64, r) DIV 10000000000000H MOD 800H # 7FFH THEN  (* not inf or nan *)
+    IF SYSTEM.VAL(SYSTEM.INT64, r) DIV 10000000000000H MOD 800H # 7FFH THEN  (* not inf or nan *)
       IF suffx = "f" THEN WriteString("(REAL)") ELSE WriteString("(LONGREAL)") END ;
       WriteExactReal(r)
     ELSE

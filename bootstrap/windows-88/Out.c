@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -184,8 +184,8 @@ static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16
 LONGREAL Out_Ten (INT16 e)
 {
 	LONGREAL r, power;
-	r = (LONGREAL)1;
-	power = (LONGREAL)10;
+	r = (LONGREAL)1.0e0;
+	power = (LONGREAL)1.0e1;
 	while (e > 0) {
 		if (__ODD(e)) {
 			r = r * power;
@@ -260,15 +260,15 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 			} else {
 				x = Out_Ten(-e) * x;
 			}
-			if (x >= (LONGREAL)10) {
-				x = (LONGREAL)0.10000000000000001 * x;
+			if (x >= (LONGREAL)1.0e1) {
+				x = (LONGREAL)1.0000000000000001e-1 * x;
 				e += 1;
 			}
 			x0 = Out_Ten(d - 1);
 			x = x0 * x;
-			x = x + (LONGREAL)0.5;
-			if (x >= (LONGREAL)10 * x0) {
-				x = (LONGREAL)0.10000000000000001 * x;
+			x = x + (LONGREAL)5.0e-1;
+			if (x >= (LONGREAL)1.0e1 * x0) {
+				x = (LONGREAL)1.0000000000000001e-1 * x;
 				e += 1;
 			}
 			m = Out_Entier64(x);

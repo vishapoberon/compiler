@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -258,16 +258,16 @@ void Strings_StrToReal (CHAR *s, ADDRESS s__len, REAL *r)
 	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
 		p += 1;
 	}
-	y = (REAL)0;
+	y = (REAL)0.0e0;
 	while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
-		y = y * (REAL)10 + ((INT16)s[__X(p, s__len)] - 48);
+		y = y * (REAL)1.0e1 + ((INT16)s[__X(p, s__len)] - 48);
 		p += 1;
 	}
 	if (s[__X(p, s__len)] == '.') {
 		p += 1;
-		g = (REAL)1;
+		g = (REAL)1.0e0;
 		while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
-			g = g / (REAL)(REAL)10;
+			g = g / (REAL)(REAL)1.0e1;
 			y = y + g * ((INT16)s[__X(p, s__len)] - 48);
 			p += 1;
 		}
@@ -320,16 +320,16 @@ void Strings_StrToLongReal (CHAR *s, ADDRESS s__len, LONGREAL *r)
 	while (s[__X(p, s__len)] == ' ' || s[__X(p, s__len)] == '0') {
 		p += 1;
 	}
-	y = (LONGREAL)0;
+	y = (LONGREAL)0.0e0;
 	while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
-		y = y * (LONGREAL)10 + ((INT16)s[__X(p, s__len)] - 48);
+		y = y * (LONGREAL)1.0e1 + ((INT16)s[__X(p, s__len)] - 48);
 		p += 1;
 	}
 	if (s[__X(p, s__len)] == '.') {
 		p += 1;
-		g = (LONGREAL)1;
+		g = (LONGREAL)1.0e0;
 		while (('0' <= s[__X(p, s__len)] && s[__X(p, s__len)] <= '9')) {
-			g = g / (LONGREAL)(LONGREAL)10;
+			g = g / (LONGREAL)(LONGREAL)1.0e1;
 			y = y + g * ((INT16)s[__X(p, s__len)] - 48);
 			p += 1;
 		}

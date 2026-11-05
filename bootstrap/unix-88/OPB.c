@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -497,7 +497,7 @@ static void OPB_CheckRealType (INT16 f, INT16 nr, OPT_Const x)
 	r = __ABS(x->realval);
 	if (r > max || r < min) {
 		OPB_err(nr);
-		x->realval = (LONGREAL)1;
+		x->realval = (LONGREAL)1.0e0;
 	} else if (f == 5) {
 		x->realval = x->realval;
 	}
@@ -933,8 +933,8 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 					OPB_err(204);
 				}
 			} else if (__IN(f, 0x60, 32)) {
-				temp = __ABS(yval->realval) <= (LONGREAL)1;
-				if (temp || __ABS(xval->realval) <= (LONGREAL)1.7976931348623157e+308 / (LONGREAL)__ABS(yval->realval)) {
+				temp = __ABS(yval->realval) <= (LONGREAL)1.0e0;
+				if (temp || __ABS(xval->realval) <= (LONGREAL)1.7976931348623157e308 / (LONGREAL)__ABS(yval->realval)) {
 					xval->realval = xval->realval * yval->realval;
 					OPB_CheckRealType(f, 204, xval);
 				} else {
@@ -954,12 +954,12 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 					OPB_CheckRealType(5, 205, xval);
 				} else {
 					OPB_err(205);
-					xval->realval = (LONGREAL)1;
+					xval->realval = (LONGREAL)1.0e0;
 				}
 				x->typ = OPT_realtyp;
 			} else if (__IN(f, 0x60, 32)) {
-				temp = __ABS(yval->realval) >= (LONGREAL)1;
-				if (temp || __ABS(xval->realval) <= (LONGREAL)1.7976931348623157e+308 * __ABS(yval->realval)) {
+				temp = __ABS(yval->realval) >= (LONGREAL)1.0e0;
+				if (temp || __ABS(xval->realval) <= (LONGREAL)1.7976931348623157e308 * __ABS(yval->realval)) {
 					xval->realval = xval->realval / yval->realval;
 					OPB_CheckRealType(f, 205, xval);
 				} else {
@@ -1013,8 +1013,8 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 					OPB_err(206);
 				}
 			} else if (__IN(f, 0x60, 32)) {
-				temp = (yval->realval >= (LONGREAL)0 && xval->realval <= (LONGREAL)1.7976931348623157e+308 - yval->realval);
-				if (temp || (yval->realval < (LONGREAL)0 && xval->realval >= (LONGREAL)-1.7976931348623157e+308 - yval->realval)) {
+				temp = (yval->realval >= (LONGREAL)0.0e0 && xval->realval <= (LONGREAL)1.7976931348623157e308 - yval->realval);
+				if (temp || (yval->realval < (LONGREAL)0.0e0 && xval->realval >= (LONGREAL)-1.7976931348623157e308 - yval->realval)) {
 					xval->realval = xval->realval + yval->realval;
 					OPB_CheckRealType(f, 206, xval);
 				} else {
@@ -1036,8 +1036,8 @@ static void OPB_ConstOp (INT16 op, OPT_Node x, OPT_Node y)
 					OPB_err(207);
 				}
 			} else if (__IN(f, 0x60, 32)) {
-				temp = (yval->realval >= (LONGREAL)0 && xval->realval >= (LONGREAL)-1.7976931348623157e+308 + yval->realval);
-				if (temp || (yval->realval < (LONGREAL)0 && xval->realval <= (LONGREAL)1.7976931348623157e+308 + yval->realval)) {
+				temp = (yval->realval >= (LONGREAL)0.0e0 && xval->realval >= (LONGREAL)-1.7976931348623157e308 + yval->realval);
+				if (temp || (yval->realval < (LONGREAL)0.0e0 && xval->realval <= (LONGREAL)1.7976931348623157e308 + yval->realval)) {
 					xval->realval = xval->realval - yval->realval;
 					OPB_CheckRealType(f, 207, xval);
 				} else {
@@ -1138,9 +1138,9 @@ static void OPB_Convert (OPT_Node *x, OPT_Struct typ)
 				OPB_CheckRealType(g, 203, (*x)->conval);
 			} else {
 				r = (*x)->conval->realval;
-				if (r < (LONGREAL)-9.2233720368547758e+18 || r > (LONGREAL)9.2233720368547758e+18) {
+				if (r < (LONGREAL)-9.2233720368547758e18 || r > (LONGREAL)9.2233720368547758e18) {
 					OPB_err(203);
-					r = (LONGREAL)1;
+					r = (LONGREAL)1.0e0;
 				}
 				(*x)->conval->intval = __SHORT(__ENTIER(r), 2147483648LL);
 				OPB_SetIntType(*x);
@@ -1353,7 +1353,7 @@ void OPB_Op (INT8 op, OPT_Node *x, OPT_Node y)
 					OPB_Convert(&y, OPT_realtyp);
 					typ = OPT_realtyp;
 				} else if (__IN(f, 0x60, 32)) {
-					if ((y->class == 7 && y->conval->realval == (LONGREAL)0)) {
+					if ((y->class == 7 && y->conval->realval == (LONGREAL)0.0e0)) {
 						OPB_err(205);
 					}
 				} else if ((f != 7 && f != 0)) {

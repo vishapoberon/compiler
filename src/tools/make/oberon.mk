@@ -364,6 +364,9 @@ confidence:
 	@printf '\n\n--- Confidence tests ---\n\n'
 	sh src/test/bootstrap/test-sourcechanges.sh
 	sh src/test/bootstrap/test-unix-features.sh
+	@if [ "$(PLATFORM)" = unix ]; then \
+	  for model in 2 C; do $(STAGED_ENV) $(MAKE) -C src/test/reals test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" ONAME="$(ONAME)" MODEL=$$model BUILD="$(ROOTDIR)/$(BUILDDIR)/reals-tests/$$model" || exit; done; \
+	fi
 	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) python3 src/test/bootstrap/test-staged-install.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --work "$(ROOTDIR)/$(BUILDDIR)/staging-tests"; fi
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)

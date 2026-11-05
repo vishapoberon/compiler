@@ -404,14 +404,10 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
     x = 2^(e-127) * 1.m    bit 0: sign, bits 1- 8: e, bits  9-31: m
     x = 2^(e-1023) * 1.m   bit 0: sign, bits 1-11: e, bits 12-63: m *)
 
-  PROCEDURE -IncludeStdlib '#include <stdlib.h>';
-  PROCEDURE -ParseReal(text: ARRAY OF CHAR): REAL 'strtof((const char*)text, 0)';
-  PROCEDURE -ParseLongReal(text: ARRAY OF CHAR): LONGREAL 'strtod((const char*)text, 0)';
-
   PROCEDURE Scan* (VAR S: Scanner);
     (* Binary64 rounding boundaries have fewer than 1100 significant decimal
        digits. Keep that prefix and a sticky digit, without storing the token. *)
-    CONST maxD = 1100;
+    CONST maxD = Reals.MaxDecimalDigits;
     VAR ch, term, swap: CHAR;
       neg, negE, hex, sticky, tooLong, invalid: BOOLEAN;
       i, j, n: INTEGER;
@@ -534,7 +530,7 @@ MODULE Texts;  (** CAS/HM 23.9.93 -- interface based on Texts by JG/NW 6.12.91**
             REPEAT number[n] := CHR(scale MOD 10 + 30H); scale := scale DIV 10; INC(n) UNTIL scale = 0;
             number[n] := 0X; DEC(n);
             WHILE j < n DO swap := number[j]; number[j] := number[n]; number[n] := swap; INC(j); DEC(n) END;
-            IF S.class = LongReal THEN S.y := ParseLongReal(number) ELSE S.x := ParseReal(number) END
+            IF S.class = LongReal THEN S.y := Reals.ParseLongReal(number) ELSE S.x := Reals.ParseReal(number) END
           END
         ELSE (*decimal integer*)
           S.class := Int; k := 0; j := 0;
