@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -40,6 +40,7 @@ export INT16 Platform_CopyTerminalState (INT64 source, INT64 *copy);
 export void Platform_Delay (INT32 ms);
 export BOOLEAN Platform_DifferentFilesystems (INT16 e);
 export INT16 Platform_Error (void);
+export BOOLEAN Platform_ExecutablePath (CHAR *path, ADDRESS path__len);
 export void Platform_Exit (INT32 code);
 export void Platform_GetClock (INT32 *t, INT32 *d);
 export void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len);
@@ -74,6 +75,7 @@ export INT32 Platform_RunCommand (Platform_Command command);
 export BOOLEAN Platform_SameFile (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameFileTime (Platform_FileIdentity i1, Platform_FileIdentity i2);
 export BOOLEAN Platform_SameTerminal (INT32 first, INT32 second);
+static void Platform_SecondsToClock (INT64 seconds, INT32 *t, INT32 *d);
 export INT16 Platform_Seek (INT32 h, INT32 offset, INT16 whence);
 export void Platform_SetBadInstructionHandler (Platform_SignalHandler handler);
 export INT16 Platform_SetFileMTime (CHAR *n, ADDRESS n__len, INT32 year, INT32 month, INT32 day, INT32 hour, INT32 minute, INT32 second);
@@ -168,7 +170,6 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_rename(o, o__len, n, n__len)	rename((char*)o, (char*)n)
 #define Platform_runCommand(command)	SYSTEM_RunCommand(command)
 #define Platform_sameTerminal(first, second)	({ struct stat a, b; int same = 0; if (fstat(first, &a) == 0 && fstat(second, &b) == 0) same = S_ISCHR(a.st_mode) && S_ISCHR(b.st_mode) && a.st_rdev == b.st_rdev; same; })
-#define Platform_sectotm(s)	struct tm *time = localtime((time_t*)&s)
 #define Platform_seekcur()	SEEK_CUR
 #define Platform_seekend()	SEEK_END
 #define Platform_seekset()	SEEK_SET
@@ -186,13 +187,8 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_statsize()	(ADDRESS)s.st_size
 #define Platform_structstats()	struct stat s
 #define Platform_system(str, str__len)	system((char*)str)
-#define Platform_tmhour()	(LONGINT)time->tm_hour
-#define Platform_tmmday()	(LONGINT)time->tm_mday
-#define Platform_tmmin()	(LONGINT)time->tm_min
-#define Platform_tmmon()	(LONGINT)time->tm_mon
-#define Platform_tmsec()	(LONGINT)time->tm_sec
-#define Platform_tmyear()	(LONGINT)time->tm_year
 #define Platform_tvsec()	tv.tv_sec
+#define Platform_tvsec64()	tv.tv_sec
 #define Platform_tvusec()	tv.tv_usec
 #define Platform_unlink(n, n__len)	unlink((char*)n)
 #define Platform_writecount(value)	(LONGINT)value
@@ -259,13 +255,13 @@ void Platform_OSFree (INT64 address)
 }
 
 typedef
-	CHAR (*EnvPtr__121)[1024];
+	CHAR (*EnvPtr__123)[1024];
 
 BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	EnvPtr__121 p = NIL;
+	EnvPtr__123 p = NIL;
 	__DUP(var, var__len, CHAR);
-	p = (EnvPtr__121)(ADDRESS)Platform_getenv(var, var__len);
+	p = (EnvPtr__123)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
 		__COPY(*p, val, val__len);
 	}
@@ -280,6 +276,12 @@ void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 		val[0] = 0x00;
 	}
 	__DEL(var);
+}
+
+BOOLEAN Platform_ExecutablePath (CHAR *path, ADDRESS path__len)
+{
+	path[0] = 0x00;
+	return 0;
 }
 
 void Platform_SetInterruptHandler (Platform_SignalHandler handler)
@@ -313,11 +315,21 @@ static void Platform_YMDHMStoClock (INT32 ye, INT32 mo, INT32 da, INT32 ho, INT3
 	*t = (__ASHL(ho, 12) + __ASHL(mi, 6)) + se;
 }
 
+static void Platform_SecondsToClock (INT64 seconds, INT32 *t, INT32 *d)
+{
+	INT32 ye, mo, da, ho, mi, se;
+	if (PlatformNative_LocalTime(seconds, &ye, &mo, &da, &ho, &mi, &se)) {
+		Platform_YMDHMStoClock(ye, mo, da, ho, mi, se, &*t, &*d);
+	} else {
+		*t = 0;
+		*d = 0;
+	}
+}
+
 void Platform_GetClock (INT32 *t, INT32 *d)
 {
 	Platform_gettimeval();
-	Platform_sectotm(Platform_tvsec());
-	Platform_YMDHMStoClock(Platform_tmyear(), Platform_tmmon(), Platform_tmmday(), Platform_tmhour(), Platform_tmmin(), Platform_tmsec(), &*t, &*d);
+	Platform_SecondsToClock(Platform_tvsec64(), &*t, &*d);
 }
 
 void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec)
@@ -721,8 +733,7 @@ void Platform_SetMTime (Platform_FileIdentity *target, ADDRESS *target__typ, Pla
 
 void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d)
 {
-	Platform_sectotm(i.mtime);
-	Platform_YMDHMStoClock(Platform_tmyear(), Platform_tmmon(), Platform_tmmday(), Platform_tmhour(), Platform_tmmin(), Platform_tmsec(), &*t, &*d);
+	Platform_SecondsToClock(i.mtime, &*t, &*d);
 }
 
 INT16 Platform_Size (INT32 h, INT32 *l)

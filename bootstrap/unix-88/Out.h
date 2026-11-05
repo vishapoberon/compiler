@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #ifndef Out__h
 #define Out__h

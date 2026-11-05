@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #ifndef PlatformNative__h
 #define PlatformNative__h
@@ -18,6 +18,7 @@ import UINT64 PlatformNative_InputFlags (INT32 state);
 import UINT64 PlatformNative_InputRawMask (void);
 import UINT64 PlatformNative_LocalFlags (INT32 state);
 import UINT64 PlatformNative_LocalRawMask (void);
+import BOOLEAN PlatformNative_LocalTime (INT64 seconds, INT32 *ye, INT32 *mo, INT32 *da, INT32 *ho, INT32 *mi, INT32 *se);
 import INT32 PlatformNative_MakeDirectory (CHAR *path, ADDRESS path__len);
 import INT32 PlatformNative_MinIndex (void);
 import INT32 PlatformNative_NameTooLong (void);

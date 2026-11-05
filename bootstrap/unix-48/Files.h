@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #ifndef Files__h
 #define Files__h
@@ -6,12 +6,18 @@
 #include "SYSTEM.h"
 
 typedef
+	struct {
+		ADDRESS len[1];
+		CHAR data[1];
+	} *Files_Bytes;
+
+typedef
 	struct Files_FileDesc *Files_File;
 
 typedef
 	struct Files_FileDesc {
 		INT32 _prvt0;
-		char _prvt1[560];
+		char _prvt1[569];
 	} Files_FileDesc;
 
 typedef
@@ -31,11 +37,16 @@ import Files_File Files_Base (Files_Rider *r, ADDRESS *r__typ);
 import void Files_ChangeDirectory (CHAR *path, ADDRESS path__len, INT16 *res);
 import void Files_Close (Files_File f);
 import void Files_Delete (CHAR *name, ADDRESS name__len, INT16 *res);
+import Files_File Files_FromBytes (CHAR *data, ADDRESS data__len, INT32 length);
 import void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
 import void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
 import BOOLEAN Files_GetSearchPath (CHAR *path, ADDRESS path__len);
+import BOOLEAN Files_IsMemory (Files_File f);
 import INT32 Files_Length (Files_File f);
+import Files_Bytes Files_MemoryData (Files_File f, INT32 *length);
+import BOOLEAN Files_MemoryFailed (Files_File f);
 import Files_File Files_New (CHAR *name, ADDRESS name__len);
+import Files_File Files_NewMemory (INT32 capacity);
 import Files_File Files_Old (CHAR *name, ADDRESS name__len);
 import INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ);
 import void Files_Purge (Files_File f);

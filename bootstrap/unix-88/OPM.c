@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -210,8 +210,8 @@ INT64 OPM_SignedMaximum (INT32 bytecount)
 {
 	INT64 result;
 	result = 1;
-	result = __LSH(result, __ASHL(bytecount, 3) - 1, 64);
-	return result - 1;
+	result = __LSH(result, __ASHL(bytecount, 3) - 2, 64);
+	return result + (result - 1);
 }
 
 INT64 OPM_SignedMinimum (INT32 bytecount)
@@ -1242,7 +1242,8 @@ static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 	__COPY(s, testpath, 4096);
 	Strings_Append((CHAR*)"/lib/lib", 9, (void*)testpath, 4096);
 	Strings_Append((CHAR*)"voc", 4, (void*)testpath, 4096);
-	Strings_Append((CHAR*)"-O2.a", 6, (void*)testpath, 4096);
+	Strings_Append((CHAR*)"-O2", 4, (void*)testpath, 4096);
+	Strings_Append((CHAR*)".a", 3, (void*)testpath, 4096);
 	if (Platform_IdentifyByName(testpath, 4096, &identity, Platform_FileIdentity__typ) != 0) {
 		__DEL(s);
 		return 0;

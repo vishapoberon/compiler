@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo rtsSF */
 
 #ifndef Heap__h
 #define Heap__h

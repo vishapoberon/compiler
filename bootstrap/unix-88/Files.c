@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -26,6 +26,12 @@ typedef
 	Files_BufDesc *Files_Buffer;
 
 typedef
+	struct {
+		ADDRESS len[1];
+		CHAR data[1];
+	} *Files_Bytes;
+
+typedef
 	CHAR Files_FileName[256];
 
 typedef
@@ -37,6 +43,9 @@ typedef
 		Files_Buffer bufs[4];
 		INT16 swapper, state;
 		struct Files_FileDesc *next;
+		Files_Bytes memory;
+		INT32 memoryCapacity;
+		BOOLEAN memoryFailed;
 	} Files_FileDesc;
 
 typedef
@@ -74,14 +83,19 @@ static void Files_Err (CHAR *s, ADDRESS s__len, Files_File f, INT16 errcode);
 static void Files_Finalize (SYSTEM_PTR o);
 static void Files_FlipBytes (SYSTEM_BYTE *src, ADDRESS src__len, SYSTEM_BYTE *dest, ADDRESS dest__len);
 static void Files_Flush (Files_Buffer buf);
+export Files_File Files_FromBytes (CHAR *data, ADDRESS data__len, INT32 length);
 export void Files_GetDate (Files_File f, INT32 *t, INT32 *d);
 export void Files_GetName (Files_File f, CHAR *name, ADDRESS name__len);
 export BOOLEAN Files_GetSearchPath (CHAR *path, ADDRESS path__len);
 static void Files_GetTempName (CHAR *finalName, ADDRESS finalName__len, CHAR *name, ADDRESS name__len);
 static BOOLEAN Files_HasDir (CHAR *name, ADDRESS name__len);
+export BOOLEAN Files_IsMemory (Files_File f);
 export INT32 Files_Length (Files_File f);
 static void Files_MakeFileName (CHAR *dir, ADDRESS dir__len, CHAR *name, ADDRESS name__len, CHAR *dest, ADDRESS dest__len);
+export Files_Bytes Files_MemoryData (Files_File f, INT32 *length);
+export BOOLEAN Files_MemoryFailed (Files_File f);
 export Files_File Files_New (CHAR *name, ADDRESS name__len);
+export Files_File Files_NewMemory (INT32 capacity);
 export Files_File Files_Old (CHAR *name, ADDRESS name__len);
 static Files_File Files_OldFile (CHAR *name, ADDRESS name__len);
 export INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ);
@@ -320,6 +334,9 @@ void Files_Close (Files_File f)
 {
 	INT32 i;
 	INT16 error;
+	if (f->memory != NIL) {
+		return;
+	}
 	Platform_CommandCritical(1);
 	if (f->state != 1 || f->registerName[0] != 0x00) {
 		Files_Create(f);
@@ -351,6 +368,64 @@ Files_File Files_New (CHAR *name, ADDRESS name__len)
 	f->swapper = -1;
 	__DEL(name);
 	return f;
+}
+
+Files_File Files_NewMemory (INT32 capacity)
+{
+	Files_File f = NIL;
+	if (capacity < 0) {
+		return NIL;
+	}
+	f = Files_New((CHAR*)"", 1);
+	f->memoryCapacity = capacity;
+	if (capacity == 0) {
+		f->memory = __NEWARR(NIL, 1, 1, 1, 1, ((INT64)(1)));
+	} else {
+		f->memory = __NEWARR(NIL, 1, 1, 1, 1, ((ADDRESS)(capacity)));
+	}
+	f->memoryFailed = 0;
+	return f;
+}
+
+Files_File Files_FromBytes (CHAR *data, ADDRESS data__len, INT32 length)
+{
+	Files_File f = NIL;
+	INT32 i, _for__15;
+	__DUP(data, data__len, CHAR);
+	if (length < 0 || length > data__len) {
+		__DEL(data);
+		return NIL;
+	}
+	f = Files_NewMemory(length);
+	_for__15 = length - 1;
+	i = 0;
+	while (i <= _for__15) {
+		(f->memory->data)[__X(i, f->memory->len[0])] = data[__X(i, data__len)];
+		i += 1;
+	}
+	f->len = length;
+	__DEL(data);
+	return f;
+}
+
+BOOLEAN Files_IsMemory (Files_File f)
+{
+	return (f != NIL && f->memory != NIL);
+}
+
+BOOLEAN Files_MemoryFailed (Files_File f)
+{
+	return f == NIL || (f->memory != NIL && f->memoryFailed);
+}
+
+Files_Bytes Files_MemoryData (Files_File f, INT32 *length)
+{
+	*length = 0;
+	if (!Files_IsMemory(f) || f->memoryFailed) {
+		return NIL;
+	}
+	*length = f->len;
+	return f->memory;
 }
 
 static void Files_ScanPath (INT16 *pos, CHAR *dir, ADDRESS dir__len)
@@ -529,6 +604,11 @@ void Files_Purge (Files_File f)
 	INT16 i;
 	Platform_FileIdentity identity;
 	INT16 error;
+	if (f->memory != NIL) {
+		f->len = 0;
+		f->memoryFailed = 0;
+		return;
+	}
 	Platform_CommandCritical(1);
 	i = 0;
 	while (i < 4) {
@@ -554,6 +634,11 @@ void Files_GetDate (Files_File f, INT32 *t, INT32 *d)
 {
 	Platform_FileIdentity identity;
 	INT16 error;
+	if (f->memory != NIL) {
+		*t = 0;
+		*d = 0;
+		return;
+	}
 	Platform_CommandCritical(1);
 	Files_Create(f);
 	error = Platform_Identify(f->fd, &identity, Platform_FileIdentity__typ);
@@ -563,6 +648,9 @@ void Files_GetDate (Files_File f, INT32 *t, INT32 *d)
 
 INT32 Files_Pos (Files_Rider *r, ADDRESS *r__typ)
 {
+	if (((*r).buf != NIL && (*r).buf->f->memory != NIL)) {
+		return (*r).offset;
+	}
 	Files_Assert((*r).offset <= 4096);
 	return (*r).org + (*r).offset;
 }
@@ -572,6 +660,23 @@ void Files_Set (Files_Rider *r, ADDRESS *r__typ, Files_File f, INT32 pos)
 	INT32 org, offset, i, n;
 	Files_Buffer buf = NIL;
 	INT16 error;
+	if ((f != NIL && f->memory != NIL)) {
+		if (pos < 0) {
+			pos = 0;
+		} else if (pos > f->len) {
+			pos = f->len;
+		}
+		if (f->bufs[0] == NIL) {
+			__NEW(f->bufs[0], Files_BufDesc);
+			f->bufs[0]->f = f;
+		}
+		(*r).buf = f->bufs[0];
+		(*r).org = 0;
+		(*r).offset = pos;
+		(*r).eof = 0;
+		(*r).res = 0;
+		return;
+	}
 	Platform_CommandCritical(1);
 	if (f != NIL) {
 		if (pos > f->len) {
@@ -636,6 +741,17 @@ void Files_Read (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x)
 {
 	INT32 offset;
 	Files_Buffer buf = NIL;
+	if ((*r).buf->f->memory != NIL) {
+		if ((*r).offset < (*r).buf->f->len) {
+			*x = ((*r).buf->f->memory->data)[__X((*r).offset, (*r).buf->f->memory->len[0])];
+			(*r).offset += 1;
+			(*r).eof = 0;
+		} else {
+			*x = 0x00;
+			(*r).eof = 1;
+		}
+		return;
+	}
 	Platform_CommandCritical(1);
 	buf = (*r).buf;
 	offset = (*r).offset;
@@ -668,6 +784,25 @@ void Files_ReadBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS x
 {
 	INT32 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
+	if ((*r).buf->f->memory != NIL) {
+		if (n > x__len) {
+			Files_IdxTrap();
+		}
+		xpos = 0;
+		while ((xpos < n && (*r).offset < (*r).buf->f->len)) {
+			x[__X(xpos, x__len)] = ((*r).buf->f->memory->data)[__X((*r).offset, (*r).buf->f->memory->len[0])];
+			xpos += 1;
+			(*r).offset += 1;
+		}
+		if (n > xpos) {
+			(*r).res = n - xpos;
+			(*r).eof = 1;
+		} else {
+			(*r).res = 0;
+			(*r).eof = 0;
+		}
+		return;
+	}
 	Platform_CommandCritical(1);
 	if (n > x__len) {
 		Files_IdxTrap();
@@ -713,6 +848,23 @@ void Files_Write (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE x)
 {
 	Files_Buffer buf = NIL;
 	INT32 offset;
+	if ((*r).buf->f->memory != NIL) {
+		if ((*r).offset > (*r).buf->f->len) {
+			(*r).offset = (*r).buf->f->len;
+		}
+		if ((*r).buf->f->memoryFailed || (*r).offset >= (*r).buf->f->memoryCapacity) {
+			(*r).buf->f->memoryFailed = 1;
+			(*r).res = 1;
+			return;
+		}
+		((*r).buf->f->memory->data)[__X((*r).offset, (*r).buf->f->memory->len[0])] = __VAL(CHAR, x);
+		(*r).offset += 1;
+		if ((*r).offset > (*r).buf->f->len) {
+			(*r).buf->f->len = (*r).offset;
+		}
+		(*r).res = 0;
+		return;
+	}
 	Platform_CommandCritical(1);
 	buf = (*r).buf;
 	offset = (*r).offset;
@@ -738,6 +890,36 @@ void Files_WriteBytes (Files_Rider *r, ADDRESS *r__typ, SYSTEM_BYTE *x, ADDRESS 
 {
 	INT32 xpos, min, restInBuf, offset;
 	Files_Buffer buf = NIL;
+	INT32 _for__54;
+	if ((*r).buf->f->memory != NIL) {
+		if (n > x__len) {
+			Files_IdxTrap();
+		}
+		if (n <= 0) {
+			(*r).res = 0;
+			return;
+		}
+		if ((*r).offset > (*r).buf->f->len) {
+			(*r).offset = (*r).buf->f->len;
+		}
+		if ((*r).buf->f->memoryFailed || n > (*r).buf->f->memoryCapacity - (*r).offset) {
+			(*r).buf->f->memoryFailed = 1;
+			(*r).res = n;
+			return;
+		}
+		_for__54 = n - 1;
+		xpos = 0;
+		while (xpos <= _for__54) {
+			((*r).buf->f->memory->data)[__X((*r).offset, (*r).buf->f->memory->len[0])] = __VAL(CHAR, x[__X(xpos, x__len)]);
+			(*r).offset += 1;
+			xpos += 1;
+		}
+		if ((*r).offset > (*r).buf->f->len) {
+			(*r).buf->f->len = (*r).offset;
+		}
+		(*r).res = 0;
+		return;
+	}
 	Platform_CommandCritical(1);
 	if (n > x__len) {
 		Files_IdxTrap();
@@ -1150,7 +1332,7 @@ static void EnumPtrs(void (*P)(void*))
 	P(Files_SearchPath);
 }
 
-__TDESC(Files_FileDesc, 1, 4) = {__TDFLDS("FileDesc", 592), {544, 552, 560, 568, -40}};
+__TDESC(Files_FileDesc, 1, 5) = {__TDFLDS("FileDesc", 608), {544, 552, 560, 568, 592, -48}};
 __TDESC(Files_BufDesc, 1, 1) = {__TDFLDS("BufDesc", 4120), {0, -16}};
 __TDESC(Files_Rider, 1, 1) = {__TDFLDS("Rider", 24), {8, -16}};
 

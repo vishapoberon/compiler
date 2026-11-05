@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -20,6 +20,7 @@ export UINT64 PlatformNative_InputFlags (INT64 state);
 export UINT64 PlatformNative_InputRawMask (void);
 export UINT64 PlatformNative_LocalFlags (INT64 state);
 export UINT64 PlatformNative_LocalRawMask (void);
+export BOOLEAN PlatformNative_LocalTime (INT64 seconds, INT32 *ye, INT32 *mo, INT32 *da, INT32 *ho, INT32 *mi, INT32 *se);
 export INT32 PlatformNative_MakeDirectory (CHAR *path, ADDRESS path__len);
 export INT32 PlatformNative_MinIndex (void);
 export INT32 PlatformNative_NameTooLong (void);
@@ -49,38 +50,49 @@ export INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);
 #else
 #include <termios.h>
 #endif
+#include <time.h>
 #define PlatformNative_badFD()	EBADF
 #define PlatformNative_clearError()	errno = 0
 #define PlatformNative_closeDirectory(handle)	closedir((DIR*)handle)
 #define PlatformNative_columns()	window.ws_col
+#define PlatformNative_day()	local.tm_mday
 #define PlatformNative_entryName(entry)	(ADDRESS)((struct dirent*)entry)->d_name
 #define PlatformNative_error()	errno
 #define PlatformNative_getTerminal(fd, state)	tcgetattr(fd, (struct termios*)state)
 #define PlatformNative_getWindow(fd)	ioctl(fd, TIOCGWINSZ, &window)
+#define PlatformNative_hour()	local.tm_hour
 #define PlatformNative_inputFlags(state)	(UINT64)((struct termios*)state)->c_iflag
 #define PlatformNative_inputRawMask()	(UINT64)(ICRNL | IXON)
 #define PlatformNative_isDirectory()	S_ISDIR(info.st_mode)
 #define PlatformNative_isRegular()	S_ISREG(info.st_mode)
 #define PlatformNative_localFlags(state)	(UINT64)((struct termios*)state)->c_lflag
 #define PlatformNative_localRawMask()	(UINT64)(ICANON | ECHO | ISIG | IEXTEN)
+#define PlatformNative_localTime()	(localtime_r(&value, &local) != NULL)
 #define PlatformNative_lstat(path, path__len)	lstat((char*)path, &info)
 #define PlatformNative_minIndex()	VMIN
+#define PlatformNative_minute()	local.tm_min
 #define PlatformNative_mkdir(path, path__len)	mkdir((char*)path, 0777)
+#define PlatformNative_month()	local.tm_mon
 #define PlatformNative_nameTooLong()	ENAMETOOLONG
 #define PlatformNative_noMemory()	ENOMEM
 #define PlatformNative_openDirectory(path, path__len)	(ADDRESS)opendir((char*)path)
 #define PlatformNative_overflow()	EOVERFLOW
 #define PlatformNative_readDirectory(handle)	(ADDRESS)readdir((DIR*)handle)
 #define PlatformNative_rows()	window.ws_row
+#define PlatformNative_second()	local.tm_sec
 #define PlatformNative_setControl(state, index, value)	((struct termios*)state)->c_cc[index] = (cc_t)value
 #define PlatformNative_setInputFlags(state, flags)	((struct termios*)state)->c_iflag = (tcflag_t)flags
 #define PlatformNative_setLocalFlags(state, flags)	((struct termios*)state)->c_lflag = (tcflag_t)flags
 #define PlatformNative_setTerminal(fd, state)	tcsetattr(fd, TCSANOW, (const struct termios*)state)
+#define PlatformNative_setTime(seconds)	value = (time_t)seconds
 #define PlatformNative_stat(path, path__len)	stat((char*)path, &info)
 #define PlatformNative_statBuffer()	struct stat info
 #define PlatformNative_terminalSize()	sizeof(struct termios)
+#define PlatformNative_timeBuffer()	time_t value; struct tm local
+#define PlatformNative_timeFits(seconds)	((INT64)value == seconds)
 #define PlatformNative_timeIndex()	VTIME
 #define PlatformNative_windowBuffer()	struct winsize window
+#define PlatformNative_year()	local.tm_year
 
 INT32 PlatformNative_Error (void)
 {
@@ -110,6 +122,22 @@ INT32 PlatformNative_BadFD (void)
 INT32 PlatformNative_Overflow (void)
 {
 	return PlatformNative_overflow();
+}
+
+BOOLEAN PlatformNative_LocalTime (INT64 seconds, INT32 *ye, INT32 *mo, INT32 *da, INT32 *ho, INT32 *mi, INT32 *se)
+{
+	PlatformNative_timeBuffer();
+	PlatformNative_setTime(seconds);
+	if (!PlatformNative_timeFits(seconds) || !PlatformNative_localTime()) {
+		return 0;
+	}
+	*ye = PlatformNative_year();
+	*mo = PlatformNative_month();
+	*da = PlatformNative_day();
+	*ho = PlatformNative_hour();
+	*mi = PlatformNative_minute();
+	*se = PlatformNative_second();
+	return 1;
 }
 
 INT64 PlatformNative_OpenDirectory (CHAR *path, ADDRESS path__len)

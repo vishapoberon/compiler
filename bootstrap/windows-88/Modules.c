@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -272,29 +272,37 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 	pathstring__12 arg0, pathlist, pathdir, tempstr;
 	INT16 i, j, k;
 	BOOLEAN present;
-	if (Modules_ArgCount < 1) {
+	if (Platform_ExecutablePath((void*)arg0, 4096)) {
+		if (Modules_CharCount(arg0, 4096) >= binarydir__len) {
+			binarydir[0] = 0x00;
+			return;
+		}
+		Modules_Trim(arg0, 4096, (void*)binarydir, binarydir__len);
+		present = 1;
+	} else if (Modules_ArgCount < 1) {
 		binarydir[0] = 0x00;
 		return;
-	}
-	Modules_GetArg(0, (void*)arg0, 4096);
-	i = 0;
-	while ((((arg0[__X(i, 4096)] != 0x00 && arg0[__X(i, 4096)] != '/')) && arg0[__X(i, 4096)] != '\\')) {
-		i += 1;
-	}
-	if (arg0[__X(i, 4096)] == '/' || arg0[__X(i, 4096)] == '\\') {
-		Modules_Trim(arg0, 4096, (void*)tempstr, 4096);
-		Modules_Canonify(tempstr, 4096, (void*)binarydir, binarydir__len);
-		present = Modules_IsFilePresent(binarydir, binarydir__len);
 	} else {
-		Platform_GetEnv((CHAR*)"PATH", 5, (void*)pathlist, 4096);
+		Modules_GetArg(0, (void*)arg0, 4096);
 		i = 0;
-		present = 0;
-		while ((!present && pathlist[__X(i, 4096)] != 0x00)) {
-			Modules_ExtractPart(pathlist, 4096, &i, (CHAR*)":;", 3, (void*)pathdir, 4096);
-			Modules_AppendPart('/', arg0, 4096, (void*)pathdir, 4096);
-			Modules_Trim(pathdir, 4096, (void*)tempstr, 4096);
+		while ((((arg0[__X(i, 4096)] != 0x00 && arg0[__X(i, 4096)] != '/')) && arg0[__X(i, 4096)] != '\\')) {
+			i += 1;
+		}
+		if (arg0[__X(i, 4096)] == '/' || arg0[__X(i, 4096)] == '\\') {
+			Modules_Trim(arg0, 4096, (void*)tempstr, 4096);
 			Modules_Canonify(tempstr, 4096, (void*)binarydir, binarydir__len);
 			present = Modules_IsFilePresent(binarydir, binarydir__len);
+		} else {
+			Platform_GetEnv((CHAR*)"PATH", 5, (void*)pathlist, 4096);
+			i = 0;
+			present = 0;
+			while ((!present && pathlist[__X(i, 4096)] != 0x00)) {
+				Modules_ExtractPart(pathlist, 4096, &i, (CHAR*)":;", 3, (void*)pathdir, 4096);
+				Modules_AppendPart('/', arg0, 4096, (void*)pathdir, 4096);
+				Modules_Trim(pathdir, 4096, (void*)tempstr, 4096);
+				Modules_Canonify(tempstr, 4096, (void*)binarydir, binarydir__len);
+				present = Modules_IsFilePresent(binarydir, binarydir__len);
+			}
 		}
 	}
 	if (present) {
@@ -302,7 +310,7 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 		while ((k > 0 && !Modules_IsOneOf(binarydir[__X(k - 1, binarydir__len)], (CHAR*)"/\\", 3))) {
 			k -= 1;
 		}
-		if (k == 0) {
+		if ((k == 0 || k == 1) || (k == 3 && binarydir[__X(1, binarydir__len)] == ':')) {
 			binarydir[__X(k, binarydir__len)] = 0x00;
 		} else {
 			binarydir[__X(k - 1, binarydir__len)] = 0x00;

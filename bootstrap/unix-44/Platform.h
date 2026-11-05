@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #ifndef Platform__h
 #define Platform__h
@@ -37,6 +37,7 @@ import INT16 Platform_CopyTerminalState (INT32 source, INT32 *copy);
 import void Platform_Delay (INT32 ms);
 import BOOLEAN Platform_DifferentFilesystems (INT16 e);
 import INT16 Platform_Error (void);
+import BOOLEAN Platform_ExecutablePath (CHAR *path, ADDRESS path__len);
 import void Platform_Exit (INT32 code);
 import void Platform_GetClock (INT32 *t, INT32 *d);
 import void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len);

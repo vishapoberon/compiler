@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -50,6 +50,7 @@ export void Platform_Delay (INT32 ms);
 export BOOLEAN Platform_DifferentFilesystems (INT16 e);
 static void Platform_EnableVT100 (void);
 export INT16 Platform_Error (void);
+export BOOLEAN Platform_ExecutablePath (CHAR *path, ADDRESS path__len);
 export void Platform_Exit (INT32 code);
 export void Platform_GetClock (INT32 *t, INT32 *d);
 export void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len);
@@ -130,6 +131,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_createProcess(str, str__len)	(INTEGER)CreateProcess(0, (char*)str, 0,0,0,0,0,0,&si,&pi)
 #define Platform_deleteFile(n, n__len)	(INTEGER)DeleteFile((char*)n)
 #define Platform_err()	(INTEGER)GetLastError()
+#define Platform_executablePath(path, path__len)	(INT32)GetModuleFileNameA(NULL, (char*)path, (DWORD)path__len)
 #define Platform_exit(code)	ExitProcess((UINT)code)
 #define Platform_fileTimeToSysTime()	SYSTEMTIME st; FileTimeToSystemTime(&ft, &st)
 #define Platform_flushFileBuffers(h)	(INTEGER)FlushFileBuffers((HANDLE)h)
@@ -279,6 +281,17 @@ void Platform_GetEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 	__DEL(var);
 }
 
+BOOLEAN Platform_ExecutablePath (CHAR *path, ADDRESS path__len)
+{
+	INT32 n;
+	n = Platform_executablePath((void*)path, path__len);
+	if ((n > 0 && n < path__len)) {
+		return 1;
+	}
+	path[0] = 0x00;
+	return 0;
+}
+
 void Platform_SetBadInstructionHandler (Platform_SignalHandler handler)
 {
 }
@@ -325,7 +338,7 @@ void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec)
 
 INT16 Platform_System (CHAR *cmd, ADDRESS cmd__len)
 {
-	INT16 result;
+	INT32 result;
 	__DUP(cmd, cmd__len, CHAR);
 	result = 127;
 	Platform_startupInfo();
@@ -337,7 +350,7 @@ INT16 Platform_System (CHAR *cmd, ADDRESS cmd__len)
 		Platform_cleanupProcess();
 	}
 	__DEL(cmd);
-	return __ASHL(result, 8);
+	return (INT16)__ASHL(__MASK(result, -256), 8);
 }
 
 INT16 Platform_Error (void)

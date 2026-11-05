@@ -1,4 +1,4 @@
-/* voc 4.0.0 [2026/10/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -53,7 +53,6 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRESS cmd__len)
 {
 	INT16 r, status, exitcode;
-	extTools_CommandString fullcmd;
 	__DUP(title, title__len, CHAR);
 	__DUP(cmd, cmd__len, CHAR);
 	if (!OPM_noerr) {
@@ -66,9 +65,8 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 		Out_String(cmd, cmd__len);
 		Out_Ln();
 	}
-	__COPY(cmd, fullcmd, 8192);
 	Heap_GC(extTools_hosted);
-	r = Platform_System(fullcmd, 8192);
+	r = Platform_System(cmd, cmd__len);
 	status = __MASK(r, -128);
 	exitcode = __ASHR(r, 8);
 	if (exitcode > 127) {
