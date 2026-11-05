@@ -20,5 +20,5 @@ test:
 	$(ENV) "$(BUILD)/TestRealLiterals"
 	$(ENV) python3 "$(ROOT)/src/test/reals/check-literals.py" --voc "$(VOC)" --work "$(BUILD)/literals" --model $(MODEL)
 	$(CC) $(CFLAGS) -I"$(VOCROOT)/$(MODEL)/include" "$(ROOT)/src/test/reals/NativeOracle.c" \
-	  -L"$(VOCLIBDIR)" -l$(ONAME)-O$(MODEL) $(LDFLAGS) -o "$(BUILD)/NativeOracle"
+	  -L"$(VOCLIBDIR)" -l$(ONAME)-O$(MODEL) $(LDFLAGS) -lm -o "$(BUILD)/NativeOracle"
 	$(ENV) "$(BUILD)/NativeOracle"
