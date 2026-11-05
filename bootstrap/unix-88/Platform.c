@@ -105,6 +105,9 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
+#endif
 #include <errno.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -255,13 +258,13 @@ void Platform_OSFree (INT64 address)
 }
 
 typedef
-	CHAR (*EnvPtr__123)[1024];
+	CHAR (*EnvPtr__126)[1024];
 
 BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	EnvPtr__123 p = NIL;
+	EnvPtr__126 p = NIL;
 	__DUP(var, var__len, CHAR);
-	p = (EnvPtr__123)(ADDRESS)Platform_getenv(var, var__len);
+	p = (EnvPtr__126)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
 		__COPY(*p, val, val__len);
 	}

@@ -40,6 +40,9 @@ export INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
+#endif
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>

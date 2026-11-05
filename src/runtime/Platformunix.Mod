@@ -47,6 +47,10 @@ VAR
 PROCEDURE -A0Feature '#ifndef _POSIX_C_SOURCE';
 PROCEDURE -A0Feature1 '#define _POSIX_C_SOURCE 200809L';
 PROCEDURE -A0Feature2 '#endif';
+(* XSI exposes terminal output flags and gettimeofday on FreeBSD. *)
+PROCEDURE -A0XOpen '#ifndef _XOPEN_SOURCE';
+PROCEDURE -A0XOpen1 '#define _XOPEN_SOURCE 700';
+PROCEDURE -A0XOpen2 '#endif';
 PROCEDURE -Aincludesystime  '#include <sys/time.h>';  (* for gettimeofday *)
 PROCEDURE -Aincludetime     '#include <time.h>';      (* for nanosleep and mktime *)
 PROCEDURE -Aincludesystypes '#include <sys/types.h>';

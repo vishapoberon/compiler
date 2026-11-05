@@ -91,7 +91,7 @@ compilerfromsavedsource:
 	@mkdir -p $(BUILDDIR)
 	@cp bootstrap/$(PLATFORM)-$(ADRSIZE)$(ALIGNMENT)/* $(BUILDDIR)
 	@cp bootstrap/*.[ch] $(BUILDDIR)
-	@make -f src/tools/make/oberon.mk -s assemble
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble
 	@cp bootstrap/*.[ch] $(BUILDDIR)
 
 
@@ -101,7 +101,7 @@ translate:
 # Make sure we have an oberon compiler binary: if we built one earlier we'll use it,
 # otherwise use one of the pre-prepared sets of C sources in the bootstrap directory.
 
-	if [ ! -e $(OBECOMP) ]; then make -f src/tools/make/oberon.mk -s compilerfromsavedsource; fi
+	if [ ! -e $(OBECOMP) ]; then $(MAKE) -f src/tools/make/oberon.mk -s compilerfromsavedsource; fi
 
 	@printf '\nmake translate - translating compiler source from Oberon to C:\n'
 	@printf '  PLATFORM:  %s\n' $(PLATFORM)
@@ -343,7 +343,7 @@ library:
 	cp $(BUILDDIR)/SYSTEM.[ho] $(BUILDDIR)/$(MODEL)
 	cp src/runtime/*.Txt  $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/WindowsWrapper.h $(BUILDDIR)/$(MODEL)
-	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
+	@$(MAKE) -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
 	@printf '\nMaking lib$(ONAME)-O$(MODEL) .a and $(DYNEXT)\n'
 	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
 	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)-O$(MODEL)$(DYNEXT) *.o
@@ -360,6 +360,7 @@ RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR
 confidence:
 	@printf '\n\n--- Confidence tests ---\n\n'
 	sh src/test/bootstrap/test-sourcechanges.sh
+	sh src/test/bootstrap/test-unix-features.sh
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)
 	cd src/test/confidence/in;              $(RUNTEST)

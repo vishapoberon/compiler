@@ -53,6 +53,10 @@ These are detailed below:
 
 More details, including for MingW and MS C, in [**Installation**](/doc/Installation.md).
 
+On FreeBSD, also install GNU make with `pkg install gmake`, and use `gmake`
+in place of `make` in the commands below. The bundled tool makefiles use GNU
+make functions; recursive builds preserve the make program you selected.
+
 
 #### 2. Clone and build the compiler and libraries
 

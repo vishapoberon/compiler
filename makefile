@@ -23,6 +23,8 @@ CONFIG_PATHS = PREFIX='$(PREFIX)' INSTALLDIR='$(INSTALLDIR)' BINDIR='$(BINDIR)' 
 #
 #   make
 #
+# On FreeBSD use gmake; bundled tool makefiles require GNU make functions.
+#
 # To override your OSs default C compiler, first run
 #
 #   export CC=compiler
@@ -195,7 +197,7 @@ reportsizes: FORCE
 
 # clean - clean out the bulid directory
 clean: configuration
-	@make -f src/tools/make/oberon.mk -s clean
+	@$(MAKE) -f src/tools/make/oberon.mk -s clean
 
 
 
@@ -203,121 +205,121 @@ clean: configuration
 # all: Complete clean build of compiler and library.
 .PHONY: all
 all: configuration
-	@make -f src/tools/make/oberon.mk -s clean
+	@$(MAKE) -f src/tools/make/oberon.mk -s clean
 # Make bootstrap compiler from source suitable for current data model
 	@printf "\n\n--- Compiler build started ---\n\n"
-	@make -f src/tools/make/oberon.mk -s compilerfromsavedsource MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s compilerfromsavedsource MODEL=2
 # Use bootstrap compiler to make compiler binary from latest compiler sources
-	@make -f src/tools/make/oberon.mk -s translate MODEL=2
-	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble MODEL=2
 # Use latest compiler to make compiler binary from latest compiler sources
-	@make -f src/tools/make/oberon.mk -s translate MODEL=2
-	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble MODEL=2
 	@printf "\n\n--- Compiler build successfull ---\n\n"
-	@make -f src/tools/make/oberon.mk -s browsercmd MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s browsercmd MODEL=2
 	@printf "\n\n--- Library build started ---\n\n"
-	@make -f src/tools/make/oberon.mk -s library MODEL=2
-	@make -f src/tools/make/oberon.mk -s library MODEL=C
+	@$(MAKE) -f src/tools/make/oberon.mk -s library MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s library MODEL=C
 	@printf "\n\n--- Library build successfull ---\n\n"
-	@make -f src/tools/make/oberon.mk -s sourcechanges
-	@make -f src/tools/make/oberon.mk -s makeinstalldir
+	@$(MAKE) -f src/tools/make/oberon.mk -s sourcechanges
+	@$(MAKE) -f src/tools/make/oberon.mk -s makeinstalldir
 	@printf "\n\n--- Confidence tests started ---\n\n"
-	@make -f src/tools/make/oberon.mk -s confidence MODEL=2
-	@make -f src/tools/make/oberon.mk -s instructions
+	@$(MAKE) -f src/tools/make/oberon.mk -s confidence MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s instructions
 
 
 assemble:
-	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble MODEL=2
 
 
 compilerfromsavedsource:
-	@make -f src/tools/make/oberon.mk -s compilerfromsavedsource
+	@$(MAKE) -f src/tools/make/oberon.mk -s compilerfromsavedsource
 
 
 
 # compile: compiler only, without cleaning
 compiler: configuration
-	@make -f src/tools/make/oberon.mk -s translate MODEL=2
-	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble MODEL=2
 
 
 
 # Report changes to compiler source relative to bootstrap compiler
 sourcechanges:
-	@make -f src/tools/make/oberon.mk -s sourcechanges
+	@$(MAKE) -f src/tools/make/oberon.mk -s sourcechanges
 
 
 # browsercmd: build the 'showdef' command
 browsercmd: configuration
-	@make -f src/tools/make/oberon.mk -s browsercmd MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s browsercmd MODEL=2
 
 
 
 
 # library: build the runtime, VOC libraries and supported src/ports packages
 O2library: configuration
-	@make -f src/tools/make/oberon.mk -s library MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s library MODEL=2
 
 OClibrary: configuration
-	@make -f src/tools/make/oberon.mk -s library MODEL=C
+	@$(MAKE) -f src/tools/make/oberon.mk -s library MODEL=C
 
 
 
 
 # Individual library components
 v4: configuration
-	@make -f src/tools/make/oberon.mk -s v4 MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s v4 MODEL=2
 
 ooc: configuration
-	@make -f src/tools/make/oberon.mk -s ooc MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s ooc MODEL=2
 
 xml: configuration
-	@make -f src/tools/make/oberon.mk -s xml MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s xml MODEL=2
 
 xmpp: configuration
-	@make -f src/tools/make/oberon.mk -s xmpp MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s xmpp MODEL=2
 
 punycode: configuration
-	@make -f src/tools/make/oberon.mk -s punycode MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s punycode MODEL=2
 
 ulm: configuration
-	@make -f src/tools/make/oberon.mk -s ulm MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s ulm MODEL=2
 
 pow32: configuration
-	@make -f src/tools/make/oberon.mk -s pow32 MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s pow32 MODEL=2
 
 misc: configuration
-	@make -f src/tools/make/oberon.mk -s misc MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s misc MODEL=2
 
 s3: configuration
-	@make -f src/tools/make/oberon.mk -s s3 MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s s3 MODEL=2
 
 
 
 # makeinstalldir: Copy built files to local install directory
 makeinstalldir:
-	@make -f src/tools/make/oberon.mk -s makeinstalldir
+	@$(MAKE) -f src/tools/make/oberon.mk -s makeinstalldir
 
 
 # install: Copy built files to install directory
 install: configuration
-	@make -f src/tools/make/oberon.mk -s install
+	@$(MAKE) -f src/tools/make/oberon.mk -s install
 
 install-system: configuration
-	@make -f src/tools/make/oberon.mk -s install-system
+	@$(MAKE) -f src/tools/make/oberon.mk -s install-system
 
 uninstall: configuration
-	@make -f src/tools/make/oberon.mk -s uninstall
+	@$(MAKE) -f src/tools/make/oberon.mk -s uninstall
 
 uninstall-system: configuration
-	@make -f src/tools/make/oberon.mk -s uninstall-system
+	@$(MAKE) -f src/tools/make/oberon.mk -s uninstall-system
 
 
 
 
 # confidence: Run a set of confidence tests
 confidence: configuration
-	@make -f src/tools/make/oberon.mk -s confidence MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s confidence MODEL=2
 
 planned-binary-change:
 	@date >src/test/confidence/planned-binary-change
@@ -332,25 +334,25 @@ planned-binary-change:
 # If the bootstrap directories are broken or only partially
 # built then run 'make revertbootstrap' first.
 bootstrap: bootstrapconfiguration
-	@make -f src/tools/make/oberon.mk -s clean
-	@make -f src/tools/make/oberon.mk -s translate MODEL=2
-	@make -f src/tools/make/oberon.mk -s assemble MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s clean
+	@$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble MODEL=2
 	rm -rf bootstrap/*
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
 	cp src/runtime/*.[ch] bootstrap
 
 
 bootstrapunclean: bootstrapconfiguration
 	rm -rf bootstrap/*
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
-	make -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=4 PLATFORM=unix    BUILDDIR=bootstrap/unix-44    && rm bootstrap/unix-44/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-48    && rm bootstrap/unix-48/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=unix    BUILDDIR=bootstrap/unix-88    && rm bootstrap/unix-88/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=2 ADRSIZE=4 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-48 && rm bootstrap/windows-48/*.sym
+	$(MAKE) -f src/tools/make/oberon.mk -s translate MODEL=2 INTSIZE=4 ADRSIZE=8 ALIGNMENT=8 PLATFORM=windows BUILDDIR=bootstrap/windows-88 && rm bootstrap/windows-88/*.sym
 	cp src/runtime/*.[ch] bootstrap
 
 
@@ -370,10 +372,10 @@ revertbootstrap:
 
 # coordinator: Start the test machine coordinator
 coordinator: configuration
-	@make -f src/tools/make/oberon.mk -s clean
-	@make -f src/tools/make/oberon.mk -s translate
-	@make -f src/tools/make/oberon.mk -s assemble
-	@make -f src/tools/make/oberon.mk -s testtools
+	@$(MAKE) -f src/tools/make/oberon.mk -s clean
+	@$(MAKE) -f src/tools/make/oberon.mk -s translate
+	@$(MAKE) -f src/tools/make/oberon.mk -s assemble
+	@$(MAKE) -f src/tools/make/oberon.mk -s testtools
 	@rm -f "build/*.log"
 	cd build && ../testcoordinator.exe
 
@@ -382,7 +384,7 @@ coordinator: configuration
 
 # auto: machine specific build server
 auto: configuration
-	@make -f src/tools/make/oberon.mk -s auto
+	@$(MAKE) -f src/tools/make/oberon.mk -s auto
 
 
 
@@ -390,14 +392,14 @@ auto: configuration
 # autoonce: What auto does each time a build is triggered.
 autoonce: configuration
 	git pull
-	@if make -s; then echo \*\* Succeeded \*\*; else echo \*\* Failed \*\*;fi
+	@if $(MAKE) -s; then echo \*\* Succeeded \*\*; else echo \*\* Failed \*\*;fi
 
 
 
 
 # autobuild: Start test clients.
 autobuild: configuration
-	./testclient -c "make -s autoonce"
+	./testclient -c "$(MAKE) -s autoonce"
 
 
 
