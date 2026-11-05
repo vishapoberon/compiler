@@ -6,6 +6,6 @@ $OBECOMP testTexts.mod -m
 ./testTexts >result
 . ../testresult.sh
 $OBECOMP TestScannerNumbers.mod -m
-./TestScannerNumbers >result
+./TestScannerNumbers >result || { status=$?; cat result; exit "$status"; }
 printf 'bounded scanner number tests passed\n' >result-expected
 diff -b result-expected result
