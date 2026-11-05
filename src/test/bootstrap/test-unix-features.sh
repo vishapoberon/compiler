@@ -32,4 +32,24 @@ EOF
     done
 done
 
+for source in "$root/src/runtime/SYSTEM.c" "$root/bootstrap/SYSTEM.c"; do
+    sed '/^#include/,$d' "$source" >"$temporary/probe.c"
+    cat >>"$temporary/probe.c" <<'EOF'
+#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
+#error "The Unix signal runtime requires POSIX.1-2008 declarations before libc headers."
+#endif
+#if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 700
+#error "The Unix signal runtime requires XSI declarations before libc headers."
+#endif
+#include <signal.h>
+int voc_signal_features(void) {
+    struct sigaction action = {0};
+    action.sa_flags = SA_RESTART;
+    return action.sa_flags;
+}
+EOF
+    ${CC:-cc} -Werror=implicit-function-declaration \
+        -c "$temporary/probe.c" -o "$temporary/probe.o"
+done
+
 echo 'Unix bootstrap feature declarations passed.'
