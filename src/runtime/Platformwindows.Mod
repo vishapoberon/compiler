@@ -148,6 +148,17 @@ BEGIN
   IF ~getEnv(var, val) THEN val[0] := 0X END;
 END GetEnv;
 
+PROCEDURE -executablePath(VAR path: ARRAY OF CHAR): SYSTEM.INT32
+  '(INT32)GetModuleFileNameA(NULL, (char*)path, (DWORD)path__len)';
+
+PROCEDURE ExecutablePath*(VAR path: ARRAY OF CHAR): BOOLEAN;
+VAR n: SYSTEM.INT32;
+BEGIN
+  n := executablePath(path);
+  IF (n > 0) & (n < LEN(path)) THEN RETURN TRUE END;
+  path[0] := 0X; RETURN FALSE
+END ExecutablePath;
+
 
 
 
@@ -231,13 +242,13 @@ PROCEDURE -startupInfo                                "STARTUPINFO si = {0}; si.
 PROCEDURE -processInfo                                "PROCESS_INFORMATION pi = {0};";
 PROCEDURE -createProcess(str: ARRAY OF CHAR): INTEGER "(INTEGER)CreateProcess(0, (char*)str, 0,0,0,0,0,0,&si,&pi)";
 PROCEDURE -waitForProcess(): INTEGER                  "(INTEGER)WaitForSingleObject(pi.hProcess, INFINITE)";
-PROCEDURE -getExitCodeProcess(VAR exitcode: INTEGER)  "GetExitCodeProcess(pi.hProcess, (DWORD*)exitcode);";
+PROCEDURE -getExitCodeProcess(VAR exitcode: SYSTEM.INT32)  "GetExitCodeProcess(pi.hProcess, (DWORD*)exitcode);";
 PROCEDURE -cleanupProcess                             "CloseHandle(pi.hProcess); CloseHandle(pi.hThread);";
 PROCEDURE -err(): INTEGER                             "(INTEGER)GetLastError()";
 
 PROCEDURE System*(cmd : ARRAY OF CHAR): INTEGER;
 VAR
-  result: INTEGER;
+  result: SYSTEM.INT32;
 BEGIN
   result := 127;
   startupInfo; processInfo;
@@ -245,7 +256,8 @@ BEGIN
     IF waitForProcess() = 0 THEN getExitCodeProcess(result) END;
     cleanupProcess;
   END;
-  RETURN result * 256;
+  (* Keep the Unix wait-status convention; the Win32 output buffer is always 32 bits. *)
+  RETURN SYSTEM.VAL(INTEGER, (result MOD 256) * 256);
 END System;
 
 PROCEDURE Error*(): ErrorCode; BEGIN RETURN err() END Error;

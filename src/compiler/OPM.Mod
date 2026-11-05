@@ -928,7 +928,10 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     COPY(s, testpath);
     Strings.Append("/lib/lib", testpath);
     Strings.Append(Configuration.name, testpath);
-    Strings.Append("-O2.a", testpath);
+    Strings.Append("-O2", testpath);
+    IF Configuration.libext = "" THEN Strings.Append(".a", testpath)
+    ELSE Strings.Append(Configuration.libext, testpath)
+    END;
     IF Platform.IdentifyByName(testpath, identity) # 0 THEN RETURN FALSE END;
 
     COPY(s, testpath);

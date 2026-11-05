@@ -10,26 +10,17 @@ VAR CFLAGS, LDFLAGS, LDLIBS: CommandString;
 
 
 PROCEDURE execute(title: ARRAY OF CHAR; cmd: ARRAY OF CHAR);
-  VAR r, status, exitcode: INTEGER; fullcmd: CommandString;
+  VAR r, status, exitcode: INTEGER;
 BEGIN
   IF ~OPM.noerr THEN RETURN END;
   IF OPM.verbose IN OPM.Options THEN
     Out.String("  "); Out.String(cmd); Out.Ln
   END;
 
-  (* Hack to suppress unwanted filename display by Microsoft C compiler on successful compilations. *)
-  IF Configuration.compiler = "MSC" THEN
-    fullcmd := "cmd /c ";
-    Strings.Append(cmd, fullcmd);
-    Strings.Append(" >msc-listing || type msc-listing", fullcmd)
-  ELSE
-    COPY(cmd, fullcmd);
-  END;
-
   (* Get GC to run file finalizers closing generated C files as otherwise Microsoft C cannot open them. *)
   Heap.GC(hosted);
 
-  r := Platform.System(fullcmd);
+  r := Platform.System(cmd);
 
   status := r MOD 128; exitcode := r DIV 256;
   IF exitcode > 127 THEN exitcode := exitcode - 256 END; (* Handle signed exit code *)
@@ -157,7 +148,7 @@ END IsTCC;
 PROCEDURE ModularCommand(VAR cmd: CommandString);
   VAR compiler, path, dir: Path; pos: INTEGER; include: ARRAY 16 OF CHAR;
 BEGIN
-  IF (Configuration.compiler = "MSC") OR (Configuration.os = "windows") OR
+  IF (Configuration.compiler = "msc") OR (Configuration.compiler = "MSC") OR (Configuration.os = "windows") OR
       (Configuration.os = "cygwin") OR (Configuration.os = "darwin") THEN
     Fail("-l/-P currently require an ELF target with a GCC-compatible linker."); RETURN
   END;

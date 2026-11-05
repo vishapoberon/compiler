@@ -60,6 +60,7 @@ goto :eof
 @echo.  make clean    - Remove made files
 @echo.  make compiler - Build the compiler but not the library
 @echo.  make library  - Build all library files and make library
+@echo.  make check    - Compile and run installation checks for both size models
 @echo.  make install  - Install built compiler and library (from administrator prompt)
 goto :eof
 
@@ -84,6 +85,7 @@ echo.
 echo.--- Library build successfull ---
 echo.
 call :makeinstalldir || exit /b
+call :check          || exit /b
 goto :eof
 
 
@@ -135,6 +137,29 @@ echo Now add %INSTALLDIR%\bin to your path, for example with the command:
 echo PATH %INSTALLDIR%\bin;%%PATH%%
 echo.
 goto :eof
+
+
+:: Check the staged compiler without installation-path environment overrides.
+:check
+setlocal
+set "VOCROOT="
+set "VOCLIBDIR="
+set "OBERON="
+set "MODULES="
+for %%M in (2 C) do (
+  mkdir "%ROOTDIR%\%BUILDDIR%\check\%%M" >nul 2>&1
+  cd /d "%ROOTDIR%\%BUILDDIR%\check\%%M" || goto :checkfailed
+  "%ROOTDIR%\install\bin\%OBECOMP%" -Ffm -O%%M "%ROOTDIR%\src\test\windows\CheckInstallation.Mod" || goto :checkfailed
+  CheckInstallation.exe || goto :checkfailed
+)
+cd /d "%ROOTDIR%"
+endlocal
+exit /b 0
+
+:checkfailed
+cd /d "%ROOTDIR%"
+endlocal
+exit /b 1
 
 
 

@@ -344,7 +344,7 @@ library:
 	cp src/runtime/*.Txt  $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/WindowsWrapper.h $(BUILDDIR)/$(MODEL)
 	@make -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)
-	@printf '\nMaking lib$(ONAME)-O$(MODEL) .a and .so\n'
+	@printf '\nMaking lib$(ONAME)-O$(MODEL) .a and $(DYNEXT)\n'
 	ar rcs "$(BUILDDIR)/$(MODEL)/lib$(ONAME)-O$(MODEL).a" $(BUILDDIR)/$(MODEL)/*.o
 	@cd $(BUILDDIR)/$(MODEL) && $(COMPILE) -shared -o lib$(ONAME)-O$(MODEL)$(DYNEXT) *.o
 

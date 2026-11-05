@@ -104,7 +104,7 @@ void determineLinuxVariant() {
 
 void determineOS() {
   #ifdef _WIN32
-    os = "windows";  platform = "windows";  binext = ".exe"; staticlink = "";
+    os = "windows";  platform = "windows";  binext = ".exe"; dynext = ".dll"; staticlink = "";
   #else
     os = "unknown";  platform = "unix";     binext = "";     staticlink = " -static";
 
@@ -215,7 +215,7 @@ void determineInstallationPaths() {
     snprintf(bindir, sizeof(bindir), "%s", env);
   } else if (prefix && prefix[0] && !explicitInstallDir) {
     snprintf(bindir, sizeof(bindir), "%s/bin", prefix);
-  } else if (explicitInstallDir || termux) {
+  } else if (explicitInstallDir || termux || strcmp(platform, "windows") == 0) {
     snprintf(bindir, sizeof(bindir), "%s/bin", installdir);
   } else {
     snprintf(bindir, sizeof(bindir), "/usr/local/bin");
@@ -226,7 +226,7 @@ void determineInstallationPaths() {
     snprintf(libdir, sizeof(libdir), "%s", env);
   } else if (prefix && prefix[0] && !explicitInstallDir) {
     snprintf(libdir, sizeof(libdir), "%s/lib", prefix);
-  } else if (explicitInstallDir || termux) {
+  } else if (explicitInstallDir || termux || strcmp(platform, "windows") == 0) {
     snprintf(libdir, sizeof(libdir), "%s/lib", installdir);
   } else {
     snprintf(libdir, sizeof(libdir), "/usr/local/lib");

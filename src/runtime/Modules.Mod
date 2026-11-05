@@ -184,29 +184,34 @@ MODULE Modules;  (* jt 6.1.96 *)
     i, j, k:    INTEGER;
     present:    BOOLEAN;
   BEGIN
-    IF ArgCount < 1 THEN
+    IF Platform.ExecutablePath(arg0) THEN
+      (* Windows supplies the actual image path, including its .exe suffix,
+         independently of shell spelling, PATH and the current directory. *)
+      IF CharCount(arg0) >= LEN(binarydir) THEN binarydir[0] := 0X; RETURN END;
+      Trim(arg0, binarydir); present := TRUE
+    ELSIF ArgCount < 1 THEN
       (* The caller is misbehaving: Shells and GUIs always pass the command
          as ARGV[0]. *)
       binarydir[0] := 0X;
       RETURN;
-    END;
-
-    GetArg(0, arg0); (* arg0 is the command binary file name passed by the shell. *)
-    i := 0; WHILE (arg0[i] # 0X) & (arg0[i] # '/') & (arg0[i] # '\') DO INC(i) END;
-    IF (arg0[i] = '/') OR (arg0[i] = '\') THEN
-      (* The argument contains a '/', we expect it to work without reference
-         to the path. *)
-      Trim(arg0, tempstr); Canonify(tempstr, binarydir);
-      present := IsFilePresent(binarydir)
     ELSE
-      (* There are no '/'s in arg0, so search through the path. *)
-      Platform.GetEnv("PATH", pathlist);
-      i := 0; present := FALSE;
-      WHILE (~present) & (pathlist[i] # 0X) DO
-        ExtractPart(pathlist, i, ":;", pathdir);
-        AppendPart('/', arg0, pathdir);
-        Trim(pathdir, tempstr); Canonify(tempstr, binarydir);
+      GetArg(0, arg0); (* arg0 is the command binary file name passed by the shell. *)
+      i := 0; WHILE (arg0[i] # 0X) & (arg0[i] # '/') & (arg0[i] # '\') DO INC(i) END;
+      IF (arg0[i] = '/') OR (arg0[i] = '\') THEN
+        (* The argument contains a '/', we expect it to work without reference
+           to the path. *)
+        Trim(arg0, tempstr); Canonify(tempstr, binarydir);
         present := IsFilePresent(binarydir)
+      ELSE
+        (* There are no '/'s in arg0, so search through the path. *)
+        Platform.GetEnv("PATH", pathlist);
+        i := 0; present := FALSE;
+        WHILE (~present) & (pathlist[i] # 0X) DO
+          ExtractPart(pathlist, i, ":;", pathdir);
+          AppendPart('/', arg0, pathdir);
+          Trim(pathdir, tempstr); Canonify(tempstr, binarydir);
+          present := IsFilePresent(binarydir)
+        END
       END
     END;
 
@@ -215,7 +220,10 @@ MODULE Modules;  (* jt 6.1.96 *)
       k := CharCount(binarydir);
       WHILE (k > 0) & ~IsOneOf(binarydir[k-1], '/\') DO DEC(k) END;
       (* Chop off binarydir file name *)
-      IF k = 0 THEN binarydir[k] := 0X ELSE binarydir[k-1] := 0X END;
+      IF (k = 0) OR (k = 1) OR ((k = 3) & (binarydir[1] = ':')) THEN
+        binarydir[k] := 0X
+      ELSE binarydir[k-1] := 0X
+      END;
     ELSE
       binarydir[0] := 0X (* Couldn't determine binary directory. *)
     END

@@ -158,6 +158,10 @@ BEGIN
   IF ~getEnv(var, val) THEN val[0] := 0X END;
 END GetEnv;
 
+(* Unix executable discovery uses argv[0] and PATH in Modules. *)
+PROCEDURE ExecutablePath*(VAR path: ARRAY OF CHAR): BOOLEAN;
+BEGIN path[0] := 0X; RETURN FALSE END ExecutablePath;
+
 
 
 
