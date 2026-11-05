@@ -32,8 +32,13 @@ run() {
 
 expect_selected() {
     expected=$(printf '%s\n' "$3" 'argument with spaces' --flag)
-    actual=$(run "$1" "$2")
+    actual=$(run "$1" "$2" 2>"$temporary/selection")
     test "$actual" = "$expected"
+    if [ "$3" = python ] && [ -z "$2" ]; then
+        test "$(cat "$temporary/selection")" = 'Using python (verified Python 3; no usable python3 command).'
+    else
+        test ! -s "$temporary/selection"
+    fi
 }
 
 expect_selected "$temporary/both" '' python3

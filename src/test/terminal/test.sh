@@ -7,7 +7,12 @@ set -e
 for model in 2 C; do
   CFLAGS="${CFLAGS:-} -D_XOPEN_SOURCE=700" $OBECOMP -O$model ../hresh/TestTerminalNative.Mod -s
   $OBECOMP -O$model ../hresh/TestTerminalState.Mod -m
-  ./TestTerminalState >result
+  if ./TestTerminalState >result 2>&1; then :; else
+    status=$?
+    echo "Terminal state test failed in model $model (status $status):" >&2
+    cat result >&2
+    exit "$status"
+  fi
   printf 'opaque terminal state tests passed\n' >result-expected
   diff -b result-expected result
   $OBECOMP -O$model TestLineEditor.Mod -m

@@ -1,5 +1,5 @@
 MODULE TestTerminalNative;
-  IMPORT SYSTEM, Platform, PlatformNative;
+  IMPORT SYSTEM, Platform, PlatformNative, Out;
   VAR master: SYSTEM.INT32; original: Platform.TerminalState;
 
   PROCEDURE -A0Feature '#ifndef _XOPEN_SOURCE';
@@ -69,7 +69,21 @@ MODULE TestTerminalNative;
         ELSIF i = PlatformNative.TimeIndex() THEN IF timed # 0 THEN expected := 1 ELSE expected := 0 END
         END
       END;
-      valid := control(actual, i) = expected; INC(i)
+      valid := control(actual, i) = expected;
+      IF ~valid THEN
+        Out.String("terminal control character "); Out.Int(i, 0);
+        Out.String(": actual "); Out.Int(control(actual, i), 0);
+        Out.String(", expected "); Out.Int(expected, 0); Out.Ln
+      END;
+      INC(i)
+    END;
+    IF ~valid THEN
+      Out.String("terminal local flags: actual ");
+      Out.Hex(SYSTEM.VAL(SYSTEM.INT64, PlatformNative.LocalFlags(actual)), 0);
+      Out.String(", expected "); Out.Hex(SYSTEM.VAL(SYSTEM.INT64, local), 0); Out.Ln;
+      Out.String("terminal input flags: actual ");
+      Out.Hex(SYSTEM.VAL(SYSTEM.INT64, PlatformNative.InputFlags(actual)), 0);
+      Out.String(", expected "); Out.Hex(SYSTEM.VAL(SYSTEM.INT64, input), 0); Out.Ln
     END;
     Platform.ReleaseTerminalState(actual); RETURN valid
   END Settings;
