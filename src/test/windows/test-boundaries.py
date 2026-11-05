@@ -161,7 +161,7 @@ for compiler, suffix in (("msc", ".lib"), ("mingw", ".a")):
     directory = build / compiler
     directory.mkdir()
     config = configuration
-    for key, value in {"compiler": compiler, "os": "windows",
+    for key, value in {"name": "voc", "compiler": compiler, "os": "windows",
                        "libext": ".lib" if compiler == "msc" else "",
                        "installdir": "C:/configured", "libdir": "C:/configured/lib"}.items():
         config = re.sub(r"(" + key + r"\*\s*=\s*)'[^']*'", r"\g<1>'" + value + "'", config)
@@ -175,11 +175,15 @@ static ADDRESS *Platform_FileIdentity__typ;
 static CHAR Modules_BinaryDir[1024] = "D:/Program Files/voc/bin";
 static CHAR OPM_InstallDir[1024], OPM_LibraryDir[1024];
 static int have_library = 1;
+static const char *override_root = "", *override_library = "";
 static INT16 Strings_Length(CHAR *s, ADDRESS n) { return (INT16)strlen((char*)s); }
 static void Strings_Append(CHAR *s, ADDRESS n, CHAR *d, ADDRESS size) {
     assert(strlen((char*)s) + strlen((char*)d) < size); strcat((char*)d, (char*)s);
 }
-static void Platform_GetEnv(CHAR *name, ADDRESS n, CHAR *value, ADDRESS size) { value[0] = 0; }
+static void Platform_GetEnv(CHAR *name, ADDRESS n, CHAR *value, ADDRESS size) {
+    const char *text = !strcmp((char*)name, "VOCROOT") ? override_root : override_library;
+    assert(strlen(text) < size); strcpy((char*)value, text);
+}
 static INT16 Platform_IdentifyByName(CHAR *name, ADDRESS n, Platform_FileIdentity *id, ADDRESS *typ) {
     const char *path = (char*)name;
     return !(strcmp(path, "D:/Program Files/voc/2/include/Oberon.h") == 0 ||
@@ -187,11 +191,26 @@ static INT16 Platform_IdentifyByName(CHAR *name, ADDRESS n, Platform_FileIdentit
              (have_library && strcmp(path, "D:/Program Files/voc/lib/libvoc-O2SUFFIX") == 0));
 }
 '''.replace("SUFFIX", suffix) + function(opm, "OPM_IsProbablyInstallDir") + "\n" +
+          function(opm, "OPM_FindLibraryDir") + "\n" +
           function(opm, "OPM_FindInstallDir") + r'''
 int main(void) {
     OPM_FindInstallDir();
     assert(!strcmp((char*)OPM_InstallDir, "D:/Program Files/voc"));
     assert(!strcmp((char*)OPM_LibraryDir, "D:/Program Files/voc/lib"));
+    override_library = "E:/libraries";
+    OPM_FindInstallDir();
+    assert(!strcmp((char*)OPM_LibraryDir, "E:/libraries"));
+    override_library = ""; override_root = "D:/Program Files/voc";
+    OPM_FindInstallDir();
+    assert(!strcmp((char*)OPM_LibraryDir, "D:/Program Files/voc/lib"));
+    override_library = "E:/libraries";
+    OPM_FindInstallDir();
+    assert(!strcmp((char*)OPM_LibraryDir, "E:/libraries"));
+    override_library = ""; override_root = "E:/split/share/voc";
+    OPM_FindInstallDir();
+    assert(!strcmp((char*)OPM_InstallDir, "E:/split/share/voc"));
+    assert(!strcmp((char*)OPM_LibraryDir, "C:/configured/lib"));
+    override_root = "";
     have_library = 0;
     OPM_FindInstallDir();
     assert(!strcmp((char*)OPM_InstallDir, "C:/configured"));

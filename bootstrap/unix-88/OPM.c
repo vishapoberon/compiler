@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/05] for gcc LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -67,6 +67,7 @@ export void OPM_FPrintLReal (INT32 *fp, LONGREAL val);
 export void OPM_FPrintReal (INT32 *fp, REAL val);
 export void OPM_FPrintSet (INT32 *fp, UINT64 val);
 static void OPM_FindInstallDir (void);
+static void OPM_FindLibraryDir (BOOLEAN local);
 static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
 static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
@@ -1264,6 +1265,21 @@ static BOOLEAN OPM_IsProbablyInstallDir (CHAR *s, ADDRESS s__len)
 	return 1;
 }
 
+static void OPM_FindLibraryDir (BOOLEAN local)
+{
+	CHAR env[1024];
+	if (local) {
+		__COPY(OPM_InstallDir, OPM_LibraryDir, 1024);
+		Strings_Append((CHAR*)"/lib", 5, (void*)OPM_LibraryDir, 1024);
+	} else {
+		__COPY("/usr/local/lib", OPM_LibraryDir, 1024);
+	}
+	Platform_GetEnv((CHAR*)"VOCLIBDIR", 10, (void*)env, 1024);
+	if (env[0] != 0x00) {
+		__COPY(env, OPM_LibraryDir, 1024);
+	}
+}
+
 static void OPM_FindInstallDir (void)
 {
 	INT16 i;
@@ -1271,12 +1287,7 @@ static void OPM_FindInstallDir (void)
 	Platform_GetEnv((CHAR*)"VOCROOT", 8, (void*)env, 1024);
 	if (env[0] != 0x00) {
 		__COPY(env, OPM_InstallDir, 1024);
-		Platform_GetEnv((CHAR*)"VOCLIBDIR", 10, (void*)env, 1024);
-		if (env[0] != 0x00) {
-			__COPY(env, OPM_LibraryDir, 1024);
-		} else {
-			__COPY("/usr/local/lib", OPM_LibraryDir, 1024);
-		}
+		OPM_FindLibraryDir(OPM_IsProbablyInstallDir(OPM_InstallDir, 1024));
 		return;
 	}
 	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
@@ -1284,8 +1295,7 @@ static void OPM_FindInstallDir (void)
 	Strings_Append((CHAR*)"voc", 4, (void*)OPM_InstallDir, 1024);
 	Strings_Append((CHAR*)".d", 3, (void*)OPM_InstallDir, 1024);
 	if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
-		__COPY(OPM_InstallDir, OPM_LibraryDir, 1024);
-		Strings_Append((CHAR*)"/lib", 5, (void*)OPM_LibraryDir, 1024);
+		OPM_FindLibraryDir(1);
 		return;
 	}
 	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
@@ -1296,17 +1306,12 @@ static void OPM_FindInstallDir (void)
 	if ((i > 0 && OPM_InstallDir[__X(i - 1, 1024)] == '/')) {
 		OPM_InstallDir[__X(i - 1, 1024)] = 0x00;
 		if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
-			__COPY(OPM_InstallDir, OPM_LibraryDir, 1024);
-			Strings_Append((CHAR*)"/lib", 5, (void*)OPM_LibraryDir, 1024);
+			OPM_FindLibraryDir(1);
 			return;
 		}
 	}
 	__COPY("", OPM_InstallDir, 1024);
-	__COPY("/usr/local/lib", OPM_LibraryDir, 1024);
-	Platform_GetEnv((CHAR*)"VOCLIBDIR", 10, (void*)env, 1024);
-	if (env[0] != 0x00) {
-		__COPY(env, OPM_LibraryDir, 1024);
-	}
+	OPM_FindLibraryDir(0);
 }
 
 static void OPM_SetMaxReals (void)

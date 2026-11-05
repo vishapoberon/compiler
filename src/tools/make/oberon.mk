@@ -173,11 +173,11 @@ makeinstalldir:
 	@cp $(BUILDDIR)/2/lib$(ONAME)* "$(ROOTDIR)/install/lib/"
 	@cp $(BUILDDIR)/C/lib$(ONAME)* "$(ROOTDIR)/install/lib/"
 	@if [ "$(PLATFORM)" = unix ]; then \
-	  $(MAKE) -C src/tools/none VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/editor" && \
+	  $(MAKE) -C src/tools/none VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" VOCLIBDIR="$(ROOTDIR)/install/lib" BUILD="$(ROOTDIR)/$(BUILDDIR)/editor" && \
 	  cp "$(BUILDDIR)/editor/none" "$(ROOTDIR)/install/bin/none"; \
 	fi
 	@if [ "$(PLATFORM)" = unix ]; then \
-	  $(MAKE) -C src/tools/pictures VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/pictures" && \
+	  $(MAKE) -C src/tools/pictures VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" VOCLIBDIR="$(ROOTDIR)/install/lib" BUILD="$(ROOTDIR)/$(BUILDDIR)/pictures" && \
 	  cp "$(BUILDDIR)/pictures/PngCmd" "$(ROOTDIR)/install/bin/voc-png" && \
 	  cp "$(BUILDDIR)/pictures/JpegCmd" "$(ROOTDIR)/install/bin/voc-jpeg" && \
 	  cp "$(BUILDDIR)/pictures/GifCmd" "$(ROOTDIR)/install/bin/voc-gif"; \
@@ -355,12 +355,16 @@ sourcechanges:
 
 
 
-RUNTEST = COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR) BRANCH=$(BRANCH) sh ./test.sh "$(ROOTDIR)/install"
+STAGED_ENV = LD_LIBRARY_PATH="$(ROOTDIR)/install/lib$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}" \
+ DYLD_LIBRARY_PATH="$(ROOTDIR)/install/lib$${DYLD_LIBRARY_PATH:+:$$DYLD_LIBRARY_PATH}"
+
+RUNTEST = $(STAGED_ENV) COMPILER=$(COMPILER) OBECOMP="$(OBECOMP) -O$(MODEL)" FLAVOUR=$(FLAVOUR) BRANCH=$(BRANCH) sh ./test.sh "$(ROOTDIR)/install"
 
 confidence:
 	@printf '\n\n--- Confidence tests ---\n\n'
 	sh src/test/bootstrap/test-sourcechanges.sh
 	sh src/test/bootstrap/test-unix-features.sh
+	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) python3 src/test/bootstrap/test-staged-install.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --work "$(ROOTDIR)/$(BUILDDIR)/staging-tests"; fi
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)
 	cd src/test/confidence/in;              $(RUNTEST)
@@ -374,17 +378,17 @@ confidence:
 	cd src/test/confidence/ckeywords;       $(RUNTEST)
 	cd src/test/confidence/texts;           $(RUNTEST)
 	cd src/test/confidence/library;         $(RUNTEST)
-	@if [ "$(MODEL)" = 2 ]; then $(MAKE) -C src/ports/xml test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/xml-tests"; fi
-	@if [ "$(MODEL)" = 2 ]; then $(MAKE) -C src/ports/polpo test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/picture-tests"; fi
-	$(MAKE) -C src/test/ports test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/port-tests"
+	@if [ "$(MODEL)" = 2 ]; then $(STAGED_ENV) $(MAKE) -C src/ports/xml test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/xml-tests"; fi
+	@if [ "$(MODEL)" = 2 ]; then $(STAGED_ENV) $(MAKE) -C src/ports/polpo test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" BUILD="$(ROOTDIR)/$(BUILDDIR)/picture-tests"; fi
+	$(STAGED_ENV) $(MAKE) -C src/test/ports test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/port-tests"
 	@if [ "$(PLATFORM)" = unix ] && [ "$(MODEL)" = 2 ]; then \
-	  $(MAKE) -C src/test/ports/sts-q test-bundled VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/kbd-tests"; \
+	  $(STAGED_ENV) $(MAKE) -C src/test/ports/sts-q test-bundled VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" MODEL=$(MODEL) BUILD="$(ROOTDIR)/$(BUILDDIR)/kbd-tests"; \
 	fi
 	cd src/test/confidence/isptest;         $(RUNTEST)
 	cd src/test/confidence/lola;            $(RUNTEST)
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/platform; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/terminal; $(RUNTEST); fi
-	@if [ "$(PLATFORM)" = unix ]; then python3 src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
+	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) python3 src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
 	if [ "$(PLATFORM)" = "unix" ] && [ "$$(uname -s)" = "Linux" ] ; then cd src/test/confidence/platformwrite; $(RUNTEST); fi
 	@printf '\n\n--- Confidence tests passed ---\n\n'

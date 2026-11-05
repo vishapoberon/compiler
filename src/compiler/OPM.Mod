@@ -945,6 +945,17 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     RETURN TRUE;
   END IsProbablyInstallDir;
 
+  PROCEDURE FindLibraryDir(local: BOOLEAN);
+  VAR env: ARRAY 1024 OF CHAR;
+  BEGIN
+    IF local THEN
+      COPY(InstallDir, LibraryDir); Strings.Append("/lib", LibraryDir)
+    ELSE COPY(Configuration.libdir, LibraryDir)
+    END;
+    Platform.GetEnv("VOCLIBDIR", env);
+    IF env[0] # 0X THEN COPY(env, LibraryDir) END
+  END FindLibraryDir;
+
   PROCEDURE FindInstallDir;
   VAR i: INTEGER; env: ARRAY 1024 OF CHAR;
   BEGIN
@@ -952,10 +963,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     Platform.GetEnv("VOCROOT", env);
     IF env[0] # 0X THEN
       COPY(env, InstallDir);
-      Platform.GetEnv("VOCLIBDIR", env);
-      IF env[0] # 0X THEN COPY(env, LibraryDir)
-      ELSE COPY(Configuration.libdir, LibraryDir)
-      END;
+      FindLibraryDir(IsProbablyInstallDir(InstallDir));
       RETURN
     END;
 
@@ -965,7 +973,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     Strings.Append(Configuration.name, InstallDir);
     Strings.Append(".d", InstallDir);
     IF IsProbablyInstallDir(InstallDir) THEN
-      COPY(InstallDir, LibraryDir); Strings.Append("/lib", LibraryDir);
+      FindLibraryDir(TRUE);
       RETURN
     END;
 
@@ -976,16 +984,14 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     IF (i > 0) & (InstallDir[i-1] = '/') THEN
       InstallDir[i-1] := 0X;
       IF IsProbablyInstallDir(InstallDir) THEN
-        COPY(InstallDir, LibraryDir); Strings.Append("/lib", LibraryDir);
+        FindLibraryDir(TRUE);
         RETURN
       END
     END;
 
     (* Give up! Use install directory from configuration. *)
     COPY(Configuration.installdir, InstallDir);
-    COPY(Configuration.libdir, LibraryDir);
-    Platform.GetEnv("VOCLIBDIR", env);
-    IF env[0] # 0X THEN COPY(env, LibraryDir) END
+    FindLibraryDir(FALSE)
   END FindInstallDir;
 
 

@@ -85,6 +85,12 @@ To keep the compiler and libraries under one directory:
 
     make install INSTALLDIR=/opt/voc
 
+At compiler invocation time, `VOCROOT` selects the headers and symbol-file root.
+For a self-contained installation such as the local `install` image, its `lib`
+directory supplies the libraries too. Split installations use the configured
+library directory. `VOCLIBDIR` explicitly overrides the library directory in
+either layout, including when the installation root is discovered automatically.
+
 | System  | Where `make install` puts the installation             |
 | ------- | --------------------------------------                 |
 | Unix    | `/usr/local/bin`, `/usr/local/share/voc`, `/usr/local/lib` |
