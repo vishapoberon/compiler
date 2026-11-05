@@ -31,4 +31,4 @@ test "$count" -eq 36
 echo "$count TLS test programs passed"
 "$compiler" -O"$model" "$flags" "$source/Internet/TestNetworkClient.Mod"
 "$compiler" -O"$model" "$flags" "$source/tls/TestTLSListener.Mod"
-python3 "$source/tls/loopback.py" "$build"
+sh "$source/../../tools/make/python.sh" "$source/tls/loopback.py" "$build"

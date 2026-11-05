@@ -20,7 +20,7 @@ test:
 	cd "$(BUILD)" && for name in TestKbdLibrary TestKbd; do \
 	 $(ENV) "$(VOC)" -O$(MODEL) $(FLAGS) "$(CURDIR)/$$name.Mod" || exit; done
 	cd "$(BUILD)" && ./TestKbdLibrary
-	python3 ./test-kbd.py "$(BUILD)" "$(MODEL)"
+	sh "$(ROOT)/src/tools/make/python.sh" ./test-kbd.py "$(BUILD)" "$(MODEL)"
 
 # Linking only against the ordinary library image: never compile a local Kbd.
 test-bundled:
@@ -28,4 +28,4 @@ test-bundled:
 	cd "$(BUILD)" && for name in TestKbdLibrary TestKbd; do \
 	 $(ENV) "$(VOC)" -O$(MODEL) $(FLAGS) "$(CURDIR)/$$name.Mod" || exit; done
 	cd "$(BUILD)" && ./TestKbdLibrary
-	python3 ./test-kbd.py "$(BUILD)" "$(MODEL)" bundled
+	sh "$(ROOT)/src/tools/make/python.sh" ./test-kbd.py "$(BUILD)" "$(MODEL)" bundled

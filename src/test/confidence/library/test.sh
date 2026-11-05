@@ -31,7 +31,7 @@ $OBECOMP TestOocURI.mod -m
 printf 'URI checks passed\n' >result-expected
 diff -b result-expected result
 $OBECOMP TestOocURIFixtures.mod -m
-python3 ../../../ports/ooc/tests/check-uri.py ./TestOocURIFixtures --work uri-fixtures
+sh ../../../tools/make/python.sh ../../../ports/ooc/tests/check-uri.py ./TestOocURIFixtures --work uri-fixtures
 $OBECOMP TypeAliases.mod -s
 $OBECOMP TestTypeAliases.mod -m
 ./TestTypeAliases >result

@@ -10,4 +10,4 @@ cd "$build"
 "$compiler" -O"$model" "$flags" "$source/TestAsyncSockets.Mod"
 timeout 20 ./TestAsyncSockets
 "$compiler" -O"$model" "$flags" "$source/TestAsyncNetSystem.Mod"
-python3 "$source/async-netsystem.py" ./TestAsyncNetSystem
+sh "$source/../../../tools/make/python.sh" "$source/async-netsystem.py" ./TestAsyncNetSystem

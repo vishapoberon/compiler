@@ -16,7 +16,7 @@ esac
 "$compiler" -O"$model" "$library_flags" "$source/gemini/GeminiTest.Mod"
 "$compiler" -O"$model" "$flags" "$source/gemini/RunGeminiTest.Mod"
 ./RunGeminiTest
-python3 - "$build/zq_idents" <<'PY'
+sh "$source/../../tools/make/python.sh" - "$build/zq_idents" <<'PY'
 from pathlib import Path
 import stat
 import sys

@@ -24,7 +24,7 @@ all:
 
 test: all
 	$(MAKE) -C "$(SOURCE)/../ooc" BUILD="$(BUILD)" MODEL=2 VOC="$(VOC)" test
-	python3 "$(SOURCE)/tests/voc/check-codecs.py" --build "$(BUILD)" --voc "$(VOC)" --flags "$(OFLAGS)"
+	sh "$(ROOT)/src/tools/make/python.sh" "$(SOURCE)/tests/voc/check-codecs.py" --build "$(BUILD)" --voc "$(VOC)" --flags "$(OFLAGS)"
 	cd "$(BUILD)" && for name in $(TESTS); do \
 		$(VOC) $(OFLAGS) -m "$(SOURCE)/tests/voc/$$name.Mod" && timeout 20 "./$$name" || exit; \
 	done
@@ -34,14 +34,14 @@ xmlcheck: all
 
 conformance: xmlcheck
 	@for suite in xmltest validation canonical protocol misc; do \
-		python3 "$(SOURCE)/tests/voc/check-$$suite.py" "$(BUILD)/XMLCheck" --work "$(BUILD)/conformance" || exit; \
+		sh "$(ROOT)/src/tools/make/python.sh" "$(SOURCE)/tests/voc/check-$$suite.py" "$(BUILD)/XMLCheck" --work "$(BUILD)/conformance" || exit; \
 	done
 
 limits: xmlcheck
-	python3 "$(SOURCE)/tests/voc/check-limits.py" "$(BUILD)/XMLCheck" --work "$(BUILD)/limits"
+	sh "$(ROOT)/src/tools/make/python.sh" "$(SOURCE)/tests/voc/check-limits.py" "$(BUILD)/XMLCheck" --work "$(BUILD)/limits"
 
 fuzz: xmlcheck
-	python3 "$(SOURCE)/tests/voc/check-fuzz.py" "$(BUILD)/XMLCheck" --work "$(BUILD)/fuzz"
+	sh "$(ROOT)/src/tools/make/python.sh" "$(SOURCE)/tests/voc/check-fuzz.py" "$(BUILD)/XMLCheck" --work "$(BUILD)/fuzz"
 
 clean:
 	rm -f $(foreach name,$(MODULAR_XML) $(TESTS) TestCodecVectors XMLCheck,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) \

@@ -57,6 +57,11 @@ On FreeBSD, also install GNU make with `pkg install gmake`, and use `gmake`
 in place of `make` in the commands below. The bundled tool makefiles use GNU
 make functions; recursive builds preserve the make program you selected.
 
+The default confidence suite requires Python 3. Its launcher tries `python3`,
+then `python`, checking that the interpreter is Python 3. Set `PYTHON` to choose
+an executable explicitly, for example `gmake PYTHON=python3.9`. Perl is used by
+the separate scripts in `src/tools/autobuild`, not by the default build.
+
 
 #### 2. Clone and build the compiler and libraries
 

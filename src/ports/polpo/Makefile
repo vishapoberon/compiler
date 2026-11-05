@@ -5,6 +5,6 @@ BUILD := $(abspath $(BUILD))
 
 .PHONY: all test
 all:
-	python3 check-codecs.py --voc "$(VOC)" --build "$(BUILD)" --build-only
+	sh "$(ROOT)/src/tools/make/python.sh" check-codecs.py --voc "$(VOC)" --build "$(BUILD)" --build-only
 test:
-	python3 check-codecs.py --voc "$(VOC)" --build "$(BUILD)"
+	sh "$(ROOT)/src/tools/make/python.sh" check-codecs.py --voc "$(VOC)" --build "$(BUILD)"

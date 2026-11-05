@@ -364,10 +364,11 @@ confidence:
 	@printf '\n\n--- Confidence tests ---\n\n'
 	sh src/test/bootstrap/test-sourcechanges.sh
 	sh src/test/bootstrap/test-unix-features.sh
+	sh src/test/bootstrap/test-python.sh
 	@if [ "$(PLATFORM)" = unix ]; then \
 	  for model in 2 C; do $(STAGED_ENV) $(MAKE) -C src/test/reals test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" ONAME="$(ONAME)" MODEL=$$model BUILD="$(ROOTDIR)/$(BUILDDIR)/reals-tests/$$model" || exit; done; \
 	fi
-	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) python3 src/test/bootstrap/test-staged-install.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --work "$(ROOTDIR)/$(BUILDDIR)/staging-tests"; fi
+	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) sh src/tools/make/python.sh src/test/bootstrap/test-staged-install.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --work "$(ROOTDIR)/$(BUILDDIR)/staging-tests"; fi
 	cd src/test/confidence/hello;           $(RUNTEST)
 	cd src/test/confidence/out;             $(RUNTEST)
 	cd src/test/confidence/in;              $(RUNTEST)
@@ -392,6 +393,6 @@ confidence:
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/platform; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/terminal; $(RUNTEST); fi
-	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) python3 src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
+	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) sh src/tools/make/python.sh src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
 	if [ "$(PLATFORM)" = "unix" ] && [ "$$(uname -s)" = "Linux" ] ; then cd src/test/confidence/platformwrite; $(RUNTEST); fi
 	@printf '\n\n--- Confidence tests passed ---\n\n'

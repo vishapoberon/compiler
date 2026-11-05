@@ -25,7 +25,7 @@ test: all
 		"./$$name" || exit; \
 		done
 	cd "$(BUILD)" && $(VOC) -O$(MODEL) -s -F -m "$(ROOT)/src/test/confidence/library/TestOocURIFixtures.mod"
-	python3 "$(SOURCE)/tests/check-uri.py" "$(BUILD)/TestOocURIFixtures" --work "$(BUILD)/uri-fixtures"
+	sh "$(ROOT)/src/tools/make/python.sh" "$(SOURCE)/tests/check-uri.py" "$(BUILD)/TestOocURIFixtures" --work "$(BUILD)/uri-fixtures"
 
 idna:
 	$(MAKE) -C "$(SOURCE)/../punycode" BUILD="$(BUILD)" VOC="$(VOC)" MODEL="$(MODEL)" all

@@ -10,4 +10,4 @@ all:
 	cd "$(BUILD)" && $(VOC) -O2 -sm "$(SOURCE)/none.Mod"
 
 test: all
-	python3 "$(SOURCE)/test-editor.py" "$(BUILD)/none" --work "$(BUILD)/tests"
+	sh "$(ROOT)/src/tools/make/python.sh" "$(SOURCE)/test-editor.py" "$(BUILD)/none" --work "$(BUILD)/tests"
