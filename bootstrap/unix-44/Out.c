@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
+/* voc 4.0.6 [2026/11/06] for gcc LP64 on gentoo xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -17,7 +17,8 @@ static INT16 Out_in;
 
 export void Out_Char (CHAR ch);
 export void Out_Flush (void);
-export void Out_Hex (INT64 x, INT64 n);
+export void Out_Hex (INT32 i);
+export void Out_HexDigits (INT64 x, INT64 n);
 export void Out_Int (INT64 x, INT64 n);
 static INT32 Out_Length (CHAR *s, ADDRESS s__len);
 export void Out_Ln (void);
@@ -127,28 +128,39 @@ void Out_Int (INT64 x, INT64 n)
 	}
 }
 
-void Out_Hex (INT64 x, INT64 n)
+void Out_HexDigits (INT64 x, INT64 n)
 {
-	if (n < 1) {
-		n = 1;
-	} else if (n > 16) {
-		n = 16;
+	INT16 digits;
+	INT64 digit;
+	if (n <= 0) {
+		n = 8;
 	}
-	if (x >= 0) {
-		while ((n < 16 && __LSH(x, -__ASHL(n, 2), 64) != 0)) {
-			n += 1;
-		}
+	digits = 1;
+	while ((digits < 16 && __LSH(x, -__ASHL(digits, 2), 64) != 0)) {
+		digits += 1;
 	}
-	x = __ROT(x, __ASHL(16 - n, 2), 64);
-	while (n > 0) {
-		x = __ROTL(x, 4, 64);
+	while (n > (INT64)digits) {
+		Out_Char('0');
 		n -= 1;
-		if (__MASK(x, -16) < 10) {
-			Out_Char(__CHR(__MASK(x, -16) + 48));
+	}
+	while (digits > 0) {
+		digits -= 1;
+		digit = __MASK(__LSH(x, -__ASHL(digits, 2), 64), -16);
+		if (digit < 10) {
+			Out_Char(__CHR(digit + 48));
 		} else {
-			Out_Char(__CHR((__MASK(x, -16) - 10) + 65));
+			Out_Char(__CHR((digit - 10) + 65));
 		}
 	}
+}
+
+void Out_Hex (INT32 i)
+{
+	INT64 low;
+	low = i;
+	low = __MASK(low, -4294967296LL);
+	Out_Char(' ');
+	Out_HexDigits(low, 8);
 }
 
 void Out_Ln (void)

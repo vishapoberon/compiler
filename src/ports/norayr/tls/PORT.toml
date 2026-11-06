@@ -3,8 +3,8 @@ package = "tls"
 kind = "library"
 origin = "Norayr Chilingarian's pure-Oberon TLS 1.3 implementation"
 upstream_url = "https://github.com/norayr/tls"
-upstream_revision = "d66456732c7bf213c153b39edc125dd3674daffb"
-revision_status = "pulled before import; preflight passing all 36 upstream TLS test programs"
+upstream_revision = "50b0807669da378f52f1b7b127030a9bf88c99b3"
+revision_status = "synchronized with upstream; passing all 36 TLS test programs with HexDigits byte dumps"
 sources = [
   "TLSBytes.Mod", "TLSSHA256.Mod", "TLSHKDF.Mod", "TLSSHA512.Mod", "TLSNum.Mod",
   "TLSECDSA.Mod", "TLSX25519.Mod", "TLSAESGCM.Mod", "TLS13Records.Mod", "TLS13Handshake.Mod",
@@ -17,7 +17,8 @@ sources = [
 license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; shared ETH BIT retains separate provenance in s3"
 source_map = ["src/*.Mod -> same filenames (35 selected libraries only)", "LICENSE and COPYING -> same filenames", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
 adaptations = [
-  "keeping implementation sources unchanged at the recorded revision",
+  "keeping implementation sources unchanged at the recorded revision except the existing TLS13Live STARTTLS entry point and key-state handling",
+  "copying five hexadecimal-dump tests byte-for-byte from Polpo c9795fc1 through the shared TLS upstream",
   "reusing the ETH BIT in s3 instead of importing a duplicate",
   "keeping test programs and example applications out of distribution libraries",
   "building the live Linux model-2 profile only; unixNet assumes 32-bit LONGINT",

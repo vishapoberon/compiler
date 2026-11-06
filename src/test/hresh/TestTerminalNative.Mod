@@ -107,11 +107,11 @@ MODULE TestTerminalNative;
     END;
     IF ~valid THEN
       Out.String("terminal local flags: actual ");
-      Out.Hex(SYSTEM.VAL(SYSTEM.INT64, PlatformNative.LocalFlags(actual)), 0);
-      Out.String(", expected "); Out.Hex(SYSTEM.VAL(SYSTEM.INT64, local), 0); Out.Ln;
+      Out.HexDigits(SYSTEM.VAL(SYSTEM.INT64, PlatformNative.LocalFlags(actual)), 0);
+      Out.String(", expected "); Out.HexDigits(SYSTEM.VAL(SYSTEM.INT64, local), 0); Out.Ln;
       Out.String("terminal input flags: actual ");
-      Out.Hex(SYSTEM.VAL(SYSTEM.INT64, PlatformNative.InputFlags(actual)), 0);
-      Out.String(", expected "); Out.Hex(SYSTEM.VAL(SYSTEM.INT64, input), 0); Out.Ln
+      Out.HexDigits(SYSTEM.VAL(SYSTEM.INT64, PlatformNative.InputFlags(actual)), 0);
+      Out.String(", expected "); Out.HexDigits(SYSTEM.VAL(SYSTEM.INT64, input), 0); Out.Ln
     END;
     Platform.ReleaseTerminalState(actual); RETURN valid
   END Settings;

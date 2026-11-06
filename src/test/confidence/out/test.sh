@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 . ../testenv.sh
 rm -f outtest # Remove LSW binary so it doesn't hide Cygwin binary.
 $OBECOMP outtest.mod -m -O2
@@ -12,3 +13,9 @@ echo "" >>result
 echo --- Testing with Component Pascal variable model --- >>result
 cat result-OC >>result
 . ../testresult.sh
+for model in 2 C; do
+  $OBECOMP TestOutHex.mod -m -O$model
+  ./TestOutHex >hex-result
+  diff -u hex-expected hex-result
+done
+echo 'ETH Hex and unsigned HexDigits output passed in both type models.'

@@ -11,6 +11,9 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
 [Release notes for 4.0](doc/ReleaseNotes-4.0.md)
 
+[Hexadecimal output](doc/HexadecimalOutput.md) documents ETH-compatible
+`Out.Hex(i)` and the unsigned, minimum-width `Out.HexDigits(x, n)` interface.
+
 ### Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>

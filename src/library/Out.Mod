@@ -81,18 +81,29 @@ BEGIN
 END Int;
 
 
-PROCEDURE Hex*(x, n: HUGEINT);
+(* Writes an unsigned hexadecimal value with leading zeros to at least n
+   digits. A nonpositive width means 8; negative values use all 64 bits. *)
+PROCEDURE HexDigits*(x, n: HUGEINT);
+  VAR digits: INTEGER; digit: HUGEINT;
 BEGIN
-  IF n < 1 THEN n := 1 ELSIF n > 16 THEN n := 16 END;
-  IF x >= 0 THEN
-    WHILE (n < 16) & (SYSTEM.LSH(x, -4*n) # 0) DO INC(n) END
-  END;
-  x := SYSTEM.ROT(x, 4*(16-n));
-  WHILE n > 0 DO
-    x := SYSTEM.ROT(x,4); DEC(n);
-    IF x MOD 16 < 10 THEN Char(CHR((x MOD 16) + ORD('0')))
-    ELSE Char(CHR((x MOD 16) - 10 + ORD('A'))) END
+  IF n <= 0 THEN n := 8 END;
+  digits := 1;
+  WHILE (digits < 16) & (SYSTEM.LSH(x, -4*digits) # 0) DO INC(digits) END;
+  WHILE n > digits DO Char('0'); DEC(n) END;
+  WHILE digits > 0 DO
+    DEC(digits); digit := SYSTEM.LSH(x, -4*digits) MOD 16;
+    IF digit < 10 THEN Char(CHR(digit + ORD('0')))
+    ELSE Char(CHR(digit - 10 + ORD('A'))) END
   END
+END HexDigits;
+
+(* Writes a blank and the low 32 bits as eight uppercase hexadecimal digits,
+   matching ETH Oberon's Out.Hex in every integer size model. *)
+PROCEDURE Hex*(i: LONGINT);
+  VAR low: HUGEINT;
+BEGIN
+  low := i; low := low MOD 100000000H;
+  Char(' '); HexDigits(low, 8)
 END Hex;
 (** Writes an end-of-line symbol to the end of the output stream *)
 PROCEDURE Ln*;

@@ -101,7 +101,7 @@ PROCEDURE WriteBytes (VAR ptr: ARRAY OF CHAR; s, e: LONGINT);
     i := s;
     WHILE (i # e) DO
       Out.Char (" ");
-      Out.Hex (ORD (ptr[i]), 2);
+      Out.HexDigits (ORD (ptr[i]), 2);
       INC (i)
     END
   END WriteBytes;
@@ -113,7 +113,7 @@ PROCEDURE WriteBytesL (VAR ptr: ARRAY OF LONGCHAR; s, e: LONGINT);
     i := s;
     WHILE (i # e) DO
       Out.Char (" ");
-      Out.Hex (ORD (ptr[i]), 4);
+      Out.HexDigits (ORD (ptr[i]), 4);
       INC (i)
     END
   END WriteBytesL;

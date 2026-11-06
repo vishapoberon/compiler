@@ -31,12 +31,12 @@ MODULE TestScannerNumbers;
       Out.Ln;
       IF step = 2 THEN
         x := Real(reference);
-        Out.String("REAL bits: actual "); Out.Hex(SYSTEM.VAL(SYSTEM.INT32, scanner.x), 8);
-        Out.String(", expected "); Out.Hex(SYSTEM.VAL(SYSTEM.INT32, x), 8); Out.Ln
+        Out.String("REAL bits: actual "); Out.HexDigits(SYSTEM.VAL(SYSTEM.INT32, scanner.x), 8);
+        Out.String(", expected "); Out.HexDigits(SYSTEM.VAL(SYSTEM.INT32, x), 8); Out.Ln
       ELSIF step = 3 THEN
         y := LongReal(reference);
-        Out.String("LONGREAL bits: actual "); Out.Hex(SYSTEM.VAL(SYSTEM.INT64, scanner.y), 16);
-        Out.String(", expected "); Out.Hex(SYSTEM.VAL(SYSTEM.INT64, y), 16); Out.Ln
+        Out.String("LONGREAL bits: actual "); Out.HexDigits(SYSTEM.VAL(SYSTEM.INT64, scanner.y), 16);
+        Out.String(", expected "); Out.HexDigits(SYSTEM.VAL(SYSTEM.INT64, y), 16); Out.Ln
       END
     END;
     ASSERT(condition)

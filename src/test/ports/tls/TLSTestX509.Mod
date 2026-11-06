@@ -8,7 +8,7 @@ VAR i: LONGINT;
 BEGIN
   i := 0;
   WHILE i < b.len DO
-    Out.Hex(ORD(b.data[i]), 2);
+    Out.HexDigits(ORD(b.data[i]), 2);
     INC(i)
   END
 END Hex;

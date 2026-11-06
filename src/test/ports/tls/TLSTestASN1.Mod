@@ -14,8 +14,7 @@ BEGIN
   i := 0;
   WHILE i < b.len DO
     x := ORD(b.data[i]);
-    IF x < 16 THEN Out.Char("0") END;
-    Out.Hex(x, 0);
+    Out.HexDigits(x, 2);
     INC(i)
   END
 END PrintHex;
