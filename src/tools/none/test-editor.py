@@ -14,6 +14,30 @@ import termios
 import time
 
 
+def comparable_settings(settings):
+    # Canonical-mode restoration may change the kernel-managed PENDIN bit.
+    # Preserve all other flags, speeds and control characters for comparison.
+    result = list(settings)
+    result[3] &= ~getattr(termios, "PENDIN", 0)
+    return result
+
+
+def check_settings_comparison():
+    original = [0, 0, 0, termios.ICANON, termios.B9600, termios.B9600, [b"\x00"]]
+    pending = list(original)
+    pending[3] ^= getattr(termios, "PENDIN", 0)
+    assert comparable_settings(pending) == comparable_settings(original)
+    assert comparable_settings(original) == comparable_settings(pending)
+    assert original[3] == termios.ICANON, "comparison modified the original settings"
+    for field in range(6):
+        changed = list(original)
+        changed[field] ^= termios.ECHO if field == 3 else 1
+        assert comparable_settings(changed) != comparable_settings(original), field
+    changed = list(original)
+    changed[6] = [b"\x01"]
+    assert comparable_settings(changed) != comparable_settings(original)
+
+
 def edit(command, work, actions):
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 80, 0, 0))
@@ -48,7 +72,9 @@ def edit(command, work, actions):
             if select.select([master], [], [], 0.1)[0]:
                 output.extend(os.read(master, 65536))
         assert process.returncode == 0, (process.returncode, output[-1000:])
-        assert termios.tcgetattr(slave) == original, "terminal settings were not restored"
+        restored = termios.tcgetattr(slave)
+        assert comparable_settings(restored) == comparable_settings(original), (
+            "terminal settings were not restored", "actual", restored, "expected", original)
     finally:
         if process.poll() is None:
             process.kill()
@@ -119,6 +145,7 @@ def main():
     parser.add_argument("--hresh", type=Path)
     parser.add_argument("--modules", type=Path)
     args = parser.parse_args()
+    check_settings_comparison()
     work = args.work.resolve()
     work.mkdir(parents=True, exist_ok=True)
     check_standalone(str(args.executable.resolve()), work)
