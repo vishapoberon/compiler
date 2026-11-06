@@ -151,6 +151,11 @@ BEGIN
   t.active := TRUE; t.Clear; t.application.Ready(client, jid)
 END Ready;
 
+PROCEDURE (t: Tracker) RegistrationReady*(client: Client.Client);
+BEGIN
+  ASSERT(t.client = NIL); t.client := client; t.application.RegistrationReady(client)
+END RegistrationReady;
+
 PROCEDURE (t: Tracker) Received*(client: Client.Client; stanza: Core.Stanza);
   VAR event: P.Event; applied: BOOLEAN;
 BEGIN

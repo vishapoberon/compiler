@@ -1,8 +1,8 @@
 MODULE XmppClient;
 
-(* A bounded synchronous client negotiation: verified TLS, explicit SASL PLAIN
-   opt-in, stream restart and resource binding. Application hooks receive only
-   online stanzas. The transport authenticates the configured service domain. *)
+(* Bounded client negotiation over verified TLS. Normal clients use SASL and
+   resource binding; explicitly requested registration clients exchange only
+   registration IQs before login. *)
 
 IMPORT Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   Core := XmppCore, Const := XmppConst, XML := XmppXmlStream,
@@ -12,9 +12,11 @@ CONST
   idle* = 0; opening* = 1; features* = 2; proceeding* = 3;
   upgrading* = 4; authenticating* = 5; restarting = 6; binding* = 7;
   online* = 8; closing* = 9; closed* = 10; failed* = 11;
+  registering* = 12;
   protocolError* = 1; tlsRequired* = 2; mechanismRequired* = 3;
   authenticationFailed* = 4; bindingFailed* = 5; transportError* = 6;
   negotiationLimit* = 7; invalidConfig* = 8; notOnline* = 9;
+  registrationUnavailable* = 10;
   bindID = "voc-bind-1";
   maxNegotiationBytes* = 256*1024; maxNegotiationEvents* = 64;
 
@@ -32,7 +34,7 @@ TYPE
     hook: Hook;
     domain: Items.Bytes;
     username, password, resource: T.String;
-    allowPlain: BOOLEAN;
+    allowPlain, registration: BOOLEAN;
     buffer: ARRAY 8192 OF CHAR;
     position, length, negotiationBytes, negotiationEvents: LONGINT;
   END;
@@ -53,6 +55,7 @@ BEGIN
   | transportError: template := "XMPP transport ended or failed"
   | negotiationLimit: template := "XMPP negotiation byte or event limit exceeded"
   | invalidConfig: template := "Invalid XMPP service domain or bounded UTF-16 credentials"
+  | registrationUnavailable: template := "The verified XMPP server does not advertise in-band registration"
   ELSE template := "XMPP session is not online"
   END;
   S.Long(template, text)
@@ -60,6 +63,8 @@ END GetTemplate;
 
 PROCEDURE (h: Hook) Ready*(client: Client; jid: T.String);
 BEGIN END Ready;
+PROCEDURE (h: Hook) RegistrationReady*(client: Client);
+BEGIN END RegistrationReady;
 PROCEDURE (h: Hook) Received*(client: Client; stanza: Core.Stanza);
 BEGIN END Received;
 PROCEDURE (h: Hook) Sent*(client: Client; stanza: Core.Stanza);
@@ -123,6 +128,9 @@ BEGIN
   bytes := Items.UTF8Bytes(text); IF bytes = NIL THEN RETURN FALSE END;
   RETURN c.wire.DomainName(bytes^, canonical) & (canonical^ = c.domain^)
 END SameDomain;
+
+PROCEDURE (c: Client) Domain*(): Items.Bytes;
+BEGIN RETURN Items.Copy8(c.domain^) END Domain;
 
 PROCEDURE StartHeader(c: Client);
   VAR domain, empty: T.String; error: Msg.Msg;
@@ -212,13 +220,15 @@ END Opened;
 PROCEDURE (c: Client) In*(session: Core.Session; stanza: Core.Stanza);
 BEGIN
   IF c.state = binding THEN Bound(c, stanza.item)
+  ELSIF c.state = registering THEN
+    IF stanza.kind = Core.iq THEN c.hook.Received(c, stanza) ELSE Fail(c, protocolError, NIL) END
   ELSIF (c.state = online) OR (c.state = closing) THEN c.hook.Received(c, stanza)
   ELSE Fail(c, protocolError, NIL)
   END
 END In;
 
 PROCEDURE (c: Client) Out*(session: Core.Session; stanza: Core.Stanza);
-BEGIN IF c.state = online THEN c.hook.Sent(c, stanza) END END Out;
+BEGIN IF (c.state = online) OR (c.state = registering) THEN c.hook.Sent(c, stanza) END END Out;
 
 PROCEDURE (c: Client) Other*(session: Core.Session; item: Items.Item);
 BEGIN
@@ -230,6 +240,11 @@ BEGIN
       ELSE c.state := proceeding; Private(c, Items.New("starttls", Const.uriTls))
       END
     ELSIF c.authenticated THEN Bind(c, item)
+    ELSIF c.registration THEN
+      item := Unique(item, Const.uriRegisterFeature, "register");
+      IF (item = NIL) OR ~Empty(item) THEN Fail(c, registrationUnavailable, NIL)
+      ELSE c.state := registering; c.hook.RegistrationReady(c)
+      END
     ELSE Authenticate(c, item)
     END
   ELSIF c.state = proceeding THEN
@@ -253,8 +268,8 @@ BEGIN Fail(c, protocolError, error) END Error;
 PROCEDURE (c: Client) Closed*(session: Core.Session);
   VAR error: Msg.Msg;
 BEGIN
-  IF (c.state # online) & (c.state # closing) THEN Fail(c, protocolError, NIL); RETURN END;
-  IF c.state = online THEN
+  IF (c.state # online) & (c.state # registering) & (c.state # closing) THEN Fail(c, protocolError, NIL); RETURN END;
+  IF (c.state = online) OR (c.state = registering) THEN
     c.state := closing; c.session.CloseStream(error);
     IF error # NIL THEN Fail(c, transportError, error); RETURN END
   END;
@@ -273,7 +288,7 @@ PROCEDURE (c: Client) Step*(): SHORTINT;
   VAR n, count: LONGINT; event: SHORTINT; negotiating, ok: BOOLEAN;
 BEGIN
   IF (c.state = idle) OR (c.state = failed) OR (c.state = closed) THEN RETURN c.state END;
-  negotiating := (c.state # online) & (c.state # closing);
+  negotiating := (c.state # online) & (c.state # registering) & (c.state # closing);
   IF negotiating & ((c.negotiationBytes = maxNegotiationBytes) OR
                     (c.negotiationEvents = maxNegotiationEvents)) THEN
     Fail(c, negotiationLimit, NIL); RETURN c.state
@@ -309,10 +324,42 @@ BEGIN
   RETURN c.state
 END Step;
 
+PROCEDURE RegistrationQuery(c: Client; stanza: Core.Stanza): BOOLEAN;
+  VAR content: Items.Content; count, parts, i: LONGINT; text: T.String;
+BEGIN
+  IF (stanza = NIL) OR (stanza.kind # Core.iq) OR
+     ~(S.Equal8(stanza.type^, "get") OR S.Equal8(stanza.type^, "set")) OR
+     (S.Length(stanza.id^) = 0) OR (S.Length(stanza.id^) > 128) OR
+     (stanza.item.GetAttribute("", "from") # NIL) THEN RETURN FALSE END;
+  IF stanza.to[0] # 0 THEN
+    IF ~SameDomain(c, stanza.to^) THEN RETURN FALSE END
+  ELSIF stanza.item.GetAttribute("", "to") # NIL THEN RETURN FALSE
+  END;
+  content := stanza.item.content; count := 0; parts := 0;
+  WHILE content # NIL DO
+    INC(parts); IF parts > 128 THEN RETURN FALSE END;
+    IF content.element # NIL THEN
+      IF ~Named(content.element, Const.uriRegister, "query") THEN RETURN FALSE END;
+      INC(count)
+    ELSE
+      text := content.text;
+      IF S.Length(text^) > 4096 THEN RETURN FALSE END;
+      FOR i := 0 TO S.Length(text^)-1 DO
+        IF (text[i] # 32) & (text[i] # 9) & (text[i] # 10) & (text[i] # 13) THEN RETURN FALSE END
+      END
+    END;
+    content := content.next
+  END;
+  RETURN count = 1
+END RegistrationQuery;
+
 PROCEDURE (c: Client) Send*(stanza: Core.Stanza; VAR error: Msg.Msg);
 BEGIN
   error := NIL;
-  IF (c.state # online) OR ~c.wire.AuthenticatedFor(c.domain^) THEN error := Msg.New(context, notOnline); RETURN END;
+  IF ((c.state # online) & (c.state # registering)) OR ~c.wire.AuthenticatedFor(c.domain^) THEN
+    error := Msg.New(context, notOnline); RETURN
+  END;
+  IF (c.state = registering) & ~RegistrationQuery(c, stanza) THEN error := Msg.New(context, invalidConfig); RETURN END;
   c.session.Send(stanza, error);
   IF error # NIL THEN Fail(c, transportError, error) END
 END Send;
@@ -320,7 +367,7 @@ END Send;
 PROCEDURE (c: Client) Close*(VAR error: Msg.Msg);
 BEGIN
   error := NIL;
-  IF c.state # online THEN error := Msg.New(context, notOnline); RETURN END;
+  IF (c.state # online) & (c.state # registering) THEN error := Msg.New(context, notOnline); RETURN END;
   c.state := closing; c.session.CloseStream(error);
   IF error # NIL THEN Fail(c, transportError, error) END
 END Close;
@@ -331,22 +378,34 @@ BEGIN
   IF c.state # failed THEN c.state := closed END
 END Abort;
 
-PROCEDURE New*(wire: Wire.Transport; hook: Hook; domain: ARRAY OF CHAR;
-               username, password, resource: ARRAY OF T.CodeUnit; allowPlain: BOOLEAN;
-               VAR error: Msg.Msg): Client;
+PROCEDURE NewClient(wire: Wire.Transport; hook: Hook; domain: ARRAY OF CHAR;
+                    username, password, resource: ARRAY OF T.CodeUnit; allowPlain, registration: BOOLEAN;
+                    VAR error: Msg.Msg): Client;
   VAR c: Client; canonical: Items.Bytes; domainUnits: T.String;
 BEGIN
   ASSERT((wire # NIL) & (hook # NIL)); error := NIL;
-  IF ~wire.DomainName(domain, canonical) OR (S.Length(username) = 0) OR (S.Length(username) > Sasl.maxFieldUnits) OR
+  IF ~wire.DomainName(domain, canonical) THEN error := Msg.New(context, invalidConfig); RETURN NIL END;
+  IF ~registration & ((S.Length(username) = 0) OR (S.Length(username) > Sasl.maxFieldUnits) OR
      (S.Length(password) = 0) OR (S.Length(password) > Sasl.maxFieldUnits) OR
-     (S.Length(resource) > 1024) THEN error := Msg.New(context, invalidConfig); RETURN NIL END;
+     (S.Length(resource) > 1024)) THEN error := Msg.New(context, invalidConfig); RETURN NIL END;
   domainUnits := Items.UTF8(canonical^);
   IF domainUnits = NIL THEN error := Msg.New(context, invalidConfig); RETURN NIL END;
   NEW(c); c.wire := wire; c.hook := hook; c.domain := canonical;
   c.username := Items.Copy16(username); c.password := Items.Copy16(password); c.resource := Items.Copy16(resource);
-  c.allowPlain := allowPlain; c.state := idle; c.session := Core.NewSession(c, wire);
+  c.allowPlain := allowPlain; c.registration := registration; c.state := idle; c.session := Core.NewSession(c, wire);
   RETURN c
-END New;
+END NewClient;
+
+PROCEDURE New*(wire: Wire.Transport; hook: Hook; domain: ARRAY OF CHAR;
+               username, password, resource: ARRAY OF T.CodeUnit; allowPlain: BOOLEAN;
+               VAR error: Msg.Msg): Client;
+BEGIN RETURN NewClient(wire, hook, domain, username, password, resource, allowPlain, FALSE, error) END New;
+
+PROCEDURE NewRegistration*(wire: Wire.Transport; hook: Hook; domain: ARRAY OF CHAR; VAR error: Msg.Msg): Client;
+  VAR empty: T.String;
+BEGIN
+  empty := Items.Latin1(""); RETURN NewClient(wire, hook, domain, empty^, empty^, empty^, FALSE, TRUE, error)
+END NewRegistration;
 
 BEGIN
   NEW(context); Msg.InitContext(context, "XmppClient")

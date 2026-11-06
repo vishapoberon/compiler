@@ -319,6 +319,15 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                         assert item.find(f"{{{admin}}}reason").text == "Կարգ😀"
                         send(connection, f'<iq from="{room}" type="result" id="{request.get("id")}"/>', 5)
                     request = peer.event()
+                    assert request.tag == f"{{{CLIENT}}}presence" and request.get("to") == room + "/Նոր😀"
+                    assert request.get("type") is None and request.find(f"{{{MUC}}}x") is None
+                    send(connection, f'<presence from="{occupant}" type="unavailable"><x xmlns="{MUC_USER}">'
+                         '<item affiliation="member" role="visitor" nick="Նոր😀"/>'
+                         '<status code="110"/><status code="303"/></x></presence>', 1)
+                    occupant = room + "/Նոր😀"
+                    send(connection, f'<presence from="{occupant}"><x xmlns="{MUC_USER}">'
+                         '<item affiliation="member" role="visitor"/><status code="110"/></x></presence>', 1)
+                    request = peer.event()
                     assert request.tag == f"{{{CLIENT}}}presence" and request.get("to") == occupant
                     assert request.get("type") == "unavailable"
                     send(connection, f'<presence from="{occupant}" type="unavailable"><x xmlns="{MUC_USER}">'
@@ -328,6 +337,44 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                     destroy = request.find(f"{{{owner}}}query/{{{owner}}}destroy")
                     assert destroy is not None and destroy.find(f"{{{owner}}}reason").text == "Կարգ😀"
                     send(connection, f'<iq from="{room}" type="result" id="{request.get("id")}"/>', 3)
+                if mode == "ibb":
+                    ibb = "http://jabber.org/protocol/ibb"
+                    sender = "peer@example.org/resource"
+                    raw = bytes(i % 256 for i in range(513))
+                    request = peer.event()
+                    opened = request.find(f"{{{ibb}}}open")
+                    assert request.get("to") == sender and request.get("type") == "set"
+                    assert opened is not None and opened.get("sid") == "upload" and opened.get("block-size") == "256"
+                    send(connection, f'<iq from="{sender}" type="result" id="{request.get("id")}"/>', 3)
+                    received = bytearray()
+                    for seq in range(3):
+                        request = peer.event()
+                        block = request.find(f"{{{ibb}}}data")
+                        assert block is not None and block.get("seq") == str(seq) and block.get("sid") == "upload"
+                        chunk = base64.b64decode(block.text, validate=True)
+                        assert len(chunk) == (256 if seq < 2 else 1)
+                        received.extend(chunk)
+                        send(connection, f'<iq from="peer@example.org/spoof" type="result" id="{request.get("id")}"/>', 3)
+                        send(connection, f'<iq from="{sender}" type="result" id="{request.get("id")}"/>', 3)
+                    assert received == raw
+                    request = peer.event()
+                    assert request.find(f"{{{ibb}}}close").get("sid") == "upload"
+                    send(connection, f'<iq from="{sender}" type="result" id="{request.get("id")}"/>', 3)
+
+                    def incoming(identity, payload, sender=sender, result="result"):
+                        send(connection, f'<iq from="{sender}" type="set" id="{identity}">{payload}</iq>', 7)
+                        response = peer.event()
+                        assert response.get("id") == identity and response.get("type") == result
+                        return response
+
+                    incoming("ibb-open", f'<open xmlns="{ibb}" sid="download" block-size="256"/>')
+                    response = incoming("ibb-spoof", f'<data xmlns="{ibb}" sid="download" seq="0">AAAA</data>',
+                                        sender="peer@example.org/spoof", result="error")
+                    assert response.find(f"{{{CLIENT}}}error/{{urn:ietf:params:xml:ns:xmpp-stanzas}}item-not-found") is not None
+                    for seq, offset in enumerate(range(0, len(raw), 256)):
+                        encoded = base64.b64encode(raw[offset:offset + 256]).decode()
+                        incoming(f"ibb-data-{seq}", f'<data xmlns="{ibb}" sid="download" seq="{seq}">{encoded}</data>')
+                    incoming("ibb-close", f'<close xmlns="{ibb}" sid="download"/>')
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
@@ -380,3 +427,5 @@ if __name__ == "__main__":
     case("presence", direct=True, certificate="idn", domain="ծոց.հայ")
     case("muc")
     case("muc", direct=True, certificate="idn", domain="ծոց.հայ")
+    case("ibb")
+    case("ibb", direct=True, certificate="idn", domain="ծոց.հայ")

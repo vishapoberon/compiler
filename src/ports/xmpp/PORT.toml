@@ -3,9 +3,9 @@ package = "xmpp"
 kind = "library"
 origin = "VOC port of the supplied oberoncore-xmpp Component Pascal subsystem"
 upstream_url = "https://github.com/norayr/xmpp"
-upstream_revision = "962ba4d740156547568b74cc78d21d81b6598b33"
+upstream_revision = "c51beb041f283c5d5bfa5efd7c9b736ae9cce731"
 original_revision = "a2cde5435bea63de16239c2c31e399ad0fd43ad2"
-revision_status = "native implementation sources copied unchanged from the committed and pushed upstream revision; original snapshot preserved"
+revision_status = "synchronized native room-state, registration and IBB transfer revision; original snapshot preserved"
 license = "not specified in supplied subsystem; confirmation pending"
 sources = ["Xmpp*.Mod"]
 build = "make xmpp; make -C src/ports/xmpp network"
@@ -22,6 +22,9 @@ adaptations = [
   "adding bounded atomic rosters, sender-checked pushes and reusable PubSub/PEP operations",
   "adding bounded multilingual presence, explicit subscriptions and per-resource tracking",
   "adding bounded room-checked MUC stanzas, invitations, configuration and administration with exact-peer IQ matching",
+  "tracking explicit room membership and occupants with bounded caches, reentrant deadlines and disconnect cleanup",
+  "adding explicit TLS-verified pre-login registration and bounded legacy account/service registration changes",
+  "adding bounded IQ-based IBB transfers, explicit consent, checked channel I/O, acknowledgement deadlines and cleanup",
   "preserving Unicode XML service identities while using shared IDNA conversion for DNS and TLS",
   "including portable modules in conventional, Windows and modular Oberon-2 library manifests",
   "preserving 88 original files, including all 31 native BlackBox documents and text exports",

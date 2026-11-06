@@ -27,12 +27,13 @@ their remaining session actions and extension behavior.
 | `Strings` | UTF-16 JID splitting/joining and structural checks. Native TCP supplies Unicode-domain normalization through shared `IDNA`. ID generation and full username/resource preparation remain pending. |
 | `Messenger` | Basic message-body construction. Delivery tracking and receipts remain pending. |
 | `Presence` | Bounded available/unavailable and subscription builders, multilingual status decoding and explicit-contact per-resource tracking with disconnect cleanup. Automatic subscription policy and scheduling remain application work. |
-| `Sasl` | Bounded Unicode SASL PLAIN response with explicit opt-in over verified TLS. Original DIGEST-MD5 remains pending; SCRAM is an additional planned mechanism. |
+| `Sasl` | Bounded Unicode SASL PLAIN response with explicit opt-in over verified TLS. Original DIGEST-MD5 remains pending. |
 | `Disco`, `Ping`, `Version` | Bounded IQ routing, XEP-0199 ping, opt-in XEP-0092 metadata and XEP-0030 info/items queries and configured replies. Discovery exposes the checked reply tree; dynamic discovery nodes remain application-owned. |
 | `Roster` | Bounded full retrieval, contact edits/removals and sender-checked pushes with atomic snapshots and stale-fetch protection. Roster versioning and presence-subscription automation remain pending. |
-| `Muc` | Join/leave, nickname changes, group messages, subjects and mediated invitations; bounded room-checked occupant decoding; exact-room configuration IQs, role/affiliation changes, typed admin lists and destruction. Room state and direct invitations remain pending. |
-| `Register` | Pending extension behavior and tests. |
-| `Ibb`, `ByteStreams`, `StreamInit`, `Files` | Pending file-transfer state, sockets and file adapters. |
+| `Muc` | Join/leave, nickname changes, group messages, subjects and mediated invitations; bounded room-checked occupant decoding; exact-room configuration IQs, role/affiliation changes, typed admin lists and destruction. `XmppMucTracker` adds explicit membership transitions, bounded occupant caches, deadlines and disconnect cleanup. |
+| `Register` | The original legacy-field workflow is ported: bounded retrieval and explicit submission, TLS-verified pre-login creation, authenticated account/service changes and removal. Other registration requirements are detected and rejected rather than silently omitted. |
+| `Ibb` | Bounded IQ open/data/close payloads and transfers: binary Base64, explicit receive consent, exact peer/SID matching, sequence checks/wrap, byte/block/queue limits, checked channel I/O, acknowledgements, progress, deadlines and cleanup. |
+| `ByteStreams`, `StreamInit`, `Files` | Pending bytestream sockets, stream negotiation and checksum helper. |
 | `DateTime`, `Stuff` | Pending portable helpers and scheduling/collection replacements. |
 | `Session`, `Bus`, `StdBus`, `ObxBus` | `XmppClient` supplies the authenticated client lifecycle. Original session management, remaining extension lifecycle and bus/service integration remain pending. |
 | `Console`, `ConsoleForm`, `Cmds`, `Obx`, `Basic`, `Extended` | Preserved original interfaces, commands and examples; native frontends remain pending. |
@@ -49,7 +50,7 @@ exports and native `.odc` documents.
 | `StringsDyn`, `StringsUtf`, BlackBox `Strings` | Shared `oocUnicode`, `LongStrings`, XML codecs and dynamic UTF-16 arrays in the adapted foundation. |
 | `CommStreams`, `Services` | `XmppWire` transport and `XmppTCP` synchronous socket/TLS driver; event-loop scheduling remains application-owned. |
 | `ListsLinear`, `ListsMap`, `ListsIterable` | Ordered stanza content in `XmppItems`; fixed-capacity IQ handlers and pending requests in `XmppIQ`. Remaining extension collections are pending. |
-| `ypkEncBase64`, `ypkCryptMd5`, `ypkMathRandom`, `ypkEncPunycode` | PLAIN encodes its binary UTF-8 response directly; native TLS supplies handshake randomness. Native `IDNA` prepares internationalized domains with UTS #46, NFC and IDNA2008 checks. Original DIGEST-MD5 and full username/resource preparation remain pending. |
+| `ypkEncBase64`, `ypkCryptMd5`, `ypkMathRandom`, `ypkEncPunycode` | `XmppBase64` supplies bounded binary encoding for IBB and PLAIN. Native TLS supplies handshake randomness. Native `IDNA` prepares internationalized domains with UTS #46, NFC and IDNA2008 checks. Original DIGEST-MD5 and full username/resource preparation remain pending. |
 | `ypkSysActions`, `ypkProxyCmds`, `ypkCommSrv`, `AbfBus` | Pending application scheduling, proxy and bus adapters. |
 | `Kernel`, `Meta`, `SYSTEM` | Pending module/extension dispatch review; use explicit native registration where needed. |
 | `Files`, `Dates`, `Math` | Pending portable file-transfer and time helpers; reuse VOC interfaces. |
@@ -78,16 +79,23 @@ The implementation remains a staged port of the original subsystem. Passing
 the current suites validates the APIs above; each pending inventory row still
 needs its own implementation and tests.
 
-1. Complete reusable room membership/occupant state, join and nickname-change
-   deadlines and disconnect cleanup.
-2. Adapt `Register`, including field negotiation, explicit submissions and the
-   distinction between authenticated account changes and pre-login creation.
-3. Adapt `Ibb`, `ByteStreams`, `StreamInit` and `Files` as bounded transfers with
-   explicit consent, cancellation, deadlines and transport/file adapters.
-4. Supply the remaining `DateTime` and `Stuff` helpers and adapt session,
+The current scope is adapting the existing Component Pascal code. Additional
+XMPP features are separate decisions after that port is complete; CAPTCHA and
+data-form registration are not remaining porting requirements.
+
+1. Continue `ByteStreams`, `StreamInit` and `Files` with bounded stream
+   negotiation, socket adapters and the original checksum helper. Integrate
+   these with the native IBB lifecycle and application file policy.
+2. Supply the remaining `DateTime` and `Stuff` helpers and adapt session,
    extension lifecycle, scheduling and bus functionality to native interfaces.
-5. Adapt application commands and frontends against those interfaces, keeping
+3. Adapt application commands and frontends against those interfaces, keeping
    BlackBox framework dependencies out of the reusable protocol layer.
+
+After the protocol library is complete, build a libpurple XMPP plugin using the
+embedding and event-loop experience from `norayr/barev-purple-oberon`. Exercise
+the library through real client callbacks, readiness-driven transport, consent,
+cancellation and teardown. Validate the Pidgin/libpurple and Pidgin3 integration
+stages separately against their actual APIs.
 
 The standalone `norayr/xmpp` working tree is the implementation source. Tested
 native modules, shared tests and protocol documentation are mirrored into VOC's

@@ -107,8 +107,9 @@ For mutation results, `XmppIQ.EmptyResult(request)` confirms a successful empty
 IQ response. Errors, cancellations, deadlines and send failures use the normal
 IQ statuses. A successful IQ does not synthesize presence or update a room's
 occupant state; process the actual room broadcasts. Field policy, form UI and
-confirmation of destructive actions belong to the caller. A reusable room-state
-tracker remains pending.
+confirmation of destructive actions belong to the caller. The reusable
+[room-state tracker](MUCRooms.md) supplies explicit join/rename/leave state,
+bounded occupant caches, deadlines and disconnect cleanup.
 
 ## Receiving
 
@@ -145,9 +146,9 @@ case differences, including inherited stream/stanza language. Other extensions,
 such as delayed delivery, remain in the original stanza for the application.
 Inspect delay metadata before presenting history as a new message.
 
-Room membership, occupant caches, nickname-change sequencing and join deadlines
-remain application or future extension work. On disconnect, clear room state
-and require a new confirmed join.
+Use `XmppMucTracker` for room membership, occupant caches, nickname-change
+sequencing and join deadlines, or keep equivalent state in the application.
+On disconnect, clear room state and require a new confirmed join.
 Keep direct contact presence watches separate from room occupant tracking.
 
 ## Limits and tests

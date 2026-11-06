@@ -15,6 +15,8 @@ CONST
   uriBind* = 'urn:ietf:params:xml:ns:xmpp-bind';
   uriStanzas* = 'urn:ietf:params:xml:ns:xmpp-stanzas';
   uriTls* = 'urn:ietf:params:xml:ns:xmpp-tls';
+  uriRegister* = 'jabber:iq:register';
+  uriRegisterFeature* = 'http://jabber.org/features/iq-register';
 
   uriSession* = 'urn:ietf:params:xml:ns:xmpp-session';
   set* = 'set';

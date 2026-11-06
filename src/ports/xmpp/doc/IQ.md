@@ -4,6 +4,11 @@
 replies and forwards unhandled client events to the application's `XmppClient.Hook`.
 It preserves the existing client lifecycle and message/presence interfaces.
 
+With `XmppClient.NewRegistration`, the router also supports an explicit
+pre-login registration state after verified TLS and `RegistrationReady`.
+Only registration queries to the connected service are allowed; authenticated
+IQ handlers remain inactive. See [registration](Registration.md).
+
 ## Setup
 
 1. Create `router := XmppIQ.New(applicationHook)`.
@@ -43,10 +48,10 @@ See [rosters and PEP](RosterPEP.md) for its cache and the PubSub helpers.
 ## Bounds and lifecycle
 
 There are at most 16 handlers and 32 pending requests. Handler registration is
-frozen after `Ready`. IDs have at most 128 UTF-16 units; generated IDs are
+frozen after `Ready` or `RegistrationReady`. IDs have at most 128 UTF-16 units; generated IDs are
 monotonic within the router and never reused. Timeouts range from 1 ms to one
 hour. Incoming XML retains the client's stanza, depth and work limits. Completed
-requests retain their reply and outgoing payload for the caller; release those
+requests retain their reply, outgoing payload and issuing `client`; release those
 references when finished.
 
 Call `router.Tick(elapsedMilliseconds)` with elapsed time from the application's

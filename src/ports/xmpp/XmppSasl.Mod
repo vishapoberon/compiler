@@ -4,7 +4,7 @@ MODULE XmppSasl;
    identity and password. Callers explicitly authorize PLAIN over verified TLS. *)
 
 IMPORT Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
-  C := XMLUnicodeCodec, UTF8 := XMLUnicodeCodecUTF8;
+  C := XMLUnicodeCodec, UTF8 := XMLUnicodeCodecUTF8, B := XmppBase64;
 
 CONST maxFieldUnits* = 1024;
 
@@ -35,39 +35,27 @@ END Encode;
 
 PROCEDURE Plain*(VAR username, password: ARRAY OF T.CodeUnit; verifiedTLS: BOOLEAN;
                   VAR response: T.String; VAR error: Msg.Msg);
-  VAR userBytes, passBytes: Items.Bytes; userLen, passLen, length, i, j, k, value: LONGINT;
-    block: ARRAY 3 OF LONGINT; ok: BOOLEAN; alphabet: ARRAY 65 OF CHAR;
+  VAR userBytes, passBytes, plain, encoded: Items.Bytes; userLen, passLen, length, i: LONGINT;
+    ok: BOOLEAN;
 BEGIN
-  alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   response := NIL; error := NIL; userBytes := NIL; passBytes := NIL;
+  plain := NIL; encoded := NIL;
   ok := verifiedTLS;
   IF ok THEN ok := Encode(username, userBytes, userLen) END;
   IF ok THEN ok := Encode(password, passBytes, passLen) END;
   IF ok THEN
-    length := userLen+passLen+2; NEW(response, ((length+2) DIV 3)*4+1); i := 0; j := 0;
-    WHILE i < length DO
-      FOR k := 0 TO 2 DO
-        value := i+k;
-        IF (value = 0) OR (value = userLen+1) OR (value >= length) THEN block[k] := 0
-        ELSIF value <= userLen THEN block[k] := ORD(userBytes[value-1])
-        ELSE block[k] := ORD(passBytes[value-userLen-2])
-        END
-      END;
-      response[j] := ORD(alphabet[block[0] DIV 4]);
-      response[j+1] := ORD(alphabet[(block[0] MOD 4)*16+block[1] DIV 16]);
-      IF i+1 < length THEN response[j+2] := ORD(alphabet[(block[1] MOD 16)*4+block[2] DIV 64])
-      ELSE response[j+2] := ORD("=")
-      END;
-      IF i+2 < length THEN response[j+3] := ORD(alphabet[block[2] MOD 64])
-      ELSE response[j+3] := ORD("=")
-      END;
-      INC(i, 3); INC(j, 4)
-    END;
-    response[j] := 0
-  ELSE error := Msg.New(context, 1)
+    length := userLen+passLen+2; NEW(plain, length);
+    plain[0] := 0X; plain[userLen+1] := 0X;
+    FOR i := 0 TO userLen-1 DO plain[i+1] := userBytes[i] END;
+    FOR i := 0 TO passLen-1 DO plain[i+userLen+2] := passBytes[i] END;
+    encoded := B.Encode(plain^, 0, length);
+    IF encoded = NIL THEN ok := FALSE ELSE response := Items.Latin1(encoded^) END
   END;
+  IF ~ok THEN error := Msg.New(context, 1) END;
   IF userBytes # NIL THEN FOR i := 0 TO LEN(userBytes^)-1 DO userBytes[i] := 0X END END;
-  IF passBytes # NIL THEN FOR i := 0 TO LEN(passBytes^)-1 DO passBytes[i] := 0X END END
+  IF passBytes # NIL THEN FOR i := 0 TO LEN(passBytes^)-1 DO passBytes[i] := 0X END END;
+  IF plain # NIL THEN FOR i := 0 TO LEN(plain^)-1 DO plain[i] := 0X END END;
+  IF encoded # NIL THEN FOR i := 0 TO LEN(encoded^)-1 DO encoded[i] := 0X END END
 END Plain;
 
 BEGIN

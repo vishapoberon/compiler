@@ -9,6 +9,11 @@ stanzas, errors and stream closure.
 For correlated IQ requests and explicitly registered ping, version and discovery
 handlers, place an [IQ router](IQ.md) between the client and application hook.
 
+For explicit pre-login account creation, `NewRegistration` opens a separate,
+TLS-verified registration stream and calls `RegistrationReady`, not authenticated
+`Ready`. It exchanges only registration IQs and never performs SASL or resource
+binding. See [in-band registration](Registration.md).
+
 ## Creating a client
 
 The service domain is the account's domain as a UTF-8 byte string. For example,
@@ -64,20 +69,21 @@ most one XML event, using previously retained bytes before reading again. It can
 block for transport input or TLS negotiation. Important read-only fields are:
 
 - `state`: `idle`, `opening`, `features`, `proceeding`, `upgrading`,
-  `authenticating`, `binding`, `online`, `closing`, `closed` or `failed`.
+  `authenticating`, `binding`, `online`, `registering`, `closing`, `closed` or `failed`.
 - `authenticated`: SASL has completed successfully; resource binding must also
   finish before the client becomes `online`.
 - `jid`: the server-assigned full JID, published after successful binding.
 - `error`: the diagnostic on a failed client, including transport/parser errors.
 
 `hook.Ready(client, jid)` runs after binding. `Send(stanza, error)` accepts
-application stanzas only while online and authenticated for the service domain.
+application stanzas while online and authenticated for the service domain. A
+registration-only client accepts checked registration IQs in `registering`.
 `hook.Received` and `hook.Sent` expose application stanzas; authentication and
 binding traffic bypasses these hooks. Stream-level language attributes continue
 to supply stanza defaults through `XmppCore`.
 
-Call `Close(error)` while online to send the closing stream tag. Continue
-stepping until the server closes its XML stream; in-flight application stanzas
+Call `Close(error)` while online or registering to send the closing stream tag.
+Continue stepping until the server closes its XML stream; in-flight application stanzas
 are still delivered while closing. A server-initiated close is answered with the
 client's closing tag before transport shutdown. `Abort` closes the transport
 immediately and is also safe after failure. The client closes its transport on

@@ -22,6 +22,7 @@ TYPE
   HandlerDesc* = RECORD END;
   RequestDesc* = RECORD
     id-, peer-: T.String;
+    client-: Client.Client;
     status-: SHORTINT;
     reply-: Core.Stanza;
     payload-: Items.Item;
@@ -270,21 +271,32 @@ PROCEDURE Query(router: Router; peer: ARRAY OF T.CodeUnit; payload: Items.Item; 
     number: ARRAY 24 OF CHAR; id: ARRAY 48 OF T.CodeUnit; slot: LONGINT;
 BEGIN
   error := NIL;
-  IF ~router.active OR (router.client.state # Client.online) THEN error := Msg.New(context, offline); RETURN NIL END;
+  IF ~router.active OR ((router.client.state # Client.online) & (router.client.state # Client.registering)) THEN
+    error := Msg.New(context, offline); RETURN NIL
+  END;
   IF (payload = NIL) OR (payload.parent # NIL) OR (action = NIL) OR
      (timeoutMS <= 0) OR (timeoutMS > maxTimeoutMS) OR (router.serial = MAX(LONGINT)) THEN
     error := Msg.New(context, invalidRequest); RETURN NIL
   END;
   IF peer[0] = 0 THEN target := Items.Latin1("") ELSE target := CanonicalJID(peer) END;
   IF target = NIL THEN error := Msg.New(context, invalidRequest); RETURN NIL END;
+  IF router.client.state = Client.registering THEN
+    IF target[0] = 0 THEN target := router.domain END;
+    IF ~S.Equal(target^, router.domain^) OR ~Named(payload, Const.uriRegister, "query") THEN
+      error := Msg.New(context, invalidRequest); RETURN NIL
+    END;
+    exactPeer := TRUE
+  END;
   slot := 0; WHILE (slot < maxPending) & (router.requests[slot] # NIL) DO INC(slot) END;
   IF slot = maxPending THEN error := Msg.New(context, queueFull); RETURN NIL END;
   INC(router.serial); IntStr.IntToStr(router.serial, number); S.Long("voc-iq-", id); S.Append8(number, id);
   item := Items.New("iq", Const.jabberClient); item.SetParam("id", id);
   IF set THEN text := Items.Latin1("set") ELSE text := Items.Latin1("get") END;
-  item.SetParam("type", text^); IF target[0] # 0 THEN item.SetParam("to", target^) END;
+  item.SetParam("type", text^);
+  (* Before login the verified stream service is the only allowed destination. *)
+  IF (target[0] # 0) & (router.client.state # Client.registering) THEN item.SetParam("to", target^) END;
   item.AddChild(payload); stanza := Core.Wrap(item, NIL);
-  NEW(request); request.id := Items.Copy16(id); request.peer := target;
+  NEW(request); request.id := Items.Copy16(id); request.peer := target; request.client := router.client;
   request.exactPeer := exactPeer;
   request.action := action; request.remaining := timeoutMS; request.payload := payload;
   router.requests[slot] := request; INC(router.count); router.client.Send(stanza, error);
@@ -338,11 +350,21 @@ BEGIN
   router.domain := Items.Copy16(domain); router.active := TRUE; router.hook.Ready(client, jid)
 END Ready;
 
+PROCEDURE (router: Router) RegistrationReady*(client: Client.Client);
+  VAR domain: Items.Bytes; text: T.String;
+BEGIN
+  ASSERT(router.client = NIL); router.client := client; domain := client.Domain();
+  text := Items.UTF8(domain^); router.domain := CanonicalJID(text^);
+  IF router.domain = NIL THEN client.Abort; router.hook.Error(client, Msg.New(context, invalidRequest)); RETURN END;
+  router.full := Items.Latin1(""); router.bare := Items.Latin1("");
+  router.active := TRUE; router.hook.RegistrationReady(client)
+END RegistrationReady;
+
 PROCEDURE (router: Router) Received*(client: Client.Client; stanza: Core.Stanza);
   VAR payload: Items.Item; response: Core.Stanza; i, count, errors: LONGINT; error: Msg.Msg; from: T.String;
 BEGIN
   ASSERT(client = router.client);
-  IF router.active & (client.state = Client.online) & (stanza.kind = Core.iq) &
+  IF router.active & ((client.state = Client.online) OR (client.state = Client.registering)) & (stanza.kind = Core.iq) &
      (stanza.id[0] # 0) & (S.Length(stanza.id^) <= maxIDUnits) THEN
     count := Children(stanza, payload, errors);
     IF S.Equal8(stanza.type^, "result") OR S.Equal8(stanza.type^, "error") THEN
@@ -355,7 +377,7 @@ BEGIN
           RETURN
         END
       END
-    ELSIF (S.Equal8(stanza.type^, "get") OR S.Equal8(stanza.type^, "set")) & Addressed(router, stanza) THEN
+    ELSIF (client.state = Client.online) & (S.Equal8(stanza.type^, "get") OR S.Equal8(stanza.type^, "set")) & Addressed(router, stanza) THEN
       IF (stanza.from[0] = 0) & (stanza.item.GetAttribute("", "from") # NIL) THEN RETURN END;
       IF stanza.from[0] # 0 THEN
         from := CanonicalJID(stanza.from^); IF from = NIL THEN RETURN END

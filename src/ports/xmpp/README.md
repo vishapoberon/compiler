@@ -15,12 +15,17 @@ Roster retrieval/edits/pushes and PubSub/PEP publication, retrieval, retraction
 and notifications have offline and local TLS coverage.
 Presence construction/decoding and explicit-contact resource tracking have the
 same local coverage; subscription approvals remain application decisions.
+In-band account registration supports bounded legacy fields, verified TLS before
+login, explicit submissions and authenticated changes/removal. This ports the
+original legacy-field workflow; other registration requirements are reported
+without silently discarding them.
 IQ extensions use explicit registration and bounded request
 correlation. Multi-user chat has join/leave, nickname, group-message, subject and
 invitation builders, with bounded room-checked decoding. Configuration forms and
 explicit role/affiliation changes, typed admin lists and destruction use
-exact-room IQ matching. Room state remains pending; applications choose
-configuration and administration policy. Applications drive
+exact-room IQ matching. `XmppMucTracker` adds explicit room membership,
+occupant caches, nickname transitions, deadlines and disconnect cleanup;
+applications choose configuration and administration policy. Applications drive
 the synchronous client with `Start`, `Step`, `Send` and `Close`.
 
 ## Build
@@ -69,6 +74,9 @@ See [IQ extensions](doc/IQ.md) for handler setup, reply matching and deadlines.
 See [rosters and PEP](doc/RosterPEP.md) for cache updates and personal publishing.
 See [presence](doc/Presence.md) for subscriptions, resource selection and cleanup.
 See [multi-user chat](doc/MUC.md) for room stanzas, occupant decoding and limits.
+See [room-state tracking](doc/MUCRooms.md) for confirmed joins, occupants and cleanup.
+See [registration](doc/Registration.md) for account creation, changes and secret handling.
+See [IBB transfers](doc/IBB.md) for consent, checked binary I/O and transfer cleanup.
 The separate [xmpp-publish example](../../examples/network/xmpp-publish/readme.md)
 publishes a Unicode PEP/Atom microblog entry with this library.
 

@@ -5,7 +5,8 @@ IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   Messenger := XmppMessenger, Sasl := XmppSasl, TLS := TLS13Live, HS := TLS13EncHandshake,
   IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
   Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker,
-  Muc := XmppMuc;
+  Muc := XmppMuc, Rooms := XmppMucTracker, Channel, Mem := IOMemory,
+  Ibb := XmppIbbTransfer;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -18,6 +19,10 @@ TYPE
   RosterHookDesc = RECORD (Roster.HookDesc) loads, changes: LONGINT END;
   PresenceHook = POINTER TO PresenceHookDesc;
   PresenceHookDesc = RECORD (Track.HookDesc) notices: LONGINT END;
+  RoomHook = POINTER TO RoomHookDesc;
+  RoomHookDesc = RECORD (Rooms.HookDesc) changes, notices, resets: LONGINT END;
+  IbbHook = POINTER TO IbbHookDesc;
+  IbbHookDesc = RECORD (Ibb.HookDesc) finished: LONGINT END;
 
 VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Client.Client;
   domain: ARRAY 256 OF CHAR;
@@ -27,7 +32,18 @@ VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Clie
   action: Action; request: IQ.Request; name, number, os: T.String;
   roster: Roster.Roster; rosterHook: RosterHook; events: LONGINT;
   tracker: Track.Tracker; presenceHook: PresenceHook;
+  rooms: Rooms.Tracker; roomHook: RoomHook; mucRoom: Rooms.Room;
   mucPresences, mucMessages, mucSubjects, mucRejected, mucInvitations: LONGINT;
+  ibb: Ibb.Manager; ibbHook: IbbHook; incomingFile: Mem.Channel;
+
+PROCEDURE (h: IbbHook) Incoming(manager: Ibb.Manager; transfer: Ibb.Transfer;
+  VAR writer: Channel.Writer; VAR maximum: LONGINT): BOOLEAN;
+BEGIN
+  IF ~S.Equal8(transfer.peer^, "peer@example.org/resource") OR ~S.Equal8(transfer.sid^, "download") THEN RETURN FALSE END;
+  writer := incomingFile.NewWriter(); maximum := 513; RETURN TRUE
+END Incoming;
+PROCEDURE (h: IbbHook) Done(manager: Ibb.Manager; transfer: Ibb.Transfer);
+BEGIN ASSERT((transfer.status = Ibb.done) & (transfer.bytes = 513)); INC(h.finished) END Done;
 
 PROCEDURE (a: Action) Done(router: IQ.Router; request: IQ.Request);
 BEGIN
@@ -45,6 +61,12 @@ PROCEDURE (h: RosterHook) Changed(roster: Roster.Roster; entry: Roster.Entry);
 BEGIN INC(h.changes) END Changed;
 PROCEDURE (h: PresenceHook) Notice(tracker: Track.Tracker; event: P.Event; applied: BOOLEAN);
 BEGIN INC(h.notices) END Notice;
+PROCEDURE (h: RoomHook) Changed(tracker: Rooms.Tracker; room: Rooms.Room);
+BEGIN INC(h.changes) END Changed;
+PROCEDURE (h: RoomHook) Presence(tracker: Rooms.Tracker; room: Rooms.Room; event: Muc.Occupant; applied: BOOLEAN);
+BEGIN ASSERT(applied); INC(h.notices) END Presence;
+PROCEDURE (h: RoomHook) Reset(tracker: Rooms.Tracker);
+BEGIN ASSERT((tracker.count = 0) & (tracker.occupantCount = 0)); INC(h.resets) END Reset;
 
 PROCEDURE (h: Hook) Ready(client: Client.Client; jid: T.String);
   VAR expected: T.String;
@@ -60,6 +82,7 @@ PROCEDURE (h: Hook) Received(client: Client.Client; stanza: Core.Stanza);
   VAR body, expected, node: T.String; event: PubSub.Event; occupant: Muc.Occupant;
     message: Muc.Message; invitation: Muc.Invitation;
 BEGIN
+  IF (mode = "ibb") & (stanza.kind = Core.iq) THEN RETURN END;
   IF (mode = "presence") & (stanza.kind = Core.presence) THEN RETURN END;
   IF mode = "muc" THEN
     node := Items.Latin1("room@conference.example.org");
@@ -67,10 +90,11 @@ BEGIN
       occupant := Muc.ReadPresence(stanza, node^);
       IF occupant = NIL THEN INC(mucRejected)
       ELSE
-        ASSERT(occupant.HasStatus(110)); expected := Items.UTF8("Անի😀"); ASSERT(S.Equal(occupant.nick^, expected^));
-        IF mucPresences = 0 THEN ASSERT(occupant.presence.kind = P.available)
-        ELSE ASSERT((mucPresences = 1) & (occupant.presence.kind = P.unavailable))
-        END;
+        ASSERT(occupant.HasStatus(110));
+        IF mucPresences < 2 THEN expected := Items.UTF8("Անի😀") ELSE expected := Items.UTF8("Նոր😀") END;
+        ASSERT(S.Equal(occupant.nick^, expected^));
+        IF (mucPresences = 0) OR (mucPresences = 2) THEN ASSERT(occupant.presence.kind = P.available)
+        ELSE ASSERT((mucPresences < 4) & (occupant.presence.kind = P.unavailable)) END;
         INC(mucPresences)
       END;
       RETURN
@@ -179,6 +203,23 @@ BEGIN
   stanza := P.Unavailable(empty^, empty^); client.Send(stanza, error); ASSERT(error = NIL); hook.sent := 0
 END PresenceTest;
 
+PROCEDURE IbbTest;
+  VAR source: Mem.Channel; writer: Channel.Writer; reader: Channel.Reader;
+    raw, copy: ARRAY 513 OF CHAR; peer, sid: T.String; transfer: Ibb.Transfer; i: LONGINT;
+BEGIN
+  source := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
+  incomingFile := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
+  FOR i := 0 TO LEN(raw)-1 DO raw[i] := CHR(i MOD 256) END;
+  writer := source.NewWriter(); writer.WriteBytes(raw, 0, LEN(raw)); ASSERT(writer.res = NIL);
+  reader := source.NewReader(); peer := Items.Latin1("peer@example.org/resource"); sid := Items.Latin1("upload");
+  transfer := ibb.Send(peer^, sid^, reader, LEN(raw), 256, error); ASSERT((transfer # NIL) & (error = NIL));
+  REPEAT state := client.Step() UNTIL (ibbHook.finished = 2) OR (state = Client.failed);
+  ASSERT((state = Client.online) & (transfer.status = Ibb.done) & (ibb.count = 0) & (router.count = 0));
+  reader := incomingFile.NewReader(); reader.ReadBytes(copy, 0, LEN(copy)); ASSERT((reader.res = NIL) & (reader.bytesRead = LEN(copy)));
+  FOR i := 0 TO LEN(raw)-1 DO ASSERT(copy[i] = raw[i]) END;
+  source.Close; incomingFile.Close; hook.sent := 0
+END IbbTest;
+
 PROCEDURE WaitRoomRequest;
 BEGIN
   ASSERT((request # NIL) & (error = NIL));
@@ -191,10 +232,10 @@ PROCEDURE MucTest;
 BEGIN
   room := Items.Latin1("room@conference.example.org"); nick := Items.UTF8("Անի😀");
   password := Items.Latin1("room-secret"); empty := Items.Latin1("");
-  stanza := Muc.Join(room^, nick^, password^, 0); ASSERT(stanza # NIL);
-  client.Send(stanza, error); ASSERT(error = NIL);
+  mucRoom := rooms.Join(room^, nick^, password^, 0, 2000, error); ASSERT((mucRoom # NIL) & (error = NIL));
+  ASSERT(mucRoom.state = Rooms.joining);
   REPEAT state := client.Step() UNTIL (mucPresences = 1) OR (state = Client.failed);
-  ASSERT((mucPresences = 1) & (mucRejected = 1));
+  ASSERT((mucPresences = 1) & (mucRejected = 1) & (mucRoom.state = Rooms.joined) & (mucRoom.count = 1));
   text := Items.UTF8("Բարեւ 😀"); stanza := Muc.GroupMessage(room^, text^); client.Send(stanza, error); ASSERT(error = NIL);
   REPEAT state := client.Step() UNTIL (mucMessages = 1) OR (state = Client.failed);
   ASSERT(mucMessages = 1);
@@ -219,25 +260,33 @@ BEGIN
   request := Muc.SetRole(router, room^, nick^, role^, text^, 2000, action, error); WaitRoomRequest;
   role := Items.Latin1("member");
   request := Muc.SetAffiliation(router, room^, peer^, role^, text^, 2000, action, error); WaitRoomRequest;
-  stanza := Muc.Leave(room^, nick^, empty^); client.Send(stanza, error); ASSERT(error = NIL);
-  REPEAT state := client.Step() UNTIL (mucPresences = 2) OR (state = Client.failed);
-  ASSERT(mucPresences = 2);
+  nick := Items.UTF8("Նոր😀"); ASSERT(rooms.Rename(mucRoom, nick^, 2000, error));
+  REPEAT state := client.Step() UNTIL (mucPresences = 3) OR (state = Client.failed);
+  ASSERT((mucPresences = 3) & (mucRoom.state = Rooms.joined) & S.Equal(mucRoom.nick^, nick^) & (mucRoom.count = 1));
+  ASSERT(rooms.Leave(mucRoom, empty^, 2000, error));
+  REPEAT state := client.Step() UNTIL (mucPresences = 4) OR (state = Client.failed);
+  ASSERT((mucPresences = 4) & (mucRoom.state = Rooms.left) & (rooms.occupantCount = 0));
   request := Muc.Destroy(router, room^, empty^, text^, 2000, action, error); WaitRoomRequest;
-  ASSERT((hook.sent = 12) & (action.calls = 6)); hook.sent := 0
+  ASSERT((hook.sent = 13) & (action.calls = 6) & (roomHook.notices = 4)); hook.sent := 0
 END MucTest;
 
 BEGIN
   InvalidConfiguration;
   Args.Get(1, port); Args.Get(2, mode); Args.Get(3, direct);
   Args.Get(4, domain); IF domain = "" THEN domain := "localhost" END;
-  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence") OR (mode = "muc");
+  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence") OR (mode = "muc") OR (mode = "ibb");
   transport := TCP.Open("127.0.0.1", port, domain, direct = "yes", 2000, error);
   IF transport = NIL THEN ASSERT(~success & (error # NIL))
   ELSE
     NEW(hook); user := Items.UTF8("օգտվող"); password := Items.UTF8("գաղտնի😀"); resource := Items.UTF8("մուտք😀");
-    NEW(presenceHook); tracker := Track.New(hook, presenceHook); ASSERT(tracker # NIL);
+    NEW(roomHook); rooms := Rooms.New(hook, roomHook); ASSERT(rooms # NIL);
+    NEW(presenceHook); tracker := Track.New(rooms, presenceHook); ASSERT(tracker # NIL);
     name := Items.UTF8("friend@ծոց.հայ"); ASSERT(tracker.Watch(name^));
-    router := IQ.New(tracker); ping := Ping.New(router); ASSERT(ping # NIL);
+    IF mode = "ibb" THEN
+      NEW(ibbHook); ibb := Ibb.New(tracker, ibbHook, 513, 256, 2000); ASSERT(ibb # NIL); router := ibb.router
+    ELSE router := IQ.New(tracker)
+    END;
+    ping := Ping.New(router); ASSERT(ping # NIL);
     name := Items.UTF8("VOC Հայերեն😀"); number := Items.Latin1("4.0.2"); os := Items.Latin1("");
     version := Version.New(router, name^, number^, os^); ASSERT(version # NIL);
     name := Items.Latin1("client"); number := Items.Latin1("console");
@@ -263,6 +312,7 @@ BEGIN
       IF mode = "roster-pep" THEN RosterPEP END;
       IF mode = "presence" THEN PresenceTest END;
       IF mode = "muc" THEN MucTest END;
+      IF mode = "ibb" THEN IbbTest END;
       to := Items.Latin1("friend@localhost"); body := Items.UTF8("Բարեւ 😀");
       stanza := Messenger.NewMessage(to^, body^); client.Send(stanza, error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (hook.received > 0) OR (state = Client.failed);
@@ -270,7 +320,8 @@ BEGIN
       client.Close(error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (state = Client.closed) OR (state = Client.failed);
       ASSERT((state = Client.closed) & (hook.closed = 1) & (hook.errors = 0));
-      ASSERT(~tracker.active & (tracker.count = 0))
+      ASSERT(~tracker.active & (tracker.count = 0));
+      ASSERT(~rooms.active & (rooms.count = 0) & (rooms.occupantCount = 0))
     END
   END;
   FailureReset;
