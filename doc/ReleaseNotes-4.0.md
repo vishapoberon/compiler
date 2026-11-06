@@ -1,5 +1,60 @@
 # Vishap Oberon 4.0
 
+## 4.0.7
+
+### Windows and BSD builds
+
+Windows/Visual Studio builds receive fixes for executable discovery, staged
+installation lookup, MSVC `.lib` recognition and external compiler failures.
+Win32 child-process statuses use correctly sized 32-bit buffers in both Oberon
+type models. `make.cmd check` repeats the staged installation checks.
+
+Native FreeBSD/Clang and NetBSD/GCC builds passed the compiler rebuild, both
+runtime library type models, bootstrap consistency and the full conventional
+confidence suite during development. Unix headers request the required
+POSIX/X/Open declarations, recursive builds preserve the selected make program,
+and the numeric test oracle links with `libm`. Use `gmake` on BSD.
+
+The default confidence suite accepts Python 3 as either `python3` or `python`,
+verifies the interpreter version and reports fallback selection. `PYTHON` can
+select an executable explicitly. Terminal and editor tests account for the
+kernel-managed `PENDIN` status flag while continuing to check other settings.
+OpenBSD validation remains pending.
+
+### Oberon numeric conversion
+
+`Texts` scanning, compiler literal parsing and finite real-constant output now
+share Oberon implementations in `Reals`, replacing their libc numeric
+conversion calls. Correct rounding, signed zero, subnormals, long-token bounds
+and extreme exponents remain covered by retained and expanded regressions.
+All five bootstrap source sets include the updated interfaces and algorithms.
+
+### Hexadecimal output: updating callers
+
+`Out.Hex(i: LONGINT)` now follows ETH Oberon: one blank followed by eight
+uppercase hexadecimal digits representing the low 32 bits. The former
+two-argument interface is replaced by `Out.HexDigits(x, n: HUGEINT)` for unsigned
+64-bit output with a minimum digit width. A nonpositive width means eight;
+negative values require all 16 digits, and widths above 16 add leading zeros.
+
+Change `Out.Hex(x, n)` to `Out.HexDigits(x, n)`. For two-digit byte dumps, use
+`Out.HexDigits(ORD(byte), 2)` and remove manual zero padding. TLS and XML callers
+are updated; the five TLS dump tests match Polpo's files byte-for-byte and are
+synchronized with the TLS upstream. See [hexadecimal output](HexadecimalOutput.md).
+
+### Installation and libraries
+
+Staged compilers find their matching headers, symbol files and libraries,
+including explicit `VOCROOT` and `VOCLIBDIR` overrides and split installations.
+
+The XMPP library adds bounded multi-user chat stanza construction and decoding,
+mediated invitations, room configuration and owner/admin IQ operations through
+`XmppMuc`. Room-management replies use exact room matching. See
+[multi-user chat](../src/ports/xmpp/doc/MUC.md).
+
+**Rebuild the compiler, libraries, dependent programs and shared modules
+together:** the exported `Out.Hex` signature has changed.
+
 ## 4.0.6
 
 `Files` adds explicit, fixed-capacity memory files. Create one with

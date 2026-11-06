@@ -1,4 +1,4 @@
-/* voc 4.0.6 [2026/11/06] for clang LP64 on gentoo xrtspaSF */
+/* voc 4.0.7 [2026/11/06] for gcc LP64 on gentoo xrtspaSF */
 
 #ifndef extTools__h
 #define extTools__h
