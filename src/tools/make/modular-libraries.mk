@@ -78,4 +78,4 @@ MODULAR_HTTPS = norayr/https/https
 MODULAR_GEMINI = norayr/netHost/NetHost norayr/gemini/Gemini0 norayr/gemini/Gemtext0
 MODULAR_IRC = norayr/irc/IRC norayr/irc/IRCTCP norayr/irc/IRCTLS
 MODULAR_LINUX_BASE_PORTS = norayr/pipes/pipes norayr/xattr/xattr
-MODULAR_LINUX_PORTS = $(MODULAR_INTERNET) $(MODULAR_HTTP) $(MODULAR_TLS) $(MODULAR_HTTPS) $(MODULAR_GEMINI) $(MODULAR_IRC)
+MODULAR_LINUX_PORTS = $(MODULAR_INTERNET) $(MODULAR_HTTP) $(MODULAR_TLS) $(MODULAR_HTTPS) $(MODULAR_GEMINI) $(MODULAR_IRC) $(if $(filter 2,$(MODEL)),xmpp/XmppSocks5TCP)

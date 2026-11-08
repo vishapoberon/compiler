@@ -3,9 +3,9 @@ package = "xmpp"
 kind = "library"
 origin = "VOC port of the supplied oberoncore-xmpp Component Pascal subsystem"
 upstream_url = "https://github.com/norayr/xmpp"
-upstream_revision = "0c5f3a454830fd1c512df4ad0c2c2ebd90bd0bd4"
+upstream_revision = "fdac5a60f4f6868c61d1f012cc63693917519641"
 original_revision = "a2cde5435bea63de16239c2c31e399ad0fd43ad2"
-revision_status = "synchronized native SOCKS5 negotiation foundations; original snapshot preserved"
+revision_status = "synchronized native SOCKS5 client connector foundations; original snapshot preserved"
 license = "not specified in supplied subsystem; confirmation pending"
 sources = ["Xmpp*.Mod"]
 build = "make xmpp; make -C src/ports/xmpp network"
@@ -32,6 +32,7 @@ adaptations = [
   "routing outgoing IBB callbacks per transfer and exposing configured limits",
   "binding accepted outgoing file offers to checked source origins and selected ranges",
   "adding bounded exact-peer TCP host offers, XEP-0065 hashes and incremental SOCKS5 client framing",
+  "adding a Linux nonblocking SOCKS5 connector with deadlines, cancellation and socket handoff",
   "preserving Unicode XML service identities while using shared IDNA conversion for DNS and TLS",
   "including portable modules in conventional, Windows and modular Oberon-2 library manifests",
   "preserving 88 original files, including all 31 native BlackBox documents and text exports",

@@ -109,7 +109,10 @@ Bytestream foundations add 159 checks for bounded host lists, duplicate rejectio
 Unicode/IDNA metadata, fragmented XML, selected-host/SID binding and exact-peer IQ
 correlation. SOCKS5 framing adds 205 checks for published and Unicode destination
 hashes, SHA-1 padding boundaries, partial writes, fragmented/malformed replies,
-truncation and preservation of coalesced payload. These suites pass with conventional GCC, shared modules and Clang ASan/UBSan
+truncation and preservation of coalesced payload. The Linux adapter adds 26 local
+TCP checks for fragmented/coalesced negotiation, refusal, truncation, deadlines,
+cancellation, numeric-parser bounds and one-time socket ownership handoff.
+These suites pass with conventional GCC, shared modules and Clang ASan/UBSan
 on x86-64 Linux. The existing 42 XMPP TLS loopback cases pass against the
 integrated resumable TLS revision. Tests run sequentially at low priority;
 direct streamhost listening and SOCKS5 file-transfer integration remain pending.

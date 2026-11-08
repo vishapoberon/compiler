@@ -25,5 +25,22 @@ The reply must echo the destination domain hash and zero port. `Feed` consumes
 only handshake bytes, leaving coalesced payload to its caller. `End` rejects a
 truncated negotiation.
 
+## Linux TCP adapter
+
+`XmppSocks5TCP.OpenAddress` connects to an approved numeric address without DNS.
+`Open` accepts a numeric literal or an IDNA hostname; hostname resolution is
+synchronous and precedes caller-driven deadline accounting. Resolved addresses
+are tried in order after connection failures. A stalled connection uses the
+remaining overall deadline rather than a separate per-address deadline.
+
+Drive `Step` on readiness indicated by `Descriptor`, `WantRead` and `WantWrite`;
+each call performs bounded nonblocking work. Call `Tick` with elapsed milliseconds
+even when no readiness event arrives. Timeouts are restricted to 1–600,000 ms.
+`Cancel` closes an owned socket. On `ready`, `Release` transfers the nonblocking
+`Sockets.Socket` to the application exactly once; its queued payload is intact.
+The application then owns reads, writes and closure. Failures close the socket
+and retain a diagnostic in `error`.
+
 Direct streamhost listening, proxy activation and integration with accepted
-file offers remain pending. File sender/receiver orchestration currently uses IBB.
+file offers remain pending. File sender/receiver orchestration currently uses
+IBB; these foundations alone do not establish a complete SOCKS5 file transfer.

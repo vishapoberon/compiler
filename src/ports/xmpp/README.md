@@ -46,8 +46,9 @@ Output goes into `build/ports/xmpp/2`.
 Override `BUILD`, `VOC`, `CC` or `CFLAGS` as needed.
 
 The portable modules are included in VOC's normal Oberon-2 and modular library
-builds. `XmppTCP` is built separately by the network target. See [bytestream foundations](doc/ByteStreams.md)
-for host selection, destination hashes and incremental client negotiation.
+builds. `XmppTCP` is built separately by the network target. The Linux networking
+profile includes `XmppSocks5TCP`; see [bytestream foundations](doc/ByteStreams.md)
+for host selection, destination hashes and nonblocking client negotiation.
 
 ## Use
 
