@@ -1,5 +1,53 @@
 # Vishap Oberon 4.0
 
+## 4.0.8
+
+### XMPP registration, room tracking and file transfers
+
+The XMPP library adds bounded room membership and occupant tracking, nickname
+transitions, deadlines and disconnect cleanup. Legacy account registration
+supports explicit field submission, verified TLS before login and authenticated
+account changes and removal.
+
+In-band bytestreams support binary data, explicit receive consent, exact peer/SID
+matching, sequence checks, checked channel I/O and acknowledgement deadlines.
+Stream-initiation file offers bind accepted peers and resume ranges to checked
+incoming destinations and outgoing source positions. Applications own file
+publication and consent policy. See [file reception](../src/ports/xmpp/doc/FileReceiver.md)
+and [file sending](../src/ports/xmpp/doc/FileSender.md).
+
+SOCKS5 foundations provide bounded host offers and exact-peer selections,
+XEP-0065 destination hashing, incremental negotiation and a Linux nonblocking
+TCP connector with cancellation, deadlines and socket handoff. Direct listening,
+proxy activation and SOCKS5 file-transfer orchestration remain pending. See
+[bytestream foundations](../src/ports/xmpp/doc/ByteStreams.md).
+
+### Resumable TLS and IRC
+
+`TLS13Live` adds `Begin`, `PollHandshake`, `ReadSome`, `WriteSome`, `FlushOutput`,
+`UseNonblocking` and `CloseNow` for readiness-driven clients. Existing synchronous
+interfaces remain available.
+
+The Linux networking profile includes `IRC`, `IRCTCP` and `IRCTLS`, with bounded
+message handling and nonblocking TCP/TLS transport. An opt-in history-bot example
+demonstrates connection lifecycle, channel events and history handling. See
+[the IRC library](../src/ports/norayr/irc/README.md).
+
+### Validation and upgrading
+
+A fresh x86-64 Linux/GCC build passes both runtime type models, the conventional
+confidence suite and shared-module and bundled-library tests. All five bootstrap
+source sets are regenerated for 4.0.8.
+
+XMPP host negotiation, SOCKS5 framing and the TCP connector pass 390 checks with
+conventional GCC, shared modules and Clang ASan/UBSan on x86-64 Linux. All 42
+local XMPP TLS cases pass against the updated TLS implementation. The routine
+IBB suite uses a short sequence-wrap check; `--exhaustive` selects the complete
+65,536-block receive pass.
+
+Rebuild the compiler, bundled libraries, dependent programs and shared modules
+together when upgrading.
+
 ## 4.0.7
 
 ### Windows and BSD builds

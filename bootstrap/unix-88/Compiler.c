@@ -1,4 +1,4 @@
-/* voc 4.0.7 [2026/11/06] for gcc LP64 on gentoo xrtspamS */
+/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspamS */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
