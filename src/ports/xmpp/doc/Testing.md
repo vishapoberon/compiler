@@ -105,6 +105,15 @@ local TLS cases check creation, unavailable registration, invalid certificates
 and Unicode/A-label domains over STARTTLS and direct TLS. No real account is
 created, changed or removed by these fixtures.
 
+Bytestream foundations add 159 checks for bounded host lists, duplicate rejection,
+Unicode/IDNA metadata, fragmented XML, selected-host/SID binding and exact-peer IQ
+correlation. SOCKS5 framing adds 205 checks for published and Unicode destination
+hashes, SHA-1 padding boundaries, partial writes, fragmented/malformed replies,
+truncation and preservation of coalesced payload. These suites pass with conventional GCC, shared modules and Clang ASan/UBSan
+on x86-64 Linux. The existing 42 XMPP TLS loopback cases pass against the
+integrated resumable TLS revision. Tests run sequentially at low priority;
+direct streamhost listening and SOCKS5 file-transfer integration remain pending.
+
 Twenty-eight Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
 credentials, messages and domains, certificate and protocol-version rejection,
 binding failures, stalled reads/handshakes, ping/version/discovery dispatch,

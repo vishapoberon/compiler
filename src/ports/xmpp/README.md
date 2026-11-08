@@ -10,7 +10,8 @@ multi-user-chat stanzas.
 The port is under development. Login, binding and a Unicode self-message round
 trip have been tested against a live server with a UTF-8 (Armenian language)
 account and domain.
-File transfers, scheduling and DIGEST-MD5 authentication still need porting.
+SOCKS5 file-transfer orchestration, scheduling and DIGEST-MD5 authentication
+still need porting. Negotiated IBB file sending and reception have local coverage.
 Roster retrieval/edits/pushes and PubSub/PEP publication, retrieval, retraction
 and notifications have offline and local TLS coverage.
 Presence construction/decoding and explicit-contact resource tracking have the
@@ -45,7 +46,8 @@ Output goes into `build/ports/xmpp/2`.
 Override `BUILD`, `VOC`, `CC` or `CFLAGS` as needed.
 
 The portable modules are included in VOC's normal Oberon-2 and modular library
-builds. `XmppTCP` is built separately by the network target.
+builds. `XmppTCP` is built separately by the network target. See [bytestream foundations](doc/ByteStreams.md)
+for host selection, destination hashes and incremental client negotiation.
 
 ## Use
 

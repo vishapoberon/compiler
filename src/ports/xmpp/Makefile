@@ -7,7 +7,7 @@ BUILD ?= $(ROOT)/build/ports/xmpp/2
 BUILD := $(abspath $(BUILD))
 MODULES := XmppTypes XmppConst XmppItems XmppBase64 XmppXmlStream XmppXmlGen XmppConnections \
  XmppStrings XmppCore XmppMessenger XmppWire XmppSasl XmppClient \
- XmppIQ XmppIbb XmppIbbTransfer XmppStreamInit XmppFileReceiver XmppFileSender XmppRegister XmppPresence XmppPresenceTracker XmppMuc XmppMucTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
+ XmppIQ XmppIbb XmppByteStreams XmppSocks5 XmppIbbTransfer XmppStreamInit XmppFileReceiver XmppFileSender XmppRegister XmppPresence XmppPresenceTracker XmppMuc XmppMucTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
 
 include $(ROOT)/src/tools/make/modular-libraries.mk
 NETWORK_MODULES := $(MODULAR_INTERNET) $(filter-out norayr/tls/httpsPure,$(MODULAR_TLS))
@@ -31,6 +31,8 @@ test: all
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppClient.Mod" && timeout 30 ./TestXmppClient
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIQ.Mod" && timeout 30 ./TestXmppIQ
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbb.Mod" && timeout 30 ./TestXmppIbb
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppByteStreams.Mod" && timeout 30 ./TestXmppByteStreams
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppSocks5.Mod" && timeout 30 ./TestXmppSocks5
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbbTransfer.Mod" && timeout 30 ./TestXmppIbbTransfer
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppStreamInit.Mod" && timeout 30 ./TestXmppStreamInit
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppFileReceiver.Mod" && timeout 30 ./TestXmppFileReceiver
