@@ -44,7 +44,7 @@ TYPE
   Context = POINTER TO ContextDesc;
   ContextDesc = RECORD (Msg.ContextDesc) END;
 
-VAR context: Context;
+VAR context: Context; deferred: Core.Stanza;
 
 PROCEDURE (c: Context) GetTemplate(message: Msg.Msg; VAR text: Msg.LString);
 BEGIN
@@ -183,6 +183,10 @@ END ErrorReply;
 
 PROCEDURE (a: Action) Done*(router: Router; request: Request);
 BEGIN END Done;
+
+PROCEDURE Deferred*(): Core.Stanza;
+(* A handler returning this token owns the bounded deferred reply lifecycle. *)
+BEGIN RETURN deferred END Deferred;
 
 PROCEDURE (h: Handler) Handle*(router: Router; request: Core.Stanza; payload: Items.Item): Core.Stanza;
 BEGIN RETURN ErrorReply(request, "cancel", "service-unavailable") END Handle;
@@ -397,6 +401,7 @@ BEGIN
         END;
         IF response = NIL THEN response := ErrorReply(stanza, "cancel", "service-unavailable") END
       END;
+      IF response = deferred THEN RETURN END;
       client.Send(response, error); RETURN
     END
   END;
@@ -414,5 +419,5 @@ PROCEDURE New*(hook: Client.Hook): Router;
   VAR router: Router;
 BEGIN ASSERT(hook # NIL); NEW(router); router.hook := hook; RETURN router END New;
 
-BEGIN NEW(context); Msg.InitContext(context, "XmppIQ")
+BEGIN NEW(context); NEW(deferred); Msg.InitContext(context, "XmppIQ")
 END XmppIQ.
