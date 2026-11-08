@@ -11,7 +11,7 @@ TYPE
     trustedDomain: Items.Bytes;
     output: Mem.Channel;
     writer: Channel.Writer;
-    position, chunk, upgrades: LONGINT;
+    position, chunk, upgrades, reads: LONGINT;
     secure, upgradeOK, ended: BOOLEAN;
   END;
   Hook = POINTER TO HookDesc;
@@ -36,7 +36,7 @@ END StartTLS;
 PROCEDURE (t: Fake) Read(VAR bytes: ARRAY OF CHAR; VAR count: LONGINT): BOOLEAN;
   VAR i: LONGINT;
 BEGIN
-  ASSERT(~t.ended); count := S.Length8(t.script^)-t.position;
+  ASSERT(~t.ended); INC(t.reads); count := S.Length8(t.script^)-t.position;
   IF count > t.chunk THEN count := t.chunk END;
   IF count > LEN(bytes) THEN count := LEN(bytes) END;
   FOR i := 0 TO count-1 DO bytes[i] := t.script[t.position+i] END;
@@ -207,7 +207,52 @@ BEGIN
   Sasl.Wipe(password); ASSERT(password[0] = 0); INC(checks, 5)
 END SaslChecks;
 
+PROCEDURE Push(c: C.Client; text: ARRAY OF CHAR; chunk: LONGINT): LONGINT;
+  VAR position, count, consumed: LONGINT; state: SHORTINT;
 BEGIN
-  checks := 0; SuccessChecks; RejectionChecks; SaslChecks;
+  position := 0;
+  WHILE (position < S.Length8(text)) & (c.state # C.upgrading) & (c.state # C.failed) & (c.state # C.closed) DO
+    count := S.Length8(text)-position; IF count > chunk THEN count := chunk END;
+    state := c.Feed(text, position, count, consumed); ASSERT(consumed > 0); INC(position, consumed)
+  END;
+  RETURN position
+END Push;
+
+PROCEDURE FeedChecks;
+  VAR first: ARRAY 512 OF CHAR; next: ARRAY 2048 OF CHAR; chunk, position, consumed: LONGINT;
+    c: C.Client; t: Fake; h: Hook; state: SHORTINT;
+BEGIN
+  first := '<s:stream xmlns:s="http://etherx.jabber.org/streams" version="1.0"><s:features><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls"/></s:features><proceed xmlns="urn:ietf:params:xml:ns:xmpp-tls"/>';
+  next := '<s:stream xmlns:s="http://etherx.jabber.org/streams" xmlns="jabber:client" version="1.0"><s:features><mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><mechanism>PLAIN</mechanism></mechanisms></s:features><success xmlns="urn:ietf:params:xml:ns:xmpp-sasl"/><s:stream xmlns:s="http://etherx.jabber.org/streams" xmlns="jabber:client" version="1.0"><s:features><bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"/></s:features><iq id="voc-bind-1" type="result"><bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"><jid>user@example.org/r</jid></bind></iq><message><body>Բարեւ 😀</body></message></s:stream>';
+  FOR chunk := 1 TO 64 DO
+    c := New("", "", FALSE, TRUE, 8192, t, h); ASSERT(c.Start());
+    state := c.Feed(first, 0, 0, consumed); ASSERT((state = C.opening) & (consumed = 0) & (h.errors = 0));
+    position := Push(c, first, chunk);
+    ASSERT((position = S.Length8(first)) & (c.state = C.upgrading) & (t.upgrades = 0) & (t.reads = 0));
+    state := c.Feed("unconsumed", 0, 10, consumed); ASSERT((state = C.upgrading) & (consumed = 0));
+    ASSERT(~Contains(t, "<auth")); t.secure := TRUE; ASSERT(c.TLSReady());
+    position := Push(c, next, chunk);
+    ASSERT((position = S.Length8(next)) & (c.state = C.closed) & (h.ready = 1) & (h.received = 1) & (h.closed = 1));
+    ASSERT((h.errors = 0) & (t.reads = 0) & (t.upgrades = 0) & Contains(t, "AHVzZXIAcGFzc3dvcmQ="));
+    t.output.Close; INC(checks)
+  END;
+  c := New("", "", TRUE, TRUE, 8192, t, h); ASSERT(c.Start()); position := Push(c, next, 1);
+  ASSERT((position = S.Length8(next)) & (c.state = C.closed) & (h.ready = 1) & (t.reads = 0)); t.output.Close; INC(checks);
+  c := New("", "", FALSE, TRUE, 8192, t, h); ASSERT(c.Start()); position := Push(c, first, 8192);
+  ASSERT(~c.TLSReady() & (c.state = C.failed) & (c.error.code = C.tlsRequired) & ~Contains(t, "<auth")); t.output.Close; INC(checks);
+  c := New("", "", TRUE, TRUE, 8192, t, h); ASSERT(c.Start());
+  ASSERT(~c.TLSReady() & (c.state = C.failed) & (c.error.code = C.invalidConfig)); t.output.Close; INC(checks);
+  c := New("", "", TRUE, TRUE, 8192, t, h); ASSERT(c.Start()); state := c.Feed(first, 0, 1, consumed); state := c.Step();
+  ASSERT((state = C.failed) & (c.error.code = C.invalidConfig) & (t.reads = 0)); t.output.Close; INC(checks);
+  c := New(first, "", TRUE, TRUE, 1, t, h); ASSERT(c.Start()); state := c.Step(); state := c.Feed(first, 0, 1, consumed);
+  ASSERT((state = C.failed) & (c.error.code = C.invalidConfig) & (consumed = 0)); t.output.Close; INC(checks);
+  c := New("", "", TRUE, TRUE, 8192, t, h); ASSERT(c.Start()); state := c.Feed(first, -1, 1, consumed);
+  ASSERT((state = C.failed) & (c.error.code = C.invalidConfig) & (consumed = 0)); t.output.Close; INC(checks);
+  c := New("", "", TRUE, TRUE, 8192, t, h); ASSERT(c.Start()); c.End; c.End;
+  ASSERT((c.state = C.failed) & (c.error.code = C.transportError) & (h.errors = 1)); t.output.Close; INC(checks)
+END FeedChecks;
+
+BEGIN
+  checks := 0; SuccessChecks; RejectionChecks; SaslChecks; FeedChecks;
   Out.String("XMPP TLS/SASL/bind negotiation checks passed: "); Out.Int(checks, 0); Out.Ln
 END TestXmppClient.

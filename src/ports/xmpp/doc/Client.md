@@ -1,6 +1,6 @@
 # Client negotiation and transport
 
-`XmppClient` provides a synchronous XMPP client lifecycle using the native stanza
+`XmppClient` provides a bounded XMPP client lifecycle using the native stanza
 and ooc-xml stream interfaces. `XmppWire.Transport` is its byte-channel boundary;
 `XmppTCP` implements that boundary with VOC's Linux networking and TLS 1.3 modules.
 Applications implement `XmppClient.HookDesc` methods for readiness, received/sent
@@ -64,9 +64,10 @@ an inactive state and no retained pre-TLS input. The existing
 
 ## Driving the lifecycle
 
-Call `Start()` once, then call `Step()` to consume input. A step processes at
-most one XML event, using previously retained bytes before reading again. It can
-block for transport input or TLS negotiation. Important read-only fields are:
+With a synchronous transport, call `Start()` once, then call `Step()` to consume
+input. A step processes at most one XML event, using previously retained bytes
+before reading again. It can block for transport input or TLS negotiation.
+Important read-only fields are:
 
 - `state`: `idle`, `opening`, `features`, `proceeding`, `upgrading`,
   `authenticating`, `binding`, `online`, `registering`, `closing`, `closed` or `failed`.
@@ -74,6 +75,10 @@ block for transport input or TLS negotiation. Important read-only fields are:
   finish before the client becomes `online`.
 - `jid`: the server-assigned full JID, published after successful binding.
 - `error`: the diagnostic on a failed client, including transport/parser errors.
+
+Event-loop clients can instead use `Feed`, `TLSReady` and `End`, or the Linux
+`XmppAsyncTCP` driver. See [caller-driven connections](AsyncClient.md) for exact
+input consumption, queued output and nonblocking handshake driving.
 
 `hook.Ready(client, jid)` runs after binding. `Send(stanza, error)` accepts
 application stanzas while online and authenticated for the service domain. A

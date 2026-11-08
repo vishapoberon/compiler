@@ -22,7 +22,7 @@ their remaining session actions and extension behavior.
 | Original module | Current adaptation |
 | --- | --- |
 | `Const` | Protocol string values retained; identifiers use VOC camel case. |
-| `XmlStream`, `XmlGen`, `Connections` | Native receive framing, stanza trees, bounded output, owner callbacks, counters and stream restarts. `XmppTCP` supplies synchronous TCP/TLS. |
+| `XmlStream`, `XmlGen`, `Connections` | Native receive framing, stanza trees, bounded output, owner callbacks, counters and stream restarts. `XmppTCP` supplies synchronous TCP/TLS; `XmppAsyncTCP` supplies bounded nonblocking TCP/TLS with caller-driven client input. |
 | `Core` | Stanza metadata, feature lookup, language inheritance and session hooks. `XmppClient` adds TLS/SASL/resource-binding negotiation; `XmppIQ` supplies explicit IQ handler registration and bounded request correlation. |
 | `Strings` | UTF-16 JID splitting/joining and structural checks. Native TCP supplies Unicode-domain normalization through shared `IDNA`. ID generation and full username/resource preparation remain pending. |
 | `Messenger` | Basic message-body construction. Delivery tracking and receipts remain pending. |
@@ -49,7 +49,7 @@ exports and native `.odc` documents.
 | --- | --- |
 | `XmlcoreScanner`, `XmlcoreParser`, `XmlcoreDom`, `XmlcoreItems`, `XmlcoreFormatters`, `XmlcoreStrings` | ooc-xml plus `XmppItems`, `XmppXmlStream` and `XmppXmlGen`. |
 | `StringsDyn`, `StringsUtf`, BlackBox `Strings` | Shared `oocUnicode`, `LongStrings`, XML codecs and dynamic UTF-16 arrays in the adapted foundation. |
-| `CommStreams`, `Services` | `XmppWire` transport and `XmppTCP` synchronous socket/TLS driver; event-loop scheduling remains application-owned. |
+| `CommStreams`, `Services` | `XmppWire` transport, `XmppTCP` synchronous socket/TLS and `XmppAsyncTCP` nonblocking socket/TLS; event-loop scheduling remains application-owned. |
 | `ListsLinear`, `ListsMap`, `ListsIterable` | Ordered stanza content in `XmppItems`; fixed-capacity IQ handlers and pending requests in `XmppIQ`. Remaining extension collections are pending. |
 | `ypkEncBase64`, `ypkCryptMd5`, `ypkMathRandom`, `ypkEncPunycode` | `XmppBase64` supplies bounded binary encoding for IBB and PLAIN. Native TLS supplies handshake randomness. Native `IDNA` prepares internationalized domains with UTS #46, NFC and IDNA2008 checks. Original DIGEST-MD5 and full username/resource preparation remain pending. |
 | `ypkSysActions`, `ypkProxyCmds`, `ypkCommSrv`, `AbfBus` | Pending application scheduling, proxy and bus adapters. |

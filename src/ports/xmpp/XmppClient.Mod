@@ -37,6 +37,7 @@ TYPE
     allowPlain, registration: BOOLEAN;
     buffer: ARRAY 8192 OF CHAR;
     position, length, negotiationBytes, negotiationEvents: LONGINT;
+    driver: SHORTINT;
   END;
   Context = POINTER TO ContextDesc;
   ContextDesc = RECORD (Msg.ContextDesc) END;
@@ -282,42 +283,81 @@ BEGIN
   StartHeader(c); RETURN c.state # failed
 END Start;
 
-PROCEDURE (c: Client) Step*(): SHORTINT;
-(* Performs at most one read and one XML event. Reads and TLS upgrades may block
-   within the transport's deadlines. All unconsumed application bytes stay local. *)
-  VAR n, count: LONGINT; event: SHORTINT; negotiating, ok: BOOLEAN;
+PROCEDURE FeedInput(c: Client; bytes: ARRAY OF CHAR; start, count: LONGINT; VAR consumed: LONGINT): SHORTINT;
+  VAR event: SHORTINT; negotiating: BOOLEAN;
 BEGIN
+  consumed := 0;
   IF (c.state = idle) OR (c.state = failed) OR (c.state = closed) THEN RETURN c.state END;
+  IF (start < 0) OR (count < 0) OR (start > LEN(bytes)) OR (count > LEN(bytes)-start) THEN
+    Fail(c, invalidConfig, NIL); RETURN c.state
+  END;
+  IF (count = 0) OR (c.state = upgrading) THEN RETURN c.state END;
   negotiating := (c.state # online) & (c.state # registering) & (c.state # closing);
   IF negotiating & ((c.negotiationBytes = maxNegotiationBytes) OR
                     (c.negotiationEvents = maxNegotiationEvents)) THEN
     Fail(c, negotiationLimit, NIL); RETURN c.state
   END;
-  IF c.position = c.length THEN
-    ok := c.wire.Read(c.buffer, c.length); c.position := 0;
-    ASSERT((c.length >= 0) & (c.length <= LEN(c.buffer)));
-    IF ~ok OR (c.length = 0) THEN
-      Fail(c, transportError, c.wire.res); RETURN c.state
-    END
-  END;
-  count := c.length-c.position;
   IF negotiating THEN
     IF count > maxNegotiationBytes-c.negotiationBytes THEN count := maxNegotiationBytes-c.negotiationBytes END
   END;
-  event := c.session.Feed(c.buffer, c.position, count, n); INC(c.position, n);
+  event := c.session.Feed(bytes, start, count, consumed);
   IF negotiating THEN
-    INC(c.negotiationBytes, n);
+    INC(c.negotiationBytes, consumed);
     IF event # XML.needInput THEN INC(c.negotiationEvents) END
   END;
+  IF c.state = restarting THEN
+    IF ~c.wire.AuthenticatedFor(c.domain^) OR ~c.session.Restart() THEN Fail(c, protocolError, NIL)
+    ELSE StartHeader(c)
+    END
+  END;
+  RETURN c.state
+END FeedInput;
+
+PROCEDURE (c: Client) Feed*(bytes: ARRAY OF CHAR; start, count: LONGINT; VAR consumed: LONGINT): SHORTINT;
+(* Caller-owned input; consuming at most one XML event and leaving STARTTLS
+   completion to TLSReady. Zero bytes mean no input, rather than EOF. *)
+BEGIN
+  consumed := 0;
+  IF c.driver = 1 THEN Fail(c, invalidConfig, NIL); RETURN c.state END;
+  c.driver := 2; RETURN FeedInput(c, bytes, start, count, consumed)
+END Feed;
+
+PROCEDURE (c: Client) TLSReady*(): BOOLEAN;
+BEGIN
+  IF (c.driver # 2) OR (c.state # upgrading) THEN Fail(c, invalidConfig, NIL); RETURN FALSE END;
+  IF ~c.wire.AuthenticatedFor(c.domain^) THEN Fail(c, tlsRequired, c.wire.res); RETURN FALSE END;
+  IF ~c.session.Restart() THEN Fail(c, protocolError, NIL); RETURN FALSE END;
+  StartHeader(c); RETURN c.state # failed
+END TLSReady;
+
+PROCEDURE (c: Client) End*;
+BEGIN
+  IF (c.state # closed) & (c.state # failed) THEN Fail(c, transportError, c.wire.res) END
+END End;
+
+PROCEDURE (c: Client) Step*(): SHORTINT;
+(* Performs at most one read and one XML event. Reads and TLS upgrades may block
+   within the transport's deadlines. All unconsumed application bytes stay local. *)
+  VAR n: LONGINT; state: SHORTINT; ok: BOOLEAN;
+BEGIN
+  IF c.driver = 2 THEN Fail(c, invalidConfig, NIL); RETURN c.state END;
+  c.driver := 1;
+  IF (c.state = idle) OR (c.state = failed) OR (c.state = closed) THEN RETURN c.state END;
+  IF (c.state # online) & (c.state # registering) & (c.state # closing) &
+    ((c.negotiationBytes = maxNegotiationBytes) OR (c.negotiationEvents = maxNegotiationEvents)) THEN
+    Fail(c, negotiationLimit, NIL); RETURN c.state
+  END;
+  IF c.position = c.length THEN
+    ok := c.wire.Read(c.buffer, c.length); c.position := 0;
+    ASSERT((c.length >= 0) & (c.length <= LEN(c.buffer)));
+    IF ~ok OR (c.length = 0) THEN Fail(c, transportError, c.wire.res); RETURN c.state END
+  END;
+  state := FeedInput(c, c.buffer, c.position, c.length-c.position, n); INC(c.position, n);
   IF c.state = upgrading THEN
     (* A TLS server cannot send its handshake before this client sends ClientHello. *)
     IF c.position # c.length THEN Fail(c, protocolError, NIL)
     ELSIF ~c.wire.StartTLS(c.domain^) OR ~c.wire.AuthenticatedFor(c.domain^) THEN Fail(c, tlsRequired, c.wire.res)
     ELSIF ~c.session.Restart() THEN Fail(c, protocolError, NIL)
-    ELSE StartHeader(c)
-    END
-  ELSIF c.state = restarting THEN
-    IF ~c.wire.AuthenticatedFor(c.domain^) OR ~c.session.Restart() THEN Fail(c, protocolError, NIL)
     ELSE StartHeader(c)
     END
   END;

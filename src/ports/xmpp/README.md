@@ -49,6 +49,8 @@ The portable modules are included in VOC's normal Oberon-2 and modular library
 builds. `XmppTCP` is built separately by the network target. The Linux networking
 profile includes `XmppSocks5TCP`; see [bytestream foundations](doc/ByteStreams.md)
 for host selection, destination hashes and nonblocking client negotiation.
+`XmppAsyncTCP` supplies bounded nonblocking TCP/TLS for caller-fed XMPP clients;
+see [caller-driven connections](doc/AsyncClient.md).
 
 ## Use
 

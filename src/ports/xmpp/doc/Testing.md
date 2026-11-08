@@ -117,6 +117,19 @@ on x86-64 Linux. The existing 42 XMPP TLS loopback cases pass against the
 integrated resumable TLS revision. Tests run sequentially at low priority;
 direct streamhost listening and SOCKS5 file-transfer integration remain pending.
 
+Caller-fed client driving adds 71 checks, bringing the negotiation suite to 736.
+These cover fragmented plaintext/TLS/SASL restarts, exact consumption, zero-byte
+feeds, explicit EOF, capability checks before TLS completion and rejection of
+mixed input drivers. Nonblocking TCP/TLS fixtures exercise Unicode login,
+resource binding, messages and orderly closure, certificate-name rejection,
+authentication failure, timeout, cancellation and EOF over STARTTLS and direct
+TLS. The transport also checks queue bounds and endpoint/deadline validation.
+See [caller-driven connections](AsyncClient.md).
+
+The 736-check client suite passes with conventional GCC and shared modules.
+Seventeen asynchronous TLS cases pass through the shared transport, including
+Unicode service domains, untrusted issuers and extra plaintext at STARTTLS.
+
 Twenty-eight Python/OpenSSL loopback cases cover STARTTLS, direct TLS, Unicode
 credentials, messages and domains, certificate and protocol-version rejection,
 binding failures, stalled reads/handshakes, ping/version/discovery dispatch,

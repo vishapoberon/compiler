@@ -51,9 +51,12 @@ network: all
 	done
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) "$(SOURCE)/XmppTCP.Mod"
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) "$(SOURCE)/XmppSocks5TCP.Mod"
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) "$(SOURCE)/XmppAsyncTCP.Mod"
 
 network-test: network
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppSocks5TCP.Mod" && timeout 30 ./TestXmppSocks5TCP
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppAsync.Mod"
+	python3 "$(SOURCE)/tests/async-loopback.py" "$(BUILD)"
 	$(MAKE) -C "$(SOURCE)/../ooc" BUILD="$(BUILD)" VOC="$(VOC)" test-idna
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppNetwork.Mod"
 	python3 "$(SOURCE)/tests/loopback.py" "$(BUILD)"
@@ -72,6 +75,7 @@ tls-regression: network
 	cd "$(ROOT)/src/test/ports" && sh ./gemini/test.sh "$(VOC)" "$(BUILD)" 2 "-sFm"
 
 clean:
+	rm -f $(foreach name,XmppAsyncTCP TestXmppAsync,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppAsync"
 	rm -f $(foreach name,XmppSocks5TCP TestXmppByteStreams TestXmppSocks5 TestXmppSocks5TCP,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppByteStreams" "$(BUILD)/TestXmppSocks5" "$(BUILD)/TestXmppSocks5TCP"
 	rm -f $(foreach name,TestXmppIbb TestXmppIbbTransfer TestXmppStreamInit TestXmppFileReceiver TestXmppFileSender,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppIbb" "$(BUILD)/TestXmppIbbTransfer" "$(BUILD)/TestXmppStreamInit" "$(BUILD)/TestXmppFileReceiver" "$(BUILD)/TestXmppFileSender"
 	rm -f $(foreach name,$(MODULES) XmppTCP XmppProbe TestXmppStream TestXmppCore TestXmppClient TestXmppIQ TestXmppRegister TestXmppRosterPubSub TestXmppPresence TestXmppMuc TestXmppMucTracker TestXmppNetwork TestXmppRegisterNetwork,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppStream" "$(BUILD)/TestXmppCore" "$(BUILD)/TestXmppClient" "$(BUILD)/TestXmppIQ" "$(BUILD)/TestXmppRegister" "$(BUILD)/TestXmppRosterPubSub" "$(BUILD)/TestXmppPresence" "$(BUILD)/TestXmppMuc" "$(BUILD)/TestXmppMucTracker" "$(BUILD)/TestXmppNetwork" "$(BUILD)/TestXmppRegisterNetwork" "$(BUILD)/XmppProbe"
