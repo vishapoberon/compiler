@@ -32,3 +32,5 @@ echo "$count TLS test programs passed"
 "$compiler" -O"$model" "$flags" "$source/Internet/TestNetworkClient.Mod"
 "$compiler" -O"$model" "$flags" "$source/tls/TestTLSListener.Mod"
 sh "$source/../../tools/make/python.sh" "$source/tls/loopback.py" "$build"
+TLS_ASYNC_INSTALLED=1 sh "$source/../../tools/make/python.sh" "$source/tls/async.py" \
+  "$source/../../ports/norayr/tls/TLS13Live.Mod" "$compiler" "$flags"

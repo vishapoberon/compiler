@@ -3,8 +3,8 @@ package = "tls"
 kind = "library"
 origin = "Norayr Chilingarian's pure-Oberon TLS 1.3 implementation"
 upstream_url = "https://github.com/norayr/tls"
-upstream_revision = "50b0807669da378f52f1b7b127030a9bf88c99b3"
-revision_status = "synchronized with upstream; passing all 36 TLS test programs with HexDigits byte dumps"
+upstream_revision = "eec8d87bda36cf3770af8626fee3bce6499cc6bf"
+revision_status = "synchronized with upstream; passing existing crypto tests and resumable live/record regressions"
 sources = [
   "TLSBytes.Mod", "TLSSHA256.Mod", "TLSHKDF.Mod", "TLSSHA512.Mod", "TLSNum.Mod",
   "TLSECDSA.Mod", "TLSX25519.Mod", "TLSAESGCM.Mod", "TLS13Records.Mod", "TLS13Handshake.Mod",
@@ -15,9 +15,9 @@ sources = [
   "TLSNow.Mod", "TLSIdentity.Mod", "TLSCertGen.Mod", "TLS13Live.Mod", "TLS13Server.Mod", "httpsPure.Mod",
 ]
 license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; shared ETH BIT retains separate provenance in s3"
-source_map = ["src/*.Mod -> same filenames (35 selected libraries only)", "LICENSE and COPYING -> same filenames", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
+source_map = ["src/*.Mod -> same filenames (35 selected libraries only)", "LICENSE and COPYING -> same filenames", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/{TestAsync.Mod,TestAsyncRecords.Mod,async.py} -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
 adaptations = [
-  "keeping implementation sources unchanged at the recorded revision except the existing TLS13Live STARTTLS entry point and key-state handling",
+  "keeping TLS13Live and resumable test sources byte-identical to the recorded upstream revision",
   "copying five hexadecimal-dump tests byte-for-byte from Polpo c9795fc1 through the shared TLS upstream",
   "reusing the ETH BIT in s3 instead of importing a duplicate",
   "keeping test programs and example applications out of distribution libraries",
@@ -26,4 +26,4 @@ adaptations = [
   "retaining TLSNow's signed 32-bit seconds interface (2038 limit)",
 ]
 build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
-test = "make -C src/test/ports test; make modular-library-test; fixtures selected with TLS_TEST_CERTS"
+test = "make -C src/test/ports test; make modular-library-test; including resumable record/KeyUpdate and live interoperability tests; fixtures selected with TLS_TEST_CERTS"
