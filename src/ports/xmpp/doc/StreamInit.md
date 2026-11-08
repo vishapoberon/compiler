@@ -32,6 +32,9 @@ file.
 
 ## sending an offer
 
+[`XmppFileSender`](FileSender.md) connects this negotiation to a checked source
+reader and acknowledged IBB sending, including selected resume ranges.
+
 `Query(router, peer, offer, timeoutMS, action, error)` sends a checked offer
 through exact-peer IQ correlation. The peer must be explicit. In the completion
 callback, `ReadSelection(request)` validates the reply against the original

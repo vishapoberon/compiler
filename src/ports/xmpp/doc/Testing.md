@@ -49,6 +49,14 @@ binary file and premature close rejection over STARTTLS and direct TLS.
 The receive-integration suite passes conventional/shared GCC builds and the
 XMPP-module Clang ASan/UBSan profile.
 
+`TestXmppFileSender` adds 31 checks for exact-peer offer selection, captured
+source origins and resume ranges, empty files, metadata isolation, per-transfer
+callback routing, seek/read failures, cancellation, bounded tables and deadlines.
+The incoming-file TLS fixtures also negotiate and send a selected outgoing
+range on the same client and IBB engine, verifying the resulting binary bytes.
+These outgoing checks pass conventional/shared GCC builds and the XMPP-module
+Clang ASan/UBSan profile.
+
 In the standalone checkout, `make history-test` restores and verifies the
 preserved Mercurial repository and checks the imported Git history. See
 [the history record](History.md) for source revisions and the conversion checks.

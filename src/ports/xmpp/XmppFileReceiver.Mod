@@ -127,6 +127,9 @@ END Stop;
 PROCEDURE (receiver: Receiver) Stop*;
 BEGIN Stop(receiver, cancelled) END Stop;
 
+PROCEDURE (receiver: Receiver) Bytestreams*(): Ibb.Manager;
+BEGIN RETURN receiver.ibb END Bytestreams;
+
 PROCEDURE (receiver: Receiver) Reject*(session: Session): BOOLEAN;
 BEGIN
   IF (session = NIL) OR (session.owner # receiver) OR (session.status # offered) THEN RETURN FALSE END;

@@ -426,6 +426,30 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                                               "result" if sid == "incoming" else "error")
                         if sid == "truncated":
                             assert result.find(f"{{{CLIENT}}}error/{{urn:ietf:params:xml:ns:xmpp-stanzas}}not-acceptable") is not None
+                    outgoing = peer.event()
+                    offer = outgoing.find(f"{{{si}}}si")
+                    assert outgoing.get("to") == sender and offer.get("id") == "outgoing"
+                    file = offer.find(f"{{{file_ns}}}file")
+                    assert file.get("size") == "513" and file.find(f"{{{file_ns}}}range") is not None
+                    selection = (f'<si xmlns="{si}"><file xmlns="{file_ns}"><range offset="123" length="234"/></file>'
+                                 f'<feature xmlns="{feature_ns}"><x xmlns="{form_ns}" type="submit">'
+                                 f'<field var="stream-method"><value>{ibb}</value></field></x></feature></si>')
+                    send(connection, f'<iq from="{sender}" type="result" id="{outgoing.get("id")}">{selection}</iq>', 3)
+                    opened = peer.event()
+                    assert opened.find(f"{{{ibb}}}open").get("sid") == "outgoing"
+                    assert opened.find(f"{{{ibb}}}open").get("block-size") == "128"
+                    send(connection, f'<iq from="{sender}" type="result" id="{opened.get("id")}"/>', 3)
+                    received = bytearray()
+                    for seq in range(2):
+                        packet = peer.event()
+                        data = packet.find(f"{{{ibb}}}data")
+                        assert data.get("sid") == "outgoing" and data.get("seq") == str(seq)
+                        received.extend(base64.b64decode(data.text, validate=True))
+                        send(connection, f'<iq from="{sender}" type="result" id="{packet.get("id")}"/>', 3)
+                    assert received == raw[123:357]
+                    closed = peer.event()
+                    assert closed.find(f"{{{ibb}}}close").get("sid") == "outgoing"
+                    send(connection, f'<iq from="{sender}" type="result" id="{closed.get("id")}"/>', 3)
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"

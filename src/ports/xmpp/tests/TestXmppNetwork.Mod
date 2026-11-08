@@ -6,7 +6,7 @@ IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
   Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker,
   Muc := XmppMuc, Rooms := XmppMucTracker, Channel, Mem := IOMemory,
-  Ibb := XmppIbbTransfer, SI := XmppStreamInit, FR := XmppFileReceiver;
+  Ibb := XmppIbbTransfer, SI := XmppStreamInit, FR := XmppFileReceiver, FS := XmppFileSender;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -25,6 +25,8 @@ TYPE
   IbbHookDesc = RECORD (Ibb.HookDesc) finished: LONGINT END;
   FileHook = POINTER TO FileHookDesc;
   FileHookDesc = RECORD (FR.HookDesc) offered, finished: LONGINT; session: FR.Session END;
+  FileSendHook = POINTER TO FileSendHookDesc;
+  FileSendHookDesc = RECORD (FS.HookDesc) finished: LONGINT END;
 
 VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Client.Client;
   domain: ARRAY 256 OF CHAR;
@@ -38,6 +40,12 @@ VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Clie
   mucPresences, mucMessages, mucSubjects, mucRejected, mucInvitations: LONGINT;
   ibb: Ibb.Manager; ibbHook: IbbHook; incomingFile: Mem.Channel;
   fileReceiver: FR.Receiver; fileHook: FileHook; partialFile: Mem.Channel;
+
+PROCEDURE (h: FileSendHook) Done(sender: FS.Sender; session: FS.Session);
+BEGIN
+  ASSERT((session.status = FS.done) & (session.offset = 123) & (session.length = 234) & (session.bytes = 234));
+  INC(h.finished)
+END Done;
 
 PROCEDURE (h: FileHook) Offered(receiver: FR.Receiver; session: FR.Session);
 BEGIN
@@ -245,7 +253,9 @@ BEGIN
 END IbbTest;
 
 PROCEDURE FilesTest;
-  VAR writer: Channel.Writer; reader: Channel.Reader; bytes: ARRAY 513 OF CHAR; i, count: LONGINT;
+  VAR writer: Channel.Writer; reader: Channel.Reader; bytes: ARRAY 513 OF CHAR; prefix: ARRAY 10 OF CHAR;
+    i, count: LONGINT; source: Mem.Channel; sender: FS.Sender; sendHook: FileSendHook;
+    offer: SI.Offer; session: FS.Session; target, sid, name: T.String;
 BEGIN
   incomingFile := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
   partialFile := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
@@ -259,7 +269,18 @@ BEGIN
   END;
   reader := incomingFile.NewReader(); reader.ReadBytes(bytes, 0, LEN(bytes)); ASSERT((reader.res = NIL) & (reader.bytesRead = 513));
   FOR i := 0 TO LEN(bytes)-1 DO ASSERT(bytes[i] = CHR(i MOD 256)) END;
-  ASSERT((fileReceiver.count = 0) & (router.count = 0)); incomingFile.Close; partialFile.Close; hook.sent := 0
+  ASSERT((fileReceiver.count = 0) & (router.count = 0));
+  source := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
+  FOR i := 0 TO LEN(prefix)-1 DO prefix[i] := 0X END;
+  writer := source.NewWriter(); writer.WriteBytes(prefix, 0, LEN(prefix)); writer.WriteBytes(bytes, 0, LEN(bytes)); ASSERT(writer.res = NIL);
+  reader := source.NewReader(); reader.SetPos(LEN(prefix)); ASSERT(reader.res = NIL);
+  NEW(sendHook); sender := FS.New(fileReceiver.Bytestreams(), sendHook, 2000); ASSERT(sender # NIL);
+  target := Items.Latin1("peer@example.org/resource"); sid := Items.Latin1("outgoing"); name := Items.UTF8("ֆայլ😀.bin");
+  offer := SI.NewOffer(sid^, name^, 513, {SI.ibb}); offer.range := TRUE;
+  session := sender.Offer(target^, offer, reader, 128, error); ASSERT((session # NIL) & (error = NIL));
+  REPEAT state := client.Step() UNTIL (sendHook.finished = 1) OR (state = Client.failed);
+  ASSERT((state = Client.online) & (reader.Pos() = 367) & (sender.count = 0) & (fileReceiver.count = 0) & (router.count = 0));
+  sender.Stop; source.Close; incomingFile.Close; partialFile.Close; hook.sent := 0
 END FilesTest;
 
 PROCEDURE WaitRoomRequest;

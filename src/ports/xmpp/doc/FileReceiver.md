@@ -24,6 +24,10 @@ reception activates only after authenticated readiness.
 Rebuild the native XMPP modules and their consumers when updating: the IBB hook
 interface now includes completion validation.
 
+`receiver.Bytestreams()` exposes the shared IBB manager for an outgoing
+[`XmppFileSender`](FileSender.md); outgoing per-transfer hooks do not replace
+incoming consent policy. Stop the sender explicitly during teardown as well.
+
 The configured byte, block and timeout limits follow `XmppIbbTransfer`.
 At most 16 sessions can be queued, waiting for IBB, or receiving. An offer over
 the byte limit is rejected before consent. This receiver selects IBB; an offer
