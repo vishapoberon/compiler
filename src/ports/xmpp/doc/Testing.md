@@ -30,6 +30,13 @@ rejection. These use synthetic local peers and memory-backed I/O.
 The lifecycle suite passes GCC conventional/shared builds and the XMPP-module
 Clang ASan/UBSan profile; other platforms remain unvalidated for this addition.
 
+`TestXmppStreamInit` adds 162 checks for file metadata, empty and maximum-sized
+offers, 128 fragmented Unicode offer round trips, transport selection, resume
+bounds and malformed method forms. These pass conventional/shared GCC builds
+and the XMPP-module Clang ASan/UBSan profile. The two IBB TLS fixtures first
+negotiate an offer and select IBB, rejecting a spoofed resource's selection before sending
+the file data.
+
 In the standalone checkout, `make history-test` restores and verifies the
 preserved Mercurial repository and checks the imported Git history. See
 [the history record](History.md) for source revisions and the conversion checks.

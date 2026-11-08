@@ -31,8 +31,10 @@ encoder, clearing temporary credential buffers after constructing its response.
 
 `XmppIbbTransfer` manages the original one-way file-transfer workflow over
 IQ-based IBB. It supplies explicit receive consent, checked binary I/O,
-acknowledged sending, progress callbacks, deadlines and cancellation. Stream
-initiation, SOCKS5 bytestreams and the original checksum helper remain pending.
+acknowledged sending, progress callbacks, deadlines and cancellation.
+[Stream-initiation payloads](StreamInit.md) negotiate file offers and transport
+selection. Their incoming-offer/session integration, SOCKS5 bytestreams and the
+original checksum helper remain pending.
 
 Create one manager per client, before starting negotiation:
 

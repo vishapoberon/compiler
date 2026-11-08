@@ -6,7 +6,7 @@ IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
   Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker,
   Muc := XmppMuc, Rooms := XmppMucTracker, Channel, Mem := IOMemory,
-  Ibb := XmppIbbTransfer;
+  Ibb := XmppIbbTransfer, SI := XmppStreamInit;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -50,6 +50,7 @@ BEGIN
   IF a.kind = 1 THEN ASSERT(PubSub.Published(request))
   ELSIF a.kind = 2 THEN ASSERT(PubSub.ReadItems(request) # NIL)
   ELSIF a.kind = 3 THEN ASSERT(Muc.ReadConfiguration(request) # NIL)
+  ELSIF a.kind = 4 THEN ASSERT(SI.ReadSelection(request) # NIL)
   ELSE ASSERT(IQ.EmptyResult(request))
   END;
   INC(a.calls)
@@ -205,13 +206,18 @@ END PresenceTest;
 
 PROCEDURE IbbTest;
   VAR source: Mem.Channel; writer: Channel.Writer; reader: Channel.Reader;
-    raw, copy: ARRAY 513 OF CHAR; peer, sid: T.String; transfer: Ibb.Transfer; i: LONGINT;
+    raw, copy: ARRAY 513 OF CHAR; peer, sid, filename: T.String; transfer: Ibb.Transfer; i: LONGINT;
+    offer: SI.Offer; selection: SI.Selection;
 BEGIN
   source := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
   incomingFile := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
   FOR i := 0 TO LEN(raw)-1 DO raw[i] := CHR(i MOD 256) END;
   writer := source.NewWriter(); writer.WriteBytes(raw, 0, LEN(raw)); ASSERT(writer.res = NIL);
   reader := source.NewReader(); peer := Items.Latin1("peer@example.org/resource"); sid := Items.Latin1("upload");
+  filename := Items.UTF8("փաստաթուղթ😀.bin"); offer := SI.NewOffer(sid^, filename^, LEN(raw), {SI.ibb, SI.socks5});
+  NEW(action); action.kind := 4; request := SI.Query(router, peer^, offer, 2000, action, error); ASSERT(error = NIL);
+  REPEAT state := client.Step() UNTIL (action.calls = 1) OR (state = Client.failed);
+  selection := SI.ReadSelection(request); ASSERT((selection # NIL) & (selection.method = SI.ibb) & (selection.offset = 0) & (selection.length = LEN(raw)));
   transfer := ibb.Send(peer^, sid^, reader, LEN(raw), 256, error); ASSERT((transfer # NIL) & (error = NIL));
   REPEAT state := client.Step() UNTIL (ibbHook.finished = 2) OR (state = Client.failed);
   ASSERT((state = Client.online) & (transfer.status = Ibb.done) & (ibb.count = 0) & (router.count = 0));

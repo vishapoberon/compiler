@@ -341,6 +341,21 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                     ibb = "http://jabber.org/protocol/ibb"
                     sender = "peer@example.org/resource"
                     raw = bytes(i % 256 for i in range(513))
+                    si = "http://jabber.org/protocol/si"
+                    file_ns = si + "/profile/file-transfer"
+                    feature_ns = "http://jabber.org/protocol/feature-neg"
+                    form_ns = "jabber:x:data"
+                    request = peer.event()
+                    offer = request.find(f"{{{si}}}si")
+                    assert request.get("to") == sender and offer.get("id") == "upload"
+                    file = offer.find(f"{{{file_ns}}}file")
+                    assert file.get("name") == "փաստաթուղթ😀.bin" and file.get("size") == "513"
+                    options = offer.findall(f"{{{feature_ns}}}feature/{{{form_ns}}}x/{{{form_ns}}}field/{{{form_ns}}}option/{{{form_ns}}}value")
+                    assert {option.text for option in options} == {ibb, "http://jabber.org/protocol/bytestreams"}
+                    selection = (f'<si xmlns="{si}"><feature xmlns="{feature_ns}"><x xmlns="{form_ns}" type="submit">'
+                                 f'<field var="stream-method"><value>{ibb}</value></field></x></feature></si>')
+                    send(connection, f'<iq from="peer@example.org/spoof" type="result" id="{request.get("id")}">{selection}</iq>', 3)
+                    send(connection, f'<iq from="{sender}" type="result" id="{request.get("id")}">{selection}</iq>', 3)
                     request = peer.event()
                     opened = request.find(f"{{{ibb}}}open")
                     assert request.get("to") == sender and request.get("type") == "set"

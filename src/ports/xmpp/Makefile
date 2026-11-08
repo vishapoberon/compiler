@@ -7,7 +7,7 @@ BUILD ?= $(ROOT)/build/ports/xmpp/2
 BUILD := $(abspath $(BUILD))
 MODULES := XmppTypes XmppConst XmppItems XmppBase64 XmppXmlStream XmppXmlGen XmppConnections \
  XmppStrings XmppCore XmppMessenger XmppWire XmppSasl XmppClient \
- XmppIQ XmppIbb XmppIbbTransfer XmppRegister XmppPresence XmppPresenceTracker XmppMuc XmppMucTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
+ XmppIQ XmppIbb XmppIbbTransfer XmppStreamInit XmppRegister XmppPresence XmppPresenceTracker XmppMuc XmppMucTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
 
 include $(ROOT)/src/tools/make/modular-libraries.mk
 NETWORK_MODULES := $(MODULAR_INTERNET) $(filter-out norayr/tls/httpsPure,$(MODULAR_TLS))
@@ -32,6 +32,7 @@ test: all
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIQ.Mod" && timeout 30 ./TestXmppIQ
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbb.Mod" && timeout 30 ./TestXmppIbb
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbbTransfer.Mod" && timeout 120 ./TestXmppIbbTransfer
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppStreamInit.Mod" && timeout 30 ./TestXmppStreamInit
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppRegister.Mod" && timeout 30 ./TestXmppRegister
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppRosterPubSub.Mod" && timeout 30 ./TestXmppRosterPubSub
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppPresence.Mod" && timeout 30 ./TestXmppPresence
@@ -65,5 +66,5 @@ tls-regression: network
 	cd "$(ROOT)/src/test/ports" && sh ./gemini/test.sh "$(VOC)" "$(BUILD)" 2 "-sFm"
 
 clean:
-	rm -f $(foreach name,TestXmppIbb TestXmppIbbTransfer,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppIbb" "$(BUILD)/TestXmppIbbTransfer"
+	rm -f $(foreach name,TestXmppIbb TestXmppIbbTransfer TestXmppStreamInit,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppIbb" "$(BUILD)/TestXmppIbbTransfer" "$(BUILD)/TestXmppStreamInit"
 	rm -f $(foreach name,$(MODULES) XmppTCP XmppProbe TestXmppStream TestXmppCore TestXmppClient TestXmppIQ TestXmppRegister TestXmppRosterPubSub TestXmppPresence TestXmppMuc TestXmppMucTracker TestXmppNetwork TestXmppRegisterNetwork,$(foreach ext,c h o sym,"$(BUILD)/$(name).$(ext)")) "$(BUILD)/TestXmppStream" "$(BUILD)/TestXmppCore" "$(BUILD)/TestXmppClient" "$(BUILD)/TestXmppIQ" "$(BUILD)/TestXmppRegister" "$(BUILD)/TestXmppRosterPubSub" "$(BUILD)/TestXmppPresence" "$(BUILD)/TestXmppMuc" "$(BUILD)/TestXmppMucTracker" "$(BUILD)/TestXmppNetwork" "$(BUILD)/TestXmppRegisterNetwork" "$(BUILD)/XmppProbe"
