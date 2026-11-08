@@ -1,0 +1,17 @@
+schema = 1
+package = "irc-bot-example"
+kind = "example"
+origin = "Norayr Chilingarian's IRC channel-history bot"
+upstream_url = "https://github.com/norayr/irc_bot"
+upstream_revision = "7d7e0e2a66a89ae345f64e626f3a97a63cdc32ed"
+license = "GPL-3.0-only in LICENSE"
+sources = ["vocbot.Mod"]
+source_map = ["src/vocbot.Mod -> vocbot.Mod", "tests/reconnect.py -> tests/reconnect.py", "LICENSE -> LICENSE"]
+adaptations = [
+  "keeping the application and test source byte-identical to upstream",
+  "building against bundled IRC, IRCTCP and IRCTLS modules without fetching dependencies",
+  "building the application only on request with the example makefile",
+  "keeping generated executables and logs in the build directory",
+]
+build = "make -C src/examples/network/irc-bot; Linux model 2 networking profile"
+test = "make -C src/examples/network/irc-bot test; make native-test for the shared-module consumer"

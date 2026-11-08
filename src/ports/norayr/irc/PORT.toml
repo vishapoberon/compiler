@@ -1,0 +1,23 @@
+schema = 1
+package = "IRC"
+kind = "library"
+origin = "Norayr Chilingarian's Oberon IRC client library"
+upstream_url = "https://github.com/norayr/irc"
+upstream_revision = "9f6972330226c952e0ed8c4d4769230a4a4ad03f"
+revision_status = "synchronized with upstream sources and standalone regressions"
+sources = ["IRC.Mod", "IRCTCP.Mod", "IRCTLS.Mod"]
+license = "LGPL-3.0-only in LICENSE, incorporating GPL version 3 in COPYING"
+source_map = [
+  "src/{IRC.Mod,IRCTCP.Mod,IRCTLS.Mod} -> same filenames",
+  "LICENSE and COPYING -> same filenames",
+  "tests/{TestIRC.Mod,IRCProbe.Mod,network.py} -> src/test/ports/irc/",
+]
+adaptations = [
+  "keeping implementation and test sources byte-identical to upstream",
+  "building transports with the Linux model-2 networking profile only",
+  "using bundled Sockets, DNS and resumable TLS13Live modules",
+  "using source-tree test/build integration without fetching dependencies",
+  "keeping the GPL history bot in src/examples/network/irc-bot",
+]
+build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
+test = "make -C src/test/ports test; make modular-library-test; loopback-only protocol and TLS peers"

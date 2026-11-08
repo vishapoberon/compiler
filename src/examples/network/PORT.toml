@@ -8,5 +8,6 @@ source_map = [
   "http/test/testHttp.Mod -> http/ (upstream 97e9d4702f246aa294fae7a06efae57bc49452fd)",
   "tls/src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> tls/ (upstream d66456732c7bf213c153b39edc125dd3674daffb)",
   "https/src/fetch.Mod and test/testHttps.Mod -> https/ (upstream ea18fdd4f86440496dd583828d521409978332f2)",
+  "irc_bot/src/vocbot.Mod and tests/reconnect.py -> irc-bot/ (upstream 7d7e0e2a66a89ae345f64e626f3a97a63cdc32ed)",
 ]
 adaptations = ["keeping source modules unchanged", "using source-tree makefiles rather than upstream fetching/installing recipes", "building applications only on request"]
