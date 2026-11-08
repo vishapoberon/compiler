@@ -6,7 +6,7 @@ IMPORT Args, Out, Msg, S := LongStrings, T := XmppTypes, Items := XmppItems,
   IQ := XmppIQ, Ping := XmppPing, Version := XmppVersion, Disco := XmppDisco,
   Roster := XmppRoster, PubSub := XmppPubSub, P := XmppPresence, Track := XmppPresenceTracker,
   Muc := XmppMuc, Rooms := XmppMucTracker, Channel, Mem := IOMemory,
-  Ibb := XmppIbbTransfer, SI := XmppStreamInit;
+  Ibb := XmppIbbTransfer, SI := XmppStreamInit, FR := XmppFileReceiver;
 
 TYPE
   Hook = POINTER TO HookDesc;
@@ -23,6 +23,8 @@ TYPE
   RoomHookDesc = RECORD (Rooms.HookDesc) changes, notices, resets: LONGINT END;
   IbbHook = POINTER TO IbbHookDesc;
   IbbHookDesc = RECORD (Ibb.HookDesc) finished: LONGINT END;
+  FileHook = POINTER TO FileHookDesc;
+  FileHookDesc = RECORD (FR.HookDesc) offered, finished: LONGINT; session: FR.Session END;
 
 VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Client.Client;
   domain: ARRAY 256 OF CHAR;
@@ -35,6 +37,22 @@ VAR port, mode, direct: ARRAY 64 OF CHAR; transport: TCP.Transport; client: Clie
   rooms: Rooms.Tracker; roomHook: RoomHook; mucRoom: Rooms.Room;
   mucPresences, mucMessages, mucSubjects, mucRejected, mucInvitations: LONGINT;
   ibb: Ibb.Manager; ibbHook: IbbHook; incomingFile: Mem.Channel;
+  fileReceiver: FR.Receiver; fileHook: FileHook; partialFile: Mem.Channel;
+
+PROCEDURE (h: FileHook) Offered(receiver: FR.Receiver; session: FR.Session);
+BEGIN
+  ASSERT(S.Equal8(session.peer^, "peer@example.org/resource") & (session.length = 513));
+  ASSERT(S.Equal8(session.sid^, "incoming") OR S.Equal8(session.sid^, "truncated"));
+  h.session := session; INC(h.offered)
+END Offered;
+
+PROCEDURE (h: FileHook) Done(receiver: FR.Receiver; session: FR.Session);
+BEGIN
+  IF S.Equal8(session.sid^, "incoming") THEN ASSERT((session.status = FR.done) & (session.bytes = 513))
+  ELSE ASSERT((session.status = FR.protocolError) & (session.bytes = 3))
+  END;
+  INC(h.finished)
+END Done;
 
 PROCEDURE (h: IbbHook) Incoming(manager: Ibb.Manager; transfer: Ibb.Transfer;
   VAR writer: Channel.Writer; VAR maximum: LONGINT): BOOLEAN;
@@ -83,7 +101,7 @@ PROCEDURE (h: Hook) Received(client: Client.Client; stanza: Core.Stanza);
   VAR body, expected, node: T.String; event: PubSub.Event; occupant: Muc.Occupant;
     message: Muc.Message; invitation: Muc.Invitation;
 BEGIN
-  IF (mode = "ibb") & (stanza.kind = Core.iq) THEN RETURN END;
+  IF ((mode = "ibb") OR (mode = "files")) & (stanza.kind = Core.iq) THEN RETURN END;
   IF (mode = "presence") & (stanza.kind = Core.presence) THEN RETURN END;
   IF mode = "muc" THEN
     node := Items.Latin1("room@conference.example.org");
@@ -226,6 +244,24 @@ BEGIN
   source.Close; incomingFile.Close; hook.sent := 0
 END IbbTest;
 
+PROCEDURE FilesTest;
+  VAR writer: Channel.Writer; reader: Channel.Reader; bytes: ARRAY 513 OF CHAR; i, count: LONGINT;
+BEGIN
+  incomingFile := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
+  partialFile := Mem.Tmp("", {Mem.read, Mem.write}, error); ASSERT(error = NIL);
+  FOR count := 1 TO 2 DO
+    REPEAT state := client.Step() UNTIL (fileHook.offered = count) OR (state = Client.failed);
+    ASSERT(state = Client.online);
+    IF count = 1 THEN writer := incomingFile.NewWriter() ELSE writer := partialFile.NewWriter() END;
+    ASSERT(fileReceiver.Accept(fileHook.session, writer, 0, 513));
+    REPEAT state := client.Step() UNTIL (fileHook.finished = count) OR (state = Client.failed);
+    ASSERT(state = Client.online)
+  END;
+  reader := incomingFile.NewReader(); reader.ReadBytes(bytes, 0, LEN(bytes)); ASSERT((reader.res = NIL) & (reader.bytesRead = 513));
+  FOR i := 0 TO LEN(bytes)-1 DO ASSERT(bytes[i] = CHR(i MOD 256)) END;
+  ASSERT((fileReceiver.count = 0) & (router.count = 0)); incomingFile.Close; partialFile.Close; hook.sent := 0
+END FilesTest;
+
 PROCEDURE WaitRoomRequest;
 BEGIN
   ASSERT((request # NIL) & (error = NIL));
@@ -280,7 +316,7 @@ BEGIN
   InvalidConfiguration;
   Args.Get(1, port); Args.Get(2, mode); Args.Get(3, direct);
   Args.Get(4, domain); IF domain = "" THEN domain := "localhost" END;
-  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence") OR (mode = "muc") OR (mode = "ibb");
+  success := (mode = "starttls") OR (mode = "direct") OR (mode = "unicode") OR (mode = "alabel") OR (mode = "extensions") OR (mode = "roster-pep") OR (mode = "presence") OR (mode = "muc") OR (mode = "ibb") OR (mode = "files");
   transport := TCP.Open("127.0.0.1", port, domain, direct = "yes", 2000, error);
   IF transport = NIL THEN ASSERT(~success & (error # NIL))
   ELSE
@@ -290,6 +326,8 @@ BEGIN
     name := Items.UTF8("friend@ծոց.հայ"); ASSERT(tracker.Watch(name^));
     IF mode = "ibb" THEN
       NEW(ibbHook); ibb := Ibb.New(tracker, ibbHook, 513, 256, 2000); ASSERT(ibb # NIL); router := ibb.router
+    ELSIF mode = "files" THEN
+      NEW(fileHook); fileReceiver := FR.New(tracker, fileHook, 513, 256, 2000); ASSERT(fileReceiver # NIL); router := fileReceiver.router
     ELSE router := IQ.New(tracker)
     END;
     ping := Ping.New(router); ASSERT(ping # NIL);
@@ -319,6 +357,7 @@ BEGIN
       IF mode = "presence" THEN PresenceTest END;
       IF mode = "muc" THEN MucTest END;
       IF mode = "ibb" THEN IbbTest END;
+      IF mode = "files" THEN FilesTest END;
       to := Items.Latin1("friend@localhost"); body := Items.UTF8("Բարեւ 😀");
       stanza := Messenger.NewMessage(to^, body^); client.Send(stanza, error); ASSERT(error = NIL);
       REPEAT state := client.Step() UNTIL (hook.received > 0) OR (state = Client.failed);

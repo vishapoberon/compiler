@@ -4,7 +4,8 @@ An explicitly registered handler can return `XmppIQ.Deferred()` to take ownershi
 of an asynchronous reply. The router sends no fallback response for that token.
 The handler must own a bounded queue, send one result/error or terminate on
 disconnect, and implement deadlines and cancellation. The token is only a
-handler return value; never pass it to `XmppClient.Send`.
+handler return value; never pass it to `XmppClient.Send`. `XmppFileReceiver`
+uses it while obtaining file-offer consent.
 
 `XmppIQ` routes authenticated IQ requests by namespace and local name, correlates
 replies and forwards unhandled client events to the application's `XmppClient.Hook`.

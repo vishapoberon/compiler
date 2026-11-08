@@ -390,6 +390,42 @@ def case(mode, direct=False, certificate="server", tls12=False, domain="localhos
                         encoded = base64.b64encode(raw[offset:offset + 256]).decode()
                         incoming(f"ibb-data-{seq}", f'<data xmlns="{ibb}" sid="download" seq="{seq}">{encoded}</data>')
                     incoming("ibb-close", f'<close xmlns="{ibb}" sid="download"/>')
+                if mode == "files":
+                    ibb = "http://jabber.org/protocol/ibb"
+                    si = "http://jabber.org/protocol/si"
+                    file_ns = si + "/profile/file-transfer"
+                    feature_ns = "http://jabber.org/protocol/feature-neg"
+                    form_ns = "jabber:x:data"
+                    sender = "peer@example.org/resource"
+                    raw = bytes(i % 256 for i in range(513))
+
+                    def request_file(identity, payload, result="result", source=sender):
+                        send(connection, f'<iq type="set" from="{source}" id="{identity}">{payload}</iq>', 7)
+                        response = peer.event()
+                        assert response.get("id") == identity and response.get("type") == result
+                        return response
+
+                    request_file("unsolicited", f'<open xmlns="{ibb}" sid="incoming" block-size="256"/>', "error")
+                    for sid in ("incoming", "truncated"):
+                        offer = (f'<si xmlns="{si}" id="{sid}" profile="{file_ns}">'
+                                 f'<file xmlns="{file_ns}" name="ֆայլ😀.bin" size="513"/>'
+                                 f'<feature xmlns="{feature_ns}"><x xmlns="{form_ns}" type="form">'
+                                 f'<field var="stream-method" type="list-single"><option><value>{ibb}</value></option>'
+                                 '</field></x></feature></si>')
+                        result = request_file(sid + "-offer", offer)
+                        selection = result.find(f"{{{si}}}si/{{{feature_ns}}}feature/{{{form_ns}}}x/{{{form_ns}}}field/{{{form_ns}}}value")
+                        assert selection is not None and selection.text == ibb
+                        request_file(sid + "-spoof", f'<open xmlns="{ibb}" sid="{sid}" block-size="256"/>',
+                                     "error", source="peer@example.org/spoof")
+                        request_file(sid + "-open", f'<open xmlns="{ibb}" sid="{sid}" block-size="256"/>')
+                        content = raw if sid == "incoming" else raw[:3]
+                        for seq, offset in enumerate(range(0, len(content), 256)):
+                            data = base64.b64encode(content[offset:offset + 256]).decode()
+                            request_file(f"{sid}-data-{seq}", f'<data xmlns="{ibb}" sid="{sid}" seq="{seq}">{data}</data>')
+                        result = request_file(sid + "-close", f'<close xmlns="{ibb}" sid="{sid}"/>',
+                                              "result" if sid == "incoming" else "error")
+                        if sid == "truncated":
+                            assert result.find(f"{{{CLIENT}}}error/{{urn:ietf:params:xml:ns:xmpp-stanzas}}not-acceptable") is not None
                 message = peer.event()
                 assert message.tag == f"{{{CLIENT}}}message"
                 assert message.find(f"{{{CLIENT}}}body").text == "Բարեւ 😀"
@@ -444,3 +480,5 @@ if __name__ == "__main__":
     case("muc", direct=True, certificate="idn", domain="ծոց.հայ")
     case("ibb")
     case("ibb", direct=True, certificate="idn", domain="ծոց.հայ")
+    case("files")
+    case("files", direct=True, certificate="idn", domain="ծոց.հայ")

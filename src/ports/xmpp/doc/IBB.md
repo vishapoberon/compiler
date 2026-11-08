@@ -33,8 +33,9 @@ encoder, clearing temporary credential buffers after constructing its response.
 IQ-based IBB. It supplies explicit receive consent, checked binary I/O,
 acknowledged sending, progress callbacks, deadlines and cancellation.
 [Stream-initiation payloads](StreamInit.md) negotiate file offers and transport
-selection. Their incoming-offer/session integration, SOCKS5 bytestreams and the
-original checksum helper remain pending.
+selection. [`XmppFileReceiver`](FileReceiver.md) binds incoming consent and
+selected byte counts to IBB. SOCKS5 bytestreams and the original checksum helper
+remain pending.
 
 Create one manager per client, before starting negotiation:
 

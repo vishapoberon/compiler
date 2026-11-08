@@ -22,7 +22,7 @@ MODULAR_XML = XMLUnicodeCodec XMLUnicodeCodecASCII XMLUnicodeCodecLatin1 \
  XMLBasicElement XMLBasicDataType XMLBasicParser
 MODULAR_XMPP = XmppTypes XmppConst XmppItems XmppXmlStream XmppXmlGen \
  XmppConnections XmppStrings XmppCore XmppMessenger \
- XmppBase64 XmppWire XmppSasl XmppClient XmppIQ XmppIbb XmppIbbTransfer XmppStreamInit XmppRegister XmppPresence XmppPresenceTracker XmppMuc XmppMucTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
+ XmppBase64 XmppWire XmppSasl XmppClient XmppIQ XmppIbb XmppIbbTransfer XmppStreamInit XmppFileReceiver XmppRegister XmppPresence XmppPresenceTracker XmppMuc XmppMucTracker XmppPing XmppVersion XmppDisco XmppRoster XmppPubSub
 MODULAR_XMPP_PUBLISH = XmppPEP XmppPublishConfig
 MODULAR_ULM = Types Objects Priorities Disciplines Services \
  Sys ulmSYSTEM Events Process Resources Forwarders \

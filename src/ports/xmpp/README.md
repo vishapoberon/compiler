@@ -78,6 +78,7 @@ See [room-state tracking](doc/MUCRooms.md) for confirmed joins, occupants and cl
 See [registration](doc/Registration.md) for account creation, changes and secret handling.
 See [IBB transfers](doc/IBB.md) for consent, checked binary I/O and transfer cleanup.
 See [file offers](doc/StreamInit.md) for transport selection and checked resume ranges.
+See [file reception](doc/FileReceiver.md) for asynchronous consent and negotiated IBB authorization.
 The separate [xmpp-publish example](../../examples/network/xmpp-publish/readme.md)
 publishes a Unicode PEP/Atom microblog entry with this library.
 

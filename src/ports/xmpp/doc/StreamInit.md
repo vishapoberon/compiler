@@ -59,9 +59,9 @@ of IQ correlation. Its caller owns sender and request matching. Optional
 response SID/profile attributes must match the offer. An omitted range selects
 the entire file; omitted range length selects the remaining bytes after offset.
 
-Incoming-offer dispatch, asynchronous consent queues, accepted-offer/session
-binding, file positioning and publication policy remain application integration
-work in this staged port. `XmppIbbTransfer` requires its own explicit consent
-when an IBB open arrives. Connect that callback to the accepted offer's exact
-peer, SID, size and chosen destination; do not accept an unrelated open merely
-because some offer was approved.
+[`XmppFileReceiver`](FileReceiver.md) supplies incoming-offer dispatch,
+asynchronous consent, deadlines and accepted-offer/IBB binding. It enforces the
+selected byte count before acknowledging completion. File positioning and
+publication policy remain application-owned. Applications using the lower-level
+IBB manager directly must make the same connection between consent and the exact
+peer, SID, size and chosen destination.

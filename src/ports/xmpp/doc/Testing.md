@@ -37,6 +37,15 @@ and the XMPP-module Clang ASan/UBSan profile. The two IBB TLS fixtures first
 negotiate an offer and select IBB, rejecting a spoofed resource's selection before sending
 the file data.
 
+`TestXmppFileReceiver` adds 49 checks for deferred consent, exact peer/SID
+authorization, selected ranges and exact final lengths, duplicate offers and
+IQ IDs, metadata-copy isolation, bounded queues, expired approvals, cancellation,
+I/O failures and reentrant cleanup/deadlines. Two further local TLS fixtures
+exercise incoming offer/IBB binding, unsolicited and spoofed opens, a complete
+binary file and premature close rejection over STARTTLS and direct TLS.
+The receive-integration suite passes conventional/shared GCC builds and the
+XMPP-module Clang ASan/UBSan profile.
+
 In the standalone checkout, `make history-test` restores and verifies the
 preserved Mercurial repository and checks the imported Git history. See
 [the history record](History.md) for source revisions and the conversion checks.
