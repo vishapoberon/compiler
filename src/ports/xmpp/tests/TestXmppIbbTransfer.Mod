@@ -353,9 +353,30 @@ BEGIN
   f.m.Tick(1); Check(t.status = X.timedOut, "expiring refreshed idle deadline"); Dispose(f)
 END ReentryAndErrors;
 
+PROCEDURE Observers;
+  VAR f: Fixture; observer: Hook; reader: Reader; transfer: X.Transfer; error: Msg.Msg;
+BEGIN
+  f := New(); NEW(observer); reader := Source(3);
+  transfer := f.m.SendWithHook(peer^, sid^, reader, 3, 2, observer, error); ASSERT(error = NIL);
+  Reply(f, peer, transfer.request, "result", NIL); Reply(f, peer, transfer.request, "result", NIL);
+  Reply(f, peer, transfer.request, "result", NIL); Reply(f, peer, transfer.request, "result", NIL);
+  Check((transfer.status = X.done) & (observer.progress = 2) & (observer.finished = 1) &
+    (f.h.progress = 0) & (f.h.finished = 0), "routing outgoing callbacks to explicit observer");
+  reader := Source(0); transfer := f.m.Send(peer^, sid^, reader, 0, 1, error);
+  Reply(f, peer, transfer.request, "result", NIL); Reply(f, peer, transfer.request, "result", NIL);
+  Check((f.h.finished = 1) & (observer.finished = 1), "preserving default manager callback routing"); Dispose(f);
+  f := New(); NEW(observer); observer.cancel := TRUE; reader := Source(1);
+  transfer := f.m.SendWithHook(peer^, sid^, reader, 1, 1, observer, error);
+  Reply(f, peer, transfer.request, "result", NIL); Reply(f, peer, transfer.request, "result", NIL);
+  Check((transfer.status = X.cancelled) & (observer.finished = 1) & (f.h.finished = 0), "cancelling through explicit observer"); Dispose(f);
+  f := New(); NEW(observer); reader := Source(1); f.wire.fail := TRUE;
+  transfer := f.m.SendWithHook(peer^, sid^, reader, 1, 1, observer, error);
+  Check((transfer.status >= X.done) & (observer.finished = 1) & (f.h.finished = 0), "finishing observer on synchronous send failure"); Dispose(f)
+END Observers;
+
 BEGIN
   Args.Get(1, option); exhaustive := option = "--exhaustive";
   fault := Wire.Error(); peer := Items.Latin1("peer@example.org/resource"); sid := Items.UTF8("հոսք😀");
-  Receive; InvalidBlocks; Send; Lifecycle; Paired; ReentryAndErrors;
+  Receive; InvalidBlocks; Send; Lifecycle; Paired; ReentryAndErrors; Observers;
   Out.String("XMPP IBB transfer checks passed: "); Out.Int(checks, 0); Out.Ln
 END TestXmppIbbTransfer.

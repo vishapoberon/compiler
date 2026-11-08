@@ -30,14 +30,16 @@ TYPE
     buffer: Items.Bytes;
     remaining, block: LONGINT;
     action: Pending;
+    observer: Hook;
   END;
   ManagerDesc* = RECORD (C.HookDesc)
     router-: IQ.Router;
     active-: BOOLEAN;
     count-: LONGINT;
+    maximum-, maximumBlock-: LONGINT;
     application: C.Hook;
     hook: Hook;
-    maximum, maximumBlock, timeout: LONGINT;
+    timeout: LONGINT;
     transfers: ARRAY maxTransfers OF Transfer;
   END;
   Handler = POINTER TO HandlerDesc;
@@ -98,7 +100,7 @@ BEGIN
 END BestEffortClose;
 
 PROCEDURE Finish(t: Transfer; status: SHORTINT; close: BOOLEAN);
-  VAR m: Manager; request: IQ.Request; i: LONGINT; ignored: BOOLEAN;
+  VAR m: Manager; request: IQ.Request; i: LONGINT; ignored: BOOLEAN; hook: Hook;
 BEGIN
   IF ~Live(t) THEN RETURN END;
   m := t.owner; t.status := status; request := t.request; t.request := NIL; t.action := NIL;
@@ -106,15 +108,17 @@ BEGIN
     IF m.transfers[i] = t THEN m.transfers[i] := NIL; DEC(m.count) END
   END;
   t.reader := NIL; t.writer := NIL; t.buffer := NIL;
+  hook := t.observer; t.observer := NIL; IF hook = NIL THEN hook := m.hook END;
   IF request # NIL THEN ignored := m.router.Cancel(request) END;
   IF close THEN BestEffortClose(t) END;
-  m.hook.Done(m, t)
+  hook.Done(m, t)
 END Finish;
 
 PROCEDURE Progress(t: Transfer);
-  VAR cancel: BOOLEAN;
+  VAR cancel: BOOLEAN; hook: Hook;
 BEGIN
-  cancel := FALSE; t.owner.hook.Progress(t.owner, t, cancel);
+  hook := t.observer; IF hook = NIL THEN hook := t.owner.hook END;
+  cancel := FALSE; hook.Progress(t.owner, t, cancel);
   IF cancel THEN Finish(t, cancelled, TRUE) END
 END Progress;
 
@@ -198,8 +202,8 @@ BEGIN
   END
 END Done;
 
-PROCEDURE (m: Manager) Send*(peer, sid: ARRAY OF T.CodeUnit; reader: Channel.Reader;
-                           length, blockSize: LONGINT; VAR error: Msg.Msg): Transfer;
+PROCEDURE Send(m: Manager; peer, sid: ARRAY OF T.CodeUnit; reader: Channel.Reader;
+               length, blockSize: LONGINT; observer: Hook; VAR error: Msg.Msg): Transfer;
   VAR t: Transfer; target: T.String; slot: LONGINT;
 BEGIN
   error := NIL;
@@ -215,10 +219,18 @@ BEGIN
     error := Msg.New(context, queueFull); RETURN NIL
   END;
   NEW(t); t.owner := m; t.peer := target; t.sid := Items.Copy16(sid); t.sending := TRUE;
-  t.status := opening; t.reader := reader; t.length := length; t.blockSize := blockSize;
+  t.status := opening; t.reader := reader; t.length := length; t.blockSize := blockSize; t.observer := observer;
   NEW(t.buffer, blockSize); m.transfers[slot] := t; INC(m.count);
   Queue(t, I.Open(t.sid^, blockSize)); RETURN t
 END Send;
+
+PROCEDURE (m: Manager) Send*(peer, sid: ARRAY OF T.CodeUnit; reader: Channel.Reader;
+                           length, blockSize: LONGINT; VAR error: Msg.Msg): Transfer;
+BEGIN RETURN Send(m, peer, sid, reader, length, blockSize, NIL, error) END Send;
+
+PROCEDURE (m: Manager) SendWithHook*(peer, sid: ARRAY OF T.CodeUnit; reader: Channel.Reader;
+                                   length, blockSize: LONGINT; observer: Hook; VAR error: Msg.Msg): Transfer;
+BEGIN RETURN Send(m, peer, sid, reader, length, blockSize, observer, error) END SendWithHook;
 
 PROCEDURE (handler: Handler) Accept(router: IQ.Router; request: Core.Stanza): BOOLEAN;
 BEGIN RETURN handler.owner.active & (request.from[0] # 0) END Accept;

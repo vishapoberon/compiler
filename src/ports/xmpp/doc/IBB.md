@@ -68,6 +68,12 @@ transfer can fail synchronously during sending; inspect its status and implement
 the completion callback. The reader must have an open base channel and no
 pending error. Keep each reader exclusive to its transfer.
 
+`SendWithHook(peer, sid, reader, length, blockSize, observer, error)` selects a
+progress/completion hook for that outgoing transfer. A `NIL` observer uses the
+manager hook, as `Send` does. Incoming consent and completion policy keep using
+the manager hook. Read-only `maximum` and `maximumBlock` expose configured
+limits to coordinating file-offer code.
+
 No bytes are read before the open acknowledgement. There is at most one pending
 IQ per sending transfer. Each data acknowledgement advances `bytes`, calls
 `Progress`, and permits the next block. Short reads fail instead of sending

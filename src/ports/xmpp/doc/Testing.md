@@ -18,10 +18,10 @@ canonical padding, malformed alphabets, Unicode SIDs, 128 XML input split sizes,
 bounded text parts and the full 16-bit sequence wrap. These validate the IBB
 wire layer.
 
-`TestXmppIbbTransfer` adds 69 checks covering consent, exact peer/SID matching, acknowledged source
+`TestXmppIbbTransfer` adds 73 checks covering consent, exact peer/SID matching, acknowledged source
 ranges, empty transfers, byte/block/table limits, duplicate and out-of-order
 blocks, malformed Base64, short reads/writes, flush errors, deadlines,
-cancellation and reentrant cleanup. It exercises
+cancellation, per-transfer callback routing and reentrant cleanup. It exercises
 a bounded receive sequence and paired clients exchanging 0, 1, 513 and 65,537
 bytes through fragmented XML. The CPU-intensive 65,536-block receive-wrap pass
 is opt-in: run `nice -n 15 ./TestXmppIbbTransfer --exhaustive` from the test build
