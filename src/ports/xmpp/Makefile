@@ -31,7 +31,7 @@ test: all
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppClient.Mod" && timeout 30 ./TestXmppClient
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIQ.Mod" && timeout 30 ./TestXmppIQ
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbb.Mod" && timeout 30 ./TestXmppIbb
-	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbbTransfer.Mod" && timeout 120 ./TestXmppIbbTransfer
+	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppIbbTransfer.Mod" && timeout 30 ./TestXmppIbbTransfer
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppStreamInit.Mod" && timeout 30 ./TestXmppStreamInit
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppFileReceiver.Mod" && timeout 30 ./TestXmppFileReceiver
 	cd "$(BUILD)" && $(VOC) $(OFLAGS) -m "$(SOURCE)/tests/TestXmppRegister.Mod" && timeout 30 ./TestXmppRegister

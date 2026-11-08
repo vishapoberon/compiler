@@ -21,9 +21,12 @@ wire layer.
 `TestXmppIbbTransfer` adds 69 checks covering consent, exact peer/SID matching, acknowledged source
 ranges, empty transfers, byte/block/table limits, duplicate and out-of-order
 blocks, malformed Base64, short reads/writes, flush errors, deadlines,
-cancellation and reentrant cleanup. It exercises a full receive sequence wrap
-and paired clients exchanging 0, 1, 513 and 65,537 bytes through fragmented XML.
-Its standalone timeout is 120 seconds to allow the complete wrap test.
+cancellation and reentrant cleanup. It exercises
+a bounded receive sequence and paired clients exchanging 0, 1, 513 and 65,537
+bytes through fragmented XML. The CPU-intensive 65,536-block receive-wrap pass
+is opt-in: run `nice -n 15 ./TestXmppIbbTransfer --exhaustive` from the test build
+directory when needed. The default suite keeps that integration pass short;
+the codec tests still check the complete sequence-wrap arithmetic.
 Two additional local TLS cases transfer binary data in both directions over
 STARTTLS and direct TLS, including a Unicode service domain and spoofed-peer
 rejection. These use synthetic local peers and memory-backed I/O.

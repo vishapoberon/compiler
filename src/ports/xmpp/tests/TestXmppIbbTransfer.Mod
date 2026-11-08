@@ -1,6 +1,6 @@
 MODULE TestXmppIbbTransfer;
 
-IMPORT SYSTEM, Out, Msg, Channel, S := LongStrings, T := XmppTypes,
+IMPORT SYSTEM, Out, Msg, Channel, Args, S := LongStrings, T := XmppTypes,
   Items := XmppItems, Core := XmppCore, Wire := XmppWire, C := XmppClient,
   IQ := XmppIQ, I := XmppIbb, X := XmppIbbTransfer, Gen := XmppXmlGen,
   Strings := oocStrings;
@@ -30,6 +30,7 @@ TYPE
   FixtureDesc = RECORD c: C.Client; m: X.Manager; h: Hook; app: Application; wire: Transport; store: Store END;
 
 VAR checks, serial: LONGINT; peer, sid: T.String; fault: Msg.Msg;
+  exhaustive: BOOLEAN; option: ARRAY 32 OF CHAR;
 
 PROCEDURE Check(ok: BOOLEAN; name: ARRAY OF CHAR);
 BEGIN
@@ -243,7 +244,7 @@ END Send;
 
 PROCEDURE Lifecycle;
   VAR f: Fixture; t, second: X.Transfer; r: Reader; error: Msg.Msg; raw: ARRAY 1 OF CHAR;
-    streams: ARRAY X.maxTransfers OF X.Transfer; id: T.String; i: LONGINT;
+    streams: ARRAY X.maxTransfers OF X.Transfer; id: T.String; i, last: LONGINT;
 BEGIN
   raw[0] := 0X;
   f := New(); Incoming(f, peer, I.Open(sid^, 1)); t := f.h.last; f.m.Tick(99);
@@ -270,10 +271,18 @@ BEGIN
   Check((second = NIL) & (error # NIL) & (f.m.count = X.maxTransfers), "bounding simultaneous transfers");
   f.m.Stop; Check((f.m.count = 0) & (f.m.router.count = 0) & (f.h.finished = X.maxTransfers), "stopping every transfer once"); Dispose(f);
   f := New(); Incoming(f, peer, I.Open(sid^, 1)); t := f.h.last;
-  FOR i := 0 TO 65535 DO Incoming(f, peer, I.Data(sid^, i, raw, 0, 1)) END;
-  Check((t.sequence = 0) & (t.bytes = 65536) & (t.status = X.transferring), "wrapping received sequence after 65535");
-  Incoming(f, peer, I.Data(sid^, 0, raw, 0, 1));
-  Check((t.sequence = 1) & (t.bytes = 65537), "accepting first block after sequence wrap"); Dispose(f)
+  IF exhaustive THEN last := 65535 ELSE last := 63 END;
+  FOR i := 0 TO last DO Incoming(f, peer, I.Data(sid^, i, raw, 0, 1)) END;
+  IF exhaustive THEN
+    Check((t.sequence = 0) & (t.bytes = 65536) & (t.status = X.transferring), "wrapping received sequence after 65535");
+    Incoming(f, peer, I.Data(sid^, 0, raw, 0, 1));
+    Check((t.sequence = 1) & (t.bytes = 65537), "accepting first block after sequence wrap")
+  ELSE
+    Check((t.sequence = 64) & (t.bytes = 64) & (t.status = X.transferring), "tracking a bounded sequence of received blocks");
+    Incoming(f, peer, I.Data(sid^, 64, raw, 0, 1));
+    Check((t.sequence = 65) & (t.bytes = 65), "continuing a bounded receive sequence")
+  END;
+  Dispose(f)
 END Lifecycle;
 
 PROCEDURE Relay(from, to: Fixture);
@@ -345,6 +354,7 @@ BEGIN
 END ReentryAndErrors;
 
 BEGIN
+  Args.Get(1, option); exhaustive := option = "--exhaustive";
   fault := Wire.Error(); peer := Items.Latin1("peer@example.org/resource"); sid := Items.UTF8("հոսք😀");
   Receive; InvalidBlocks; Send; Lifecycle; Paired; ReentryAndErrors;
   Out.String("XMPP IBB transfer checks passed: "); Out.Int(checks, 0); Out.Ln
