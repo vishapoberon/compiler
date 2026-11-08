@@ -62,6 +62,8 @@ PROCEDURE (h: Hook) Incoming*(manager: Manager; transfer: Transfer;
 BEGIN RETURN FALSE END Incoming;
 PROCEDURE (h: Hook) Progress*(manager: Manager; transfer: Transfer; VAR cancel: BOOLEAN);
 BEGIN END Progress;
+PROCEDURE (h: Hook) Complete*(manager: Manager; transfer: Transfer): BOOLEAN;
+BEGIN RETURN TRUE END Complete;
 PROCEDURE (h: Hook) Done*(manager: Manager; transfer: Transfer);
 BEGIN END Done;
 
@@ -260,6 +262,9 @@ BEGIN
       writer.base.Flush;
       IF ~Live(t) THEN RETURN IQ.ErrorReply(request, "cancel", "not-acceptable") END;
       IF writer.base.res # NIL THEN Finish(t, ioError, FALSE); RETURN IQ.ErrorReply(request, "wait", "internal-server-error") END;
+      accept := m.hook.Complete(m, t);
+      IF ~Live(t) THEN RETURN IQ.ErrorReply(request, "cancel", "not-acceptable") END;
+      IF ~accept THEN Finish(t, protocolError, FALSE); RETURN IQ.ErrorReply(request, "cancel", "not-acceptable") END;
       Finish(t, done, FALSE)
     END;
     RETURN IQ.Response(request, NIL)

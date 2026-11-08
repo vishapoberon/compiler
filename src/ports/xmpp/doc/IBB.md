@@ -93,8 +93,10 @@ declared file length. Applications negotiating file sizes must also verify the
 final `bytes` count against their offer.
 
 The receiver acknowledges a data block only after the full write succeeds. It
-flushes the output channel on close and checks the flush result before reporting
-`done`. Receive completion means the content was flushed; it does not guarantee
+flushes the output channel on close, checks the flush result and calls
+`Hook.Complete(manager, transfer)` before reporting `done`. This defaults to
+true; a negotiated file adapter can reject incomplete content before the close
+result is sent. Receive completion means the content was flushed; it does not guarantee
 the peer received the close acknowledgement. A failed or short write can leave
 partial output. The application owns discarding incomplete files and publishing
 successful ones.

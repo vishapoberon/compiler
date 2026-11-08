@@ -3,9 +3,9 @@ package = "xmpp"
 kind = "library"
 origin = "VOC port of the supplied oberoncore-xmpp Component Pascal subsystem"
 upstream_url = "https://github.com/norayr/xmpp"
-upstream_revision = "8271993e9b1fc5b352b2fa414661b59997b075e5"
+upstream_revision = "9afe8fafdf955ac3091fdcb4120da6d2ea7ca42e"
 original_revision = "a2cde5435bea63de16239c2c31e399ad0fd43ad2"
-revision_status = "synchronized native stream-initiation and deferred IQ revision; original snapshot preserved"
+revision_status = "synchronized native stream-initiation and IBB completion-validation revision; original snapshot preserved"
 license = "not specified in supplied subsystem; confirmation pending"
 sources = ["Xmpp*.Mod"]
 build = "make xmpp; make -C src/ports/xmpp network"
@@ -27,6 +27,7 @@ adaptations = [
   "adding bounded IQ-based IBB transfers, explicit consent, checked channel I/O, acknowledgement deadlines and cleanup",
   "adding bounded stream-initiation file offers and exact-peer transport/range selection",
   "supporting bounded deferred IQ replies for asynchronous application decisions",
+  "validating IBB completion before acknowledging received content",
   "preserving Unicode XML service identities while using shared IDNA conversion for DNS and TLS",
   "including portable modules in conventional, Windows and modular Oberon-2 library manifests",
   "preserving 88 original files, including all 31 native BlackBox documents and text exports",
