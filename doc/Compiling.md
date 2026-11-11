@@ -78,7 +78,7 @@ add native compiler modes alongside the compatibility modes above:
 | `-md` | Build an application `.so` and a host which loads it with `dlopen`; shared minimal core and libc. |
 | `-mD` | Build the same loading host with an embedded/exported minimal core; libc remains shared. |
 | `-d` | Shorthand for `-md`. |
-| `-mP` | Link a program at startup to individual module libraries and a shared minimal core. |
+| `-mL` | Link a program at startup to individual module libraries and a shared minimal core. |
 
 These modes require the separately built modular runtime. They must not mix
 its individual modules with the existing monolithic runtime in one process.
@@ -87,8 +87,8 @@ with `-l` to change its code/imports without rebuilding its host. Its module bod
 is the entry point; arguments remain available through `Modules.GetArg`.
 `-mD` embeds only `SYSTEM`/`Platform`/`Heap`/`Modules`, not the whole `libvoc`;
 its loader, application libraries and libc remain shared. It is not fully static.
-`-M` cannot be combined with `-d`, `-D` or `-P`; the compiler rejects `-Md`, `-MD`
-and `-MP`. Lowercase `-p` still controls pointer initialization; `-m` and `-M`
+`-M` cannot be combined with `-d`, `-D` or `-L`; the compiler rejects `-Md`, `-MD`
+and `-ML`. Lowercase `-p` still controls pointer initialization; `-m` and `-M`
 retain their existing behavior.
 
 `make modular-library` builds the bundled Oberon-2 library profile, including

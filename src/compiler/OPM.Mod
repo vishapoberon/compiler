@@ -282,7 +282,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "S": Options := Options / {dontasm}          (* Don't call C compiler *)
       | "c": Options := Options / {dontlink}         (* Don't link. *)
       | "l": Options := Options / {sharedmodule}     (* Shared library module, not main. *)
-      | "P": Options := Options / {permodules}       (* Minimal runtime, per-module libraries. *)
+      | "L": Options := Options / {permodules}       (* Minimal runtime, per-module libraries. *)
       | "d": Options := Options / {dynamicmain}      (* Load the application module at runtime. *)
       | "D": Options := Options / {embeddedcore}     (* Loading host with an embedded minimal core. *)
 
@@ -353,11 +353,11 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("    -S   Don't call C compiler");                                                                   LogWLn;
       LogWStr("    -c   Don't link.");                                                                             LogWLn;
       LogWStr("    -l   Build a loadable module library (ELF, minimal runtime supplied by host).");                LogWLn;
-      LogWStr("    -mP  Main program using the shared minimal runtime and module libraries.");                   LogWLn;
+      LogWStr("    -mL  Main program using the shared minimal runtime and module libraries.");                   LogWLn;
       LogWStr("    -md  Application module and dlopen host; shared minimal core and dynamic libc.");              LogWLn;
       LogWStr("    -mD  Application module and dlopen host; embedded minimal core and dynamic libc.");            LogWLn;
       LogWStr("    -d   Shorthand for -md.");                                                                       LogWLn;
-      LogWStr("    -M cannot be combined with -P/-d/-D; static system linking is not a module-host mode.");        LogWLn;
+      LogWStr("    -M cannot be combined with -L/-d/-D; static system linking is not a module-host mode.");        LogWLn;
       LogWLn;
       LogWStr("  Miscellaneous");                                                                                  LogWLn;
       LogWStr("    -f   Disable VT100 control characters in status output.");                                      LogWLn;
@@ -422,7 +422,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWLn; noerr := FALSE; RETURN
     END;
     IF (mainlinkstat IN Options) & (permodules IN Options) THEN
-      LogWStr("-MP is not supported: -M means static linking; use -mP or an embedded-core loading host (-mD).");
+      LogWStr("-ML is not supported: -M means static linking; use -mL or an embedded-core loading host (-mD).");
       LogWLn; noerr := FALSE; RETURN
     END;
     IF embeddedcore IN Options THEN
@@ -441,7 +441,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END;
     IF sharedmodule IN Options THEN INCL(Options, permodules) END;
     IF (permodules IN Options) & ~(mainprog IN Options) & ~(sharedmodule IN Options) THEN
-      LogWStr("-P requires -m, -l or -d."); LogWLn; noerr := FALSE; RETURN
+      LogWStr("-L requires -m, -l or -d."); LogWLn; noerr := FALSE; RETURN
     END;
     SharedImportCount := 0;
 

@@ -1241,7 +1241,7 @@ static void OPC_GenHeaderMsg (void)
 					OPM_Write('l');
 					break;
 				case 20: 
-					OPM_Write('P');
+					OPM_Write('L');
 					break;
 				case 21: 
 					OPM_Write('d');

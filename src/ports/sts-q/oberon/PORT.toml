@@ -27,4 +27,4 @@ adaptations = [
   "including only Kbd in the ordinary Unix model-2 libvoc and optional modular bundled-library profile, retaining GPL-3.0 without the VOC runtime exception; leaving Windows and the default model-C profile unchanged",
 ]
 build = "ordinary Unix model-2 libvoc and optional modular libraries target; independent build: make -C src/ports/sts-q/oberon, MODEL=2 or MODEL=C; modular target with a matching compiler/runtime"
-test = "make -C src/test/ports/sts-q test-bundled against the ordinary library image (also run by Unix confidence and modular test-library); standalone tests: test, both type models, optional FLAGS=-smP LIBRARY_TARGET=modular; private editor checks: make -C src/examples/libraries/sts-q/editor test"
+test = "make -C src/test/ports/sts-q test-bundled against the ordinary library image (also run by Unix confidence and modular test-library); standalone tests: test, both type models, optional FLAGS=-smL LIBRARY_TARGET=modular; private editor checks: make -C src/examples/libraries/sts-q/editor test"

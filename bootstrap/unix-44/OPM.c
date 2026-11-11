@@ -311,7 +311,7 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 			case 'l': 
 				OPM_Options = OPM_Options ^ 0x080000;
 				break;
-			case 'P': 
+			case 'L':
 				OPM_Options = OPM_Options ^ 0x100000;
 				break;
 			case 'd': 
@@ -426,7 +426,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -l   Build a loadable module library (ELF, minimal runtime supplied by host).", 82);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -mP  Main program using the shared minimal runtime and module libraries.", 77);
+		OPM_LogWStr((CHAR*)"    -mL  Main program using the shared minimal runtime and module libraries.", 77);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -md  Application module and dlopen host; shared minimal core and dynamic libc.", 83);
 		OPM_LogWLn();
@@ -434,7 +434,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -d   Shorthand for -md.", 28);
 		OPM_LogWLn();
-		OPM_LogWStr((CHAR*)"    -M cannot be combined with -P/-d/-D; static system linking is not a module-host mode.", 90);
+		OPM_LogWStr((CHAR*)"    -M cannot be combined with -L/-d/-D; static system linking is not a module-host mode.", 90);
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Miscellaneous", 16);
@@ -517,7 +517,7 @@ void OPM_InitOptions (void)
 		return;
 	}
 	if ((__IN(15, OPM_Options, 32) && __IN(20, OPM_Options, 32))) {
-		OPM_LogWStr((CHAR*)"-MP is not supported: -M means static linking; use -mP or an embedded-core loading host (-mD).", 95);
+		OPM_LogWStr((CHAR*)"-ML is not supported: -M means static linking; use -mL or an embedded-core loading host (-mD).", 95);
 		OPM_LogWLn();
 		OPM_noerr = 0;
 		return;
@@ -545,7 +545,7 @@ void OPM_InitOptions (void)
 		OPM_Options |= __SETOF(20,32);
 	}
 	if ((((__IN(20, OPM_Options, 32) && !__IN(10, OPM_Options, 32))) && !__IN(19, OPM_Options, 32))) {
-		OPM_LogWStr((CHAR*)"-P requires -m, -l or -d.", 26);
+		OPM_LogWStr((CHAR*)"-L requires -m, -l or -d.", 26);
 		OPM_LogWLn();
 		OPM_noerr = 0;
 		return;

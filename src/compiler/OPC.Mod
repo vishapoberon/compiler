@@ -839,7 +839,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         | OPM.forcenewsym:    OPM.Write("F")
         | OPM.verbose:        OPM.Write("v")
         | OPM.sharedmodule:   OPM.Write("l")
-        | OPM.permodules:     OPM.Write("P")
+        | OPM.permodules:     OPM.Write("L")
         | OPM.dynamicmain:    OPM.Write("d")
         | OPM.embeddedcore:   OPM.Write("D")
         ELSE OPM.LogWStr ("( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg"); OPM.LogWLn;

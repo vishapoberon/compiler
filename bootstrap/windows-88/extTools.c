@@ -493,7 +493,7 @@ void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN stati
 	__DUP(additionalopts, additionalopts__len, CHAR);
 	if (__IN(20, OPM_Options, 32)) {
 		if (statically) {
-			extTools_Fail((CHAR*)"Static system linking cannot be combined with modular program linking; use -mP.", 80);
+			extTools_Fail((CHAR*)"Static system linking cannot be combined with modular program linking; use -mL.", 80);
 		}
 		extTools_LinkModularMain(moduleName, moduleName__len);
 		__DEL(additionalopts);

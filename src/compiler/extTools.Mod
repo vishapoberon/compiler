@@ -56,7 +56,7 @@ END InitialiseCompilerCommand;
 
 
 (* ELF modular linking. Libraries deliberately do not DT_NEEDED the core:
-   -md/-mP supply it as a shared library; -mD exports it from the executable.
+   -md/-mL supply it as a shared library; -mD exports it from the executable.
    Thus both hosts can use the same module without ever loading two heaps. *)
 
 PROCEDURE Fail(message: ARRAY OF CHAR);
@@ -150,7 +150,7 @@ PROCEDURE ModularCommand(VAR cmd: CommandString);
 BEGIN
   IF (Configuration.compiler = "msc") OR (Configuration.compiler = "MSC") OR (Configuration.os = "windows") OR
       (Configuration.os = "cygwin") OR (Configuration.os = "darwin") THEN
-    Fail("-l/-P currently require an ELF target with a GCC-compatible linker."); RETURN
+    Fail("-l/-L currently require an ELF target with a GCC-compatible linker."); RETURN
   END;
   Platform.GetEnv("CC", compiler);
   IF compiler = "" THEN COPY(Configuration.compile, cmd) ELSE COPY(compiler, cmd) END;
@@ -281,7 +281,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     cmd: CommandString;
   BEGIN
     IF OPM.permodules IN OPM.Options THEN
-      IF statically THEN Fail("Static system linking cannot be combined with modular program linking; use -mP.") END;
+      IF statically THEN Fail("Static system linking cannot be combined with modular program linking; use -mL.") END;
       LinkModularMain(moduleName); RETURN
     END;
     InitialiseCompilerCommand(cmd, additionalopts);

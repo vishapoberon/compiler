@@ -114,11 +114,11 @@ The available executable options can be summarised as follows:
 | `-M` | Static monolithic runtime and, on Linux, static system libraries | Conventionally linked main module |
 | `-md` | Shared minimal core | Main module loaded after startup |
 | `-mD` | Minimal core embedded in the executable | Main module loaded after startup |
-| `-mP` | Shared minimal core and individual module libraries | Main module linked at startup |
+| `-mL` | Shared minimal core and individual module libraries | Main module linked at startup |
 
-`-d` is a shorthand for `-md`. Uppercase `-P` selects modular linking;
+`-d` is a shorthand for `-md`. Uppercase `-L` selects modular linking;
 lowercase `-p` still controls pointer initialisation. `-M` cannot be combined
-with `-d`, `-D` or `-P`: fully static system linking is not suitable for these
+with `-d`, `-D` or `-L`: fully static system linking is not suitable for these
 loading hosts. `-dS` generates the application and host C sources without
 compiling them; `-dc` compiles only the application object.
 

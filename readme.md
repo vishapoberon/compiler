@@ -199,7 +199,9 @@ VOC can compile modules as individual shared libraries and load them when they
 are needed. `hresh`, the Hosted Runtime Extensible Shell, calls exported Oberon
 commands such as `Commands.Run` in one process, allowing modules to retain their
 state between calls. A standalone program can use the same libraries without
-the shell.
+the shell. Use `voc -mL Main.Mod` to link a main program to individual module
+libraries and the shared minimal core. Uppercase `-L` selects module-library
+linking.
 
 Start with [**A gentle introduction to shared modules**](/doc/ModuleTutorial.md)
 to write a command module, build an application, and change its implementation

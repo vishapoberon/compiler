@@ -248,31 +248,32 @@ $(MODULES)/bindings.stamp: $(MODULES)/libraries.stamp $(MODULES)/bindings.config
 	touch "$@"
 
 $(BUILD)/hresh: $(TOOLS)/hresh.Mod $(MODULES)/modules.stamp
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TOOLS)/hresh.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TOOLS)/hresh.Mod"
 
 $(BUILD)/none: $(EDITOR)/none.Mod $(MODULES)/modules.stamp
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$<"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$<"
 
 test: all test-commands test-unload
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestModulePaths.Mod"
+	python3 "$(TESTS)/test-link-options.py" "$(NEWVOC)" "$(BUILD)/link-options"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestModulePaths.Mod"
 	"$(BUILD)/TestModulePaths"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestModuleImages.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestModuleImages.Mod"
 	"$(BUILD)/TestModuleImages"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/SharedProvider.Mod"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/SharedConsumer.Mod"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/TypeOnly.Mod"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/HelloShared.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/HelloShared.Mod"
 	"$(BUILD)/HelloShared"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(TESTS)/HelloShared.Mod"
 	"$(BUILD)/HelloShared"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestShared.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestShared.Mod"
 	"$(BUILD)/TestShared" "$(BUILD)"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFSl "$(TESTS)/BadCoreABI.Mod"
 	cd "$(BUILD)" && sed 's/__voc_runtime = &VOC_CoreABI;/__voc_runtime = \&VOC_CoreABI + 1;/' BadCoreABI.c > BadCoreABI-bad.c
 	cd "$(BUILD)" && $(CC) $(CFLAGS) $(NATIVEFLAGS) $(INCLUDES) -shared BadCoreABI-bad.c -o "libvoc-BadCoreABI-O$(MODEL).so"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestLoaderABI.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestLoaderABI.Mod"
 	"$(BUILD)/TestLoaderABI" "$(BUILD)"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestCommandSymbols.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestCommandSymbols.Mod"
 	cd "$(BUILD)" && ./TestCommandSymbols
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(TESTS)/TestShared.Mod"
 	"$(BUILD)/TestShared" "$(BUILD)"
@@ -285,33 +286,33 @@ test: all test-commands test-unload
 	cmp "$(BUILD)/TestLoaded" "$(BUILD)/TestLoaded.host"
 	"$(BUILD)/TestLoaded" "runtime argument"
 	"$(BUILD)/hresh" "-P$(BUILD)" SharedConsumer.Run
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/platform/testDirectories.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/platform/testDirectories.Mod"
 	mkdir -p "$(BUILD)/directory-fixture/child"
 	touch "$(BUILD)/directory-fixture/file.txt"
 	ln -sfn child "$(BUILD)/directory-fixture/link"
 	"$(BUILD)/testDirectories" "$(BUILD)/directory-fixture"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestArrayParameters.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/arrayparameters/TestArrayParameters.mod"
 	"$(BUILD)/TestArrayParameters"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestOpenArrayRows.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/arrayparameters/TestOpenArrayRows.mod"
 	"$(BUILD)/TestOpenArrayRows"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestNestedArrayLengths.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/arrayparameters/TestNestedArrayLengths.mod"
 	"$(BUILD)/TestNestedArrayLengths"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/arrayparameters/TestFixedArrayValues.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/arrayparameters/TestFixedArrayValues.mod"
 	"$(BUILD)/TestFixedArrayValues"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/filesafety/TestFileStrings.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/filesafety/TestFileStrings.mod"
 	"$(BUILD)/TestFileStrings"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/texts/TestScannerNumbers.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/texts/TestScannerNumbers.mod"
 	"$(BUILD)/TestScannerNumbers"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/intsyntax/TestSignedShifts.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/intsyntax/TestSignedShifts.mod"
 	"$(BUILD)/TestSignedShifts"
-	cd "$(BUILD)" && $(ENV) CFLAGS="$(CFLAGS) -I$(ROOT)/src/test/confidence/heaproots" "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/heaproots/TestHeapRoots.mod"
+	cd "$(BUILD)" && $(ENV) CFLAGS="$(CFLAGS) -I$(ROOT)/src/test/confidence/heaproots" "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/heaproots/TestHeapRoots.mod"
 	"$(BUILD)/TestHeapRoots"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/confidence/ckeywords/TestCKeywords.mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/confidence/ckeywords/TestCKeywords.mod"
 	"$(BUILD)/TestCKeywords"
 	mkdir -p "$(BUILD)/compatibility"
 	cd "$(BUILD)/compatibility" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" OBERON="$(VOCROOT)/2/sym" "$(NEWVOC)" -O2 -sm "$(TESTS)/CompatMain.Mod"
 	"$(BUILD)/compatibility/CompatMain"
-	cd "$(BUILD)" && for flags in -Md -MD -MP -D; do if $(ENV) "$(NEWVOC)" -s "$$flags" "$(TESTS)/TestLoaded.Mod"; then echo "Unexpectedly accepted $$flags"; exit 1; fi; done
+	cd "$(BUILD)" && for flags in -Md -MD -ML -D; do if $(ENV) "$(NEWVOC)" -s "$$flags" "$(TESTS)/TestLoaded.Mod"; then echo "Unexpectedly accepted $$flags"; exit 1; fi; done
 	cd "$(BUILD)/compatibility" && VOCROOT="$(VOCROOT)" VOCLIBDIR="$(VOCLIBDIR)" OBERON="$(VOCROOT)/2/sym" "$(NEWVOC)" -O2 -sM "$(TESTS)/CompatMain.Mod"
 	"$(BUILD)/compatibility/CompatMain"
 
@@ -359,17 +360,17 @@ test-bindings: bindings
 	fi
 
 test-archives: archives $(BUILD)/hresh
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(ROOT)/src/test/platform/TestPlatformTime.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(ROOT)/src/test/platform/TestPlatformTime.Mod"
 	cd "$(BUILD)" && TZ=UTC0 ./TestPlatformTime "$(BUILD)/platform-time-fixture"
 	python3 "$(TESTS)/test-archives.py" "$(BUILD)/hresh" "$(MODULES)" "$(BUILD)"
 
 test-tools: all test-hosted-unload
 	python3 "$(EDITOR)/test-editor.py" "$(BUILD)/none" --hresh "$(BUILD)/hresh" --modules "$(MODULES)" --work "$(BUILD)/editor-tests"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestHostedTools.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestHostedTools.Mod"
 	cd "$(BUILD)" && $(ENV) ./TestHostedTools
 	cd "$(MODULES)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFSl "$(TESTS)/TestTerminalNative.Mod"
 	$(CC) $(CFLAGS) $(NATIVEFLAGS) $(CORE_INCLUDES) -D_XOPEN_SOURCE=700 -shared "$(MODULES)/TestTerminalNative.c" -Wl,-soname,libvoc-TestTerminalNative-O$(MODEL).so -o "$(BUILD)/libvoc-TestTerminalNative-O$(MODEL).so"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestTerminalState.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestTerminalState.Mod"
 	cd "$(BUILD)" && ./TestTerminalState
 
 # Cleanup lifetimes are independent: Ctrl-C stops a command; termination
@@ -378,10 +379,10 @@ test-commands: all
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/InitInterruptProbe.Mod"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFS "$(TESTS)/TestCommandNative.Mod"
 	cd "$(BUILD)" && $(CC) $(CFLAGS) $(NATIVEFLAGS) $(INCLUDES) -shared TestCommandNative.c -Wl,-soname,libvoc-TestCommandNative-O$(MODEL).so -o libvoc-TestCommandNative-O$(MODEL).so
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestCommandStop.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestCommandStop.Mod"
 	cd "$(BUILD)" && ./TestCommandStop
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/TerminationProbe.Mod"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestModuleTermination.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestModuleTermination.Mod"
 	"$(BUILD)/TestModuleTermination" "$(BUILD)"
 
 test-unload: all
@@ -395,7 +396,7 @@ test-unload: all
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/UnloadSpawn.Mod"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/UnloadCallbacks.Mod"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TESTS)/TestUnloadNative.Mod"
-	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smP "$(TESTS)/TestModuleUnload.Mod"
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestModuleUnload.Mod"
 	"$(BUILD)/TestModuleUnload" "$(BUILD)"
 
 test-hosted-unload: all
