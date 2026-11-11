@@ -105,7 +105,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     VAR mode, level, h: INTEGER;
   BEGIN
     mode := obj^.mode; level := obj^.mnolev;
-    IF (mode IN {OPT.Var, OPT.Typ, OPT.LProc}) & (level > 0) OR (mode IN {OPT.Fld, OPT.VarPar}) THEN
+    IF mode = OPT.Range THEN
+      OPM.WriteString("__all"); OPM.WriteInt(obj^.x)
+    ELSIF (mode IN {OPT.Var, OPT.Typ, OPT.LProc}) & (level > 0) OR (mode IN {OPT.Fld, OPT.VarPar}) THEN
       OPM.WriteStringVar(obj^.name);
       h := KeywordHash(obj^.name);
       WHILE (hashtab[h] >= 0) & (keytab[hashtab[h]] # obj^.name) DO
@@ -842,6 +844,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
         | OPM.permodules:     OPM.Write("L")
         | OPM.dynamicmain:    OPM.Write("d")
         | OPM.embeddedcore:   OPM.Write("D")
+        | OPM.oberonv:        OPM.Write("j")
+        | OPM.parallelcpu:    OPM.Write("P")
+        | OPM.parallelgpu:    OPM.Write("G")
         ELSE OPM.LogWStr ("( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg"); OPM.LogWLn;
         END
       END

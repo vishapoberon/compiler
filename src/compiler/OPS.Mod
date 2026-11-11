@@ -39,6 +39,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     loop*   = 50; with*      = 51; exit*    = 52; return* = 53; array*     = 54;
     record* = 55; pointer*   = 56; begin*   = 57; const*  = 58; type*      = 59;
     var*    = 60; procedure* = 61; import*  = 62; module* = 63; eof*       = 64;
+    all*    = 65;
 
     (* Symbol numtyp values *)
     char* = 1; integer* = 2; real* = 3; longreal* = 4;
@@ -312,7 +313,10 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     | "=":      s :=  eql; OPM.Get(ch)
     | ">":      OPM.Get(ch);
                 IF ch = "=" THEN OPM.Get(ch); s := geq ELSE s := gtr END
-    | "A":      Identifier(s); IF name = "ARRAY" THEN s := array END
+    | "A":      Identifier(s);
+                IF name = "ARRAY" THEN s := array
+                ELSIF (name = "ALL") & (OPM.oberonv IN OPM.Options) THEN s := all
+                END
     | "B":      Identifier(s);
                 IF    name = "BEGIN" THEN s := begin
                 ELSIF name = "BY"    THEN s := by

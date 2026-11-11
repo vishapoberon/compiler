@@ -30,6 +30,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     permodules*     = 20; (* use the minimal core and individual module libraries *)
     dynamicmain*    = 21; (* build an application module and a dlopen launcher *)
     embeddedcore*   = 22; (* embed/export the minimal core in a loading host *)
+    oberonv*        = 23;
+    parallelcpu*    = 24;
+    parallelgpu*    = 25;
 
     nilval*         = 0;
 
@@ -285,6 +288,9 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       | "L": Options := Options / {permodules}       (* Minimal runtime, per-module libraries. *)
       | "d": Options := Options / {dynamicmain}      (* Load the application module at runtime. *)
       | "D": Options := Options / {embeddedcore}     (* Loading host with an embedded minimal core. *)
+      | "j": Options := Options / {oberonv}
+      | "P": Options := Options / {parallelcpu}
+      | "G": Options := Options / {parallelgpu}
 
       (* Miscellaneous *)
       | "f": Options := Options / {notcoloroutput}   (* Disable VT100 control characters in status output. *)
@@ -359,6 +365,12 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("    -d   Shorthand for -md.");                                                                       LogWLn;
       LogWStr("    -M cannot be combined with -L/-d/-D; static system linking is not a module-host mode.");        LogWLn;
       LogWLn;
+      LogWStr("  Experimental Oberon-V");                                                                         LogWLn;
+      LogWStr("    -j   Enable experimental Oberon-V ALL statements (sequential C).");                              LogWLn;
+      LogWStr("    -jP  Reserved for OpenMP CPU execution; not implemented yet.");                                LogWLn;
+      LogWStr("    -jG  Reserved for OpenMP GPU offloading; not implemented yet.");                                LogWLn;
+      LogWStr("    -P/-G require -j and are mutually exclusive.");                                               LogWLn;
+      LogWLn;
       LogWStr("  Miscellaneous");                                                                                  LogWLn;
       LogWStr("    -f   Disable VT100 control characters in status output.");                                      LogWLn;
       LogWStr("    -V   Display compiler debugging messages.");                                                    LogWLn;
@@ -416,6 +428,16 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       INC(S); GetArgument(S, s)
     END;
 
+    IF ((parallelcpu IN Options) OR (parallelgpu IN Options)) & ~(oberonv IN Options) THEN
+      LogWStr("-P/-G require -j."); LogWLn; noerr := FALSE; RETURN
+    END;
+    IF (parallelcpu IN Options) & (parallelgpu IN Options) THEN
+      LogWStr("-P and -G are mutually exclusive."); LogWLn; noerr := FALSE; RETURN
+    END;
+    IF (parallelcpu IN Options) OR (parallelgpu IN Options) THEN
+      LogWStr("OpenMP execution is not implemented yet; use -j for sequential C.");
+      LogWLn; noerr := FALSE; RETURN
+    END;
     IF mainlinkstat IN Options THEN INCL(Options, mainprog) END;
     IF (mainlinkstat IN Options) & ((dynamicmain IN Options) OR (embeddedcore IN Options)) THEN
       LogWStr("-M cannot be combined with -d/-D: loading hosts require dynamic libc; use -md or -mD.");

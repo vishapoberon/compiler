@@ -778,6 +778,25 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     WHILE (n # NIL) & (n^.class = OPT.Ninittd) DO OPC.InitTDesc(n^.typ); n := n^.link END
   END InitTDescs;
 
+  PROCEDURE AllStat(n: OPT.Node; outerProc: OPT.Object);
+    VAR range: OPT.Node;
+  BEGIN
+    range := n^.left;
+    OPC.BegBlk;
+    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); OPC.Ident(range^.obj);
+    OPM.WriteString(" = "); expr(range^.left, MinPrec);
+    OPM.WriteString(", "); OPC.Ident(range^.obj); OPM.WriteString("__end = ");
+    expr(range^.right, MinPrec); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("if ("); OPC.Ident(range^.obj);
+    OPM.WriteString(" <= "); OPC.Ident(range^.obj); OPM.WriteString("__end) "); OPC.BegBlk;
+    OPC.BegStat; OPM.WriteString("for (;;) "); OPC.BegBlk;
+    OPC.CheckInterrupt; stat(n^.right, outerProc);
+    OPC.BegStat; OPM.WriteString("if ("); OPC.Ident(range^.obj);
+    OPM.WriteString(" == "); OPC.Ident(range^.obj); OPM.WriteString("__end) break"); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("++"); OPC.Ident(range^.obj); OPC.EndStat;
+    OPC.EndBlk; OPC.EndBlk; OPC.EndBlk
+  END AllStat;
+
   PROCEDURE stat(n: OPT.Node; outerProc: OPT.Object);
     VAR proc: OPT.Object; saved: ExitInfo; l, r: OPT.Node;
   BEGIN
@@ -899,6 +918,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.WriteInt(n^.left^.right^.right^.conval^.intval); OPM.Write(CloseParen); OPC.EndStat
                      END
       | OPT.Ncase:   INC(exit.level); CaseStat(n, outerProc); DEC(exit.level)
+      | OPT.Nall:    AllStat(n, outerProc)
       | OPT.Nwhile:  INC(exit.level); OPM.WriteString("while "); expr(n^.left, MaxPrec);
                      OPM.Write(Blank); OPC.BegBlk; OPC.CheckInterrupt; stat(n^.right, outerProc); OPC.EndBlk;
                      DEC(exit.level)
@@ -945,7 +965,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       | OPT.Ntrap:   OPC.Halt(OPM.Longint(n^.right^.conval^.intval))
       ELSE OPM.LogWStr("unhandled case in OPV.expr, n^.class = "); OPM.LogWNum(n^.class, 0); OPM.LogWLn;
       END;
-      IF ~(n^.class IN {OPT.Nenter, OPT.Ninittd, OPT.Nifelse, OPT.Nwith, OPT.Ncase, OPT.Nwhile, OPT.Nloop}) THEN OPC.EndStat END ;
+      IF ~(n^.class IN {OPT.Nenter, OPT.Ninittd, OPT.Nifelse, OPT.Nwith, OPT.Ncase, OPT.Nwhile, OPT.Nloop, OPT.Nall}) THEN OPC.EndStat END ;
       n := n^.link
     END
   END stat;

@@ -54,6 +54,7 @@ CONST
   (* Object.mode values *)
   Var*   = 1; VarPar* = 2; Con*   = 3;  Fld* = 4;  Typ* = 5;   LProc* = 6;  XProc* = 7;
   SProc* = 8; CProc*  = 9; IProc* = 10; Mod* = 11; Head* = 12; TProc* = 13;
+  Range* = 14;
 
   (* Object.vis - module visibility of objects *)
   internal* = 0; external* = 1; externalR* = 2; readOnlyPar* = 3;
@@ -125,6 +126,7 @@ CONST
   Ninittd* = 14; Nif*     = 15; Ncaselse* = 16; Ncasedo* = 17; Nenter* = 18; Nassign* = 19;
   Nifelse* = 20; Ncase*   = 21; Nwhile*   = 22; Nrepeat* = 23; Nloop*  = 24; Nexit*   = 25;
   Nreturn* = 26; Nwith*   = 27; Ntrap*    = 28;
+  Nall* = 29; Nrange* = 30;
 
 
   (* Node.subcl values - general *)

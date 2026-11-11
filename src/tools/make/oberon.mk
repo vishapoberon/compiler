@@ -370,6 +370,7 @@ confidence:
 	fi
 	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) sh src/tools/make/python.sh src/test/bootstrap/test-staged-install.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --work "$(ROOTDIR)/$(BUILDDIR)/staging-tests"; fi
 	cd src/test/confidence/hello;           $(RUNTEST)
+	@if [ "$(PLATFORM)" = unix ]; then for model in 2 C; do $(STAGED_ENV) sh src/tools/make/python.sh src/test/oberonv/test.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --vocroot "$(ROOTDIR)/install" --model $$model --work "$(ROOTDIR)/$(BUILDDIR)/oberonv-tests/$$model" || exit; done; fi
 	cd src/test/confidence/out;             $(RUNTEST)
 	cd src/test/confidence/in;              $(RUNTEST)
 	cd src/test/confidence/math;            $(RUNTEST)

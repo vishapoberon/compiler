@@ -22,6 +22,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     VAR node: OPT.Node;
   BEGIN
     CASE obj^.mode OF
+    | OPT.Range:  node := OPT.NewNode(OPT.Nvar); node^.readonly := TRUE
     | OPT.Var:    node := OPT.NewNode(OPT.Nvar);
                   node^.readonly := (obj^.vis = OPT.externalR) & (obj^.mnolev < 0)
     | OPT.VarPar: node := OPT.NewNode(OPT.Nvarpar); node^.readonly := obj^.vis = OPT.readOnlyPar
@@ -1428,6 +1429,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN
     scope := OPT.topScope;
     WHILE dlev > 0 DO DEC(dlev);
+      WHILE (scope^.left # NIL) & (scope^.left^.mnolev = scope^.mnolev) DO scope := scope^.left END;
       INCL(scope^.link^.conval^.setval, OPT.slNeeded);
       scope := scope^.left
     END

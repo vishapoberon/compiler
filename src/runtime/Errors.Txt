@@ -21,6 +21,7 @@ Compiler error messages
  18 '.' missing
  19 ',' missing
  20 ':' missing
+ 21 '..' missing
 
  22 ')' missing
  23 ']' missing
@@ -134,7 +135,14 @@ Compiler error messages
 154 recursive import not allowed
 155 generation of new symbol file not allowed
 156 parameter file not found
-157 syntax error in parameter file
+ 157 syntax error in parameter file
+160 only one range identifier is supported in ALL
+161 ALL body must be an assignment sequence
+162 procedure calls in ALL bodies are not supported yet
+163 ALL destination must depend on its range identifier
+164 ALL bounds must be integer expressions
+165 iteration-local WITH declarations are not supported yet
+166 overlapping accesses between ALL iterations
 
 Limitations of implementation
 200 not yet implemented

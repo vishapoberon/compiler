@@ -13,6 +13,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   VAR
     sym, level: SHORTINT;
     LoopLevel: INTEGER;
+    AllCounter: INTEGER;
     TDinit, lastTDinit: OPT.Node;
     nofFwdPtr: INTEGER;
     FwdPtr: ARRAY 64 OF OPT.Struct;
@@ -720,6 +721,174 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     END
   END CaseLabelList;
 
+  PROCEDURE UsesRange(n: OPT.Node; range: OPT.Object): BOOLEAN;
+  BEGIN
+    IF n = NIL THEN RETURN FALSE END;
+    RETURN (n^.obj = range) OR UsesRange(n^.left, range) OR UsesRange(n^.right, range)
+  END UsesRange;
+
+  PROCEDURE CheckAllExpression(n: OPT.Node);
+  BEGIN
+    IF n # NIL THEN
+      IF n^.class = OPT.Ncall THEN err(162) END;
+      CheckAllExpression(n^.left); CheckAllExpression(n^.right); CheckAllExpression(n^.link)
+    END
+  END CheckAllExpression;
+
+  PROCEDURE AllDestination(n: OPT.Node; range: OPT.Object): BOOLEAN;
+  BEGIN
+    IF n = NIL THEN RETURN FALSE END;
+    IF n^.class = OPT.Nindex THEN
+      RETURN UsesRange(n^.right, range) OR AllDestination(n^.left, range)
+    ELSIF n^.class IN {OPT.Nfield, OPT.Nguard, OPT.Nderef} THEN
+      RETURN AllDestination(n^.left, range)
+    END;
+    RETURN FALSE
+  END AllDestination;
+
+  PROCEDURE UnitIndex(n: OPT.Node; range: OPT.Object; VAR offset: SYSTEM.INT64): BOOLEAN;
+    VAR c: SYSTEM.INT64;
+  BEGIN
+    IF (n^.class = OPT.Nvar) & (n^.obj = range) THEN offset := 0; RETURN TRUE END;
+    IF (n^.class = OPT.Nmop) & (n^.subcl = OPT.conv) & (n^.typ^.size >= n^.left^.typ^.size) THEN
+      RETURN UnitIndex(n^.left, range, offset)
+    END;
+    IF (n^.class = OPT.Ndop) & (n^.subcl IN {OPS.plus, OPS.minus}) &
+        (n^.right^.class = OPT.Nconst) & (n^.right^.typ^.form = OPT.Int) THEN
+      c := n^.right^.conval^.intval;
+      IF UnitIndex(n^.left, range, offset) THEN
+        IF n^.subcl = OPS.minus THEN
+          IF c = OPM.SignedMinimum(8) THEN RETURN FALSE END;
+          c := -c
+        END;
+        IF ((c > 0) & (offset > OPM.SignedMaximum(8) - c)) OR
+            ((c < 0) & (offset < OPM.SignedMinimum(8) - c)) THEN RETURN FALSE END;
+        offset := offset + c; RETURN TRUE
+      END
+    END;
+    RETURN FALSE
+  END UnitIndex;
+
+  PROCEDURE CheckAllAccess(n, target, range: OPT.Node; targetOffset: SYSTEM.INT64);
+    VAR offset, distance, low, high, index: SYSTEM.INT64; overlaps, known: BOOLEAN;
+  BEGIN
+    IF n = NIL THEN RETURN END;
+    IF (n^.class = OPT.Nindex) & (n^.left^.class IN {OPT.Nvar, OPT.Nvarpar}) &
+        (n^.left^.obj = target^.left^.obj) THEN
+      known := (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst);
+      low := 0; high := 0;
+      IF known THEN low := range^.left^.conval^.intval; high := range^.right^.conval^.intval END;
+      overlaps := FALSE;
+      IF UnitIndex(n^.right, range^.obj, offset) &
+          ~((targetOffset > 0) & (offset < OPM.SignedMinimum(8) + targetOffset)) &
+          ~((targetOffset < 0) & (offset > OPM.SignedMaximum(8) + targetOffset)) &
+          (offset - targetOffset # OPM.SignedMinimum(8)) THEN
+        distance := ABS(offset - targetOffset);
+        IF distance > 0 THEN
+          overlaps := ~known OR ((low <= OPM.SignedMaximum(8) - distance) & (low + distance <= high))
+        END;
+      ELSIF (n^.right^.class = OPT.Nconst) & (n^.right^.typ^.form = OPT.Int) THEN
+        index := n^.right^.conval^.intval;
+        IF ((targetOffset >= 0) & (index >= OPM.SignedMinimum(8) + targetOffset)) OR
+            ((targetOffset < 0) & (index <= OPM.SignedMaximum(8) + targetOffset)) THEN
+          index := index - targetOffset;
+          overlaps := ~known OR ((low <= index) & (index <= high))
+        END
+      END;
+      IF overlaps THEN err(166) END
+    END;
+    CheckAllAccess(n^.left, target, range, targetOffset);
+    CheckAllAccess(n^.right, target, range, targetOffset);
+    CheckAllAccess(n^.link, target, range, targetOffset)
+  END CheckAllAccess;
+
+  PROCEDURE CheckAllAssignments(body, range: OPT.Node);
+    VAR s, target: OPT.Node; offset: SYSTEM.INT64; multiple: BOOLEAN;
+  BEGIN
+    multiple := TRUE;
+    IF (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst) THEN
+      multiple := range^.left^.conval^.intval < range^.right^.conval^.intval
+    END;
+    s := body;
+    WHILE s # NIL DO
+      OPM.errpos := OPM.Longint(s^.conval^.intval);
+      target := s^.left;
+      IF multiple THEN
+        IF ~AllDestination(target, range^.obj) THEN err(163) END;
+        IF (target^.class = OPT.Nindex) & (target^.left^.class IN {OPT.Nvar, OPT.Nvarpar}) &
+            UnitIndex(target^.right, range^.obj, offset) THEN
+          CheckAllAccess(body, target, range, offset)
+        END
+      END;
+      s := s^.link
+    END
+  END CheckAllAssignments;
+
+  PROCEDURE SkipAllTail;
+    VAR depth: INTEGER;
+  BEGIN
+    depth := 0;
+    WHILE sym # OPS.eof DO
+      IF sym = OPS.end THEN
+        IF depth = 0 THEN RETURN END;
+        DEC(depth)
+      ELSIF (sym = OPS.if) OR (sym = OPS.case) OR (sym = OPS.while) OR (sym = OPS.for) OR
+          (sym = OPS.loop) OR (sym = OPS.with) OR (sym = OPS.begin) OR (sym = OPS.all) THEN INC(depth)
+      END;
+      OPS.Get(sym)
+    END
+  END SkipAllTail;
+
+  PROCEDURE AllStatement(VAR x: OPT.Node);
+    VAR name: OPS.Name; id, owner: OPT.Object; low, high, range, body, last, s, y: OPT.Node;
+      typ: OPT.Struct; pos: LONGINT;
+  BEGIN
+    OPS.Get(sym); name := OPS.name; CheckSym(OPS.ident);
+    low := OPB.NewIntConst(0); high := OPB.NewIntConst(-1);
+    IF sym = OPS.comma THEN
+      err(160);
+      WHILE (sym # OPS.do) & (sym # OPS.end) & (sym # OPS.eof) DO OPS.Get(sym) END
+    ELSE
+      CheckSym(OPS.eql); Expression(low); CheckSym(OPS.upto); Expression(high);
+      IF sym = OPS.comma THEN
+        err(160);
+        WHILE (sym # OPS.do) & (sym # OPS.end) & (sym # OPS.eof) DO OPS.Get(sym) END
+      END
+    END;
+    typ := OPT.inttyp;
+    IF (low^.typ^.form # OPT.Int) OR (high^.typ^.form # OPT.Int) OR
+        (low^.class IN {OPT.Ntype, OPT.Nproc}) OR (high^.class IN {OPT.Ntype, OPT.Nproc}) THEN
+      err(164); low := OPB.NewIntConst(0); high := OPB.NewIntConst(-1)
+    ELSE
+      IF low^.typ^.size > typ^.size THEN typ := low^.typ END;
+      IF high^.typ^.size > typ^.size THEN typ := high^.typ END
+    END;
+    owner := OPT.topScope^.link;
+    OPT.OpenScope(level, NIL); OPT.topScope^.link := owner;
+    OPT.Insert(name, id); id^.mode := OPT.Range; id^.typ := typ; id^.x := AllCounter; INC(AllCounter);
+    range := OPT.NewNode(OPT.Nrange); range^.obj := id; range^.typ := typ;
+    range^.left := low; range^.right := high;
+    IF sym = OPS.with THEN err(165); OPS.Get(sym); SkipAllTail ELSE CheckSym(OPS.do) END;
+    body := NIL; last := NIL;
+    LOOP
+      IF sym # OPS.ident THEN EXIT END;
+      pos := OPM.errpos;
+      qualident(id); s := OPB.NewLeaf(id); selector(s);
+      IF sym # OPS.becomes THEN err(161); SkipAllTail; EXIT END;
+      OPS.Get(sym); Expression(y);
+      CheckAllExpression(s); CheckAllExpression(y); OPB.Assign(s, y);
+      s^.conval := OPT.NewConst(); s^.conval^.intval := pos;
+      OPB.Link(body, last, s);
+      IF sym # OPS.semicolon THEN EXIT END;
+      OPS.Get(sym);
+      IF sym = OPS.end THEN err(161) END
+    END;
+    IF sym # OPS.end THEN err(161); SkipAllTail END;
+    CheckAllAssignments(body, range);
+    OPT.CloseScope; CheckSym(OPS.end);
+    x := range; OPB.Construct(OPT.Nall, x, body)
+  END AllStatement;
+
   PROCEDURE StatSeq(VAR stat: OPT.Node);
     VAR fpar, id, t, obj: OPT.Object; idtyp: OPT.Struct; e: BOOLEAN;
         s, x, y, z, apar, last, lastif: OPT.Node; pos: LONGINT; name: OPS.Name;
@@ -815,6 +984,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         ELSE err(OPS.until)
         END ;
         OPB.Construct(OPT.Nrepeat, x, y)
+      ELSIF sym = OPS.all THEN
+        AllStatement(x); pos := OPM.errpos
       ELSIF sym = OPS.for THEN
         OPS.Get(sym);
         IF sym = OPS.ident THEN qualident(id);
@@ -899,7 +1070,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       END ;
       IF x # NIL THEN SetPos(x); OPB.Link(stat, last, x) END ;
       IF sym = OPS.semicolon THEN OPS.Get(sym)
-      ELSIF (sym <= OPS.ident) OR (OPS.if <= sym) & (sym <= OPS.return) THEN err(OPS.semicolon)
+      ELSIF (sym <= OPS.ident) OR (OPS.if <= sym) & (sym <= OPS.return) OR (sym = OPS.all) THEN err(OPS.semicolon)
       ELSE EXIT
       END
     END
@@ -1016,7 +1187,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         procdec, statseq: OPT.Node;
         c: LONGINT; done: BOOLEAN;
   BEGIN
-    OPS.Init; LoopLevel := 0; level := 0; OPS.Get(sym);
+    OPS.Init; LoopLevel := 0; AllCounter := 0; level := 0; OPS.Get(sym);
     IF sym = OPS.module THEN OPS.Get(sym) ELSE err(16) END;
     IF sym = OPS.ident THEN
       OPM.LogCompiling(OPS.name);
