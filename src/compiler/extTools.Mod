@@ -135,7 +135,7 @@ PROCEDURE OpenMPFlags(VAR cmd: ARRAY OF CHAR; linking: BOOLEAN);
   VAR flags: CommandString; compiler, name: Path; variable: ARRAY 32 OF CHAR;
     i, start: INTEGER;
 BEGIN
-  IF ~(OPM.parallelcpu IN OPM.Options) THEN RETURN END;
+  IF ~(OPM.parallelcpu IN OPM.Options) & ~(OPM.parallelgpu IN OPM.Options) THEN RETURN END;
   IF linking THEN variable := "VOC_OPENMP_LDFLAGS" ELSE variable := "VOC_OPENMP_CFLAGS" END;
   Platform.GetEnv(variable, flags);
   IF flags = "" THEN
@@ -154,7 +154,7 @@ BEGIN
     ELSE
       OPM.LogWStr("No OpenMP options configured for "); OPM.LogWStr(name); OPM.LogWStr("; set ");
       OPM.LogWStr(variable); OPM.LogWLn;
-      Fail("Use an OpenMP C compiler for -jP, or -j for sequential C."); RETURN
+      Fail("Use an OpenMP C compiler for -jP/-jG, or -j for sequential C."); RETURN
     END
   END;
   Add(" ", cmd); Add(flags, cmd); Add(" ", cmd)
@@ -164,7 +164,7 @@ PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR; additionalopts: ARRAY 
   VAR compiler: Path;
 BEGIN
   compiler := "";
-  IF OPM.parallelcpu IN OPM.Options THEN Platform.GetEnv("CC", compiler) END;
+  IF (OPM.parallelcpu IN OPM.Options) OR (OPM.parallelgpu IN OPM.Options) THEN Platform.GetEnv("CC", compiler) END;
   IF compiler = "" THEN COPY(Configuration.compile, s) ELSE COPY(compiler, s) END;
   Strings.Append(' -I "', s);
   Strings.Append(OPM.ResourceDir, s);

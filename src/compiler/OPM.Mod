@@ -368,7 +368,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr("  Experimental Oberon-V");                                                                         LogWLn;
       LogWStr("    -j   Enable experimental Oberon-V ALL statements (sequential C).");                              LogWLn;
       LogWStr("    -jP  Generate OpenMP CPU-parallel ALL statements.");                                           LogWLn;
-      LogWStr("    -jG  Reserved for OpenMP GPU offloading; not implemented yet.");                                LogWLn;
+      LogWStr("    -jG  Generate OpenMP GPU-offloading ALL statements.");                                         LogWLn;
       LogWStr("    -P/-G require -j and are mutually exclusive.");                                               LogWLn;
       LogWLn;
       LogWStr("  Miscellaneous");                                                                                  LogWLn;
@@ -433,10 +433,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     END;
     IF (parallelcpu IN Options) & (parallelgpu IN Options) THEN
       LogWStr("-P and -G are mutually exclusive."); LogWLn; noerr := FALSE; RETURN
-    END;
-    IF parallelgpu IN Options THEN
-      LogWStr("OpenMP GPU execution is not implemented yet; use -j or -jP.");
-      LogWLn; noerr := FALSE; RETURN
     END;
     IF mainlinkstat IN Options THEN INCL(Options, mainprog) END;
     IF (mainlinkstat IN Options) & ((dynamicmain IN Options) OR (embeddedcore IN Options)) THEN

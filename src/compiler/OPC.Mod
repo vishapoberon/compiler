@@ -875,7 +875,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     GenHeaderMsg;
     OPM.WriteLn;
 
-    IF OPM.parallelcpu IN OPM.Options THEN
+    IF OPM.parallelgpu IN OPM.Options THEN
+      OPM.WriteString("#if !defined(_OPENMP) || _OPENMP < 201511"); OPM.WriteLn;
+      OPM.WriteString('#error "OpenMP GPU output requires an OpenMP 4.5+ C compiler"'); OPM.WriteLn;
+      OPM.WriteString("#endif"); OPM.WriteLn
+    ELSIF OPM.parallelcpu IN OPM.Options THEN
       OPM.WriteString("#if !defined(_OPENMP) || _OPENMP < 200805"); OPM.WriteLn;
       OPM.WriteString('#error "OpenMP CPU output requires an OpenMP 3.0+ C compiler"'); OPM.WriteLn;
       OPM.WriteString("#endif"); OPM.WriteLn
@@ -1251,9 +1255,9 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   PROCEDURE CompleteIdent*(obj: OPT.Object);
     VAR comp, level: INTEGER;
   BEGIN
-    (* obj^.mode IN {OPT.Var, OPT.VarPar} *)
     level := obj^.mnolev;
-    IF obj^.adr = 1 THEN  (* WITH-variable *)
+    IF obj^.mode IN {OPT.Range, OPT.AllLocal} THEN Ident(obj)
+    ELSIF obj^.adr = 1 THEN  (* WITH-variable *)
       IF obj^.typ^.comp = OPT.Record THEN Ident(obj); OPM.WriteString("__")
       ELSE (* cast with guard pointer type *)
         OPM.WriteString("(*("); Ident(obj^.typ^.strobj); OPM.WriteString("*)&"); Ident(obj); OPM.Write(")")

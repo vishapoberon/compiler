@@ -121,13 +121,16 @@ all_source = source("PerFile", declarations, "ALL r = 0 .. 3 DO a[r] := r END")
 run([voc, "-sSm", all_source, "-j", compat])
 run([voc, "-sSmj", all_source, compat, "-j"])
 for flags, message in (("P", "require -j"), ("G", "require -j"),
-                       ("jPG", "mutually exclusive"),
-                       ("jG", "not implemented")):
+                       ("jPG", "mutually exclusive")):
     assert message in run([voc, "-sSm" + flags, compat], success=False)
 run([voc, "-sSmPPGGjj", compat])
 run([voc, "-sSmjP", all_source])
 assert "#pragma omp parallel for" in (work / "PerFile.c").read_text()
 run([voc, "-sSmjPP", all_source])
+assert "#pragma omp" not in (work / "PerFile.c").read_text()
+run([voc, "-sSmjG", all_source])
+assert "#pragma omp target teams distribute parallel for" in (work / "PerFile.c").read_text()
+run([voc, "-sSmjGG", all_source])
 assert "#pragma omp" not in (work / "PerFile.c").read_text()
 ordinary_for = source("OrdinaryFor", declarations, "FOR i := 0 TO 3 DO a[i] := i END")
 run([voc, "-sSm", ordinary_for])

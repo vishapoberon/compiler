@@ -144,6 +144,11 @@ Compiler error messages
 165 ALL WITH declarations require scalar types
 166 overlapping accesses between ALL iterations
 167 ALL local variable is read before assignment
+168 GPU ALL requires scalar expressions and direct one-dimensional numeric arrays
+169 GPU ALL cannot map potentially aliased array arguments together
+170 GPU ALL array indices must be its range identifier or an integer constant
+171 GPU ALL expression requires an unsupported operation or runtime helper
+172 GPU ALL checked narrowing and real-to-integer conversions are not supported
 
 Limitations of implementation
 200 not yet implemented

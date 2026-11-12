@@ -44,6 +44,14 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   TYPE
     ExitInfo = RECORD level, label: INTEGER END ;
+    GPUValue = POINTER TO GPUValueDesc;
+    GPUValueDesc = RECORD
+      next: GPUValue;
+      node: OPT.Node;
+      number: LONGINT;
+      maximum: SYSTEM.INT64;
+      array, written, ranged: BOOLEAN
+    END;
 
 
   VAR
@@ -53,11 +61,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     nofExitLabels: INTEGER;
     parallelBody: BOOLEAN;
     parallelRange: OPT.Node;
+    gpuBody: BOOLEAN;
+    gpuRange: OPT.Node;
+    gpuValues: GPUValue;
 
 
   PROCEDURE Init*;
   BEGIN
     stamp := 0; nofExitLabels := 0; parallelBody := FALSE; parallelRange := NIL;
+    gpuBody := FALSE; gpuRange := NIL; gpuValues := NIL;
   END Init;
 
   PROCEDURE ^Traverse (obj, outerScope: OPT.Object; exported: BOOLEAN);
@@ -210,10 +222,25 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE^ expr  (n: OPT.Node; prec: INTEGER);
   PROCEDURE^ design(n: OPT.Node; prec: INTEGER);
 
+  PROCEDURE GPUFind(values: GPUValue; obj: OPT.Object): GPUValue;
+  BEGIN
+    WHILE (values # NIL) & (values^.node^.obj # obj) DO values := values^.next END;
+    RETURN values
+  END GPUFind;
+
+  PROCEDURE GPUName(range: OPT.Node; value: GPUValue; suffix: ARRAY OF CHAR);
+  BEGIN
+    OPC.Ident(range^.obj); OPM.WriteString("__gpu"); OPM.WriteInt(value^.number); OPM.WriteString(suffix)
+  END GPUName;
+
   PROCEDURE Len(n: OPT.Node; dim: SYSTEM.INT64);
   VAR
-    d: SYSTEM.INT64; array: OPT.Struct;
+    d: SYSTEM.INT64; array: OPT.Struct; value: GPUValue;
   BEGIN
+    IF gpuBody & (n^.class IN {OPT.Nvar, OPT.Nvarpar}) THEN
+      value := GPUFind(gpuValues, n^.obj);
+      IF value # NIL THEN GPUName(gpuRange, value, "__len"); RETURN END
+    END;
     WHILE (n^.class = OPT.Nindex) & (n^.typ^.comp = OPT.DynArr(*26.7.2002*)) DO INC(dim); n := n^.left END ;
     IF (n^.class = OPT.Nderef) & (n^.typ^.comp = OPT.DynArr) THEN
 	  d := dim; array := n^.typ;
@@ -309,7 +336,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE Index(n, d: OPT.Node; prec, dim: INTEGER);
   BEGIN
-    IF ~(OPM.inxchk IN OPM.Options)
+    IF gpuBody OR ~(OPM.inxchk IN OPM.Options)
     OR (n^.right^.class = OPT.Nconst) & ((n^.right^.conval^.intval = 0) OR (n^.left^.typ^.comp # OPT.DynArr))
     OR ParallelIndexSafe(n) THEN
       expr(n^.right, prec)
@@ -322,7 +349,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE design(n: OPT.Node; prec: INTEGER);
     VAR obj: OPT.Object; typ: OPT.Struct;
       class, designPrec, comp: INTEGER;
-      d, x: OPT.Node; dims, i: INTEGER;
+      d, x: OPT.Node; dims, i: INTEGER; value: GPUValue;
   BEGIN
     comp := n^.typ^.comp; obj := n^.obj; class := n^.class;
     designPrec := Precedence(class, n^.subcl, n^.typ^.form, comp);
@@ -331,9 +358,14 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     IF prec = ProcTypeVar THEN OPM.Write(Deref) END; (* proc var calls must be dereferenced in K&R C *)
     CASE class OF
     | OPT.Nproc:   OPC.Ident(n^.obj)
-    | OPT.Nvar:    OPC.CompleteIdent(n^.obj)
-    | OPT.Nvarpar: IF ~(comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write(Deref) END; (* deref var parameter *)
-                   OPC.CompleteIdent(n^.obj)
+    | OPT.Nvar:    value := NIL; IF gpuBody THEN value := GPUFind(gpuValues, obj) END;
+                   IF value # NIL THEN GPUName(gpuRange, value, "") ELSE OPC.CompleteIdent(n^.obj) END
+    | OPT.Nvarpar: value := NIL; IF gpuBody THEN value := GPUFind(gpuValues, obj) END;
+                   IF value # NIL THEN GPUName(gpuRange, value, "")
+                   ELSE
+                     IF ~(comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write(Deref) END;
+                     OPC.CompleteIdent(n^.obj)
+                   END
     | OPT.Nfield:  IF n^.left^.class = OPT.Nderef THEN design(n^.left^.left, designPrec); OPM.WriteString("->")
                    ELSE design(n^.left, designPrec); OPM.Write(".")
                    END ;
@@ -815,6 +847,213 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END
   END DeclareAllLocals;
 
+  PROCEDURE GPUScalar(typ: OPT.Struct): BOOLEAN;
+  BEGIN
+    RETURN (typ^.comp = OPT.Basic) & (typ^.form IN {OPT.Byte..OPT.LReal})
+  END GPUScalar;
+
+  PROCEDURE GPUCapture(n: OPT.Node; written: BOOLEAN; VAR values: GPUValue): GPUValue;
+    VAR value, last: GPUValue; array: BOOLEAN; number: LONGINT;
+  BEGIN
+    IF ~(n^.class IN {OPT.Nvar, OPT.Nvarpar}) THEN OPM.err(168); RETURN NIL END;
+    array := n^.typ^.comp IN {OPT.Array, OPT.DynArr};
+    IF array THEN
+      IF ~GPUScalar(n^.typ^.BaseTyp) THEN OPM.err(168); RETURN NIL END
+    ELSIF ~GPUScalar(n^.typ) OR written OR (n^.class = OPT.Nvarpar) THEN
+      OPM.err(168); RETURN NIL
+    END;
+    value := GPUFind(values, n^.obj);
+    IF value = NIL THEN
+      last := values; number := 0;
+      IF last # NIL THEN
+        WHILE last^.next # NIL DO last := last^.next END;
+        number := last^.number + 1
+      END;
+      NEW(value); value^.node := n; value^.number := number; value^.array := array;
+      value^.maximum := -1;
+      IF last = NIL THEN values := value ELSE last^.next := value END
+    END;
+    value^.written := value^.written OR written;
+    RETURN value
+  END GPUCapture;
+
+  PROCEDURE GPUConversion(from, to: OPT.Struct);
+  BEGIN
+    IF ((to^.form = OPT.Int) & (from^.form IN {OPT.Real, OPT.LReal})) OR
+        ((OPM.ranchk IN OPM.Options) &
+          (((to^.form = OPT.Int) & (from^.size > to^.size)) OR
+           ((to^.form = OPT.Char) & (from^.form # OPT.Char)))) THEN OPM.err(172)
+    END
+  END GPUConversion;
+
+  PROCEDURE GPUExpression(n, range: OPT.Node; written: BOOLEAN; VAR values: GPUValue);
+    VAR value: GPUValue; index: OPT.Node;
+  BEGIN
+    IF n = NIL THEN RETURN END;
+    IF ~GPUScalar(n^.typ) THEN OPM.err(168); RETURN END;
+    CASE n^.class OF
+    | OPT.Nconst:
+    | OPT.Nvar, OPT.Nvarpar:
+        IF ~(n^.obj^.mode IN {OPT.Range, OPT.AllLocal}) THEN value := GPUCapture(n, written, values) END
+    | OPT.Nindex:
+        value := GPUCapture(n^.left, written, values);
+        IF value = NIL THEN RETURN END;
+        index := n^.right;
+        WHILE (index^.class = OPT.Nmop) & (index^.subcl = OPT.conv) &
+            (index^.typ^.size >= index^.left^.typ^.size) DO index := index^.left END;
+        IF (index^.class = OPT.Nvar) & (index^.obj = range^.obj) THEN value^.ranged := TRUE
+        ELSIF (index^.class = OPT.Nconst) & (index^.typ^.form = OPT.Int) & (index^.conval^.intval >= 0) THEN
+          IF index^.conval^.intval > value^.maximum THEN value^.maximum := index^.conval^.intval END
+        ELSE OPM.err(170)
+        END
+    | OPT.Nmop:
+        IF ~(n^.subcl IN {OPS.not, OPS.minus, OPT.conv, OPT.abs, OPT.cap, OPT.odd}) THEN
+          OPM.err(171); RETURN
+        END;
+        IF n^.subcl = OPT.conv THEN GPUConversion(n^.left^.typ, n^.typ) END;
+        GPUExpression(n^.left, range, FALSE, values)
+    | OPT.Ndop:
+        IF n^.subcl = OPT.len THEN
+          IF n^.right^.conval^.intval # 0 THEN OPM.err(168); RETURN END;
+          value := GPUCapture(n^.left, FALSE, values)
+        ELSIF (n^.subcl = OPT.ash) & (n^.right^.class = OPT.Nconst) THEN
+          GPUExpression(n^.left, range, FALSE, values)
+        ELSIF n^.subcl IN {OPS.times, OPS.slash, OPS.plus, OPS.minus, OPS.and, OPS.or,
+            OPS.eql..OPS.geq, OPT.msk} THEN
+          GPUExpression(n^.left, range, FALSE, values); GPUExpression(n^.right, range, FALSE, values)
+        ELSE OPM.err(171)
+        END
+    ELSE OPM.err(168)
+    END
+  END GPUExpression;
+
+  PROCEDURE GPUCheck(n: OPT.Node; VAR values: GPUValue);
+    VAR statement: OPT.Node; value, other: GPUValue;
+  BEGIN
+    values := NIL; statement := n^.right;
+    WHILE statement # NIL DO
+      OPM.errpos := OPM.Longint(statement^.conval^.intval);
+      GPUExpression(statement^.left, n^.left, TRUE, values);
+      GPUExpression(statement^.right, n^.left, FALSE, values);
+      GPUConversion(statement^.right^.typ, statement^.left^.typ);
+      statement := statement^.link
+    END;
+    value := values;
+    WHILE value # NIL DO
+      IF value^.array THEN
+        other := value^.next;
+        WHILE other # NIL DO
+          IF other^.array & ((value^.node^.typ^.comp = OPT.DynArr) OR
+              (other^.node^.typ^.comp = OPT.DynArr) OR
+              (value^.node^.obj^.mode = OPT.VarPar) OR (other^.node^.obj^.mode = OPT.VarPar)) THEN OPM.err(169)
+          END;
+          other := other^.next
+        END
+      END;
+      value := value^.next
+    END
+  END GPUCheck;
+
+  PROCEDURE GPUDeclarations(range: OPT.Node; values: GPUValue);
+    VAR value: GPUValue;
+  BEGIN
+    value := values;
+    WHILE value # NIL DO
+      OPC.BegStat;
+      IF value^.array THEN OPC.Andent(value^.node^.typ^.BaseTyp); OPM.WriteString(" *")
+      ELSE OPC.Andent(value^.node^.typ); OPM.Write(" ")
+      END;
+      GPUName(range, value, ""); OPM.WriteString(" = "); expr(value^.node, MinPrec); OPC.EndStat;
+      IF value^.array THEN
+        OPC.BegStat; OPM.WriteString("ADDRESS "); GPUName(range, value, "__len");
+        OPM.WriteString(" = "); Len(value^.node, 0); OPC.EndStat
+      END;
+      value := value^.next
+    END;
+    IF ~(OPM.inxchk IN OPM.Options) THEN RETURN END;
+    value := values;
+    WHILE value # NIL DO
+      IF value^.array THEN
+        IF value^.ranged THEN
+          OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__start");
+          OPM.WriteString(" < 0 || (UINT64)"); AllName(range, "__end");
+          OPM.WriteString(" >= (UINT64)"); GPUName(range, value, "__len");
+          OPM.WriteString(") __HALT(-2)"); OPC.EndStat
+        END;
+        IF value^.maximum >= 0 THEN
+          OPC.BegStat; OPM.WriteString("if ((UINT64)"); OPC.IntLiteral(value^.maximum, 8);
+          OPM.WriteString(" >= (UINT64)"); GPUName(range, value, "__len");
+          OPM.WriteString(") __HALT(-2)"); OPC.EndStat
+        END
+      END;
+      value := value^.next
+    END
+  END GPUDeclarations;
+
+  PROCEDURE GPUPragma(range: OPT.Node; values: GPUValue);
+    VAR value: GPUValue;
+  BEGIN
+    OPC.BegStat; OPM.WriteString("#pragma omp target teams distribute parallel for schedule(static)");
+    value := values;
+    WHILE value # NIL DO
+      IF value^.array THEN
+        IF value^.written THEN OPM.WriteString(" map(tofrom: ") ELSE OPM.WriteString(" map(to: ") END;
+        GPUName(range, value, ""); OPM.WriteString("[0:"); GPUName(range, value, "__len"); OPM.WriteString("])")
+      END;
+      value := value^.next
+    END;
+    OPM.WriteString(" firstprivate("); AllName(range, "__start"); OPM.WriteString(", "); AllName(range, "__end");
+    OPM.WriteString(", "); AllName(range, "__count"); OPM.WriteString(", "); AllName(range, "__work");
+    value := values;
+    WHILE value # NIL DO
+      OPM.WriteString(", ");
+      IF value^.array THEN GPUName(range, value, "__len") ELSE GPUName(range, value, "") END;
+      value := value^.next
+    END;
+    OPM.Write(")"); OPM.WriteLn
+  END GPUPragma;
+
+  PROCEDURE GPUAllStat(n: OPT.Node; outerProc: OPT.Object);
+    VAR range: OPT.Node; values, savedValues: GPUValue; savedRange: OPT.Node;
+      savedParallel, savedGPU: BOOLEAN;
+  BEGIN
+    GPUCheck(n, values);
+    IF ~OPM.noerr THEN RETURN END;
+    range := n^.left;
+    OPC.BegBlk;
+    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "__start");
+    OPM.WriteString(" = "); expr(range^.left, MinPrec);
+    OPM.WriteString(", "); AllName(range, "__end"); OPM.WriteString(" = "); expr(range^.right, MinPrec); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__start");
+    OPM.WriteString(" <= "); AllName(range, "__end"); OPM.WriteString(") "); OPC.BegBlk;
+    GPUDeclarations(range, values);
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
+    OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
+    OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
+    OPM.WriteString(" = "); AllName(range, "__count"); OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
+    GPUPragma(range, values);
+    OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
+    OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
+    OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
+    OPM.WriteString(" = (UINT64)"); AllName(range, "__start"); OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
+    savedParallel := parallelBody; savedGPU := gpuBody; savedRange := gpuRange; savedValues := gpuValues;
+    parallelBody := TRUE; gpuBody := TRUE; gpuRange := range; gpuValues := values;
+    OPC.BegStat; OPC.BegBlk;
+    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+    OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)"); OPC.IntLiteral(OPM.SignedMaximum(8), 8);
+    OPM.WriteString(" ? (INT64)"); AllName(range, "__value"); OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
+    DeclareAllLocals(range); stat(n^.right, outerProc); OPC.EndBlk;
+    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
+    AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
+    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+    OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
+    DeclareAllLocals(range); stat(n^.right, outerProc); OPC.EndBlk;
+    parallelBody := savedParallel; gpuBody := savedGPU; gpuRange := savedRange; gpuValues := savedValues;
+    OPC.EndBlk; OPC.CheckInterrupt; OPC.EndBlk; OPC.EndBlk
+  END GPUAllStat;
+
   PROCEDURE ParallelAllStat(n: OPT.Node; outerProc: OPT.Object);
     VAR range, savedRange: OPT.Node; saved: BOOLEAN;
   BEGIN
@@ -1005,7 +1244,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.WriteInt(n^.left^.right^.right^.conval^.intval); OPM.Write(CloseParen); OPC.EndStat
                      END
       | OPT.Ncase:   INC(exit.level); CaseStat(n, outerProc); DEC(exit.level)
-      | OPT.Nall:    IF OPM.parallelcpu IN OPM.Options THEN ParallelAllStat(n, outerProc)
+      | OPT.Nall:    IF OPM.parallelgpu IN OPM.Options THEN GPUAllStat(n, outerProc)
+                     ELSIF OPM.parallelcpu IN OPM.Options THEN ParallelAllStat(n, outerProc)
                      ELSE AllStat(n, outerProc)
                      END
       | OPT.Nwhile:  INC(exit.level); OPM.WriteString("while "); expr(n^.left, MaxPrec);
