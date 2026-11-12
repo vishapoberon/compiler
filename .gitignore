@@ -18,6 +18,7 @@
 /src/test/**/*.c
 !/src/test/oberonv/DeviceProbe.c
 !/src/test/oberonv/TeamsProbe.c
+!/src/test/oberonv/NumericalProbe.c
 /src/test/**/*.h
 /src/test/**/*.o
 /src/test/**/*.obj

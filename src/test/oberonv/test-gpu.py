@@ -87,11 +87,19 @@ else:
 
 run([*cc, *shlex.split(args.cflags), *shlex.split(compile_flags or '-fopenmp'), sources / 'TeamsProbe.c',
      *shlex.split(link_flags or '-fopenmp'), '-o', work / 'TeamsProbe'])
-for mode in ('32', '64'):
-    print('C teams probe, ' + mode + '-bit loop: begin', flush=True)
-    probe = execute([work / 'TeamsProbe', mode])
-    assert probe.returncode == (0 if args.device else 77), (mode, probe.returncode, probe.stdout)
-    print('C teams probe, ' + mode + '-bit loop: complete', flush=True)
+for bounds in ('constant', 'captured'):
+    for mode in ('32', '64'):
+        label = 'C teams probe, ' + mode + '-bit loop, ' + bounds + ' bound'
+        print(label + ': begin', flush=True)
+        probe = execute([work / 'TeamsProbe', mode, *(['captured'] if bounds == 'captured' else [])])
+        assert probe.returncode == (0 if args.device else 77), (mode, bounds, probe.returncode, probe.stdout)
+        print(label + ': complete', flush=True)
+
+run([*cc, *shlex.split(args.cflags), *shlex.split(compile_flags or '-fopenmp'), sources / 'NumericalProbe.c',
+     *shlex.split(link_flags or '-fopenmp'), '-o', work / 'NumericalProbe'])
+print('C mapped numerical probe: begin', flush=True)
+run([work / 'NumericalProbe'])
+print('C mapped numerical probe: complete', flush=True)
 
 print('compiling generated GPU numerical tests', flush=True)
 output = run([voc, '-O' + args.model, '-sVjmG', sources / 'TestGPU.Mod'])
