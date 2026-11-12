@@ -20,6 +20,7 @@ parser.add_argument('--ptx-arch')
 parser.add_argument('--hresh')
 parser.add_argument('--modules')
 parser.add_argument('--timeout', type=int, default=120)
+parser.add_argument('--cflags', default=os.environ.get('CFLAGS', '-O2 -fno-strict-aliasing'))
 args = parser.parse_args()
 if args.timeout <= 0:
     parser.error('--timeout must be positive')
@@ -37,7 +38,7 @@ if not args.device:
     link_flags = compile_flags
 env = dict(os.environ, VOCROOT=str(image), VOCLIBDIR=str(image / 'lib'),
            OBERON=str(image / args.model / 'sym'), CC=args.cc,
-           CFLAGS='-O2 -fno-strict-aliasing', LDFLAGS='', LDLIBS='',
+           CFLAGS=args.cflags, LDFLAGS='', LDLIBS='',
            VOC_OPENMP_CFLAGS=compile_flags, VOC_OPENMP_LDFLAGS=link_flags,
            OMP_TARGET_OFFLOAD='MANDATORY' if args.device else 'DISABLED',
            LD_LIBRARY_PATH=str(image / 'lib') + os.pathsep + os.environ.get('LD_LIBRARY_PATH', ''))
@@ -45,7 +46,8 @@ if not args.device:
     env.update(OMP_NUM_THREADS='4', OMP_DYNAMIC='FALSE', OMP_THREAD_LIMIT='4')
 else:
     print('device thread settings: ' + ', '.join(name + '=' + env.get(name, '<runtime default>')
-          for name in ('OMP_NUM_THREADS', 'OMP_THREAD_LIMIT', 'OMP_DYNAMIC')), flush=True)
+          for name in ('OMP_NUM_THREADS', 'OMP_THREAD_LIMIT', 'OMP_TEAMS_THREAD_LIMIT', 'OMP_DYNAMIC')), flush=True)
+print('GPU test C flags: ' + args.cflags, flush=True)
 
 
 def execute(command, extra_env=None):
@@ -73,7 +75,7 @@ def module(name, declarations, body):
     return path
 
 
-run([*cc, *shlex.split(compile_flags or '-fopenmp'), sources / 'DeviceProbe.c',
+run([*cc, *shlex.split(args.cflags), *shlex.split(compile_flags or '-fopenmp'), sources / 'DeviceProbe.c',
      *shlex.split(link_flags or '-fopenmp'), '-o', work / 'DeviceProbe'])
 probe = execute([work / 'DeviceProbe'])
 if args.device:
@@ -83,7 +85,7 @@ else:
     assert probe.returncode == 77, (probe.returncode, probe.stdout)
     print('omp_is_initial_device: host fallback confirmed; this run does not verify a GPU', flush=True)
 
-run([*cc, *shlex.split(compile_flags or '-fopenmp'), sources / 'TeamsProbe.c',
+run([*cc, *shlex.split(args.cflags), *shlex.split(compile_flags or '-fopenmp'), sources / 'TeamsProbe.c',
      *shlex.split(link_flags or '-fopenmp'), '-o', work / 'TeamsProbe'])
 for mode in ('32', '64'):
     print('C teams probe, ' + mode + '-bit loop: begin', flush=True)
@@ -121,7 +123,7 @@ print('numerical arrays, open arrays, captures, private variables, bounds and in
 
 if args.ptx_arch:
     ptx = work / ('TestGPU-' + args.ptx_arch + '.ptx')
-    run([*cc, '-O2', '-fno-strict-aliasing', '-fopenmp', '-fopenmp-targets=nvptx64-nvidia-cuda',
+    run([*cc, *shlex.split(args.cflags), '-fopenmp', '-fopenmp-targets=nvptx64-nvidia-cuda',
          '--offload-arch=' + args.ptx_arch, '--offload-device-only', '-nogpulib', '-nocudainc', '-S',
          '-I' + str(image / args.model / 'include'), work / 'TestGPU.c', '-o', ptx])
     device_code = ptx.read_text()

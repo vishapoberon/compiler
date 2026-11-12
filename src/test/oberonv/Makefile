@@ -11,6 +11,7 @@ GPU_CC ?= gcc
 GPU_CLANG ?= clang
 GPU_ARCH ?= sm_53
 GPU_TIMEOUT ?= 120
+GPU_CFLAGS ?= -O2 -fno-strict-aliasing
 RUN_PYTHON = sh "$(ROOT)/src/tools/make/python.sh"
 ARGS = --voc "$(VOC)" --vocroot "$(VOCROOT)" --model "$(MODEL)"
 
@@ -26,16 +27,16 @@ test-shared:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/shared" --hresh "$(HRESH)" --modules "$(MODULES)"
 
 test-gpu:
-	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu" --timeout "$(GPU_TIMEOUT)"
+	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu" --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
 
 test-gpu-compile:
-	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CLANG)" --work "$(BUILD)/gpu-compile" --ptx-arch "$(GPU_ARCH)" --timeout "$(GPU_TIMEOUT)"
+	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CLANG)" --work "$(BUILD)/gpu-compile" --ptx-arch "$(GPU_ARCH)" --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
 
 test-gpu-shared:
-	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu-shared" --hresh "$(HRESH)" --modules "$(MODULES)" --timeout "$(GPU_TIMEOUT)"
+	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu-shared" --hresh "$(HRESH)" --modules "$(MODULES)" --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
 
 test-gpu-device:
-	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu-device" --device --timeout "$(GPU_TIMEOUT)"
+	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu-device" --device --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
 
 benchmark:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/benchmark" --benchmark
