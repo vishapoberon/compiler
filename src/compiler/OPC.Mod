@@ -107,6 +107,8 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     mode := obj^.mode; level := obj^.mnolev;
     IF mode = OPT.Range THEN
       OPM.WriteString("__all"); OPM.WriteInt(obj^.x)
+    ELSIF mode = OPT.AllLocal THEN
+      OPM.WriteString("__alllocal"); OPM.WriteInt(obj^.x)
     ELSIF (mode IN {OPT.Var, OPT.Typ, OPT.LProc}) & (level > 0) OR (mode IN {OPT.Fld, OPT.VarPar}) THEN
       OPM.WriteStringVar(obj^.name);
       h := KeywordHash(obj^.name);
@@ -873,6 +875,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     GenHeaderMsg;
     OPM.WriteLn;
 
+    IF OPM.parallelcpu IN OPM.Options THEN
+      OPM.WriteString("#if !defined(_OPENMP) || _OPENMP < 200805"); OPM.WriteLn;
+      OPM.WriteString('#error "OpenMP CPU output requires an OpenMP 3.0+ C compiler"'); OPM.WriteLn;
+      OPM.WriteString("#endif"); OPM.WriteLn
+    END;
     (* Define model dependent type sizes *)
     OPM.WriteString("#define SHORTINT INT");  OPM.WriteInt(OPT.sinttyp.size*8); OPM.WriteLn;
     OPM.WriteString("#define INTEGER  INT");  OPM.WriteInt(OPT.inttyp.size*8);  OPM.WriteLn;

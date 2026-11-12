@@ -731,6 +731,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   BEGIN
     IF n # NIL THEN
       IF n^.class = OPT.Ncall THEN err(162) END;
+      IF (n^.class = OPT.Nvar) & (n^.obj # NIL) & (n^.obj^.mode = OPT.AllLocal) &
+          (n^.obj^.adr = 0) THEN err(167) END;
       CheckAllExpression(n^.left); CheckAllExpression(n^.right); CheckAllExpression(n^.link)
     END
   END CheckAllExpression;
@@ -738,7 +740,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE AllDestination(n: OPT.Node; range: OPT.Object): BOOLEAN;
   BEGIN
     IF n = NIL THEN RETURN FALSE END;
-    IF n^.class = OPT.Nindex THEN
+    IF (n^.class = OPT.Nvar) & (n^.obj # NIL) & (n^.obj^.mode = OPT.AllLocal) THEN RETURN TRUE
+    ELSIF n^.class = OPT.Nindex THEN
       RETURN UsesRange(n^.right, range) OR AllDestination(n^.left, range)
     ELSIF n^.class IN {OPT.Nfield, OPT.Nguard, OPT.Nderef} THEN
       RETURN AllDestination(n^.left, range)
@@ -839,6 +842,41 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     END
   END SkipAllTail;
 
+  PROCEDURE AllLocals(range: OPT.Object);
+    VAR first, last, obj, group, typeObj: OPT.Object; typ: OPT.Struct;
+  BEGIN
+    OPS.Get(sym); first := NIL; last := NIL;
+    LOOP
+      group := NIL;
+      LOOP
+        IF sym # OPS.ident THEN err(OPS.ident); EXIT END;
+        OPT.Insert(OPS.name, obj); OPS.Get(sym);
+        obj^.mode := OPT.AllLocal; obj^.typ := OPT.undftyp;
+        obj^.x := AllCounter; INC(AllCounter); obj^.adr := 0;
+        IF first = NIL THEN first := obj ELSE last^.link := obj END;
+        last := obj;
+        IF group = NIL THEN group := obj END;
+        IF sym # OPS.comma THEN EXIT END;
+        OPS.Get(sym)
+      END;
+      CheckSym(OPS.colon); typ := OPT.inttyp;
+      IF sym = OPS.ident THEN
+        qualident(typeObj);
+        IF typeObj^.mode = OPT.Typ THEN typ := typeObj^.typ ELSE err(52) END
+      ELSE
+        err(165);
+        WHILE (sym # OPS.do) & (sym # OPS.semicolon) & (sym # OPS.end) & (sym # OPS.eof) DO OPS.Get(sym) END
+      END;
+      IF ~(typ^.form IN {OPT.Byte..OPT.Set}) OR (typ^.comp # OPT.Basic) THEN
+        err(165); typ := OPT.inttyp
+      END;
+      WHILE group # NIL DO group^.typ := typ; group := group^.link END;
+      IF sym # OPS.semicolon THEN EXIT END;
+      OPS.Get(sym)
+    END;
+    range^.link := first
+  END AllLocals;
+
   PROCEDURE AllStatement(VAR x: OPT.Node);
     VAR name: OPS.Name; id, owner: OPT.Object; low, high, range, body, last, s, y: OPT.Node;
       typ: OPT.Struct; pos: LONGINT;
@@ -868,7 +906,8 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     OPT.Insert(name, id); id^.mode := OPT.Range; id^.typ := typ; id^.x := AllCounter; INC(AllCounter);
     range := OPT.NewNode(OPT.Nrange); range^.obj := id; range^.typ := typ;
     range^.left := low; range^.right := high;
-    IF sym = OPS.with THEN err(165); OPS.Get(sym); SkipAllTail ELSE CheckSym(OPS.do) END;
+    IF sym = OPS.with THEN AllLocals(id) END;
+    CheckSym(OPS.do);
     body := NIL; last := NIL;
     LOOP
       IF sym # OPS.ident THEN EXIT END;
@@ -876,7 +915,10 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       qualident(id); s := OPB.NewLeaf(id); selector(s);
       IF sym # OPS.becomes THEN err(161); SkipAllTail; EXIT END;
       OPS.Get(sym); Expression(y);
-      CheckAllExpression(s); CheckAllExpression(y); OPB.Assign(s, y);
+      IF s^.class # OPT.Nvar THEN CheckAllExpression(s) END;
+      CheckAllExpression(y);
+      IF (s^.class = OPT.Nvar) & (s^.obj # NIL) & (s^.obj^.mode = OPT.AllLocal) THEN s^.obj^.adr := 1 END;
+      OPB.Assign(s, y);
       s^.conval := OPT.NewConst(); s^.conval^.intval := pos;
       OPB.Link(body, last, s);
       IF sym # OPS.semicolon THEN EXIT END;

@@ -141,8 +141,9 @@ Compiler error messages
 162 procedure calls in ALL bodies are not supported yet
 163 ALL destination must depend on its range identifier
 164 ALL bounds must be integer expressions
-165 iteration-local WITH declarations are not supported yet
+165 ALL WITH declarations require scalar types
 166 overlapping accesses between ALL iterations
+167 ALL local variable is read before assignment
 
 Limitations of implementation
 200 not yet implemented

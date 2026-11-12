@@ -41,20 +41,6 @@ BEGIN
 END execute;
 
 
-PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR; additionalopts: ARRAY OF CHAR);
-BEGIN
-  COPY(Configuration.compile, s);
-  Strings.Append(' -I "', s);
-  Strings.Append(OPM.ResourceDir, s);
-  Strings.Append('/include" ', s);
-  Strings.Append(additionalopts, s);
-  Strings.Append(" ", s);
-  Platform.GetEnv("CFLAGS", CFLAGS);
-  Strings.Append (CFLAGS, s);
-  Strings.Append (" ", s);
-END InitialiseCompilerCommand;
-
-
 (* ELF modular linking. Libraries deliberately do not DT_NEEDED the core:
    -md/-mL supply it as a shared library; -mD exports it from the executable.
    Thus both hosts can use the same module without ever loading two heaps. *)
@@ -145,6 +131,52 @@ BEGIN
     (compiler[start + 1] = "c") & (compiler[start + 2] = "c")
 END IsTCC;
 
+PROCEDURE OpenMPFlags(VAR cmd: ARRAY OF CHAR; linking: BOOLEAN);
+  VAR flags: CommandString; compiler, name: Path; variable: ARRAY 32 OF CHAR;
+    i, start: INTEGER;
+BEGIN
+  IF ~(OPM.parallelcpu IN OPM.Options) THEN RETURN END;
+  IF linking THEN variable := "VOC_OPENMP_LDFLAGS" ELSE variable := "VOC_OPENMP_CFLAGS" END;
+  Platform.GetEnv(variable, flags);
+  IF flags = "" THEN
+    Platform.GetEnv("CC", compiler);
+    IF compiler = "" THEN COPY(Configuration.compiler, name)
+    ELSE
+      i := 0; start := 0;
+      WHILE (compiler[i] # 0X) & (compiler[i] # " ") DO
+        IF compiler[i] = "/" THEN start := i + 1 END;
+        INC(i)
+      END;
+      Strings.Extract(compiler, start, i-start, name)
+    END;
+    IF (name = "cc") OR (name = "mingw") OR (Strings.Pos("gcc", name, 0) >= 0) OR
+        (Strings.Pos("clang", name, 0) >= 0) THEN flags := "-fopenmp"
+    ELSE
+      OPM.LogWStr("No OpenMP options configured for "); OPM.LogWStr(name); OPM.LogWStr("; set ");
+      OPM.LogWStr(variable); OPM.LogWLn;
+      Fail("Use an OpenMP C compiler for -jP, or -j for sequential C."); RETURN
+    END
+  END;
+  Add(" ", cmd); Add(flags, cmd); Add(" ", cmd)
+END OpenMPFlags;
+
+PROCEDURE InitialiseCompilerCommand(VAR s: ARRAY OF CHAR; additionalopts: ARRAY OF CHAR);
+  VAR compiler: Path;
+BEGIN
+  compiler := "";
+  IF OPM.parallelcpu IN OPM.Options THEN Platform.GetEnv("CC", compiler) END;
+  IF compiler = "" THEN COPY(Configuration.compile, s) ELSE COPY(compiler, s) END;
+  Strings.Append(' -I "', s);
+  Strings.Append(OPM.ResourceDir, s);
+  Strings.Append('/include" ', s);
+  Strings.Append(additionalopts, s);
+  Strings.Append(" ", s);
+  Platform.GetEnv("CFLAGS", CFLAGS);
+  Strings.Append(CFLAGS, s);
+  Strings.Append(" ", s);
+  OpenMPFlags(s, FALSE)
+END InitialiseCompilerCommand;
+
 PROCEDURE ModularCommand(VAR cmd: CommandString);
   VAR compiler, path, dir: Path; pos: INTEGER; include: ARRAY 16 OF CHAR;
 BEGIN
@@ -155,6 +187,7 @@ BEGIN
   Platform.GetEnv("CC", compiler);
   IF compiler = "" THEN COPY(Configuration.compile, cmd) ELSE COPY(compiler, cmd) END;
   Add(" ", cmd); Platform.GetEnv("CFLAGS", CFLAGS); Add(CFLAGS, cmd);
+  OpenMPFlags(cmd, FALSE);
   (* SYSTEM.VAL uses type punning. Do not override the chosen C language mode.
      TCC has no quote-only include option; keep module headers first with -I. *)
   Add(" -fno-strict-aliasing -fPIC ", cmd); SearchPath(path); pos := 0;
@@ -170,6 +203,7 @@ PROCEDURE ModularLinkFlags(VAR cmd: CommandString);
   VAR path: Path;
 BEGIN
   Platform.GetEnv("LDFLAGS", LDFLAGS); Add(" ", cmd); Add(LDFLAGS, cmd);
+  OpenMPFlags(cmd, TRUE);
   (* No as-needed dropping: even type-only imports have Oberon initializers. *)
   IF ~IsTCC() THEN Add(" -Wl,--no-as-needed ", cmd) END;
   Add(" -Wl,--enable-new-dtags ", cmd);
@@ -311,6 +345,7 @@ PROCEDURE LinkMain*(VAR moduleName: ARRAY OF CHAR; statically: BOOLEAN; addition
     Platform.GetEnv("LDLIBS", LDLIBS);
     Strings.Append(LDLIBS, cmd);
     Strings.Append(" ", cmd);
+    OpenMPFlags(cmd, TRUE);
 
 
     IF (~statically) OR ~(Configuration.os = "darwin") THEN

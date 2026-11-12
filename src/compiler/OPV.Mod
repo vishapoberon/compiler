@@ -51,11 +51,13 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
     exit: ExitInfo;  (* to check if EXIT is simply a break *)
     nofExitLabels: INTEGER;
+    parallelBody: BOOLEAN;
+    parallelRange: OPT.Node;
 
 
   PROCEDURE Init*;
   BEGIN
-    stamp := 0; nofExitLabels := 0;
+    stamp := 0; nofExitLabels := 0; parallelBody := FALSE; parallelRange := NIL;
   END Init;
 
   PROCEDURE ^Traverse (obj, outerScope: OPT.Object; exported: BOOLEAN);
@@ -295,10 +297,21 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END
   END TypeOf;
 
+  PROCEDURE ParallelIndexSafe(n: OPT.Node): BOOLEAN;
+  BEGIN
+    IF parallelRange = NIL THEN RETURN FALSE END;
+    RETURN (n^.left^.typ^.comp = OPT.Array) & (n^.right^.class = OPT.Nvar) &
+      (n^.right^.obj = parallelRange^.obj) &
+      (parallelRange^.left^.class = OPT.Nconst) & (parallelRange^.right^.class = OPT.Nconst) &
+      (parallelRange^.left^.conval^.intval >= 0) &
+      (parallelRange^.right^.conval^.intval < n^.left^.typ^.n)
+  END ParallelIndexSafe;
+
   PROCEDURE Index(n, d: OPT.Node; prec, dim: INTEGER);
   BEGIN
     IF ~(OPM.inxchk IN OPM.Options)
-    OR (n^.right^.class = OPT.Nconst) & ((n^.right^.conval^.intval = 0) OR (n^.left^.typ^.comp # OPT.DynArr)) THEN
+    OR (n^.right^.class = OPT.Nconst) & ((n^.right^.conval^.intval = 0) OR (n^.left^.typ^.comp # OPT.DynArr))
+    OR ParallelIndexSafe(n) THEN
       expr(n^.right, prec)
     ELSE
       IF SideEffects(n^.right) THEN OPM.WriteString("__XF(") ELSE OPM.WriteString("__X(") END ;
@@ -778,6 +791,80 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     WHILE (n # NIL) & (n^.class = OPT.Ninittd) DO OPC.InitTDesc(n^.typ); n := n^.link END
   END InitTDescs;
 
+  PROCEDURE AllName(range: OPT.Node; suffix: ARRAY OF CHAR);
+  BEGIN
+    OPC.Ident(range^.obj); OPM.WriteString(suffix)
+  END AllName;
+
+  PROCEDURE DirectAllRange(range: OPT.Node): BOOLEAN;
+    VAR low, high: SYSTEM.INT64;
+  BEGIN
+    IF (range^.left^.class # OPT.Nconst) OR (range^.right^.class # OPT.Nconst) THEN RETURN FALSE END;
+    low := range^.left^.conval^.intval; high := range^.right^.conval^.intval;
+    RETURN (low <= high) & ((low >= 0) OR (high < 0) OR
+      (low >= high - OPM.SignedMaximum(range^.typ^.size)))
+  END DirectAllRange;
+
+  PROCEDURE DeclareAllLocals(range: OPT.Node);
+    VAR obj: OPT.Object;
+  BEGIN
+    obj := range^.obj^.link;
+    WHILE obj # NIL DO
+      OPC.BegStat; OPC.Andent(obj^.typ); OPM.Write(" "); OPC.Ident(obj); OPC.EndStat;
+      obj := obj^.link
+    END
+  END DeclareAllLocals;
+
+  PROCEDURE ParallelAllStat(n: OPT.Node; outerProc: OPT.Object);
+    VAR range, savedRange: OPT.Node; saved: BOOLEAN;
+  BEGIN
+    range := n^.left;
+    OPC.BegBlk;
+    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "__start");
+    OPM.WriteString(" = "); expr(range^.left, MinPrec);
+    OPM.WriteString(", "); AllName(range, "__end"); OPM.WriteString(" = ");
+    expr(range^.right, MinPrec); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__start");
+    OPM.WriteString(" <= "); AllName(range, "__end"); OPM.WriteString(") "); OPC.BegBlk;
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
+    OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
+    OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count");
+    OPM.WriteString(" != 0) "); OPC.BegBlk;
+    OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static)"); OPM.WriteLn;
+    OPC.BegStat; OPM.WriteString("for (");
+    IF DirectAllRange(range) THEN
+      OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+      OPM.WriteString(" = "); expr(range^.left, MinPrec);
+      OPM.WriteString("; "); AllName(range, ""); OPM.WriteString(" < "); expr(range^.right, MinPrec);
+      OPM.WriteString("; ++"); AllName(range, ""); OPM.WriteString(") "); OPC.BegBlk
+    ELSE
+      OPM.WriteString("UINT64 "); AllName(range, "__offset");
+      OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__count");
+      OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
+      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
+      OPM.WriteString(" = (UINT64)"); AllName(range, "__start");
+      OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
+      OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+      OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)");
+      OPC.IntLiteral(OPM.SignedMaximum(8), 8);
+      OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
+      OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat
+    END;
+    saved := parallelBody; savedRange := parallelRange;
+    parallelBody := TRUE; parallelRange := range;
+    DeclareAllLocals(range);
+    stat(n^.right, outerProc); parallelBody := saved; parallelRange := savedRange;
+    OPC.EndBlk; OPC.EndBlk;
+    OPC.CheckInterrupt;
+    OPC.BegStat; OPC.BegBlk;
+    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+    OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
+    DeclareAllLocals(range);
+    stat(n^.right, outerProc);
+    OPC.EndBlk; OPC.EndBlk; OPC.EndBlk
+  END ParallelAllStat;
+
   PROCEDURE AllStat(n: OPT.Node; outerProc: OPT.Object);
     VAR range: OPT.Node;
   BEGIN
@@ -790,7 +877,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPC.BegStat; OPM.WriteString("if ("); OPC.Ident(range^.obj);
     OPM.WriteString(" <= "); OPC.Ident(range^.obj); OPM.WriteString("__end) "); OPC.BegBlk;
     OPC.BegStat; OPM.WriteString("for (;;) "); OPC.BegBlk;
-    OPC.CheckInterrupt; stat(n^.right, outerProc);
+    DeclareAllLocals(range); OPC.CheckInterrupt; stat(n^.right, outerProc);
     OPC.BegStat; OPM.WriteString("if ("); OPC.Ident(range^.obj);
     OPM.WriteString(" == "); OPC.Ident(range^.obj); OPM.WriteString("__end) break"); OPC.EndStat;
     OPC.BegStat; OPM.WriteString("++"); OPC.Ident(range^.obj); OPC.EndStat;
@@ -802,7 +889,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   BEGIN
     WHILE (n # NIL) & OPM.noerr DO
       OPM.errpos := OPM.Longint(n^.conval^.intval);
-      IF ~(n.class IN {OPT.Nenter, OPT.Ninittd}) THEN OPC.CheckInterrupt END;
+      IF ~parallelBody & ~(n.class IN {OPT.Nenter, OPT.Ninittd}) THEN OPC.CheckInterrupt END;
       IF n^.class # OPT.Ninittd THEN OPC.BegStat END;
       CASE n^.class OF
       | OPT.Nenter:  IF n^.obj = NIL THEN (* enter module *)
@@ -918,7 +1005,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPM.WriteInt(n^.left^.right^.right^.conval^.intval); OPM.Write(CloseParen); OPC.EndStat
                      END
       | OPT.Ncase:   INC(exit.level); CaseStat(n, outerProc); DEC(exit.level)
-      | OPT.Nall:    AllStat(n, outerProc)
+      | OPT.Nall:    IF OPM.parallelcpu IN OPM.Options THEN ParallelAllStat(n, outerProc)
+                     ELSE AllStat(n, outerProc)
+                     END
       | OPT.Nwhile:  INC(exit.level); OPM.WriteString("while "); expr(n^.left, MaxPrec);
                      OPM.Write(Blank); OPC.BegBlk; OPC.CheckInterrupt; stat(n^.right, outerProc); OPC.EndBlk;
                      DEC(exit.level)

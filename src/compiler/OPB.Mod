@@ -23,6 +23,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
   BEGIN
     CASE obj^.mode OF
     | OPT.Range:  node := OPT.NewNode(OPT.Nvar); node^.readonly := TRUE
+    | OPT.AllLocal: node := OPT.NewNode(OPT.Nvar)
     | OPT.Var:    node := OPT.NewNode(OPT.Nvar);
                   node^.readonly := (obj^.vis = OPT.externalR) & (obj^.mnolev < 0)
     | OPT.VarPar: node := OPT.NewNode(OPT.Nvarpar); node^.readonly := obj^.vis = OPT.readOnlyPar
@@ -354,6 +355,8 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
       |OPT.adr:   IF (z^.class = OPT.Nconst) & (f = OPT.Char) & (z^.conval^.intval >= 20H) THEN    (*SYSTEM.ADR*)
                     CharToString(z); f := OPT.String
                   END;
+                  IF (z^.class = OPT.Nvar) & (z^.obj # NIL) &
+                      (z^.obj^.mode IN {OPT.Range, OPT.AllLocal}) THEN err(127) END;
                   IF (z^.class < OPT.Nconst) OR (f = OPT.String) THEN z := NewOp(op, typ, z)
                   ELSE err(127)
                   END ;
