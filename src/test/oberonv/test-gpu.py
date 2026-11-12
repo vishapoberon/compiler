@@ -19,7 +19,10 @@ parser.add_argument('--device', action='store_true')
 parser.add_argument('--ptx-arch')
 parser.add_argument('--hresh')
 parser.add_argument('--modules')
+parser.add_argument('--timeout', type=int, default=120)
 args = parser.parse_args()
+if args.timeout <= 0:
+    parser.error('--timeout must be positive')
 voc = str(Path(args.voc).resolve())
 image = Path(args.vocroot).resolve()
 work = Path(args.work).resolve()
@@ -37,14 +40,29 @@ env = dict(os.environ, VOCROOT=str(image), VOCLIBDIR=str(image / 'lib'),
            CFLAGS='-O2 -fno-strict-aliasing', LDFLAGS='', LDLIBS='',
            VOC_OPENMP_CFLAGS=compile_flags, VOC_OPENMP_LDFLAGS=link_flags,
            OMP_TARGET_OFFLOAD='MANDATORY' if args.device else 'DISABLED',
-           OMP_NUM_THREADS='4', OMP_DYNAMIC='FALSE', OMP_THREAD_LIMIT='4',
            LD_LIBRARY_PATH=str(image / 'lib') + os.pathsep + os.environ.get('LD_LIBRARY_PATH', ''))
+if not args.device:
+    env.update(OMP_NUM_THREADS='4', OMP_DYNAMIC='FALSE', OMP_THREAD_LIMIT='4')
+else:
+    print('device thread settings: ' + ', '.join(name + '=' + env.get(name, '<runtime default>')
+          for name in ('OMP_NUM_THREADS', 'OMP_THREAD_LIMIT', 'OMP_DYNAMIC')), flush=True)
+
+
+def execute(command, extra_env=None):
+    try:
+        return subprocess.run(list(map(str, command)), cwd=work,
+                              env=dict(env, **(extra_env or {})), text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=args.timeout)
+    except subprocess.TimeoutExpired as error:
+        output = error.stdout or ''
+        if isinstance(output, bytes):
+            output = output.decode(errors='replace')
+        raise AssertionError('timed out after ' + str(args.timeout) + ' seconds: ' +
+                             shlex.join(map(str, command)) + '\ncaptured output:\n' + output) from None
 
 
 def run(command, success=True, extra_env=None):
-    result = subprocess.run(list(map(str, command)), cwd=work,
-                            env=dict(env, **(extra_env or {})), text=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
+    result = execute(command, extra_env)
     assert (result.returncode == 0) == success, (command, result.stdout)
     return result.stdout
 
@@ -57,8 +75,7 @@ def module(name, declarations, body):
 
 run([*cc, *shlex.split(compile_flags or '-fopenmp'), sources / 'DeviceProbe.c',
      *shlex.split(link_flags or '-fopenmp'), '-o', work / 'DeviceProbe'])
-probe = subprocess.run([str(work / 'DeviceProbe')], cwd=work, env=env,
-                       text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
+probe = execute([work / 'DeviceProbe'])
 if args.device:
     assert probe.returncode == 0, ('GPU execution was not verified', probe.returncode, probe.stdout)
     print('omp_is_initial_device: actual device execution verified', flush=True)
@@ -66,13 +83,25 @@ else:
     assert probe.returncode == 77, (probe.returncode, probe.stdout)
     print('omp_is_initial_device: host fallback confirmed; this run does not verify a GPU', flush=True)
 
+run([*cc, *shlex.split(compile_flags or '-fopenmp'), sources / 'TeamsProbe.c',
+     *shlex.split(link_flags or '-fopenmp'), '-o', work / 'TeamsProbe'])
+for mode in ('32', '64'):
+    print('C teams probe, ' + mode + '-bit loop: begin', flush=True)
+    probe = execute([work / 'TeamsProbe', mode])
+    assert probe.returncode == (0 if args.device else 77), (mode, probe.returncode, probe.stdout)
+    print('C teams probe, ' + mode + '-bit loop: complete', flush=True)
+
+print('compiling generated GPU numerical tests', flush=True)
 output = run([voc, '-O' + args.model, '-sVjmG', sources / 'TestGPU.Mod'])
 assert '-fopenmp' in output
 generated = (work / 'TestGPU.c').read_text()
 assert '#pragma omp target teams distribute parallel for' in generated
 assert ' map(to: ' in generated and ' map(tofrom: ' in generated
 assert ' firstprivate(' in generated
-assert 'GPU ALL numerical tests passed' in run([work / 'TestGPU'])
+print('running generated GPU numerical tests', flush=True)
+output = run([work / 'TestGPU'])
+print(output, end='', flush=True)
+assert 'GPU ALL numerical tests passed' in output
 for region in generated.split('#pragma omp target teams distribute parallel for')[1:]:
     start = region.index('{')
     depth = 0

@@ -17,6 +17,7 @@
 /src/test/**/*.exe
 /src/test/**/*.c
 !/src/test/oberonv/DeviceProbe.c
+!/src/test/oberonv/TeamsProbe.c
 /src/test/**/*.h
 /src/test/**/*.o
 /src/test/**/*.obj
