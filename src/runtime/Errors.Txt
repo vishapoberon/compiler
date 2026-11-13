@@ -149,6 +149,13 @@ Compiler error messages
 170 GPU ALL array indices must be its range identifier or an integer constant
 171 GPU ALL expression requires an unsupported operation or runtime helper
 172 GPU ALL checked narrowing and real-to-integer conversions are not supported
+173 only one range identifier is supported in a reduction constructor
+174 reduction value must have an integer or real type
+175 reduction capture requires a scalar or one-dimensional numerical array
+176 nested reductions and reductions inside ALL are not supported
+177 reduction bounds and values cannot call procedures
+178 reduction operation is not supported
+179 reduction range bounds must be integers
 
 Limitations of implementation
 200 not yet implemented

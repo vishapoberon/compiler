@@ -299,6 +299,23 @@ END
 
 An iteration-local variable must be assigned before it is read.
 
+### Reduction expressions
+
+Development sources after VOC 5.0 add `SUM` and `PROD` to combine the values
+described by a one-dimensional Oberon-V array constructor:
+
+```oberon
+total := SUM([i = 0 .. LEN(a)-1: a[i]]);
+dot := SUM([i = 0 .. LEN(a)-1: a[i] * b[i]]);
+product := PROD([i = 0 .. LEN(a)-1: a[i]])
+```
+
+They run sequentially with `-j`. Empty ranges return zero for `SUM` and one
+for `PROD`. Integer combination wraps at the
+result type's width. Floating-point reduction follows ascending index order.
+See [Adding and multiplying independent values](doc/Reductions.md) for
+types, examples, the initial supported subset and tests.
+
 ### Independence
 
 For distinct iterations, a location written by one must not be read or written
@@ -360,14 +377,14 @@ example for inspecting C compiler vectorization reports.
 ### Further Oberon-V work
 
 One-dimensional `ALL` and private scalar iteration variables are implemented
-for sequential, CPU, and supported GPU execution.
-Griesemer's compiler also implemented multidimensional `ALL`, `SUM`, `PROD`,
-and array value and variable constructors. These remain further work.
+for sequential, CPU, and supported GPU execution. Constructor-based `SUM`
+and `PROD` support sequential execution. Griesemer's compiler also implemented
+multidimensional `ALL` and general array value and variable constructors.
+These remain further work.
 Constructors need stride-aware array views;
 VOC's current open-array interface passes a base address and lengths, with
 contiguous strides derived from those lengths. Adding views must preserve
-the calling convention of existing Oberon-2 modules. Reductions also need
-documented floating-point ordering and rounding rules.
+the calling convention of existing Oberon-2 modules.
 
 Section 7.2 proposed private iteration variables; VOC's `WITH` implements
 that part of the design. GPU execution geometry, synchronization, and

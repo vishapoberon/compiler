@@ -71,6 +71,7 @@ CONST
   putfn*    = 25; getrfn* = 26; putrfn*   = 27; bitfn*  = 28; valfn* = 29; (* SYSTEM *)
   sysnewfn* = 30; movefn* = 31;                                            (* SYSTEM *)
   assertfn* = 32;
+  sumfn* = 33; prodfn* = 34;
 
 
 
@@ -126,7 +127,7 @@ CONST
   Ninittd* = 14; Nif*     = 15; Ncaselse* = 16; Ncasedo* = 17; Nenter* = 18; Nassign* = 19;
   Nifelse* = 20; Ncase*   = 21; Nwhile*   = 22; Nrepeat* = 23; Nloop*  = 24; Nexit*   = 25;
   Nreturn* = 26; Nwith*   = 27; Ntrap*    = 28;
-  Nall* = 29; Nrange* = 30;
+  Nall* = 29; Nrange* = 30; Nreduce* = 31;
 
 
   (* Node.subcl values - general *)
@@ -1553,6 +1554,8 @@ BEGIN topScope := NIL; OpenScope(0, NIL); OPM.errpos := 0;
   EnterProc("COPY",   copyfn);
   EnterProc("ASH",    ashfn);
   EnterProc("ASSERT", assertfn);
+  EnterProc("SUM",    sumfn);
+  EnterProc("PROD",   prodfn);
 
   impCtxt.ref[Undef]   := undftyp;
   impCtxt.ref[Byte]    := bytetyp;

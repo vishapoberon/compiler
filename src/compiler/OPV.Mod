@@ -52,6 +52,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       maximum: SYSTEM.INT64;
       array, written, ranged: BOOLEAN
     END;
+    Reduction = POINTER TO ReductionDesc;
+    ReductionDesc = RECORD
+      next: Reduction;
+      node: OPT.Node;
+      values: GPUValue
+    END;
 
 
   VAR
@@ -64,12 +70,16 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     gpuBody: BOOLEAN;
     gpuRange: OPT.Node;
     gpuValues: GPUValue;
+    reductionBody: BOOLEAN;
+    reductionBounds: BOOLEAN;
+    reductions: Reduction;
 
 
   PROCEDURE Init*;
   BEGIN
     stamp := 0; nofExitLabels := 0; parallelBody := FALSE; parallelRange := NIL;
     gpuBody := FALSE; gpuRange := NIL; gpuValues := NIL;
+    reductionBody := FALSE; reductionBounds := FALSE; reductions := NIL;
   END Init;
 
   PROCEDURE ^Traverse (obj, outerScope: OPT.Object; exported: BOOLEAN);
@@ -179,7 +189,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       OPT.Nfield,
       OPT.Nindex,
       OPT.Nproc,
-      OPT.Ncall:   RETURN 10
+      OPT.Ncall, OPT.Nreduce: RETURN 10
     | OPT.Nguard:  IF OPM.typchk IN OPM.Options THEN RETURN 10 ELSE RETURN 9 (*cast*) END
     | OPT.Nvarpar: IF comp IN {OPT.Array, OPT.DynArr} THEN RETURN 10 ELSE RETURN 9 END (* arrays don't need deref *)
     | OPT.Nderef:  RETURN 9
@@ -221,6 +231,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE^ expr  (n: OPT.Node; prec: INTEGER);
   PROCEDURE^ design(n: OPT.Node; prec: INTEGER);
+  PROCEDURE^ ReductionCall(n: OPT.Node);
 
   PROCEDURE GPUFind(values: GPUValue; obj: OPT.Object): GPUValue;
   BEGIN
@@ -233,11 +244,19 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPC.Ident(range^.obj); OPM.WriteString("__gpu"); OPM.WriteInt(value^.number); OPM.WriteString(suffix)
   END GPUName;
 
+  PROCEDURE CapturedValue(value: GPUValue);
+  BEGIN
+    IF reductionBounds & ~value^.array THEN
+      OPM.WriteString("(*"); GPUName(gpuRange, value, "__ref"); OPM.Write(")")
+    ELSE GPUName(gpuRange, value, "")
+    END
+  END CapturedValue;
+
   PROCEDURE Len(n: OPT.Node; dim: SYSTEM.INT64);
   VAR
     d: SYSTEM.INT64; array: OPT.Struct; value: GPUValue;
   BEGIN
-    IF gpuBody & (n^.class IN {OPT.Nvar, OPT.Nvarpar}) THEN
+    IF (gpuBody OR reductionBody) & (n^.class IN {OPT.Nvar, OPT.Nvarpar}) THEN
       value := GPUFind(gpuValues, n^.obj);
       IF value # NIL THEN GPUName(gpuRange, value, "__len"); RETURN END
     END;
@@ -257,7 +276,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 
   PROCEDURE SideEffects(n: OPT.Node): BOOLEAN;
   BEGIN
-    IF n # NIL THEN RETURN (n^.class = OPT.Ncall) OR SideEffects(n^.left) OR SideEffects(n^.right)
+    IF n # NIL THEN RETURN (n^.class IN {OPT.Ncall, OPT.Nreduce}) OR SideEffects(n^.left) OR SideEffects(n^.right)
     ELSE RETURN FALSE
     END
   END SideEffects;
@@ -358,10 +377,10 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     IF prec = ProcTypeVar THEN OPM.Write(Deref) END; (* proc var calls must be dereferenced in K&R C *)
     CASE class OF
     | OPT.Nproc:   OPC.Ident(n^.obj)
-    | OPT.Nvar:    value := NIL; IF gpuBody THEN value := GPUFind(gpuValues, obj) END;
-                   IF value # NIL THEN GPUName(gpuRange, value, "") ELSE OPC.CompleteIdent(n^.obj) END
-    | OPT.Nvarpar: value := NIL; IF gpuBody THEN value := GPUFind(gpuValues, obj) END;
-                   IF value # NIL THEN GPUName(gpuRange, value, "")
+    | OPT.Nvar:    value := NIL; IF gpuBody OR reductionBody THEN value := GPUFind(gpuValues, obj) END;
+                   IF value # NIL THEN CapturedValue(value) ELSE OPC.CompleteIdent(n^.obj) END
+    | OPT.Nvarpar: value := NIL; IF gpuBody OR reductionBody THEN value := GPUFind(gpuValues, obj) END;
+                   IF value # NIL THEN CapturedValue(value)
                    ELSE
                      IF ~(comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write(Deref) END;
                      OPC.CompleteIdent(n^.obj)
@@ -532,11 +551,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     class := n^.class; subclass := n^.subcl; form := n^.typ^.form;
     l := n^.left; r := n^.right;
     exprPrec := Precedence (class, subclass, form, n^.typ^.comp);
-    IF (exprPrec <= prec) & (class IN {OPT.Nconst, OPT.Nupto, OPT.Nmop, OPT.Ndop, OPT.Ncall, OPT.Nguard, OPT.Neguard}) THEN
+    IF (exprPrec <= prec) & (class IN {OPT.Nconst, OPT.Nupto, OPT.Nmop, OPT.Ndop, OPT.Ncall, OPT.Nreduce, OPT.Nguard, OPT.Neguard}) THEN
       OPM.Write(OpenParen);
     END;
     CASE class OF
     | OPT.Nconst: OPC.Constant(n^.conval, form)
+    | OPT.Nreduce: ReductionCall(n)
     | OPT.Nupto:  (* n^.typ = OPT.settyp *)
                   OPM.WriteString("__SETRNG("); expr(l, MinPrec); OPM.WriteString(Comma); expr(r, MinPrec);
                   OPM.WriteString(Comma); OPM.WriteInt(n.typ.size*8); OPM.Write(CloseParen)
@@ -695,7 +715,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                   IF (OPM.permodules IN OPM.Options) & (l.obj # NIL) & (l.obj.mode = OPT.CProc) THEN OPM.Write(")") END
     ELSE          design(n, prec); (* not exprPrec! *)
     END;
-    IF (exprPrec <= prec) & (class IN {OPT.Nconst, OPT.Nupto, OPT.Nmop, OPT.Ndop, OPT.Ncall, OPT.Nguard}) THEN
+    IF (exprPrec <= prec) & (class IN {OPT.Nconst, OPT.Nupto, OPT.Nmop, OPT.Ndop, OPT.Ncall, OPT.Nreduce, OPT.Nguard}) THEN
       OPM.Write(CloseParen)
     END
   END expr;
@@ -859,7 +879,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     array := n^.typ^.comp IN {OPT.Array, OPT.DynArr};
     IF array THEN
       IF ~GPUScalar(n^.typ^.BaseTyp) THEN OPM.err(168); RETURN NIL END
-    ELSIF ~GPUScalar(n^.typ) OR written OR (n^.class = OPT.Nvarpar) THEN
+    ELSIF ~GPUScalar(n^.typ) OR written OR ((n^.class = OPT.Nvarpar) & ~reductionBody) THEN
       OPM.err(168); RETURN NIL
     END;
     value := GPUFind(values, n^.obj);
@@ -1012,6 +1032,170 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END;
     OPM.Write(")"); OPM.WriteLn
   END GPUPragma;
+
+  PROCEDURE ReductionType(typ: OPT.Struct);
+  BEGIN
+    IF typ^.form = OPT.Int THEN OPM.WriteString("INT"); OPM.WriteInt(typ^.size*8)
+    ELSIF typ^.form = OPT.Real THEN OPM.WriteString("float")
+    ELSIF typ^.form = OPT.LReal THEN OPM.WriteString("double")
+    ELSE OPC.Andent(typ)
+    END
+  END ReductionType;
+
+  PROCEDURE ReductionCollect(n, range: OPT.Node; VAR values: GPUValue);
+    VAR value: GPUValue;
+  BEGIN
+    IF n = NIL THEN RETURN END;
+    IF ~GPUScalar(n^.typ) THEN OPM.err(175); RETURN END;
+    CASE n^.class OF
+    | OPT.Nconst:
+    | OPT.Nvar, OPT.Nvarpar:
+        IF n^.obj # range^.obj THEN value := GPUCapture(n, FALSE, values) END
+    | OPT.Nindex:
+        IF ~(n^.left^.class IN {OPT.Nvar, OPT.Nvarpar}) OR
+            ~(n^.left^.typ^.comp IN {OPT.Array, OPT.DynArr}) OR
+            ~GPUScalar(n^.left^.typ^.BaseTyp) THEN OPM.err(175); RETURN END;
+        value := GPUCapture(n^.left, FALSE, values); ReductionCollect(n^.right, range, values)
+    | OPT.Nmop:
+        IF ~(n^.subcl IN {OPS.not, OPS.minus, OPT.conv, OPT.abs, OPT.cap, OPT.odd}) THEN
+          OPM.err(178); RETURN
+        END;
+        ReductionCollect(n^.left, range, values)
+    | OPT.Ndop:
+        IF n^.subcl = OPT.len THEN
+          IF (n^.right^.conval^.intval # 0) OR
+              ~(n^.left^.class IN {OPT.Nvar, OPT.Nvarpar}) OR
+              ~GPUScalar(n^.left^.typ^.BaseTyp) THEN OPM.err(175); RETURN END;
+          value := GPUCapture(n^.left, FALSE, values)
+        ELSE ReductionCollect(n^.left, range, values); ReductionCollect(n^.right, range, values)
+        END
+    ELSE OPM.err(175)
+    END
+  END ReductionCollect;
+
+  PROCEDURE FindReduction(n: OPT.Node): Reduction;
+    VAR item: Reduction;
+  BEGIN
+    item := reductions;
+    WHILE (item # NIL) & (item^.node # n) DO item := item^.next END;
+    RETURN item
+  END FindReduction;
+
+  PROCEDURE ReductionCall(n: OPT.Node);
+    VAR item: Reduction; value: GPUValue;
+  BEGIN
+    item := FindReduction(n); AllName(n^.left, "__reduce"); OPM.Write("(");
+    value := item^.values;
+    WHILE value # NIL DO
+      IF ~value^.array THEN OPM.WriteString("&(") END;
+      expr(value^.node, MinPrec);
+      IF ~value^.array THEN OPM.Write(")") END;
+      IF value^.array THEN OPM.WriteString(", "); Len(value^.node, 0) END;
+      value := value^.next;
+      IF value # NIL THEN OPM.WriteString(", ") END
+    END;
+    OPM.Write(")")
+  END ReductionCall;
+
+  PROCEDURE ReductionCombine(n: OPT.Node);
+  BEGIN
+    OPC.BegStat; AllName(n^.left, "__result");
+    IF n^.subcl = OPT.sumfn THEN OPM.WriteString(" += ") ELSE OPM.WriteString(" *= ") END;
+    IF n^.typ^.form = OPT.Int THEN OPM.WriteString("(UINT64)(") ELSE OPM.Write("(") END;
+    expr(n^.right, MinPrec); OPM.Write(")"); OPC.EndStat
+  END ReductionCombine;
+
+  PROCEDURE ReductionHelper(item: Reduction);
+    VAR n, range: OPT.Node; value: GPUValue;
+  BEGIN
+    n := item^.node; range := n^.left;
+    OPM.errpos := OPM.Longint(n^.conval^.intval);
+    reductionBody := TRUE; item^.values := NIL;
+    ReductionCollect(range^.left, range, item^.values);
+    ReductionCollect(range^.right, range, item^.values);
+    ReductionCollect(n^.right, range, item^.values);
+    reductionBody := FALSE;
+    IF ~OPM.noerr THEN RETURN END;
+    OPM.WriteString("static "); ReductionType(n^.typ); OPM.Write(" "); AllName(range, "__reduce"); OPM.Write("(");
+    value := item^.values;
+    IF value = NIL THEN OPM.WriteString("void") END;
+    WHILE value # NIL DO
+      IF value^.array THEN ReductionType(value^.node^.typ^.BaseTyp); OPM.WriteString(" *")
+      ELSE ReductionType(value^.node^.typ); OPM.WriteString(" *")
+      END;
+      IF value^.array THEN GPUName(range, value, "") ELSE GPUName(range, value, "__ref") END;
+      IF value^.array THEN OPM.WriteString(", ADDRESS "); GPUName(range, value, "__len") END;
+      value := value^.next;
+      IF value # NIL THEN OPM.WriteString(", ") END
+    END;
+    OPM.Write(")"); OPM.WriteLn; OPC.BegBlk;
+    reductionBody := TRUE; gpuRange := range; gpuValues := item^.values;
+    OPC.BegStat;
+    IF n^.typ^.form = OPT.Int THEN OPM.WriteString("UINT64") ELSE ReductionType(n^.typ) END;
+    OPM.Write(" "); AllName(range, "__result"); OPM.WriteString(" = ");
+    IF n^.subcl = OPT.sumfn THEN OPM.Write("0") ELSE OPM.Write("1") END; OPC.EndStat;
+    reductionBounds := TRUE;
+    OPC.BegStat; ReductionType(range^.typ); OPM.Write(" "); AllName(range, "__start");
+    OPM.WriteString(" = "); expr(range^.left, MinPrec); OPC.EndStat;
+    OPC.BegStat; ReductionType(range^.typ); OPM.Write(" "); AllName(range, "__end");
+    OPM.WriteString(" = "); expr(range^.right, MinPrec); OPC.EndStat;
+    reductionBounds := FALSE;
+    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__start");
+    OPM.WriteString(" <= "); AllName(range, "__end"); OPM.WriteString(") "); OPC.BegBlk;
+    value := item^.values;
+    WHILE value # NIL DO
+      IF ~value^.array THEN
+        OPC.BegStat; ReductionType(value^.node^.typ); OPM.Write(" "); GPUName(range, value, "");
+        OPM.WriteString(" = *"); GPUName(range, value, "__ref"); OPC.EndStat
+      END;
+      value := value^.next
+    END;
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
+    OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
+    OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
+    OPM.WriteString(" = "); AllName(range, "__count");
+    OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
+    OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
+    OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
+    OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
+    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
+    OPM.WriteString(" = (UINT64)"); AllName(range, "__start");
+    OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
+    OPC.BegStat; ReductionType(range^.typ); OPM.Write(" "); AllName(range, "");
+    OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)"); OPC.IntLiteral(OPM.SignedMaximum(8), 8);
+    OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
+    OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
+    OPC.CheckInterrupt;
+    ReductionCombine(n);
+    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
+    AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
+    OPC.BegStat; AllName(range, ""); OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
+    ReductionCombine(n); OPC.EndBlk; OPC.EndBlk; OPC.EndBlk;
+    reductionBody := FALSE; gpuRange := NIL; gpuValues := NIL;
+    IF n^.typ^.form = OPT.Int THEN
+      OPC.BegStat; OPM.WriteString("UINT"); OPM.WriteInt(n^.typ^.size*8); OPM.Write(" ");
+      AllName(range, "__bits"); OPM.WriteString(" = (UINT"); OPM.WriteInt(n^.typ^.size*8);
+      OPM.Write(")"); AllName(range, "__result"); OPC.EndStat;
+      OPC.BegStat; OPM.WriteString("return "); AllName(range, "__bits"); OPM.WriteString(" <= (UINT64)");
+      OPC.IntLiteral(OPM.SignedMaximum(n^.typ^.size), 8); OPM.WriteString(" ? (INT64)"); AllName(range, "__bits");
+      OPM.WriteString(" : -1 - (INT64)(UINT"); OPM.WriteInt(n^.typ^.size*8); OPM.WriteString(")~"); AllName(range, "__bits"); OPC.EndStat
+    ELSE
+      OPC.BegStat; OPM.WriteString("return "); AllName(range, "__result"); OPC.EndStat
+    END;
+    OPC.EndBlk; OPM.WriteLn
+  END ReductionHelper;
+
+  PROCEDURE ReductionHelpers(n: OPT.Node);
+    VAR item: Reduction;
+  BEGIN
+    IF n = NIL THEN RETURN END;
+    IF (n^.class = OPT.Nreduce) & (FindReduction(n) = NIL) THEN
+      NEW(item); item^.node := n; item^.next := reductions; reductions := item;
+      ReductionHelper(item)
+    END;
+    ReductionHelpers(n^.left); ReductionHelpers(n^.right); ReductionHelpers(n^.link)
+  END ReductionHelpers;
 
   PROCEDURE GPUAllStat(n: OPT.Node; outerProc: OPT.Object);
     VAR range: OPT.Node; values, savedValues: GPUValue; savedRange: OPT.Node;
@@ -1302,7 +1486,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE Module*(prog: OPT.Node);
   BEGIN
     IF ~(OPM.mainprog IN OPM.Options) THEN OPC.GenHdr(prog^.right); OPC.GenHdrIncludes END ;
-    OPC.GenBdy(prog^.right); stat(prog, NIL)
+    OPC.GenBdy(prog^.right); ReductionHelpers(prog); stat(prog, NIL)
   END Module;
 
 END OPV.

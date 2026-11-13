@@ -100,7 +100,8 @@ storage, and its inputs must remain stable while the statement runs.
 For example, `values[r] := values[r] * 2` reads and writes one element per
 iteration. A statement such as `values[r] := values[r-1]` introduces a
 dependency between neighbouring elements and needs an ordered loop. A shared
-sum also needs a sequential loop or a reduction algorithm.
+sum can use the [SUM reduction](Reductions.md) to combine independently
+computed values.
 
 The compiler checks types, body syntax and some simple overlaps. The
 programmer remains responsible for independence through pointers, aliased

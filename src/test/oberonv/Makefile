@@ -15,9 +15,10 @@ GPU_CFLAGS ?= -O2 -fno-strict-aliasing
 RUN_PYTHON = sh "$(ROOT)/src/tools/make/python.sh"
 ARGS = --voc "$(VOC)" --vocroot "$(VOCROOT)" --model "$(MODEL)"
 
-.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark
+.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark test-reductions
 test:
 	$(RUN_PYTHON) test.py $(ARGS) --work "$(BUILD)/sequential"
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
 
 test-cpu:
 	$(RUN_PYTHON) test.py $(ARGS) --cpu --work "$(BUILD)/cpu"
@@ -37,6 +38,9 @@ test-gpu-shared:
 
 test-gpu-device:
 	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu-device" --device --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
+
+test-reductions:
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
 
 benchmark:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/benchmark" --benchmark

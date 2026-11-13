@@ -14,12 +14,14 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     sym, level: SHORTINT;
     LoopLevel: INTEGER;
     AllCounter: INTEGER;
+    ReductionDepth: INTEGER;
     TDinit, lastTDinit: OPT.Node;
     nofFwdPtr: INTEGER;
     FwdPtr: ARRAY 64 OF OPT.Struct;
 
   PROCEDURE^ Type(VAR typ, banned: OPT.Struct);
   PROCEDURE^ Expression(VAR x: OPT.Node);
+  PROCEDURE^ ReductionCall(VAR x: OPT.Node; operation: SHORTINT);
   PROCEDURE^ Block(VAR procdec, statseq: OPT.Node);
 
   PROCEDURE err(n: INTEGER);
@@ -34,7 +36,11 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE qualident(VAR id: OPT.Object);
     VAR obj: OPT.Object; lev: SHORTINT;
   BEGIN (*sym = OPS.ident*)
-    OPT.Find(obj); OPS.Get(sym);
+    OPT.Find(obj);
+    IF (obj # NIL) & (obj^.mode = OPT.SProc) &
+        ((obj^.adr = OPT.sumfn) OR (obj^.adr = OPT.prodfn)) &
+        ~(OPM.oberonv IN OPM.Options) THEN obj := NIL END;
+    OPS.Get(sym);
     IF (sym = OPS.period) & (obj # NIL) & (obj^.mode = OPT.Mod) THEN
       OPS.Get(sym);
       IF sym = OPS.ident THEN
@@ -375,6 +381,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   PROCEDURE StandProcCall(VAR x: OPT.Node);
     VAR y: OPT.Node; m: SHORTINT; n: INTEGER;
   BEGIN m := SHORT(SHORT(x^.obj^.adr)); n := 0;
+    IF (m = OPT.sumfn) OR (m = OPT.prodfn) THEN ReductionCall(x, m); RETURN END;
     IF sym = OPS.lparen THEN OPS.Get(sym);
       IF sym # OPS.rparen THEN
         LOOP
@@ -731,11 +738,62 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   BEGIN
     IF n # NIL THEN
       IF n^.class = OPT.Ncall THEN err(162) END;
+      IF n^.class = OPT.Nreduce THEN err(176) END;
       IF (n^.class = OPT.Nvar) & (n^.obj # NIL) & (n^.obj^.mode = OPT.AllLocal) &
           (n^.obj^.adr = 0) THEN err(167) END;
       CheckAllExpression(n^.left); CheckAllExpression(n^.right); CheckAllExpression(n^.link)
     END
   END CheckAllExpression;
+
+  PROCEDURE ReductionExpression(n: OPT.Node);
+  BEGIN
+    IF n # NIL THEN
+      IF n^.class = OPT.Ncall THEN err(177) END;
+      IF n^.class = OPT.Nreduce THEN err(176) END;
+      ReductionExpression(n^.left); ReductionExpression(n^.right); ReductionExpression(n^.link)
+    END
+  END ReductionExpression;
+
+  PROCEDURE ReductionCall(VAR x: OPT.Node; operation: SHORTINT);
+    VAR name: OPS.Name; id, owner: OPT.Object; low, high, range, value: OPT.Node;
+      typ: OPT.Struct; pos: LONGINT;
+  BEGIN
+    pos := OPM.errpos;
+    IF ReductionDepth > 0 THEN err(176) END;
+    INC(ReductionDepth);
+    CheckSym(OPS.lparen); CheckSym(OPS.lbrak);
+    name := OPS.name; CheckSym(OPS.ident);
+    IF sym = OPS.comma THEN
+      err(173);
+      WHILE (sym # OPS.eql) & (sym # OPS.colon) & (sym # OPS.rbrak) & (sym # OPS.eof) DO OPS.Get(sym) END
+    END;
+    CheckSym(OPS.eql); Expression(low); CheckSym(OPS.upto); Expression(high);
+    IF sym = OPS.comma THEN
+      err(173);
+      WHILE (sym # OPS.colon) & (sym # OPS.rbrak) & (sym # OPS.eof) DO OPS.Get(sym) END
+    END;
+    ReductionExpression(low); ReductionExpression(high);
+    typ := OPT.inttyp;
+    IF (low^.typ^.form # OPT.Int) OR (high^.typ^.form # OPT.Int) OR
+        (low^.class IN {OPT.Ntype, OPT.Nproc}) OR (high^.class IN {OPT.Ntype, OPT.Nproc}) THEN
+      err(179); low := OPB.NewIntConst(0); high := OPB.NewIntConst(-1)
+    ELSE
+      IF low^.typ^.size > typ^.size THEN typ := low^.typ END;
+      IF high^.typ^.size > typ^.size THEN typ := high^.typ END
+    END;
+    CheckSym(OPS.colon);
+    owner := OPT.topScope^.link; OPT.OpenScope(level, NIL); OPT.topScope^.link := owner;
+    OPT.Insert(name, id); id^.mode := OPT.Range; id^.typ := typ; id^.x := AllCounter; INC(AllCounter);
+    range := OPT.NewNode(OPT.Nrange); range^.obj := id; range^.typ := typ;
+    range^.left := low; range^.right := high;
+    Expression(value); ReductionExpression(value);
+    IF ~(value^.typ^.form IN {OPT.Int, OPT.Real, OPT.LReal}) OR
+        (value^.class IN {OPT.Ntype, OPT.Nproc}) THEN err(174); value := OPB.NewIntConst(0) END;
+    OPT.CloseScope; CheckSym(OPS.rbrak); CheckSym(OPS.rparen); DEC(ReductionDepth);
+    x := range; OPB.Construct(OPT.Nreduce, x, value);
+    x^.typ := value^.typ; x^.subcl := operation; x^.obj := id;
+    x^.conval := OPT.NewConst(); x^.conval^.intval := pos
+  END ReductionCall;
 
   PROCEDURE AllDestination(n: OPT.Node; range: OPT.Object): BOOLEAN;
   BEGIN
@@ -1229,7 +1287,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         procdec, statseq: OPT.Node;
         c: LONGINT; done: BOOLEAN;
   BEGIN
-    OPS.Init; LoopLevel := 0; AllCounter := 0; level := 0; OPS.Get(sym);
+    OPS.Init; LoopLevel := 0; AllCounter := 0; ReductionDepth := 0; level := 0; OPS.Get(sym);
     IF sym = OPS.module THEN OPS.Get(sym) ELSE err(16) END;
     IF sym = OPS.ident THEN
       OPM.LogCompiling(OPS.name);
