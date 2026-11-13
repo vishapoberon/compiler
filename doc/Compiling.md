@@ -12,7 +12,8 @@ From each non-main module the following files are generated in the current direc
 | ```module.c```   | C source code for compilation by gcc, clang or msc.                        |
 | ```module.h```   | C header files required by C compiler when importing this module.          |
 
-Note that the filename of the .sym, .c and .h files is the name of the module from the ```MODULE``` statement at the start of the source file. It is not the name of the .mod file.
+The `.sym`, `.c` and `.h` filenames use the name declared in the source's
+`MODULE` statement.
 
 If the compilation is successful, the Oberon compiler will automatically invoke the C compiler. The compiler option ```-V``` will cause the compiler to display the C compiler command used.
 
@@ -80,13 +81,13 @@ add native compiler modes alongside the compatibility modes above:
 | `-d` | Shorthand for `-md`. |
 | `-mL` | Link a program at startup to individual module libraries and a shared minimal core. |
 
-These modes require the separately built modular runtime. They must not mix
-its individual modules with the existing monolithic runtime in one process.
-`-md`/`-mD` hosts do not link the application or its imports. Rebuild an application
+These modes require the separately built modular runtime. Keep each process
+within one runtime profile. `-md`/`-mD` hosts load the application and its
+imports after startup. Rebuild an application
 with `-l` to change its code/imports without rebuilding its host. Its module body
 is the entry point; arguments remain available through `Modules.GetArg`.
-`-mD` embeds only `SYSTEM`/`Platform`/`Heap`/`Modules`, not the whole `libvoc`;
-its loader, application libraries and libc remain shared. It is not fully static.
+`-mD` embeds the minimal runtime core;
+its loader, application libraries and libc remain shared.
 `-M` cannot be combined with `-d`, `-D` or `-L`; the compiler rejects `-Md`, `-MD`
 and `-ML`. Lowercase `-p` still controls pointer initialization; `-m` and `-M`
 retain their existing behavior.

@@ -61,9 +61,9 @@ Conflicts do not trigger automatic retries.
 
 `dataForm` and `outOfBand` flag other workflows. `legacy` is false if the
 response requires either workflow, contains an unknown requirement, or has no
-answer fields. Submission then fails instead of silently dropping requirements.
-These checks protect the original legacy-field workflow; implementing data-form
-or CAPTCHA registration is outside the current porting scope. The response tree is
+answer fields. Submission then fails with an unsupported-workflow diagnostic.
+These checks protect the legacy-field workflow. Servers requiring data-form
+or CAPTCHA registration need another registration client. The response tree is
 available through the IQ request; no URLs are fetched or instructions approved
 automatically.
 

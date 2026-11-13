@@ -21,15 +21,15 @@ Measurements were taken on 12–13 November 2026 using:
 | GPU runtime | LLVM OpenMP 19 and HSA runtime `6.1.2-3` |
 | Device libraries | Debian `rocm-device-libs-17`, `6.0+git20231212.5a852ed-2` |
 
-“1”, “4”, and “16” below describe CPU thread counts on this one processor,
-not separate processor sockets. CPU OpenMP runs used `OMP_DYNAMIC=FALSE`,
+“1”, “4”, and “16” below describe CPU thread counts on this one processor.
+CPU OpenMP runs used `OMP_DYNAMIC=FALSE`,
 `OMP_PLACES=cores`, `OMP_PROC_BIND=TRUE`, and `OMP_WAIT_POLICY=PASSIVE`, with
 the thread limit matching the requested count. Sequential CPU runs used one
 application thread.
 
 Each GPU was selected explicitly. All GPU measurements used
 `OMP_TARGET_OFFLOAD=MANDATORY`; `omp_is_initial_device()` independently
-confirmed device execution. CPU fallback was never counted as GPU success.
+confirmed device execution.
 The complete optimized device suite passed on both GPUs with Clang 19,
 including numerical results, integer endpoints, rejected unsupported
 constructs, and host-side bounds failures.
@@ -52,13 +52,12 @@ the relationship between first-call and steady-state performance.
 Kernel and timing driver are compiled as separate modules, without link-time
 optimization. Repeated passes cannot be merged into one calculation by
 inlining the kernel into the timing loop. All output elements or image bytes
-are checked. These measurements describe this implementation and machine;
-they are not a general throughput guarantee.
+are checked. These measurements describe this implementation and machine.
 
 ## Numerical arrays: one CPU thread versus several
 
-The arrays represent three `REAL` channels per pixel. This is floating-point
-array data, not packed image bytes.
+The arrays represent three `REAL` channels per pixel, stored as floating-point
+array data.
 
 * **Simple:** `a[i] := b[i] * 0.5 + 0.25`.
 * **16-stage:** start with `b[i]` and perform that affine operation 16 times
@@ -75,16 +74,16 @@ Inputs use the exact integer sequence `i MOD 256`. CPU flags were
 | 16-stage | 1080p | 23.561 | 0.689 | 0.139 |
 | 16-stage | 4K | 94.505 | 5.320 | 5.048 |
 
-The large gains in some rows are not pure thread-count scaling. The generated
-loop shapes permit different C compiler vectorization decisions, and the
+The large gains in some rows combine thread-count scaling with other effects.
+The generated loop shapes permit different C compiler vectorization decisions, and the
 reused data can fit differently across the processor's caches. The 4K rows
-also show that adding threads need not improve a memory-limited calculation.
+also show the limits of thread scaling for a memory-limited calculation.
 
 ## Numerical arrays: optimized GPU comparison
 
 GPU flags were `-O3 -fno-strict-aliasing -ffp-contract=off`, with the explicit
 Clang AMD target and architecture flags shown in the
-[GPU guide](GPUTutorial.md#preparing-an-amd-gpu-on-debian).
+[GPU setup guide](GPUSetup.md).
 
 | Calculation | Size | CPU OpenMP, 16 threads | Integrated Radeon | RX 5600 XT |
 | --- | --- | ---: | ---: | ---: |
@@ -95,8 +94,7 @@ Clang AMD target and architecture flags shown in the
 
 The discrete GPU beats the sequential CPU on the 16-stage calculation by
 about 6–7×. The multicore CPU remains faster than either GPU on these tests
-when transfers are included. Simple numerical arrays therefore did not
-establish a GPU advantage over the best tested CPU mode.
+when transfers are included.
 
 ### Earlier unoptimized GPU runs
 
@@ -114,30 +112,27 @@ slower:
 Optimized GCC 14 offloading failed with `HSA_STATUS_ERROR_INVALID_ISA` on
 this integrated GPU. A standalone C numerical reproducer failed too; `-O0`
 passed the full mandatory-device suite. Clang 19 supplied the working
-optimized path. The precise GCC/runtime failure was not identified. These
-observations should not be generalized to every GCC release or AMD device.
+optimized path. The cause of the GCC/runtime failure remains unresolved.
 
 ## HALD CLUT: a different workload
 
 HALD applies a three-dimensional colour LUT with eight corner lookups and
 integer trilinear interpolation for each RGB pixel. Every interpolation
 stage retains the original rounding; source alpha is preserved. This is a
-packed RGBA-byte workload with indirect reads, not the preceding floating-
-point arithmetic test.
+packed RGBA-byte workload with indirect reads.
 
 The numerical arrays use 12 bytes per pixel per array; HALD uses four.
 The direct numerical backend preserves written arrays with `map(tofrom:)`,
 whereas the HALD backend can use `map(from:)` for its completely written
 output. Transfer volumes and mapping directions therefore differ. Compare
-each workload with its own CPU reference rather than treating the difference
-between the two GPU tables as a compiler-wide speedup.
+each workload with its own CPU reference to account for these differences.
 
 Timing used the supplied Fujichrome Provia 100F LUT: 512×512 pixels, a cube
 range of 64. The original photograph was 3264×2448, or 7,990,272 pixels. The
 1080p and 4K inputs were resized copies. The source JPEG was decoded once to
 RGBA and the identical bytes supplied to every implementation. The private
-photograph and supplied LUT images are not bundled with these sources;
-image content can affect lookup locality.
+photograph and supplied LUT images remain private inputs; use your own image
+and LUT to repeat the method. Image content can affect lookup locality.
 
 CPU flags were `-O3 -march=native -fno-strict-aliasing`. GPU flags were
 Clang `-O3 -fno-strict-aliasing` with the matching AMD offload target. Image
@@ -187,8 +182,8 @@ The same CPU control was also measured with Clang 19:
 
 GCC supplied the faster CPU control in these measurements. The RX 5600 XT
 was about 3.0–3.9× faster than the existing 16-thread CPU implementation,
-and 1.9–2.3× faster than the improved CPU control. The integrated GPU did
-not improve on CPU OpenMP for HALD.
+and 1.9–2.3× faster than the improved CPU control. CPU OpenMP was faster than
+the integrated GPU for HALD.
 
 The first RX conversion, including first-use costs inside the call, took
 3.333 ms at 1080p, 8.507 ms for the photograph, and 8.818 ms at 4K. These are
@@ -210,10 +205,10 @@ across all seven supplied LUTs: Astia 100, Astia 100F, Provia 100F, Sensia
 400, Velvia 50, Kodak Ektar 25, and K64. The performance tables use Provia;
 the other six photo LUTs were correctness checks.
 
-HALD was tested through its explicit generated-C backend. These results do
-not imply that the complete HALD module compiles through the generic `-jG`
-subset. The package supplies the reproducible backend and keeps the
-Oberon library interface unchanged.
+HALD uses its library-specific generated-C backend for the indirect-lookup
+kernel. The package supplies that reproducible backend and keeps the Oberon
+library interface unchanged. Direct `-jG` compilation supports the numerical
+subset described in the GPU guide.
 
 ## Reproducing the tests
 

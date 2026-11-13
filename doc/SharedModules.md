@@ -6,10 +6,9 @@ module body. Other modules use this interface by naming the module in an
 `IMPORT` statement.
 
 VOC can compile a module into a native shared library. A program may then load
-the module when it is needed, rather than link its implementation into the
-executable. The same module can be used by a command shell or by an ordinary
-standalone application. The Oberon source still uses `IMPORT` and ordinary
-procedure calls; no special calling convention is required in the program.
+the module when it is needed. The same module can be used by a command shell
+or by an ordinary standalone application. The Oberon source uses `IMPORT`
+and ordinary procedure calls.
 
 For a step-by-step introduction, see [A gentle introduction to shared
 modules](ModuleTutorial.md). This page describes the compilation options,
@@ -91,20 +90,19 @@ runtime, loads the application library, and executes the module body. Loading
 `Main` also makes its imported `Out` library available. The imported module is
 initialised before the body of `Main` runs.
 
-The host links to the loader and core, not to the application or its imports.
+The host links to the loader and core.
 On Linux, `ldd Main` therefore lists `libvoc-ModuleLoader-O2.so`,
-`libvoc-core-O2.so` and libc, but not `libvoc-Main-O2.so` or `libvoc-Out-O2.so`.
-The latter libraries are loaded after the executable starts.
+`libvoc-core-O2.so` and libc. The module loader opens `libvoc-Main-O2.so`
+and `libvoc-Out-O2.so` after the executable starts.
 
-To place the common core inside the executable instead, use:
+To place the common core inside the executable, use:
 
 ```sh
 voc -smD Main.Mod
 ```
 
-This host uses the same application libraries. Its core is no longer a shared
-library dependency, but its loader, application and libc remain shared. Thus
-`-mD` is not a fully static build.
+This host uses the same application libraries. It embeds the core, and its
+loader, application and libc remain shared dependencies.
 
 The available executable options can be summarised as follows:
 
@@ -135,13 +133,13 @@ voc -sl Main.Mod
 ./Main
 ```
 
-There is no need to relink the executable. Adding an import also requires only
-an application-library rebuild, provided the imported library has already been
+The existing executable loads the rebuilt library. Adding an import also
+requires an application-library rebuild, provided the imported library has already been
 built. Changing an exported interface may require recompiling the modules
 which use that interface.
 
-A loaded module is not replaced in a running process. Exit and restart the
-application, or leave and restart `hresh`, before using a rebuilt library.
+Exit and restart the application, or leave and restart `hresh`, to load the
+rebuilt library into a fresh process.
 
 ## Commands in hresh
 
@@ -160,8 +158,8 @@ Typing just the module name lists its commands:
   Commands.Run
 ```
 
-Listing a module or completing its name with Tab does not execute its
-initialisation code. The shell reads the module's `.sym` file. When a command
+Listing a module or completing its name with Tab reads the module's `.sym`
+file. When a command
 is first invoked, the library and its imports are loaded and initialised.
 Later invocations use the same module and its existing variables.
 
@@ -172,8 +170,8 @@ after a command it completes file and directory names. Relative, absolute and
 directory name ends in `/`, allowing completion to continue inside it.
 
 Type `quit` or `exit`, or press Ctrl-D on an empty line, to leave the shell.
-`hresh` is an Oberon command host, not a Unix shell: commands such as `voc` and
-`ldd` should be entered at the operating system's shell prompt.
+`hresh` hosts Oberon commands. Enter operating-system commands such as `voc`
+and `ldd` at the Unix shell prompt.
 
 It is also possible to run one command or a sequence of commands without an
 interactive prompt:
@@ -548,11 +546,10 @@ and basic-type sizes, the module-registry layout and runtime-core ownership.
 The registry pin, procedure ownership, cancellable-command support, import
 ownership and active-call tracking are part of core ABI profile 3. Rebuild the modular
 core and all module libraries together; libraries from a different profile are
-rejected before their Oberon initializer is called. This is not a complete
-interface-version check. Build the host and its modules for the same
-architecture, type model, runtime and exported interfaces. Imported libraries
-must also match; their descriptors are not checked recursively. Unrelated
-Ofront shared libraries do not satisfy this loading contract.
+rejected before their Oberon initializer is called. Interface compatibility
+also requires matching architecture, type model, runtime and exported
+interfaces throughout the import graph. Descriptor checks cover the module
+being loaded. Libraries must implement VOC's loading contract.
 
 ## Present limits
 
@@ -568,7 +565,7 @@ Libraries remain mapped until explicitly and successfully freed or process exit.
 Only checked Linux/glibc unloading is supported; the permanent core and
 startup-linked dependencies cannot be replaced in a running process. Modules
 without independent native ownership cannot be freed. Rebuild the complete
-modular profile together rather than mixing libraries from different builds.
+modular profile together and keep its libraries from the same build.
 
 Commands run with the host's permissions and share its address space. A HALT,
 failed assertion or fault terminates the host. Load only trusted modules.

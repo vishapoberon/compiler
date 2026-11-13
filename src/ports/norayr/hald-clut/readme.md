@@ -25,8 +25,8 @@ pixel count, or zero for an invalid size. A 512 by 512 HALD image contains a
 
 `Apply(source, lut, range, target)` takes flat arrays of `CHAR`, with four
 bytes per pixel in red, green, blue, alpha order. Red is the fastest-changing
-coordinate in the LUT, followed by green and blue. Supply decoded pixel
-arrays, rather than PNG or JPEG file contents.
+coordinate in the LUT, followed by green and blue. Supply decoded RGBA pixel
+arrays.
 
 The source length must be divisible by four, the LUT must contain exactly
 `range * range * range` pixels, and the target must have room for all source
@@ -36,8 +36,8 @@ oversized target's unused tail is preserved.
 
 The calculation uses trilinear interpolation. Each interpolation step rounds
 with `(a * (255-f) + b * f + 127) DIV 255`. The source alpha byte is copied
-unchanged; LUT alpha bytes are ignored. No floating-point approximation is
-used.
+unchanged; LUT alpha bytes are ignored. All interpolation arithmetic uses
+integers.
 
 ## Building
 
@@ -62,32 +62,30 @@ make -C src/examples/utilities/hald test-gpu-device GPU_CC=clang-19
 ```
 
 The device test checks `omp_is_initial_device()` and requires actual device
-execution. `test-gpu` instead selects explicit host fallback for machines
-without an offload device; it checks correctness, not GPU execution.
+execution. `test-gpu` selects explicit host fallback and checks correctness
+on the CPU.
 
 ## How the GPU backend works
 
-`HaldClut.Mod` remains the canonical algorithm. `kernel.py` asks VOC to
-translate it with `-sFjPSx`, then builds a synchronous OpenMP target loop with
-explicit mappings for the source, LUT, coordinate table, and output. The
-result is compiled into `HaldClut.o` with the configured GPU C compiler.
+Use the make targets above for building and testing. They run the required
+tools automatically.
+
+`HaldClut.Mod` defines the interpolation algorithm. HALD uses indirect LUT
+indices and a coordinate table, which need a library-specific GPU backend.
+The makefile runs `kernel.py` to translate the module with VOC, adapt its
+generated loop for OpenMP target execution and compile `HaldClut.o`.
+Python 3 is a build-time requirement for this step.
+
+The helper preserves the size and cube assertions, checks the source
+fingerprint and expected generated structure, and stops on unexpected
+changes. Its integer interpolation gives the same rounding as the Oberon
+implementation. The source, LUT and coordinate table are supplied to the
+GPU; the completely written output is copied back when the call finishes.
 Generated files stay in the build directory.
 
-The original host-side size and cube assertions are retained. Translation
-uses `-x` for this fixed algorithm: the host table is filled at indices
-0..255, and the kernel indices follow from the validated dimensions and
-byte-valued inputs. With fractions in 0..255, each interpolation numerator is nonnegative
-and at most 65152, including the rounding term. C division by the positive
-constant 255 therefore has exactly the required Oberon result. The backend
-replaces those 21 divisions inside the validated kernel. It maps the complete
-output with `map(from:)`
-because every output byte is written.
-
-The backend checks the Oberon source fingerprint and expected generated-code
-structure. A changed source or unexpected compiler output stops the build
-and requires review. It is specific to this library: the general `-jG`
-backend still accepts a smaller numerical-array subset. No manual edits of
-generated C are required.
+The direct `-jG` backend supports the numerical-array subset described in
+the GPU guide. Incorporating HALD's indirect lookups into that backend
+would allow VOC to handle this build step directly.
 
 `cpu-kernel` builds the same streamlined calculation as a CPU OpenMP loop:
 
@@ -95,8 +93,8 @@ generated C are required.
 make -C src/examples/utilities/hald cpu-kernel test-cpu-kernel
 ```
 
-This provides a control when comparing GPU performance, so a speedup cannot
-be attributed only to simplifying the generated kernel.
+This provides a control for comparing CPU and GPU execution of the same
+streamlined kernel.
 
 For another application, keep `HaldClut.sym`, `HaldClut.h`, and `HaldClut.o`
 from the selected build together. Compile importing modules in that build

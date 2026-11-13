@@ -35,7 +35,7 @@ make -C src/examples/language/gpu run-gpu GPU_CC=clang-19
 offloading. Both Oberon programs must then print their success message.
 
 `test-fallback` explicitly disables offloading and checks the generated code
-on the host. Its success does not establish GPU execution.
+on the host. Use `run-gpu` to verify device execution.
 
 Set `VOC`, `VOCROOT`, `VOCLIBDIR`, `MODEL`, or `BUILD` to use another matching
 VOC installation or build directory. Keep each mode's generated files
@@ -54,7 +54,8 @@ The second also verifies actual GPU execution and includes transfers in the
 GPU measurements. `--quick` uses small arrays for a short correctness and
 build check. Other options select the VOC installation, output directory,
 compilers, flags, or CPU thread counts. CPU `-march=native` is a benchmark
-setting for the current machine; it is not a VOC compiler default.
+setting for the current machine. Supply it explicitly when repeating those
+CPU measurements.
 
 The workloads contain 1080p- and 4K-sized arrays of three floating-point
 channels per pixel. The first applies `x * 0.5 + 0.25`; the second performs

@@ -122,7 +122,7 @@ RGBA transparency; GIF retains first-frame decoding.
 
 Rebuild the VOC libraries and dependent programs and shared modules together:
 the `Files` record layout and codec symbol interfaces changed. Pixel and output
-limits apply per call and are not a total-process-memory budget.
+limits apply per call. Applications must budget separately for total process memory.
 
 See [memory-file usage and codec APIs](../src/ports/polpo/README.md) for details.
 
@@ -136,7 +136,7 @@ only in imports.
 
 Rebuild programs and shared modules using the Internet library: the exported
 `Endpoint` record layout changed. Scope values with the high bit set are
-represented as negative numbers rather than widened unsigned values.
+represented as negative numbers in the signed 32-bit field.
 
 The socket and asynchronous NetSystem regressions pass.
 
@@ -222,7 +222,7 @@ the editor also has pseudo-terminal and sanitizer coverage.
 ## 4.0.1
 
 The Linux modular library profile now includes Norayr's `pipes` and `xattr`
-modules, using the bundled runtime libraries instead of separate packages.
+modules, using the bundled runtime libraries.
 
 Vishap Oberon 4.0 adds shared Oberon modules and `hresh`, a command shell
 where modules keep their state between calls. Programs can also load shared
@@ -264,8 +264,8 @@ register cleanup callbacks to restore resources when interrupted.
 - Rows of multidimensional open arrays select the correct elements. Nested
   procedures receive the correct length for each dimension.
 - Fixed-array value arguments are checked against the declared parameter
-  type. String literals are zero-padded to the parameter size rather than
-  copied past the end of the literal.
+  type. String literals are copied with their terminator and zero-padded to
+  the parameter size.
 - Generated C includes the headers needed for exported aliases of imported
   types and avoids clashes with newer C keywords, including C23 keywords.
 - Unix output handles short and interrupted writes. Unix file timestamps are

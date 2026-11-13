@@ -125,7 +125,7 @@ policy prevents plaintext injection across the upgrade. The underlying
 and clears its published byte buffer. The client also clears its retained
 password and temporary SASL response. XML serialization/parsing and the
 conservative collector can retain temporary copies; these clearing operations
-provide best-effort lifetime reduction rather than guaranteed secret erasure.
+provide best-effort reduction of the lifetime of those retained values.
 Applications should apply their own credential/logging policies.
 
 ## Resource and platform boundaries

@@ -48,8 +48,8 @@ report those exclusions:
 - IBM `valid/P02/ibm02v01.xml`: encoding errors in the fixture.
 - IBM `valid/P58/ibm58v01.xml`: duplicate NOTATION tokens.
 
-Sun fixtures are selected by the archive's four catalog fragments rather than
-directory globs, which would also run copies of the catalogs as XML documents.
+Sun fixtures are selected by the archive's four catalog fragments. This keeps
+the selection restricted to the listed test documents.
 
 ## Historical expectation corrections
 

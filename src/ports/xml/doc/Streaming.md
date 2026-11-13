@@ -46,8 +46,8 @@ The supplied builder receives a complete synthetic document for each event,
 including the stream root. On a stanza event, the stanza is the root's one child
 element. The opening event produces a document containing only the stream root.
 The closing event checks the received closing tag against that root. Builder
-locations refer to the synthetic document, rather than a cumulative socket
-offset. Stream-level attributes such as `xml:lang` remain available on its root.
+locations refer to offsets within the synthetic document. Stream-level
+attributes such as `xml:lang` remain available on its root.
 
 Callbacks may precede a syntax error, following the existing parser convention.
 Build a temporary result and publish it only when `Feed` returns a successful
@@ -84,7 +84,7 @@ The stream tests and the full XML/shared regression suites pass on x86-64 Linux
 with GCC/C23, Clang/C23, TCC and Clang ASan/UBSan. The
 stream program adds 232 chunk-size runs and 486 malformed-input mutations.
 Lifetime checks consume 256 KiB of keepalive whitespace and 256 stanzas with
-an 8-byte stanza limit, exercising per-frame rather than connection-wide bounds.
+an 8-byte stanza limit, exercising the independent budget for each frame.
 The existing 2,687 conformance/output, 53 hostile-input and 2,655 mutation cases
 also pass. The VOC modular build passes the stream consumer and bundled
 ABI/load checks. Native Windows validation remains pending.

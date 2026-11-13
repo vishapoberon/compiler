@@ -91,4 +91,4 @@ Domain comparison uses shared native IDNA preparation, so U-labels and A-labels
 compare consistently while XML identities remain Unicode. Localparts and
 resources retain their supplied code units; full username/resource preparation
 remains pending. The application hook should use the router's completion path
-for request results rather than trusting unhandled IQs.
+for address-checked, correlated request results.

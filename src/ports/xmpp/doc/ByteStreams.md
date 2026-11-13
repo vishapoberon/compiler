@@ -31,7 +31,7 @@ truncated negotiation.
 `Open` accepts a numeric literal or an IDNA hostname; hostname resolution is
 synchronous and precedes caller-driven deadline accounting. Resolved addresses
 are tried in order after connection failures. A stalled connection uses the
-remaining overall deadline rather than a separate per-address deadline.
+remaining overall deadline across all attempted addresses.
 
 Drive `Step` on readiness indicated by `Descriptor`, `WantRead` and `WantWrite`;
 each call performs bounded nonblocking work. Call `Tick` with elapsed milliseconds
@@ -43,4 +43,4 @@ and retain a diagnostic in `error`.
 
 Direct streamhost listening, proxy activation and integration with accepted
 file offers remain pending. File sender/receiver orchestration currently uses
-IBB; these foundations alone do not establish a complete SOCKS5 file transfer.
+IBB. SOCKS5 file-transfer orchestration remains further work.

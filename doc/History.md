@@ -6,8 +6,7 @@
     - Modules of a multi-module program may now be compiled independently - it is
       no longer necessary to compile all modules on a single compiler command line.
     - The file system location of standard libraries is now determined relative to
-      where the compiler binary loads from, rather than a fixed location built
-      into the compiler at install time.
+      where the compiler binary loads from.
     - ```make full``` no longer installs the compiler, and can be run without
       root/administrator priviledges. Optionally use ```make install``` to install.
     - New warning message to advise of redefinition of standard predefined types.
@@ -38,7 +37,7 @@ builds the compiler, library and tools, installs the compiler and tools, and run
  - Both makefiles are platform independent, compatible with both BSD make and GNU make. (For Visual C builds on Windows a separate make.cmd contains the equivalent functionality expressed as a Windows .cmd file.)
 
  - All duplicate files required to build Linux/BSD/Darwin variants have been removed by refactoring them to be platform independent:
-   - Rather than accessing Linux structures through Oberon RECORDs intended to match their memory layout, code procedures are used to reference C constants and struct fields directly. (This resolves a number of complexities with structure field order and layout variations across operating systems.)
+   - Code procedures reference C constants and structure fields directly, using the host's native layout across operating systems.
    - Size dependent code is abstracted into simple definitions in SYSTEM.h and referenced from code procedures.
    - Files.Mod is extended with a file search path feature removing the need for Files0.Mod, Text0.Mod and Kernel0.Mod. Instead OPM.cmdln.Mod calls the new Files.SetSearchPath.
    - Kernel.Mod, Unix.Mod and SYSTEM.Mod are refactored into Heap.Mod and PlatformUnix.Mod. An alternate Platform module implementation PlatformWindows.Mod is used for Microsoft C based builds, using the Win32 API directly.
@@ -60,7 +59,7 @@ The full build is now free of warnings:
 
 The full build now includes a few confidence tests to make sure that the basics work OK.
 
-HALT/exit code has been simplified. Exit now just calls the system exit API rather than calling the kill API and passing our own process ID. For runtime errors it now displayes the appropriate error message (e.g. Index out of range).
+HALT and exit call the system exit API. Runtime errors display the appropriate diagnostic, such as an out-of-range index.
 
 The jump buffer was not used by any code and has been removed. (It seems from a comment to have been intended for use during some termination code, but the termination code does not use it.)
 
@@ -78,7 +77,7 @@ The simple solution was to generate a (LONGINT)(n) typecast, which forces n to t
  - SYSTEM.H __VAL(t, x) was defined as (\*(t\*)&(x)) which maps the new type onto the memory of the old. This produces the wrong result if the new type is larger than the old type, because it includes memory that does not belong to the variable into the result. This has been corrected to the simpler ((t)(x)) which will do the appropriate signed or unsigned extension.
 
  - There was a serious issue with accessing free'd memory in RETURN expressions. Oberon generates code to create local copies of dynamic strings passed by value (so that code is free to change the value parameter without affecting the original string).
-The copy is not allocated from the Oberon Heap, but direct from the OS (e.g. via malloc on Linux/Unix). At function return the compiler inserts a call to C's free before the return statement.
+The copy is allocated through the native allocator, such as malloc on Unix. The compiler releases it at function return.
 The problem comes when the expression on the Oberon RETURN statement references the local string copy. This gets compiled to a C 'return' statement that references the free'd memory. Sometimes the C free will not have modified the string copy, and no error is seen. However all bets are off - the OS or C runtime could have done anything to this memory as part of heap management (e.g. used it for free chain linkage), and with pre-emptive multitasking it may have been reallocated and used for another purpose before the return expression refers to it. This bug hit me occasionally and took a while to find.
 The solution I have implemented is to generate declaration of a return value variable at the entry of every function, and to generate code to evaluate the return expression into the variable *before* generating the code to free the local string copy.
 In theory the Oberon compiler could inspect the return value for reference to a local copy and only generate the result variable when necessary, however this considerably complicate the Oberon compiler source code for procedure entry and would be of questionalble value, as the C compiler should be able to optimize code with a result variable much the same as code without it.
@@ -91,9 +90,9 @@ In theory the Oberon compiler could inspect the return value for reference to a 
 
  - In his latest specs (around 2013) Wirth removed the 'COPY(a, b)' character array copy procedure, replacing it with 'b := a'. I have accordingly enabled 'b := a' in voc as an alternative to 'COPY(a, b)' (COPY is still supported.).
 
- - Oberon code often writes to Oberon.Log expecting the text to appear on the screen. While voc has an Oberon.DumpLog procedure, I looked into making the behaviour automatic. Interestingly the voc source declares the Text notifier constants replace, insert and delete, but omits implementation of the notifier calls. The implementation turned out to be very little code, and I have used it to echo all text written to Oberon.Log to the console. This has the advantage over DumpLog that text is written immediately rather than only when DumpLog is called, and allows existing program source to work unchanged.
+  - Text notifier calls echo writes to Oberon.Log immediately to the console. Existing programs can use this behaviour through their usual log interface.
 
- - While working on Vishap Oberon I have been using the name 'olang' rather than 'voc', partly to avoid mixing up binary files, and partly because I had not (re)reached compatability with voc. Since I reckon I'm close to complete, I have now parameterised the code to allow any file name for the compiler and install dir, and switched it back to 'voc' by default. src/tools/make/configure.c line 12 specifies the name that will be built.
+  - The compiler and installation names are configurable through src/tools/make/configure.c, with 'voc' as the default.
 
  - I experimented with making INTEGER always 32 bit and LONGINT always 64 bit (i.e. even on 32 bit platfroms), but soon found that the libraries assume 16 bit INTEGER and 32 bit LONGINT all over the place. This experimental behaviour is still available by uncommenting the '#define LARGE' in src/tools/make/configure.c line 14.
 

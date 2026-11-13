@@ -31,7 +31,7 @@ their remaining session actions and extension behavior.
 | `Disco`, `Ping`, `Version` | Bounded IQ routing, XEP-0199 ping, opt-in XEP-0092 metadata and XEP-0030 info/items queries and configured replies. Discovery exposes the checked reply tree; dynamic discovery nodes remain application-owned. |
 | `Roster` | Bounded full retrieval, contact edits/removals and sender-checked pushes with atomic snapshots and stale-fetch protection. Roster versioning and presence-subscription automation remain pending. |
 | `Muc` | Join/leave, nickname changes, group messages, subjects and mediated invitations; bounded room-checked occupant decoding; exact-room configuration IQs, role/affiliation changes, typed admin lists and destruction. `XmppMucTracker` adds explicit membership transitions, bounded occupant caches, deadlines and disconnect cleanup. |
-| `Register` | The original legacy-field workflow is ported: bounded retrieval and explicit submission, TLS-verified pre-login creation, authenticated account/service changes and removal. Other registration requirements are detected and rejected rather than silently omitted. |
+| `Register` | The legacy-field workflow supports bounded retrieval and explicit submission, TLS-verified pre-login creation, authenticated account/service changes and removal. Unsupported registration requirements cause submission to fail. |
 | `Ibb` | Bounded IQ open/data/close payloads and transfers: binary Base64, explicit receive consent, exact peer/SID matching, sequence checks/wrap, byte/block/queue limits, checked channel I/O, acknowledgements, progress, deadlines and cleanup. |
 | `StreamInit` | Bounded file-offer metadata, IBB/SOCKS5 method forms, exact-peer offer IQs and checked transport/range results. `XmppFileReceiver` adds deferred incoming consent and exact peer/SID/length authorization. `XmppFileSender` connects accepted IBB offers to checked source ranges, acknowledgements and cleanup. Native SOCKS5 integration remains pending. |
 | `ByteStreams`, `Files` | Bounded exact-peer TCP host offers/selections, pure-Oberon XEP-0065 destination hashes and incremental SOCKS5 client negotiation; Linux nonblocking connection, deadlines and socket handoff. Direct listening, proxy activation, file orchestration and the checksum helper remain pending. See [bytestream foundations](ByteStreams.md). |
@@ -74,15 +74,11 @@ extension behavior, scheduling and authentication functionality are pending.
 Broader interoperability, full username/resource preparation and adversarial
 security review remain pending.
 
-## Remaining adaptation sequence
+## Further implementation work
 
-The implementation remains a staged port of the original subsystem. Passing
-the current suites validates the APIs above; each pending inventory row still
-needs its own implementation and tests.
-
-The current scope is adapting the existing Component Pascal code. Additional
-XMPP features are separate decisions after that port is complete; CAPTCHA and
-data-form registration are not remaining porting requirements.
+The inventory above records the available interfaces and remaining work.
+Registration currently supports the legacy-field workflow. Servers requiring
+data-form or CAPTCHA registration need another registration client.
 
 1. Continue `ByteStreams`, `StreamInit` and `Files` with bounded stream
    negotiation, socket adapters and the original checksum helper. Integrate

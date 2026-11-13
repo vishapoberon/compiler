@@ -9,7 +9,14 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-[Release notes for 4.0](doc/ReleaseNotes-4.0.md)
+[5.0 release preview](doc/ReleaseNotes-5.0.md) ·
+[4.0 release history](doc/ReleaseNotes-4.0.md)
+
+Version 5.0 adds experimental Oberon-V array calculations with CPU OpenMP
+(`-jP`) and GPU offloading (`-jG`). It also includes an
+[IRC client library](src/ports/norayr/irc/README.md), a
+[channel-history client example](src/examples/network/irc-bot/readme.md),
+and the XML, XMPP, Unicode, image and editor additions from the 4.0 series.
 
 [Hexadecimal output](doc/HexadecimalOutput.md) documents ETH-compatible
 `Out.Hex(i)` and the unsigned, minimum-width `Out.HexDigits(x, n)` interface.
@@ -250,7 +257,7 @@ file only. Without `-j`, `ALL` remains an ordinary Oberon-2 identifier.
 
 ### Supported syntax and semantics
 
-The first implementation accepts one range identifier and an assignment
+The implementation accepts one range identifier and an assignment
 sequence, including an empty sequence:
 
 ```oberon
@@ -296,8 +303,9 @@ An iteration-local variable must be assigned before it is read.
 
 For distinct iterations, a location written by one must not be read or written
 by another. This applies across the whole assignment sequence. For example,
-`a[r] := a[r] * 2` is independent; `a[r] := a[r-1]` generally is not.
-A shared accumulator such as `sum := sum + a[r]` is not a reduction in `ALL`.
+`a[r] := a[r] * 2` is independent; `a[r] := a[r-1]` generally requires an
+ordered loop. A shared accumulator such as `sum := sum + a[r]` needs a
+sequential loop or a reduction algorithm.
 
 The compiler checks types, read-only range identifiers, and body syntax. For
 ranges that may contain multiple values, destinations must contain a
@@ -307,26 +315,26 @@ array. Overlapping accesses are rejected. With variable bounds, these checks
 conservatively reject possible overlaps; constant bounds can establish that
 the accessed sections are disjoint.
 
-These checks are not a proof of independence. The programmer must still check
+The programmer must also check
 pointer and parameter aliasing, indirect indices, repeated indices such as
 `a[r MOD 2]`, multidimensional overlaps, and dependencies through record
 fields or other designators outside those simple checks. An accepted program
-that violates independence has no defined `ALL` result. Sequential execution
-is not a way to make such a program valid.
+that violates independence has an undefined `ALL` result in every execution
+mode.
 
 ### C compiler requirements and testing
 
 Sequential `-j` output uses ordinary C and the existing VOC runtime. GCC,
 Clang, and TCC can compile it; linking uses the same libraries as an ordinary
-Oberon-2 program. No OpenMP compiler or runtime is needed for this mode.
+Oberon-2 program.
 GCC and Clang may autovectorize the generated loops with normal optimization
-options. VOC has no separate SIMD backend or SIMD option.
+options.
 
 CPU mode needs a C compiler with OpenMP support and its matching runtime at
 link time. GPU mode additionally needs a compatible offload compiler, target
 runtime, and device driver. `CC` selects the OpenMP compiler;
 `VOC_OPENMP_CFLAGS` and `VOC_OPENMP_LDFLAGS` supply target-specific options.
-OpenMP is a separate standard implemented by C compilers, not part of ISO C.
+OpenMP is a parallel-programming standard implemented by compatible C compilers.
 Clang 19 optimized execution was verified on AMD `gfx1036` integrated
 graphics and a Radeon RX 5600 XT (`gfx1010`).
 

@@ -95,8 +95,8 @@ Zero is a real limit; a negative maximum disables that particular limit.
 Counters are cumulative and a failed budget remains failed. Keep the budget
 exclusive to its parse and leave the maxima unchanged during parsing.
 Expansion accounting is conservative: checking a reused value can charge its
-units again. `maxWork` bounds construction and comparison operations, rather
-than measuring allocated bytes or elapsed time.
+units again. `maxWork` bounds construction and comparison operations.
+Applications need separate controls for allocated memory and elapsed time.
 
 The byte budget wraps the reader before constructor prefetch and is shared
 with every subsequent external reader. At an exact byte boundary a one-byte
@@ -167,8 +167,8 @@ wall-clock limits remain active. Logs and results go under `BUILD/limits`.
 
 The `fuzz` target runs 2,655 deterministic truncation and byte-mutation checks
 with seed 20261025 across plain, namespace, validation, canonical and protocol
-modes. Every invocation must finish with success or XML diagnostics, rather
-than a trap, timeout, opening/usage failure or sanitizer error. Its CPU,
+modes. Every invocation must finish with success or XML diagnostics. A trap,
+timeout, opening/usage failure or sanitizer error fails the test. Its CPU,
 wall-clock and output-file limits bound each process; the same address-space
 policy applies as above. Reports and reproducing inputs are in `BUILD/fuzz`.
 

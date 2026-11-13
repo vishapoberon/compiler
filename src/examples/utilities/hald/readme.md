@@ -36,7 +36,7 @@ Reading, decoding, and writing files are outside those timings.
 
 ## GPU build and use
 
-Follow the [GPU setup guide](../../../../doc/GPUTutorial.md#preparing-an-amd-gpu-on-debian).
+Follow the [GPU setup guide](../../../../doc/GPUSetup.md).
 For the tested RX 5600 XT, the essential settings are:
 
 ```sh

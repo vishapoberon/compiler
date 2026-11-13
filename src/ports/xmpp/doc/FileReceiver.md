@@ -76,9 +76,9 @@ SID for the same peer.
 On a matching open, the session enters `receiving` and exposes its IBB
 `transfer`. That engine checks blocks, Base64, sequence numbers, writes and
 flushes. Its byte ceiling is the selected `length`. A close is successful only
-if exactly that many bytes arrived; a premature close receives an error rather
-than a success acknowledgement. A resume counts only the selected range's
-bytes, not any existing prefix of the destination.
+if exactly that many bytes arrived; a premature close receives an error.
+A resume counts the selected range's bytes. Any existing destination prefix
+lies outside that count.
 
 ## progress and lifecycle
 
@@ -95,8 +95,8 @@ helper is still being ported.
 Drive `receiver.Tick(elapsedMS)` for consent, pending-open and receive-idle
 deadlines, and `receiver.router.Tick(elapsedMS)` for outgoing IQ deadlines on
 the shared router. They are separate clocks; do not tick an underlying IBB
-engine independently. Callback-created approvals get a fresh timeout rather
-than inheriting the remainder of the current tick.
+engine independently. Callback-created approvals get a fresh timeout starting
+at their creation.
 
 Client errors and stream closure release queued offers, unused authorizations
 and active transfers. `receiver.Stop` disables reception and releases all live

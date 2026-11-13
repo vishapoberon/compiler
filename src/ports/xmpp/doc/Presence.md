@@ -23,7 +23,7 @@ domain names through shared IDNA while preserving Unicode XML identities.
 `NewPresence(to, status)` retains the existing basic construction interface.
 Send the constructed stanza explicitly through `client.Send(stanza, error)`.
 Applications can attach their own subscription-tracking IDs before sending;
-approval/denial IDs should be new IDs rather than copies of an incoming request.
+approval/denial stanzas should receive fresh IDs.
 
 After login, request the roster and then send initial availability when the
 application intends to become available. Before orderly shutdown, send
