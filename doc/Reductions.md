@@ -135,8 +135,10 @@ diagnosed. Multiple potentially aliased array arguments are rejected by
 the current GPU mapping checks. CPU reductions accept read-only aliasing,
 including a dot product with the same array supplied twice.
 
-The constructor syntax here belongs to `SUM` and `PROD`. General array views,
-multidimensional constructors and multidimensional `ALL` remain further work.
+The constructor syntax here belongs to `SUM` and `PROD`. General array views
+and multidimensional reduction constructors remain further work.
+[`ALL` with several ranges](GPUTutorial.md#processing-rows-and-columns) supports
+sequential and CPU execution.
 
 ## Tests
 

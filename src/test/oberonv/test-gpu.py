@@ -143,6 +143,7 @@ declarations = ('TYPE Cell = RECORD value: REAL END; Buffer = POINTER TO ARRAY O
                 'VAR a, b: ARRAY 8 OF LONGINT; values: ARRAY 8 OF REAL; letters: ARRAY 8 OF CHAR;\n'
                 'cells: ARRAY 8 OF Cell; matrix: ARRAY 8, 2 OF REAL; p: Buffer;')
 invalid = [
+    ('MultipleRanges', 'ALL i = 0 .. 7, j = 0 .. 1 DO matrix[i, j] := 0 END', 160),
     ('Record', 'ALL r = 0 .. 7 DO cells[r].value := 0 END', 168),
     ('Matrix', 'ALL r = 0 .. 7 DO matrix[r, 0] := 0 END', 168),
     ('Heap', 'NEW(p, 8); ALL r = 0 .. 7 DO p[r] := 0 END', 168),

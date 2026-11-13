@@ -105,7 +105,7 @@ for a makefile which builds both command libraries and standalone applications.
 
 ### Experimental Oberon-V statements
 
-`-j` enables one-dimensional `ALL` statements with ordinary sequential C
+`-j` enables `ALL` statements with ordinary sequential C
 output. For example, `voc -j Vectors.Mod` compiles range-based independent
 assignments. Add `-m` when building a main program.
 
@@ -114,6 +114,11 @@ offloading for the supported numerical-array subset. `-P` and `-G` require
 `-j` and cannot be combined.
 All three letters follow the normal option toggling and per-file rules.
 Without `-j`, `ALL` remains an ordinary identifier.
+
+Sequential and CPU modes support several range identifiers in one `ALL`
+statement. The GPU subset supports one range identifier. Development sources
+after VOC 5.0 also provide [`SUM` and `PROD`](Reductions.md) with one-dimensional
+constructors in all three modes.
 
 Sequential output needs only VOC's usual C compiler and runtime libraries.
 OpenMP modes need compiler support and the matching runtime at link

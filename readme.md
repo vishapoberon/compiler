@@ -257,8 +257,8 @@ file only. Without `-j`, `ALL` remains an ordinary Oberon-2 identifier.
 
 ### Supported syntax and semantics
 
-The implementation accepts one range identifier and an assignment
-sequence, including an empty sequence:
+The implementation accepts range declarations and an assignment sequence,
+including an empty sequence:
 
 ```oberon
 ALL r = lower .. upper DO
@@ -274,6 +274,26 @@ it may shadow an enclosing identifier. Bounds use the enclosing scope.
 Its integer type is wide enough for both bounds and at least as wide as
 `INTEGER`. The generated loop stops before incrementing the last value, so
 a range ending at the largest representable integer does not overflow.
+
+Sequential and CPU execution also accept several range identifiers:
+
+```oberon
+ALL row = 0 .. LEN(matrix)-1, col = 0 .. LEN(matrix, 1)-1 DO
+  matrix[row, col] := row * 10 + col
+END
+```
+
+Each combination of indices runs the assignment sequence once. Identifiers
+can share bounds, as in `ALL row, col = 0 .. 3 DO ... END`. The bounds of
+each declaration are evaluated once, lower then upper, in source order and
+in the enclosing scope. Shared bounds are evaluated once for the whole
+identifier group. All bounds are evaluated before any assignment, including
+when a range is empty. If any range is empty, the body performs zero
+assignments. `WITH` variables belong to one complete index combination.
+
+CPU OpenMP distributes the outer range among workers and runs the remaining
+ranges within each worker. The generated loops handle each range's integer
+endpoints separately. Multidimensional GPU `ALL` remains further work.
 
 Assignments within one iteration run in source order. The order between
 iterations is unspecified; CPU and GPU modes may run them concurrently.
@@ -326,12 +346,17 @@ ordered loop. A shared accumulator such as `sum := sum + a[r]` needs a
 sequential loop or a reduction algorithm.
 
 The compiler checks types, read-only range identifiers, and body syntax. For
-ranges that may contain multiple values, destinations must contain a
-range-dependent array index. It also checks direct accesses to the same named
+ranges that may contain multiple values, destinations must depend on each
+such range identifier. It also checks direct accesses to the same named
 array with unit-stride constant offsets, and constant-index accesses to that
 array. Overlapping accesses are rejected. With variable bounds, these checks
 conservatively reject possible overlaps; constant bounds can establish that
 the accessed sections are disjoint.
+
+For multidimensional arrays, these checks inspect each indexed dimension.
+They conservatively reject shifted accesses and unrecognized mappings of
+the same named array, including in-place transposition. Separate arrays can
+be used for independent input and output.
 
 The programmer must also check
 pointer and parameter aliasing, indirect indices, repeated indices such as
@@ -377,10 +402,10 @@ example for inspecting C compiler vectorization reports.
 
 ### Further Oberon-V work
 
-One-dimensional `ALL`, private scalar iteration variables, and constructor-
-based `SUM` and `PROD` are implemented for sequential, CPU, and supported
-GPU execution. Griesemer's compiler also implemented multidimensional `ALL`
-and general array value and variable constructors. These remain further work.
+Multidimensional `ALL`, private scalar iteration variables, and constructor-
+based `SUM` and `PROD` are implemented for sequential and CPU execution.
+The GPU subset supports one-dimensional `ALL` and reductions. Multidimensional
+GPU `ALL` and general array value and variable constructors remain further work.
 Constructors need stride-aware array views;
 VOC's current open-array interface passes a base address and lengths, with
 contiguous strides derived from those lengths. Adding views must preserve

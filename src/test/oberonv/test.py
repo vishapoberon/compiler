@@ -80,8 +80,8 @@ invalid = [
     ("Procedure", "ALL r = 0 .. 3 DO INC(a[r]) END", 161),
     ("ControlFlow", "ALL r = 0 .. 3 DO IF r = 0 THEN a[r] := 1 END END", 161),
     ("Nested", "ALL r = 0 .. 3 DO ALL t = 0 .. 3 DO a[r] := t END END", 161),
-    ("Multiple", "ALL r, t = 0 .. 3 DO a[r] := t END", 160),
-    ("MultipleRanges", "ALL r = 0 .. 3, t = 1 .. 4 DO a[r] := t END", 160),
+    ("MissingDimension", "ALL r, t = 0 .. 3 DO a[r] := t END", 163),
+    ("MissingSecondDimension", "ALL r = 0 .. 3, t = 1 .. 4 DO a[r] := t END", 163),
     ("PrivateUnassigned", "ALL r = 0 .. 3 WITH t: INTEGER DO a[r] := t END", 167),
     ("PrivateSelfRead", "ALL r = 0 .. 3 WITH t: INTEGER DO t := t+1; a[r] := t END", 167),
     ("PrivateArray", "ALL r = 0 .. 3 WITH t: ARRAY 2 OF INTEGER DO a[r] := 0 END", 165),
@@ -160,3 +160,61 @@ if args.cpu:
 
 print(str(len(invalid) + 3) + " invalid ALL cases rejected")
 print("scope, bounds checks, option toggling and Oberon-2 compatibility passed")
+
+run([voc, language, sources / "TestMultiAll.Mod"])
+generated = (work / "TestMultiAll.c").read_text()
+assert ("#pragma omp parallel for" in generated) == args.cpu
+for cc in compilers:
+    executable = work / ("TestMultiAll-" + cc)
+    run([cc, "-O2", *(["-fopenmp"] if args.cpu else []), "-fno-strict-aliasing", "-DVOC_MAIN_PROGRAM=1",
+         "-I" + str(headers), work / "TestMultiAll.c", library,
+         *(["-ldl"] if sys.platform.startswith("linux") else []), "-lm", "-o", executable])
+    for threads in ((1, 2, 4) if args.cpu else (1,)):
+        assert "multidimensional ALL tests passed" in run([executable], extra_env={
+            "OMP_NUM_THREADS": str(threads), "OMP_DYNAMIC": "FALSE", "OMP_THREAD_LIMIT": str(threads)})
+    print(cc + ": multidimensional ALL passed")
+
+matrix_declarations = "VAR m: ARRAY 8, 8 OF LONGINT; s: LONGINT;"
+for name, body, error in (
+    ("RowDependence", "ALL i, j = 1 .. 3 DO m[i, j] := m[i-1, j] END", 166),
+    ("ColumnDependence", "ALL i, j = 1 .. 3 DO m[i, j] := m[i, j-1] END", 166),
+    ("Transposed", "ALL i, j = 0 .. 3 DO m[i, j] := m[j, i] END", 166),
+    ("OverlappingWrites", "ALL i, j = 0 .. 3 DO m[i, j] := 1; m[i, j+1] := 2 END", 166),
+    ("Duplicate", "ALL i, i = 0 .. 3 DO m[i, i] := 0 END", 1),
+    ("ReadOnly", "ALL i, j = 0 .. 3 DO j := 0 END", 76),
+    ("Escaping", "ALL i, j = 0 .. 3 DO m[i, j] := i+j END; s := j", 0),
+    ("BoundScope", "ALL i = 0 .. 3, j = i .. 3 DO m[i, j] := 0 END", 0),
+    ("PrivateUnassigned", "ALL i, j = 0 .. 3 WITH t: LONGINT DO m[i, j] := t END", 167),
+    ("RealBound", "ALL i = 0 .. 3, j = 0.0 .. 3 DO m[i, j] := 0 END", 164),
+):
+    path = source("BadMulti" + name, matrix_declarations, body)
+    output = run([voc, language, path], success=False)
+    assert "err " + str(error) + " " in output, (name, output)
+
+for name, ranges in (
+    ("RowBelow", "i = -1 .. 0, j = 0 .. 1"),
+    ("RowAbove", "i = 7 .. 8, j = 0 .. 1"),
+    ("ColumnBelow", "i = 0 .. 1, j = -1 .. 0"),
+    ("ColumnAbove", "i = 0 .. 1, j = 7 .. 8"),
+):
+    path = source("MultiBounds" + name, matrix_declarations, "ALL " + ranges + " DO m[i, j] := i+j END")
+    run([voc, language, path])
+    for cc in compilers:
+        executable = work / ("MultiBounds" + name + "-" + cc)
+        run([cc, *(["-fopenmp"] if args.cpu else []), "-DVOC_MAIN_PROGRAM=1", "-I" + str(headers),
+             work / ("MultiBounds" + name + ".c"), library,
+             *(["-ldl"] if sys.platform.startswith("linux") else []), "-lm", "-o", executable])
+        assert "Halt(-2)" in run([executable], success=False,
+                                  extra_env={"OMP_NUM_THREADS": "4", "OMP_DYNAMIC": "FALSE"})
+print("multidimensional ranges, private scalars, scope, dependence checks and bounds passed")
+
+for number, body in enumerate((
+    "ALL DO END", "ALL , = 0 .. 1 DO END", "ALL i, = 0 .. 1 DO END",
+    "ALL i = 0 .. 1, DO END", "ALL i = 0 .. 1, j = DO END",
+    "ALL i = 0 .. 1, j = 0 .. DO END", "ALL i = 0 .. 1 j = 0 .. 1 DO END",
+    "ALL i, j 0 .. 1 DO END", "ALL i = 0 .. 1, j = 0 .. 1 WITH DO END",
+)):
+    path = source("MalformedMulti" + str(number), "", body)
+    output = run([voc, language, path], success=False)
+    assert "err " in output and "Terminated by Halt" not in output, (body, output)
+print("malformed multidimensional ALL forms produce compiler diagnostics")

@@ -830,12 +830,20 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     RETURN FALSE
   END UnitIndex;
 
-  PROCEDURE CheckAllAccess(n, target, range: OPT.Node; targetOffset: SYSTEM.INT64);
+  PROCEDURE SameAllArray(n, target: OPT.Node): BOOLEAN;
+  BEGIN
+    WHILE (n^.class = OPT.Nindex) & (target^.class = OPT.Nindex) DO
+      n := n^.left; target := target^.left
+    END;
+    RETURN (n^.class IN {OPT.Nvar, OPT.Nvarpar}) &
+      (target^.class IN {OPT.Nvar, OPT.Nvarpar}) & (n^.obj = target^.obj)
+  END SameAllArray;
+
+  PROCEDURE CheckAllAccess(n, target, range: OPT.Node; targetOffset: SYSTEM.INT64; strict: BOOLEAN);
     VAR offset, distance, low, high, index: SYSTEM.INT64; overlaps, known: BOOLEAN;
   BEGIN
     IF n = NIL THEN RETURN END;
-    IF (n^.class = OPT.Nindex) & (n^.left^.class IN {OPT.Nvar, OPT.Nvarpar}) &
-        (n^.left^.obj = target^.left^.obj) THEN
+    IF (n^.class = OPT.Nindex) & SameAllArray(n^.left, target^.left) THEN
       known := (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst);
       low := 0; high := 0;
       IF known THEN low := range^.left^.conval^.intval; high := range^.right^.conval^.intval END;
@@ -855,33 +863,46 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           index := index - targetOffset;
           overlaps := ~known OR ((low <= index) & (index <= high))
         END
+      ELSIF strict THEN overlaps := TRUE
       END;
       IF overlaps THEN err(166) END
     END;
-    CheckAllAccess(n^.left, target, range, targetOffset);
-    CheckAllAccess(n^.right, target, range, targetOffset);
-    CheckAllAccess(n^.link, target, range, targetOffset)
+    CheckAllAccess(n^.left, target, range, targetOffset, strict);
+    CheckAllAccess(n^.right, target, range, targetOffset, strict);
+    CheckAllAccess(n^.link, target, range, targetOffset, strict)
   END CheckAllAccess;
 
   PROCEDURE CheckAllAssignments(body, range: OPT.Node);
-    VAR s, target: OPT.Node; offset: SYSTEM.INT64; multiple: BOOLEAN;
+    VAR s, target, dimension: OPT.Node; offset: SYSTEM.INT64; multiple, strict: BOOLEAN;
   BEGIN
-    multiple := TRUE;
-    IF (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst) THEN
-      multiple := range^.left^.conval^.intval < range^.right^.conval^.intval
+    strict := range^.link # NIL;
+    dimension := range;
+    WHILE dimension # NIL DO
+      IF (dimension^.left^.class = OPT.Nconst) & (dimension^.right^.class = OPT.Nconst) &
+          (dimension^.left^.conval^.intval > dimension^.right^.conval^.intval) THEN RETURN END;
+      dimension := dimension^.link
     END;
-    s := body;
-    WHILE s # NIL DO
-      OPM.errpos := OPM.Longint(s^.conval^.intval);
-      target := s^.left;
-      IF multiple THEN
-        IF ~AllDestination(target, range^.obj) THEN err(163) END;
-        IF (target^.class = OPT.Nindex) & (target^.left^.class IN {OPT.Nvar, OPT.Nvarpar}) &
-            UnitIndex(target^.right, range^.obj, offset) THEN
-          CheckAllAccess(body, target, range, offset)
-        END
+    WHILE range # NIL DO
+      multiple := TRUE;
+      IF (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst) THEN
+        multiple := range^.left^.conval^.intval < range^.right^.conval^.intval
       END;
-      s := s^.link
+      s := body;
+      WHILE s # NIL DO
+        OPM.errpos := OPM.Longint(s^.conval^.intval);
+        target := s^.left;
+        IF multiple THEN
+          IF ~AllDestination(target, range^.obj) THEN err(163) END;
+          WHILE target^.class = OPT.Nindex DO
+            IF UnitIndex(target^.right, range^.obj, offset) THEN
+              CheckAllAccess(body, target, range, offset, strict)
+            END;
+            target := target^.left
+          END
+        END;
+        s := s^.link
+      END;
+      range := range^.link
     END
   END CheckAllAssignments;
 
@@ -936,35 +957,45 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   END AllLocals;
 
   PROCEDURE AllStatement(VAR x: OPT.Node);
-    VAR name: OPS.Name; id, owner: OPT.Object; low, high, range, body, last, s, y: OPT.Node;
+    VAR id, owner: OPT.Object; low, high, range, ranges, tail, group, body, last, s, y: OPT.Node;
       typ: OPT.Struct; pos: LONGINT;
   BEGIN
-    OPS.Get(sym); name := OPS.name; CheckSym(OPS.ident);
-    low := OPB.NewIntConst(0); high := OPB.NewIntConst(-1);
-    IF sym = OPS.comma THEN
-      err(160);
-      WHILE (sym # OPS.do) & (sym # OPS.end) & (sym # OPS.eof) DO OPS.Get(sym) END
-    ELSE
+    OPS.Get(sym); ranges := NIL; tail := NIL;
+    LOOP
+      group := NIL;
+      LOOP
+        range := OPT.NewNode(OPT.Nrange); range^.obj := OPT.NewObj();
+        range^.obj^.name := OPS.name; CheckSym(OPS.ident);
+        IF group = NIL THEN group := range ELSE range^.subcl := 1 END;
+        OPB.Link(ranges, tail, range);
+        IF sym # OPS.comma THEN EXIT END;
+        OPS.Get(sym)
+      END;
       CheckSym(OPS.eql); Expression(low); CheckSym(OPS.upto); Expression(high);
-      IF sym = OPS.comma THEN
-        err(160);
-        WHILE (sym # OPS.do) & (sym # OPS.end) & (sym # OPS.eof) DO OPS.Get(sym) END
-      END
-    END;
-    typ := OPT.inttyp;
-    IF (low^.typ^.form # OPT.Int) OR (high^.typ^.form # OPT.Int) OR
-        (low^.class IN {OPT.Ntype, OPT.Nproc}) OR (high^.class IN {OPT.Ntype, OPT.Nproc}) THEN
-      err(164); low := OPB.NewIntConst(0); high := OPB.NewIntConst(-1)
-    ELSE
-      IF low^.typ^.size > typ^.size THEN typ := low^.typ END;
-      IF high^.typ^.size > typ^.size THEN typ := high^.typ END
+      typ := OPT.inttyp;
+      IF (low^.typ^.form # OPT.Int) OR (high^.typ^.form # OPT.Int) OR
+          (low^.class IN {OPT.Ntype, OPT.Nproc}) OR (high^.class IN {OPT.Ntype, OPT.Nproc}) THEN
+        err(164); low := OPB.NewIntConst(0); high := OPB.NewIntConst(-1)
+      ELSE
+        IF low^.typ^.size > typ^.size THEN typ := low^.typ END;
+        IF high^.typ^.size > typ^.size THEN typ := high^.typ END
+      END;
+      range := group;
+      WHILE range # NIL DO
+        range^.typ := typ; range^.left := low; range^.right := high;
+        range := range^.link
+      END;
+      IF sym # OPS.comma THEN EXIT END;
+      OPS.Get(sym)
     END;
     owner := OPT.topScope^.link;
     OPT.OpenScope(level, NIL); OPT.topScope^.link := owner;
-    OPT.Insert(name, id); id^.mode := OPT.Range; id^.typ := typ; id^.x := AllCounter; INC(AllCounter);
-    range := OPT.NewNode(OPT.Nrange); range^.obj := id; range^.typ := typ;
-    range^.left := low; range^.right := high;
-    IF sym = OPS.with THEN AllLocals(id) END;
+    range := ranges;
+    WHILE range # NIL DO
+      OPT.Insert(range^.obj^.name, id); id^.mode := OPT.Range; id^.typ := range^.typ;
+      id^.x := AllCounter; INC(AllCounter); range^.obj := id; range := range^.link
+    END;
+    IF sym = OPS.with THEN AllLocals(ranges^.obj) END;
     CheckSym(OPS.do);
     body := NIL; last := NIL;
     LOOP
@@ -984,9 +1015,9 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       IF sym = OPS.end THEN err(161) END
     END;
     IF sym # OPS.end THEN err(161); SkipAllTail END;
-    CheckAllAssignments(body, range);
+    CheckAllAssignments(body, ranges);
     OPT.CloseScope; CheckSym(OPS.end);
-    x := range; OPB.Construct(OPT.Nall, x, body)
+    x := ranges; OPB.Construct(OPT.Nall, x, body)
   END AllStatement;
 
   PROCEDURE StatSeq(VAR stat: OPT.Node);

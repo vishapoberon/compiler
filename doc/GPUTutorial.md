@@ -126,6 +126,46 @@ Each iteration has its own `t`. The compiler checks that it is assigned
 before being read. Use this form for intermediate values when parallel
 iterations would otherwise write to a shared procedure variable.
 
+## Processing rows and columns
+
+Development sources after VOC 5.0 support several range identifiers in
+sequential and CPU execution. Save this program as `Grid.Mod`:
+
+```oberon
+MODULE Grid;
+IMPORT Out;
+VAR values: ARRAY 4, 5 OF LONGINT; row, col: LONGINT;
+BEGIN
+  ALL row = 0 .. LEN(values)-1, col = 0 .. LEN(values, 1)-1 WITH t: LONGINT DO
+    t := row*10+col; values[row, col] := t
+  END;
+  FOR row := 0 TO LEN(values)-1 DO
+    FOR col := 0 TO LEN(values, 1)-1 DO
+      ASSERT(values[row, col] = row*10+col)
+    END
+  END;
+  Out.String("grid results passed"); Out.Ln
+END Grid.
+```
+
+Compile and run it with:
+
+```sh
+voc -sFmjP Grid.Mod
+OMP_NUM_THREADS=4 ./Grid
+```
+
+Each row-and-column combination has its own `t`. CPU OpenMP distributes the
+rows among workers; each worker visits the columns in its assigned rows.
+Use `-j` for sequential execution. Multidimensional GPU execution remains
+further work.
+
+For equal ranges, write `ALL row, col = 0 .. 3 DO ... END`. The bounds of
+each declaration are evaluated once before processing the grid, including
+when an earlier range is empty. Shared bounds are evaluated once for the
+identifier group. Bounds use the enclosing scope; all range identifiers
+belong to the body. If any range is empty, the body performs zero assignments.
+
 ## Putting the calculation in a module
 
 An application can call the calculation through an ordinary Oberon

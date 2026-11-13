@@ -136,7 +136,7 @@ Compiler error messages
 155 generation of new symbol file not allowed
 156 parameter file not found
  157 syntax error in parameter file
-160 only one range identifier is supported in ALL
+160 GPU ALL supports one range identifier
 161 ALL body must be an assignment sequence
 162 procedure calls in ALL bodies are not supported yet
 163 ALL destination must depend on its range identifier
