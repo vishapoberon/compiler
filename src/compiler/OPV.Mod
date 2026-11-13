@@ -1106,7 +1106,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   END ReductionCombine;
 
   PROCEDURE ReductionHelper(item: Reduction);
-    VAR n, range: OPT.Node; value: GPUValue;
+    VAR n, range: OPT.Node; value: GPUValue; parallel: BOOLEAN;
   BEGIN
     n := item^.node; range := n^.left;
     OPM.errpos := OPM.Longint(n^.conval^.intval);
@@ -1114,6 +1114,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ReductionCollect(range^.left, range, item^.values);
     ReductionCollect(range^.right, range, item^.values);
     ReductionCollect(n^.right, range, item^.values);
+    parallel := OPM.parallelcpu IN OPM.Options;
     reductionBody := FALSE;
     IF ~OPM.noerr THEN RETURN END;
     OPM.WriteString("static "); ReductionType(n^.typ); OPM.Write(" "); AllName(range, "__reduce"); OPM.Write("(");
@@ -1156,6 +1157,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
     OPM.WriteString(" = "); AllName(range, "__count");
     OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
+    IF parallel THEN
+      OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static) reduction(");
+      IF n^.subcl = OPT.sumfn THEN OPM.Write("+") ELSE OPM.Write("*") END;
+      OPM.WriteString(": "); AllName(range, "__result"); OPM.Write(")"); OPM.WriteLn
+    END;
     OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
     OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
     OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
@@ -1166,7 +1172,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)"); OPC.IntLiteral(OPM.SignedMaximum(8), 8);
     OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
     OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
-    OPC.CheckInterrupt;
+    IF ~parallel THEN OPC.CheckInterrupt END;
     ReductionCombine(n);
     OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
     AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;

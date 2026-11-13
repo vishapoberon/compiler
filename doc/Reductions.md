@@ -24,7 +24,7 @@ dot := SUM([i = 0 .. LEN(a)-1: a[i] * b[i]])
 ```
 
 The caller must supply arrays covering the selected range. Ordinary array
-bounds checks apply to each element access.
+bounds checks apply to sequential and CPU execution.
 
 ## A complete program
 
@@ -50,9 +50,16 @@ voc -sFmj Measurements.Mod
 ./Measurements
 ```
 
+For CPU OpenMP execution:
+
+```sh
+voc -sFmjP Measurements.Mod
+OMP_NUM_THREADS=4 ./Measurements
+```
+
 The [parallel tutorial](GPUTutorial.md) explains the execution modes.
-Reduction expressions run sequentially with all Oberon-V options. CPU OpenMP
-and GPU reduction support remain further work.
+Reduction expressions use CPU OpenMP with `-jP` and run sequentially with
+the other Oberon-V options. GPU reduction support remains further work.
 
 ## Ranges, types and empty results
 
@@ -83,8 +90,9 @@ user declarations.
 
 Integer combination uses modular arithmetic at the result type's width.
 For example, adding one to the largest signed 32-bit result yields its
-smallest signed value. VOC uses unsigned accumulation and reconstructs the
-signed result with defined C arithmetic.
+smallest signed value. CPU regrouping preserves that modular sum or
+product. VOC uses unsigned accumulation and reconstructs the signed result
+with defined C arithmetic.
 
 This rule covers the combination of contributed values. Arithmetic inside
 the contributed expression follows the usual VOC rules. Choose types wide
@@ -96,8 +104,11 @@ Sequential mode starts with zero for `SUM` or one for `PROD`, then combines
 values in ascending index order. Each accumulator has the result's floating-
 point type.
 
-Compiler options controlling floating-point transformations also affect
-the result.
+CPU OpenMP may group partial sums or products differently.
+The grouping can change rounding, overflow, underflow and the handling of
+cancelling large values. Compare parallel numerical results with an
+appropriate tolerance. Compiler options controlling floating-point
+transformations also affect the result.
 
 ## Initial supported subset
 
@@ -110,8 +121,8 @@ be free of procedure calls. Nested reductions and reductions within an
 inputs for a private generated helper while retaining ordinary expression
 use in assignments, arguments, conditions and returns.
 
-Reductions accept read-only aliasing, including a dot product with the same
-array supplied twice.
+CPU reductions accept read-only aliasing, including a dot product with the
+same array supplied twice.
 
 The constructor syntax here belongs to `SUM` and `PROD`. General array views,
 multidimensional constructors and multidimensional `ALL` remain further work.
@@ -121,7 +132,7 @@ multidimensional constructors and multidimensional `ALL` remain further work.
 From the source root, after building the updated compiler:
 
 ```sh
-make -C src/test/oberonv test-reductions
+make -C src/test/oberonv test-reductions test-reductions-cpu
 ```
 
 The cases cover integer widths, wrapping results, floating-point values,

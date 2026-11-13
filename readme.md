@@ -310,9 +310,10 @@ dot := SUM([i = 0 .. LEN(a)-1: a[i] * b[i]]);
 product := PROD([i = 0 .. LEN(a)-1: a[i]])
 ```
 
-They run sequentially with `-j`. Empty ranges return zero for `SUM` and one
-for `PROD`. Integer combination wraps at the
-result type's width. Floating-point reduction follows ascending index order.
+They run sequentially with `-j` and use CPU OpenMP with `-jP`. Empty ranges
+return zero for `SUM` and one for `PROD`. Integer combination wraps at the
+result type's width. Sequential floating-point reduction follows ascending
+index order; parallel modes may regroup operations and change rounding.
 See [Adding and multiplying independent values](doc/Reductions.md) for
 types, examples, the initial supported subset and tests.
 
@@ -378,9 +379,9 @@ example for inspecting C compiler vectorization reports.
 
 One-dimensional `ALL` and private scalar iteration variables are implemented
 for sequential, CPU, and supported GPU execution. Constructor-based `SUM`
-and `PROD` support sequential execution. Griesemer's compiler also implemented
-multidimensional `ALL` and general array value and variable constructors.
-These remain further work.
+and `PROD` support sequential and CPU execution. Griesemer's compiler also
+implemented multidimensional `ALL` and general array value and variable
+constructors. These remain further work.
 Constructors need stride-aware array views;
 VOC's current open-array interface passes a base address and lengths, with
 contiguous strides derived from those lengths. Adding views must preserve

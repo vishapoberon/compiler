@@ -15,7 +15,7 @@ GPU_CFLAGS ?= -O2 -fno-strict-aliasing
 RUN_PYTHON = sh "$(ROOT)/src/tools/make/python.sh"
 ARGS = --voc "$(VOC)" --vocroot "$(VOCROOT)" --model "$(MODEL)"
 
-.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark test-reductions
+.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark test-reductions test-reductions-cpu
 test:
 	$(RUN_PYTHON) test.py $(ARGS) --work "$(BUILD)/sequential"
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
@@ -23,6 +23,7 @@ test:
 test-cpu:
 	$(RUN_PYTHON) test.py $(ARGS) --cpu --work "$(BUILD)/cpu"
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/driver"
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode cpu --work "$(BUILD)/reductions-cpu"
 
 test-shared:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/shared" --hresh "$(HRESH)" --modules "$(MODULES)"
@@ -41,6 +42,9 @@ test-gpu-device:
 
 test-reductions:
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
+
+test-reductions-cpu:
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode cpu --work "$(BUILD)/reductions-cpu"
 
 benchmark:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/benchmark" --benchmark
