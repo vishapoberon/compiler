@@ -974,22 +974,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END
   END GPUCheck;
 
-  PROCEDURE GPUDeclarations(range: OPT.Node; values: GPUValue);
+  PROCEDURE GPUValidateBounds(range: OPT.Node; values: GPUValue);
     VAR value: GPUValue;
   BEGIN
-    value := values;
-    WHILE value # NIL DO
-      OPC.BegStat;
-      IF value^.array THEN OPC.Andent(value^.node^.typ^.BaseTyp); OPM.WriteString(" *")
-      ELSE OPC.Andent(value^.node^.typ); OPM.Write(" ")
-      END;
-      GPUName(range, value, ""); OPM.WriteString(" = "); expr(value^.node, MinPrec); OPC.EndStat;
-      IF value^.array THEN
-        OPC.BegStat; OPM.WriteString("ADDRESS "); GPUName(range, value, "__len");
-        OPM.WriteString(" = "); Len(value^.node, 0); OPC.EndStat
-      END;
-      value := value^.next
-    END;
     IF ~(OPM.inxchk IN OPM.Options) THEN RETURN END;
     value := values;
     WHILE value # NIL DO
@@ -1008,9 +995,28 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       END;
       value := value^.next
     END
+  END GPUValidateBounds;
+
+  PROCEDURE GPUDeclarations(range: OPT.Node; values: GPUValue);
+    VAR value: GPUValue;
+  BEGIN
+    value := values;
+    WHILE value # NIL DO
+      OPC.BegStat;
+      IF value^.array THEN OPC.Andent(value^.node^.typ^.BaseTyp); OPM.WriteString(" *")
+      ELSE OPC.Andent(value^.node^.typ); OPM.Write(" ")
+      END;
+      GPUName(range, value, ""); OPM.WriteString(" = "); expr(value^.node, MinPrec); OPC.EndStat;
+      IF value^.array THEN
+        OPC.BegStat; OPM.WriteString("ADDRESS "); GPUName(range, value, "__len");
+        OPM.WriteString(" = "); Len(value^.node, 0); OPC.EndStat
+      END;
+      value := value^.next
+    END;
+    GPUValidateBounds(range, values)
   END GPUDeclarations;
 
-  PROCEDURE GPUPragma(range: OPT.Node; values: GPUValue);
+  PROCEDURE GPUPragma(range: OPT.Node; values: GPUValue; operation: SHORTINT);
     VAR value: GPUValue;
   BEGIN
     OPC.BegStat; OPM.WriteString("#pragma omp target teams distribute parallel for schedule(static)");
@@ -1030,7 +1036,13 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       IF value^.array THEN GPUName(range, value, "__len") ELSE GPUName(range, value, "") END;
       value := value^.next
     END;
-    OPM.Write(")"); OPM.WriteLn
+    OPM.Write(")");
+    IF operation # 0 THEN
+      OPM.WriteString(" reduction(");
+      IF operation = OPT.sumfn THEN OPM.Write("+") ELSE OPM.Write("*") END;
+      OPM.WriteString(": "); AllName(range, "__result"); OPM.Write(")")
+    END;
+    OPM.WriteLn
   END GPUPragma;
 
   PROCEDURE ReductionType(typ: OPT.Struct);
@@ -1106,7 +1118,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   END ReductionCombine;
 
   PROCEDURE ReductionHelper(item: Reduction);
-    VAR n, range: OPT.Node; value: GPUValue; parallel: BOOLEAN;
+    VAR n, range: OPT.Node; value, other: GPUValue; parallel, gpu: BOOLEAN;
   BEGIN
     n := item^.node; range := n^.left;
     OPM.errpos := OPM.Longint(n^.conval^.intval);
@@ -1114,7 +1126,25 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     ReductionCollect(range^.left, range, item^.values);
     ReductionCollect(range^.right, range, item^.values);
     ReductionCollect(n^.right, range, item^.values);
-    parallel := OPM.parallelcpu IN OPM.Options;
+    gpu := OPM.parallelgpu IN OPM.Options;
+    parallel := gpu OR (OPM.parallelcpu IN OPM.Options);
+    IF gpu THEN
+      GPUExpression(n^.right, range, FALSE, item^.values);
+      value := item^.values;
+      WHILE value # NIL DO
+        IF value^.array THEN
+          other := value^.next;
+          WHILE other # NIL DO
+            IF other^.array & ((value^.node^.typ^.comp = OPT.DynArr) OR
+                (other^.node^.typ^.comp = OPT.DynArr) OR
+                (value^.node^.obj^.mode = OPT.VarPar) OR (other^.node^.obj^.mode = OPT.VarPar)) THEN OPM.err(169)
+            END;
+            other := other^.next
+          END
+        END;
+        value := value^.next
+      END
+    END;
     reductionBody := FALSE;
     IF ~OPM.noerr THEN RETURN END;
     OPM.WriteString("static "); ReductionType(n^.typ); OPM.Write(" "); AllName(range, "__reduce"); OPM.Write("(");
@@ -1151,13 +1181,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       END;
       value := value^.next
     END;
+    IF gpu THEN GPUValidateBounds(range, item^.values) END;
     OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
     OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
     OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
     OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
     OPM.WriteString(" = "); AllName(range, "__count");
     OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
-    IF parallel THEN
+    IF gpu THEN GPUPragma(range, item^.values, n^.subcl)
+    ELSIF parallel THEN
       OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static) reduction(");
       IF n^.subcl = OPT.sumfn THEN OPM.Write("+") ELSE OPM.Write("*") END;
       OPM.WriteString(": "); AllName(range, "__result"); OPM.Write(")"); OPM.WriteLn
@@ -1172,13 +1204,14 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)"); OPC.IntLiteral(OPM.SignedMaximum(8), 8);
     OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
     OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
+    gpuBody := gpu;
     IF ~parallel THEN OPC.CheckInterrupt END;
     ReductionCombine(n);
     OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
     AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
     OPC.BegStat; AllName(range, ""); OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
     ReductionCombine(n); OPC.EndBlk; OPC.EndBlk; OPC.EndBlk;
-    reductionBody := FALSE; gpuRange := NIL; gpuValues := NIL;
+    gpuBody := FALSE; reductionBody := FALSE; gpuRange := NIL; gpuValues := NIL;
     IF n^.typ^.form = OPT.Int THEN
       OPC.BegStat; OPM.WriteString("UINT"); OPM.WriteInt(n^.typ^.size*8); OPM.Write(" ");
       AllName(range, "__bits"); OPM.WriteString(" = (UINT"); OPM.WriteInt(n^.typ^.size*8);
@@ -1222,7 +1255,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
     OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
     OPM.WriteString(" = "); AllName(range, "__count"); OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
-    GPUPragma(range, values);
+    GPUPragma(range, values, 0);
     OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
     OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
     OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;

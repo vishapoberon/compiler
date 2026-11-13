@@ -186,6 +186,10 @@ Records, multidimensional arrays, heap designators, indirect lookup indices,
 potentially aliased array arguments, runtime-dependent operations and
 procedure calls are outside this initial GPU subset.
 
+`SUM` and `PROD` also support one-dimensional numerical reductions in
+development builds. See [Adding and multiplying independent values](Reductions.md)
+for their constructor syntax and arithmetic rules.
+
 The [HALD application](../src/examples/utilities/hald/readme.md) demonstrates
 a larger image calculation with indirect lookups. Its library supplies a
 dedicated, checked GPU build backend and keeps the Oberon `HaldClut.Apply`

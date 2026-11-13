@@ -24,7 +24,8 @@ dot := SUM([i = 0 .. LEN(a)-1: a[i] * b[i]])
 ```
 
 The caller must supply arrays covering the selected range. Ordinary array
-bounds checks apply to sequential and CPU execution.
+bounds checks apply to sequential and CPU execution. GPU builds check the
+supported index ranges on the CPU before launching device work.
 
 ## A complete program
 
@@ -57,9 +58,15 @@ voc -sFmjP Measurements.Mod
 OMP_NUM_THREADS=4 ./Measurements
 ```
 
-The [parallel tutorial](GPUTutorial.md) explains the execution modes.
-Reduction expressions use CPU OpenMP with `-jP` and run sequentially with
-the other Oberon-V options. GPU reduction support remains further work.
+For a configured GPU backend:
+
+```sh
+voc -sFmjG Measurements.Mod
+OMP_TARGET_OFFLOAD=MANDATORY ./Measurements
+```
+
+The [parallel tutorial](GPUTutorial.md) explains the execution modes. The
+[AMD setup guide](GPUSetup.md) describes the tested Clang configuration.
 
 ## Ranges, types and empty results
 
@@ -90,7 +97,7 @@ user declarations.
 
 Integer combination uses modular arithmetic at the result type's width.
 For example, adding one to the largest signed 32-bit result yields its
-smallest signed value. CPU regrouping preserves that modular sum or
+smallest signed value. CPU and GPU regrouping preserve that modular sum or
 product. VOC uses unsigned accumulation and reconstructs the signed result
 with defined C arithmetic.
 
@@ -104,7 +111,7 @@ Sequential mode starts with zero for `SUM` or one for `PROD`, then combines
 values in ascending index order. Each accumulator has the result's floating-
 point type.
 
-CPU OpenMP may group partial sums or products differently.
+CPU OpenMP and GPU modes may group partial sums or products differently.
 The grouping can change rounding, overflow, underflow and the handling of
 cancelling large values. Compare parallel numerical results with an
 appropriate tolerance. Compiler options controlling floating-point
@@ -121,8 +128,12 @@ be free of procedure calls. Nested reductions and reductions within an
 inputs for a private generated helper while retaining ordinary expression
 use in assignments, arguments, conditions and returns.
 
-CPU reductions accept read-only aliasing, including a dot product with the
-same array supplied twice.
+GPU reductions use the existing numerical device-expression subset: array
+indices must be the range identifier, a suitable widening conversion of it,
+or a nonnegative constant. Operations requiring device runtime helpers are
+diagnosed. Multiple potentially aliased array arguments are rejected by
+the current GPU mapping checks. CPU reductions accept read-only aliasing,
+including a dot product with the same array supplied twice.
 
 The constructor syntax here belongs to `SUM` and `PROD`. General array views,
 multidimensional constructors and multidimensional `ALL` remain further work.
@@ -133,9 +144,18 @@ From the source root, after building the updated compiler:
 
 ```sh
 make -C src/test/oberonv test-reductions test-reductions-cpu
+make -C src/test/oberonv test-reductions-gpu
 ```
 
-The cases cover integer widths, wrapping results, floating-point values,
-empty ranges, integer endpoints, captures,
+The last target checks explicit host fallback. To test an actual configured
+device, use:
+
+```sh
+make -C src/test/oberonv test-reductions-device GPU_CC=clang-19
+```
+
+Device tests require mandatory offloading and check the execution location
+with `omp_is_initial_device()`. The cases cover integer widths, wrapping
+results, floating-point values, empty ranges, integer endpoints, captures,
 scope, bounds failures and rejected constructors. `MODEL=C` selects the
 other conventional type model.

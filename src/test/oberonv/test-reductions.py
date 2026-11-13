@@ -12,10 +12,13 @@ parser.add_argument('--voc', required=True)
 parser.add_argument('--vocroot', required=True)
 parser.add_argument('--work', required=True, type=Path)
 parser.add_argument('--model', choices=('2', 'C'), default='2')
-parser.add_argument('--mode', choices=('sequential', 'cpu'), default='sequential')
+parser.add_argument('--mode', choices=('sequential', 'cpu', 'gpu'), default='sequential')
 parser.add_argument('--cc')
+parser.add_argument('--device', action='store_true')
 parser.add_argument('--cflags', default='-O2 -fno-strict-aliasing -ffp-contract=off')
 args = parser.parse_args()
+if args.device and args.mode != 'gpu':
+    parser.error('--device requires --mode gpu')
 voc = str(Path(args.voc).resolve())
 image = Path(args.vocroot).resolve()
 work = args.work.resolve()
@@ -24,10 +27,16 @@ sources = Path(__file__).resolve().parent
 env = dict(os.environ, VOCROOT=str(image), VOCLIBDIR=str(image / 'lib'),
            OBERON=str(image / args.model / 'sym'),
            LD_LIBRARY_PATH=str(image / 'lib') + os.pathsep + os.environ.get('LD_LIBRARY_PATH', ''),
-           OMP_TARGET_OFFLOAD='DISABLED')
-flags = '-fopenmp' if args.mode == 'cpu' else ''
-link_flags = flags
-option = {'sequential': '', 'cpu': 'P'}[args.mode]
+           OMP_TARGET_OFFLOAD='MANDATORY' if args.device else 'DISABLED')
+flags = os.environ.get('VOC_OPENMP_CFLAGS', '-fopenmp') if args.mode != 'sequential' else ''
+link_flags = os.environ.get('VOC_OPENMP_LDFLAGS', flags) if args.mode != 'sequential' else ''
+if args.mode == 'gpu' and not args.device:
+    flags = '-fopenmp' + (' -foffload=disable' if args.cc and 'gcc' in args.cc else '')
+    link_flags = flags
+elif args.mode == 'cpu':
+    flags = '-fopenmp'
+    link_flags = flags
+option = {'sequential': '', 'cpu': 'P', 'gpu': 'G'}[args.mode]
 
 
 def run(command, success=True, extra=None):
@@ -58,6 +67,10 @@ if args.mode != 'sequential':
     compilers = [cc for cc in compilers if 'tcc' not in cc]
 assert compilers
 for cc in compilers:
+    if args.device:
+        run([*shlex.split(cc), *shlex.split(args.cflags), *shlex.split(flags), sources / 'DeviceProbe.c',
+             *shlex.split(link_flags), '-o', work / 'DeviceProbe'])
+        run([work / 'DeviceProbe'])
     executable = work / ('TestReductions-' + Path(shlex.split(cc)[0]).name)
     run([*shlex.split(cc), *shlex.split(args.cflags), *shlex.split(flags), '-DVOC_MAIN_PROGRAM=1',
          '-I' + str(image / args.model / 'include'), work / 'TestReductions.c',
@@ -68,18 +81,19 @@ for cc in compilers:
             'OMP_NUM_THREADS': str(threads), 'OMP_THREAD_LIMIT': str(threads), 'OMP_DYNAMIC': 'FALSE'})
     print(cc + ': ' + args.mode + ' reductions passed', flush=True)
 
-    dot = source('ReductionDot',
-                 'VAR a: ARRAY 4 OF LONGINT; s: LONGINT;\n'
-                 'PROCEDURE Dot(VAR x, y: ARRAY OF LONGINT): LONGINT;\n'
-                 'BEGIN RETURN SUM([i = 0 .. LEN(x)-1: x[i] * y[i]]) END Dot;',
-                 'a[0] := 1; a[1] := 2; a[2] := 3; a[3] := 4; s := Dot(a, a); ASSERT(s = 30)')
-    translate(dot)
-    output = work / ('ReductionDot-' + Path(shlex.split(cc)[0]).name)
-    run([*shlex.split(cc), *shlex.split(args.cflags), *shlex.split(flags), '-DVOC_MAIN_PROGRAM=1',
-         '-I' + str(image / args.model / 'include'), work / 'ReductionDot.c',
-         image / 'lib' / ('libvoc-O' + args.model + '.a'),
-         *(['-ldl'] if sys.platform.startswith('linux') else []), '-lm', *shlex.split(link_flags), '-o', output])
-    run([output], extra={'OMP_NUM_THREADS': '4', 'OMP_THREAD_LIMIT': '4', 'OMP_DYNAMIC': 'FALSE'})
+    if args.mode != 'gpu':
+        dot = source('ReductionDot',
+                     'VAR a: ARRAY 4 OF LONGINT; s: LONGINT;\n'
+                     'PROCEDURE Dot(VAR x, y: ARRAY OF LONGINT): LONGINT;\n'
+                     'BEGIN RETURN SUM([i = 0 .. LEN(x)-1: x[i] * y[i]]) END Dot;',
+                     'a[0] := 1; a[1] := 2; a[2] := 3; a[3] := 4; s := Dot(a, a); ASSERT(s = 30)')
+        translate(dot)
+        output = work / ('ReductionDot-' + Path(shlex.split(cc)[0]).name)
+        run([*shlex.split(cc), *shlex.split(args.cflags), *shlex.split(flags), '-DVOC_MAIN_PROGRAM=1',
+             '-I' + str(image / args.model / 'include'), work / 'ReductionDot.c',
+             image / 'lib' / ('libvoc-O' + args.model + '.a'),
+             *(['-ldl'] if sys.platform.startswith('linux') else []), '-lm', *shlex.split(link_flags), '-o', output])
+        run([output], extra={'OMP_NUM_THREADS': '4', 'OMP_THREAD_LIMIT': '4', 'OMP_DYNAMIC': 'FALSE'})
 
     for bounds in ('-1 .. 0', '3 .. 4'):
         bad = source('ReductionBounds', 'VAR a: ARRAY 4 OF INTEGER; s: INTEGER;',
@@ -147,7 +161,21 @@ for name, declarations, expression in (
     path = source('BadReduction' + name, declarations, 's := SUM([i = 0 .. 3: ' + expression + '])')
     output = run([voc, '-O' + args.model, '-sFSmj' + option, path], success=False)
     assert 'err 175 ' in output, (name, output)
-print('unsupported reduction captures rejected', flush=True)
+if args.mode == 'gpu':
+    for name, expression, error in (
+        ('Offset', 'a[i+1]', 170),
+        ('Division', 'a[i] DIV 3', 171),
+        ('Narrowing', 'SHORT(a[i])', 172),
+    ):
+        path = source('BadReductionGPU' + name, 'VAR a: ARRAY 8 OF LONGINT; s: LONGINT;',
+                      's := SUM([i = 0 .. 3: ' + expression + '])')
+        output = run([voc, '-O' + args.model, '-sFSmjG' + ('r' if name == 'Narrowing' else ''), path], success=False)
+        assert 'err ' + str(error) + ' ' in output, (name, output)
+    path = source('BadReductionAlias',
+                  'PROCEDURE Dot(VAR a, b: ARRAY OF LONGINT): LONGINT;\n'
+                  'BEGIN RETURN SUM([i = 0 .. LEN(a)-1: a[i] * b[i]]) END Dot;', '')
+    assert 'err 169 ' in run([voc, '-O' + args.model, '-sFSmjG', path], success=False)
+print('unsupported reduction captures and GPU operations rejected', flush=True)
 
 for number, expression in enumerate((
     'SUM()', 'SUM(1)', 'SUM([i = 0 .. 3])', 'SUM([i = 0 .. 3: ])',

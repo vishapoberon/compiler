@@ -15,7 +15,7 @@ GPU_CFLAGS ?= -O2 -fno-strict-aliasing
 RUN_PYTHON = sh "$(ROOT)/src/tools/make/python.sh"
 ARGS = --voc "$(VOC)" --vocroot "$(VOCROOT)" --model "$(MODEL)"
 
-.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark test-reductions test-reductions-cpu
+.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark test-reductions test-reductions-cpu test-reductions-gpu test-reductions-device
 test:
 	$(RUN_PYTHON) test.py $(ARGS) --work "$(BUILD)/sequential"
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
@@ -30,6 +30,7 @@ test-shared:
 
 test-gpu:
 	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu" --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode gpu --cc "$(GPU_CC)" --work "$(BUILD)/reductions-gpu" --cflags="$(GPU_CFLAGS)"
 
 test-gpu-compile:
 	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CLANG)" --work "$(BUILD)/gpu-compile" --ptx-arch "$(GPU_ARCH)" --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
@@ -39,12 +40,19 @@ test-gpu-shared:
 
 test-gpu-device:
 	$(RUN_PYTHON) test-gpu.py $(ARGS) --cc "$(GPU_CC)" --work "$(BUILD)/gpu-device" --device --timeout "$(GPU_TIMEOUT)" --cflags="$(GPU_CFLAGS)"
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode gpu --cc "$(GPU_CC)" --work "$(BUILD)/reductions-device" --device --cflags="$(GPU_CFLAGS)"
 
 test-reductions:
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
 
 test-reductions-cpu:
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode cpu --work "$(BUILD)/reductions-cpu"
+
+test-reductions-gpu:
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode gpu --cc "$(GPU_CC)" --work "$(BUILD)/reductions-gpu" --cflags="$(GPU_CFLAGS)"
+
+test-reductions-device:
+	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode gpu --cc "$(GPU_CC)" --work "$(BUILD)/reductions-device" --device --cflags="$(GPU_CFLAGS)"
 
 benchmark:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/benchmark" --benchmark
