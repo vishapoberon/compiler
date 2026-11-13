@@ -24,10 +24,6 @@ parser.add_argument('--gpu-cflags', default='-O3 -fno-strict-aliasing')
 args = parser.parse_args()
 if any(number < 1 for number in args.threads):
     parser.error('thread counts must be positive')
-try:
-    from PIL import Image
-except ImportError:
-    parser.error('the image benchmark requires Pillow; on Debian install python3-pil')
 build = args.build.resolve()
 work = (args.work or build / 'benchmark').resolve()
 work.mkdir(parents=True, exist_ok=True)
@@ -63,24 +59,28 @@ if 'gpu' in args.modes:
          '-o', work / 'DeviceProbe'], env, work / 'probe-build.log')
     run([work / 'DeviceProbe'], env, work / 'probe-run.log')
     print('actual GPU execution verified; CPU fallback disabled', flush=True)
-with Image.open(args.image) as image:
-    original = image.convert('RGBA')
-with Image.open(args.lut) as image:
-    lut = image.convert('RGBA').tobytes()
-count = len(lut) // 4
-cube = 2
-while cube ** 3 < count:
-    cube += 1
-if cube ** 3 != count:
-    parser.error('LUT pixel count must be a colour cube of range 2 or larger')
+prepared = run([build / 'sequential/HaldPrepare', args.image.resolve(), args.lut.resolve(), work, *args.sizes],
+               dict(base, OMP_TARGET_OFFLOAD='DISABLED'), work / 'prepare.log')
+metadata = re.findall(r'^image (\S+) (\d+) (\d+)$', prepared, re.MULTILINE)
+dimensions = {size: (int(width), int(height)) for size, width, height in metadata}
+cube_match = re.search(r'^cube (\d+)$', prepared, re.MULTILINE)
+preparation = re.search(r'^preparation (\S+)$', prepared, re.MULTILINE)
+if set(dimensions) != set(args.sizes) or cube_match is None or preparation is None:
+    raise RuntimeError('invalid preparation metadata:\n' + prepared)
+cube = int(cube_match.group(1))
+preparation = preparation.group(1)
 lut_path = work / 'lut.rgba'
-lut_path.write_bytes(lut)
+if cube < 2 or lut_path.stat().st_size != cube ** 3 * 4:
+    raise RuntimeError('invalid prepared LUT size')
+lut_sha256 = hashlib.sha256(lut_path.read_bytes()).hexdigest()
 records = []
 rng = random.Random(1010)
 for size in args.sizes:
-    pixels = original if size == 'native' else original.resize((1920, 1080) if size == '1080p' else (3840, 2160), Image.Resampling.LANCZOS)
+    width, height = dimensions[size]
     source = work / (size + '.rgba')
-    source.write_bytes(pixels.tobytes())
+    if width < 1 or height < 1 or source.stat().st_size != width * height * 4:
+        raise RuntimeError('invalid prepared image size: ' + size)
+    source_sha256 = hashlib.sha256(source.read_bytes()).hexdigest()
     reference = work / (size + '-reference.rgba')
     run([build / 'sequential/HaldBench', source, lut_path, str(cube), reference],
         dict(base, OMP_TARGET_OFFLOAD='DISABLED'), work / (size + '-reference.log'))
@@ -102,7 +102,8 @@ for size in args.sizes:
         samples = [float(value.replace('D', 'E')) for value in re.findall(r'sample_us\s+(\S+)', text)]
         if len(samples) != 5 or min(samples) <= 0:
             raise RuntimeError(text)
-        record = dict(size=size, width=pixels.width, height=pixels.height, mode=mode, threads=None if mode == 'gpu' else threads,
+        record = dict(size=size, width=width, height=height, mode=mode, threads=None if mode == 'gpu' else threads,
+                      preparation=preparation, source_sha256=source_sha256, lut_sha256=lut_sha256,
                       cube_range=cube, median_us=statistics.median(samples), samples_us=samples,
                       cold_us=float(re.search(r'cold_us\s+(\S+)', text).group(1).replace('D', 'E')),
                       repeats=int(re.search(r'repeats\s+(\d+)', text).group(1)), sha256=actual)

@@ -11,12 +11,15 @@ source_map = [
   "HaldClut.Mod -> HaldClut.Mod",
   "build.mk -> build.mk",
   "examples/HaldCmd.Mod -> src/examples/utilities/hald/HaldCmd.Mod",
+  "examples/comparison.jpg -> src/examples/utilities/hald/comparison.jpg",
   "test/test.py -> src/examples/utilities/hald/test.py",
 ]
 adaptations = [
   "adding a source-checked generated-C OpenMP backend without changing the Oberon library interface",
   "adding explicit GPU and same-kernel CPU build and test targets",
   "adding build and usage READMEs, a raw timing driver, and reproducible CPU/GPU benchmarks",
+  "preparing benchmark images with Oberon decoding and deterministic bilinear resizing",
+  "including the upstream seven-LUT comparison image with attribution",
 ]
 build = "make -C src/examples/utilities/hald"
 test = "make -C src/examples/utilities/hald test"

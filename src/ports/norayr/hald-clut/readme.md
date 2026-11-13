@@ -109,6 +109,9 @@ seven-LUT photo checks. The published
 [CPU and GPU measurements](../../../../doc/ParallelBenchmarks.md) include
 transfer time and the same-kernel CPU control.
 
+The [colour comparison](../../../examples/utilities/hald/readme.md#colour-comparison)
+shows the original photograph and all seven LUT conversions.
+
 The original Oberon module comes from
 [voc-hald-clut](https://github.com/norayr/voc-hald-clut). `PORT.toml` and the
 hash manifests record the upstream revision and VOC-specific additions.

@@ -129,10 +129,17 @@ each workload with its own CPU reference to account for these differences.
 
 Timing used the supplied Fujichrome Provia 100F LUT: 512×512 pixels, a cube
 range of 64. The original photograph was 3264×2448, or 7,990,272 pixels. The
-1080p and 4K inputs were resized copies. The source JPEG was decoded once to
-RGBA and the identical bytes supplied to every implementation. The private
-photograph and supplied LUT images remain private inputs; use your own image
+1080p and 4K inputs were resized copies using a Lanczos filter. The source
+JPEG was decoded once to RGBA and the identical bytes supplied to every
+implementation. A
+[colour comparison](../src/examples/utilities/hald/readme.md#colour-comparison)
+shows the original and seven LUT conversions. Use your own full-size image
 and LUT to repeat the method. Image content can affect lookup locality.
+
+The current benchmark prepares its inputs with the bundled Oberon codecs
+and a deterministic bilinear resizer. Each result records that preparation
+method and hashes of the source and LUT. The historical tables retain their
+original Lanczos-prepared inputs and timings.
 
 CPU flags were `-O3 -march=native -fno-strict-aliasing`. GPU flags were
 Clang `-O3 -fno-strict-aliasing` with the matching AMD offload target. Image
@@ -228,8 +235,8 @@ python3 src/examples/utilities/hald/benchmark.py \
 ```
 
 Set `--voc` and `--vocroot` for the numerical script, and `VOC`/`VOCROOT` for
-the makefiles, when using a development image. The HALD benchmark needs
-Pillow; correctness tests use only Python's standard library. Rebuild the
-GPU objects after changing architectures. Use a fresh benchmark output
+the makefiles, when using a development image. HALD input preparation runs
+in Oberon; the runner and correctness tests use Python's standard library.
+Rebuild the GPU objects after changing architectures. Use a fresh benchmark output
 directory when retaining multiple runs. Detailed logs, generated objects,
 and raw timing samples stay in local build directories.

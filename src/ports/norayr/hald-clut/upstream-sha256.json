@@ -2,5 +2,6 @@
   "HaldClut.Mod": "406a6287bccff453abcef4846cd369775e59243f24fa904320044dd2337b3951",
   "build.mk": "3a130a670b7307997353727d391c87fd4fb377ffac7b4bec94efde3b96513d11",
   "examples/HaldCmd.Mod": "b37f475381dd94a8aa3cdc58de5aba36b3734ea4321edc4440e9b4f03cd512f4",
-  "test/test.py": "736a297fcbe2adbe01730bbc5e1393a5914f9837018d9461c6ed81bed7b4b0bd"
+  "test/test.py": "736a297fcbe2adbe01730bbc5e1393a5914f9837018d9461c6ed81bed7b4b0bd",
+  "examples/comparison.jpg": "6e25352632ade712aef7490798bbb154c1c270149bd93a74abe0809ff10b92db"
 }

@@ -39,6 +39,9 @@ sequential: codecs
 ifneq ($(BENCH_SOURCE),)
 	cd "$(BUILD)/sequential" && "$(VOC)" -O$(MODEL) -sFm "$(BENCH_SOURCE)"
 endif
+ifneq ($(PREP_SOURCE),)
+	cd "$(BUILD)/sequential" && "$(VOC)" -O$(MODEL) -sFm "$(PREP_SOURCE)"
+endif
 
 cpu: codecs
 	mkdir -p "$(BUILD)/cpu"
