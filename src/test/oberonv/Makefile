@@ -12,10 +12,12 @@ GPU_CLANG ?= clang
 GPU_ARCH ?= sm_53
 GPU_TIMEOUT ?= 120
 GPU_CFLAGS ?= -O2 -fno-strict-aliasing
+CPU_CC ?= gcc
+CPU_BENCH_ARGS ?=
 RUN_PYTHON = sh "$(ROOT)/src/tools/make/python.sh"
 ARGS = --voc "$(VOC)" --vocroot "$(VOCROOT)" --model "$(MODEL)"
 
-.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark test-reductions test-reductions-cpu test-reductions-gpu test-reductions-device
+.PHONY: test test-cpu test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark benchmark-cpu test-reductions test-reductions-cpu test-reductions-gpu test-reductions-device
 test:
 	$(RUN_PYTHON) test.py $(ARGS) --work "$(BUILD)/sequential"
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
@@ -56,3 +58,6 @@ test-reductions-device:
 
 benchmark:
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/benchmark" --benchmark
+
+benchmark-cpu:
+	$(RUN_PYTHON) benchmark-cpu.py $(ARGS) --cc "$(CPU_CC)" --work "$(BUILD)/benchmark-cpu" $(CPU_BENCH_ARGS)

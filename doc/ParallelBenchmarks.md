@@ -5,6 +5,11 @@ HALD CLUT image conversion. They distinguish correct device execution from
 performance, and compare a sequential CPU implementation, CPU OpenMP, and
 two actual AMD GPUs. Lower times are better.
 
+The [CPU scaling guide](CPUScaling.md#four-core-intel-measurements) adds
+four-core Intel measurements for multidimensional `ALL`, `SUM` and `PROD`,
+including workloads that benefit from OpenMP and workloads that run faster
+sequentially.
+
 ## Tested system
 
 Measurements were taken on 12–13 November 2026 using:

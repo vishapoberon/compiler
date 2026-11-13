@@ -400,6 +400,13 @@ limits, bounds-check failures, rejected dependencies, option toggling, and
 Oberon-2 compatibility. `src/test/oberonv/Vectorize.Mod` supplies a large-array
 example for inspecting C compiler vectorization reports.
 
+The [CPU scaling benchmark](doc/CPUScaling.md) measures multidimensional
+`ALL`, `SUM` and `PROD` against sequential and one-thread OpenMP baselines:
+
+```sh
+make -C src/test/oberonv benchmark-cpu
+```
+
 ### Further Oberon-V work
 
 Multidimensional `ALL`, private scalar iteration variables, and constructor-
