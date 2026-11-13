@@ -9,7 +9,7 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-[5.0 release preview](doc/ReleaseNotes-5.0.md) ·
+[Release notes for 5.0](doc/ReleaseNotes-5.0.md) ·
 [4.0 release history](doc/ReleaseNotes-4.0.md)
 
 Version 5.0 adds experimental Oberon-V array calculations with CPU OpenMP

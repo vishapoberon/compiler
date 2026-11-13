@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -507,6 +507,8 @@ void OPS_Get (INT8 *sym)
 			OPS_Identifier(&s);
 			if (__STRCMP(OPS_name, "ARRAY") == 0) {
 				s = 54;
+			} else if ((__STRCMP(OPS_name, "ALL") == 0 && __IN(23, OPM_Options, 32))) {
+				s = 65;
 			}
 			break;
 		case 'B': 

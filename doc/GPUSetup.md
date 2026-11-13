@@ -13,7 +13,7 @@ device libraries. Optimized GCC 14 offloading failed with
 `gfx1036` GPU. The failure also occurred in standalone C. Clang 19 passed
 the optimized tests on both AMD GPUs, so this setup uses Clang.
 
-An administrator can install the required packages with:
+You can install the required packages with:
 
 ```sh
 sudo apt install clang-19 clang-tools-19 lld-19 libomp-19-dev \
@@ -34,8 +34,8 @@ ls -l /dev/kfd /dev/dri/render*
 ```
 
 Your account needs access to the compute and render devices, usually through
-the `render` group. An administrator may need to grant access, followed by a
-fresh login.
+the `render` group. When your account is added to the group, you may need to
+relogin.
 
 ## Installing VOC with Clang
 

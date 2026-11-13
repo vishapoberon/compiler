@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -77,6 +77,13 @@ OPT_Node OPB_NewLeaf (OPT_Object obj)
 {
 	OPT_Node node = NIL;
 	switch (obj->mode) {
+		case 14: 
+			node = OPT_NewNode(0);
+			node->readonly = 1;
+			break;
+		case 15: 
+			node = OPT_NewNode(0);
+			break;
 		case 1: 
 			node = OPT_NewNode(0);
 			node->readonly = (obj->vis == 2 && obj->mnolev < 0);
@@ -630,6 +637,9 @@ void OPB_MOp (INT8 op, OPT_Node *x)
 				if ((((z->class == 7 && f == 3)) && z->conval->intval >= 32)) {
 					OPB_CharToString(z);
 					f = 8;
+				}
+				if ((((z->class == 0 && z->obj != NIL)) && __IN(z->obj->mode, 0xc000, 32))) {
+					OPB_err(127);
 				}
 				if (z->class < 7 || f == 8) {
 					z = NewOp__29(op, typ, z);
@@ -2471,6 +2481,9 @@ void OPB_StaticLink (INT8 dlev)
 	scope = OPT_topScope;
 	while (dlev > 0) {
 		dlev -= 1;
+		while ((scope->left != NIL && scope->left->mnolev == scope->mnolev)) {
+			scope = scope->left;
+		}
 		scope->link->conval->setval |= __SETOF(3,64);
 		scope = scope->left;
 	}

@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
 
 #ifndef Heap__h
 #define Heap__h

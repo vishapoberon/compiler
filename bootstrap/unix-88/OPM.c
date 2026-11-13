@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -311,7 +311,7 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 			case 'l': 
 				OPM_Options = OPM_Options ^ 0x080000;
 				break;
-			case 'L':
+			case 'L': 
 				OPM_Options = OPM_Options ^ 0x100000;
 				break;
 			case 'd': 
@@ -319,6 +319,15 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 				break;
 			case 'D': 
 				OPM_Options = OPM_Options ^ 0x400000;
+				break;
+			case 'j': 
+				OPM_Options = OPM_Options ^ 0x800000;
+				break;
+			case 'P': 
+				OPM_Options = OPM_Options ^ 0x01000000;
+				break;
+			case 'G': 
+				OPM_Options = OPM_Options ^ 0x02000000;
 				break;
 			case 'f': 
 				OPM_Options = OPM_Options ^ 0x010000;
@@ -437,6 +446,17 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWStr((CHAR*)"    -M cannot be combined with -L/-d/-D; static system linking is not a module-host mode.", 90);
 		OPM_LogWLn();
 		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"  Experimental Oberon-V", 24);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -j   Enable experimental Oberon-V ALL statements (sequential C).", 69);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -jP  Generate OpenMP CPU-parallel ALL statements.", 54);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -jG  Generate OpenMP GPU-offloading ALL statements.", 56);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -P/-G require -j and are mutually exclusive.", 49);
+		OPM_LogWLn();
+		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Miscellaneous", 16);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -f   Disable VT100 control characters in status output.", 60);
@@ -506,6 +526,18 @@ void OPM_InitOptions (void)
 		OPM_ScanOptions(s, 256);
 		OPM_S += 1;
 		OPM_GetArgument(OPM_S, (void*)s, 256);
+	}
+	if (((__IN(24, OPM_Options, 32) || __IN(25, OPM_Options, 32)) && !__IN(23, OPM_Options, 32))) {
+		OPM_LogWStr((CHAR*)"-P/-G require -j.", 18);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+		return;
+	}
+	if ((__IN(24, OPM_Options, 32) && __IN(25, OPM_Options, 32))) {
+		OPM_LogWStr((CHAR*)"-P and -G are mutually exclusive.", 34);
+		OPM_LogWLn();
+		OPM_noerr = 0;
+		return;
 	}
 	if (__IN(15, OPM_Options, 32)) {
 		OPM_Options |= __SETOF(10,32);

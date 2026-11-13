@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -189,7 +189,13 @@ void OPC_Ident (OPT_Object obj)
 	INT16 mode, level, h;
 	mode = obj->mode;
 	level = obj->mnolev;
-	if ((__IN(mode, 0x62, 32) && level > 0) || __IN(mode, 0x14, 32)) {
+	if (mode == 14) {
+		OPM_WriteString((CHAR*)"__all", 6);
+		OPM_WriteInt(obj->x);
+	} else if (mode == 15) {
+		OPM_WriteString((CHAR*)"__alllocal", 11);
+		OPM_WriteInt(obj->x);
+	} else if ((__IN(mode, 0x62, 32) && level > 0) || __IN(mode, 0x14, 32)) {
 		OPM_WriteStringVar((void*)obj->name, 256);
 		h = OPC_KeywordHash((void*)obj->name, 256);
 		while ((OPC_hashtab[__X(h, 257)] >= 0 && __STRCMP(OPC_keytab[__X(OPC_hashtab[__X(h, 257)], 96)], obj->name) != 0)) {
@@ -1249,6 +1255,15 @@ static void OPC_GenHeaderMsg (void)
 				case 22: 
 					OPM_Write('D');
 					break;
+				case 23: 
+					OPM_Write('j');
+					break;
+				case 24: 
+					OPM_Write('P');
+					break;
+				case 25: 
+					OPM_Write('G');
+					break;
 				default: 
 					OPM_LogWStr((CHAR*)"( more options defined in OPM than checked in OPC.GenHeaderMsg, if you are a compiler developer, add them to OPC.GenHeaderMsg", 126);
 					OPM_LogWLn();
@@ -1285,6 +1300,21 @@ void OPC_GenBdy (OPT_Node n)
 	OPM_currFile = 1;
 	OPC_GenHeaderMsg();
 	OPM_WriteLn();
+	if (__IN(25, OPM_Options, 32)) {
+		OPM_WriteString((CHAR*)"#if !defined(_OPENMP) || _OPENMP < 201511", 42);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"#error \"OpenMP GPU output requires an OpenMP 4.5+ C compiler\"", 62);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"#endif", 7);
+		OPM_WriteLn();
+	} else if (__IN(24, OPM_Options, 32)) {
+		OPM_WriteString((CHAR*)"#if !defined(_OPENMP) || _OPENMP < 200805", 42);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"#error \"OpenMP CPU output requires an OpenMP 3.0+ C compiler\"", 62);
+		OPM_WriteLn();
+		OPM_WriteString((CHAR*)"#endif", 7);
+		OPM_WriteLn();
+	}
 	OPM_WriteString((CHAR*)"#define SHORTINT INT", 21);
 	OPM_WriteInt(__ASHL(OPT_sinttyp->size, 3));
 	OPM_WriteLn();
@@ -1869,7 +1899,9 @@ void OPC_CompleteIdent (OPT_Object obj)
 {
 	INT16 comp, level;
 	level = obj->mnolev;
-	if (obj->adr == 1) {
+	if (__IN(obj->mode, 0xc000, 32)) {
+		OPC_Ident(obj);
+	} else if (obj->adr == 1) {
 		if (obj->typ->comp == 4) {
 			OPC_Ident(obj);
 			OPM_WriteString((CHAR*)"__", 3);

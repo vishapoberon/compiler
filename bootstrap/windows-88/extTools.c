@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -45,6 +45,7 @@ export void extTools_LinkModule (CHAR *moduleName, ADDRESS moduleName__len);
 static void extTools_ModularCommand (CHAR *cmd);
 static void extTools_ModularLinkFlags (CHAR *cmd);
 static BOOLEAN extTools_NextDirectory (CHAR *path, ADDRESS path__len, INT16 *pos, CHAR *dir);
+static void extTools_OpenMPFlags (CHAR *cmd, ADDRESS cmd__len, BOOLEAN linking);
 static void extTools_Quote (CHAR *text, ADDRESS text__len, CHAR *target, ADDRESS target__len);
 static void extTools_SearchPath (CHAR *path);
 static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRESS cmd__len);
@@ -96,21 +97,6 @@ static void extTools_execute (CHAR *title, ADDRESS title__len, CHAR *cmd, ADDRES
 	}
 	__DEL(title);
 	__DEL(cmd);
-}
-
-static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len, CHAR *additionalopts, ADDRESS additionalopts__len)
-{
-	__DUP(additionalopts, additionalopts__len, CHAR);
-	__COPY("gcc -fPIC -g", s, s__len);
-	Strings_Append((CHAR*)" -I \"", 6, (void*)s, s__len);
-	Strings_Append(OPM_ResourceDir, 1024, (void*)s, s__len);
-	Strings_Append((CHAR*)"/include\" ", 11, (void*)s, s__len);
-	Strings_Append(additionalopts, additionalopts__len, (void*)s, s__len);
-	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
-	Platform_GetEnv((CHAR*)"CFLAGS", 7, (void*)extTools_CFLAGS, 8192);
-	Strings_Append(extTools_CFLAGS, 8192, (void*)s, s__len);
-	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
-	__DEL(additionalopts);
 }
 
 static void extTools_Fail (CHAR *message, ADDRESS message__len)
@@ -276,6 +262,78 @@ static BOOLEAN extTools_IsTCC (void)
 	return (((((i - start == 3 && compiler[__X(start, 4096)] == 't')) && compiler[__X(start + 1, 4096)] == 'c')) && compiler[__X(start + 2, 4096)] == 'c');
 }
 
+static void extTools_OpenMPFlags (CHAR *cmd, ADDRESS cmd__len, BOOLEAN linking)
+{
+	extTools_CommandString flags;
+	extTools_Path compiler, name;
+	CHAR variable[32];
+	INT16 i, start;
+	if ((!__IN(24, OPM_Options, 32) && !__IN(25, OPM_Options, 32))) {
+		return;
+	}
+	if (linking) {
+		__MOVE("VOC_OPENMP_LDFLAGS", variable, 19);
+	} else {
+		__MOVE("VOC_OPENMP_CFLAGS", variable, 18);
+	}
+	Platform_GetEnv(variable, 32, (void*)flags, 8192);
+	if (flags[0] == 0x00) {
+		Platform_GetEnv((CHAR*)"CC", 3, (void*)compiler, 4096);
+		if (compiler[0] == 0x00) {
+			__COPY("gcc", name, 4096);
+		} else {
+			i = 0;
+			start = 0;
+			while ((compiler[__X(i, 4096)] != 0x00 && compiler[__X(i, 4096)] != ' ')) {
+				if (compiler[__X(i, 4096)] == '/') {
+					start = i + 1;
+				}
+				i += 1;
+			}
+			Strings_Extract(compiler, 4096, start, i - start, (void*)name, 4096);
+		}
+		if (((__STRCMP(name, "cc") == 0 || __STRCMP(name, "mingw") == 0) || Strings_Pos((CHAR*)"gcc", 4, name, 4096, 0) >= 0) || Strings_Pos((CHAR*)"clang", 6, name, 4096, 0) >= 0) {
+			__MOVE("-fopenmp", flags, 9);
+		} else {
+			OPM_LogWStr((CHAR*)"No OpenMP options configured for ", 34);
+			OPM_LogWStr(name, 4096);
+			OPM_LogWStr((CHAR*)"; set ", 7);
+			OPM_LogWStr(variable, 32);
+			OPM_LogWLn();
+			extTools_Fail((CHAR*)"Use an OpenMP C compiler for -jP/-jG, or -j for sequential C.", 62);
+			return;
+		}
+	}
+	extTools_Add((CHAR*)" ", 2, (void*)cmd, cmd__len);
+	extTools_Add(flags, 8192, (void*)cmd, cmd__len);
+	extTools_Add((CHAR*)" ", 2, (void*)cmd, cmd__len);
+}
+
+static void extTools_InitialiseCompilerCommand (CHAR *s, ADDRESS s__len, CHAR *additionalopts, ADDRESS additionalopts__len)
+{
+	extTools_Path compiler;
+	__DUP(additionalopts, additionalopts__len, CHAR);
+	compiler[0] = 0x00;
+	if (__IN(24, OPM_Options, 32) || __IN(25, OPM_Options, 32)) {
+		Platform_GetEnv((CHAR*)"CC", 3, (void*)compiler, 4096);
+	}
+	if (compiler[0] == 0x00) {
+		__COPY("gcc -fPIC -g", s, s__len);
+	} else {
+		__COPY(compiler, s, s__len);
+	}
+	Strings_Append((CHAR*)" -I \"", 6, (void*)s, s__len);
+	Strings_Append(OPM_ResourceDir, 1024, (void*)s, s__len);
+	Strings_Append((CHAR*)"/include\" ", 11, (void*)s, s__len);
+	Strings_Append(additionalopts, additionalopts__len, (void*)s, s__len);
+	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
+	Platform_GetEnv((CHAR*)"CFLAGS", 7, (void*)extTools_CFLAGS, 8192);
+	Strings_Append(extTools_CFLAGS, 8192, (void*)s, s__len);
+	Strings_Append((CHAR*)" ", 2, (void*)s, s__len);
+	extTools_OpenMPFlags((void*)s, s__len, 0);
+	__DEL(additionalopts);
+}
+
 static void extTools_ModularCommand (CHAR *cmd)
 {
 	extTools_Path compiler, path, dir;
@@ -290,6 +348,7 @@ static void extTools_ModularCommand (CHAR *cmd)
 	extTools_Add((CHAR*)" ", 2, (void*)cmd, 8192);
 	Platform_GetEnv((CHAR*)"CFLAGS", 7, (void*)extTools_CFLAGS, 8192);
 	extTools_Add(extTools_CFLAGS, 8192, (void*)cmd, 8192);
+	extTools_OpenMPFlags((void*)cmd, 8192, 0);
 	extTools_Add((CHAR*)" -fno-strict-aliasing -fPIC ", 29, (void*)cmd, 8192);
 	extTools_SearchPath(path);
 	pos = 0;
@@ -315,6 +374,7 @@ static void extTools_ModularLinkFlags (CHAR *cmd)
 	Platform_GetEnv((CHAR*)"LDFLAGS", 8, (void*)extTools_LDFLAGS, 8192);
 	extTools_Add((CHAR*)" ", 2, (void*)cmd, 8192);
 	extTools_Add(extTools_LDFLAGS, 8192, (void*)cmd, 8192);
+	extTools_OpenMPFlags((void*)cmd, 8192, 1);
 	if (!extTools_IsTCC()) {
 		extTools_Add((CHAR*)" -Wl,--no-as-needed ", 21, (void*)cmd, 8192);
 	}
@@ -514,6 +574,7 @@ void extTools_LinkMain (CHAR *moduleName, ADDRESS moduleName__len, BOOLEAN stati
 	Platform_GetEnv((CHAR*)"LDLIBS", 7, (void*)extTools_LDLIBS, 8192);
 	Strings_Append(extTools_LDLIBS, 8192, (void*)cmd, 8192);
 	Strings_Append((CHAR*)" ", 2, (void*)cmd, 8192);
+	extTools_OpenMPFlags((void*)cmd, 8192, 1);
 	if (!statically || 1) {
 		Strings_Append((CHAR*)" -L\"", 5, (void*)cmd, 8192);
 		Strings_Append(OPM_LibraryDir, 1024, (void*)cmd, 8192);

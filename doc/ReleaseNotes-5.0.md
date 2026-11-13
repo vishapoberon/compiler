@@ -1,4 +1,4 @@
-# Vishap Oberon 5.0 — release preview
+# Vishap Oberon 5.0
 
 Vishap Oberon compiles Oberon-2 programs through a C backend and supplies
 libraries and tools for conventional operating systems. Version 5.0 adds
@@ -40,7 +40,7 @@ captures and private scalar temporaries. It checks supported array bounds
 on the calling thread before launching the device calculation. More complex
 array views, multidimensional iteration and reductions remain future work.
 
-Start with [A gentle introduction to GPU programming](GPUTutorial.md),
+Start with [A gentle introduction to parallel programming](GPUTutorial.md),
 which builds an array example, uses a separately compiled module and
 explains the tested AMD setup. The
 [numerical examples](../src/examples/language/gpu/readme.md) include checks
@@ -58,6 +58,12 @@ The [HaldCmd example](../src/examples/utilities/hald/readme.md) reads a JPEG
 or PNG photograph, applies a HALD PNG and writes the result. It includes
 sequential, CPU OpenMP and GPU builds, pixel-reference tests and a conversion
 benchmark. Integer rounding and source alpha are preserved.
+
+`HaldPrepare` uses the bundled Oberon JPEG and PNG codecs to prepare benchmark
+inputs. Its bilinear resizer supplies 1080p and 4K data, with input hashes
+and a preparation-method identifier recorded in each benchmark result.
+The [colour comparison](../src/examples/utilities/hald/readme.md#colour-comparison)
+shows the original photograph and seven LUT conversions.
 
 ### Published measurements
 

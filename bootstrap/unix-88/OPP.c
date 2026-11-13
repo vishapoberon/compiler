@@ -1,4 +1,4 @@
-/* voc 4.0.8 [2026/11/08]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -20,7 +20,7 @@ typedef
 
 
 static INT8 OPP_sym, OPP_level;
-static INT16 OPP_LoopLevel;
+static INT16 OPP_LoopLevel, OPP_AllCounter;
 static OPT_Node OPP_TDinit, OPP_lastTDinit;
 static INT16 OPP_nofFwdPtr;
 static OPT_Struct OPP_FwdPtr[64];
@@ -28,9 +28,15 @@ static OPT_Struct OPP_FwdPtr[64];
 export ADDRESS *OPP__1__typ;
 
 static void OPP_ActualParameters (OPT_Node *aparlist, OPT_Object fpar);
+static BOOLEAN OPP_AllDestination (OPT_Node n, OPT_Object range);
+static void OPP_AllLocals (OPT_Object range);
+static void OPP_AllStatement (OPT_Node *x);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq);
 static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, struct OPP__1 *tab);
+static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT64 targetOffset);
+static void OPP_CheckAllAssignments (OPT_Node body, OPT_Node range);
+static void OPP_CheckAllExpression (OPT_Node n);
 static void OPP_CheckMark (INT8 *vis);
 static void OPP_CheckSym (INT16 s);
 static void OPP_CheckSysFlag (INT16 *sysflag, INT16 default_);
@@ -47,11 +53,14 @@ static void OPP_Receiver (INT8 *mode, CHAR *name, OPT_Struct *typ, OPT_Struct *r
 static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Sets (OPT_Node *x);
 static void OPP_SimpleExpression (OPT_Node *x);
+static void OPP_SkipAllTail (void);
 static void OPP_StandProcCall (OPT_Node *x);
 static void OPP_StatSeq (OPT_Node *stat);
 static void OPP_Term (OPT_Node *x);
 static void OPP_Type (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_TypeDecl (OPT_Struct *typ, OPT_Struct *banned);
+static BOOLEAN OPP_UnitIndex (OPT_Node n, OPT_Object range, INT64 *offset);
+static BOOLEAN OPP_UsesRange (OPT_Node n, OPT_Object range);
 static void OPP_err (INT16 n);
 static void OPP_qualident (OPT_Object *id);
 static void OPP_selector (OPT_Node *x);
@@ -926,27 +935,27 @@ static BOOLEAN OPP_Extends (OPT_Struct x, OPT_Struct b)
 	return x == b;
 }
 
-static struct ProcedureDeclaration__16 {
+static struct ProcedureDeclaration__22 {
 	OPT_Node *x;
 	OPT_Object *proc, *fwd;
 	OPS_Name *name;
 	INT8 *mode, *vis;
 	BOOLEAN *forward;
-	struct ProcedureDeclaration__16 *lnk;
-} *ProcedureDeclaration__16_s;
+	struct ProcedureDeclaration__22 *lnk;
+} *ProcedureDeclaration__22_s;
 
-static void Body__17 (void);
-static void GetCode__19 (void);
-static void GetParams__21 (void);
-static void TProcDecl__23 (void);
+static void Body__23 (void);
+static void GetCode__25 (void);
+static void GetParams__27 (void);
+static void TProcDecl__29 (void);
 
-static void GetCode__19 (void)
+static void GetCode__25 (void)
 {
 	OPT_ConstExt ext = NIL;
 	INT16 n;
 	INT64 c;
 	ext = OPT_NewExt();
-	(*ProcedureDeclaration__16_s->proc)->conval->ext = ext;
+	(*ProcedureDeclaration__22_s->proc)->conval->ext = ext;
 	n = 0;
 	if (OPP_sym == 37) {
 		while (OPS_str[__X(n, 1024)] != 0x00) {
@@ -988,47 +997,47 @@ static void GetCode__19 (void)
 			}
 		}
 	}
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,64);
+	(*ProcedureDeclaration__22_s->proc)->conval->setval |= __SETOF(1,64);
 }
 
-static void GetParams__21 (void)
+static void GetParams__27 (void)
 {
-	(*ProcedureDeclaration__16_s->proc)->vis = *ProcedureDeclaration__16_s->vis;
-	(*ProcedureDeclaration__16_s->proc)->mode = *ProcedureDeclaration__16_s->mode;
-	(*ProcedureDeclaration__16_s->proc)->typ = OPT_notyp;
-	(*ProcedureDeclaration__16_s->proc)->conval = OPT_NewConst();
-	(*ProcedureDeclaration__16_s->proc)->conval->setval = 0x0;
+	(*ProcedureDeclaration__22_s->proc)->vis = *ProcedureDeclaration__22_s->vis;
+	(*ProcedureDeclaration__22_s->proc)->mode = *ProcedureDeclaration__22_s->mode;
+	(*ProcedureDeclaration__22_s->proc)->typ = OPT_notyp;
+	(*ProcedureDeclaration__22_s->proc)->conval = OPT_NewConst();
+	(*ProcedureDeclaration__22_s->proc)->conval->setval = 0x0;
 	if (OPP_sym == 30) {
 		OPS_Get(&OPP_sym);
-		OPP_FormalParameters(&(*ProcedureDeclaration__16_s->proc)->link, &(*ProcedureDeclaration__16_s->proc)->typ);
+		OPP_FormalParameters(&(*ProcedureDeclaration__22_s->proc)->link, &(*ProcedureDeclaration__22_s->proc)->typ);
 	}
-	if (*ProcedureDeclaration__16_s->fwd != NIL) {
-		OPB_CheckParameters((*ProcedureDeclaration__16_s->proc)->link, (*ProcedureDeclaration__16_s->fwd)->link, 1);
-		if ((*ProcedureDeclaration__16_s->proc)->typ != (*ProcedureDeclaration__16_s->fwd)->typ) {
+	if (*ProcedureDeclaration__22_s->fwd != NIL) {
+		OPB_CheckParameters((*ProcedureDeclaration__22_s->proc)->link, (*ProcedureDeclaration__22_s->fwd)->link, 1);
+		if ((*ProcedureDeclaration__22_s->proc)->typ != (*ProcedureDeclaration__22_s->fwd)->typ) {
 			OPP_err(117);
 		}
-		*ProcedureDeclaration__16_s->proc = *ProcedureDeclaration__16_s->fwd;
-		OPT_topScope = (*ProcedureDeclaration__16_s->proc)->scope;
-		if (*ProcedureDeclaration__16_s->mode == 10) {
-			(*ProcedureDeclaration__16_s->proc)->mode = 10;
+		*ProcedureDeclaration__22_s->proc = *ProcedureDeclaration__22_s->fwd;
+		OPT_topScope = (*ProcedureDeclaration__22_s->proc)->scope;
+		if (*ProcedureDeclaration__22_s->mode == 10) {
+			(*ProcedureDeclaration__22_s->proc)->mode = 10;
 		}
 	}
 }
 
-static void Body__17 (void)
+static void Body__23 (void)
 {
 	OPT_Node procdec = NIL, statseq = NIL;
 	INT32 c;
 	c = OPM_errpos;
-	(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(1,64);
+	(*ProcedureDeclaration__22_s->proc)->conval->setval |= __SETOF(1,64);
 	OPP_CheckSym(39);
 	OPP_Block(&procdec, &statseq);
-	OPB_Enter(&procdec, statseq, *ProcedureDeclaration__16_s->proc);
-	*ProcedureDeclaration__16_s->x = procdec;
-	(*ProcedureDeclaration__16_s->x)->conval = OPT_NewConst();
-	(*ProcedureDeclaration__16_s->x)->conval->intval = c;
+	OPB_Enter(&procdec, statseq, *ProcedureDeclaration__22_s->proc);
+	*ProcedureDeclaration__22_s->x = procdec;
+	(*ProcedureDeclaration__22_s->x)->conval = OPT_NewConst();
+	(*ProcedureDeclaration__22_s->x)->conval->intval = c;
 	if (OPP_sym == 38) {
-		if (__STRCMP(OPS_name, (*ProcedureDeclaration__16_s->proc)->name) != 0) {
+		if (__STRCMP(OPS_name, (*ProcedureDeclaration__22_s->proc)->name) != 0) {
 			OPP_err(4);
 		}
 		OPS_Get(&OPP_sym);
@@ -1037,70 +1046,70 @@ static void Body__17 (void)
 	}
 }
 
-static void TProcDecl__23 (void)
+static void TProcDecl__29 (void)
 {
 	OPT_Object baseProc = NIL;
 	OPT_Struct objTyp = NIL, recTyp = NIL;
 	INT8 objMode;
 	OPS_Name objName;
 	OPS_Get(&OPP_sym);
-	*ProcedureDeclaration__16_s->mode = 13;
+	*ProcedureDeclaration__22_s->mode = 13;
 	if (OPP_level > 0) {
 		OPP_err(73);
 	}
 	OPP_Receiver(&objMode, objName, &objTyp, &recTyp);
 	if (OPP_sym == 38) {
-		__MOVE(OPS_name, *ProcedureDeclaration__16_s->name, 256);
-		OPP_CheckMark(&*ProcedureDeclaration__16_s->vis);
-		OPT_FindField(*ProcedureDeclaration__16_s->name, recTyp, &*ProcedureDeclaration__16_s->fwd);
-		OPT_FindField(*ProcedureDeclaration__16_s->name, recTyp->BaseTyp, &baseProc);
+		__MOVE(OPS_name, *ProcedureDeclaration__22_s->name, 256);
+		OPP_CheckMark(&*ProcedureDeclaration__22_s->vis);
+		OPT_FindField(*ProcedureDeclaration__22_s->name, recTyp, &*ProcedureDeclaration__22_s->fwd);
+		OPT_FindField(*ProcedureDeclaration__22_s->name, recTyp->BaseTyp, &baseProc);
 		if ((baseProc != NIL && baseProc->mode != 13)) {
 			baseProc = NIL;
 		}
-		if (*ProcedureDeclaration__16_s->fwd == baseProc) {
-			*ProcedureDeclaration__16_s->fwd = NIL;
+		if (*ProcedureDeclaration__22_s->fwd == baseProc) {
+			*ProcedureDeclaration__22_s->fwd = NIL;
 		}
-		if ((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mnolev != OPP_level)) {
-			*ProcedureDeclaration__16_s->fwd = NIL;
+		if ((*ProcedureDeclaration__22_s->fwd != NIL && (*ProcedureDeclaration__22_s->fwd)->mnolev != OPP_level)) {
+			*ProcedureDeclaration__22_s->fwd = NIL;
 		}
-		if ((((*ProcedureDeclaration__16_s->fwd != NIL && (*ProcedureDeclaration__16_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__16_s->fwd)->conval->setval, 64))) {
-			*ProcedureDeclaration__16_s->proc = OPT_NewObj();
-			(*ProcedureDeclaration__16_s->proc)->leaf = 1;
-			if ((*ProcedureDeclaration__16_s->fwd)->vis != *ProcedureDeclaration__16_s->vis) {
+		if ((((*ProcedureDeclaration__22_s->fwd != NIL && (*ProcedureDeclaration__22_s->fwd)->mode == 13)) && !__IN(1, (*ProcedureDeclaration__22_s->fwd)->conval->setval, 64))) {
+			*ProcedureDeclaration__22_s->proc = OPT_NewObj();
+			(*ProcedureDeclaration__22_s->proc)->leaf = 1;
+			if ((*ProcedureDeclaration__22_s->fwd)->vis != *ProcedureDeclaration__22_s->vis) {
 				OPP_err(118);
 			}
 		} else {
-			if (*ProcedureDeclaration__16_s->fwd != NIL) {
+			if (*ProcedureDeclaration__22_s->fwd != NIL) {
 				OPP_err(1);
-				*ProcedureDeclaration__16_s->fwd = NIL;
+				*ProcedureDeclaration__22_s->fwd = NIL;
 			}
 			OPT_OpenScope(0, NIL);
 			OPT_topScope->right = recTyp->link;
-			OPT_Insert(*ProcedureDeclaration__16_s->name, &*ProcedureDeclaration__16_s->proc);
+			OPT_Insert(*ProcedureDeclaration__22_s->name, &*ProcedureDeclaration__22_s->proc);
 			recTyp->link = OPT_topScope->right;
 			OPT_CloseScope();
 		}
 		OPP_level += 1;
-		OPT_OpenScope(OPP_level, *ProcedureDeclaration__16_s->proc);
-		OPT_Insert(objName, &(*ProcedureDeclaration__16_s->proc)->link);
-		(*ProcedureDeclaration__16_s->proc)->link->mode = objMode;
-		(*ProcedureDeclaration__16_s->proc)->link->typ = objTyp;
-		GetParams__21();
+		OPT_OpenScope(OPP_level, *ProcedureDeclaration__22_s->proc);
+		OPT_Insert(objName, &(*ProcedureDeclaration__22_s->proc)->link);
+		(*ProcedureDeclaration__22_s->proc)->link->mode = objMode;
+		(*ProcedureDeclaration__22_s->proc)->link->typ = objTyp;
+		GetParams__27();
 		if (baseProc != NIL) {
 			if (objMode != baseProc->link->mode || !OPP_Extends(objTyp, baseProc->link->typ)) {
 				OPP_err(115);
 			}
-			OPB_CheckParameters((*ProcedureDeclaration__16_s->proc)->link->link, baseProc->link->link, 0);
-			if ((*ProcedureDeclaration__16_s->proc)->typ != baseProc->typ) {
+			OPB_CheckParameters((*ProcedureDeclaration__22_s->proc)->link->link, baseProc->link->link, 0);
+			if ((*ProcedureDeclaration__22_s->proc)->typ != baseProc->typ) {
 				OPP_err(117);
 			}
-			if ((((((baseProc->vis == 1 && (*ProcedureDeclaration__16_s->proc)->vis == 0)) && recTyp->strobj != NIL)) && recTyp->strobj->vis == 1)) {
+			if ((((((baseProc->vis == 1 && (*ProcedureDeclaration__22_s->proc)->vis == 0)) && recTyp->strobj != NIL)) && recTyp->strobj->vis == 1)) {
 				OPP_err(109);
 			}
-			(*ProcedureDeclaration__16_s->proc)->conval->setval |= __SETOF(2,64);
+			(*ProcedureDeclaration__22_s->proc)->conval->setval |= __SETOF(2,64);
 		}
-		if (!*ProcedureDeclaration__16_s->forward) {
-			Body__17();
+		if (!*ProcedureDeclaration__22_s->forward) {
+			Body__23();
 		}
 		OPP_level -= 1;
 		OPT_CloseScope();
@@ -1115,7 +1124,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 	OPS_Name name;
 	INT8 mode, vis;
 	BOOLEAN forward;
-	struct ProcedureDeclaration__16 _s;
+	struct ProcedureDeclaration__22 _s;
 	_s.x = x;
 	_s.proc = &proc;
 	_s.fwd = &fwd;
@@ -1123,8 +1132,8 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 	_s.mode = &mode;
 	_s.vis = &vis;
 	_s.forward = &forward;
-	_s.lnk = ProcedureDeclaration__16_s;
-	ProcedureDeclaration__16_s = &_s;
+	_s.lnk = ProcedureDeclaration__22_s;
+	ProcedureDeclaration__22_s = &_s;
 	proc = NIL;
 	forward = 0;
 	*x = NIL;
@@ -1146,7 +1155,7 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		OPS_Get(&OPP_sym);
 	}
 	if (OPP_sym == 30) {
-		TProcDecl__23();
+		TProcDecl__29();
 	} else if (OPP_sym == 38) {
 		OPT_Find(&fwd);
 		__MOVE(OPS_name, name, 256);
@@ -1176,18 +1185,18 @@ static void OPP_ProcedureDeclaration (OPT_Node *x)
 		OPP_level += 1;
 		OPT_OpenScope(OPP_level, proc);
 		proc->link = NIL;
-		GetParams__21();
+		GetParams__27();
 		if (mode == 9) {
-			GetCode__19();
+			GetCode__25();
 		} else if (!forward) {
-			Body__17();
+			Body__23();
 		}
 		OPP_level -= 1;
 		OPT_CloseScope();
 	} else {
 		OPP_err(38);
 	}
-	ProcedureDeclaration__16_s = _s.lnk;
+	ProcedureDeclaration__22_s = _s.lnk;
 }
 
 static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, struct OPP__1 *tab)
@@ -1260,16 +1269,334 @@ static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, str
 	}
 }
 
-static struct StatSeq__30 {
+static BOOLEAN OPP_UsesRange (OPT_Node n, OPT_Object range)
+{
+	if (n == NIL) {
+		return 0;
+	}
+	return (n->obj == range || OPP_UsesRange(n->left, range)) || OPP_UsesRange(n->right, range);
+}
+
+static void OPP_CheckAllExpression (OPT_Node n)
+{
+	if (n != NIL) {
+		if (n->class == 13) {
+			OPP_err(162);
+		}
+		if ((((((n->class == 0 && n->obj != NIL)) && n->obj->mode == 15)) && n->obj->adr == 0)) {
+			OPP_err(167);
+		}
+		OPP_CheckAllExpression(n->left);
+		OPP_CheckAllExpression(n->right);
+		OPP_CheckAllExpression(n->link);
+	}
+}
+
+static BOOLEAN OPP_AllDestination (OPT_Node n, OPT_Object range)
+{
+	if (n == NIL) {
+		return 0;
+	}
+	if ((((n->class == 0 && n->obj != NIL)) && n->obj->mode == 15)) {
+		return 1;
+	} else if (n->class == 4) {
+		return OPP_UsesRange(n->right, range) || OPP_AllDestination(n->left, range);
+	} else if (__IN(n->class, 0x2c, 32)) {
+		return OPP_AllDestination(n->left, range);
+	}
+	return 0;
+}
+
+static BOOLEAN OPP_UnitIndex (OPT_Node n, OPT_Object range, INT64 *offset)
+{
+	INT64 c;
+	if ((n->class == 0 && n->obj == range)) {
+		*offset = 0;
+		return 1;
+	}
+	if ((((n->class == 11 && n->subcl == 20)) && n->typ->size >= n->left->typ->size)) {
+		return OPP_UnitIndex(n->left, range, &*offset);
+	}
+	if ((((((n->class == 12 && __IN(n->subcl, 0xc0, 32))) && n->right->class == 7)) && n->right->typ->form == 4)) {
+		c = n->right->conval->intval;
+		if (OPP_UnitIndex(n->left, range, &*offset)) {
+			if (n->subcl == 7) {
+				if (c == OPM_SignedMinimum(8)) {
+					return 0;
+				}
+				c = -c;
+			}
+			if ((c > 0 && *offset > OPM_SignedMaximum(8) - c) || (c < 0 && *offset < OPM_SignedMinimum(8) - c)) {
+				return 0;
+			}
+			*offset = *offset + c;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT64 targetOffset)
+{
+	INT64 offset, distance, low, high, index;
+	BOOLEAN overlaps, known;
+	if (n == NIL) {
+		return;
+	}
+	if ((((n->class == 4 && __IN(n->left->class, 0x03, 32))) && n->left->obj == target->left->obj)) {
+		known = (range->left->class == 7 && range->right->class == 7);
+		low = 0;
+		high = 0;
+		if (known) {
+			low = range->left->conval->intval;
+			high = range->right->conval->intval;
+		}
+		overlaps = 0;
+		if ((((((OPP_UnitIndex(n->right, range->obj, &offset) && !((targetOffset > 0 && offset < OPM_SignedMinimum(8) + targetOffset)))) && !((targetOffset < 0 && offset > OPM_SignedMaximum(8) + targetOffset)))) && offset - targetOffset != OPM_SignedMinimum(8))) {
+			distance = __ABS(offset - targetOffset);
+			if (distance > 0) {
+				overlaps = !known || (low <= OPM_SignedMaximum(8) - distance && low + distance <= high);
+			}
+		} else if ((n->right->class == 7 && n->right->typ->form == 4)) {
+			index = n->right->conval->intval;
+			if ((targetOffset >= 0 && index >= OPM_SignedMinimum(8) + targetOffset) || (targetOffset < 0 && index <= OPM_SignedMaximum(8) + targetOffset)) {
+				index = index - targetOffset;
+				overlaps = !known || (low <= index && index <= high);
+			}
+		}
+		if (overlaps) {
+			OPP_err(166);
+		}
+	}
+	OPP_CheckAllAccess(n->left, target, range, targetOffset);
+	OPP_CheckAllAccess(n->right, target, range, targetOffset);
+	OPP_CheckAllAccess(n->link, target, range, targetOffset);
+}
+
+static void OPP_CheckAllAssignments (OPT_Node body, OPT_Node range)
+{
+	OPT_Node s = NIL, target = NIL;
+	INT64 offset;
+	BOOLEAN multiple;
+	multiple = 1;
+	if ((range->left->class == 7 && range->right->class == 7)) {
+		multiple = range->left->conval->intval < range->right->conval->intval;
+	}
+	s = body;
+	while (s != NIL) {
+		OPM_errpos = OPM_Longint(s->conval->intval);
+		target = s->left;
+		if (multiple) {
+			if (!OPP_AllDestination(target, range->obj)) {
+				OPP_err(163);
+			}
+			if ((((target->class == 4 && __IN(target->left->class, 0x03, 32))) && OPP_UnitIndex(target->right, range->obj, &offset))) {
+				OPP_CheckAllAccess(body, target, range, offset);
+			}
+		}
+		s = s->link;
+	}
+}
+
+static void OPP_SkipAllTail (void)
+{
+	INT16 depth;
+	depth = 0;
+	while (OPP_sym != 64) {
+		if (OPP_sym == 41) {
+			if (depth == 0) {
+				return;
+			}
+			depth -= 1;
+		} else if (((((((OPP_sym == 45 || OPP_sym == 46) || OPP_sym == 47) || OPP_sym == 49) || OPP_sym == 50) || OPP_sym == 51) || OPP_sym == 57) || OPP_sym == 65) {
+			depth += 1;
+		}
+		OPS_Get(&OPP_sym);
+	}
+}
+
+static void OPP_AllLocals (OPT_Object range)
+{
+	OPT_Object first = NIL, last = NIL, obj = NIL, group = NIL, typeObj = NIL;
+	OPT_Struct typ = NIL;
+	OPS_Get(&OPP_sym);
+	first = NIL;
+	last = NIL;
+	for (;;) {
+		group = NIL;
+		for (;;) {
+			if (OPP_sym != 38) {
+				OPP_err(38);
+				break;
+			}
+			OPT_Insert(OPS_name, &obj);
+			OPS_Get(&OPP_sym);
+			obj->mode = 15;
+			obj->typ = OPT_undftyp;
+			obj->x = OPP_AllCounter;
+			OPP_AllCounter += 1;
+			obj->adr = 0;
+			if (first == NIL) {
+				first = obj;
+			} else {
+				last->link = obj;
+			}
+			last = obj;
+			if (group == NIL) {
+				group = obj;
+			}
+			if (OPP_sym != 19) {
+				break;
+			}
+			OPS_Get(&OPP_sym);
+		}
+		OPP_CheckSym(20);
+		typ = OPT_inttyp;
+		if (OPP_sym == 38) {
+			OPP_qualident(&typeObj);
+			if (typeObj->mode == 5) {
+				typ = typeObj->typ;
+			} else {
+				OPP_err(52);
+			}
+		} else {
+			OPP_err(165);
+			while ((((((OPP_sym != 27 && OPP_sym != 39)) && OPP_sym != 41)) && OPP_sym != 64)) {
+				OPS_Get(&OPP_sym);
+			}
+		}
+		if (!__IN(typ->form, 0xfe, 32) || typ->comp != 1) {
+			OPP_err(165);
+			typ = OPT_inttyp;
+		}
+		while (group != NIL) {
+			group->typ = typ;
+			group = group->link;
+		}
+		if (OPP_sym != 39) {
+			break;
+		}
+		OPS_Get(&OPP_sym);
+	}
+	range->link = first;
+}
+
+static void OPP_AllStatement (OPT_Node *x)
+{
+	OPS_Name name;
+	OPT_Object id = NIL, owner = NIL;
+	OPT_Node low = NIL, high = NIL, range = NIL, body = NIL, last = NIL, s = NIL, y = NIL;
+	OPT_Struct typ = NIL;
+	INT32 pos;
+	OPS_Get(&OPP_sym);
+	__MOVE(OPS_name, name, 256);
+	OPP_CheckSym(38);
+	low = OPB_NewIntConst(0);
+	high = OPB_NewIntConst(-1);
+	if (OPP_sym == 19) {
+		OPP_err(160);
+		while ((((OPP_sym != 27 && OPP_sym != 41)) && OPP_sym != 64)) {
+			OPS_Get(&OPP_sym);
+		}
+	} else {
+		OPP_CheckSym(9);
+		OPP_Expression(&low);
+		OPP_CheckSym(21);
+		OPP_Expression(&high);
+		if (OPP_sym == 19) {
+			OPP_err(160);
+			while ((((OPP_sym != 27 && OPP_sym != 41)) && OPP_sym != 64)) {
+				OPS_Get(&OPP_sym);
+			}
+		}
+	}
+	typ = OPT_inttyp;
+	if (((low->typ->form != 4 || high->typ->form != 4) || __IN(low->class, 0x0300, 32)) || __IN(high->class, 0x0300, 32)) {
+		OPP_err(164);
+		low = OPB_NewIntConst(0);
+		high = OPB_NewIntConst(-1);
+	} else {
+		if (low->typ->size > typ->size) {
+			typ = low->typ;
+		}
+		if (high->typ->size > typ->size) {
+			typ = high->typ;
+		}
+	}
+	owner = OPT_topScope->link;
+	OPT_OpenScope(OPP_level, NIL);
+	OPT_topScope->link = owner;
+	OPT_Insert(name, &id);
+	id->mode = 14;
+	id->typ = typ;
+	id->x = OPP_AllCounter;
+	OPP_AllCounter += 1;
+	range = OPT_NewNode(30);
+	range->obj = id;
+	range->typ = typ;
+	range->left = low;
+	range->right = high;
+	if (OPP_sym == 51) {
+		OPP_AllLocals(id);
+	}
+	OPP_CheckSym(27);
+	body = NIL;
+	last = NIL;
+	for (;;) {
+		if (OPP_sym != 38) {
+			break;
+		}
+		pos = OPM_errpos;
+		OPP_qualident(&id);
+		s = OPB_NewLeaf(id);
+		OPP_selector(&s);
+		if (OPP_sym != 34) {
+			OPP_err(161);
+			OPP_SkipAllTail();
+			break;
+		}
+		OPS_Get(&OPP_sym);
+		OPP_Expression(&y);
+		if (s->class != 0) {
+			OPP_CheckAllExpression(s);
+		}
+		OPP_CheckAllExpression(y);
+		if ((((s->class == 0 && s->obj != NIL)) && s->obj->mode == 15)) {
+			s->obj->adr = 1;
+		}
+		OPB_Assign(&s, y);
+		s->conval = OPT_NewConst();
+		s->conval->intval = pos;
+		OPB_Link(&body, &last, s);
+		if (OPP_sym != 39) {
+			break;
+		}
+		OPS_Get(&OPP_sym);
+		if (OPP_sym == 41) {
+			OPP_err(161);
+		}
+	}
+	if (OPP_sym != 41) {
+		OPP_err(161);
+		OPP_SkipAllTail();
+	}
+	OPP_CheckAllAssignments(body, range);
+	OPT_CloseScope();
+	OPP_CheckSym(41);
+	*x = range;
+	OPB_Construct(29, &*x, body);
+}
+
+static struct StatSeq__37 {
 	INT32 *pos;
-	struct StatSeq__30 *lnk;
-} *StatSeq__30_s;
+	struct StatSeq__37 *lnk;
+} *StatSeq__37_s;
 
-static void CasePart__31 (OPT_Node *x);
-static void CheckBool__33 (OPT_Node *x);
-static void SetPos__35 (OPT_Node x);
+static void CasePart__38 (OPT_Node *x);
+static void CheckBool__40 (OPT_Node *x);
+static void SetPos__42 (OPT_Node x);
 
-static void CasePart__31 (OPT_Node *x)
+static void CasePart__38 (OPT_Node *x)
 {
 	INT16 n;
 	INT32 low, high;
@@ -1277,7 +1604,7 @@ static void CasePart__31 (OPT_Node *x)
 	OPP_CaseTable tab;
 	OPT_Node cases = NIL, lab = NIL, y = NIL, lastcase = NIL;
 	OPP_Expression(&*x);
-	*StatSeq__30_s->pos = OPM_errpos;
+	*StatSeq__37_s->pos = OPM_errpos;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
 	} else if (!__IN((*x)->typ->form, 0x18, 32)) {
@@ -1331,13 +1658,13 @@ static void CasePart__31 (OPT_Node *x)
 	}
 }
 
-static void SetPos__35 (OPT_Node x)
+static void SetPos__42 (OPT_Node x)
 {
 	x->conval = OPT_NewConst();
-	x->conval->intval = *StatSeq__30_s->pos;
+	x->conval->intval = *StatSeq__37_s->pos;
 }
 
-static void CheckBool__33 (OPT_Node *x)
+static void CheckBool__40 (OPT_Node *x)
 {
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
@@ -1346,7 +1673,7 @@ static void CheckBool__33 (OPT_Node *x)
 		OPP_err(120);
 		*x = OPB_NewBoolConst(0);
 	}
-	*StatSeq__30_s->pos = OPM_errpos;
+	*StatSeq__37_s->pos = OPM_errpos;
 }
 
 static void OPP_StatSeq (OPT_Node *stat)
@@ -1357,10 +1684,10 @@ static void OPP_StatSeq (OPT_Node *stat)
 	OPT_Node s = NIL, x = NIL, y = NIL, z = NIL, apar = NIL, last = NIL, lastif = NIL;
 	INT32 pos;
 	OPS_Name name;
-	struct StatSeq__30 _s;
+	struct StatSeq__37 _s;
 	_s.pos = &pos;
-	_s.lnk = StatSeq__30_s;
-	StatSeq__30_s = &_s;
+	_s.lnk = StatSeq__37_s;
+	StatSeq__37_s = &_s;
 	*stat = NIL;
 	last = NIL;
 	for (;;) {
@@ -1413,20 +1740,20 @@ static void OPP_StatSeq (OPT_Node *stat)
 		} else if (OPP_sym == 45) {
 			OPS_Get(&OPP_sym);
 			OPP_Expression(&x);
-			CheckBool__33(&x);
+			CheckBool__40(&x);
 			OPP_CheckSym(26);
 			OPP_StatSeq(&y);
 			OPB_Construct(15, &x, y);
-			SetPos__35(x);
+			SetPos__42(x);
 			lastif = x;
 			while (OPP_sym == 43) {
 				OPS_Get(&OPP_sym);
 				OPP_Expression(&y);
-				CheckBool__33(&y);
+				CheckBool__40(&y);
 				OPP_CheckSym(26);
 				OPP_StatSeq(&z);
 				OPB_Construct(15, &y, z);
-				SetPos__35(y);
+				SetPos__42(y);
 				OPB_Link(&x, &lastif, y);
 			}
 			if (OPP_sym == 42) {
@@ -1441,12 +1768,12 @@ static void OPP_StatSeq (OPT_Node *stat)
 			pos = OPM_errpos;
 		} else if (OPP_sym == 46) {
 			OPS_Get(&OPP_sym);
-			CasePart__31(&x);
+			CasePart__38(&x);
 			OPP_CheckSym(41);
 		} else if (OPP_sym == 47) {
 			OPS_Get(&OPP_sym);
 			OPP_Expression(&x);
-			CheckBool__33(&x);
+			CheckBool__40(&x);
 			OPP_CheckSym(27);
 			OPP_StatSeq(&y);
 			OPB_Construct(22, &x, y);
@@ -1457,11 +1784,14 @@ static void OPP_StatSeq (OPT_Node *stat)
 			if (OPP_sym == 44) {
 				OPS_Get(&OPP_sym);
 				OPP_Expression(&y);
-				CheckBool__33(&y);
+				CheckBool__40(&y);
 			} else {
 				OPP_err(44);
 			}
 			OPB_Construct(23, &x, y);
+		} else if (OPP_sym == 65) {
+			OPP_AllStatement(&x);
+			pos = OPM_errpos;
 		} else if (OPP_sym == 49) {
 			OPS_Get(&OPP_sym);
 			if (OPP_sym == 38) {
@@ -1474,7 +1804,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				pos = OPM_errpos;
 				x = OPB_NewLeaf(id);
 				OPB_Assign(&x, y);
-				SetPos__35(x);
+				SetPos__42(x);
 				OPP_CheckSym(28);
 				OPP_Expression(&y);
 				pos = OPM_errpos;
@@ -1495,7 +1825,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					}
 					z = OPB_NewLeaf(t);
 					OPB_Assign(&z, y);
-					SetPos__35(z);
+					SetPos__42(z);
 					OPB_Link(&*stat, &last, z);
 					y = OPB_NewLeaf(t);
 				} else if (!(y->typ->form == 4) || y->typ->size > x->left->typ->size) {
@@ -1522,7 +1852,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				OPP_StatSeq(&s);
 				y = OPB_NewLeaf(id);
 				OPB_StPar1(&y, z, 13);
-				SetPos__35(y);
+				SetPos__42(y);
 				if (s == NIL) {
 					s = y;
 				} else {
@@ -1580,7 +1910,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				OPP_CheckSym(27);
 				OPP_StatSeq(&s);
 				OPB_Construct(15, &y, s);
-				SetPos__35(y);
+				SetPos__42(y);
 				if (idtyp != NIL) {
 					id->typ = idtyp;
 					idtyp = NIL;
@@ -1629,18 +1959,18 @@ static void OPP_StatSeq (OPT_Node *stat)
 			pos = OPM_errpos;
 		}
 		if (x != NIL) {
-			SetPos__35(x);
+			SetPos__42(x);
 			OPB_Link(&*stat, &last, x);
 		}
 		if (OPP_sym == 39) {
 			OPS_Get(&OPP_sym);
-		} else if (OPP_sym <= 38 || (45 <= OPP_sym && OPP_sym <= 53)) {
+		} else if ((OPP_sym <= 38 || (45 <= OPP_sym && OPP_sym <= 53)) || OPP_sym == 65) {
 			OPP_err(39);
 		} else {
 			break;
 		}
 	}
-	StatSeq__30_s = _s.lnk;
+	StatSeq__37_s = _s.lnk;
 }
 
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
@@ -1808,6 +2138,7 @@ void OPP_Module (OPT_Node *prog, UINT32 opt)
 	BOOLEAN done;
 	OPS_Init();
 	OPP_LoopLevel = 0;
+	OPP_AllCounter = 0;
 	OPP_level = 0;
 	OPS_Get(&OPP_sym);
 	if (OPP_sym == 63) {
