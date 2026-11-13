@@ -17,6 +17,7 @@ separately from the compiler and libraries.
 | Directory | Example | Requirements beyond VOC |
 | --- | --- | --- |
 | `language/events` | Callbacks | None |
+| [`language/gpu`](language/gpu/readme.md) | Sequential, multicore, and GPU array calculations | OpenMP for parallel modes; an offload toolchain and GPU for device execution |
 | `libraries/files`, `texts`, `ooc`, `md5` | File, text, argument and hashing interfaces | None |
 | `libraries/vt100` | Terminal output | A terminal |
 | `libraries/sts-q` | Keyboard and mouse input | Unix terminal |
@@ -26,6 +27,7 @@ separately from the compiler and libraries.
 | [`network/xmpp-publish`](network/xmpp-publish/readme.md) | Publish a Unicode XMPP microblog entry | Linux; XMPP account with PEP support |
 | `servers/sockets` | Forking socket server | Unix |
 | `utilities/sound` | Audio generation | `oggenc` and `ogg123` |
+| [`utilities/hald`](utilities/hald/readme.md) | HALD CLUT image conversion and CPU/GPU benchmarks | OpenMP for parallel modes; Python 3 for the GPU library backend |
 | `gui/x11/simple`, `gui/x11/ifs` | XYplane drawing | X11 development files; a display to run |
 | `games/mines`, `pacman`, `tetris`, `tron`, `vier` | X11 games | X11 development files; a display to run |
 | `gui/newt` | Text-mode forms | libnewt development files; a terminal |

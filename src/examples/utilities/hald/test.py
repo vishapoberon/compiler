@@ -2,16 +2,34 @@ import argparse
 import os
 from pathlib import Path
 import random
+import shlex
 import struct
 import subprocess
 import zlib
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--build', required=True, type=Path)
+parser.add_argument('--modes', nargs='+', choices=('sequential', 'cpu', 'cpu-kernel', 'gpu'), default=('sequential', 'cpu'))
+parser.add_argument('--device', action='store_true')
+parser.add_argument('--cc', default='clang')
+parser.add_argument('--cflags', default='-O3 -fno-strict-aliasing')
+parser.add_argument('--probe', type=Path)
 args = parser.parse_args()
 build = args.build.resolve()
 work = build / 'tests'
 work.mkdir(exist_ok=True)
+env = dict(os.environ, OMP_TARGET_OFFLOAD='MANDATORY' if args.device else 'DISABLED')
+if args.device:
+    if args.modes != ['gpu'] or args.probe is None:
+        parser.error('--device requires --modes gpu and --probe')
+    command = [*shlex.split(args.cc), *shlex.split(args.cflags), *shlex.split(os.environ.get('VOC_OPENMP_CFLAGS', '-fopenmp')),
+               str(args.probe), *shlex.split(os.environ.get('VOC_OPENMP_LDFLAGS', '-fopenmp')), '-o', str(work / 'DeviceProbe')]
+    subprocess.run(command, env=env, check=True)
+    result = subprocess.run([str(work / 'DeviceProbe')], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30)
+    assert result.returncode == 0, ('actual GPU execution was not verified', result.stdout)
+    print('actual GPU execution verified; CPU fallback disabled', flush=True)
+elif 'gpu' in args.modes:
+    print('explicit host-fallback tests; this run does not verify GPU execution', flush=True)
 
 
 def chunk(kind, data):
@@ -117,20 +135,20 @@ for size in (2, 3, 4, 16, 64):
         expected = reference(source, lut, size)
         if size == 2 and kind == 'identity':
             assert expected == source
-        for mode, threads in (('sequential', 1), ('cpu', 1), ('cpu', 2), ('cpu', 4)):
+        for mode, threads in ((mode, threads) for mode in args.modes for threads in ((1,) if mode in ('sequential', 'gpu') else (1, 2, 4))):
             output = work / (mode + '-' + str(threads) + '.png')
             result = subprocess.run([str(build / mode / 'HaldCmd'), str(work / 'source.png'),
                                      str(work / 'lut.png'), str(output)],
-                                    env=dict(os.environ, OMP_NUM_THREADS=str(threads), OMP_DYNAMIC='FALSE'),
+                                     env=dict(env, **({'OMP_NUM_THREADS': str(threads), 'OMP_DYNAMIC': 'FALSE'} if mode != 'gpu' else {})),
                                     text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
             assert result.returncode == 0, result.stdout
             assert read_png(output) == expected, (size, kind, mode, threads)
-        print('range ' + str(size) + ', ' + kind + ': sequential and OpenMP match reference')
+        print('range ' + str(size) + ', ' + kind + ': ' + ', '.join(args.modes) + ' match reference', flush=True)
 
 for width, height in ((1, 1), (3, 3), (10, 1)):
     write_png(work / 'invalid.png', width, height, bytes(width*height*4))
-    result = subprocess.run([str(build / 'sequential/HaldCmd'), str(work / 'source.png'),
+    result = subprocess.run([str(build / args.modes[0] / 'HaldCmd'), str(work / 'source.png'),
                              str(work / 'invalid.png'), '-'],
-                            text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
+                            env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
     assert result.returncode != 0 and 'pixel count must be a colour cube' in result.stdout
 print('invalid cube sizes rejected')

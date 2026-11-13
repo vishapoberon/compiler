@@ -102,6 +102,28 @@ See [A gentle introduction to shared modules](/doc/ModuleTutorial.md) for
 complete examples, or the [bundled-library examples](/src/examples/shared-libraries/readme.md)
 for a makefile which builds both command libraries and standalone applications.
 
+### Experimental Oberon-V statements
+
+`-j` enables one-dimensional `ALL` statements with ordinary sequential C
+output. For example, `voc -j Vectors.Mod` compiles range-based independent
+assignments. Add `-m` when building a main program.
+
+`-jP` selects CPU OpenMP execution. `-jG` selects synchronous OpenMP target
+offloading for the supported numerical-array subset. `-P` and `-G` require
+`-j` and cannot be combined.
+All three letters follow the normal option toggling and per-file rules.
+Without `-j`, `ALL` remains an ordinary identifier.
+
+Sequential output needs only VOC's usual C compiler and runtime libraries.
+OpenMP modes need compiler support and the matching runtime at link
+time; GPU execution also needs a supported offload target and driver.
+See [Experimental Oberon-V support](/readme.md#experimental-oberon-v-support)
+for the syntax and independence requirements. The
+[GPU tutorial](GPUTutorial.md) gives complete build and execution examples;
+[measured results](ParallelBenchmarks.md) compare CPU thread counts and AMD
+GPUs. The [HALD library](../src/ports/norayr/hald-clut/readme.md) supplies a
+separate backend for its more complex lookup kernel.
+
 ### Separate compilation
 
 Each module may be compiled by a separate command line, although the imports of a module must be compiled before the module is compiled. All three generated files (.sym, .c and .h) must be retained at least until all modules dependent on this module have been compiled.

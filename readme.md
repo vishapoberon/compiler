@@ -19,6 +19,7 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Compiling a 'Hello' application**](#a-hello-application)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Shared modules and the hresh shell**](#shared-modules-and-the-hresh-shell)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[**Experimental Oberon-V support**](#experimental-oberon-v-support)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Source layout**](#source-layout)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**License**](#license)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[**Platform support and porting**](#platform-support-and-porting)<br>
@@ -219,6 +220,150 @@ and run `make modular-library-bindings`. The
 [library examples](/src/examples/shared-libraries/readme.md) show both shell
 commands and standalone applications. Normal `-m` and `-M` compilation uses
 the combined `libvoc` library instead.
+
+## Experimental Oberon-V support
+
+VOC's `-j` option enables the `ALL` statement from Robert Griesemer's
+[Oberon-V dissertation](https://norayr.am/papers/eth10277.pdf), Sections 2.1
+and 3.7. `ALL` describes independent computations over a range of integer
+values. The same source can describe work for sequential, multicore, or GPU
+execution without naming a device architecture.
+
+```oberon
+MODULE Vectors;
+VAR a: ARRAY 1000 OF REAL;
+BEGIN
+  ALL i = 0 .. 999 DO a[i] := i * 2 END
+END Vectors.
+```
+
+| Command | Status |
+| --- | --- |
+| `voc -j Vectors.Mod` | Implemented: ordinary sequential C |
+| `voc -jP Vectors.Mod` | Implemented: OpenMP CPU execution |
+| `voc -jG Vectors.Mod` | Implemented: synchronous OpenMP GPU offloading for the supported numerical subset |
+
+`-j`, `-P`, and `-G` are individual, toggleable options. `-P` and `-G`
+require `-j` and are mutually exclusive. Options before the first filename
+apply to all files; options after a filename toggle those settings for that
+file only. Without `-j`, `ALL` remains an ordinary Oberon-2 identifier.
+
+### Supported syntax and semantics
+
+The first implementation accepts one range identifier and an assignment
+sequence, including an empty sequence:
+
+```oberon
+ALL r = lower .. upper DO
+  a[r] := b[r] * scale;
+  c[r] := a[r] + offset
+END
+```
+
+The bounds are inclusive. They are integer expressions, evaluated once each,
+lower bound first, before executing any assignment. If `lower > upper`, no
+assignment runs. The range identifier is read-only and local to the body;
+it may shadow an enclosing identifier. Bounds use the enclosing scope.
+Its integer type is wide enough for both bounds and at least as wide as
+`INTEGER`. The generated loop stops before incrementing the last value, so
+a range ending at the largest representable integer does not overflow.
+
+Assignments within one iteration run in source order. The order between
+iterations is unspecified; CPU and GPU modes may run them concurrently.
+Ordinary `FOR` statements keep their existing meaning. Sequential and CPU
+`ALL` use VOC's existing array representations and bounds checks. The direct
+GPU mode accepts the smaller subset described in the [GPU guide](doc/GPUTutorial.md).
+
+As in the dissertation's `AssignmentSequence` grammar, the body contains only
+assignments, separated by semicolons, with no trailing semicolon. Control-flow
+statements and procedure calls in the body are rejected. Numeric built-ins
+such as `ABS`, `LONG`, and `LEN` remain available. User-defined function calls
+in a body are rejected until their effects can be checked; ordinary Oberon-2
+functions elsewhere keep their existing rules.
+
+`WITH` declares private scalar temporaries for one iteration:
+
+```oberon
+ALL r = lower .. upper WITH t: REAL DO
+  t := x[r] * y[r];
+  y[r] := t * scale
+END
+```
+
+An iteration-local variable must be assigned before it is read.
+
+### Independence
+
+For distinct iterations, a location written by one must not be read or written
+by another. This applies across the whole assignment sequence. For example,
+`a[r] := a[r] * 2` is independent; `a[r] := a[r-1]` generally is not.
+A shared accumulator such as `sum := sum + a[r]` is not a reduction in `ALL`.
+
+The compiler checks types, read-only range identifiers, and body syntax. For
+ranges that may contain multiple values, destinations must contain a
+range-dependent array index. It also checks direct accesses to the same named
+array with unit-stride constant offsets, and constant-index accesses to that
+array. Overlapping accesses are rejected. With variable bounds, these checks
+conservatively reject possible overlaps; constant bounds can establish that
+the accessed sections are disjoint.
+
+These checks are not a proof of independence. The programmer must still check
+pointer and parameter aliasing, indirect indices, repeated indices such as
+`a[r MOD 2]`, multidimensional overlaps, and dependencies through record
+fields or other designators outside those simple checks. An accepted program
+that violates independence has no defined `ALL` result. Sequential execution
+is not a way to make such a program valid.
+
+### C compiler requirements and testing
+
+Sequential `-j` output uses ordinary C and the existing VOC runtime. GCC,
+Clang, and TCC can compile it; linking uses the same libraries as an ordinary
+Oberon-2 program. No OpenMP compiler or runtime is needed for this mode.
+GCC and Clang may autovectorize the generated loops with normal optimization
+options. VOC has no separate SIMD backend or SIMD option.
+
+CPU mode needs a C compiler with OpenMP support and its matching runtime at
+link time. GPU mode additionally needs a compatible offload compiler, target
+runtime, and device driver. `CC` selects the OpenMP compiler;
+`VOC_OPENMP_CFLAGS` and `VOC_OPENMP_LDFLAGS` supply target-specific options.
+OpenMP is a separate standard implemented by C compilers, not part of ISO C.
+Clang 19 optimized execution was verified on AMD `gfx1036` integrated
+graphics and a Radeon RX 5600 XT (`gfx1010`).
+
+See [A gentle introduction to GPU programming](doc/GPUTutorial.md),
+[CPU/GPU measurements](doc/ParallelBenchmarks.md), the
+[numerical examples](src/examples/language/gpu/readme.md), and the
+[HALD image-processing example](src/examples/utilities/hald/readme.md).
+
+After building VOC, run the regression tests with:
+
+```sh
+make -C src/test/oberonv test test-cpu
+make -C src/test/oberonv test-gpu
+```
+
+The Unix confidence suite runs these tests in type models `2` and `C`; use
+`--model C` to select the latter manually. They exercise available GCC,
+Clang, and TCC installations, scope and bound evaluation, empty ranges, integer
+limits, bounds-check failures, rejected dependencies, option toggling, and
+Oberon-2 compatibility. `src/test/oberonv/Vectorize.Mod` supplies a large-array
+example for inspecting C compiler vectorization reports.
+
+### Further Oberon-V work
+
+One-dimensional `ALL` and private scalar iteration variables are implemented
+for sequential, CPU, and supported GPU execution.
+Griesemer's compiler also implemented multidimensional `ALL`, `SUM`, `PROD`,
+and array value and variable constructors. These remain further work.
+Constructors need stride-aware array views;
+VOC's current open-array interface passes a base address and lengths, with
+contiguous strides derived from those lengths. Adding views must preserve
+the calling convention of existing Oberon-2 modules. Reductions also need
+documented floating-point ordering and rounding rules.
+
+Section 7.2 proposed private iteration variables; VOC's `WITH` implements
+that part of the design. GPU execution geometry, synchronization, and
+asynchronous transfers remain outside the current language extension.
 
 ## Source layout
 

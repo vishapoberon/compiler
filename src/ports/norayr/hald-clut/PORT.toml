@@ -1,0 +1,22 @@
+schema = 1
+package = "hald-clut"
+kind = "mixed"
+origin = "norayr's Oberon HALD CLUT processor"
+upstream_url = "https://github.com/norayr/voc-hald-clut"
+upstream_revision = "3d1508d19f68f4df15d4df8e83fb44a9b987f391"
+revision_status = "HaldClut.Mod copied unchanged; GPU backend, examples, and build adaptations maintained in VOC"
+license = "not specified in upstream repository"
+sources = ["HaldClut.Mod", "kernel.py"]
+source_map = [
+  "HaldClut.Mod -> HaldClut.Mod",
+  "build.mk -> build.mk",
+  "examples/HaldCmd.Mod -> src/examples/utilities/hald/HaldCmd.Mod",
+  "test/test.py -> src/examples/utilities/hald/test.py",
+]
+adaptations = [
+  "adding a source-checked generated-C OpenMP backend without changing the Oberon library interface",
+  "adding explicit GPU and same-kernel CPU build and test targets",
+  "adding build and usage READMEs, a raw timing driver, and reproducible CPU/GPU benchmarks",
+]
+build = "make -C src/examples/utilities/hald"
+test = "make -C src/examples/utilities/hald test"
