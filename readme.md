@@ -381,7 +381,8 @@ OpenMP is a parallel-programming standard implemented by compatible C compilers.
 Clang 19 optimized execution was verified on AMD `gfx1036` integrated
 graphics and a Radeon RX 5600 XT (`gfx1010`).
 
-See [A gentle introduction to GPU programming](doc/GPUTutorial.md),
+See [A gentle introduction to parallel programming](doc/GPUTutorial.md),
+[GCC and Clang setup on Debian and Gentoo](doc/GPUSetup.md),
 [CPU/GPU measurements](doc/ParallelBenchmarks.md), the
 [numerical examples](src/examples/language/gpu/readme.md), and the
 [HALD image-processing example](src/examples/utilities/hald/readme.md).
@@ -406,6 +407,15 @@ The [CPU scaling benchmark](doc/CPUScaling.md) measures multidimensional
 ```sh
 make -C src/test/oberonv benchmark-cpu
 ```
+
+The [GPU reduction benchmark](doc/GPUReductions.md) measures `SUM` and
+`PROD` on AMD GPUs against CPU baselines, including transfers:
+
+```sh
+make -C src/test/oberonv benchmark-gpu GPU_CC=clang
+```
+
+Configure the offload flags and visible device using the setup guide first.
 
 ### Further Oberon-V work
 

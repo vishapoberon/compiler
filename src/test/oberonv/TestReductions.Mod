@@ -49,6 +49,11 @@ BEGIN
   ASSERT(SUM([k = 0 .. 1023: a[k] * b[k]]) = 2048);
   ASSERT(PROD([k = 0 .. 9: b[k]]) = 1024);
   ASSERT(SUM([k = -3 .. 3: k]) = 0);
+  ASSERT(SUM([k = -100 .. -1: LONG(k)]) = -5050);
+  ASSERT(SUM([k = -32768 .. -2: LONG(k)-LONG(k)+1]) = 32767);
+  ASSERT(SUM([k = -32768 .. -1: LONG(k)-LONG(k)+1]) = 32768);
+  ASSERT(SUM([k = 0 .. 32767: LONG(k)-LONG(k)+1]) = 32768);
+  ASSERT(SUM([k = -32768 .. 32767: LONG(k)-LONG(k)+1]) = 65536);
   ASSERT(PROD([k = -3 .. -1: k]) = -6);
   ASSERT(SUM([k = 3 .. 2: a[k]]) = 0);
   ASSERT(PROD([k = 3 .. 2: a[k]]) = 1);

@@ -84,6 +84,10 @@ separate from these machine-specific performance measurements.
 Measurements on 14 November 2026 used an Intel Core i7-1165G7 with four
 enabled CPU cores, Gentoo Linux, GCC 14.3.1 and VOC model 2. The compiler
 included multidimensional `ALL` and reductions from the development sources.
+The measurements below precede the counted-loop improvements described
+under [checking automatic vectorization](#checking-automatic-vectorization).
+[Counted-loop measurements](#counted-loop-measurements) repeat the comparison
+with the improved sequential and OpenMP loops.
 
 Two complete runs checked all six calculations at both sizes with sequential
 execution and one, two and four OpenMP threads. The first used five samples
@@ -111,11 +115,77 @@ Speedup is calculated within each run before taking its range.
 Four threads improve the arithmetic-heavy grid, floating-point sum and both
 product calculations on this machine. The affine grid and integer sum run
 faster sequentially. GCC's vectorization reports show SIMD loops for those
-two sequential calculations and scalar loops in their OpenMP kernels. Their
-OpenMP loop generation needs further optimization.
+two sequential calculations and scalar loops in their OpenMP kernels. These
+measurements motivated improving their OpenMP loop generation.
 
 Some parallel samples varied substantially: the largest maximum-to-minimum
 ratio within one configuration was 3.45×. Four threads also sometimes took
 longer than two. These results establish useful speedups for several
 calculations while showing the need to measure each workload and thread
 count on the target machine.
+
+## Checking automatic vectorization
+
+GCC and Clang select SIMD instructions when their optimizers can establish
+that a loop is suitable. The generated C loop shape and visible bounds
+affect that decision, including inside OpenMP worker functions.
+
+Development sources use direct counted sequential and OpenMP loops for
+suitable constant ranges. The range checks establish that the iteration
+count and final increment fit the index type. Other ranges retain the endpoint-safe loop
+form. With array bounds checking enabled, VOC omits a per-element check
+only when it can prove that the selected fixed-array dimension covers the
+range. Dynamic and unproven accesses retain their checks.
+
+The GCC regression target checks the vectorization report for the actual
+sequential and OpenMP affine-grid, 16-stage-grid and integer-sum kernels:
+
+```sh
+make -C src/test/oberonv test-cpu-vectorization CPU_CC=gcc
+make -C src/test/oberonv test-cpu-vectorization CPU_CC=gcc MODEL=C
+```
+
+This target uses `-march=native` and requires a GCC target with SIMD support.
+It checks ordinary auto-vectorization, with SIMD instruction selection left
+to GCC. The generated loops use OpenMP parallelization and reduction clauses.
+
+## Counted-loop measurements
+
+The complete measurements were repeated after improving the loop generation,
+using the same benchmark runner, C compiler flags and runtime library. Both
+the sequential and OpenMP grid loops now expose the constant bounds directly.
+GCC's reports confirm auto-vectorization for the affine grid, 16-stage grid
+and integer sum in both modes.
+
+The first run again used five samples and 150 ms batches; the second used
+seven samples and 200 ms batches. Ranges below span the two run medians.
+Speedups compare each four-thread result against its own sequential result.
+
+| Calculation | Elements | Sequential ms | OpenMP, 4 threads ms | Four-thread speedup |
+| --- | ---: | ---: | ---: | ---: |
+| Grid, affine | 1024×1024 | 0.337–0.344 | 0.132–0.138 | 2.44–2.61× |
+| Grid, affine | 2048×2048 | 1.952–2.009 | 1.277–1.345 | 1.45–1.57× |
+| Grid, 16 stages | 1024×1024 | 1.808–1.813 | 0.659–0.676 | 2.67–2.75× |
+| Grid, 16 stages | 2048×2048 | 7.158–7.324 | 2.447–2.491 | 2.92–2.94× |
+| Integer `SUM` | 1,048,576 | 0.317–0.318 | 0.125–0.133 | 2.39–2.53× |
+| Integer `SUM` | 8,388,608 | 3.815–4.026 | 1.814–3.444 | 1.17–2.10× |
+| `LONGREAL` `SUM` | 1,048,576 | 2.121–2.158 | 0.796–0.875 | 2.42–2.71× |
+| `LONGREAL` `SUM` | 8,388,608 | 17.092–17.293 | 5.442–9.059 | 1.89–3.18× |
+| Integer `PROD` | 1,048,576 | 1.991–1.993 | 0.704–1.381 | 1.44–2.83× |
+| Integer `PROD` | 8,388,608 | 16.071–16.303 | 5.114–5.215 | 3.08–3.19× |
+| `LONGREAL` `PROD` | 1,048,576 | 2.122–2.123 | 0.759–1.765 | 1.20–2.80× |
+| `LONGREAL` `PROD` | 8,388,608 | 17.063–17.071 | 5.413–9.922 | 1.72–3.15× |
+
+The sequential 16-stage grid also becomes substantially faster. Four-thread
+speedups above therefore use that improved baseline. One-thread OpenMP
+times are now close to sequential times for the grids and integer sum.
+
+All twelve size-and-calculation combinations improve over sequential code
+with four threads in both runs. Two threads still sometimes beat four;
+for example, the large affine grid takes 1.170–1.190 ms with two threads.
+The largest maximum-to-minimum ratio within a configuration is 2.60× in
+these repeats, so workload and thread-count measurements remain important.
+
+The machine's existing power-saving policy is retained. A sysfs reading
+during measurement reports `powersave`, `balance_performance` and a configured
+maximum frequency of 2 GHz on all four cores.

@@ -7,7 +7,7 @@ work sequentially, across several CPU cores, or on a GPU.
 We shall write one Oberon program and select its execution mode with a
 compiler option. This introduction assumes VOC 5.0 is installed and `voc`
 is available in your shell. Parallel modes also need an OpenMP toolchain;
-the [AMD setup guide](GPUSetup.md) describes the tested GPU configuration.
+the [setup guide](GPUSetup.md) covers GCC and Clang on Debian and Gentoo.
 VOC runs the C backend and linker for us.
 
 ## A first array calculation
@@ -61,8 +61,9 @@ OMP_NUM_THREADS=4 ./Vectors
 threads. The program should print the same success message.
 
 VOC uses its configured C backend and selects `-fopenmp` for GCC or Clang.
-The matching OpenMP runtime must also be installed. The setup guide explains
-how to [install VOC with Clang as its default backend](GPUSetup.md#installing-voc-with-clang).
+The matching OpenMP runtime must also be installed. Follow the setup guide
+to [select the backend once](GPUSetup.md#selecting-an-installed-backend) and
+[configure CPU execution](GPUSetup.md#using-cpu-cores).
 
 Our sixteen-element array is useful for checking the program. Larger
 calculations help repay the cost of starting parallel work.
@@ -245,6 +246,9 @@ The [published measurements](ParallelBenchmarks.md) compare one, four and
 sixteen CPU threads with two AMD GPUs. The multicore CPU was fastest for
 the numerical examples. The RX 5600 XT was faster for HALD conversion,
 including transfers. Measure your own workload to choose a mode.
+
+The [GPU reduction measurements](GPUReductions.md) compare `SUM` and `PROD`
+with sequential and multicore CPU execution on the same AMD machine.
 
 The [array examples](../src/examples/language/gpu/readme.md) and
 [HALD example](../src/examples/utilities/hald/readme.md) provide the sources,

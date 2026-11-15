@@ -205,7 +205,10 @@ for name, ranges in (
              work / ("MultiBounds" + name + ".c"), library,
              *(["-ldl"] if sys.platform.startswith("linux") else []), "-lm", "-o", executable])
         assert "Halt(-2)" in run([executable], success=False,
-                                  extra_env={"OMP_NUM_THREADS": "4", "OMP_DYNAMIC": "FALSE"})
+                                  extra_env={"OMP_NUM_THREADS": "1", "OMP_DYNAMIC": "FALSE"})
+        if args.cpu:
+            run([executable], success=False,
+                extra_env={"OMP_NUM_THREADS": "4", "OMP_THREAD_LIMIT": "4", "OMP_DYNAMIC": "FALSE"})
 print("multidimensional ranges, private scalars, scope, dependence checks and bounds passed")
 
 for number, body in enumerate((

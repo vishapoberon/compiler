@@ -66,7 +66,10 @@ OMP_TARGET_OFFLOAD=MANDATORY ./Measurements
 ```
 
 The [parallel tutorial](GPUTutorial.md) explains the execution modes. The
-[AMD setup guide](GPUSetup.md) describes the tested Clang configuration.
+[setup guide](GPUSetup.md) covers GCC and Clang on Debian and Gentoo,
+including the tested GPU compatibility limits. The
+[GPU reduction measurements](GPUReductions.md) compare both AMD devices
+with CPU baselines, including transfers.
 
 ## Ranges, types and empty results
 

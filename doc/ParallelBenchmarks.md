@@ -5,10 +5,11 @@ HALD CLUT image conversion. They distinguish correct device execution from
 performance, and compare a sequential CPU implementation, CPU OpenMP, and
 two actual AMD GPUs. Lower times are better.
 
-The [CPU scaling guide](CPUScaling.md#four-core-intel-measurements) adds
+The [CPU scaling guide](CPUScaling.md#counted-loop-measurements) adds
 four-core Intel measurements for multidimensional `ALL`, `SUM` and `PROD`,
-including workloads that benefit from OpenMP and workloads that run faster
-sequentially.
+including results before and after improving the generated CPU loops.
+The [GPU reduction measurements](GPUReductions.md) compare `SUM` and `PROD`
+on the AMD machine with both GPUs, including transfers.
 
 ## Tested system
 

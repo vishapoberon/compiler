@@ -13,12 +13,12 @@ import time
 
 
 root = Path(__file__).resolve().parents[3]
-parser = argparse.ArgumentParser(description='Measure multidimensional ALL and reductions on the CPU.')
+parser = argparse.ArgumentParser(description='Measure ALL and reductions on CPUs, with optional GPU reductions.')
 parser.add_argument('--voc', default=str(root / 'install/bin/voc'))
 parser.add_argument('--vocroot', default=str(root / 'install'))
 parser.add_argument('--work', type=Path, default=root / 'build/benchmarks/cpu-oberonv')
 parser.add_argument('--model', choices=('2', 'C'), default='2')
-parser.add_argument('--cc', default='gcc')
+parser.add_argument('--cc', default='gcc', help='parallel C backend; sequential builds use VOC\'s configured backend')
 parser.add_argument('--cflags', default='-O3 -march=native -fno-strict-aliasing -ffp-contract=off -fno-lto')
 parser.add_argument('--threads', nargs='+', type=int, default=(1, 2, 4))
 parser.add_argument('--samples', type=int, default=5)
@@ -28,11 +28,21 @@ parser.add_argument('--workloads', nargs='+', choices=(
     default=('grid-affine', 'grid-arithmetic16', 'sum-integer', 'sum-real', 'prod-integer', 'prod-real'))
 parser.add_argument('--quick', action='store_true')
 parser.add_argument('--label', default='')
+parser.add_argument('--gpu', action='store_true')
+parser.add_argument('--offload-flags', default=os.environ.get('VOC_OPENMP_CFLAGS', ''))
+parser.add_argument('--bounded-products', action='store_true', help='use exact unit-magnitude real products')
 args = parser.parse_args()
 if args.samples < 3 or args.batch_ms < 1 or any(number < 1 for number in args.threads):
     parser.error('choose at least three samples, a positive batch duration and positive thread counts')
 if any(flag.startswith('-flto') for flag in shlex.split(args.cflags)):
     parser.error('compile the kernel and timing driver separately without link-time optimization')
+if args.gpu and not args.offload_flags:
+    parser.error('--gpu requires --offload-flags or VOC_OPENMP_CFLAGS')
+if args.gpu:
+    args.workloads = [name for name in args.workloads if not name.startswith('grid-')]
+    args.bounded_products = True
+    if not args.workloads:
+        parser.error('GPU measurements require a reduction workload')
 image = Path(args.vocroot).resolve()
 voc = str(Path(args.voc).resolve())
 work = args.work.resolve()
@@ -91,6 +101,15 @@ def measure(executable, folder, env):
     return text, maximum_threads, worker_ticks
 
 
+if args.gpu:
+    probe_env = dict(base, OMP_TARGET_OFFLOAD='MANDATORY')
+    probe = work / 'DeviceProbe'
+    run([*shlex.split(args.cc), *shlex.split(args.cflags), *shlex.split(args.offload_flags),
+         Path(__file__).with_name('DeviceProbe.c'), '-o', probe], work, probe_env, work / 'device-build.log')
+    run([probe], work, probe_env, work / 'device-run.log')
+    print('omp_is_initial_device: actual device execution verified', flush=True)
+
+
 def kernel(workload, rows, cols, count):
     timing = f'samples* = {args.samples}; batchMicroseconds* = {args.batch_ms * 1000};'
     if workload.startswith('grid-'):
@@ -139,6 +158,9 @@ END CpuKernel.
     elif workload == 'prod-integer':
         value = '1 - (i MOD 3 DIV 2) * 2'
         expected = '1 - ((n DIV 3) MOD 2) * 2'
+    elif args.bounded_products:
+        value = '1.0D0 - (i MOD 3 DIV 2) * 2.0D0'
+        expected = '1.0D0 - ((n DIV 3) MOD 2) * 2.0D0'
     else:
         value = '2.0D0 - (i MOD 2) * 1.5D0'
         expected = '1.0D0 + (n MOD 2)'
@@ -202,7 +224,11 @@ metadata = dict(label=args.label, system=platform.platform(), cpu=names[0] if na
                 compiler_sha256=hashlib.sha256(Path(voc).read_bytes()).hexdigest(),
                 library_sha256=hashlib.sha256((image / 'lib' / ('libvoc-O' + args.model + '.a')).read_bytes()).hexdigest(),
                 compiler_version=subprocess.check_output([*shlex.split(args.cc), '--version'], text=True).splitlines()[0],
-                omp_places='cores', omp_proc_bind='TRUE', omp_wait_policy='PASSIVE')
+                omp_places='cores', omp_proc_bind='TRUE', omp_wait_policy='PASSIVE',
+                gpu=args.gpu, offload_flags=args.offload_flags if args.gpu else None,
+                bounded_products=args.bounded_products,
+                rocr_visible_devices=os.environ.get('ROCR_VISIBLE_DEVICES'),
+                omp_default_device=os.environ.get('OMP_DEFAULT_DEVICE'))
 print(json.dumps(metadata), flush=True)
 records = []
 rng = random.Random(42)
@@ -211,6 +237,8 @@ sizes = [('quick', 256, 512, 262144)] if args.quick else [
 for workload in dict.fromkeys(args.workloads):
     for size, rows, cols, count in sizes:
         modes = [('sequential', '', 1), *[('cpu' + str(number), 'P', number) for number in dict.fromkeys(args.threads)]]
+        if args.gpu:
+            modes.append(('gpu', 'G', 1))
         rng.shuffle(modes)
         for mode, option, threads in modes:
             folder = work / (workload + '-' + size + '-' + mode)
@@ -218,19 +246,31 @@ for workload in dict.fromkeys(args.workloads):
             (folder / 'CpuKernel.Mod').write_text(kernel(workload, rows, cols, count))
             (folder / 'CpuTiming.Mod').write_text(driver)
             env = dict(base, OMP_NUM_THREADS=str(threads), OMP_THREAD_LIMIT=str(threads))
+            if option == 'G':
+                env.update(VOC_OPENMP_CFLAGS=args.offload_flags, VOC_OPENMP_LDFLAGS=args.offload_flags,
+                           OMP_TARGET_OFFLOAD='MANDATORY')
+                env.pop('OMP_NUM_THREADS', None)
+                env.pop('OMP_THREAD_LIMIT', None)
             print('running', workload, size, mode, flush=True)
-            run([voc, '-O' + args.model, '-sFjc' + option, 'CpuKernel.Mod'], folder, env, folder / 'kernel-build.log')
+            build_output = run([voc, '-O' + args.model, '-sVFjc' + option, 'CpuKernel.Mod'],
+                               folder, env, folder / 'kernel-build.log')
+            compile_command = re.search(r'^[\t ]+(.+ -c CpuKernel\.c)[\t ]*$', build_output, re.M)
+            if compile_command is None:
+                raise RuntimeError('missing C backend command: ' + build_output)
             generated = (folder / 'CpuKernel.c').read_text()
             if ('#pragma omp' in generated) != bool(option):
                 raise RuntimeError('unexpected execution mode in ' + str(folder / 'CpuKernel.c'))
-            run([voc, '-O' + args.model, '-sFmj' + option, 'CpuTiming.Mod'], folder, env, folder / 'driver-build.log')
+            if ('#pragma omp target' in generated) != (option == 'G'):
+                raise RuntimeError('unexpected offload mode in ' + str(folder / 'CpuKernel.c'))
+            run([voc, '-O' + args.model, '-sVFmj' + option, 'CpuTiming.Mod'], folder, env, folder / 'driver-build.log')
             output, observed_threads, worker_ticks = measure(folder / 'CpuTiming', folder, env)
             samples = [float(value.replace('D', 'E')) for value in re.findall(r'sample_us\s+(\S+)', output)]
             if 'verified ' not in output or len(samples) != args.samples or min(samples) <= 0:
                 raise RuntimeError(output)
-            if option and threads > 1 and Path('/proc').is_dir() and (observed_threads < threads or worker_ticks == 0):
+            if option == 'P' and threads > 1 and Path('/proc').is_dir() and (observed_threads < threads or worker_ticks == 0):
                 raise RuntimeError('active OpenMP workers were not observed: ' + str(folder))
-            record = dict(workload=workload, size=size, mode=mode, threads=threads,
+            record = dict(workload=workload, size=size, mode=mode, threads=None if option == 'G' else threads,
+                          compile_command=compile_command.group(1).strip(),
                           rows=rows if workload.startswith('grid-') else None,
                           cols=cols if workload.startswith('grid-') else None,
                           elements=rows*cols if workload.startswith('grid-') else count,

@@ -3,6 +3,7 @@ IMPORT Out;
 VAR matrix, copy: ARRAY 4, 5 OF LONGINT;
   square: ARRAY 4, 4 OF LONGINT;
   cube: ARRAY 2, 3, 4 OF LONGINT;
+  edges: ARRAY 65536, 2 OF LONGINT;
   wide: ARRAY 2, 2 OF HUGEINT;
   i, j, k, calls, boundsLog, low, high: LONGINT;
   scalar, unused: LONGINT;
@@ -90,6 +91,10 @@ BEGIN
     wide[row-(MAX(HUGEINT)-1), col-MIN(HUGEINT)] := row
   END;
   ASSERT(wide[0, 0] = MAX(HUGEINT)-1); ASSERT(wide[1, 1] = MAX(HUGEINT));
+  ALL row = -32768 .. 32767, col = 0 .. 1 DO
+    edges[LONG(row)+32768, col] := LONG(row)+col
+  END;
+  ASSERT(edges[0, 0] = -32768); ASSERT(edges[65535, 1] = 32768);
   ALL row = MIN(HUGEINT) .. MIN(HUGEINT)+1, col = MAX(HUGEINT)-1 .. MAX(HUGEINT) DO
     wide[row-MIN(HUGEINT), col-(MAX(HUGEINT)-1)] := col
   END;

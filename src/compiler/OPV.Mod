@@ -344,13 +344,23 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   END TypeOf;
 
   PROCEDURE ParallelIndexSafe(n: OPT.Node): BOOLEAN;
+    VAR range, index: OPT.Node;
   BEGIN
-    IF parallelRange = NIL THEN RETURN FALSE END;
-    RETURN (n^.left^.typ^.comp = OPT.Array) & (n^.right^.class = OPT.Nvar) &
-      (n^.right^.obj = parallelRange^.obj) &
-      (parallelRange^.left^.class = OPT.Nconst) & (parallelRange^.right^.class = OPT.Nconst) &
-      (parallelRange^.left^.conval^.intval >= 0) &
-      (parallelRange^.right^.conval^.intval < n^.left^.typ^.n)
+    IF n^.left^.typ^.comp # OPT.Array THEN RETURN FALSE END;
+    index := n^.right;
+    WHILE (index^.class = OPT.Nmop) & (index^.subcl = OPT.conv) &
+        (index^.typ^.form = OPT.Int) & (index^.left^.typ^.form = OPT.Int) &
+        (index^.typ^.size >= index^.left^.typ^.size) DO index := index^.left END;
+    IF index^.class # OPT.Nvar THEN RETURN FALSE END;
+    range := parallelRange;
+    WHILE range # NIL DO
+      IF index^.obj = range^.obj THEN
+        RETURN (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst) &
+          (range^.left^.conval^.intval >= 0) & (range^.right^.conval^.intval < n^.left^.typ^.n)
+      END;
+      range := range^.link
+    END;
+    RETURN FALSE
   END ParallelIndexSafe;
 
   PROCEDURE Index(n, d: OPT.Node; prec, dim: INTEGER);
@@ -857,6 +867,15 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       (low >= high - OPM.SignedMaximum(range^.typ^.size)))
   END DirectAllRange;
 
+  PROCEDURE InclusiveAllRange(range: OPT.Node): BOOLEAN;
+    VAR low, high, maximum: SYSTEM.INT64;
+  BEGIN
+    IF ~DirectAllRange(range) THEN RETURN FALSE END;
+    low := range^.left^.conval^.intval; high := range^.right^.conval^.intval;
+    maximum := OPM.SignedMaximum(range^.typ^.size);
+    RETURN (high < maximum) & (high - low < maximum)
+  END InclusiveAllRange;
+
   PROCEDURE DeclareAllLocals(range: OPT.Node);
     VAR obj: OPT.Object;
   BEGIN
@@ -1117,6 +1136,22 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     expr(n^.right, MinPrec); OPM.Write(")"); OPC.EndStat
   END ReductionCombine;
 
+  PROCEDURE DirectReduction(n: OPT.Node);
+    VAR range, savedRange: OPT.Node;
+  BEGIN
+    range := n^.left;
+    OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static) reduction(");
+    IF n^.subcl = OPT.sumfn THEN OPM.Write("+") ELSE OPM.Write("*") END;
+    OPM.WriteString(": "); AllName(range, "__result"); OPM.Write(")"); OPM.WriteLn;
+    OPC.BegStat; OPM.WriteString("for ("); ReductionType(range^.typ); OPM.Write(" "); AllName(range, "");
+    OPM.WriteString(" = "); expr(range^.left, MinPrec);
+    OPM.WriteString("; "); AllName(range, ""); OPM.WriteString(" <= "); expr(range^.right, MinPrec);
+    OPM.WriteString("; ++"); AllName(range, ""); OPM.WriteString(") "); OPC.BegBlk;
+    savedRange := parallelRange; parallelRange := range;
+    ReductionCombine(n); parallelRange := savedRange;
+    OPC.EndBlk
+  END DirectReduction;
+
   PROCEDURE ReductionHelper(item: Reduction);
     VAR n, range: OPT.Node; value, other: GPUValue; parallel, gpu: BOOLEAN;
   BEGIN
@@ -1182,35 +1217,39 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       value := value^.next
     END;
     IF gpu THEN GPUValidateBounds(range, item^.values) END;
-    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
-    OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
-    OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
-    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
-    OPM.WriteString(" = "); AllName(range, "__count");
-    OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
-    IF gpu THEN GPUPragma(range, item^.values, n^.subcl)
-    ELSIF parallel THEN
-      OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static) reduction(");
-      IF n^.subcl = OPT.sumfn THEN OPM.Write("+") ELSE OPM.Write("*") END;
-      OPM.WriteString(": "); AllName(range, "__result"); OPM.Write(")"); OPM.WriteLn
+    IF parallel & ~gpu & InclusiveAllRange(range) THEN DirectReduction(n)
+    ELSE
+      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
+      OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
+      OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
+      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
+      OPM.WriteString(" = "); AllName(range, "__count");
+      OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
+      IF gpu THEN GPUPragma(range, item^.values, n^.subcl)
+      ELSIF parallel THEN
+        OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static) reduction(");
+        IF n^.subcl = OPT.sumfn THEN OPM.Write("+") ELSE OPM.Write("*") END;
+        OPM.WriteString(": "); AllName(range, "__result"); OPM.Write(")"); OPM.WriteLn
+      END;
+      OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
+      OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
+      OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
+      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
+      OPM.WriteString(" = (UINT64)"); AllName(range, "__start");
+      OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
+      OPC.BegStat; ReductionType(range^.typ); OPM.Write(" "); AllName(range, "");
+      OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)"); OPC.IntLiteral(OPM.SignedMaximum(8), 8);
+      OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
+      OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
+      gpuBody := gpu;
+      IF ~parallel THEN OPC.CheckInterrupt END;
+      ReductionCombine(n);
+      OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
+      AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
+      OPC.BegStat; AllName(range, ""); OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
+      ReductionCombine(n); OPC.EndBlk; OPC.EndBlk
     END;
-    OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
-    OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
-    OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
-    OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
-    OPM.WriteString(" = (UINT64)"); AllName(range, "__start");
-    OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
-    OPC.BegStat; ReductionType(range^.typ); OPM.Write(" "); AllName(range, "");
-    OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)"); OPC.IntLiteral(OPM.SignedMaximum(8), 8);
-    OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
-    OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
-    gpuBody := gpu;
-    IF ~parallel THEN OPC.CheckInterrupt END;
-    ReductionCombine(n);
-    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
-    AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
-    OPC.BegStat; AllName(range, ""); OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
-    ReductionCombine(n); OPC.EndBlk; OPC.EndBlk; OPC.EndBlk;
+    OPC.EndBlk;
     gpuBody := FALSE; reductionBody := FALSE; gpuRange := NIL; gpuValues := NIL;
     IF n^.typ^.form = OPT.Int THEN
       OPC.BegStat; OPM.WriteString("UINT"); OPM.WriteInt(n^.typ^.size*8); OPM.Write(" ");
@@ -1348,19 +1387,30 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   END AllStat;
 
   PROCEDURE MultiAllLoops(range, body, locals: OPT.Node; outerProc: OPT.Object);
+    VAR direct: BOOLEAN;
   BEGIN
-    OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
-    OPM.WriteString(" = "); AllName(range, "__start"); OPC.EndStat;
-    OPC.BegStat; OPM.WriteString("for (;;) "); OPC.BegBlk;
+    direct := InclusiveAllRange(range);
+    IF direct THEN
+      OPC.BegStat; OPM.WriteString("for ("); OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+      OPM.WriteString(" = "); expr(range^.left, MinPrec);
+      OPM.WriteString("; "); AllName(range, ""); OPM.WriteString(" <= "); expr(range^.right, MinPrec);
+      OPM.WriteString("; ++"); AllName(range, ""); OPM.WriteString(") "); OPC.BegBlk
+    ELSE
+      OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+      OPM.WriteString(" = "); AllName(range, "__start"); OPC.EndStat;
+      OPC.BegStat; OPM.WriteString("for (;;) "); OPC.BegBlk
+    END;
     IF range^.link # NIL THEN MultiAllLoops(range^.link, body, locals, outerProc)
     ELSE
       DeclareAllLocals(locals);
       IF ~parallelBody THEN OPC.CheckInterrupt END;
       stat(body, outerProc)
     END;
-    OPC.BegStat; OPM.WriteString("if ("); AllName(range, "");
-    OPM.WriteString(" == "); AllName(range, "__end"); OPM.WriteString(") break"); OPC.EndStat;
-    OPC.BegStat; OPM.WriteString("++"); AllName(range, ""); OPC.EndStat;
+    IF ~direct THEN
+      OPC.BegStat; OPM.WriteString("if ("); AllName(range, "");
+      OPM.WriteString(" == "); AllName(range, "__end"); OPM.WriteString(") break"); OPC.EndStat;
+      OPC.BegStat; OPM.WriteString("++"); AllName(range, ""); OPC.EndStat
+    END;
     OPC.EndBlk
   END MultiAllLoops;
 
@@ -1387,33 +1437,46 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     END;
     OPM.WriteString(") "); OPC.BegBlk; range := n^.left;
     IF OPM.parallelcpu IN OPM.Options THEN
-      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
-      OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
-      OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
-      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
-      OPM.WriteString(" = "); AllName(range, "__count");
-      OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
-      OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static)"); OPM.WriteLn;
-      OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
-      OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
-      OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
-      OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
-      OPM.WriteString(" = (UINT64)"); AllName(range, "__start");
-      OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
-      OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
-      OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)");
-      OPC.IntLiteral(OPM.SignedMaximum(8), 8);
-      OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
-      OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
-      saved := parallelBody; savedRange := parallelRange;
-      parallelBody := TRUE; parallelRange := range;
-      MultiAllLoops(range^.link, n^.right, range, outerProc);
-      OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
-      AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
-      OPC.BegStat; AllName(range, ""); OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
-      MultiAllLoops(range^.link, n^.right, range, outerProc); OPC.EndBlk;
-      parallelBody := saved; parallelRange := savedRange;
-      OPC.EndBlk; OPC.CheckInterrupt
+      IF InclusiveAllRange(range) THEN
+        OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static)"); OPM.WriteLn;
+        OPC.BegStat; OPM.WriteString("for ("); OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+        OPM.WriteString(" = "); expr(range^.left, MinPrec);
+        OPM.WriteString("; "); AllName(range, ""); OPM.WriteString(" <= "); expr(range^.right, MinPrec);
+        OPM.WriteString("; ++"); AllName(range, ""); OPM.WriteString(") "); OPC.BegBlk;
+        saved := parallelBody; savedRange := parallelRange;
+        parallelBody := TRUE; parallelRange := range;
+        MultiAllLoops(range^.link, n^.right, range, outerProc);
+        parallelBody := saved; parallelRange := savedRange;
+        OPC.EndBlk; OPC.CheckInterrupt
+      ELSE
+        OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__count");
+        OPM.WriteString(" = (UINT64)"); AllName(range, "__end");
+        OPM.WriteString(" - (UINT64)"); AllName(range, "__start"); OPC.EndStat;
+        OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__work");
+        OPM.WriteString(" = "); AllName(range, "__count");
+        OPM.WriteString(" == 0 ? 1 : "); AllName(range, "__count"); OPC.EndStat;
+        OPC.BegStat; OPM.WriteString("#pragma omp parallel for schedule(static)"); OPM.WriteLn;
+        OPC.BegStat; OPM.WriteString("for (UINT64 "); AllName(range, "__offset");
+        OPM.WriteString(" = 0; "); AllName(range, "__offset"); OPM.WriteString(" < "); AllName(range, "__work");
+        OPM.WriteString("; ++"); AllName(range, "__offset"); OPM.WriteString(") "); OPC.BegBlk;
+        OPC.BegStat; OPM.WriteString("UINT64 "); AllName(range, "__value");
+        OPM.WriteString(" = (UINT64)"); AllName(range, "__start");
+        OPM.WriteString(" + "); AllName(range, "__offset"); OPC.EndStat;
+        OPC.BegStat; OPC.Andent(range^.typ); OPM.Write(" "); AllName(range, "");
+        OPM.WriteString(" = "); AllName(range, "__value"); OPM.WriteString(" <= (UINT64)");
+        OPC.IntLiteral(OPM.SignedMaximum(8), 8);
+        OPM.WriteString(" ? (INT64)"); AllName(range, "__value");
+        OPM.WriteString(" : -1 - (INT64)~"); AllName(range, "__value"); OPC.EndStat;
+        saved := parallelBody; savedRange := parallelRange;
+        parallelBody := TRUE; parallelRange := range;
+        MultiAllLoops(range^.link, n^.right, range, outerProc);
+        OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__count"); OPM.WriteString(" != 0 && ");
+        AllName(range, "__offset"); OPM.WriteString(" == "); AllName(range, "__count"); OPM.WriteString(" - 1) "); OPC.BegBlk;
+        OPC.BegStat; AllName(range, ""); OPM.WriteString(" = "); AllName(range, "__end"); OPC.EndStat;
+        MultiAllLoops(range^.link, n^.right, range, outerProc); OPC.EndBlk;
+        parallelBody := saved; parallelRange := savedRange;
+        OPC.EndBlk; OPC.CheckInterrupt
+      END
     ELSE MultiAllLoops(range, n^.right, range, outerProc)
     END;
     OPC.EndBlk; OPC.EndBlk
