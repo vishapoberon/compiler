@@ -9,12 +9,18 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-[Release notes for 5.1](doc/ReleaseNotes-5.1.md) ·
+[Release notes for 5.2](doc/ReleaseNotes-5.2.md) ·
+[5.1 release notes](doc/ReleaseNotes-5.1.md) ·
 [5.0 release notes](doc/ReleaseNotes-5.0.md) ·
 [4.0 release history](doc/ReleaseNotes-4.0.md)
 
-Version 5.1 adds `SUM` and `PROD` reductions, multidimensional CPU `ALL`,
-and improved automatic vectorization to the experimental Oberon-V support.
+Version 5.2 adds Oberon name completion and call-parameter hints to the
+`none` editor, both standalone and inside `hresh`. Symbol lookup reads VOC
+interfaces without running module initializers. See the
+[editor guide](doc/SharedModules.md#compiler-definition-browser-and-editor) for usage.
+
+The experimental Oberon-V support includes `SUM` and `PROD` reductions,
+multidimensional CPU `ALL`, and automatic vectorization.
 Execution modes include sequential code, CPU OpenMP (`-jP`) and GPU
 offloading (`-jG`). The distribution also includes an
 [IRC client library](src/ports/norayr/irc/README.md), a
