@@ -1,6 +1,6 @@
 MODULE opts;
 
-IMPORT Out, Strings, optsos := optsosv;
+IMPORT Out, Strings, Platform, optsos := optsosv;
 
 TYPE
    string* = optsos.string;
@@ -285,7 +285,7 @@ BEGIN
    fopts := createOptions();
    IF opts = NIL THEN
      Out.String("No options defined, exiting"); Out.Ln;
-     HALT(1)
+     Platform.Exit(1)
    END;
 
    stopProcessing := FALSE;
@@ -312,7 +312,7 @@ BEGIN
            IF (s = NIL) OR (s^[0] = '-') & (~stopProcessing) THEN
              Out.String("Option '"); Out.String(opt.name^); 
              Out.String("' requires a value"); Out.Ln;
-             HALT(5);
+             Platform.Exit(5);
            END;
            opt.val := s;
            fopt.val := s;

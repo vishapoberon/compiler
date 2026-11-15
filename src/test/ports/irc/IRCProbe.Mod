@@ -21,7 +21,7 @@ BEGIN
   END
 END Message;
 PROCEDURE Interrupt(code: LONGINT);
-BEGIN IF c # NIL THEN IRC.Stop(c) END; HALT(0) END Interrupt;
+BEGIN IF c # NIL THEN IRC.Stop(c) END; Platform.Exit(0) END Interrupt;
 
 BEGIN
   Args.Get(1, host); Args.Get(2, port); Args.Get(3, mode);

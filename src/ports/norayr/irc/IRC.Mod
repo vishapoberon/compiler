@@ -215,7 +215,7 @@ PROCEDURE New*(VAR config: Config; transport: Transport; onMessage: OnMessage; o
 VAR client: Client;
 BEGIN
   NEW(client); client.config := config; client.transport := transport; client.onMessage := onMessage;
-  client.onState := onState; client.state := Stopped; client.nick := config.nick;
+  client.onState := onState; client.state := Stopped; COPY(config.nick, client.nick);
   client.caseMapping := 2; client.channelTypes := "#&"; client.nickLength := 127; client.busy := FALSE;
   RETURN client
 END New;
