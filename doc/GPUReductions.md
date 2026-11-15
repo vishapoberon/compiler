@@ -91,8 +91,8 @@ The largest maximum-to-minimum sample ratio among all 224 full measurement
 records was 1.23×.
 
 Both GPU and CPU results passed all checks in the 224 full configurations.
-Performance measurements use model 2; the separate device correctness and
-short benchmark checks also cover model C.
+Performance measurements use model 2; separate mandatory-device correctness
+tests cover models 2 and C.
 
 The arrays are reused across calls, and their 8–64 MiB working sets can
 benefit from CPU caches. Each GPU call still supplies its input through an

@@ -12,8 +12,9 @@ make -C src/test/oberonv benchmark-cpu
 ```
 
 VOC compiles and links the generated Oberon modules through its C backend.
-The benchmark selects GCC by default. Use `CPU_CC=clang` for Clang with its
-OpenMP runtime installed. The
+The benchmark selects GCC for parallel builds by default. Use `CPU_CC=clang`
+for Clang with its OpenMP runtime installed. Sequential builds use VOC's
+configured default backend; build logs record the actual C compiler commands. The
 [setup guide](GPUSetup.md#installing-voc-with-clang) explains how to configure
 Clang as VOC's normal backend.
 
