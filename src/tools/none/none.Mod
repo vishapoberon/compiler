@@ -13,9 +13,15 @@ MODULE none;  (** a small nano-like editor for Oberon texts and plain files *)
    Alt+Shift with the movement keys selects a block too. ^C copies the selection (without one: the location), ^K cuts it (without
    one: the line), ^V and ^U paste. Typing, Backspace and Delete replace a selection; with a block
    they act on every line of it (a block of width 0 types into all its lines: indenting). Copies
-   go to the terminal's clipboard too (OSC 52); a paste from the terminal is taken as it is. *)
+   go to the terminal's clipboard too (OSC 52); a paste from the terminal is taken as it is.
 
-IMPORT SYSTEM, Platform, Heap, Files, Texts, termios, Oberon, Out, Modules;
+   In .Mod and .mod files, Module. lists an imported module's exports, including aliases.
+   Ctrl+Space also completes unimported modules, local declarations and predeclared procedures.
+   Typing filters without regard to case; arrows and page keys choose, Enter or Tab accepts,
+   and Esc closes the list. Calls show parameter hints, including across line breaks. *)
+
+IMPORT SYSTEM, Platform, Heap, Files, Texts, termios, Oberon, Out, Modules,
+  BrowserCmd, OPM, OPS, Strings, NonePaths;
 
 CONST
   ESC = 1BX; CR = 0DX; LF = 0AX; TAB = 09X;
@@ -25,6 +31,28 @@ CONST
   KPaste = 1011;  (* the start of a bracketed paste of the terminal *)
   KEsc = 1012;    (* Esc alone *)
   Shift = 1; Alt = 2; Ctrl = 4;  (* mods *)
+  ListRows = 8;
+  BoxColour = "0;38;5;252;48;5;238m"; ChosenColour = "0;1;38;5;234;48;5;250m";
+  ParamOn = "1;38;5;231m"; ParamOff = "22;38;5;252m";
+  MaxMatch = 512;
+
+TYPE
+  Entry = POINTER TO EntryDesc;
+  EntryDesc = RECORD
+    kind: CHAR;  (* procedure, variable, constant, type, module or standard procedure *)
+    params: BOOLEAN;
+    name: ARRAY 256 OF CHAR;
+    sig: ARRAY 256 OF CHAR;
+    next: Entry
+  END;
+  Def = POINTER TO DefDesc;
+  DefDesc = RECORD
+    mod: ARRAY 256 OF CHAR;
+    first: Entry;
+    next: Def
+  END;
+  Matches = POINTER TO ARRAY MaxMatch OF Entry;
+  Lists = RECORD first, last: ARRAY 6 OF Entry END;
 
 VAR
   T: Texts.Text;
@@ -44,6 +72,14 @@ VAR
   saved, rawT, timedT: termios.Termios;
   obuf: ARRAY 65536 OF CHAR; opos: LONGINT;
   W: Texts.Writer;
+  source: BOOLEAN;
+  defs: Def;
+  compOn, compAll: BOOLEAN; compFrom: LONGINT; compDef: Def;
+  edits, ownEdits: LONGINT; ownDef: Def;
+  sR: Texts.Reader; sc: CHAR; sp: LONGINT; seot: BOOLEAN;
+  tok: ARRAY 256 OF CHAR; tokKind: INTEGER; tokCh: CHAR; tokPos: LONGINT;
+  match: Matches; nMatch, compSel, compTop: LONGINT;
+  previousPath: ARRAY 4096 OF CHAR; pathSaved: BOOLEAN;
 
 (* ----- terminal ----- *)
 
@@ -103,6 +139,7 @@ END GetSize;
 PROCEDURE Restore;
 VAR r: Platform.ErrorCode;
 BEGIN
+  IF pathSaved THEN Files.SetSearchPath(previousPath); pathSaved := FALSE END;
   IF raw THEN
     raw := FALSE;
     running := FALSE; opos := 0;
@@ -294,7 +331,7 @@ END LooksAt;
 (* insert c at pos, in the looks of the character before *)
 PROCEDURE InsertAt(pos: LONGINT; c: CHAR);
 BEGIN
-  LooksAt(pos); Texts.Write(W, c); Texts.Insert(T, pos, W.buf); modified := TRUE
+  LooksAt(pos); Texts.Write(W, c); Texts.Insert(T, pos, W.buf); modified := TRUE; INC(edits)
 END InsertAt;
 
 (* insert c at the caret *)
@@ -305,7 +342,7 @@ END Insert;
 
 PROCEDURE Delete(beg, end: LONGINT);
 BEGIN
-  IF end > beg THEN Texts.Delete(T, beg, end); modified := TRUE END
+  IF end > beg THEN Texts.Delete(T, beg, end); modified := TRUE; INC(edits) END
 END Delete;
 
 (* ----- selection ----- *)
@@ -483,14 +520,14 @@ BEGIN
       WHILE EndCol(ls) < col DO InsertAt(LineEnd(ls), " ") END;
       IF rowEnd > p THEN
         NEW(buf); Texts.OpenBuf(buf); Texts.Save(blockText, p, rowEnd, buf);
-        Texts.Insert(T, PosAtCol(ls, col), buf); modified := TRUE
+        Texts.Insert(T, PosAtCol(ls, col), buf); modified := TRUE; INC(edits)
       END;
       p := rowEnd + 1; INC(ln)
     END;
     cur := PosAtCol(LineStartNo(LineNo(cur)), col)
   ELSE
     NEW(buf); Texts.OpenBuf(buf); Texts.Copy(clip, buf);
-    n := buf.len; Texts.Insert(T, cur, buf); cur := cur + n; modified := TRUE
+    n := buf.len; Texts.Insert(T, cur, buf); cur := cur + n; modified := TRUE; INC(edits)
   END
 END Paste;
 
@@ -522,7 +559,7 @@ BEGIN
       IF c = 1BH THEN st := 1 ELSE st := 0; Put(c) END
     END
   END;
-  IF n > 0 THEN Texts.Insert(T, cur, W.buf); cur := cur + n; modified := TRUE END
+  IF n > 0 THEN Texts.Insert(T, cur, W.buf); cur := cur + n; modified := TRUE; INC(edits) END
 END TerminalPaste;
 
 (* ----- words ----- *)
@@ -626,6 +663,578 @@ PROCEDURE Help(k, label: ARRAY OF CHAR);
 BEGIN Attr(7); Str(k); Attr(0); Ch(" "); Str(label); Str("  ")
 END Help;
 
+PROCEDURE Ends(VAR s: ARRAY OF CHAR; t: ARRAY OF CHAR): BOOLEAN;
+VAR i, j: LONGINT;
+BEGIN
+  i := 0; WHILE s[i] # 0X DO INC(i) END;
+  j := 0; WHILE t[j] # 0X DO INC(j) END;
+  IF j > i THEN RETURN FALSE END;
+  WHILE (j > 0) & (s[i-1] = t[j-1]) DO DEC(i); DEC(j) END;
+  RETURN j = 0
+END Ends;
+
+(* ----- completion in Oberon sources ----- *)
+
+PROCEDURE ParseDef(d: Def; text: Texts.Text);
+VAR R: Texts.Reader; c: CHAR; i, j, indent, section: LONGINT;
+  line: ARRAY 1024 OF CHAR; name: ARRAY 256 OF CHAR;
+  first, last: ARRAY 4 OF Entry; x: Entry; k: INTEGER;
+
+  PROCEDURE Add(kind: CHAR; from: LONGINT);
+  VAR x: Entry; n: LONGINT; k: INTEGER;
+  BEGIN
+    NEW(x); x.kind := kind; COPY(name, x.name); n := 0;
+    WHILE (line[from] # 0X) & (n < LEN(x.sig) - 1) DO x.sig[n] := line[from]; INC(n); INC(from) END;
+    WHILE (n > 0) & (x.sig[n-1] = ";") DO DEC(n) END;
+    x.sig[n] := 0X; x.params := (x.sig[0] = "(") & (x.sig[1] # ")"); x.next := NIL;
+    IF kind = "p" THEN k := 0 ELSIF kind = "v" THEN k := 1 ELSIF kind = "c" THEN k := 2 ELSE k := 3 END;
+    IF first[k] = NIL THEN first[k] := x ELSE last[k].next := x END;
+    last[k] := x
+  END Add;
+
+  PROCEDURE Word(VAR i: LONGINT);
+  VAR n: LONGINT;
+  BEGIN
+    n := 0;
+    WHILE IsWord(line[i]) DO IF n < LEN(name) - 1 THEN name[n] := line[i]; INC(n) END; INC(i) END;
+    name[n] := 0X
+  END Word;
+
+BEGIN
+  k := 0; WHILE k < 4 DO first[k] := NIL; last[k] := NIL; INC(k) END;
+  section := 0; Texts.OpenReader(R, text, 0); Texts.Read(R, c);
+  WHILE ~R.eot DO
+    i := 0;
+    WHILE ~R.eot & ~IsEol(c) DO
+      IF i < LEN(line) - 1 THEN line[i] := c; INC(i) END;
+      Texts.Read(R, c)
+    END;
+    line[i] := 0X;
+    IF ~R.eot THEN Texts.Read(R, c) END;
+    indent := 0; WHILE line[indent] = " " DO INC(indent) END;
+    i := indent; Word(i);
+    IF indent = 2 THEN
+      IF name = "CONST" THEN section := 1
+      ELSIF name = "TYPE" THEN section := 2
+      ELSIF name = "VAR" THEN section := 3
+      ELSIF name = "PROCEDURE" THEN
+        section := 0;
+        WHILE (line[i] = " ") OR (line[i] = "+") OR (line[i] = "-") DO INC(i) END;
+        Word(i); IF name # "" THEN Add("p", i) END
+      END
+    ELSIF (indent = 4) & (name # "") & (name # "END") THEN
+      IF line[i] = "-" THEN INC(i) END;
+      j := i; WHILE line[j] = " " DO INC(j) END;
+      IF (section = 1) & (line[j] = "=") THEN Add("c", i)
+      ELSIF (section = 2) & (line[j] = "=") THEN Add("t", i)
+      ELSIF (section = 3) & (line[j] = ":") THEN Add("v", i)
+      END
+    END
+  END;
+  d.first := NIL; x := NIL; k := 0;
+  WHILE k < 4 DO
+    IF first[k] # NIL THEN
+      IF x = NIL THEN d.first := first[k] ELSE x.next := first[k] END;
+      x := last[k]
+    END;
+    INC(k)
+  END
+END ParseDef;
+
+PROCEDURE Directories(s: ARRAY OF CHAR; VAR path: ARRAY OF CHAR): BOOLEAN;
+VAR i, n: LONGINT;
+BEGIN
+  IF s = "" THEN RETURN TRUE END;
+  n := Strings.Length(path); i := 0;
+  IF n + Strings.Length(s) + 1 >= LEN(path) THEN RETURN FALSE END;
+  path[n] := ";"; INC(n);
+  WHILE s[i] # 0X DO
+    IF s[i] = ":" THEN path[n] := ";" ELSE path[n] := s[i] END;
+    INC(i); INC(n)
+  END;
+  path[n] := 0X; RETURN TRUE
+END Directories;
+
+PROCEDURE ReadDef(VAR mod: ARRAY OF CHAR): Def;
+VAR d: Def; text: Texts.Text; path, extra: ARRAY 4096 OF CHAR; module: OPS.Name; i: LONGINT; valid: BOOLEAN;
+BEGIN
+  d := defs; WHILE (d # NIL) & (d.mod # mod) DO d := d.next END;
+  IF d = NIL THEN
+    NEW(d); COPY(mod, d.mod); d.first := NIL; d.next := defs; defs := d;
+    IF ~Files.GetSearchPath(previousPath) THEN RETURN d END;
+    path := "."; COPY(name, extra); i := Strings.Length(extra) - 1;
+    WHILE (i >= 0) & (extra[i] # "/") DO DEC(i) END;
+    IF i >= 0 THEN
+      IF i = 0 THEN extra := "/" ELSE extra[i] := 0X END;
+      valid := Directories(extra, path)
+    ELSE valid := TRUE
+    END;
+    NonePaths.Get(extra); valid := Directories(extra, path) & valid;
+    Platform.GetEnv("VOC_SYM_PATH", extra); valid := Directories(extra, path) & valid;
+    Platform.GetEnv("VOC_MODULE_PATH", extra); valid := Directories(extra, path) & valid;
+    Platform.GetEnv("OBERON", extra); valid := Directories(extra, path) & valid;
+    Platform.GetEnv("MODULES", extra); valid := Directories(extra, path) & valid;
+    valid := Directories(previousPath, path) & valid;
+    COPY(OPM.InstallDir, extra); Strings.Append("/modular/2/sym", extra);
+    valid := Directories(extra, path) & valid;
+    COPY(OPM.InstallDir, extra); Strings.Append("/2/sym", extra);
+    valid := Directories(extra, path) & valid;
+    IF ~valid THEN msg := "Symbol search path is too long"; RETURN d END;
+    pathSaved := TRUE; Files.SetSearchPath(path);
+    NEW(text); Texts.Open(text, ""); COPY(mod, module); BrowserCmd.Definition(module, 0X, text);
+    Files.SetSearchPath(previousPath); pathSaved := FALSE;
+    ParseDef(d, text)
+  END;
+  RETURN d
+END ReadDef;
+
+PROCEDURE Imported(VAR id, mod: ARRAY OF CHAR): BOOLEAN;
+VAR R: Texts.Reader; c: CHAR; w, a: ARRAY 256 OF CHAR; n, depth: LONGINT; inImport, assign: BOOLEAN;
+BEGIN
+  Texts.OpenReader(R, T, 0); Texts.Read(R, c); inImport := FALSE; assign := FALSE; a[0] := 0X;
+  LOOP
+    IF R.eot THEN RETURN FALSE END;
+    IF c = "(" THEN
+      Texts.Read(R, c);
+      IF c = "*" THEN
+        depth := 1; Texts.Read(R, c);
+        WHILE ~R.eot & (depth > 0) DO
+          IF c = "(" THEN Texts.Read(R, c); IF c = "*" THEN INC(depth); Texts.Read(R, c) END
+          ELSIF c = "*" THEN Texts.Read(R, c); IF c = ")" THEN DEC(depth); Texts.Read(R, c) END
+          ELSE Texts.Read(R, c)
+          END
+        END
+      END
+    ELSIF IsWord(c) THEN
+      n := 0;
+      WHILE ~R.eot & IsWord(c) DO IF n < LEN(w) - 1 THEN w[n] := c; INC(n) END; Texts.Read(R, c) END;
+      w[n] := 0X;
+      IF ~inImport THEN
+        IF w = "IMPORT" THEN inImport := TRUE
+        ELSIF (w = "CONST") OR (w = "TYPE") OR (w = "VAR") OR (w = "PROCEDURE") OR (w = "BEGIN") THEN RETURN FALSE
+        END
+      ELSIF assign THEN
+        IF a = id THEN COPY(w, mod); RETURN TRUE END;
+        assign := FALSE; a[0] := 0X
+      ELSE COPY(w, a)
+      END
+    ELSIF c = ":" THEN
+      Texts.Read(R, c); IF inImport & (c = "=") THEN assign := TRUE; Texts.Read(R, c) END
+    ELSIF (c = ",") OR (c = ";") THEN
+      IF inImport & ~assign & (a[0] # 0X) & (a = id) THEN COPY(a, mod); RETURN TRUE END;
+      IF inImport & (c = ";") THEN RETURN FALSE END;
+      a[0] := 0X; assign := FALSE; Texts.Read(R, c)
+    ELSE Texts.Read(R, c)
+    END
+  END
+END Imported;
+
+PROCEDURE WordBefore(pos: LONGINT; VAR w: ARRAY OF CHAR; VAR start: LONGINT);
+VAR n: LONGINT;
+BEGIN
+  start := pos; WHILE (start > 0) & IsWord(CharAt(start - 1)) DO DEC(start) END;
+  n := 0; WHILE (start + n < pos) & (n < LEN(w) - 1) DO w[n] := CharAt(start + n); INC(n) END;
+  w[n] := 0X
+END WordBefore;
+
+(* ----- the names of the text itself ----- *)
+
+PROCEDURE SAdv;
+BEGIN INC(sp); Texts.Read(sR, sc); seot := sR.eot
+END SAdv;
+
+PROCEDURE SOpen;
+BEGIN Texts.OpenReader(sR, T, 0); sp := -1; SAdv
+END SOpen;
+
+(* Token kinds: end, name, punctuation, number or string. Nested comments are skipped. *)
+PROCEDURE SNext;
+VAR n, depth: LONGINT; q, prev: CHAR;
+BEGIN
+  LOOP
+    WHILE ~seot & (sc <= " ") DO SAdv END;
+    tokPos := sp;
+    IF seot THEN tokKind := 0; RETURN END;
+    IF IsWord(sc) THEN
+      n := 0;
+      WHILE ~seot & IsWord(sc) DO IF n < LEN(tok) - 1 THEN tok[n] := sc; INC(n) END; SAdv END;
+      tok[n] := 0X;
+      IF (tok[0] >= "0") & (tok[0] <= "9") THEN tokKind := 3 ELSE tokKind := 1 END;
+      RETURN
+    ELSIF (sc = 22X) OR (sc = "'") THEN
+      q := sc; SAdv; WHILE ~seot & (sc # q) DO SAdv END;
+      IF ~seot THEN SAdv END;
+      tokKind := 3; RETURN
+    ELSIF sc = "(" THEN
+      SAdv;
+      IF seot OR (sc # "*") THEN tokKind := 2; tokCh := "("; RETURN END;
+      depth := 1; SAdv; prev := 0X;
+      WHILE ~seot & (depth > 0) DO
+        IF (prev = "(") & (sc = "*") THEN INC(depth); prev := 0X
+        ELSIF (prev = "*") & (sc = ")") THEN DEC(depth); prev := 0X
+        ELSE prev := sc
+        END;
+        SAdv
+      END
+    ELSE
+      tokKind := 2; tokCh := sc; SAdv; RETURN
+    END
+  END
+END SNext;
+
+PROCEDURE TextOf(beg, end: LONGINT; VAR s: ARRAY OF CHAR; oneLine: BOOLEAN);
+VAR R: Texts.Reader; c: CHAR; n: LONGINT; blank: BOOLEAN;
+BEGIN
+  Texts.OpenReader(R, T, beg); n := 0; blank := FALSE;
+  WHILE (beg < end) & (n < LEN(s) - 1) DO
+    Texts.Read(R, c); INC(beg);
+    IF IsEol(c) & oneLine THEN beg := end
+    ELSIF (c = " ") OR (c = TAB) OR IsEol(c) THEN
+      IF ~blank & (n > 0) THEN s[n] := " "; INC(n) END;
+      blank := TRUE
+    ELSE s[n] := c; INC(n); blank := FALSE
+    END
+  END;
+  WHILE (n > 0) & (s[n-1] = " ") DO DEC(n) END;
+  s[n] := 0X
+END TextOf;
+
+PROCEDURE NewEntry(kind: CHAR; VAR name, sig: ARRAY OF CHAR): Entry;
+VAR x: Entry;
+BEGIN
+  NEW(x); x.kind := kind; COPY(name, x.name); COPY(sig, x.sig);
+  x.params := (x.sig[0] = "(") & (x.sig[1] # ")"); x.next := NIL;
+  RETURN x
+END NewEntry;
+
+PROCEDURE KindNo(kind: CHAR): INTEGER;
+BEGIN
+  IF kind = "p" THEN RETURN 0 ELSIF kind = "v" THEN RETURN 1 ELSIF kind = "c" THEN RETURN 2
+  ELSIF kind = "t" THEN RETURN 3 ELSIF kind = "m" THEN RETURN 4 ELSE RETURN 5
+  END
+END KindNo;
+
+PROCEDURE Put(VAR L: Lists; x: Entry);
+VAR k: INTEGER;
+BEGIN
+  k := KindNo(x.kind);
+  IF L.first[k] = NIL THEN L.first[k] := x ELSE L.last[k].next := x END;
+  L.last[k] := x
+END Put;
+
+PROCEDURE Has(VAR L: Lists; kind: CHAR; VAR name: ARRAY OF CHAR): BOOLEAN;
+VAR x: Entry;
+BEGIN
+  x := L.first[KindNo(kind)]; WHILE (x # NIL) & (x.name # name) DO x := x.next END;
+  RETURN x # NIL
+END Has;
+
+PROCEDURE Std(VAR L: Lists; name, sig: ARRAY OF CHAR);
+BEGIN Put(L, NewEntry("s", name, sig))
+END Std;
+
+PROCEDURE SectionEnd(VAR s: ARRAY OF CHAR): BOOLEAN;
+BEGIN
+  RETURN (s = "BEGIN") OR (s = "PROCEDURE") OR (s = "END") OR (s = "VAR") OR (s = "CONST") OR (s = "TYPE")
+    OR (s = "IMPORT")
+END SectionEnd;
+
+PROCEDURE OwnDef(): Def;
+VAR d: Def; L: Lists; k: INTEGER; x: Entry; kind: CHAR; names: ARRAY 16 OF ARRAY 256 OF CHAR;
+  nn, i, from, pdepth, rdepth: LONGINT; name: ARRAY 256 OF CHAR; sig, val: ARRAY 256 OF CHAR;
+BEGIN
+  IF (ownDef # NIL) & (ownEdits = edits) THEN RETURN ownDef END;
+  NEW(d); d.mod := ""; d.next := NIL;
+  k := 0; WHILE k < 6 DO L.first[k] := NIL; L.last[k] := NIL; INC(k) END;
+  SOpen; SNext;
+  IF (tokKind = 1) & (tok = "MODULE") THEN SNext; IF tokKind = 1 THEN COPY(tok, d.mod) END END;
+  WHILE tokKind # 0 DO
+    IF (tokKind = 1) & (tok = "PROCEDURE") THEN
+      SNext;
+      WHILE (tokKind = 2) & ((tokCh = "^") OR (tokCh = "*") OR (tokCh = "-") OR (tokCh = "+") OR (tokCh = "&")) DO SNext END;
+      IF tokKind = 1 THEN
+        COPY(tok, name); SNext;
+        IF (tokKind = 2) & ((tokCh = "*") OR (tokCh = "-")) THEN SNext END;
+        from := tokPos; sig := "";
+        IF (tokKind = 2) & ((tokCh = "(") OR (tokCh = ":")) THEN
+          pdepth := 0;
+          WHILE (tokKind # 0) & ~((tokKind = 2) & (tokCh = ";") & (pdepth = 0)) DO
+            IF (tokKind = 2) & (tokCh = "(") THEN INC(pdepth) ELSIF (tokKind = 2) & (tokCh = ")") THEN DEC(pdepth) END;
+            SNext
+          END;
+          TextOf(from, tokPos, sig, FALSE)
+        END;
+        IF ~Has(L, "p", name) THEN Put(L, NewEntry("p", name, sig)) END
+      END
+    ELSIF (tokKind = 1) & (tok = "IMPORT") THEN
+      SNext;
+      WHILE tokKind = 1 DO
+        COPY(tok, name); SNext; sig := "";
+        IF (tokKind = 2) & (tokCh = ":") THEN
+          SNext; IF (tokKind = 2) & (tokCh = "=") THEN SNext END;
+          IF tokKind = 1 THEN sig := " := "; i := 4; nn := 0;
+            WHILE (tok[nn] # 0X) & (i < LEN(sig) - 1) DO sig[i] := tok[nn]; INC(i); INC(nn) END; sig[i] := 0X; SNext
+          END
+        END;
+        Put(L, NewEntry("m", name, sig));
+        IF (tokKind = 2) & (tokCh = ",") THEN SNext END
+      END
+    ELSIF (tokKind = 1) & ((tok = "VAR") OR (tok = "CONST") OR (tok = "TYPE")) THEN
+      IF tok = "VAR" THEN kind := "v" ELSIF tok = "CONST" THEN kind := "c" ELSE kind := "t" END;
+      SNext;
+      WHILE (tokKind = 1) & ~SectionEnd(tok) DO
+        nn := 0;
+        LOOP
+          IF tokKind # 1 THEN EXIT END;
+          IF nn < LEN(names) THEN COPY(tok, names[nn]); INC(nn) END;
+          SNext;
+          IF (tokKind = 2) & ((tokCh = "*") OR (tokCh = "-")) THEN SNext END;
+          IF (tokKind = 2) & (tokCh = ",") THEN SNext ELSE EXIT END
+        END;
+        from := tokPos; pdepth := 0; rdepth := 0;
+        WHILE (tokKind # 0) & ~((tokKind = 2) & (tokCh = ";") & (pdepth = 0) & (rdepth = 0)) &
+          ~((tokKind = 1) & (tok = "BEGIN")) DO
+          IF tokKind = 2 THEN
+            IF tokCh = "(" THEN INC(pdepth) ELSIF tokCh = ")" THEN DEC(pdepth) END
+          ELSIF (tokKind = 1) & (tok = "RECORD") THEN INC(rdepth)
+          ELSIF (tokKind = 1) & (tok = "END") & (rdepth > 0) THEN DEC(rdepth)
+          END;
+          SNext
+        END;
+        TextOf(from, tokPos, val, TRUE);
+        IF kind = "v" THEN COPY(val, sig)
+        ELSE sig[0] := " "; i := 0; WHILE (val[i] # 0X) & (i < LEN(sig) - 2) DO sig[i+1] := val[i]; INC(i) END; sig[i+1] := 0X
+        END;
+        i := 0; WHILE i < nn DO Put(L, NewEntry(kind, names[i], sig)); INC(i) END;
+        IF (tokKind = 2) & (tokCh = ";") THEN SNext END
+      END
+    ELSE SNext
+    END
+  END;
+  Std(L, "ABS", "(x)"); Std(L, "ASH", "(x, n)"); Std(L, "ASSERT", "(b)"); Std(L, "CAP", "(c)");
+  Std(L, "CHR", "(n)"); Std(L, "COPY", "(source, dest)"); Std(L, "DEC", "(v, n)"); Std(L, "ENTIER", "(x)");
+  Std(L, "EXCL", "(s, i)"); Std(L, "HALT", "(n)"); Std(L, "INC", "(v, n)"); Std(L, "INCL", "(s, i)");
+  Std(L, "LEN", "(a, dim)"); Std(L, "LONG", "(x)"); Std(L, "MAX", "(T)"); Std(L, "MIN", "(T)");
+  Std(L, "NEW", "(p, len)"); Std(L, "ODD", "(n)"); Std(L, "ORD", "(c)"); Std(L, "SHORT", "(x)");
+  Std(L, "SIZE", "(T)");
+  d.first := NIL; x := NIL; k := 0;
+  WHILE k < 6 DO
+    IF L.first[k] # NIL THEN
+      IF x = NIL THEN d.first := L.first[k] ELSE x.next := L.first[k] END;
+      x := L.last[k]
+    END;
+    INC(k)
+  END;
+  ownDef := d; ownEdits := edits;
+  RETURN d
+END OwnDef;
+
+(* ----- completion ----- *)
+
+PROCEDURE CompOpen(any: BOOLEAN): BOOLEAN;
+VAR p, s: LONGINT; id, mod: ARRAY 256 OF CHAR; d: Def;
+BEGIN
+  IF selOn THEN RETURN FALSE END;
+  p := cur; WHILE (p > 0) & IsWord(CharAt(p - 1)) DO DEC(p) END;
+  IF (p > 0) & (CharAt(p - 1) = ".") THEN
+    WordBefore(p - 1, id, s);
+    IF (id[0] = 0X) OR (id[0] >= "0") & (id[0] <= "9") OR (s > 0) & (CharAt(s - 1) = ".") THEN RETURN FALSE END;
+    IF ~Imported(id, mod) THEN
+      IF any THEN COPY(id, mod) ELSE RETURN FALSE END
+    END;
+    d := ReadDef(mod); compAll := FALSE
+  ELSIF any THEN
+    IF (p < cur) & (CharAt(p) >= "0") & (CharAt(p) <= "9") THEN RETURN FALSE END;
+    d := OwnDef(); compAll := TRUE
+  ELSE RETURN FALSE
+  END;
+  IF d.first = NIL THEN RETURN FALSE END;
+  compDef := d; compFrom := p; compOn := TRUE; compSel := 0; compTop := 0;
+  RETURN TRUE
+END CompOpen;
+
+PROCEDURE CompValid(): BOOLEAN;
+VAR p: LONGINT;
+BEGIN
+  IF ~compOn OR selOn OR (cur < compFrom) OR ~compAll & ((compFrom = 0) OR (CharAt(compFrom - 1) # ".")) THEN RETURN FALSE END;
+  p := compFrom; WHILE p < cur DO IF ~IsWord(CharAt(p)) THEN RETURN FALSE END; INC(p) END;
+  RETURN TRUE
+END CompValid;
+
+PROCEDURE Filter;
+VAR prefix: ARRAY 256 OF CHAR; e: Entry; n, i, p: LONGINT;
+BEGIN
+  n := 0; p := compFrom;
+  WHILE (p < cur) & (n < LEN(prefix) - 1) DO prefix[n] := CharAt(p); INC(n); INC(p) END;
+  prefix[n] := 0X;
+  nMatch := 0; e := compDef.first;
+  WHILE (e # NIL) & (nMatch < MaxMatch) DO
+    i := 0; WHILE (prefix[i] # 0X) & (CAP(prefix[i]) = CAP(e.name[i])) DO INC(i) END;
+    IF prefix[i] = 0X THEN match[nMatch] := e; INC(nMatch) END;
+    e := e.next
+  END;
+  IF compSel >= nMatch THEN compSel := nMatch - 1 END;
+  IF compSel < 0 THEN compSel := 0 END
+END Filter;
+
+PROCEDURE Accept;
+VAR e: Entry; i: LONGINT;
+BEGIN
+  e := match[compSel]; Delete(compFrom, cur); cur := compFrom;
+  i := 0; WHILE e.name[i] # 0X DO Insert(e.name[i]); INC(i) END;
+  IF e.params THEN Insert("(") END;
+  compOn := FALSE
+END Accept;
+
+PROCEDURE CompKey(k: LONGINT): BOOLEAN;
+BEGIN
+  IF ~compOn THEN RETURN FALSE END;
+  IF k = KEsc THEN compOn := FALSE; RETURN TRUE END;
+  IF (nMatch = 0) OR (mods # 0) THEN RETURN FALSE END;
+  IF k = KUp THEN IF compSel > 0 THEN DEC(compSel) END
+  ELSIF k = KDown THEN IF compSel < nMatch - 1 THEN INC(compSel) END
+  ELSIF k = KPgUp THEN DEC(compSel, ListRows); IF compSel < 0 THEN compSel := 0 END
+  ELSIF k = KPgDn THEN INC(compSel, ListRows); IF compSel >= nMatch THEN compSel := nMatch - 1 END
+  ELSIF (k = 0DH) OR (k = 0AH) OR (k = 9) THEN Accept
+  ELSE RETURN FALSE
+  END;
+  RETURN TRUE
+END CompKey;
+
+PROCEDURE AfterKey(k: LONGINT);
+BEGIN
+  IF compOn & ~CompValid() THEN compOn := FALSE END;
+  IF source & ~compOn & (k = ORD(".")) THEN IF CompOpen(FALSE) THEN END END;
+  IF source & (k = 0) & ~CompOpen(TRUE) THEN msg := "Nothing to complete here" END;
+  IF compOn THEN
+    IF (k = 7FH) OR (k = 8) OR (k >= 20H) & (k < 100H) THEN compSel := 0; compTop := 0 END;
+    Filter
+  END
+END AfterKey;
+
+PROCEDURE CallAt(VAR e: Entry; VAR arg, pos: LONGINT): BOOLEAN;
+VAR p, limit, depth, q, s: LONGINT; c, quote: CHAR; name, id, mod: ARRAY 256 OF CHAR; d: Def;
+BEGIN
+  p := cur; limit := cur - 4000; depth := 0; arg := 0;
+  LOOP
+    IF (p <= 0) OR (p <= limit) THEN RETURN FALSE END;
+    DEC(p); c := CharAt(p);
+    IF (c = ")") & (p > 0) & (CharAt(p - 1) = "*") THEN
+      DEC(p);
+      REPEAT DEC(p) UNTIL (p < 0) OR (CharAt(p) = "(") & (CharAt(p + 1) = "*");
+      IF p < 0 THEN RETURN FALSE END
+    ELSIF c = ")" THEN INC(depth)
+    ELSIF c = "(" THEN
+      IF depth = 0 THEN EXIT END;
+      DEC(depth)
+    ELSIF (c = ",") & (depth = 0) THEN INC(arg)
+    ELSIF c = ";" THEN RETURN FALSE
+    ELSIF (c = 22X) OR (c = "'") THEN
+      quote := c;
+      REPEAT DEC(p) UNTIL (p < 0) OR (CharAt(p) = quote);
+      IF p < 0 THEN RETURN FALSE END
+    END
+  END;
+  q := p; WHILE (q > 0) & ((CharAt(q - 1) = " ") OR (CharAt(q - 1) = TAB)) DO DEC(q) END;
+  WordBefore(q, name, s);
+  IF name[0] = 0X THEN RETURN FALSE END;
+  pos := s;
+  IF (s > 0) & (CharAt(s - 1) = ".") THEN
+    WordBefore(s - 1, id, q);
+    IF (id[0] = 0X) OR ~Imported(id, mod) THEN RETURN FALSE END;
+    d := ReadDef(mod)
+  ELSE d := OwnDef()
+  END;
+  e := d.first;
+  WHILE (e # NIL) & ~(((e.kind = "p") OR (e.kind = "s")) & (e.name = name)) DO e := e.next END;
+  RETURN (e # NIL) & e.params
+END CallAt;
+
+PROCEDURE DrawHint;
+VAR e: Entry; arg, pos, row, col, w, i, k, hb, he, depth: LONGINT;
+BEGIN
+  IF ~CallAt(e, arg, pos) THEN RETURN END;
+  i := 1; k := 0; hb := -1; he := -1;
+  LOOP
+    WHILE e.sig[i] = " " DO INC(i) END;
+    IF (i + 3 < LEN(e.sig)) & (e.sig[i] = "V") & (e.sig[i+1] = "A") & (e.sig[i+2] = "R") & (e.sig[i+3] = " ") THEN INC(i, 4) END;
+    LOOP
+      WHILE e.sig[i] = " " DO INC(i) END;
+      IF k = arg THEN hb := i END;
+      WHILE IsWord(e.sig[i]) DO INC(i) END;
+      IF k = arg THEN he := i END;
+      INC(k);
+      WHILE e.sig[i] = " " DO INC(i) END;
+      IF e.sig[i] = "," THEN INC(i) ELSE EXIT END
+    END;
+    depth := 0;
+    WHILE (e.sig[i] # 0X) & ~((depth = 0) & ((e.sig[i] = ";") OR (e.sig[i] = ")"))) DO
+      IF e.sig[i] = "(" THEN INC(depth) ELSIF e.sig[i] = ")" THEN DEC(depth) END;
+      INC(i)
+    END;
+    IF e.sig[i] = ";" THEN INC(i) ELSE EXIT END
+  END;
+  w := 2; i := 0; WHILE e.name[i] # 0X DO INC(w); INC(i) END;
+  i := 0; WHILE e.sig[i] # 0X DO INC(w); INC(i) END;
+  IF w > cols THEN w := cols END;
+  row := LineNo(cur) - LineNo(top) + 2; IF row > 2 THEN DEC(row) ELSE INC(row) END;
+  col := Col(pos) - hcol; IF col + w > cols + 1 THEN col := cols - w + 1 END; IF col < 1 THEN col := 1 END;
+  Goto(row, col); CSI(BoxColour); Ch(" "); k := 1; i := 0;
+  WHILE (e.name[i] # 0X) & (k < w - 1) DO Ch(e.name[i]); INC(k); INC(i) END;
+  i := 0;
+  WHILE (e.sig[i] # 0X) & (k < w - 1) DO
+    IF i = hb THEN CSI(ParamOn) ELSIF i = he THEN CSI(ParamOff) END;
+    Ch(e.sig[i]); INC(i); INC(k)
+  END;
+  CSI(ParamOff); Ch(" "); Attr(0)
+END DrawHint;
+
+PROCEDURE DrawList;
+VAR n, r, row, col, w, len, i, j: LONGINT; e: Entry; line: ARRAY 520 OF CHAR; tag: ARRAY 8 OF CHAR;
+
+  PROCEDURE Put(s: ARRAY OF CHAR);
+  VAR i: LONGINT;
+  BEGIN i := 0; WHILE (s[i] # 0X) & (len < LEN(line) - 1) DO line[len] := s[i]; INC(len); INC(i) END
+  END Put;
+
+BEGIN
+  n := nMatch; IF n > ListRows THEN n := ListRows END;
+  IF compSel < compTop THEN compTop := compSel ELSIF compSel >= compTop + n THEN compTop := compSel - n + 1 END;
+  r := LineNo(cur) - LineNo(top) + 2;
+  IF r + n <= height + 1 THEN row := r + 1
+  ELSIF r - n >= 2 THEN row := r - n
+  ELSE row := 2; n := r - 2; IF n < 1 THEN RETURN END
+  END;
+  w := 0; i := compTop;
+  WHILE i < compTop + n DO
+    e := match[i]; len := 9;
+    j := 0; WHILE e.name[j] # 0X DO INC(len); INC(j) END;
+    j := 0; WHILE e.sig[j] # 0X DO INC(len); INC(j) END;
+    IF len > w THEN w := len END;
+    INC(i)
+  END;
+  IF w > cols THEN w := cols END;
+  IF w >= LEN(line) THEN w := LEN(line) - 1 END;
+  col := Col(compFrom) - hcol + 1 - 7; IF col + w > cols + 1 THEN col := cols - w + 1 END; IF col < 1 THEN col := 1 END;
+  i := compTop;
+  WHILE i < compTop + n DO
+    e := match[i];
+    IF e.kind = "p" THEN tag := "proc " ELSIF e.kind = "v" THEN tag := "var  "
+    ELSIF e.kind = "c" THEN tag := "const" ELSIF e.kind = "t" THEN tag := "type "
+    ELSIF e.kind = "m" THEN tag := "mod  " ELSE tag := "std  "
+    END;
+    len := 0; Put(" "); Put(tag); Put(" "); Put(e.name); Put(e.sig);
+    WHILE len < w DO line[len] := " "; INC(len) END;
+    line[w] := 0X;
+    Goto(row + i - compTop, col);
+    IF i = compSel THEN CSI(ChosenColour) ELSE CSI(BoxColour) END;
+    Str(line); Attr(0);
+    INC(i)
+  END;
+  Goto(rows - 2, 1); Attr(7); Ch(" "); Str(compDef.mod); Ch(" "); Int(compSel + 1); Ch("/"); Int(nMatch);
+  Str("  arrows choose, Enter or Tab takes, Esc closes "); Attr(0); CSI("K")
+END DrawList;
+
 (* keep the caret on the screen *)
 PROCEDURE Follow;
 VAR ls, p, n, c: LONGINT;
@@ -675,6 +1284,7 @@ BEGIN
   CSI("K"); Goto(rows, 1);
   Help("^X", "Exit"); Help("^A", "Select All"); Help("^E", "Line End"); Help("Shift", "Select"); Help("^B", "Block");
   CSI("K");
+  IF source & ~selOn THEN IF compOn & (nMatch > 0) THEN DrawList ELSE DrawHint END END;
   IF selOn & block THEN Goto(LineNo(cur) - LineNo(top) + 2, cCol - hcol + 1)
   ELSE Goto(LineNo(cur) - LineNo(top) + 2, Col(cur) - hcol + 1)
   END;
@@ -777,6 +1387,9 @@ BEGIN
   Str("Home  Line Start   ^E  Line End   (also End)   Ctrl+Left/Right  by words"); Ch(CR); Ch(LF);
   Str("^Y  Prev Page    (also PgUp; Next Page: PgDn)"); Ch(CR); Ch(LF);
   Str("^L  Refresh the screen"); Ch(CR); Ch(LF); Ch(CR); Ch(LF);
+  Str("In .Mod files: Module. lists exports; Ctrl+Space also completes local names"); Ch(CR); Ch(LF);
+  Str("    typing filters; arrows choose; Enter or Tab accepts; Esc closes"); Ch(CR); Ch(LF);
+  Str("    parameter hints highlight the argument at the caret, including multiline calls"); Ch(CR); Ch(LF); Ch(CR); Ch(LF);
   Str("Plain files stay plain; Oberon texts keep their fonts and colours, new text"); Ch(CR); Ch(LF);
   Str("gets the looks of the character before it."); Ch(CR); Ch(LF); Ch(CR); Ch(LF);
   Attr(7); Str(" Press any key "); Attr(0); Flush;
@@ -947,16 +1560,20 @@ BEGIN
   END;
   cur := 0; top := 0; hcol := 0; goalCol := -1; modified := FALSE; lastCut := FALSE; clip := NIL; clipBlock := FALSE;
   selOn := FALSE; block := FALSE; marking := FALSE; mods := 0;
+  source := Ends(name, ".Mod") OR Ends(name, ".mod"); defs := NIL; compOn := FALSE; nMatch := 0;
+  edits := 0; ownDef := NIL; ownEdits := -1;
+  IF match = NIL THEN NEW(match) END;
   Texts.OpenWriter(W);
   running := TRUE;
   WHILE running DO
     Draw;
     k := ReadKey();
     IF (k = 3) & ~selOn THEN Draw; Location; Flush; k := ReadKey() END;  (* ^C shows the location until the next key *)
-    Key(k)
+    IF ~CompKey(k) THEN Key(k); AfterKey(k) END
   END;
   Restore;
   T := NIL; clip := NIL; blockText := NIL;
+  defs := NIL; ownDef := NIL; compDef := NIL; match := NIL;
   RETURN TRUE
 END Edit;
 
@@ -988,6 +1605,6 @@ BEGIN
 END Main;
 
 BEGIN
-  raw := FALSE; opos := 0; search := "";
+  raw := FALSE; opos := 0; search := ""; match := NIL; pathSaved := FALSE;
   IF Standalone() THEN Main END
 END none.

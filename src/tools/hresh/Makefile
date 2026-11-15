@@ -172,12 +172,20 @@ $(MODULES)/modules.stamp: $(MODULES)/libvoc-core-O$(MODEL).so $(wildcard $(ROOT)
 
 # In-process tools share the shell's core and library instances. Loading the
 # compiler or browser never invokes their conventional command-line startup.
-$(MODULES)/tools.stamp: $(MODULES)/modules.stamp $(wildcard $(ROOT)/src/compiler/*.Mod) $(ROOT)/src/tools/browser/BrowserCmd.Mod $(TOOLS)/compiler.Mod $(TOOLS)/browser.Mod $(EDITOR)/none.Mod $(TOOLS)/system.Mod
+$(MODULES)/browser.stamp: $(MODULES)/modules.stamp $(addprefix $(ROOT)/src/compiler/,$(addsuffix .Mod,OPM OPS OPT OPC OPV)) $(ROOT)/src/tools/browser/BrowserCmd.Mod
 	cd "$(MODULES)" && $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(COMPILER)/Configuration.Mod"
-	cd "$(MODULES)" && for name in OPM OPS OPT OPC OPV OPB OPP extTools Compiler; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/compiler/$$name.Mod" || exit; done
+	cd "$(MODULES)" && for name in OPM OPS OPT OPC OPV; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/compiler/$$name.Mod" || exit; done
 	cd "$(MODULES)" && $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/tools/browser/BrowserCmd.Mod"
-	cd "$(MODULES)" && for name in compiler browser system; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/$$name.Mod" || exit; done
+	touch "$@"
+
+$(MODULES)/editor.stamp: $(MODULES)/browser.stamp $(TOOLS)/NonePaths.Mod $(EDITOR)/none.Mod
+	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/NonePaths.Mod"
 	cd "$(MODULES)" && $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(EDITOR)/none.Mod"
+	touch "$@"
+
+$(MODULES)/tools.stamp: $(MODULES)/editor.stamp $(wildcard $(ROOT)/src/compiler/*.Mod) $(TOOLS)/compiler.Mod $(TOOLS)/browser.Mod $(TOOLS)/system.Mod
+	cd "$(MODULES)" && for name in OPB OPP extTools Compiler; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/compiler/$$name.Mod" || exit; done
+	cd "$(MODULES)" && for name in compiler browser system; do $(LIBRARY_ENV) CFLAGS="$(CFLAGS) $(COMPILER_CFLAGS)" "$(NEWVOC)" -O$(MODEL) -sFl "$(TOOLS)/$$name.Mod" || exit; done
 	touch "$@"
 
 FORCE:
@@ -225,7 +233,7 @@ $(MODULES)/libraries.stamp: $(MODULES)/modules.stamp $(MODULES)/tools.stamp $(MO
 	cd "$(MODULES)" && for name in $(MODULAR_UNIX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done
 	if [ "$(shell uname -s)" = Linux ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_BASE_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
 	if [ "$(WITH_NETWORK)" = 1 ]; then cd "$(MODULES)" && for name in $(MODULAR_LINUX_PORTS); do $(LIBRARY_ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/ports/$$name.Mod" || exit; done; fi
-	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser none system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) $(MODULAR_PUNYCODE) C $(if $(filter 2,$(MODEL)),$(MODULAR_XML) $(MODULAR_XMPP) $(MODULAR_XMPP_PUBLISH)) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
+	printf '%s\n' Out Reals Strings In Files Math MathL Texts Oberon VT100 NativeModules ModulePaths ModuleImages NativeLibraries ModuleLoader CommandSymbols $(MODULAR_TERMINAL) SharedModules $(SOURCES) BrowserCmd compiler browser NonePaths none system CommandArgs ArchivePaths gzip zip $(MODULAR_CLI) $(MODULAR_V4) $(MODULAR_OOC) $(MODULAR_PUNYCODE) C $(if $(filter 2,$(MODEL)),$(MODULAR_XML) $(MODULAR_XMPP) $(MODULAR_XMPP_PUBLISH)) $(MODULAR_ULM) $(MODULAR_POW) $(MODULAR_MISC) $(MODULAR_S3) $(notdir $(MODULAR_PORTABLE) $(MODULAR_UNIX_PORTS)) $(if $(filter Linux,$(shell uname -s)),$(notdir $(MODULAR_LINUX_BASE_PORTS))) $(if $(filter 1,$(WITH_NETWORK)),$(notdir $(MODULAR_LINUX_PORTS))) | awk '!seen[$$0]++' > "$(MODULES)/libraries.list"
 	touch "$@"
 
 # This target alone needs the development packages for extra native APIs.
@@ -250,7 +258,7 @@ $(MODULES)/bindings.stamp: $(MODULES)/libraries.stamp $(MODULES)/bindings.config
 $(BUILD)/hresh: $(TOOLS)/hresh.Mod $(MODULES)/modules.stamp
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TOOLS)/hresh.Mod"
 
-$(BUILD)/none: $(EDITOR)/none.Mod $(MODULES)/modules.stamp
+$(BUILD)/none: $(EDITOR)/none.Mod $(MODULES)/editor.stamp
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$<"
 
 test: all test-commands test-unload
@@ -365,7 +373,7 @@ test-archives: archives $(BUILD)/hresh
 	python3 "$(TESTS)/test-archives.py" "$(BUILD)/hresh" "$(MODULES)" "$(BUILD)"
 
 test-tools: all test-hosted-unload
-	python3 "$(EDITOR)/test-editor.py" "$(BUILD)/none" --hresh "$(BUILD)/hresh" --modules "$(MODULES)" --work "$(BUILD)/editor-tests"
+	python3 "$(EDITOR)/test-editor.py" "$(BUILD)/none" --hresh "$(BUILD)/hresh" --modules "$(MODULES)" --voc "$(NEWVOC)" --work "$(BUILD)/editor-tests"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smL "$(TESTS)/TestHostedTools.Mod"
 	cd "$(BUILD)" && $(ENV) ./TestHostedTools
 	cd "$(MODULES)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFSl "$(TESTS)/TestTerminalNative.Mod"

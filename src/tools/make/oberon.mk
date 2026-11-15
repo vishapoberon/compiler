@@ -395,6 +395,6 @@ confidence:
 	if [ "$(PLATFORM)" != "windows" ] ; then cd src/test/confidence/signal; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/platform; $(RUNTEST); fi
 	if [ "$(PLATFORM)" = "unix" ] ; then cd src/test/terminal; $(RUNTEST); fi
-	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) sh src/tools/make/python.sh src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
+	@if [ "$(PLATFORM)" = unix ]; then $(STAGED_ENV) sh src/tools/make/python.sh src/tools/none/test-editor.py "$(ROOTDIR)/install/bin/none" --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --work "$(ROOTDIR)/$(BUILDDIR)/editor-tests"; fi
 	if [ "$(PLATFORM)" = "unix" ] && [ "$$(uname -s)" = "Linux" ] ; then cd src/test/confidence/platformwrite; $(RUNTEST); fi
 	@printf '\n\n--- Confidence tests passed ---\n\n'

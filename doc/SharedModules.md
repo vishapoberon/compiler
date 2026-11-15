@@ -222,6 +222,26 @@ Ctrl-U pastes. The editor supports bracketed paste and restores the terminal
 when returning to the shell. Plain files remain plain; Ctrl-T in the save prompt
 switches between plain and Oberon text storage.
 
+In `.Mod` and `.mod` files, typing `.` after an imported module or its alias
+opens a grey completion list. It shows procedures with their signatures first,
+then variables, constants and types. Ctrl-Space also lists exports after a
+module which is not imported. Without a module qualifier, Ctrl-Space offers
+the text's procedures, variables, constants, types and imported names, followed
+by predeclared procedures. Local declarations are collected across scopes.
+
+Typing filters names case-insensitively; Backspace widens the list. Arrow and
+page keys select an entry, Enter or Tab accepts it, and Esc closes the list.
+Accepting a procedure with parameters also inserts `(`. During a call, a hint
+shows the signature and highlights the current parameter, including calls
+continued on following lines.
+
+Export completion reads VOC `.sym` files through the definition browser without
+loading or initializing the completed module. Symbols are cached until the
+file is closed. Lookup includes the current and source directories, the
+`hresh -P` path, `VOC_SYM_PATH`, `VOC_MODULE_PATH`, `OBERON`, `MODULES`, the
+current `Files` search path and the installed symbol directories. Local names
+are refreshed after edits and remain available without symbol files.
+
 These commands read parameters with `Texts.Scanner` from `Oberon.Par.text`, not
 from the process's startup arguments. Use double quotes for paths containing
 spaces or punctuation. The scanner accepts arguments of at most 62 characters.
@@ -238,7 +258,11 @@ make none-test
 `make -C src/tools/none` builds it directly. Set `VOC` to select the compiler
 and `BUILD` to select the output directory. The standalone command takes one
 file name directly from its command-line arguments; shell quoting preserves
-spaces. File names remain subject to the `Files` module's resolved-path limits.
+spaces. `CONFIGURATION` selects the compiler configuration module used when
+building the symbol browser; it uses the checkout's `Configuration.Mod` when
+available, otherwise generates one in the build directory. `VOCROOT` selects
+the installed symbol root at runtime.
+File names remain subject to the `Files` module's resolved-path limits.
 `none --help` shows usage. A full Unix build includes
 `none` in `install/bin/`, and `make install` installs it alongside `voc`.
 
