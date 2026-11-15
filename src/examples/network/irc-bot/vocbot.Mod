@@ -32,7 +32,7 @@ PROCEDURE interrupt(i: LONGINT);
 BEGIN
   IF inst # NIL THEN IRC.Stop(inst) END;
   IF logfile # NIL THEN Files.Register(logfile); Files.Close(logfile) END;
-  HALT(0)
+  Platform.Exit(0)
 END interrupt;
 
 PROCEDURE reply(user, text: ARRAY OF CHAR);
@@ -267,7 +267,7 @@ BEGIN
   add("-a", "--account", "SASL account name", FALSE);
   add("-s", "--secret-env", "SASL password environment variable (default IRC_SASL_PASSWORD)", FALSE);
   filled := opts.populateOptions(options);
-  IF ~opts.reqsSatisfied(options, filled) THEN opts.showHelp(options); HALT(3) END;
+  IF ~opts.reqsSatisfied(options, filled) THEN opts.showHelp(options); Platform.Exit(3) END;
   opts.valOfOpt("-o", filled, config.realName); opts.valOfOpt("-u", filled, config.user);
   opts.valOfOpt("-n", filled, config.nick); opts.valOfOpt("-h", filled, config.host);
   opts.valOfOpt("-p", filled, port); opts.valOfOpt("-r", filled, room);
@@ -275,14 +275,14 @@ BEGIN
   opts.valOfOpt("-x", filled, transportName); opts.valOfOpt("-a", filled, config.saslUser);
   opts.valOfOpt("-s", filled, secretEnv);
   IF transportName = "" THEN COPY("tls", transportName) END;
-  IF (transportName # "tls") & (transportName # "plain") THEN Out.String("transport must be tls or plain"); Out.Ln; HALT(3) END;
+  IF (transportName # "tls") & (transportName # "plain") THEN Out.String("transport must be tls or plain"); Out.Ln; Platform.Exit(3) END;
   IF secretEnv = "" THEN secretEnv := "IRC_SASL_PASSWORD" END;
   IF config.saslUser # "" THEN
     Platform.GetEnv(secretEnv, config.saslPassword);
-    IF config.saslPassword = "" THEN Out.String("SASL password environment variable is empty"); Out.Ln; HALT(3) END
+    IF config.saslPassword = "" THEN Out.String("SASL password environment variable is empty"); Out.Ln; Platform.Exit(3) END
   END;
   IntStr.StrToInt(port, config.port, result);
-  IF (result # 0) OR (config.port < 1) OR (config.port > 65535) THEN HALT(3) END;
+  IF (result # 0) OR (config.port < 1) OR (config.port > 65535) THEN Platform.Exit(3) END;
   IntStr.StrToInt(length, historyLength, result);
   IF (result # 0) OR (historyLength <= 0) OR (historyLength > MAX(INTEGER)) THEN
     historyLength := defListLength
@@ -310,7 +310,7 @@ BEGIN
   Out.String("Remembering up to "); Out.Int(historyLength, 0); Out.String(" messages in "); Out.String(room); Out.Ln;
   WHILE inst.state # IRC.Stopped DO IRC.Poll(inst); sendReply(inst); Platform.Delay(10) END;
   IF logfile # NIL THEN Files.Register(logfile); Files.Close(logfile) END;
-  IF ~started OR failed THEN HALT(3) END
+  IF ~started OR failed THEN Platform.Exit(3) END
 END entrance;
 
 BEGIN
