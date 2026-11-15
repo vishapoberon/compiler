@@ -27,7 +27,8 @@ def openssl(*args):
 openssl("req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:P-256",
         "-nodes", "-keyout", "ca.key", "-out", "ca.pem", "-days", "2",
         "-subj", "/CN=VOC loopback CA", "-addext", "basicConstraints=critical,CA:TRUE",
-        "-addext", "keyUsage=critical,keyCertSign,cRLSign")
+        "-addext", "keyUsage=critical,keyCertSign,cRLSign",
+        "-addext", "subjectKeyIdentifier=hash")
 for name, san, keytype in [("ec", "DNS:localhost,IP:127.0.0.1", "ec"),
                            ("rsa", "DNS:localhost,IP:127.0.0.1", "rsa:2048"),
                            ("wrong", "DNS:wrong.test", "ec")]:
@@ -36,7 +37,8 @@ for name, san, keytype in [("ec", "DNS:localhost,IP:127.0.0.1", "ec"),
             "-keyout", name + ".key", "-out", name + ".csr", "-subj", "/CN=localhost")
     (fixtures / (name + ".ext")).write_text(
         "basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature\n"
-        "extendedKeyUsage=serverAuth\nsubjectAltName=" + san + "\n")
+        "extendedKeyUsage=serverAuth\nauthorityKeyIdentifier=keyid,issuer\n"
+        "subjectAltName=" + san + "\n")
     openssl("x509", "-req", "-in", name + ".csr", "-CA", "ca.pem", "-CAkey", "ca.key",
             "-CAcreateserial", "-out", name + ".pem", "-days", "2", "-extfile", name + ".ext")
 openssl("req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:P-256",
