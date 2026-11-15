@@ -26,7 +26,13 @@ env = dict(os.environ, VOCROOT=str(image), VOCLIBDIR=str(image / 'lib'),
                   '-fopt-info-vec-optimized=' + shlex.quote(str(report)),
            VOC_OPENMP_CFLAGS='-fopenmp', VOC_OPENMP_LDFLAGS='-fopenmp')
 report.write_text('')
-result = subprocess.run([voc, '-O' + args.model, '-sFjc' + ('P' if args.mode == 'cpu' else ''), sources / 'CPUVectorize.Mod'],
+result = subprocess.run([voc, '-O' + args.model, '-sFSj' + ('P' if args.mode == 'cpu' else ''), sources / 'CPUVectorize.Mod'],
+                        cwd=work, env=env, text=True, stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT, timeout=120)
+assert result.returncode == 0, result.stdout
+result = subprocess.run([*shlex.split(args.cc), *shlex.split(env['CFLAGS']),
+                         *(['-fopenmp'] if args.mode == 'cpu' else []),
+                         '-I' + str(image / args.model / 'include'), '-c', 'CPUVectorize.c', '-o', 'CPUVectorize.o'],
                         cwd=work, env=env, text=True, stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT, timeout=120)
 assert result.returncode == 0, result.stdout

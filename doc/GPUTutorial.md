@@ -5,7 +5,7 @@ two. Each element can be calculated independently. VOC can carry out this
 work sequentially, across several CPU cores, or on a GPU.
 
 We shall write one Oberon program and select its execution mode with a
-compiler option. This introduction assumes VOC 5.0 is installed and `voc`
+compiler option. This introduction assumes VOC 5.1 is installed and `voc`
 is available in your shell. Parallel modes also need an OpenMP toolchain;
 the [setup guide](GPUSetup.md) covers GCC and Clang on Debian and Gentoo.
 VOC runs the C backend and linker for us.
@@ -129,7 +129,7 @@ iterations would otherwise write to a shared procedure variable.
 
 ## Processing rows and columns
 
-Development sources after VOC 5.0 support several range identifiers in
+VOC 5.1 supports several range identifiers in
 sequential and CPU execution. Save this program as `Grid.Mod`:
 
 ```oberon
@@ -228,7 +228,7 @@ potentially aliased array arguments, runtime-dependent operations and
 procedure calls are outside this initial GPU subset.
 
 `SUM` and `PROD` also support one-dimensional numerical reductions in
-development builds. See [Adding and multiplying independent values](Reductions.md)
+VOC 5.1. See [Adding and multiplying independent values](Reductions.md)
 for their constructor syntax and arithmetic rules.
 
 The [HALD application](../src/examples/utilities/hald/readme.md) demonstrates

@@ -11,6 +11,7 @@ parser.add_argument("--vocroot", required=True)
 parser.add_argument("--work", required=True)
 parser.add_argument("--model", choices=("2", "C"), default="2")
 parser.add_argument("--cpu", action="store_true")
+parser.add_argument("--cc", nargs="+")
 args = parser.parse_args()
 voc = str(Path(args.voc).resolve())
 image = Path(args.vocroot).resolve()
@@ -45,7 +46,7 @@ generated = (work / "TestAll.c").read_text()
 assert ("#pragma omp" in generated) == args.cpu
 assert "__all" in generated and "__X(" in generated
 
-compilers = [cc for cc in ("gcc", "clang", "tcc") if shutil.which(cc)]
+compilers = args.cc or [cc for cc in ("gcc", "clang", "tcc") if shutil.which(cc)]
 if args.cpu:
     compilers = [cc for cc in compilers if cc != "tcc"]
 assert compilers, "no C compiler found"

@@ -1,4 +1,4 @@
-/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.1.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -2259,6 +2259,8 @@ export void *OPT__init(void)
 	OPT_EnterProc((OPS_Name){"COPY"}, 18);
 	OPT_EnterProc((OPS_Name){"ASH"}, 19);
 	OPT_EnterProc((OPS_Name){"ASSERT"}, 32);
+	OPT_EnterProc((OPS_Name){"SUM"}, 33);
+	OPT_EnterProc((OPS_Name){"PROD"}, 34);
 	OPT_impCtxt.ref[0] = OPT_undftyp;
 	OPT_impCtxt.ref[1] = OPT_bytetyp;
 	OPT_impCtxt.ref[2] = OPT_booltyp;

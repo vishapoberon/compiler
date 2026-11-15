@@ -3,7 +3,7 @@
 VOC uses `-jP` for OpenMP across CPU cores and `-jG` for OpenMP GPU target
 regions. VOC invokes the C compiler and linker in both cases. This guide
 assumes VOC is installed; the [tutorial](GPUTutorial.md) introduces the
-Oberon programs. `SUM` and `PROD` require development sources after VOC 5.0.
+Oberon programs. `SUM` and `PROD` require VOC 5.1 or later.
 
 ## Debian packages
 
@@ -313,7 +313,7 @@ make -C src/examples/language/gpu run-gpu \
 The probe must confirm device execution before the Oberon examples run.
 Host-fallback checks exercise generated code on the CPU.
 
-For reductions in a development checkout, also run the numerical suite:
+For reductions in a source checkout, also run the numerical suite:
 
 ```sh
 make -C src/test/oberonv test-reductions-device \

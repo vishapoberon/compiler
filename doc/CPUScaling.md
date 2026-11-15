@@ -2,7 +2,7 @@
 
 The CPU benchmark measures multidimensional `ALL`, `SUM` and `PROD` using
 sequential execution and CPU OpenMP with one, two and four threads. It
-requires a development compiler with those extensions, Python 3 and an
+requires VOC 5.1 or later, Python 3 and an
 OpenMP-capable C backend.
 
 From the source root, after building the compiler:

@@ -1,4 +1,4 @@
-/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.1.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -28,6 +28,16 @@ typedef
 		BOOLEAN array, written, ranged;
 	} OPV_GPUValueDesc;
 
+typedef
+	struct OPV_ReductionDesc *OPV_Reduction;
+
+typedef
+	struct OPV_ReductionDesc {
+		OPV_Reduction next;
+		OPT_Node node;
+		OPV_GPUValue values;
+	} OPV_ReductionDesc;
+
 
 static INT16 OPV_stamp;
 static OPV_ExitInfo OPV_exit;
@@ -37,20 +47,26 @@ static OPT_Node OPV_parallelRange;
 static BOOLEAN OPV_gpuBody;
 static OPT_Node OPV_gpuRange;
 static OPV_GPUValue OPV_gpuValues;
+static BOOLEAN OPV_reductionBody, OPV_reductionBounds;
+static OPV_Reduction OPV_reductions;
 
 export ADDRESS *OPV_ExitInfo__typ;
 export ADDRESS *OPV_GPUValueDesc__typ;
+export ADDRESS *OPV_ReductionDesc__typ;
 
 static void OPV_ActualPar (OPT_Node n, OPT_Object fp);
 export void OPV_AdrAndSize (OPT_Object topScope);
 static void OPV_AllName (OPT_Node range, CHAR *suffix, ADDRESS suffix__len);
 static void OPV_AllStat (OPT_Node n, OPT_Object outerProc);
+static void OPV_CapturedValue (OPV_GPUValue value);
 static void OPV_CaseStat (OPT_Node n, OPT_Object outerProc);
 static void OPV_Convert (OPT_Node n, OPT_Struct newtype, INT16 prec);
 static void OPV_DeclareAllLocals (OPT_Node range);
 static void OPV_DefineTDescs (OPT_Node n);
 static BOOLEAN OPV_DirectAllRange (OPT_Node range);
+static void OPV_DirectReduction (OPT_Node n);
 static void OPV_Entier (OPT_Node n, INT16 prec);
+static OPV_Reduction OPV_FindReduction (OPT_Node n);
 static void OPV_GPUAllStat (OPT_Node n, OPT_Object outerProc);
 static OPV_GPUValue OPV_GPUCapture (OPT_Node n, BOOLEAN written, OPV_GPUValue *values);
 static void OPV_GPUCheck (OPT_Node n, OPV_GPUValue *values);
@@ -59,21 +75,31 @@ static void OPV_GPUDeclarations (OPT_Node range, OPV_GPUValue values);
 static void OPV_GPUExpression (OPT_Node n, OPT_Node range, BOOLEAN written, OPV_GPUValue *values);
 static OPV_GPUValue OPV_GPUFind (OPV_GPUValue values, OPT_Object obj);
 static void OPV_GPUName (OPT_Node range, OPV_GPUValue value, CHAR *suffix, ADDRESS suffix__len);
-static void OPV_GPUPragma (OPT_Node range, OPV_GPUValue values);
+static void OPV_GPUPragma (OPT_Node range, OPV_GPUValue values, INT8 operation);
 static BOOLEAN OPV_GPUScalar (OPT_Struct typ);
+static void OPV_GPUValidateBounds (OPT_Node range, OPV_GPUValue values);
 static void OPV_GetTProcNum (OPT_Object obj);
 static void OPV_IfStat (OPT_Node n, BOOLEAN withtrap, OPT_Object outerProc);
 static BOOLEAN OPV_ImplicitReturn (OPT_Node n);
+static BOOLEAN OPV_InclusiveAllRange (OPT_Node range);
 static void OPV_Index (OPT_Node n, OPT_Node d, INT16 prec, INT16 dim);
 export void OPV_Init (void);
 static void OPV_InitTDescs (OPT_Node n);
 static void OPV_Len (OPT_Node n, INT64 dim);
 export void OPV_Module (OPT_Node prog);
+static void OPV_MultiAllLoops (OPT_Node range, OPT_Node body, OPT_Node locals, OPT_Object outerProc);
+static void OPV_MultiAllStat (OPT_Node n, OPT_Object outerProc);
 static void OPV_NewArr (OPT_Node d, OPT_Node x);
 static void OPV_ParIntLiteral (INT64 n, INT32 size);
 static void OPV_ParallelAllStat (OPT_Node n, OPT_Object outerProc);
 static BOOLEAN OPV_ParallelIndexSafe (OPT_Node n);
 static INT16 OPV_Precedence (INT16 class, INT16 subclass, INT16 form, INT16 comp);
+static void OPV_ReductionCall (OPT_Node n);
+static void OPV_ReductionCollect (OPT_Node n, OPT_Node range, OPV_GPUValue *values);
+static void OPV_ReductionCombine (OPT_Node n);
+static void OPV_ReductionHelper (OPV_Reduction item);
+static void OPV_ReductionHelpers (OPT_Node n);
+static void OPV_ReductionType (OPT_Struct typ);
 static BOOLEAN OPV_SideEffects (OPT_Node n);
 static void OPV_SizeCast (OPT_Node n, INT32 to);
 static void OPV_Stamp (CHAR *s);
@@ -95,6 +121,9 @@ void OPV_Init (void)
 	OPV_gpuBody = 0;
 	OPV_gpuRange = NIL;
 	OPV_gpuValues = NIL;
+	OPV_reductionBody = 0;
+	OPV_reductionBounds = 0;
+	OPV_reductions = NIL;
 }
 
 static void OPV_GetTProcNum (OPT_Object obj)
@@ -248,7 +277,7 @@ static INT16 OPV_Precedence (INT16 class, INT16 subclass, INT16 form, INT16 comp
 {
 	switch (class) {
 		case 7: case 0: case 2: case 4: case 9: 
-		case 13: 
+		case 13: case 31: 
 			return 10;
 			break;
 		case 5: 
@@ -372,12 +401,23 @@ static void OPV_GPUName (OPT_Node range, OPV_GPUValue value, CHAR *suffix, ADDRE
 	__DEL(suffix);
 }
 
+static void OPV_CapturedValue (OPV_GPUValue value)
+{
+	if ((OPV_reductionBounds && !value->array)) {
+		OPM_WriteString((CHAR*)"(*", 3);
+		OPV_GPUName(OPV_gpuRange, value, (CHAR*)"__ref", 6);
+		OPM_Write(')');
+	} else {
+		OPV_GPUName(OPV_gpuRange, value, (CHAR*)"", 1);
+	}
+}
+
 static void OPV_Len (OPT_Node n, INT64 dim)
 {
 	INT64 d;
 	OPT_Struct array = NIL;
 	OPV_GPUValue value = NIL;
-	if ((OPV_gpuBody && __IN(n->class, 0x03, 32))) {
+	if (((OPV_gpuBody || OPV_reductionBody) && __IN(n->class, 0x03, 32))) {
 		value = OPV_GPUFind(OPV_gpuValues, n->obj);
 		if (value != NIL) {
 			OPV_GPUName(OPV_gpuRange, value, (CHAR*)"__len", 6);
@@ -411,7 +451,7 @@ static void OPV_Len (OPT_Node n, INT64 dim)
 static BOOLEAN OPV_SideEffects (OPT_Node n)
 {
 	if (n != NIL) {
-		return (n->class == 13 || OPV_SideEffects(n->left)) || OPV_SideEffects(n->right);
+		return (__IN(n->class, 0x80002000, 32) || OPV_SideEffects(n->left)) || OPV_SideEffects(n->right);
 	} else {
 		return 0;
 	}
@@ -510,10 +550,25 @@ static void OPV_TypeOf (OPT_Node n)
 
 static BOOLEAN OPV_ParallelIndexSafe (OPT_Node n)
 {
-	if (OPV_parallelRange == NIL) {
+	OPT_Node range = NIL, index = NIL;
+	if (n->left->typ->comp != 2) {
 		return 0;
 	}
-	return (((((((((((n->left->typ->comp == 2 && n->right->class == 0)) && n->right->obj == OPV_parallelRange->obj)) && OPV_parallelRange->left->class == 7)) && OPV_parallelRange->right->class == 7)) && OPV_parallelRange->left->conval->intval >= 0)) && OPV_parallelRange->right->conval->intval < (INT64)n->left->typ->n);
+	index = n->right;
+	while ((((((((index->class == 11 && index->subcl == 20)) && index->typ->form == 4)) && index->left->typ->form == 4)) && index->typ->size >= index->left->typ->size)) {
+		index = index->left;
+	}
+	if (index->class != 0) {
+		return 0;
+	}
+	range = OPV_parallelRange;
+	while (range != NIL) {
+		if (index->obj == range->obj) {
+			return (((((range->left->class == 7 && range->right->class == 7)) && range->left->conval->intval >= 0)) && range->right->conval->intval < (INT64)n->left->typ->n);
+		}
+		range = range->link;
+	}
+	return 0;
 }
 
 static void OPV_Index (OPT_Node n, OPT_Node d, INT16 prec, INT16 dim)
@@ -541,7 +596,7 @@ static void OPV_design (OPT_Node n, INT16 prec)
 	OPT_Node d = NIL, x = NIL;
 	INT16 dims, i;
 	OPV_GPUValue value = NIL;
-	INT16 _for__42;
+	INT16 _for__55;
 	comp = n->typ->comp;
 	obj = n->obj;
 	class = n->class;
@@ -561,22 +616,22 @@ static void OPV_design (OPT_Node n, INT16 prec)
 			break;
 		case 0: 
 			value = NIL;
-			if (OPV_gpuBody) {
+			if (OPV_gpuBody || OPV_reductionBody) {
 				value = OPV_GPUFind(OPV_gpuValues, obj);
 			}
 			if (value != NIL) {
-				OPV_GPUName(OPV_gpuRange, value, (CHAR*)"", 1);
+				OPV_CapturedValue(value);
 			} else {
 				OPC_CompleteIdent(n->obj);
 			}
 			break;
 		case 1: 
 			value = NIL;
-			if (OPV_gpuBody) {
+			if (OPV_gpuBody || OPV_reductionBody) {
 				value = OPV_GPUFind(OPV_gpuValues, obj);
 			}
 			if (value != NIL) {
-				OPV_GPUName(OPV_gpuRange, value, (CHAR*)"", 1);
+				OPV_CapturedValue(value);
 			} else {
 				if (!__IN(comp, 0x0c, 32)) {
 					OPM_Write('*');
@@ -633,9 +688,9 @@ static void OPV_design (OPT_Node n, INT16 prec)
 					}
 					x = x->left;
 				}
-				_for__42 = dims;
+				_for__55 = dims;
 				i = 1;
-				while (i <= _for__42) {
+				while (i <= _for__55) {
 					OPM_Write(')');
 					i += 1;
 				}
@@ -850,12 +905,15 @@ static void OPV_expr (OPT_Node n, INT16 prec)
 	l = n->left;
 	r = n->right;
 	exprPrec = OPV_Precedence(class, subclass, form, n->typ->comp);
-	if ((exprPrec <= prec && __IN(class, 0x3ce0, 32))) {
+	if ((exprPrec <= prec && __IN(class, 0x80003ce0, 32))) {
 		OPM_Write('(');
 	}
 	switch (class) {
 		case 7: 
 			OPC_Constant(n->conval, form);
+			break;
+		case 31: 
+			OPV_ReductionCall(n);
 			break;
 		case 10: 
 			OPM_WriteString((CHAR*)"__SETRNG(", 10);
@@ -1158,7 +1216,7 @@ static void OPV_expr (OPT_Node n, INT16 prec)
 			OPV_design(n, prec);
 			break;
 	}
-	if ((exprPrec <= prec && __IN(class, 0x3ca0, 32))) {
+	if ((exprPrec <= prec && __IN(class, 0x80003ca0, 32))) {
 		OPM_Write(')');
 	}
 }
@@ -1370,6 +1428,18 @@ static BOOLEAN OPV_DirectAllRange (OPT_Node range)
 	return (low <= high && ((low >= 0 || high < 0) || low >= high - OPM_SignedMaximum(range->typ->size)));
 }
 
+static BOOLEAN OPV_InclusiveAllRange (OPT_Node range)
+{
+	INT64 low, high, maximum;
+	if (!OPV_DirectAllRange(range)) {
+		return 0;
+	}
+	low = range->left->conval->intval;
+	high = range->right->conval->intval;
+	maximum = OPM_SignedMaximum(range->typ->size);
+	return (high < maximum && high - low < maximum);
+}
+
 static void OPV_DeclareAllLocals (OPT_Node range)
 {
 	OPT_Object obj = NIL;
@@ -1404,7 +1474,7 @@ static OPV_GPUValue OPV_GPUCapture (OPT_Node n, BOOLEAN written, OPV_GPUValue *v
 			OPM_err(168);
 			return NIL;
 		}
-	} else if ((!OPV_GPUScalar(n->typ) || written) || n->class == 1) {
+	} else if ((!OPV_GPUScalar(n->typ) || written) || (n->class == 1 && !OPV_reductionBody)) {
 		OPM_err(168);
 		return NIL;
 	}
@@ -1538,33 +1608,9 @@ static void OPV_GPUCheck (OPT_Node n, OPV_GPUValue *values)
 	}
 }
 
-static void OPV_GPUDeclarations (OPT_Node range, OPV_GPUValue values)
+static void OPV_GPUValidateBounds (OPT_Node range, OPV_GPUValue values)
 {
 	OPV_GPUValue value = NIL;
-	value = values;
-	while (value != NIL) {
-		OPC_BegStat();
-		if (value->array) {
-			OPC_Andent(value->node->typ->BaseTyp);
-			OPM_WriteString((CHAR*)" *", 3);
-		} else {
-			OPC_Andent(value->node->typ);
-			OPM_Write(' ');
-		}
-		OPV_GPUName(range, value, (CHAR*)"", 1);
-		OPM_WriteString((CHAR*)" = ", 4);
-		OPV_expr(value->node, -1);
-		OPC_EndStat();
-		if (value->array) {
-			OPC_BegStat();
-			OPM_WriteString((CHAR*)"ADDRESS ", 9);
-			OPV_GPUName(range, value, (CHAR*)"__len", 6);
-			OPM_WriteString((CHAR*)" = ", 4);
-			OPV_Len(value->node, 0);
-			OPC_EndStat();
-		}
-		value = value->next;
-	}
 	if (!__IN(0, OPM_Options, 32)) {
 		return;
 	}
@@ -1596,7 +1642,37 @@ static void OPV_GPUDeclarations (OPT_Node range, OPV_GPUValue values)
 	}
 }
 
-static void OPV_GPUPragma (OPT_Node range, OPV_GPUValue values)
+static void OPV_GPUDeclarations (OPT_Node range, OPV_GPUValue values)
+{
+	OPV_GPUValue value = NIL;
+	value = values;
+	while (value != NIL) {
+		OPC_BegStat();
+		if (value->array) {
+			OPC_Andent(value->node->typ->BaseTyp);
+			OPM_WriteString((CHAR*)" *", 3);
+		} else {
+			OPC_Andent(value->node->typ);
+			OPM_Write(' ');
+		}
+		OPV_GPUName(range, value, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" = ", 4);
+		OPV_expr(value->node, -1);
+		OPC_EndStat();
+		if (value->array) {
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"ADDRESS ", 9);
+			OPV_GPUName(range, value, (CHAR*)"__len", 6);
+			OPM_WriteString((CHAR*)" = ", 4);
+			OPV_Len(value->node, 0);
+			OPC_EndStat();
+		}
+		value = value->next;
+	}
+	OPV_GPUValidateBounds(range, values);
+}
+
+static void OPV_GPUPragma (OPT_Node range, OPV_GPUValue values, INT8 operation)
 {
 	OPV_GPUValue value = NIL;
 	OPC_BegStat();
@@ -1635,7 +1711,448 @@ static void OPV_GPUPragma (OPT_Node range, OPV_GPUValue values)
 		value = value->next;
 	}
 	OPM_Write(')');
+	if (operation != 0) {
+		OPM_WriteString((CHAR*)" reduction(", 12);
+		if (operation == 33) {
+			OPM_Write('+');
+		} else {
+			OPM_Write('*');
+		}
+		OPM_WriteString((CHAR*)": ", 3);
+		OPV_AllName(range, (CHAR*)"__result", 9);
+		OPM_Write(')');
+	}
 	OPM_WriteLn();
+}
+
+static void OPV_ReductionType (OPT_Struct typ)
+{
+	if (typ->form == 4) {
+		OPM_WriteString((CHAR*)"INT", 4);
+		OPM_WriteInt(__ASHL(typ->size, 3));
+	} else if (typ->form == 5) {
+		OPM_WriteString((CHAR*)"float", 6);
+	} else if (typ->form == 6) {
+		OPM_WriteString((CHAR*)"double", 7);
+	} else {
+		OPC_Andent(typ);
+	}
+}
+
+static void OPV_ReductionCollect (OPT_Node n, OPT_Node range, OPV_GPUValue *values)
+{
+	OPV_GPUValue value = NIL;
+	if (n == NIL) {
+		return;
+	}
+	if (!OPV_GPUScalar(n->typ)) {
+		OPM_err(175);
+		return;
+	}
+	switch (n->class) {
+		case 7: 
+			break;
+		case 0: case 1: 
+			if (n->obj != range->obj) {
+				value = OPV_GPUCapture(n, 0, &*values);
+			}
+			break;
+		case 4: 
+			if ((!__IN(n->left->class, 0x03, 32) || !__IN(n->left->typ->comp, 0x0c, 32)) || !OPV_GPUScalar(n->left->typ->BaseTyp)) {
+				OPM_err(175);
+				return;
+			}
+			value = OPV_GPUCapture(n->left, 0, &*values);
+			OPV_ReductionCollect(n->right, range, &*values);
+			break;
+		case 11: 
+			if (!__IN(n->subcl, 0x0200f00080, 64)) {
+				OPM_err(178);
+				return;
+			}
+			OPV_ReductionCollect(n->left, range, &*values);
+			break;
+		case 12: 
+			if (n->subcl == 19) {
+				if ((n->right->conval->intval != 0 || !__IN(n->left->class, 0x03, 32)) || !OPV_GPUScalar(n->left->typ->BaseTyp)) {
+					OPM_err(175);
+					return;
+				}
+				value = OPV_GPUCapture(n->left, 0, &*values);
+			} else {
+				OPV_ReductionCollect(n->left, range, &*values);
+				OPV_ReductionCollect(n->right, range, &*values);
+			}
+			break;
+		default: 
+			OPM_err(175);
+			break;
+	}
+}
+
+static OPV_Reduction OPV_FindReduction (OPT_Node n)
+{
+	OPV_Reduction item = NIL;
+	item = OPV_reductions;
+	while ((item != NIL && item->node != n)) {
+		item = item->next;
+	}
+	return item;
+}
+
+static void OPV_ReductionCall (OPT_Node n)
+{
+	OPV_Reduction item = NIL;
+	OPV_GPUValue value = NIL;
+	item = OPV_FindReduction(n);
+	OPV_AllName(n->left, (CHAR*)"__reduce", 9);
+	OPM_Write('(');
+	value = item->values;
+	while (value != NIL) {
+		if (!value->array) {
+			OPM_WriteString((CHAR*)"&(", 3);
+		}
+		OPV_expr(value->node, -1);
+		if (!value->array) {
+			OPM_Write(')');
+		}
+		if (value->array) {
+			OPM_WriteString((CHAR*)", ", 3);
+			OPV_Len(value->node, 0);
+		}
+		value = value->next;
+		if (value != NIL) {
+			OPM_WriteString((CHAR*)", ", 3);
+		}
+	}
+	OPM_Write(')');
+}
+
+static void OPV_ReductionCombine (OPT_Node n)
+{
+	OPC_BegStat();
+	OPV_AllName(n->left, (CHAR*)"__result", 9);
+	if (n->subcl == 33) {
+		OPM_WriteString((CHAR*)" += ", 5);
+	} else {
+		OPM_WriteString((CHAR*)" *= ", 5);
+	}
+	if (n->typ->form == 4) {
+		OPM_WriteString((CHAR*)"(UINT64)(", 10);
+	} else {
+		OPM_Write('(');
+	}
+	OPV_expr(n->right, -1);
+	OPM_Write(')');
+	OPC_EndStat();
+}
+
+static void OPV_DirectReduction (OPT_Node n)
+{
+	OPT_Node range = NIL, savedRange = NIL;
+	range = n->left;
+	OPC_BegStat();
+	OPM_WriteString((CHAR*)"#pragma omp parallel for schedule(static) reduction(", 53);
+	if (n->subcl == 33) {
+		OPM_Write('+');
+	} else {
+		OPM_Write('*');
+	}
+	OPM_WriteString((CHAR*)": ", 3);
+	OPV_AllName(range, (CHAR*)"__result", 9);
+	OPM_Write(')');
+	OPM_WriteLn();
+	OPC_BegStat();
+	OPM_WriteString((CHAR*)"for (", 6);
+	OPV_ReductionType(range->typ);
+	OPM_Write(' ');
+	OPV_AllName(range, (CHAR*)"", 1);
+	OPM_WriteString((CHAR*)" = ", 4);
+	OPV_expr(range->left, -1);
+	OPM_WriteString((CHAR*)"; ", 3);
+	OPV_AllName(range, (CHAR*)"", 1);
+	OPM_WriteString((CHAR*)" <= ", 5);
+	OPV_expr(range->right, -1);
+	OPM_WriteString((CHAR*)"; ++", 5);
+	OPV_AllName(range, (CHAR*)"", 1);
+	OPM_WriteString((CHAR*)") ", 3);
+	OPC_BegBlk();
+	savedRange = OPV_parallelRange;
+	OPV_parallelRange = range;
+	OPV_ReductionCombine(n);
+	OPV_parallelRange = savedRange;
+	OPC_EndBlk();
+}
+
+static void OPV_ReductionHelper (OPV_Reduction item)
+{
+	OPT_Node n = NIL, range = NIL;
+	OPV_GPUValue value = NIL, other = NIL;
+	BOOLEAN parallel, gpu;
+	n = item->node;
+	range = n->left;
+	OPM_errpos = OPM_Longint(n->conval->intval);
+	OPV_reductionBody = 1;
+	item->values = NIL;
+	OPV_ReductionCollect(range->left, range, &item->values);
+	OPV_ReductionCollect(range->right, range, &item->values);
+	OPV_ReductionCollect(n->right, range, &item->values);
+	gpu = __IN(25, OPM_Options, 32);
+	parallel = gpu || __IN(24, OPM_Options, 32);
+	if (gpu) {
+		OPV_GPUExpression(n->right, range, 0, &item->values);
+		value = item->values;
+		while (value != NIL) {
+			if (value->array) {
+				other = value->next;
+				while (other != NIL) {
+					if ((other->array && (((value->node->typ->comp == 3 || other->node->typ->comp == 3) || value->node->obj->mode == 2) || other->node->obj->mode == 2))) {
+						OPM_err(169);
+					}
+					other = other->next;
+				}
+			}
+			value = value->next;
+		}
+	}
+	OPV_reductionBody = 0;
+	if (!OPM_noerr) {
+		return;
+	}
+	OPM_WriteString((CHAR*)"static ", 8);
+	OPV_ReductionType(n->typ);
+	OPM_Write(' ');
+	OPV_AllName(range, (CHAR*)"__reduce", 9);
+	OPM_Write('(');
+	value = item->values;
+	if (value == NIL) {
+		OPM_WriteString((CHAR*)"void", 5);
+	}
+	while (value != NIL) {
+		if (value->array) {
+			OPV_ReductionType(value->node->typ->BaseTyp);
+			OPM_WriteString((CHAR*)" *", 3);
+		} else {
+			OPV_ReductionType(value->node->typ);
+			OPM_WriteString((CHAR*)" *", 3);
+		}
+		if (value->array) {
+			OPV_GPUName(range, value, (CHAR*)"", 1);
+		} else {
+			OPV_GPUName(range, value, (CHAR*)"__ref", 6);
+		}
+		if (value->array) {
+			OPM_WriteString((CHAR*)", ADDRESS ", 11);
+			OPV_GPUName(range, value, (CHAR*)"__len", 6);
+		}
+		value = value->next;
+		if (value != NIL) {
+			OPM_WriteString((CHAR*)", ", 3);
+		}
+	}
+	OPM_Write(')');
+	OPM_WriteLn();
+	OPC_BegBlk();
+	OPV_reductionBody = 1;
+	OPV_gpuRange = range;
+	OPV_gpuValues = item->values;
+	OPC_BegStat();
+	if (n->typ->form == 4) {
+		OPM_WriteString((CHAR*)"UINT64", 7);
+	} else {
+		OPV_ReductionType(n->typ);
+	}
+	OPM_Write(' ');
+	OPV_AllName(range, (CHAR*)"__result", 9);
+	OPM_WriteString((CHAR*)" = ", 4);
+	if (n->subcl == 33) {
+		OPM_Write('0');
+	} else {
+		OPM_Write('1');
+	}
+	OPC_EndStat();
+	OPV_reductionBounds = 1;
+	OPC_BegStat();
+	OPV_ReductionType(range->typ);
+	OPM_Write(' ');
+	OPV_AllName(range, (CHAR*)"__start", 8);
+	OPM_WriteString((CHAR*)" = ", 4);
+	OPV_expr(range->left, -1);
+	OPC_EndStat();
+	OPC_BegStat();
+	OPV_ReductionType(range->typ);
+	OPM_Write(' ');
+	OPV_AllName(range, (CHAR*)"__end", 6);
+	OPM_WriteString((CHAR*)" = ", 4);
+	OPV_expr(range->right, -1);
+	OPC_EndStat();
+	OPV_reductionBounds = 0;
+	OPC_BegStat();
+	OPM_WriteString((CHAR*)"if (", 5);
+	OPV_AllName(range, (CHAR*)"__start", 8);
+	OPM_WriteString((CHAR*)" <= ", 5);
+	OPV_AllName(range, (CHAR*)"__end", 6);
+	OPM_WriteString((CHAR*)") ", 3);
+	OPC_BegBlk();
+	value = item->values;
+	while (value != NIL) {
+		if (!value->array) {
+			OPC_BegStat();
+			OPV_ReductionType(value->node->typ);
+			OPM_Write(' ');
+			OPV_GPUName(range, value, (CHAR*)"", 1);
+			OPM_WriteString((CHAR*)" = *", 5);
+			OPV_GPUName(range, value, (CHAR*)"__ref", 6);
+			OPC_EndStat();
+		}
+		value = value->next;
+	}
+	if (gpu) {
+		OPV_GPUValidateBounds(range, item->values);
+	}
+	if ((((parallel && !gpu)) && OPV_InclusiveAllRange(range))) {
+		OPV_DirectReduction(n);
+	} else {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"UINT64 ", 8);
+		OPV_AllName(range, (CHAR*)"__count", 8);
+		OPM_WriteString((CHAR*)" = (UINT64)", 12);
+		OPV_AllName(range, (CHAR*)"__end", 6);
+		OPM_WriteString((CHAR*)" - (UINT64)", 12);
+		OPV_AllName(range, (CHAR*)"__start", 8);
+		OPC_EndStat();
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"UINT64 ", 8);
+		OPV_AllName(range, (CHAR*)"__work", 7);
+		OPM_WriteString((CHAR*)" = ", 4);
+		OPV_AllName(range, (CHAR*)"__count", 8);
+		OPM_WriteString((CHAR*)" == 0 \? 1 : ", 13);
+		OPV_AllName(range, (CHAR*)"__count", 8);
+		OPC_EndStat();
+		if (gpu) {
+			OPV_GPUPragma(range, item->values, n->subcl);
+		} else if (parallel) {
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"#pragma omp parallel for schedule(static) reduction(", 53);
+			if (n->subcl == 33) {
+				OPM_Write('+');
+			} else {
+				OPM_Write('*');
+			}
+			OPM_WriteString((CHAR*)": ", 3);
+			OPV_AllName(range, (CHAR*)"__result", 9);
+			OPM_Write(')');
+			OPM_WriteLn();
+		}
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"for (UINT64 ", 13);
+		OPV_AllName(range, (CHAR*)"__offset", 9);
+		OPM_WriteString((CHAR*)" = 0; ", 7);
+		OPV_AllName(range, (CHAR*)"__offset", 9);
+		OPM_WriteString((CHAR*)" < ", 4);
+		OPV_AllName(range, (CHAR*)"__work", 7);
+		OPM_WriteString((CHAR*)"; ++", 5);
+		OPV_AllName(range, (CHAR*)"__offset", 9);
+		OPM_WriteString((CHAR*)") ", 3);
+		OPC_BegBlk();
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"UINT64 ", 8);
+		OPV_AllName(range, (CHAR*)"__value", 8);
+		OPM_WriteString((CHAR*)" = (UINT64)", 12);
+		OPV_AllName(range, (CHAR*)"__start", 8);
+		OPM_WriteString((CHAR*)" + ", 4);
+		OPV_AllName(range, (CHAR*)"__offset", 9);
+		OPC_EndStat();
+		OPC_BegStat();
+		OPV_ReductionType(range->typ);
+		OPM_Write(' ');
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" = ", 4);
+		OPV_AllName(range, (CHAR*)"__value", 8);
+		OPM_WriteString((CHAR*)" <= (UINT64)", 13);
+		OPC_IntLiteral(OPM_SignedMaximum(8), 8);
+		OPM_WriteString((CHAR*)" \? (INT64)", 11);
+		OPV_AllName(range, (CHAR*)"__value", 8);
+		OPM_WriteString((CHAR*)" : -1 - (INT64)~", 17);
+		OPV_AllName(range, (CHAR*)"__value", 8);
+		OPC_EndStat();
+		OPV_gpuBody = gpu;
+		if (!parallel) {
+			OPC_CheckInterrupt();
+		}
+		OPV_ReductionCombine(n);
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"if (", 5);
+		OPV_AllName(range, (CHAR*)"__count", 8);
+		OPM_WriteString((CHAR*)" != 0 && ", 10);
+		OPV_AllName(range, (CHAR*)"__offset", 9);
+		OPM_WriteString((CHAR*)" == ", 5);
+		OPV_AllName(range, (CHAR*)"__count", 8);
+		OPM_WriteString((CHAR*)" - 1) ", 7);
+		OPC_BegBlk();
+		OPC_BegStat();
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" = ", 4);
+		OPV_AllName(range, (CHAR*)"__end", 6);
+		OPC_EndStat();
+		OPV_ReductionCombine(n);
+		OPC_EndBlk();
+		OPC_EndBlk();
+	}
+	OPC_EndBlk();
+	OPV_gpuBody = 0;
+	OPV_reductionBody = 0;
+	OPV_gpuRange = NIL;
+	OPV_gpuValues = NIL;
+	if (n->typ->form == 4) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"UINT", 5);
+		OPM_WriteInt(__ASHL(n->typ->size, 3));
+		OPM_Write(' ');
+		OPV_AllName(range, (CHAR*)"__bits", 7);
+		OPM_WriteString((CHAR*)" = (UINT", 9);
+		OPM_WriteInt(__ASHL(n->typ->size, 3));
+		OPM_Write(')');
+		OPV_AllName(range, (CHAR*)"__result", 9);
+		OPC_EndStat();
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"return ", 8);
+		OPV_AllName(range, (CHAR*)"__bits", 7);
+		OPM_WriteString((CHAR*)" <= (UINT64)", 13);
+		OPC_IntLiteral(OPM_SignedMaximum(n->typ->size), 8);
+		OPM_WriteString((CHAR*)" \? (INT64)", 11);
+		OPV_AllName(range, (CHAR*)"__bits", 7);
+		OPM_WriteString((CHAR*)" : -1 - (INT64)(UINT", 21);
+		OPM_WriteInt(__ASHL(n->typ->size, 3));
+		OPM_WriteString((CHAR*)")~", 3);
+		OPV_AllName(range, (CHAR*)"__bits", 7);
+		OPC_EndStat();
+	} else {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"return ", 8);
+		OPV_AllName(range, (CHAR*)"__result", 9);
+		OPC_EndStat();
+	}
+	OPC_EndBlk();
+	OPM_WriteLn();
+}
+
+static void OPV_ReductionHelpers (OPT_Node n)
+{
+	OPV_Reduction item = NIL;
+	if (n == NIL) {
+		return;
+	}
+	if ((n->class == 31 && OPV_FindReduction(n) == NIL)) {
+		__NEW(item, OPV_ReductionDesc);
+		item->node = n;
+		item->next = OPV_reductions;
+		OPV_reductions = item;
+		OPV_ReductionHelper(item);
+	}
+	OPV_ReductionHelpers(n->left);
+	OPV_ReductionHelpers(n->right);
+	OPV_ReductionHelpers(n->link);
 }
 
 static void OPV_GPUAllStat (OPT_Node n, OPT_Object outerProc)
@@ -1644,6 +2161,10 @@ static void OPV_GPUAllStat (OPT_Node n, OPT_Object outerProc)
 	OPV_GPUValue values = NIL, savedValues = NIL;
 	OPT_Node savedRange = NIL;
 	BOOLEAN savedParallel, savedGPU;
+	if (n->left->link != NIL) {
+		OPM_err(160);
+		return;
+	}
 	OPV_GPUCheck(n, &values);
 	if (!OPM_noerr) {
 		return;
@@ -1685,7 +2206,7 @@ static void OPV_GPUAllStat (OPT_Node n, OPT_Object outerProc)
 	OPM_WriteString((CHAR*)" == 0 \? 1 : ", 13);
 	OPV_AllName(range, (CHAR*)"__count", 8);
 	OPC_EndStat();
-	OPV_GPUPragma(range, values);
+	OPV_GPUPragma(range, values, 0);
 	OPC_BegStat();
 	OPM_WriteString((CHAR*)"for (UINT64 ", 13);
 	OPV_AllName(range, (CHAR*)"__offset", 9);
@@ -1917,6 +2438,225 @@ static void OPV_AllStat (OPT_Node n, OPT_Object outerProc)
 	OPC_Ident(range->obj);
 	OPC_EndStat();
 	OPC_EndBlk();
+	OPC_EndBlk();
+	OPC_EndBlk();
+}
+
+static void OPV_MultiAllLoops (OPT_Node range, OPT_Node body, OPT_Node locals, OPT_Object outerProc)
+{
+	BOOLEAN direct;
+	direct = OPV_InclusiveAllRange(range);
+	if (direct) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"for (", 6);
+		OPC_Andent(range->typ);
+		OPM_Write(' ');
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" = ", 4);
+		OPV_expr(range->left, -1);
+		OPM_WriteString((CHAR*)"; ", 3);
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" <= ", 5);
+		OPV_expr(range->right, -1);
+		OPM_WriteString((CHAR*)"; ++", 5);
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)") ", 3);
+		OPC_BegBlk();
+	} else {
+		OPC_BegStat();
+		OPC_Andent(range->typ);
+		OPM_Write(' ');
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" = ", 4);
+		OPV_AllName(range, (CHAR*)"__start", 8);
+		OPC_EndStat();
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"for (;;) ", 10);
+		OPC_BegBlk();
+	}
+	if (range->link != NIL) {
+		OPV_MultiAllLoops(range->link, body, locals, outerProc);
+	} else {
+		OPV_DeclareAllLocals(locals);
+		if (!OPV_parallelBody) {
+			OPC_CheckInterrupt();
+		}
+		OPV_stat(body, outerProc);
+	}
+	if (!direct) {
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"if (", 5);
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPM_WriteString((CHAR*)" == ", 5);
+		OPV_AllName(range, (CHAR*)"__end", 6);
+		OPM_WriteString((CHAR*)") break", 8);
+		OPC_EndStat();
+		OPC_BegStat();
+		OPM_WriteString((CHAR*)"++", 3);
+		OPV_AllName(range, (CHAR*)"", 1);
+		OPC_EndStat();
+	}
+	OPC_EndBlk();
+}
+
+static void OPV_MultiAllStat (OPT_Node n, OPT_Object outerProc)
+{
+	OPT_Node range = NIL, previous = NIL, savedRange = NIL;
+	BOOLEAN saved;
+	OPC_BegBlk();
+	range = n->left;
+	previous = NIL;
+	while (range != NIL) {
+		OPC_BegStat();
+		OPC_Andent(range->typ);
+		OPM_Write(' ');
+		OPV_AllName(range, (CHAR*)"__start", 8);
+		OPM_WriteString((CHAR*)" = ", 4);
+		if (range->subcl == 1) {
+			OPV_AllName(previous, (CHAR*)"__start", 8);
+		} else {
+			OPV_expr(range->left, -1);
+		}
+		OPC_EndStat();
+		OPC_BegStat();
+		OPC_Andent(range->typ);
+		OPM_Write(' ');
+		OPV_AllName(range, (CHAR*)"__end", 6);
+		OPM_WriteString((CHAR*)" = ", 4);
+		if (range->subcl == 1) {
+			OPV_AllName(previous, (CHAR*)"__end", 6);
+		} else {
+			OPV_expr(range->right, -1);
+		}
+		OPC_EndStat();
+		previous = range;
+		range = range->link;
+	}
+	OPC_BegStat();
+	OPM_WriteString((CHAR*)"if (", 5);
+	range = n->left;
+	while (range != NIL) {
+		OPV_AllName(range, (CHAR*)"__start", 8);
+		OPM_WriteString((CHAR*)" <= ", 5);
+		OPV_AllName(range, (CHAR*)"__end", 6);
+		range = range->link;
+		if (range != NIL) {
+			OPM_WriteString((CHAR*)" && ", 5);
+		}
+	}
+	OPM_WriteString((CHAR*)") ", 3);
+	OPC_BegBlk();
+	range = n->left;
+	if (__IN(24, OPM_Options, 32)) {
+		if (OPV_InclusiveAllRange(range)) {
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"#pragma omp parallel for schedule(static)", 42);
+			OPM_WriteLn();
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"for (", 6);
+			OPC_Andent(range->typ);
+			OPM_Write(' ');
+			OPV_AllName(range, (CHAR*)"", 1);
+			OPM_WriteString((CHAR*)" = ", 4);
+			OPV_expr(range->left, -1);
+			OPM_WriteString((CHAR*)"; ", 3);
+			OPV_AllName(range, (CHAR*)"", 1);
+			OPM_WriteString((CHAR*)" <= ", 5);
+			OPV_expr(range->right, -1);
+			OPM_WriteString((CHAR*)"; ++", 5);
+			OPV_AllName(range, (CHAR*)"", 1);
+			OPM_WriteString((CHAR*)") ", 3);
+			OPC_BegBlk();
+			saved = OPV_parallelBody;
+			savedRange = OPV_parallelRange;
+			OPV_parallelBody = 1;
+			OPV_parallelRange = range;
+			OPV_MultiAllLoops(range->link, n->right, range, outerProc);
+			OPV_parallelBody = saved;
+			OPV_parallelRange = savedRange;
+			OPC_EndBlk();
+			OPC_CheckInterrupt();
+		} else {
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"UINT64 ", 8);
+			OPV_AllName(range, (CHAR*)"__count", 8);
+			OPM_WriteString((CHAR*)" = (UINT64)", 12);
+			OPV_AllName(range, (CHAR*)"__end", 6);
+			OPM_WriteString((CHAR*)" - (UINT64)", 12);
+			OPV_AllName(range, (CHAR*)"__start", 8);
+			OPC_EndStat();
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"UINT64 ", 8);
+			OPV_AllName(range, (CHAR*)"__work", 7);
+			OPM_WriteString((CHAR*)" = ", 4);
+			OPV_AllName(range, (CHAR*)"__count", 8);
+			OPM_WriteString((CHAR*)" == 0 \? 1 : ", 13);
+			OPV_AllName(range, (CHAR*)"__count", 8);
+			OPC_EndStat();
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"#pragma omp parallel for schedule(static)", 42);
+			OPM_WriteLn();
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"for (UINT64 ", 13);
+			OPV_AllName(range, (CHAR*)"__offset", 9);
+			OPM_WriteString((CHAR*)" = 0; ", 7);
+			OPV_AllName(range, (CHAR*)"__offset", 9);
+			OPM_WriteString((CHAR*)" < ", 4);
+			OPV_AllName(range, (CHAR*)"__work", 7);
+			OPM_WriteString((CHAR*)"; ++", 5);
+			OPV_AllName(range, (CHAR*)"__offset", 9);
+			OPM_WriteString((CHAR*)") ", 3);
+			OPC_BegBlk();
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"UINT64 ", 8);
+			OPV_AllName(range, (CHAR*)"__value", 8);
+			OPM_WriteString((CHAR*)" = (UINT64)", 12);
+			OPV_AllName(range, (CHAR*)"__start", 8);
+			OPM_WriteString((CHAR*)" + ", 4);
+			OPV_AllName(range, (CHAR*)"__offset", 9);
+			OPC_EndStat();
+			OPC_BegStat();
+			OPC_Andent(range->typ);
+			OPM_Write(' ');
+			OPV_AllName(range, (CHAR*)"", 1);
+			OPM_WriteString((CHAR*)" = ", 4);
+			OPV_AllName(range, (CHAR*)"__value", 8);
+			OPM_WriteString((CHAR*)" <= (UINT64)", 13);
+			OPC_IntLiteral(OPM_SignedMaximum(8), 8);
+			OPM_WriteString((CHAR*)" \? (INT64)", 11);
+			OPV_AllName(range, (CHAR*)"__value", 8);
+			OPM_WriteString((CHAR*)" : -1 - (INT64)~", 17);
+			OPV_AllName(range, (CHAR*)"__value", 8);
+			OPC_EndStat();
+			saved = OPV_parallelBody;
+			savedRange = OPV_parallelRange;
+			OPV_parallelBody = 1;
+			OPV_parallelRange = range;
+			OPV_MultiAllLoops(range->link, n->right, range, outerProc);
+			OPC_BegStat();
+			OPM_WriteString((CHAR*)"if (", 5);
+			OPV_AllName(range, (CHAR*)"__count", 8);
+			OPM_WriteString((CHAR*)" != 0 && ", 10);
+			OPV_AllName(range, (CHAR*)"__offset", 9);
+			OPM_WriteString((CHAR*)" == ", 5);
+			OPV_AllName(range, (CHAR*)"__count", 8);
+			OPM_WriteString((CHAR*)" - 1) ", 7);
+			OPC_BegBlk();
+			OPC_BegStat();
+			OPV_AllName(range, (CHAR*)"", 1);
+			OPM_WriteString((CHAR*)" = ", 4);
+			OPV_AllName(range, (CHAR*)"__end", 6);
+			OPC_EndStat();
+			OPV_MultiAllLoops(range->link, n->right, range, outerProc);
+			OPC_EndBlk();
+			OPV_parallelBody = saved;
+			OPV_parallelRange = savedRange;
+			OPC_EndBlk();
+			OPC_CheckInterrupt();
+		}
+	} else {
+		OPV_MultiAllLoops(range, n->right, range, outerProc);
+	}
 	OPC_EndBlk();
 	OPC_EndBlk();
 }
@@ -2154,6 +2894,8 @@ static void OPV_stat (OPT_Node n, OPT_Object outerProc)
 			case 29: 
 				if (__IN(25, OPM_Options, 32)) {
 					OPV_GPUAllStat(n, outerProc);
+				} else if (n->left->link != NIL) {
+					OPV_MultiAllStat(n, outerProc);
 				} else if (__IN(24, OPM_Options, 32)) {
 					OPV_ParallelAllStat(n, outerProc);
 				} else {
@@ -2276,6 +3018,7 @@ void OPV_Module (OPT_Node prog)
 		OPC_GenHdrIncludes();
 	}
 	OPC_GenBdy(prog->right);
+	OPV_ReductionHelpers(prog);
 	OPV_stat(prog, NIL);
 }
 
@@ -2284,10 +3027,12 @@ static void EnumPtrs(void (*P)(void*))
 	P(OPV_parallelRange);
 	P(OPV_gpuRange);
 	P(OPV_gpuValues);
+	P(OPV_reductions);
 }
 
 __TDESC(OPV_ExitInfo, 1, 0) = {__TDFLDS("ExitInfo", 4), {-8}};
 __TDESC(OPV_GPUValueDesc, 1, 2) = {__TDFLDS("GPUValueDesc", 40), {0, 8, -24}};
+__TDESC(OPV_ReductionDesc, 1, 3) = {__TDFLDS("ReductionDesc", 24), {0, 8, 16, -32}};
 
 export void *OPV__init(void)
 {
@@ -2300,6 +3045,7 @@ export void *OPV__init(void)
 	__REGCMD("Init", OPV_Init);
 	__INITYP(OPV_ExitInfo, OPV_ExitInfo, 0);
 	__INITYP(OPV_GPUValueDesc, OPV_GPUValueDesc, 0);
+	__INITYP(OPV_ReductionDesc, OPV_ReductionDesc, 0);
 /* BEGIN */
 	__ENDMOD;
 }

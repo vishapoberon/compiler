@@ -9,11 +9,14 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-[Release notes for 5.0](doc/ReleaseNotes-5.0.md) ·
+[Release notes for 5.1](doc/ReleaseNotes-5.1.md) ·
+[5.0 release notes](doc/ReleaseNotes-5.0.md) ·
 [4.0 release history](doc/ReleaseNotes-4.0.md)
 
-Version 5.0 adds experimental Oberon-V array calculations with CPU OpenMP
-(`-jP`) and GPU offloading (`-jG`). It also includes an
+Version 5.1 adds `SUM` and `PROD` reductions, multidimensional CPU `ALL`,
+and improved automatic vectorization to the experimental Oberon-V support.
+Execution modes include sequential code, CPU OpenMP (`-jP`) and GPU
+offloading (`-jG`). The distribution also includes an
 [IRC client library](src/ports/norayr/irc/README.md), a
 [channel-history client example](src/examples/network/irc-bot/readme.md),
 and the XML, XMPP, Unicode, image and editor additions from the 4.0 series.
@@ -321,7 +324,7 @@ An iteration-local variable must be assigned before it is read.
 
 ### Reduction expressions
 
-Development sources after VOC 5.0 add `SUM` and `PROD` to combine the values
+VOC 5.1 adds `SUM` and `PROD` to combine the values
 described by a one-dimensional Oberon-V array constructor:
 
 ```oberon

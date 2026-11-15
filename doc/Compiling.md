@@ -116,8 +116,8 @@ All three letters follow the normal option toggling and per-file rules.
 Without `-j`, `ALL` remains an ordinary identifier.
 
 Sequential and CPU modes support several range identifiers in one `ALL`
-statement. The GPU subset supports one range identifier. Development sources
-after VOC 5.0 also provide [`SUM` and `PROD`](Reductions.md) with one-dimensional
+statement. The GPU subset supports one range identifier. VOC 5.1 also
+provides [`SUM` and `PROD`](Reductions.md) with one-dimensional
 constructors in all three modes.
 
 Sequential output needs only VOC's usual C compiler and runtime libraries.

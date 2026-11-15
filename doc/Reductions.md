@@ -1,7 +1,7 @@
 # Adding and multiplying independent values
 
-`SUM` adds a sequence of values. `PROD` multiplies them. Development sources
-after VOC 5.0 enable both through the experimental Oberon-V option, `-j`.
+`SUM` adds a sequence of values. `PROD` multiplies them. VOC 5.1 enables
+both through the experimental Oberon-V option, `-j`.
 They use the array-constructor
 syntax described in Robert Griesemer's
 [Oberon-V dissertation](https://norayr.am/papers/eth10277.pdf).

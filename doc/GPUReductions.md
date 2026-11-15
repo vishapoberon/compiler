@@ -1,7 +1,7 @@
 # Measuring SUM and PROD on AMD GPUs
 
 This benchmark compares one-dimensional `SUM` and `PROD` on a CPU and two
-AMD GPUs. It requires development sources after VOC 5.0. The
+AMD GPUs. It requires VOC 5.1 or later. The
 [setup guide](GPUSetup.md) explains the Debian and Gentoo toolchains; the
 [reduction introduction](Reductions.md) explains the Oberon syntax.
 
@@ -104,7 +104,7 @@ Measure that complete calculation separately when choosing an execution mode.
 ## Reproducing the measurements
 
 Configure Clang, the visible device and both `VOC_OPENMP_*FLAGS` variables
-using the [setup guide](GPUSetup.md). From a development source checkout:
+using the [setup guide](GPUSetup.md). From a source checkout:
 
 ```sh
 make -C src/test/oberonv benchmark-gpu GPU_CC=clang-19 \
@@ -112,7 +112,7 @@ make -C src/test/oberonv benchmark-gpu GPU_CC=clang-19 \
 ```
 
 Use `GPU_CC=clang` with the Gentoo LLVM selection. Add `VOC` and `VOCROOT`
-to select an installed development image. The runner calls VOC for the
+to select another installed image. The runner calls VOC for the
 Oberon modules and uses the selected C compiler directly only for the
 independent device-location probe. GPU mode selects the four reduction
 workloads and unit-magnitude product inputs automatically.

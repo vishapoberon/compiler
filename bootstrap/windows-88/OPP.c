@@ -1,4 +1,4 @@
-/* voc 5.0.0 [2026/11/13]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.1.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -20,7 +20,7 @@ typedef
 
 
 static INT8 OPP_sym, OPP_level;
-static INT16 OPP_LoopLevel, OPP_AllCounter;
+static INT16 OPP_LoopLevel, OPP_AllCounter, OPP_ReductionDepth;
 static OPT_Node OPP_TDinit, OPP_lastTDinit;
 static INT16 OPP_nofFwdPtr;
 static OPT_Struct OPP_FwdPtr[64];
@@ -34,7 +34,7 @@ static void OPP_AllStatement (OPT_Node *x);
 static void OPP_ArrayType (OPT_Struct *typ, OPT_Struct *banned);
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq);
 static void OPP_CaseLabelList (OPT_Node *lab, OPT_Struct LabelTyp, INT16 *n, struct OPP__1 *tab);
-static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT64 targetOffset);
+static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT64 targetOffset, BOOLEAN strict);
 static void OPP_CheckAllAssignments (OPT_Node body, OPT_Node range);
 static void OPP_CheckAllExpression (OPT_Node n);
 static void OPP_CheckMark (INT8 *vis);
@@ -51,6 +51,9 @@ static void OPP_PointerType (OPT_Struct *typ);
 static void OPP_ProcedureDeclaration (OPT_Node *x);
 static void OPP_Receiver (INT8 *mode, CHAR *name, OPT_Struct *typ, OPT_Struct *rec);
 static void OPP_RecordType (OPT_Struct *typ, OPT_Struct *banned);
+static void OPP_ReductionCall (OPT_Node *x, INT8 operation);
+static void OPP_ReductionExpression (OPT_Node n);
+static BOOLEAN OPP_SameAllArray (OPT_Node n, OPT_Node target);
 static void OPP_Sets (OPT_Node *x);
 static void OPP_SimpleExpression (OPT_Node *x);
 static void OPP_SkipAllTail (void);
@@ -85,6 +88,9 @@ static void OPP_qualident (OPT_Object *id)
 	OPT_Object obj = NIL;
 	INT8 lev;
 	OPT_Find(&obj);
+	if ((((((obj != NIL && obj->mode == 8)) && (obj->adr == 33 || obj->adr == 34))) && !__IN(23, OPM_Options, 32))) {
+		obj = NIL;
+	}
 	OPS_Get(&OPP_sym);
 	if ((((OPP_sym == 18 && obj != NIL)) && obj->mode == 11)) {
 		OPS_Get(&OPP_sym);
@@ -655,6 +661,10 @@ static void OPP_StandProcCall (OPT_Node *x)
 	INT16 n;
 	m = __SHORT(__SHORT((*x)->obj->adr, 32768), 128);
 	n = 0;
+	if (m == 33 || m == 34) {
+		OPP_ReductionCall(&*x, m);
+		return;
+	}
 	if (OPP_sym == 30) {
 		OPS_Get(&OPP_sym);
 		if (OPP_sym != 22) {
@@ -1283,6 +1293,9 @@ static void OPP_CheckAllExpression (OPT_Node n)
 		if (n->class == 13) {
 			OPP_err(162);
 		}
+		if (n->class == 31) {
+			OPP_err(176);
+		}
 		if ((((((n->class == 0 && n->obj != NIL)) && n->obj->mode == 15)) && n->obj->adr == 0)) {
 			OPP_err(167);
 		}
@@ -1290,6 +1303,101 @@ static void OPP_CheckAllExpression (OPT_Node n)
 		OPP_CheckAllExpression(n->right);
 		OPP_CheckAllExpression(n->link);
 	}
+}
+
+static void OPP_ReductionExpression (OPT_Node n)
+{
+	if (n != NIL) {
+		if (n->class == 13) {
+			OPP_err(177);
+		}
+		if (n->class == 31) {
+			OPP_err(176);
+		}
+		OPP_ReductionExpression(n->left);
+		OPP_ReductionExpression(n->right);
+		OPP_ReductionExpression(n->link);
+	}
+}
+
+static void OPP_ReductionCall (OPT_Node *x, INT8 operation)
+{
+	OPS_Name name;
+	OPT_Object id = NIL, owner = NIL;
+	OPT_Node low = NIL, high = NIL, range = NIL, value = NIL;
+	OPT_Struct typ = NIL;
+	INT32 pos;
+	pos = OPM_errpos;
+	if (OPP_ReductionDepth > 0) {
+		OPP_err(176);
+	}
+	OPP_ReductionDepth += 1;
+	OPP_CheckSym(30);
+	OPP_CheckSym(31);
+	__MOVE(OPS_name, name, 256);
+	OPP_CheckSym(38);
+	if (OPP_sym == 19) {
+		OPP_err(173);
+		while ((((((OPP_sym != 9 && OPP_sym != 20)) && OPP_sym != 23)) && OPP_sym != 64)) {
+			OPS_Get(&OPP_sym);
+		}
+	}
+	OPP_CheckSym(9);
+	OPP_Expression(&low);
+	OPP_CheckSym(21);
+	OPP_Expression(&high);
+	if (OPP_sym == 19) {
+		OPP_err(173);
+		while ((((OPP_sym != 20 && OPP_sym != 23)) && OPP_sym != 64)) {
+			OPS_Get(&OPP_sym);
+		}
+	}
+	OPP_ReductionExpression(low);
+	OPP_ReductionExpression(high);
+	typ = OPT_inttyp;
+	if (((low->typ->form != 4 || high->typ->form != 4) || __IN(low->class, 0x0300, 32)) || __IN(high->class, 0x0300, 32)) {
+		OPP_err(179);
+		low = OPB_NewIntConst(0);
+		high = OPB_NewIntConst(-1);
+	} else {
+		if (low->typ->size > typ->size) {
+			typ = low->typ;
+		}
+		if (high->typ->size > typ->size) {
+			typ = high->typ;
+		}
+	}
+	OPP_CheckSym(20);
+	owner = OPT_topScope->link;
+	OPT_OpenScope(OPP_level, NIL);
+	OPT_topScope->link = owner;
+	OPT_Insert(name, &id);
+	id->mode = 14;
+	id->typ = typ;
+	id->x = OPP_AllCounter;
+	OPP_AllCounter += 1;
+	range = OPT_NewNode(30);
+	range->obj = id;
+	range->typ = typ;
+	range->left = low;
+	range->right = high;
+	OPP_Expression(&value);
+	OPP_ReductionExpression(value);
+	if (!__IN(value->typ->form, 0x70, 32) || __IN(value->class, 0x0300, 32)) {
+		OPP_err(174);
+		value = OPB_NewIntConst(0);
+	}
+	OPT_CloseScope();
+	OPP_CheckSym(23);
+	OPP_CheckSym(22);
+	OPP_ReductionDepth -= 1;
+	*x = range;
+	OPB_Construct(31, &*x, value);
+	(*x)->typ = value->typ;
+	(*x)->subcl = operation;
+	(*x)->obj = id;
+	(*x)->conval = OPT_NewConst();
+	(*x)->conval->intval = pos;
 }
 
 static BOOLEAN OPP_AllDestination (OPT_Node n, OPT_Object range)
@@ -1336,14 +1444,23 @@ static BOOLEAN OPP_UnitIndex (OPT_Node n, OPT_Object range, INT64 *offset)
 	return 0;
 }
 
-static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT64 targetOffset)
+static BOOLEAN OPP_SameAllArray (OPT_Node n, OPT_Node target)
+{
+	while ((n->class == 4 && target->class == 4)) {
+		n = n->left;
+		target = target->left;
+	}
+	return (((__IN(n->class, 0x03, 32) && __IN(target->class, 0x03, 32))) && n->obj == target->obj);
+}
+
+static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT64 targetOffset, BOOLEAN strict)
 {
 	INT64 offset, distance, low, high, index;
 	BOOLEAN overlaps, known;
 	if (n == NIL) {
 		return;
 	}
-	if ((((n->class == 4 && __IN(n->left->class, 0x03, 32))) && n->left->obj == target->left->obj)) {
+	if ((n->class == 4 && OPP_SameAllArray(n->left, target->left))) {
 		known = (range->left->class == 7 && range->right->class == 7);
 		low = 0;
 		high = 0;
@@ -1363,38 +1480,54 @@ static void OPP_CheckAllAccess (OPT_Node n, OPT_Node target, OPT_Node range, INT
 				index = index - targetOffset;
 				overlaps = !known || (low <= index && index <= high);
 			}
+		} else if (strict) {
+			overlaps = 1;
 		}
 		if (overlaps) {
 			OPP_err(166);
 		}
 	}
-	OPP_CheckAllAccess(n->left, target, range, targetOffset);
-	OPP_CheckAllAccess(n->right, target, range, targetOffset);
-	OPP_CheckAllAccess(n->link, target, range, targetOffset);
+	OPP_CheckAllAccess(n->left, target, range, targetOffset, strict);
+	OPP_CheckAllAccess(n->right, target, range, targetOffset, strict);
+	OPP_CheckAllAccess(n->link, target, range, targetOffset, strict);
 }
 
 static void OPP_CheckAllAssignments (OPT_Node body, OPT_Node range)
 {
-	OPT_Node s = NIL, target = NIL;
+	OPT_Node s = NIL, target = NIL, dimension = NIL;
 	INT64 offset;
-	BOOLEAN multiple;
-	multiple = 1;
-	if ((range->left->class == 7 && range->right->class == 7)) {
-		multiple = range->left->conval->intval < range->right->conval->intval;
-	}
-	s = body;
-	while (s != NIL) {
-		OPM_errpos = OPM_Longint(s->conval->intval);
-		target = s->left;
-		if (multiple) {
-			if (!OPP_AllDestination(target, range->obj)) {
-				OPP_err(163);
-			}
-			if ((((target->class == 4 && __IN(target->left->class, 0x03, 32))) && OPP_UnitIndex(target->right, range->obj, &offset))) {
-				OPP_CheckAllAccess(body, target, range, offset);
-			}
+	BOOLEAN multiple, strict;
+	strict = range->link != NIL;
+	dimension = range;
+	while (dimension != NIL) {
+		if ((((dimension->left->class == 7 && dimension->right->class == 7)) && dimension->left->conval->intval > dimension->right->conval->intval)) {
+			return;
 		}
-		s = s->link;
+		dimension = dimension->link;
+	}
+	while (range != NIL) {
+		multiple = 1;
+		if ((range->left->class == 7 && range->right->class == 7)) {
+			multiple = range->left->conval->intval < range->right->conval->intval;
+		}
+		s = body;
+		while (s != NIL) {
+			OPM_errpos = OPM_Longint(s->conval->intval);
+			target = s->left;
+			if (multiple) {
+				if (!OPP_AllDestination(target, range->obj)) {
+					OPP_err(163);
+				}
+				while (target->class == 4) {
+					if (OPP_UnitIndex(target->right, range->obj, &offset)) {
+						OPP_CheckAllAccess(body, target, range, offset, strict);
+					}
+					target = target->left;
+				}
+			}
+			s = s->link;
+		}
+		range = range->link;
 	}
 }
 
@@ -1483,61 +1616,75 @@ static void OPP_AllLocals (OPT_Object range)
 
 static void OPP_AllStatement (OPT_Node *x)
 {
-	OPS_Name name;
 	OPT_Object id = NIL, owner = NIL;
-	OPT_Node low = NIL, high = NIL, range = NIL, body = NIL, last = NIL, s = NIL, y = NIL;
+	OPT_Node low = NIL, high = NIL, range = NIL, ranges = NIL, tail = NIL, group = NIL, body = NIL, last = NIL, s = NIL, y = NIL;
 	OPT_Struct typ = NIL;
 	INT32 pos;
 	OPS_Get(&OPP_sym);
-	__MOVE(OPS_name, name, 256);
-	OPP_CheckSym(38);
-	low = OPB_NewIntConst(0);
-	high = OPB_NewIntConst(-1);
-	if (OPP_sym == 19) {
-		OPP_err(160);
-		while ((((OPP_sym != 27 && OPP_sym != 41)) && OPP_sym != 64)) {
+	ranges = NIL;
+	tail = NIL;
+	for (;;) {
+		group = NIL;
+		for (;;) {
+			range = OPT_NewNode(30);
+			range->obj = OPT_NewObj();
+			__MOVE(OPS_name, range->obj->name, 256);
+			OPP_CheckSym(38);
+			if (group == NIL) {
+				group = range;
+			} else {
+				range->subcl = 1;
+			}
+			OPB_Link(&ranges, &tail, range);
+			if (OPP_sym != 19) {
+				break;
+			}
 			OPS_Get(&OPP_sym);
 		}
-	} else {
 		OPP_CheckSym(9);
 		OPP_Expression(&low);
 		OPP_CheckSym(21);
 		OPP_Expression(&high);
-		if (OPP_sym == 19) {
-			OPP_err(160);
-			while ((((OPP_sym != 27 && OPP_sym != 41)) && OPP_sym != 64)) {
-				OPS_Get(&OPP_sym);
+		typ = OPT_inttyp;
+		if (((low->typ->form != 4 || high->typ->form != 4) || __IN(low->class, 0x0300, 32)) || __IN(high->class, 0x0300, 32)) {
+			OPP_err(164);
+			low = OPB_NewIntConst(0);
+			high = OPB_NewIntConst(-1);
+		} else {
+			if (low->typ->size > typ->size) {
+				typ = low->typ;
+			}
+			if (high->typ->size > typ->size) {
+				typ = high->typ;
 			}
 		}
-	}
-	typ = OPT_inttyp;
-	if (((low->typ->form != 4 || high->typ->form != 4) || __IN(low->class, 0x0300, 32)) || __IN(high->class, 0x0300, 32)) {
-		OPP_err(164);
-		low = OPB_NewIntConst(0);
-		high = OPB_NewIntConst(-1);
-	} else {
-		if (low->typ->size > typ->size) {
-			typ = low->typ;
+		range = group;
+		while (range != NIL) {
+			range->typ = typ;
+			range->left = low;
+			range->right = high;
+			range = range->link;
 		}
-		if (high->typ->size > typ->size) {
-			typ = high->typ;
+		if (OPP_sym != 19) {
+			break;
 		}
+		OPS_Get(&OPP_sym);
 	}
 	owner = OPT_topScope->link;
 	OPT_OpenScope(OPP_level, NIL);
 	OPT_topScope->link = owner;
-	OPT_Insert(name, &id);
-	id->mode = 14;
-	id->typ = typ;
-	id->x = OPP_AllCounter;
-	OPP_AllCounter += 1;
-	range = OPT_NewNode(30);
-	range->obj = id;
-	range->typ = typ;
-	range->left = low;
-	range->right = high;
+	range = ranges;
+	while (range != NIL) {
+		OPT_Insert(range->obj->name, &id);
+		id->mode = 14;
+		id->typ = range->typ;
+		id->x = OPP_AllCounter;
+		OPP_AllCounter += 1;
+		range->obj = id;
+		range = range->link;
+	}
 	if (OPP_sym == 51) {
-		OPP_AllLocals(id);
+		OPP_AllLocals(ranges->obj);
 	}
 	OPP_CheckSym(27);
 	body = NIL;
@@ -1580,23 +1727,23 @@ static void OPP_AllStatement (OPT_Node *x)
 		OPP_err(161);
 		OPP_SkipAllTail();
 	}
-	OPP_CheckAllAssignments(body, range);
+	OPP_CheckAllAssignments(body, ranges);
 	OPT_CloseScope();
 	OPP_CheckSym(41);
-	*x = range;
+	*x = ranges;
 	OPB_Construct(29, &*x, body);
 }
 
-static struct StatSeq__37 {
+static struct StatSeq__40 {
 	INT32 *pos;
-	struct StatSeq__37 *lnk;
-} *StatSeq__37_s;
+	struct StatSeq__40 *lnk;
+} *StatSeq__40_s;
 
-static void CasePart__38 (OPT_Node *x);
-static void CheckBool__40 (OPT_Node *x);
-static void SetPos__42 (OPT_Node x);
+static void CasePart__41 (OPT_Node *x);
+static void CheckBool__43 (OPT_Node *x);
+static void SetPos__45 (OPT_Node x);
 
-static void CasePart__38 (OPT_Node *x)
+static void CasePart__41 (OPT_Node *x)
 {
 	INT16 n;
 	INT32 low, high;
@@ -1604,7 +1751,7 @@ static void CasePart__38 (OPT_Node *x)
 	OPP_CaseTable tab;
 	OPT_Node cases = NIL, lab = NIL, y = NIL, lastcase = NIL;
 	OPP_Expression(&*x);
-	*StatSeq__37_s->pos = OPM_errpos;
+	*StatSeq__40_s->pos = OPM_errpos;
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
 	} else if (!__IN((*x)->typ->form, 0x18, 32)) {
@@ -1658,13 +1805,13 @@ static void CasePart__38 (OPT_Node *x)
 	}
 }
 
-static void SetPos__42 (OPT_Node x)
+static void SetPos__45 (OPT_Node x)
 {
 	x->conval = OPT_NewConst();
-	x->conval->intval = *StatSeq__37_s->pos;
+	x->conval->intval = *StatSeq__40_s->pos;
 }
 
-static void CheckBool__40 (OPT_Node *x)
+static void CheckBool__43 (OPT_Node *x)
 {
 	if ((*x)->class == 8 || (*x)->class == 9) {
 		OPP_err(126);
@@ -1673,7 +1820,7 @@ static void CheckBool__40 (OPT_Node *x)
 		OPP_err(120);
 		*x = OPB_NewBoolConst(0);
 	}
-	*StatSeq__37_s->pos = OPM_errpos;
+	*StatSeq__40_s->pos = OPM_errpos;
 }
 
 static void OPP_StatSeq (OPT_Node *stat)
@@ -1684,10 +1831,10 @@ static void OPP_StatSeq (OPT_Node *stat)
 	OPT_Node s = NIL, x = NIL, y = NIL, z = NIL, apar = NIL, last = NIL, lastif = NIL;
 	INT32 pos;
 	OPS_Name name;
-	struct StatSeq__37 _s;
+	struct StatSeq__40 _s;
 	_s.pos = &pos;
-	_s.lnk = StatSeq__37_s;
-	StatSeq__37_s = &_s;
+	_s.lnk = StatSeq__40_s;
+	StatSeq__40_s = &_s;
 	*stat = NIL;
 	last = NIL;
 	for (;;) {
@@ -1740,20 +1887,20 @@ static void OPP_StatSeq (OPT_Node *stat)
 		} else if (OPP_sym == 45) {
 			OPS_Get(&OPP_sym);
 			OPP_Expression(&x);
-			CheckBool__40(&x);
+			CheckBool__43(&x);
 			OPP_CheckSym(26);
 			OPP_StatSeq(&y);
 			OPB_Construct(15, &x, y);
-			SetPos__42(x);
+			SetPos__45(x);
 			lastif = x;
 			while (OPP_sym == 43) {
 				OPS_Get(&OPP_sym);
 				OPP_Expression(&y);
-				CheckBool__40(&y);
+				CheckBool__43(&y);
 				OPP_CheckSym(26);
 				OPP_StatSeq(&z);
 				OPB_Construct(15, &y, z);
-				SetPos__42(y);
+				SetPos__45(y);
 				OPB_Link(&x, &lastif, y);
 			}
 			if (OPP_sym == 42) {
@@ -1768,12 +1915,12 @@ static void OPP_StatSeq (OPT_Node *stat)
 			pos = OPM_errpos;
 		} else if (OPP_sym == 46) {
 			OPS_Get(&OPP_sym);
-			CasePart__38(&x);
+			CasePart__41(&x);
 			OPP_CheckSym(41);
 		} else if (OPP_sym == 47) {
 			OPS_Get(&OPP_sym);
 			OPP_Expression(&x);
-			CheckBool__40(&x);
+			CheckBool__43(&x);
 			OPP_CheckSym(27);
 			OPP_StatSeq(&y);
 			OPB_Construct(22, &x, y);
@@ -1784,7 +1931,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 			if (OPP_sym == 44) {
 				OPS_Get(&OPP_sym);
 				OPP_Expression(&y);
-				CheckBool__40(&y);
+				CheckBool__43(&y);
 			} else {
 				OPP_err(44);
 			}
@@ -1804,7 +1951,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				pos = OPM_errpos;
 				x = OPB_NewLeaf(id);
 				OPB_Assign(&x, y);
-				SetPos__42(x);
+				SetPos__45(x);
 				OPP_CheckSym(28);
 				OPP_Expression(&y);
 				pos = OPM_errpos;
@@ -1825,7 +1972,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 					}
 					z = OPB_NewLeaf(t);
 					OPB_Assign(&z, y);
-					SetPos__42(z);
+					SetPos__45(z);
 					OPB_Link(&*stat, &last, z);
 					y = OPB_NewLeaf(t);
 				} else if (!(y->typ->form == 4) || y->typ->size > x->left->typ->size) {
@@ -1852,7 +1999,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				OPP_StatSeq(&s);
 				y = OPB_NewLeaf(id);
 				OPB_StPar1(&y, z, 13);
-				SetPos__42(y);
+				SetPos__45(y);
 				if (s == NIL) {
 					s = y;
 				} else {
@@ -1910,7 +2057,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 				OPP_CheckSym(27);
 				OPP_StatSeq(&s);
 				OPB_Construct(15, &y, s);
-				SetPos__42(y);
+				SetPos__45(y);
 				if (idtyp != NIL) {
 					id->typ = idtyp;
 					idtyp = NIL;
@@ -1959,7 +2106,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 			pos = OPM_errpos;
 		}
 		if (x != NIL) {
-			SetPos__42(x);
+			SetPos__45(x);
 			OPB_Link(&*stat, &last, x);
 		}
 		if (OPP_sym == 39) {
@@ -1970,7 +2117,7 @@ static void OPP_StatSeq (OPT_Node *stat)
 			break;
 		}
 	}
-	StatSeq__37_s = _s.lnk;
+	StatSeq__40_s = _s.lnk;
 }
 
 static void OPP_Block (OPT_Node *procdec, OPT_Node *statseq)
@@ -2139,6 +2286,7 @@ void OPP_Module (OPT_Node *prog, UINT32 opt)
 	OPS_Init();
 	OPP_LoopLevel = 0;
 	OPP_AllCounter = 0;
+	OPP_ReductionDepth = 0;
 	OPP_level = 0;
 	OPS_Get(&OPP_sym);
 	if (OPP_sym == 63) {
