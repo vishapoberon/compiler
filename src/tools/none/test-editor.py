@@ -211,6 +211,20 @@ def check_completion(command, work):
     output = run(b"F.Swap(1,\r", b"F.Swap(1,\n")
     assert b"\x1b[1;38;5;231mright" in output, "missing multiline imported parameter hint"
 
+    output = run(b"PROCEDURE LocalCall(", b"PROCEDURE LocalCall(")
+    assert b"\x1b[1;38;5;231m" not in output, "procedure heading showed a call hint"
+
+    output = run(
+        b"VAR pending: INTEGER\rCONST afterVar = 1;\r"
+        b"PROCEDURE Pending(first,\rCONST afterHeading = 1;\r\x00",
+        b"VAR pending: INTEGER\nCONST afterVar = 1;\n"
+        b"PROCEDURE Pending(first,\nCONST afterHeading = 1;\n",
+        [(b"arrows choose", b"\x1b")],
+    )
+    assert b"proc  Pending" not in output, "unfinished heading was offered"
+    assert b"const afterVar" in output, "declaration did not end at CONST"
+    assert b"const afterHeading" in output, "heading did not end at CONST"
+
     output = run(b"MissingModule.\x00", b"MissingModule.")
     assert b"Nothing to complete here" in output
     output = run(b"123\x00", b"123")
