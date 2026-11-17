@@ -15,11 +15,13 @@ BEGIN INC(checks); IF ~okay THEN INC(failures); Out.String("FAIL SHA-512 stream 
 PROCEDURE Hex(ch: CHAR): LONGINT;
 BEGIN IF ch <= "9" THEN RETURN ORD(ch)-ORD("0") END; RETURN ORD(ch)-ORD("a")+10 END Hex;
 
-PROCEDURE Vector(text, hash: ARRAY OF CHAR; length: LONGINT);
+(* the digest is given as two halves of 64 hex digits *)
+PROCEDURE Vector(text, first, second: ARRAY OF CHAR; length: LONGINT);
 VAR i: LONGINT;
 BEGIN
   i := 0; WHILE i < length DO message[i] := text[i]; INC(i) END;
-  i := 0; WHILE i < 64 DO wanted[i] := CHR(Hex(hash[i*2])*16+Hex(hash[i*2+1])); INC(i) END;
+  i := 0; WHILE i < 32 DO wanted[i] := CHR(Hex(first[i*2])*16+Hex(first[i*2+1])); INC(i) END;
+  i := 0; WHILE i < 32 DO wanted[32+i] := CHR(Hex(second[i*2])*16+Hex(second[i*2+1])); INC(i) END;
   TLSSHA512.Init512(context); Check(TLSSHA512.Update(context, message, 0, length));
   Check(TLSSHA512.Final512(context, digest));
   i := 0; WHILE (i < 64) & (digest[i] = wanted[i]) DO INC(i) END; Check(i = 64)
@@ -69,10 +71,12 @@ BEGIN
 END Lifecycle;
 
 BEGIN
-  Vector("", "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e", 0);
+  Vector("", "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce",
+    "47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e", 0);
   empty := digest;
-  Vector("abc", "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f", 3);
+  Vector("abc", "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a",
+    "2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f", 3);
   Lifecycle; Partitions;
   Out.String("TLSTestSHA512Stream: "); Out.Int(checks, 0); Out.String(" checks, "); Out.Int(failures, 0); Out.String(" failed"); Out.Ln;
-  IF failures # 0 THEN HALT(1) END
+  IF failures # 0 THEN HALT(100) END
 END TLSTestSHA512Stream.

@@ -3,10 +3,12 @@ MODULE TLSTestEd25519;
 (* RFC 8032 section 7.1 vectors and strict Ed25519 API checks. *)
 IMPORT TLSEd25519, TLSEd25519Keys, Out;
 
+TYPE Bytes32 = ARRAY 32 OF CHAR; Bytes64 = ARRAY 64 OF CHAR; Bytes256 = ARRAY 256 OF CHAR;
+
 VAR checks, failures: LONGINT;
-  seed, publicKey, wantedKey: ARRAY 32 OF CHAR;
-  signature, wantedSignature: ARRAY 64 OF CHAR;
-  message: ARRAY 256 OF CHAR;
+  seed, publicKey, wantedKey: Bytes32;
+  signature, wantedSignature: Bytes64;
+  message: Bytes256;
 
 PROCEDURE Check(label: ARRAY OF CHAR; okay: BOOLEAN);
 BEGIN
@@ -24,15 +26,23 @@ BEGIN
   WHILE (i < LEN(bytes)) & (text[i*2] # 0X) DO bytes[i] := CHR(Hex(text[i*2])*16+Hex(text[i*2+1])); INC(i) END
 END Decode;
 
+(* a signature given as two halves of 64 hex digits *)
+PROCEDURE DecodeSignature(first, second: ARRAY OF CHAR; VAR bytes: Bytes64);
+VAR half: Bytes32; i: LONGINT;
+BEGIN
+  Decode(first, half); i := 0; WHILE i < 32 DO bytes[i] := half[i]; INC(i) END;
+  Decode(second, half); i := 0; WHILE i < 32 DO bytes[32+i] := half[i]; INC(i) END
+END DecodeSignature;
+
 PROCEDURE Equal(VAR a, b: ARRAY OF CHAR; count: LONGINT): BOOLEAN;
 VAR i: LONGINT;
 BEGIN i := 0; WHILE (i < count) & (a[i] = b[i]) DO INC(i) END; RETURN i = count END Equal;
 
-PROCEDURE Vector(seedHex, keyHex, messageHex, signatureHex: ARRAY OF CHAR; length: LONGINT);
-VAR beforeSeed: ARRAY 32 OF CHAR; beforeMessage: ARRAY 256 OF CHAR;
+PROCEDURE Vector(seedHex, keyHex, messageHex, signatureFirst, signatureSecond: ARRAY OF CHAR; length: LONGINT);
+VAR beforeSeed: Bytes32; beforeMessage: Bytes256;
 BEGIN
   Decode(seedHex, seed); beforeSeed := seed; Decode(keyHex, wantedKey);
-  Decode(messageHex, message); beforeMessage := message; Decode(signatureHex, wantedSignature);
+  Decode(messageHex, message); beforeMessage := message; DecodeSignature(signatureFirst, signatureSecond, wantedSignature);
   Check("derive key", TLSEd25519.PublicKey(seed, publicKey));
   Check("RFC public key", Equal(publicKey, wantedKey, 32));
   Check("sign", TLSEd25519.Sign(seed, message, 0, length, signature));
@@ -45,7 +55,7 @@ BEGIN
 END Vector;
 
 PROCEDURE Strict;
-VAR key: ARRAY 32 OF CHAR; sig: ARRAY 64 OF CHAR; i: LONGINT;
+VAR key: Bytes32; sig: Bytes64; i: LONGINT;
 BEGIN
   Decode("edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000010", key);
   sig := wantedSignature; i := 0; WHILE i < 32 DO sig[32+i] := key[i]; INC(i) END;
@@ -72,7 +82,7 @@ END Strict;
 
 PROCEDURE Bounds;
 VAR short: ARRAY 31 OF CHAR; shortSig: ARRAY 63 OF CHAR; longKey: ARRAY 33 OF CHAR;
-  longSig: ARRAY 65 OF CHAR; oldSignature: ARRAY 64 OF CHAR; i: LONGINT;
+  longSig: ARRAY 65 OF CHAR; oldSignature: Bytes64; i: LONGINT;
 BEGIN
   i := 0; WHILE i < 64 DO signature[i] := 0A5X; INC(i) END; oldSignature := signature;
   Check("short seed", ~TLSEd25519.Sign(short, message, 0, 1, signature));
@@ -92,7 +102,7 @@ BEGIN
 END Bounds;
 
 PROCEDURE Generate;
-VAR otherSeed, otherKey, restored: ARRAY 32 OF CHAR; small: ARRAY 1 OF CHAR; i: LONGINT; cleared: BOOLEAN;
+VAR otherSeed, otherKey, restored: Bytes32; small: ARRAY 1 OF CHAR; i: LONGINT; cleared: BOOLEAN;
 BEGIN
   Check("generate key pair", TLSEd25519Keys.Generate(seed, publicKey));
   Check("generated public key", TLSEd25519.PublicKey(seed, restored) & Equal(publicKey, restored, 32));
@@ -110,14 +120,17 @@ END Generate;
 BEGIN
   Vector("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
     "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a", "",
-    "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b", 0);
+    "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e06522490155",
+    "5fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b", 0);
   Vector("4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
     "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c", "72",
-    "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00", 1);
+    "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da",
+    "085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00", 1);
   Vector("c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
     "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025", "af82",
-    "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a", 2);
+    "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac",
+    "18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a", 2);
   Strict; Bounds; Generate;
   Out.String("TLSTestEd25519: "); Out.Int(checks, 0); Out.String(" checks, "); Out.Int(failures, 0); Out.String(" failed"); Out.Ln;
-  IF failures # 0 THEN HALT(1) END
+  IF failures # 0 THEN HALT(100) END
 END TLSTestEd25519.
