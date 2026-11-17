@@ -7,6 +7,15 @@ IMPORT SYSTEM, TLSBytes;
 CONST
   MinInt = -2147483647 - 1;
 
+TYPE
+  Context* = RECORD
+    hi, lo: ARRAY 8 OF LONGINT;
+    block: ARRAY 128 OF CHAR;
+    bits: ARRAY 4 OF LONGINT;
+    used: LONGINT;
+    active: BOOLEAN
+  END;
+
 VAR
   KH, KL: ARRAY 80 OF LONGINT;
   IV512H, IV512L, IV384H, IV384L: ARRAY 8 OF LONGINT;
@@ -103,28 +112,82 @@ BEGIN
   Add(HH[4], HL[4], eh, el); Add(HH[5], HL[5], fh, fl); Add(HH[6], HL[6], gh, gl); Add(HH[7], HL[7], hh, hl)
 END Block;
 
-(* the hash of msg from the initial value (IH, IL), words 0..words-1 of the result in out *)
-PROCEDURE Hash(VAR msg: TLSBytes.Buffer; VAR IH, IL: ARRAY OF LONGINT; words: LONGINT; VAR out: TLSBytes.Buffer);
-VAR HH, HL: ARRAY 8 OF LONGINT; block: ARRAY 128 OF CHAR; pos, i, n: LONGINT; tmp: TLSBytes.Buffer;
+PROCEDURE Init(VAR c: Context; VAR hi, lo: ARRAY OF LONGINT);
+VAR i: LONGINT;
 BEGIN
-  i := 0; WHILE i < 8 DO HH[i] := IH[i]; HL[i] := IL[i]; INC(i) END;
-  pos := 0;
-  WHILE pos + 128 <= msg.len DO
-    i := 0; WHILE i < 128 DO block[i] := msg.data[pos + i]; INC(i) END;
-    Block(block, HH, HL); INC(pos, 128)
+  i := 0; WHILE i < 8 DO c.hi[i] := hi[i]; c.lo[i] := lo[i]; INC(i) END;
+  i := 0; WHILE i < 4 DO c.bits[i] := 0; INC(i) END;
+  i := 0; WHILE i < 128 DO c.block[i] := 0X; INC(i) END;
+  c.used := 0; c.active := TRUE
+END Init;
+
+(** Starts an incremental SHA-512 hash. *)
+PROCEDURE Init512*(VAR c: Context);
+BEGIN Init(c, IV512H, IV512L)
+END Init512;
+
+(** Adds data[offset..offset+count), without copying the input array.
+    Invalid ranges leave the context unchanged. *)
+PROCEDURE Update*(VAR c: Context; VAR data: ARRAY OF CHAR; offset, count: LONGINT): BOOLEAN;
+VAR n, i, carry, previous: LONGINT;
+BEGIN
+  IF ~c.active OR (offset < 0) OR (offset > LEN(data)) OR (count < 0) OR (count > LEN(data)-offset) THEN RETURN FALSE END;
+  WHILE count > 0 DO
+    n := 128-c.used; IF n > count THEN n := count END;
+    i := 0; WHILE i < n DO c.block[c.used+i] := data[offset+i]; INC(i) END;
+    INC(c.used, n); INC(offset, n); DEC(count, n);
+    carry := n*8; i := 3;
+    WHILE i >= 0 DO
+      previous := c.bits[i]; c.bits[i] := TLSBytes.Add32(previous, carry);
+      carry := 0; IF ULess(c.bits[i], previous) THEN carry := 1 END;
+      DEC(i)
+    END;
+    IF c.used = 128 THEN Block(c.block, c.hi, c.lo); c.used := 0 END
   END;
-  TLSBytes.Init(tmp);
-  i := pos; WHILE i < msg.len DO TLSBytes.AppendByte(tmp, ORD(msg.data[i])); INC(i) END;
-  TLSBytes.AppendByte(tmp, 128);
-  WHILE tmp.len MOD 128 # 112 DO TLSBytes.AppendByte(tmp, 0) END;
-  TLSBytes.PutBE64(tmp, 0, 0); TLSBytes.PutBE64(tmp, 0, msg.len * 8);  (* msg.len <= TLSBytes.MaxLen *)
-  pos := 0;
-  WHILE pos < tmp.len DO
-    i := 0; WHILE i < 128 DO block[i] := tmp.data[pos + i]; INC(i) END;
-    Block(block, HH, HL); INC(pos, 128)
+  RETURN TRUE
+END Update;
+
+PROCEDURE Finish(VAR c: Context; VAR digest: ARRAY OF CHAR; words: LONGINT): BOOLEAN;
+VAR i, j, value: LONGINT;
+BEGIN
+  IF ~c.active OR (LEN(digest) < words*8) THEN RETURN FALSE END;
+  c.block[c.used] := 80X; INC(c.used);
+  IF c.used > 112 THEN
+    WHILE c.used < 128 DO c.block[c.used] := 0X; INC(c.used) END;
+    Block(c.block, c.hi, c.lo); c.used := 0
   END;
-  TLSBytes.Init(out); n := 0;
-  WHILE n < words DO TLSBytes.PutBE32(out, HH[n]); TLSBytes.PutBE32(out, HL[n]); INC(n) END
+  WHILE c.used < 112 DO c.block[c.used] := 0X; INC(c.used) END;
+  i := 0;
+  WHILE i < 4 DO
+    value := c.bits[i]; j := 3;
+    WHILE j >= 0 DO c.block[112+i*4+j] := CHR(value MOD 256); value := value DIV 256; DEC(j) END;
+    INC(i)
+  END;
+  Block(c.block, c.hi, c.lo); i := 0;
+  WHILE i < words DO
+    value := c.hi[i]; j := 3;
+    WHILE j >= 0 DO digest[i*8+j] := CHR(value MOD 256); value := value DIV 256; DEC(j) END;
+    value := c.lo[i]; j := 3;
+    WHILE j >= 0 DO digest[i*8+4+j] := CHR(value MOD 256); value := value DIV 256; DEC(j) END;
+    INC(i)
+  END;
+  i := 0; WHILE i < 8 DO c.hi[i] := 0; c.lo[i] := 0; INC(i) END;
+  i := 0; WHILE i < 4 DO c.bits[i] := 0; INC(i) END;
+  i := 0; WHILE i < 128 DO c.block[i] := 0X; INC(i) END;
+  c.used := 0; c.active := FALSE; RETURN TRUE
+END Finish;
+
+(** Writes 64 digest bytes and consumes the context. A short output leaves it unchanged. *)
+PROCEDURE Final512*(VAR c: Context; VAR digest: ARRAY OF CHAR): BOOLEAN;
+BEGIN RETURN Finish(c, digest, 8)
+END Final512;
+
+PROCEDURE Hash(VAR msg: TLSBytes.Buffer; VAR hi, lo: ARRAY OF LONGINT; words: LONGINT; VAR out: TLSBytes.Buffer);
+VAR c: Context; okay: BOOLEAN;
+BEGIN
+  Init(c, hi, lo); okay := Update(c, msg.data, 0, msg.len);
+  IF okay THEN okay := Finish(c, out.data, words) END;
+  IF okay THEN out.len := words*8 ELSE TLSBytes.Init(out) END
 END Hash;
 
 (** out := SHA-512(msg), 64 bytes *)

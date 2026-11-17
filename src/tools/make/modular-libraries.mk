@@ -64,14 +64,14 @@ MODULAR_INTERNET = norayr/Internet/unixNet norayr/Internet/Kernel norayr/Interne
  norayr/Internet/server norayr/Internet/NetSystem
 MODULAR_HTTP = norayr/http/hexIntStr norayr/http/http
 MODULAR_TLS = norayr/tls/TLSBytes norayr/tls/TLSSHA256 norayr/tls/TLSHKDF \
- norayr/tls/TLSSHA512 norayr/tls/TLSNum norayr/tls/TLSECDSA norayr/tls/TLSX25519 \
+ norayr/tls/TLSSHA512 norayr/tls/TLSEd25519 norayr/tls/TLSNum norayr/tls/TLSECDSA norayr/tls/TLSX25519 \
  norayr/tls/TLSAESGCM norayr/tls/TLS13Records norayr/tls/TLS13Handshake \
  norayr/tls/TLS13Keys norayr/tls/TLS13Finished norayr/tls/TLSBase64 \
  norayr/tls/TLSPEM norayr/tls/TLS13Certs norayr/tls/TLSASN1 norayr/tls/TLSX509 \
  norayr/tls/TLSX509Validity norayr/tls/TLSRSA norayr/tls/TLSX509Names \
  norayr/tls/TLSX509Ext norayr/tls/TLSSig norayr/tls/TLSNameConstraints \
  norayr/tls/TLSX509Chain norayr/tls/TLSCABundle norayr/tls/TLS13EncHandshake \
- norayr/tls/TLS13ClientFinished norayr/tls/TLS13Application norayr/tls/TLS13Random \
+ norayr/tls/TLS13ClientFinished norayr/tls/TLS13Application norayr/tls/TLS13Random norayr/tls/TLSEd25519Keys \
  norayr/tls/TLSNow norayr/tls/TLSIdentity norayr/tls/TLSCertGen \
  norayr/tls/TLS13Live norayr/tls/TLS13Server norayr/tls/httpsPure
 MODULAR_HTTPS = norayr/https/https
