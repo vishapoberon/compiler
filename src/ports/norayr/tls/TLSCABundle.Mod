@@ -10,6 +10,11 @@ TYPE
     len*: LONGINT;
     text*: ARRAY MaxBundle OF CHAR
   END;
+  Text = POINTER TO ARRAY OF CHAR;
+
+VAR
+  kept: Text; keptLen: LONGINT;  (* the bundle LoadDefault read, from keptPath *)
+  keptPath: ARRAY 512 OF CHAR;
 
 PROCEDURE Init*(VAR b: Bundle);
 BEGIN
@@ -32,13 +37,24 @@ BEGIN
   RETURN TRUE
 END Load;
 
-(** the bundle named by the environment variable SSL_CERT_FILE (as for OpenSSL), else DefaultPath *)
+(** the bundle named by the environment variable SSL_CERT_FILE (as for OpenSSL), else DefaultPath; the
+   file is read once and kept for the next connections, which then open no file *)
 PROCEDURE LoadDefault*(VAR b: Bundle): BOOLEAN;
-VAR path: ARRAY 512 OF CHAR;
+VAR path: ARRAY 512 OF CHAR; i: LONGINT;
 BEGIN
   Kernel.GetConfig("SSL_CERT_FILE", path);
   IF path = "" THEN COPY(DefaultPath, path) END;
-  RETURN Load(path, b)
+  IF (kept # NIL) & (path = keptPath) THEN
+    i := 0; WHILE i < keptLen DO b.text[i] := kept[i]; INC(i) END;
+    b.len := keptLen; b.text[keptLen] := 0X;
+    RETURN TRUE
+  END;
+  IF ~Load(path, b) THEN RETURN FALSE END;
+  NEW(kept, b.len + 1); i := 0; WHILE i < b.len DO kept[i] := b.text[i]; INC(i) END;
+  keptLen := b.len; COPY(path, keptPath);
+  RETURN TRUE
 END LoadDefault;
 
+BEGIN
+  kept := NIL; keptLen := 0; keptPath := ""
 END TLSCABundle.
