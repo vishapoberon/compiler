@@ -68,7 +68,12 @@ def main():
     build = Path(directory).resolve()
     build.mkdir(parents=True, exist_ok=True)
     source = Path(__file__).resolve().parent
-    modules = source.parents[2] / "ports/norayr/tls"
+    modules = source.parent / "src"
+    if (modules / "TLSEd25519.Mod").is_file():
+        tests = modules
+    else:
+        modules = source.parents[2] / "ports/norayr/tls"
+        tests = source
     env = dict(os.environ)
     env["OBERON"] = str(build) + ";" + env.get("OBERON", "")
 
@@ -76,10 +81,10 @@ def main():
         subprocess.run([compiler, "-O" + model, *shlex.split(flags if main else "-sF"), str(path)],
                        cwd=cwd, env=environment, check=True)
 
-    for name in ("TLSBytes", "TLSSHA512", "TLSEd25519", "TLSEd25519Keys"):
+    for name in ("TLSBytes", "TLSSHA512", "TLSEd25519", "TLS13Random", "TLSEd25519Keys"):
         compile_file(modules / (name + ".Mod"))
     for name in ("TLSTestEd25519", "TLSTestSHA512Stream"):
-        compile_file(source / (name + ".Mod"), main=True)
+        compile_file(tests / (name + ".Mod"), main=True)
         subprocess.run([str(build / name)], cwd=build, env=env, check=True)
 
     body = []
