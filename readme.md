@@ -9,15 +9,16 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-[Release notes for 5.2](doc/ReleaseNotes-5.2.md) ·
+[Release notes for 5.3](doc/ReleaseNotes-5.3.md) ·
+[5.2 release notes](doc/ReleaseNotes-5.2.md) ·
 [5.1 release notes](doc/ReleaseNotes-5.1.md) ·
 [5.0 release notes](doc/ReleaseNotes-5.0.md) ·
 [4.0 release history](doc/ReleaseNotes-4.0.md)
 
-Version 5.2 adds Oberon name completion and call-parameter hints to the
-`none` editor, both standalone and inside `hresh`. Symbol lookup reads VOC
-interfaces without running module initializers. See the
-[editor guide](doc/SharedModules.md#compiler-definition-browser-and-editor) for usage.
+Version 5.3 adds native Ed25519 signatures, incremental SHA-512 and resumable
+mutual TLS 1.3 authentication with manually pinned Ed25519 keys. The `none`
+editor provides Oberon completion and call-parameter hints, including unfinished
+declarations; see the [editor guide](doc/SharedModules.md#compiler-definition-browser-and-editor).
 
 The experimental Oberon-V support includes `SUM` and `PROD` reductions,
 multidimensional CPU `ALL`, and automatic vectorization.

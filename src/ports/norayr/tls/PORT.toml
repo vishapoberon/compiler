@@ -3,7 +3,7 @@ package = "tls"
 kind = "library"
 origin = "Norayr Chilingarian's pure-Oberon TLS 1.3 implementation"
 upstream_url = "https://github.com/norayr/tls"
-upstream_revision = "84cdd281afd59b6dd75c15b2ede93c6d4f4685a2"
+upstream_revision = "5b4577d38e9422a33adf05e8fe0602c2b881785f"
 revision_status = "synchronized with upstream, including pinned Ed25519 mutual TLS"
 sources = [
   "TLSBytes.Mod", "TLSSHA256.Mod", "TLSHKDF.Mod", "TLSSHA512.Mod", "TLSEd25519.Mod", "TLSNum.Mod",
@@ -15,7 +15,7 @@ sources = [
   "TLSNow.Mod", "TLSIdentity.Mod", "TLS13Auth.Mod", "TLSCertGen.Mod", "TLS13Live.Mod", "TLS13Server.Mod", "httpsPure.Mod",
 ]
 license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; shared ETH BIT retains separate provenance in s3"
-source_map = ["src/*.Mod -> same filenames (38 selected libraries only)", "LICENSE and COPYING -> same filenames", "Ed25519.md -> same filename (adapting build paths)", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/{*.Mod,*.py} -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
+source_map = ["src/*.Mod -> same filenames (38 selected libraries only)", "LICENSE, COPYING and README.md -> same filenames", "Ed25519.md -> same filename (adapting build paths)", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/{*.Mod,*.py} -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
 adaptations = [
   "keeping implementation sources, native tests and Ed25519 authentication interoperability drivers byte-identical to the recorded upstream revision",
   "copying five hexadecimal-dump tests byte-for-byte from Polpo c9795fc1 through the shared TLS upstream",
