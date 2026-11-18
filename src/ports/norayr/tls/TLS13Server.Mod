@@ -1,18 +1,20 @@
 MODULE TLS13Server;
 (** The server side of TLS 1.3 (RFC 8446), for Gemini and HTTPS servers. The server has a
-  certificate chain with an ECDSA P-256 key (Load); Accept makes the handshake on a connection
+  certificate chain and a private key (Load); Accept makes the handshake on a connection
   that the caller accepted, and gives a TLS13Live.State, which is then read and written as a
   client connection is (ReadAppMax, WriteAppString, Disconnect).
   One cipher suite, TLS_AES_128_GCM_SHA256; the key exchange X25519 or P-256, with a
   HelloRetryRequest when the client offered a key share of neither; a certificate with an ECDSA
-  P-256 key (CertificateVerify ecdsa_secp256r1_sha256) or an RSA key (rsa_pss_rsae_sha256), see
-  TLSIdentity. No PSK, so no session tickets and no early data; no client
-  certificates. Several servers on one port (virtual hosts): AcceptBy, with a procedure that
+  P-256 key (CertificateVerify ecdsa_secp256r1_sha256), an RSA key (rsa_pss_rsae_sha256), or
+  an Ed25519 key (ed25519), see
+  TLSIdentity. No PSK, so no session tickets and no early data. Accept does not request client
+  certificates; BeginEd25519/PollEd25519 require a manually pinned Ed25519 client identity.
+  Several servers on one port (virtual hosts): AcceptBy, with a procedure that
   gives the certificate for the host name the client asks for (SNI). A client that does not wait (a missing ClientHello) blocks Accept: the caller
   sets a timeout on the socket first. *)
 IMPORT Out, Internet, Linux0 := unixNet, SYSTEM,
   TLSBytes, TLS13Random, TLSX25519, TLSECDSA, TLSIdentity, TLS13Keys, TLS13Records, TLS13Finished,
-  TLS13Application, TLS13Live;
+  TLS13Application, TLS13Live, Sockets, TLS13Auth, TLSNow, TLSX509Validity;
 
 CONST
   MaxChain* = 8;              (** certificates in a chain *)
@@ -21,7 +23,7 @@ CONST
   CertificateVerify = 15; Finished = 20; MessageHash = 254;
   ExtServerName = 0; ExtSupportedGroups = 10; ExtSignatureAlgorithms = 13;
   ExtSupportedVersions = 43; ExtKeyShare = 51;
-  X25519 = 1DH; P256 = 17H; EcdsaP256Sha256 = 403H; RsaPssRsaeSha256 = 804H; AES128GCM = 1301H;
+  X25519 = 1DH; P256 = 17H; EcdsaP256Sha256 = 403H; RsaPssRsaeSha256 = 804H; Ed25519 = 807H; AES128GCM = 1301H;
   (* alerts *)
   UnexpectedMessage = 10; BadRecordMac = 20; RecordOverflow = 22; HandshakeFailure = 40; IllegalParameter = 47;
   DecodeError = 50; DecryptError = 51; ProtocolVersion = 70; InternalError = 80;
@@ -38,8 +40,22 @@ TYPE
     sidLen, shareLen, group: LONGINT;          (* group: of the key share taken, 0: none *)
     sid: ARRAY 32 OF CHAR;
     share: ARRAY 65 OF CHAR;
-    tls13, aes, nullComp, ecdsa, rsapss, x25519, p256: BOOLEAN;
+    tls13, aes, nullComp, ecdsa, rsapss, ed25519, x25519, p256: BOOLEAN;
     host: ARRAY 256 OF CHAR
+  END;
+
+  Pending* = POINTER TO PendingDesc;
+  PendingDesc = RECORD
+    fd*: Internet.Socket;
+    name*: ARRAY 256 OF CHAR;
+    id: Identity;
+    pin, spki, wire, output, message, transcript: TLSBytes.Buffer;
+    clientKey, clientIV, serverKey, serverIV, clientFinished: TLSBytes.Buffer;
+    clientSecret, serverSecret: TLSBytes.Buffer;
+    hello: Hello;
+    sid: ARRAY 32 OF CHAR;
+    sidLen, requestedGroup, phase, have, need, outPos, clientSeq, serverSeq, authStage: LONGINT;
+    ccsSeen, ccsSent: BOOLEAN
   END;
 
 
@@ -68,7 +84,7 @@ END Wipe;
 (* ----- the certificate and the key ----- *)
 
 (** id := the certificates of the PEM file certFile (the leaf first, then the chain to a root,
-  not needed) and the private key (ECDSA P-256 or RSA) of the PEM file keyFile; FALSE if they
+  not needed) and the private key (Ed25519, ECDSA P-256 or RSA) of the PEM file keyFile; FALSE if they
   cannot be read or do not belong together (lastError says why) *)
 PROCEDURE Load*(certFile, keyFile: ARRAY OF CHAR; VAR id: Identity): BOOLEAN;
 BEGIN
@@ -173,6 +189,7 @@ VAR p, end, n, type, len, e, k, g, l, i: LONGINT; seen: SET;
 BEGIN
   h.sidLen := 0; h.shareLen := 0; h.group := 0; h.host := "";
   h.tls13 := FALSE; h.aes := FALSE; h.nullComp := FALSE; h.ecdsa := FALSE; h.rsapss := FALSE; h.x25519 := FALSE; h.p256 := FALSE;
+  h.ed25519 := FALSE;
   IF (m.len < 4 + 35) OR (ORD(m.data[0]) # ClientHello) THEN RETURN FALSE END;
   end := m.len; p := 4 + 2 + 32;                  (* legacy_version, random *)
   n := ORD(m.data[p]); INC(p);                    (* legacy_session_id *)
@@ -210,7 +227,9 @@ BEGIN
       h.tls13 := Has16(m, p + 1, e, 304H)
     ELSIF (type = ExtSupportedGroups) OR (type = ExtSignatureAlgorithms) THEN
       IF (len < 2) OR (2 + TLSBytes.GetBE16(m, p) # len) THEN RETURN FALSE END;
-      IF type = ExtSignatureAlgorithms THEN h.ecdsa := Has16(m, p + 2, e, EcdsaP256Sha256); h.rsapss := Has16(m, p + 2, e, RsaPssRsaeSha256)
+      IF type = ExtSignatureAlgorithms THEN
+        h.ecdsa := Has16(m, p + 2, e, EcdsaP256Sha256); h.rsapss := Has16(m, p + 2, e, RsaPssRsaeSha256);
+        h.ed25519 := Has16(m, p + 2, e, Ed25519)
       ELSE h.x25519 := Has16(m, p + 2, e, X25519); h.p256 := Has16(m, p + 2, e, P256)
       END
     ELSIF type = ExtKeyShare THEN
@@ -273,7 +292,7 @@ BEGIN
   IF ~h.tls13 THEN Fail(ProtocolVersion, "the client does not offer TLS 1.3")
   ELSIF ~h.aes THEN Fail(HandshakeFailure, "the client does not offer TLS_AES_128_GCM_SHA256")
   ELSIF ~h.nullComp THEN Fail(IllegalParameter, "no null compression in the ClientHello")
-  ELSIF ~h.ecdsa & ~h.rsapss THEN Fail(HandshakeFailure, "the client accepts neither ecdsa_secp256r1_sha256 nor rsa_pss_rsae_sha256")
+  ELSIF ~h.ecdsa & ~h.rsapss & ~h.ed25519 THEN Fail(HandshakeFailure, "the client accepts no supported signature scheme")
   ELSIF (h.group = 0) & ~(first & (h.x25519 OR h.p256)) THEN Fail(HandshakeFailure, "no key exchange in common (X25519, P-256)")
   ELSE RETURN TRUE
   END;
@@ -393,7 +412,9 @@ BEGIN
   IF ~CheckHello(h, TRUE) THEN RETURN FALSE END;
   id := choose(serverName);
   IF id = NIL THEN Fail(UnrecognizedName, "no certificate for the host name the client asks for"); RETURN FALSE END;
-  IF (TLSIdentity.Scheme(id) = EcdsaP256Sha256) & ~h.ecdsa OR (TLSIdentity.Scheme(id) = RsaPssRsaeSha256) & ~h.rsapss THEN
+  IF (TLSIdentity.Scheme(id) = EcdsaP256Sha256) & ~h.ecdsa OR
+     (TLSIdentity.Scheme(id) = RsaPssRsaeSha256) & ~h.rsapss OR
+     (TLSIdentity.Scheme(id) = Ed25519) & ~h.ed25519 THEN
     Fail(HandshakeFailure, "the client does not accept the signatures of the certificate"); RETURN FALSE
   END;
   TLSBytes.Copy(msg, th);
@@ -489,6 +510,265 @@ BEGIN
   single := id;
   RETURN AcceptBy(fd, Single, s)
 END Accept;
+
+(** Closes an incomplete nonblocking server handshake and clears its transient secrets. *)
+PROCEDURE ClosePending*(VAR p: Pending);
+BEGIN
+  IF p = NIL THEN RETURN END;
+  IF p.fd >= 0 THEN Internet.Disconnect(p.fd) END;
+  p.fd := -1; p.id := NIL;
+  Wipe(p.pin); Wipe(p.spki); Wipe(p.wire); Wipe(p.output); Wipe(p.message); Wipe(p.transcript);
+  Wipe(p.clientKey); Wipe(p.clientIV); Wipe(p.serverKey); Wipe(p.serverIV); Wipe(p.clientFinished);
+  Wipe(p.clientSecret); Wipe(p.serverSecret); p := NIL
+END ClosePending;
+
+(** Begins a nonblocking, mutually authenticated Ed25519 server upgrade. Both the local
+    identity and the peer's exact 32-byte raw key pin are required. Takes ownership of fd,
+    including on failure. Use an inactive pending handle; keep id valid until completion. *)
+PROCEDURE BeginEd25519*(fd: Internet.Socket; id: Identity; VAR pin: TLSBytes.Buffer; VAR p: Pending): BOOLEAN;
+VAR socket: Sockets.Socket; publicKey, spki: TLSBytes.Buffer; now: TLSX509Validity.Time;
+BEGIN
+  p := NIL; lastError := ""; TLSNow.Current(now);
+  IF (fd < 0) OR (pin.len # 32) OR (id = NIL) OR (id.kind # TLSIdentity.Ed25519) OR (id.n # 1) OR
+     (id.certs[0].len > MaxPlain-13) OR ~TLSIdentity.PublicKey(id^, publicKey) OR
+     ~TLS13Auth.PinnedEd25519(id.certs[0], publicKey, now, TRUE, spki) THEN
+    IF fd >= 0 THEN Internet.Disconnect(fd) END;
+    COPY("invalid local Ed25519 identity or peer pin", lastError); RETURN FALSE
+  END;
+  NEW(socket); socket.fd := fd;
+  IF ~Sockets.SetBlocking(socket, FALSE) THEN
+    Internet.Disconnect(fd); COPY("cannot make the TLS socket nonblocking", lastError); RETURN FALSE
+  END;
+  NEW(p); p.fd := fd; p.id := id; TLSBytes.Copy(pin, p.pin);
+  p.phase := 0; p.have := 0; p.need := 5; p.outPos := 0;
+  p.clientSeq := 0; p.serverSeq := 0; p.authStage := 0; p.ccsSeen := FALSE; p.ccsSent := FALSE;
+  RETURN TRUE
+END BeginEd25519;
+
+(** Whether the pending handshake has bytes awaiting a writable socket. *)
+PROCEDURE WantsWrite*(p: Pending): BOOLEAN;
+BEGIN RETURN (p # NIL) & (p.outPos < p.output.len)
+END WantsWrite;
+
+PROCEDURE PendingRecord(p: Pending): INTEGER;
+VAR n: LONGINT;
+BEGIN
+  TLSBytes.SetLen(p.wire, p.need);
+  n := Sockets.ReadDescriptor(p.fd, p.wire.data, p.have, p.need-p.have);
+  IF Sockets.WouldBlock(n) OR Sockets.Interrupted(n) THEN RETURN 0 END;
+  IF n <= 0 THEN Fail(0, "the client closed the connection"); RETURN -1 END;
+  INC(p.have, n);
+  IF p.have < p.need THEN RETURN 0 END;
+  IF p.need = 5 THEN
+    n := TLSBytes.GetBE16(p.wire, 3);
+    IF (n < 1) OR (n > MaxRecord) OR (p.wire.data[1] # 3X) OR
+       ((p.wire.data[2] # 3X) & ((p.phase # 0) OR (p.wire.data[2] # 1X))) THEN
+      Fail(DecodeError, "an invalid TLS record header"); RETURN -1
+    END;
+    p.need := 5+n; RETURN 0
+  END;
+  p.have := 0; p.need := 5; RETURN 1
+END PendingRecord;
+
+PROCEDURE PendingFlush(p: Pending): INTEGER;
+VAR n: LONGINT;
+BEGIN
+  IF p.outPos < p.output.len THEN
+    n := Sockets.WriteDescriptor(p.fd, p.output.data, p.outPos, p.output.len-p.outPos);
+    IF Sockets.WouldBlock(n) OR Sockets.Interrupted(n) THEN RETURN 0 END;
+    IF n <= 0 THEN Fail(0, "writing to the client failed"); RETURN -1 END;
+    INC(p.outPos, n);
+    IF p.outPos < p.output.len THEN RETURN 0 END
+  END;
+  Wipe(p.output); p.outPos := 0; RETURN 1
+END PendingFlush;
+
+PROCEDURE PendingCCS(p: Pending);
+VAR one, record: TLSBytes.Buffer;
+BEGIN
+  TLSBytes.Init(one); TLSBytes.AppendByte(one, 1);
+  PlainRecord(TLS13Records.ChangeCipherSpec, one, record); TLSBytes.Append(p.output, record); p.ccsSent := TRUE
+END PendingCCS;
+
+PROCEDURE PendingRetry(p: Pending);
+VAR random, none, message, hash: TLSBytes.Buffer; i: LONGINT;
+BEGIN
+  IF p.hello.x25519 THEN p.requestedGroup := X25519 ELSE p.requestedGroup := P256 END;
+  HexBytes("CF21AD74E59A6111BE1D8C021E65B891", "C2A211167ABB8C5E079E09E2C8A8339C", random);
+  TLSBytes.Init(none); BuildServerHello(random, p.hello, p.requestedGroup, none, message);
+  TLS13Keys.HashMessages(p.transcript, hash); TLSBytes.Init(p.transcript);
+  TLSBytes.AppendByte(p.transcript, MessageHash); TLSBytes.PutBE24(p.transcript, hash.len); TLSBytes.Append(p.transcript, hash);
+  TLSBytes.Append(p.transcript, message); PlainRecord(TLS13Records.Handshake, message, p.output);
+  IF p.hello.sidLen > 0 THEN PendingCCS(p) END;
+  p.sidLen := p.hello.sidLen;
+  FOR i := 0 TO p.sidLen-1 DO p.sid[i] := p.hello.sid[i] END;
+  p.phase := 1
+END PendingRetry;
+
+PROCEDURE PendingFlight(p: Pending): BOOLEAN;
+VAR public, shared, random, message, hash, flight, part, record, serverFinished, secret, master: TLSBytes.Buffer;
+  pos, n: LONGINT;
+BEGIN
+  IF ~KeyExchange(p.hello, public, shared) THEN RETURN FALSE END;
+  TLSBytes.SetLen(random, 32);
+  IF ~TLS13Random.Fill(random.data, 32) THEN Wipe(shared); Fail(InternalError, "no random bytes"); RETURN FALSE END;
+  BuildServerHello(random, p.hello, p.hello.group, public, message);
+  IF p.transcript.len+message.len > TLSBytes.MaxLen THEN
+    Wipe(shared); Fail(DecodeError, "the handshake transcript is too long"); RETURN FALSE
+  END;
+  TLSBytes.Append(p.transcript, message); PlainRecord(TLS13Records.Handshake, message, p.output);
+  IF (p.hello.sidLen > 0) & ~p.ccsSent THEN PendingCCS(p) END;
+  TLS13Keys.HashMessages(p.transcript, hash);
+  TLS13Keys.HandshakeKeys(shared, hash, p.clientKey, p.clientIV, p.serverKey, p.serverIV, p.clientFinished, serverFinished);
+  TLS13Keys.HandshakeSecret(shared, secret); Wipe(shared);
+  TLSBytes.Init(flight); TLSBytes.AppendByte(flight, EncryptedExtensions); TLSBytes.PutBE24(flight, 2); TLSBytes.PutBE16(flight, 0);
+  TLS13Auth.Request(message); TLSBytes.Append(flight, message);
+  IF ~TLS13Auth.Present(p.id, message) THEN Wipe(secret); Wipe(serverFinished); RETURN FALSE END;
+  TLSBytes.Append(flight, message);
+  IF p.transcript.len+flight.len+72+36 > TLSBytes.MaxLen THEN
+    Wipe(secret); Wipe(serverFinished); Fail(DecodeError, "the handshake transcript is too long"); RETURN FALSE
+  END;
+  TLSBytes.Append(p.transcript, flight);
+  IF ~TLS13Auth.Sign(p.id, p.transcript, TRUE, message) THEN Wipe(secret); Wipe(serverFinished); RETURN FALSE END;
+  TLSBytes.Append(flight, message); TLSBytes.Append(p.transcript, message);
+  TLS13Keys.HashMessages(p.transcript, hash); TLS13Finished.BuildFinishedMessage(serverFinished, hash, message);
+  Wipe(serverFinished); TLSBytes.Append(flight, message); TLSBytes.Append(p.transcript, message);
+  pos := 0;
+  WHILE pos < flight.len DO
+    n := flight.len-pos; IF n > MaxPlain THEN n := MaxPlain END;
+    TLSBytes.Slice(flight, pos, n, part);
+    TLS13Records.ProtectRecord(p.serverKey, p.serverIV, p.serverSeq, TLS13Records.Handshake, part, record); INC(p.serverSeq);
+    TLSBytes.Append(p.output, record); INC(pos, n)
+  END;
+  TLS13Keys.MasterSecret(secret, master); Wipe(secret);
+  TLS13Application.ApplicationTrafficSecrets(master, p.transcript, p.clientSecret, p.serverSecret); Wipe(master);
+  p.phase := 3; RETURN TRUE
+END PendingFlight;
+
+PROCEDURE PendingHello(p: Pending): BOOLEAN;
+VAR i: LONGINT;
+BEGIN
+  IF ~ParseHello(p.message, p.hello) OR (p.message.data[4] # 3X) OR (p.message.data[5] # 3X) THEN
+    Fail(DecodeError, "a malformed ClientHello"); RETURN FALSE
+  END;
+  IF ~CheckHello(p.hello, p.phase = 0) THEN RETURN FALSE END;
+  IF ~p.hello.ed25519 THEN Fail(HandshakeFailure, "the client does not accept Ed25519 signatures"); RETURN FALSE END;
+  i := 0;
+  WHILE p.hello.host[i] # 0X DO
+    IF (p.hello.host[i] >= "A") & (p.hello.host[i] <= "Z") THEN p.hello.host[i] := CHR(ORD(p.hello.host[i])+32) END;
+    INC(i)
+  END;
+  IF p.phase = 0 THEN
+    COPY(p.hello.host, p.name); TLSBytes.Copy(p.message, p.transcript)
+  ELSE
+    IF (p.hello.group # p.requestedGroup) OR (p.hello.sidLen # p.sidLen) OR (p.hello.host # p.name) THEN
+      Fail(IllegalParameter, "the second ClientHello changed a negotiated parameter"); RETURN FALSE
+    END;
+    FOR i := 0 TO p.sidLen-1 DO
+      IF p.hello.sid[i] # p.sid[i] THEN Fail(IllegalParameter, "the second ClientHello changed the session id"); RETURN FALSE END
+    END;
+    IF p.transcript.len+p.message.len > TLSBytes.MaxLen THEN Fail(DecodeError, "the handshake transcript is too long"); RETURN FALSE END;
+    TLSBytes.Append(p.transcript, p.message)
+  END;
+  Wipe(p.message);
+  IF p.hello.group = 0 THEN PendingRetry(p); RETURN TRUE END;
+  RETURN PendingFlight(p)
+END PendingHello;
+
+PROCEDURE PendingPlain(p: Pending): INTEGER;
+VAR result: INTEGER; i, total: LONGINT;
+BEGIN
+  result := PendingRecord(p); IF result # 1 THEN RETURN result END;
+  IF IsCCS(p.wire) & (p.phase = 2) & ~p.ccsSeen & (p.message.len = 0) THEN p.ccsSeen := TRUE; RETURN 0 END;
+  IF (p.wire.data[0] # 16X) OR (p.wire.len > MaxPlain+5) OR (p.message.len+p.wire.len-5 > TLSBytes.MaxLen) THEN
+    Fail(UnexpectedMessage, "expected a plaintext ClientHello"); RETURN -1
+  END;
+  FOR i := 5 TO p.wire.len-1 DO TLSBytes.AppendChar(p.message, p.wire.data[i]) END;
+  IF p.message.len < 4 THEN RETURN 0 END;
+  total := 4+TLSBytes.GetBE24(p.message, 1);
+  IF (total > TLSBytes.MaxLen) OR (p.message.len > total) THEN Fail(DecodeError, "an invalid ClientHello length"); RETURN -1 END;
+  IF p.message.len < total THEN RETURN 0 END;
+  IF ~PendingHello(p) THEN RETURN -1 END;
+  RETURN 0
+END PendingPlain;
+
+PROCEDURE PendingAuth(p: Pending): INTEGER;
+VAR result: INTEGER; plain, message, certificate, hash: TLSBytes.Buffer;
+  now: TLSX509Validity.Time; type, total, i: LONGINT;
+BEGIN
+  result := PendingRecord(p); IF result # 1 THEN RETURN result END;
+  IF IsCCS(p.wire) & ~p.ccsSeen & (p.authStage = 0) & (p.message.len = 0) THEN p.ccsSeen := TRUE; RETURN 0 END;
+  IF (p.wire.data[0] # 17X) OR (p.clientSeq = MAX(LONGINT)) OR
+     ~TLS13Records.OpenRecord(p.clientKey, p.clientIV, p.clientSeq, p.wire, type, plain) THEN
+    Fail(BadRecordMac, "the client handshake record did not decrypt"); RETURN -1
+  END;
+  INC(p.clientSeq);
+  IF (type # TLS13Records.Handshake) OR (plain.len < 1) OR (plain.len > MaxPlain) OR
+     (p.message.len+plain.len > TLSBytes.MaxLen) THEN
+    Fail(UnexpectedMessage, "expected client authentication before application data"); RETURN -1
+  END;
+  TLSBytes.Append(p.message, plain);
+  WHILE p.message.len >= 4 DO
+    total := 4+TLSBytes.GetBE24(p.message, 1);
+    IF total > TLSBytes.MaxLen THEN Fail(DecodeError, "a client handshake message is too long"); RETURN -1 END;
+    IF p.message.len < total THEN RETURN 0 END;
+    IF p.transcript.len+total > TLSBytes.MaxLen THEN Fail(DecodeError, "the handshake transcript is too long"); RETURN -1 END;
+    TLSBytes.Slice(p.message, 0, total, message);
+    CASE p.authStage OF
+    | 0:
+        TLSNow.Current(now);
+        IF ~TLS13Auth.Certificate(message, certificate) OR ~TLS13Auth.PinnedEd25519(certificate, p.pin, now, FALSE, p.spki) THEN
+          Fail(HandshakeFailure, "the client does not match the pinned Ed25519 identity"); RETURN -1
+        END
+    | 1:
+        IF ~TLS13Auth.Verify(message, p.transcript, p.spki, FALSE) THEN Fail(DecryptError, "the client CertificateVerify did not verify"); RETURN -1 END
+    | 2:
+        TLS13Keys.HashMessages(p.transcript, hash);
+        IF ~TLS13Finished.VerifyFinishedMessage(message, p.clientFinished, hash) THEN Fail(DecryptError, "the client Finished did not verify"); RETURN -1 END
+    ELSE Fail(UnexpectedMessage, "data after the client Finished"); RETURN -1
+    END;
+    TLSBytes.Append(p.transcript, message); INC(p.authStage);
+    FOR i := total TO p.message.len-1 DO p.message.data[i-total] := p.message.data[i] END;
+    DEC(p.message.len, total);
+    IF p.authStage = 3 THEN
+      IF p.message.len # 0 THEN Fail(UnexpectedMessage, "data after the client Finished"); RETURN -1 END;
+      RETURN 1
+    END
+  END;
+  RETURN 0
+END PendingAuth;
+
+(** Advances a nonblocking Ed25519 server handshake: 0 would block, 1 authenticated, -1 failed.
+    On success, the established connection is transferred to an inactive TLS13Live state.
+    On completion or failure, p is released; failures close fd and set lastError.
+    The caller owns deadlines and must close pending handshakes when they expire. *)
+PROCEDURE PollEd25519*(VAR p: Pending; VAR s: TLS13Live.State): INTEGER;
+VAR result: INTEGER;
+BEGIN
+  IF p = NIL THEN RETURN -1 END;
+  lastError := ""; alertDesc := 0; result := 0;
+  CASE p.phase OF
+  | 0, 2: result := PendingPlain(p)
+  | 1, 3:
+      result := PendingFlush(p);
+      IF result = 1 THEN INC(p.phase); result := 0 END
+  | 4:
+      result := PendingAuth(p);
+      IF result = 1 THEN
+        TLS13Live.Accepted(s, p.fd, p.serverSecret, p.clientSecret); p.fd := -1;
+        IF ~TLS13Live.UseNonblocking(s) THEN
+          TLS13Live.CloseNow(s); ClosePending(p); COPY("cannot enable resumable TLS application I/O", lastError); RETURN -1
+        END;
+        s.peerAuthenticated := TRUE; s.identitySent := TRUE; COPY(p.name, serverName); ClosePending(p); RETURN 1
+      END
+  ELSE result := -1
+  END;
+  IF result < 0 THEN
+    IF lastError = "" THEN COPY("the Ed25519 server handshake failed", lastError) END;
+    ClosePending(p); RETURN -1
+  END;
+  RETURN 0
+END PollEd25519;
 
 BEGIN
   verbose := FALSE; lastError := ""; serverName := ""; alertDesc := 0; encrypted := FALSE;

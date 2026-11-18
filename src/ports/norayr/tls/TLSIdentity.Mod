@@ -1,24 +1,27 @@
 MODULE TLSIdentity;
 (** A certificate chain and its private key: what a server presents, and what a client presents
-  when a server asks for a certificate (a Gemini identity). The key is ECDSA P-256 or RSA (2048
+  when a server asks for a certificate. The key is Ed25519, ECDSA P-256 or RSA (2048
   bits or more); Load reads them from PEM files (CERTIFICATE; EC PRIVATE KEY, RSA PRIVATE KEY or
   PRIVATE KEY) and checks that the key belongs to the first certificate. Sign makes the signature
-  of a CertificateVerify: ecdsa_secp256r1_sha256 (RFC 6979 nonces) or rsa_pss_rsae_sha256. *)
-IMPORT TLSBytes, TLSASN1, TLSPEM, TLSCABundle, TLSX509, TLSSig, TLSECDSA, TLSRSA, TLSSHA256, TLS13Random;
+  of a CertificateVerify: ed25519, ecdsa_secp256r1_sha256 (RFC 6979 nonces) or rsa_pss_rsae_sha256. *)
+IMPORT TLSBytes, TLSASN1, TLSPEM, TLSCABundle, TLSX509, TLSSig, TLSECDSA, TLSRSA, TLSSHA256, TLS13Random,
+  Ed := TLSEd25519;
 
 CONST
   MaxChain* = 8;
-  EC* = 1; RSA* = 2;  (** kinds of keys *)
+  EC* = 1; RSA* = 2; Ed25519* = 3;  (** kinds of keys *)
   EcdsaP256Sha256* = 0403H; RsaPssRsaeSha256* = 0804H;  (** the signature schemes of Sign *)
+  Ed25519Scheme* = 0807H;
 
 TYPE
   Identity* = POINTER TO IdentityDesc;
   IdentityDesc* = RECORD
     n*: LONGINT;                                 (** certificates *)
     certs*: ARRAY MaxChain OF TLSBytes.Buffer;   (** DER, the leaf first *)
-    kind*: LONGINT;                              (** EC or RSA *)
+    kind*: LONGINT;                              (** EC, RSA or Ed25519 *)
     ec: TLSBytes.Buffer;                         (* the private scalar, 32 bytes *)
-    rsa: TLSRSA.PrivateKey
+    rsa: TLSRSA.PrivateKey;
+    ed: ARRAY 32 OF CHAR
   END;
 
   Bundle = POINTER TO TLSCABundle.Bundle;
@@ -58,12 +61,12 @@ BEGIN
   RETURN TRUE
 END ParseEC;
 
-(** the private key in der: an ECPrivateKey (SEC 1, P-256), an RSAPrivateKey (PKCS #1), or
-  either inside a PrivateKeyInfo (PKCS #8); kind := EC (ec: the scalar) or RSA *)
+(** Parses ECPrivateKey, RSAPrivateKey or PKCS #8, including RFC 8410 Ed25519 seeds. *)
 PROCEDURE ParseKey*(VAR der: TLSBytes.Buffer; VAR id: IdentityDesc): BOOLEAN;
-VAR pos, lim, apos, alim: LONGINT; t, v: TLSASN1.TLV; inner: TLSBytes.Buffer;
+VAR pos, lim, apos, alim, p, i: LONGINT; t, v: TLSASN1.TLV; inner: TLSBytes.Buffer;
 BEGIN
   id.kind := 0; pos := 0;
+  FOR i := 0 TO 31 DO id.ed[i] := 0X END;
   IF ~TLSASN1.EnterSequence(der, pos, der.len, pos, lim) THEN RETURN FALSE END;
   IF ~TLSASN1.ExpectTag(der, pos, lim, TLSASN1.Integer, v) OR (v.len # 1) THEN RETURN FALSE END;
   IF der.data[v.val] = 1X THEN  (* ECPrivateKey: 1, the key, ... *)
@@ -80,7 +83,14 @@ BEGIN
       IF ParseEC(inner, id.ec) THEN id.kind := EC; RETURN TRUE END
     ELSIF IsOID(der, t, 2AH, 86H, 48H, 86H, 0F7H, 0DH, 1, 1, 1, 9) THEN  (* rsaEncryption *)
       IF TLSRSA.ParsePrivateKey(inner, id.rsa) THEN id.kind := RSA; RETURN TRUE END
-    ELSE COPY("the key is neither ECDSA P-256 nor RSA", lastError)
+    ELSIF IsOID(der, t, 2BH, 65H, 70H, 0, 0, 0, 0, 0, 0, 3) THEN
+      IF (apos # alim) OR (pos # lim) OR (lim # der.len) THEN RETURN FALSE END;
+      p := 0;
+      IF ~TLSASN1.ExpectTag(inner, p, inner.len, TLSASN1.OctetString, v) OR
+         (p # inner.len) OR (v.len # 32) THEN RETURN FALSE END;
+      FOR i := 0 TO 31 DO id.ed[i] := inner.data[v.val+i] END;
+      id.kind := Ed25519; RETURN TRUE
+    ELSE COPY("unsupported private key algorithm", lastError)
     END
   END;
   RETURN FALSE
@@ -109,7 +119,7 @@ BEGIN
   TLSBytes.SetLen(der, der.len); from := 0; WHILE from < der.len DO der.data[from] := 0X; INC(from) END;
   TLSCABundle.Init(b^);
   IF ~ok THEN
-    IF lastError = "" THEN COPY("no private key in the key file (ECDSA P-256 or RSA)", lastError) END;
+    IF lastError = "" THEN COPY("no supported private key in the key file", lastError) END;
     id := NIL; RETURN FALSE
   END;
   NEW(leaf);
@@ -117,6 +127,14 @@ BEGIN
   IF id.kind = EC THEN
     IF ~TLSSig.ECPublicKey(leaf.spki, curve, point) OR (curve # TLSECDSA.P256) OR
        ~TLSECDSA.ECDHPublic(TLSECDSA.P256, id.ec, pub) OR (pub.len # point.len) OR ~TLSBytes.EqualConstTime(pub, point) THEN
+      COPY("the key does not belong to the certificate", lastError); id := NIL; RETURN FALSE
+    END
+  ELSIF id.kind = Ed25519 THEN
+    IF ~TLSSig.Ed25519PublicKey(leaf.spki, point) OR ~Ed.PublicKey(id.ed, pub.data) THEN
+      COPY("invalid Ed25519 certificate key", lastError); id := NIL; RETURN FALSE
+    END;
+    pub.len := 32;
+    IF ~TLSBytes.EqualConstTime(pub, point) THEN
       COPY("the key does not belong to the certificate", lastError); id := NIL; RETURN FALSE
     END
   ELSE
@@ -127,28 +145,67 @@ BEGIN
   RETURN TRUE
 END Load;
 
-(** pub := the public key of a parsed key: 04 x y for EC, the modulus n for RSA *)
+(** Creates an in-memory identity from an existing seed and matching certificate. *)
+PROCEDURE FromEd25519*(VAR seed: ARRAY OF CHAR; VAR certificate: TLSBytes.Buffer; VAR id: Identity): BOOLEAN;
+VAR leaf: Cert; candidate: Identity; publicKey, wanted: TLSBytes.Buffer; i: LONGINT;
+BEGIN
+  id := NIL; lastError := "";
+  NEW(leaf);
+  IF (LEN(seed) # 32) OR ~TLSX509.ParseCertificate(certificate, leaf^) OR
+     ~TLSSig.Ed25519PublicKey(leaf.spki, wanted) OR ~Ed.PublicKey(seed, publicKey.data) THEN
+    COPY("invalid Ed25519 identity", lastError); RETURN FALSE
+  END;
+  publicKey.len := 32;
+  IF ~TLSBytes.EqualConstTime(publicKey, wanted) THEN COPY("the key does not belong to the certificate", lastError); RETURN FALSE END;
+  NEW(candidate); candidate.kind := Ed25519; candidate.n := 1;
+  TLSBytes.Copy(certificate, candidate.certs[0]);
+  FOR i := 0 TO 31 DO candidate.ed[i] := seed[i] END;
+  id := candidate; RETURN TRUE
+END FromEd25519;
+
+(** Clears the Ed25519 seed and EC scalar, then releases the caller's reference. *)
+PROCEDURE Clear*(VAR id: Identity);
+VAR i: LONGINT;
+BEGIN
+  IF id = NIL THEN RETURN END;
+  FOR i := 0 TO 31 DO id.ed[i] := 0X END;
+  FOR i := 0 TO id.ec.len-1 DO id.ec.data[i] := 0X END;
+  TLSBytes.Init(id.ec); id.rsa := NIL; id.kind := 0; id := NIL
+END Clear;
+
+(** pub := the public key: 04 x y for EC, the modulus n for RSA, 32 bytes for Ed25519. *)
 PROCEDURE PublicKey*(VAR id: IdentityDesc; VAR pub: TLSBytes.Buffer): BOOLEAN;
 BEGIN
   TLSBytes.Init(pub);
   IF id.kind = EC THEN RETURN TLSECDSA.ECDHPublic(TLSECDSA.P256, id.ec, pub)
+  ELSIF id.kind = Ed25519 THEN
+    IF ~Ed.PublicKey(id.ed, pub.data) THEN RETURN FALSE END;
+    pub.len := 32; RETURN TRUE
   ELSIF id.kind = RSA THEN TLSBytes.Copy(id.rsa.n, pub); RETURN TRUE
   END;
   RETURN FALSE
 END PublicKey;
 
-(** the signature scheme of id: EcdsaP256Sha256 or RsaPssRsaeSha256 *)
+(** The TLS SignatureScheme for the identity's key. *)
 PROCEDURE Scheme*(id: Identity): LONGINT;
 BEGIN
+  IF id = NIL THEN RETURN 0 END;
   IF id.kind = RSA THEN RETURN RsaPssRsaeSha256 END;
-  RETURN EcdsaP256Sha256
+  IF id.kind = Ed25519 THEN RETURN Ed25519Scheme END;
+  IF id.kind = EC THEN RETURN EcdsaP256Sha256 END;
+  RETURN 0
 END Scheme;
 
-(** sig := the signature of content (SHA-256) with the key of id, as TLS sends it (DER for ECDSA) *)
+(** Signs the TLS content: pure Ed25519, or SHA-256 with ECDSA/RSA-PSS. *)
 PROCEDURE Sign*(id: Identity; VAR content, sig: TLSBytes.Buffer): BOOLEAN;
 VAR hash, r, s, salt: TLSBytes.Buffer; d: TLSSHA256.Digest;
 BEGIN
   TLSBytes.Init(sig);
+  IF id = NIL THEN RETURN FALSE END;
+  IF id.kind = Ed25519 THEN
+    IF ~Ed.Sign(id.ed, content.data, 0, content.len, sig.data) THEN RETURN FALSE END;
+    sig.len := 64; RETURN TRUE
+  END;
   TLSSHA256.DigestBuffer(content, d); TLSSHA256.DigestToBuffer(d, hash);
   IF id.kind = EC THEN
     IF ~TLSECDSA.Sign(TLSECDSA.P256, id.ec, hash, r, s) THEN RETURN FALSE END;

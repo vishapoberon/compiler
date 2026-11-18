@@ -27,7 +27,7 @@ for path in "$source"/tls/TLSTest*.Mod; do
   fi
   count=$((count + 1))
 done
-test "$count" -eq 38
+test "$count" -eq 41
 echo "$count TLS test programs passed"
 "$compiler" -O"$model" "$flags" "$source/Internet/TestNetworkClient.Mod"
 "$compiler" -O"$model" "$flags" "$source/tls/TestTLSListener.Mod"

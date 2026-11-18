@@ -2,8 +2,9 @@ MODULE TLSCertGen;
 (** Self-signed certificates with a new ECDSA P-256 key: for a Gemini identity (the common name
   and maybe a mail address in the subject) or for a server (also a subjectAltName with its host
   name). X.509 v3, a random serial number, valid from now for years, signed with
-  ecdsa-with-SHA256; written as PEM, the key as PKCS #8 ("PRIVATE KEY"), as openssl writes them. *)
-IMPORT TLSBytes, TLSECDSA, TLSSHA256, TLSPEM, TLSX509Validity, TLSNow, TLS13Random;
+  ecdsa-with-SHA256; written as PEM, the key as PKCS #8 ("PRIVATE KEY"), as openssl writes them.
+  Ed25519SelfSigned returns a DER certificate for an existing Ed25519 seed. *)
+IMPORT TLSBytes, TLSECDSA, TLSSHA256, TLSPEM, TLSX509Validity, TLSNow, TLS13Random, Ed := TLSEd25519;
 
 CONST
   Sequence = 30H; Set = 31H; Integer = 2; BitString = 3; OctetString = 4; OID = 6;
@@ -153,6 +154,43 @@ BEGIN
   i := 0; WHILE i < b.len DO b.data[i] := 0X; INC(i) END;
   RETURN TRUE
 END SelfSigned;
+
+(** A self-signed DER certificate using an existing 32-byte Ed25519 seed.
+    The seed is read-only; certificate is changed only on success. *)
+PROCEDURE Ed25519SelfSigned*(cn: ARRAY OF CHAR; VAR seed: ARRAY OF CHAR; years: LONGINT;
+    VAR certificate: TLSBytes.Buffer): BOOLEAN;
+VAR publicKey: ARRAY 32 OF CHAR; signature: ARRAY 64 OF CHAR;
+  tbs, value, wrapped, algorithm, public, signed, result: TLSBytes.Buffer;
+  from, till: TLSX509Validity.Time; n: LONGINT;
+BEGIN
+  lastError := ""; n := 0;
+  WHILE (n < LEN(cn)) & (cn[n] # 0X) DO INC(n) END;
+  IF (n = 0) OR (n > 256) OR (n = LEN(cn)) OR (years < 1) OR (years > 100) OR
+     (LEN(seed) # 32) THEN COPY("invalid Ed25519 certificate inputs", lastError); RETURN FALSE END;
+  IF ~Ed.PublicKey(seed, publicKey) THEN COPY("invalid Ed25519 seed", lastError); RETURN FALSE END;
+  TLSNow.Current(from);
+  IF (from.year < 1970) OR (from.year > 9999-years) THEN COPY("invalid certificate time", lastError); RETURN FALSE END;
+  till := from; INC(till.year, years);
+  IF (till.month = 2) & (till.day = 29) THEN till.day := 28 END;
+  TLSBytes.Init(value); Oid(value, "2B6570"); TLSBytes.Init(algorithm); TLV(algorithm, Sequence, value);
+  TLSBytes.Init(tbs);
+  TLSBytes.AppendByte(tbs, 0A0H); TLSBytes.AppendByte(tbs, 3); TLSBytes.AppendByte(tbs, Integer);
+  TLSBytes.AppendByte(tbs, 1); TLSBytes.AppendByte(tbs, 2);
+  TLSBytes.SetLen(value, 16);
+  IF ~TLS13Random.Fill(value.data, 16) THEN COPY("no random bytes", lastError); RETURN FALSE END;
+  value.data[0] := CHR(ORD(value.data[0]) MOD 64+1); TLV(tbs, Integer, value);
+  TLSBytes.Append(tbs, algorithm); Name(tbs, cn, "");
+  TLSBytes.Init(value); Time(value, from); Time(value, till); TLV(tbs, Sequence, value);
+  Name(tbs, cn, "");
+  TLSBytes.Init(public); TLSBytes.AppendOpen(public, publicKey, 32);
+  TLSBytes.Copy(algorithm, value); Bits(value, public); TLV(tbs, Sequence, value);
+  TLSBytes.Init(wrapped); TLV(wrapped, Sequence, tbs);
+  IF ~Ed.Sign(seed, wrapped.data, 0, wrapped.len, signature) THEN COPY("Ed25519 signing failed", lastError); RETURN FALSE END;
+  TLSBytes.Copy(wrapped, signed); TLSBytes.Append(signed, algorithm);
+  TLSBytes.Init(value); TLSBytes.AppendOpen(value, signature, 64); Bits(signed, value);
+  TLSBytes.Init(result); TLV(result, Sequence, signed); TLSBytes.Copy(result, certificate);
+  RETURN TRUE
+END Ed25519SelfSigned;
 
 BEGIN
   lastError := ""

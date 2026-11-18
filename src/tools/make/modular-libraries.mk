@@ -72,7 +72,7 @@ MODULAR_TLS = norayr/tls/TLSBytes norayr/tls/TLSSHA256 norayr/tls/TLSHKDF \
  norayr/tls/TLSX509Ext norayr/tls/TLSSig norayr/tls/TLSNameConstraints \
  norayr/tls/TLSX509Chain norayr/tls/TLSCABundle norayr/tls/TLS13EncHandshake \
  norayr/tls/TLS13ClientFinished norayr/tls/TLS13Application norayr/tls/TLS13Random norayr/tls/TLSEd25519Keys \
- norayr/tls/TLSNow norayr/tls/TLSIdentity norayr/tls/TLSCertGen \
+ norayr/tls/TLSNow norayr/tls/TLSIdentity norayr/tls/TLS13Auth norayr/tls/TLSCertGen \
  norayr/tls/TLS13Live norayr/tls/TLS13Server norayr/tls/httpsPure
 MODULAR_HTTPS = norayr/https/https
 MODULAR_GEMINI = norayr/netHost/NetHost norayr/gemini/Gemini0 norayr/gemini/Gemtext0

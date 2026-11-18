@@ -14,7 +14,7 @@ TYPE
     pathLen*: LONGINT;         (** -1: no limit *)
     hasKeyUsage*: BOOLEAN;
     keyUsage*: SET;            (** bit i: the named bit i of KeyUsage *)
-    hasEKU*, serverAuth*: BOOLEAN;  (** serverAuth: listed, or anyExtendedKeyUsage *)
+    hasEKU*, serverAuth*, clientAuth*: BOOLEAN;  (** listed usages, or anyExtendedKeyUsage *)
     hasNC*: BOOLEAN;
     nc*: TLSBytes.Buffer;      (** the value of nameConstraints *)
     unknownCritical*: BOOLEAN
@@ -73,14 +73,15 @@ VAR pos, lim: LONGINT; t: TLSASN1.TLV; oid: TLSBytes.Buffer;
 BEGIN
   pos := 0;
   IF ~TLSASN1.EnterSequence(v, pos, v.len, pos, lim) THEN RETURN FALSE END;
-  x.hasEKU := TRUE; x.serverAuth := FALSE;
+  x.hasEKU := TRUE; x.serverAuth := FALSE; x.clientAuth := FALSE;
   WHILE pos < lim DO
     IF ~TLSASN1.ExpectTag(v, pos, lim, TLSASN1.ObjectIdentifier, t) OR ~TLSASN1.CopyValue(v, t, oid) THEN RETURN FALSE END;
     IF (oid.len = 8) & (ORD(oid.data[0]) = 2BH) & (ORD(oid.data[1]) = 6) & (ORD(oid.data[2]) = 1) &
        (ORD(oid.data[3]) = 5) & (ORD(oid.data[4]) = 5) & (ORD(oid.data[5]) = 7) & (ORD(oid.data[6]) = 3) &
-       (ORD(oid.data[7]) = 1) THEN x.serverAuth := TRUE                    (* id-kp-serverAuth *)
+       ((ORD(oid.data[7]) = 1) OR (ORD(oid.data[7]) = 2)) THEN
+      IF ORD(oid.data[7]) = 1 THEN x.serverAuth := TRUE ELSE x.clientAuth := TRUE END
     ELSIF (oid.len = 4) & (ORD(oid.data[0]) = 55H) & (ORD(oid.data[1]) = 1DH) & (ORD(oid.data[2]) = 25H) &
-       (ORD(oid.data[3]) = 0) THEN x.serverAuth := TRUE                    (* anyExtendedKeyUsage *)
+       (ORD(oid.data[3]) = 0) THEN x.serverAuth := TRUE; x.clientAuth := TRUE  (* anyExtendedKeyUsage *)
     END
   END;
   RETURN TRUE
@@ -93,7 +94,8 @@ VAR
   critical, seenBasic, seenKU, seenEKU, seenSAN: BOOLEAN;
 BEGIN
   x.hasBasic := FALSE; x.isCA := FALSE; x.pathLen := -1; x.hasKeyUsage := FALSE; x.keyUsage := {};
-  x.hasEKU := FALSE; x.serverAuth := FALSE; x.unknownCritical := FALSE; x.hasNC := FALSE; TLSBytes.Init(x.nc);
+  x.hasEKU := FALSE; x.serverAuth := FALSE; x.clientAuth := FALSE;
+  x.unknownCritical := FALSE; x.hasNC := FALSE; TLSBytes.Init(x.nc);
   seenBasic := FALSE; seenKU := FALSE; seenEKU := FALSE; seenSAN := FALSE;
   IF ~TLSX509Names.ExtractExtensionsFromTBS(info.tbs, exts) THEN RETURN TRUE END;  (* none (v1, v2) *)
   pos := 0;

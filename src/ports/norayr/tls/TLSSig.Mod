@@ -1,16 +1,17 @@
 MODULE TLSSig;
 (* Signature checks of certificates and of the TLS 1.3 CertificateVerify, with the keys of
    SubjectPublicKeyInfo: RSA (TLSRSA: PKCS#1 v1.5, and RSASSA-PSS with SHA-2) and ECDSA on
-   P-256, P-384 and P-521 (TLSECDSA). The parameters of the algorithm must be as RFC 5280 and
-   4055 say (NULL or none for PKCS#1, none for ECDSA). Algorithms not listed here are refused. *)
-IMPORT TLSBytes, TLSASN1, TLSX509, TLSRSA, TLSECDSA;
+   P-256, P-384 and P-521 (TLSECDSA), and pure Ed25519. Algorithm parameters follow
+   RFC 5280, RFC 4055 and RFC 8410; Ed25519 parameters must be absent. *)
+IMPORT TLSBytes, TLSASN1, TLSX509, TLSRSA, TLSECDSA, Ed := TLSEd25519;
 
 CONST
   (** TLS 1.3 SignatureScheme values accepted for CertificateVerify (RFC 8446, 4.2.3) *)
   EcdsaP256Sha256* = 0403H; EcdsaP384Sha384* = 0503H; EcdsaP521Sha512* = 0603H;
   RsaPssRsaeSha256* = 0804H; RsaPssRsaeSha384* = 0805H; RsaPssRsaeSha512* = 0806H;
+  Ed25519* = 0807H;
 
-  RSA = 1; ECDSA = 2; PSS = 3;
+  RSA = 1; ECDSA = 2; PSS = 3; Edwards = 4;
 
 (* the OID bytes b equal oid *)
 PROCEDURE Is(VAR oid: TLSBytes.Buffer; b0, b1, b2, b3, b4, b5, b6, b7, b8, len: LONGINT): BOOLEAN;
@@ -84,6 +85,9 @@ BEGIN
   IF Is(oid, 2AH, 86H, 48H, 0CEH, 3DH, 4, 3, 2, 0, 8) THEN hash := TLSRSA.SHA256; RETURN params.len = 0 END;
   IF Is(oid, 2AH, 86H, 48H, 0CEH, 3DH, 4, 3, 3, 0, 8) THEN hash := TLSRSA.SHA384; RETURN params.len = 0 END;
   IF Is(oid, 2AH, 86H, 48H, 0CEH, 3DH, 4, 3, 4, 0, 8) THEN hash := TLSRSA.SHA512; RETURN params.len = 0 END;
+  IF Is(oid, 2BH, 65H, 70H, 0, 0, 0, 0, 0, 0, 3) THEN
+    kind := Edwards; RETURN params.len = 0
+  END;
   RETURN FALSE
 END CertAlgorithm;
 
@@ -112,6 +116,28 @@ BEGIN
   RETURN TRUE
 END ECPublicKey;
 
+(** RFC 8410 Ed25519 SubjectPublicKeyInfo: absent parameters and 32 key bytes. *)
+PROCEDURE Ed25519PublicKey*(VAR spki, publicKey: TLSBytes.Buffer): BOOLEAN;
+VAR pos, lim, p: LONGINT; oid, params: TLSBytes.Buffer; t: TLSASN1.TLV;
+BEGIN
+  TLSBytes.Init(publicKey); pos := 0;
+  IF ~TLSASN1.EnterSequence(spki, pos, spki.len, p, lim) OR (pos # spki.len) OR
+     ~TLSX509.ParseAlgorithm(spki, p, lim, oid, params) OR (params.len # 0) OR
+     ~Is(oid, 2BH, 65H, 70H, 0, 0, 0, 0, 0, 0, 3) OR
+     ~TLSASN1.ExpectTag(spki, p, lim, TLSASN1.BitString, t) OR (p # lim) OR
+     (t.len # 33) OR (spki.data[t.val] # 0X) THEN RETURN FALSE END;
+  TLSBytes.Slice(spki, t.val+1, 32, publicKey); RETURN TRUE
+END Ed25519PublicKey;
+
+PROCEDURE VerifyEd25519(VAR spki, content, signature: TLSBytes.Buffer): BOOLEAN;
+VAR publicKey: TLSBytes.Buffer; key: ARRAY 32 OF CHAR; sig: ARRAY 64 OF CHAR; i: LONGINT;
+BEGIN
+  IF (signature.len # 64) OR ~Ed25519PublicKey(spki, publicKey) THEN RETURN FALSE END;
+  FOR i := 0 TO 31 DO key[i] := publicKey.data[i] END;
+  FOR i := 0 TO 63 DO sig[i] := signature.data[i] END;
+  RETURN Ed.Verify(key, content.data, 0, content.len, sig)
+END VerifyEd25519;
+
 (* the signature sig (DER for ECDSA) of hash by the key in spki *)
 PROCEDURE VerifyHash(kind, hash: LONGINT; pss: BOOLEAN; VAR spki, digest, sig: TLSBytes.Buffer): BOOLEAN;
 VAR n, e, point, r, s: TLSBytes.Buffer; curve: LONGINT;
@@ -131,6 +157,7 @@ PROCEDURE CertSignedBy*(VAR child, issuer: TLSX509.CertInfo): BOOLEAN;
 VAR kind, hash, salt: LONGINT; digest, n, e, keyParams: TLSBytes.Buffer; pssKey: BOOLEAN;
 BEGIN
   IF (child.signatureUnusedBits # 0) OR ~CertAlgorithm(child.sigAlgOID, child.sigAlgParams, kind, hash, salt) THEN RETURN FALSE END;
+  IF kind = Edwards THEN RETURN VerifyEd25519(issuer.spki, child.tbs, child.signature) END;
   IF ~TLSRSA.Hash(hash, child.tbs, digest) THEN RETURN FALSE END;
   IF kind = PSS THEN  (* an RSASSA-PSS key restricting its parameters must have these *)
     IF ~TLSRSA.PublicKeyAlg(issuer.spki, n, e, pssKey, keyParams) THEN RETURN FALSE END;
@@ -140,11 +167,11 @@ BEGIN
   RETURN VerifyHash(kind, hash, FALSE, issuer.spki, digest, child.signature)
 END CertSignedBy;
 
-(** the CertificateVerify signature sig with scheme over content, by the key in spki (the leaf):
-  ECDSA schemes need a key on their curve, RSA-PSS an RSA key; nothing else is accepted *)
+(** CertificateVerify over content: the scheme must match the leaf key and curve. *)
 PROCEDURE VerifyScheme*(scheme: LONGINT; VAR spki, content, sig: TLSBytes.Buffer): BOOLEAN;
 VAR digest, point: TLSBytes.Buffer; curve, hash: LONGINT;
 BEGIN
+  IF scheme = Ed25519 THEN RETURN VerifyEd25519(spki, content, sig) END;
   IF (scheme = EcdsaP256Sha256) OR (scheme = EcdsaP384Sha384) OR (scheme = EcdsaP521Sha512) THEN
     IF ~ECPublicKey(spki, curve, point) THEN RETURN FALSE END;
     IF (scheme = EcdsaP256Sha256) & (curve # TLSECDSA.P256) OR (scheme = EcdsaP384Sha384) & (curve # TLSECDSA.P384) OR

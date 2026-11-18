@@ -88,9 +88,10 @@ END MakeSupportedVersions;
 PROCEDURE MakeSignatureAlgorithms(VAR extData: TLSBytes.Buffer);
 BEGIN
   TLSBytes.Init(extData);
-  (* the schemes TLSSig verifies: ECDSA and RSA-PSS for CertificateVerify; RSA PKCS#1 v1.5 only
+  (* the schemes TLSSig verifies: Ed25519, ECDSA and RSA-PSS for CertificateVerify; RSA PKCS#1 v1.5 only
      for certificates (without signature_algorithms_cert this list covers both, RFC 8446 4.2.3) *)
-  TLSBytes.PutBE16(extData, 18);
+  TLSBytes.PutBE16(extData, 20);
+  TLSBytes.PutBE16(extData, 0807H);  (* ed25519 *)
   TLSBytes.AppendByte(extData, 4); TLSBytes.AppendByte(extData, 3);  (* ecdsa_secp256r1_sha256 *)
   TLSBytes.AppendByte(extData, 5); TLSBytes.AppendByte(extData, 3);  (* ecdsa_secp384r1_sha384 *)
   TLSBytes.AppendByte(extData, 6); TLSBytes.AppendByte(extData, 3);  (* ecdsa_secp521r1_sha512 *)

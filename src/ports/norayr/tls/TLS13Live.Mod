@@ -3,7 +3,7 @@ IMPORT SYSTEM, Linux0 := unixNet, Out,
        Internet, Sockets, TLSBytes, TLS13Random, TLSX25519,
        TLS13Handshake, TLS13Keys, TLS13Records,
        TLS13EncHandshake, TLS13ClientFinished, TLS13Application,
-       TLSCABundle, TLSX509Validity, TLSNow, TLSX509Chain, TLSHKDF, TLSECDSA, TLSX509, TLSSHA256, TLSIdentity;
+       TLSCABundle, TLSX509Validity, TLSNow, TLSX509Chain, TLSHKDF, TLSECDSA, TLSX509, TLSSHA256, TLSIdentity, TLS13Auth;
 
 CONST
   MaxRecord = 16640;          (* 2^14 + 256, the longest TLSCiphertext (RFC 8446 5.2) *)
@@ -33,10 +33,13 @@ TYPE
   cHsKey, cHsIV, sHsKey, sHsIV, cFinKey, sFinKey: TLSBytes.Buffer;
   hsSecret, masterSecret, clientFinishedRec, clientFinishedMsg, thServerFinished: TLSBytes.Buffer;
   thClient, reqCtx, certMsg, list, sig: TLSBytes.Buffer;  (* the transcript for our Finished, a certificate request *)
-  sawFinished, finishedOK, zero: BOOLEAN;
+  sawFinished, finishedOK, zero, sendIdentity: BOOLEAN;
   group, tries: LONGINT; cookie, p256Priv, p256Pub, h: TLSBytes.Buffer;
   serverHSSeq, clientHSSeq: LONGINT;
   why: ARRAY 128 OF CHAR;
+    localIdentity: TLSIdentity.Identity;
+    peerPin: TLSBytes.Buffer;
+    strictEd25519: BOOLEAN;
     host: ARRAY 256 OF CHAR;
     phase: INTEGER
   END;
@@ -45,6 +48,7 @@ TYPE
     fd*: Internet.Socket;
     connected*: BOOLEAN;
     handshakeDone*: BOOLEAN;
+    identitySent*, peerAuthenticated*: BOOLEAN;  (** peerAuthenticated: exact Ed25519 pin verified *)
     clientAppKey*, clientAppIV*, serverAppKey*, serverAppIV*: TLSBytes.Buffer;
     clientAppSeq*, serverAppSeq*: LONGINT;
     closeNotify*: BOOLEAN;  (** the server ended the connection properly (close_notify) *)
@@ -81,6 +85,7 @@ BEGIN
   s.fd := -1;
   s.connected := FALSE;
   s.handshakeDone := FALSE;
+  s.identitySent := FALSE; s.peerAuthenticated := FALSE;
   s.clientAppSeq := 0;
   s.serverAppSeq := 0;
   s.closeNotify := FALSE; s.alert := 0;
@@ -208,6 +213,14 @@ PROCEDURE Abort(desc: LONGINT; why: ARRAY OF CHAR);
 BEGIN
   alertDesc := desc; Fail(why)
 END Abort;
+
+PROCEDURE AppendTranscript(VAR transcript, message: TLSBytes.Buffer): BOOLEAN;
+BEGIN
+  IF message.len > TLSBytes.MaxLen-transcript.len THEN
+    Abort(DecodeError, "the handshake transcript is too long"); RETURN FALSE
+  END;
+  TLSBytes.Append(transcript, message); RETURN TRUE
+END AppendTranscript;
 
 (* give up the connection s with the alert desc (sent by Disconnect) *)
 PROCEDURE AbortS(VAR s: State; desc: LONGINT; why: ARRAY OF CHAR);
@@ -362,7 +375,7 @@ VAR
   cHsKey, cHsIV, sHsKey, sHsIV, cFinKey, sFinKey: TLSBytes.Buffer;
   hsSecret, masterSecret, clientFinishedRec, clientFinishedMsg, thServerFinished: TLSBytes.Buffer;
   thClient, reqCtx, certMsg, list, sig: TLSBytes.Buffer;  (* the transcript for our Finished, a certificate request *)
-  sawFinished, finishedOK, zero: BOOLEAN;
+  sawFinished, finishedOK, zero, sendIdentity: BOOLEAN;
   group, tries: LONGINT; cookie, p256Priv, p256Pub, h: TLSBytes.Buffer;
   serverHSSeq, clientHSSeq: LONGINT;
   why: ARRAY 128 OF CHAR;
@@ -392,7 +405,7 @@ BEGIN
     (* the transcript: message_hash with the hash of the first ClientHello, then the HelloRetryRequest (RFC 8446 4.4.1) *)
     TLS13Keys.HashMessages(clientHelloMsg, h);
     TLSBytes.Init(th); TLSBytes.AppendByte(th, 254); TLSBytes.PutBE24(th, h.len); TLSBytes.Append(th, h);
-    TLSBytes.Append(th, serverHelloMsg);
+    IF ~AppendTranscript(th, serverHelloMsg) THEN RETURN FALSE END;
     IF group = TLS13Handshake.GroupP256 THEN
       tries := 0;
       REPEAT
@@ -405,7 +418,7 @@ BEGIN
       TLS13Handshake.BuildClientHello2(host, clientRandom, group, clientPub, cookie, clientHelloMsg)
     END;
     TLS13Handshake.BuildPlainHandshakeRecord(clientHelloMsg, clientHelloRec);
-    TLSBytes.Append(th, clientHelloMsg);
+    IF ~AppendTranscript(th, clientHelloMsg) THEN RETURN FALSE END;
     IF ~WriteAll(s.fd, clientHelloRec) THEN Fail("writing the second ClientHello failed"); RETURN FALSE END;
     IF ~NextNonCCS(s.fd, rec) OR RefusedByAlert(rec) OR ~TLS13Handshake.GetRecordPayload(rec, serverHelloMsg) THEN
       Abort(UnexpectedMessage, "no ServerHello after the HelloRetryRequest"); RETURN FALSE
@@ -413,7 +426,7 @@ BEGIN
     DumpBuffer("server hello msg", serverHelloMsg)
   END;
   IF ~TLS13Handshake.CheckServerHelloGroup(serverHelloMsg, clientRandom, group, serverPub, why) THEN Abort(IllegalParameter, why); RETURN FALSE END;  (* the session id we sent is clientRandom *)
-  TLSBytes.Append(th, serverHelloMsg);
+  IF ~AppendTranscript(th, serverHelloMsg) THEN RETURN FALSE END;
   DumpBuffer("server pub", serverPub);
 
   IF group = TLS13Handshake.GroupP256 THEN
@@ -464,18 +477,20 @@ BEGIN
   IF TLS13EncHandshake.CertificateRequested(reqCtx) THEN
     (* RFC 8446 4.4.2: our Certificate echoing the request context, empty without an identity;
        with one its CertificateVerify (4.4.3); the Finished covers them *)
+    sendIdentity := (identity # NIL) & TLS13EncHandshake.SignatureRequested(TLSIdentity.Scheme(identity));
     TLSBytes.Init(list); i := 0;
-    WHILE (identity # NIL) & (i < identity.n) DO
+    WHILE sendIdentity & (i < identity.n) DO
       TLSBytes.PutBE24(list, identity.certs[i].len); TLSBytes.Append(list, identity.certs[i]); TLSBytes.PutBE16(list, 0); INC(i)
     END;
     TLSBytes.Init(certMsg); TLSBytes.AppendByte(certMsg, TLS13EncHandshake.Certificate);
     TLSBytes.PutBE24(certMsg, 1 + reqCtx.len + 3 + list.len);
     TLSBytes.AppendByte(certMsg, reqCtx.len); TLSBytes.Append(certMsg, reqCtx); TLSBytes.PutBE24(certMsg, list.len);
     TLSBytes.Append(certMsg, list);
+    IF ~AppendTranscript(thClient, certMsg) THEN RETURN FALSE END;
     TLS13Records.ProtectRecord(cHsKey, cHsIV, clientHSSeq, TLS13Records.Handshake, certMsg, rec);
     IF ~WriteAll(s.fd, rec) THEN Fail("writing the client Certificate failed"); RETURN FALSE END;
-    TLSBytes.Append(thClient, certMsg); INC(clientHSSeq); s.clientAppSeq := clientHSSeq;
-    IF identity # NIL THEN
+    INC(clientHSSeq); s.clientAppSeq := clientHSSeq;
+    IF sendIdentity THEN
       TLS13Keys.HashMessages(thClient, h);
       TLSBytes.Init(list); i := 0; WHILE i < 64 DO TLSBytes.AppendByte(list, 20H); INC(i) END;
       TLSBytes.AppendString(list, "TLS 1.3, client CertificateVerify"); TLSBytes.AppendByte(list, 0); TLSBytes.Append(list, h);
@@ -483,14 +498,15 @@ BEGIN
       TLSBytes.Init(certMsg); TLSBytes.AppendByte(certMsg, 15);  (* CertificateVerify *)
       TLSBytes.PutBE24(certMsg, 4 + sig.len); TLSBytes.PutBE16(certMsg, TLSIdentity.Scheme(identity));
       TLSBytes.PutBE16(certMsg, sig.len); TLSBytes.Append(certMsg, sig);
+      IF ~AppendTranscript(thClient, certMsg) THEN RETURN FALSE END;
       TLS13Records.ProtectRecord(cHsKey, cHsIV, clientHSSeq, TLS13Records.Handshake, certMsg, rec);
       IF ~WriteAll(s.fd, rec) THEN Fail("writing the client CertificateVerify failed"); RETURN FALSE END;
-      TLSBytes.Append(thClient, certMsg); INC(clientHSSeq); s.clientAppSeq := clientHSSeq;
-      identitySent := TRUE
+      INC(clientHSSeq); s.clientAppSeq := clientHSSeq;
+      identitySent := TRUE; s.identitySent := TRUE
     END;
     IF verbose THEN
       Out.String("TLS13Live: the server asked for a client certificate, ");
-      IF identity # NIL THEN Out.String("sent it") ELSE Out.String("sent none") END; Out.Ln
+      IF sendIdentity THEN Out.String("sent it") ELSE Out.String("sent none") END; Out.Ln
     END
   END;
   IF verbose THEN Out.String("TLS13Live: building client Finished"); Out.Ln END;
@@ -508,7 +524,7 @@ BEGIN
   IF verbose THEN Out.String("TLS13Live: application keys ready"); Out.Ln END;
 
   IF verbose THEN Out.String("TLS13Live: appending client Finished to transcript"); Out.Ln END;
-  TLS13ClientFinished.AppendClientFinished(th, clientFinishedMsg);
+  IF ~AppendTranscript(th, clientFinishedMsg) THEN RETURN FALSE END;
   IF verbose THEN Out.String("TLS13Live: transcript len after client Finished="); Out.Int(th.len, 0); Out.Ln END;
   IF verbose THEN Out.String("TLS13Live: writing client Finished"); Out.Ln END;
   IF ~WriteAll(s.fd, clientFinishedRec) THEN Out.String("TLS13Live: write client Finished failed"); Out.Ln; RETURN FALSE END;
@@ -605,6 +621,7 @@ BEGIN
   Wipe(h.p256Priv);
   Wipe(h.p256Pub);
   Wipe(h.h);
+  Wipe(h.peerPin); h.localIdentity := NIL;
 
   FOR i := 0 TO 31 DO h.privArr[i] := 0X; h.sharedArr[i] := 0X END
 END ClearAsync;
@@ -872,6 +889,7 @@ BEGIN
   NEW(socket); socket.fd := fd;
   IF ~Sockets.SetBlocking(socket, FALSE) THEN Internet.Disconnect(fd); RETURN FALSE END;
   NEW(h); COPY(host, h.host); h.phase := -1;
+  h.localIdentity := identity; h.strictEd25519 := FALSE; TLSBytes.Init(h.peerPin);
   TLSBytes.Init(h.clientRandom);
   TLSBytes.Init(h.clientPub);
   TLSBytes.Init(h.clientHelloMsg);
@@ -908,6 +926,42 @@ BEGIN
   RETURN TRUE
 END Begin;
 
+(** Resumable mutual Ed25519 authentication on an already-connected descriptor.
+    The peer must present a self-signed certificate with exactly pin's 32 raw key bytes
+    and request an Ed25519 client identity. Takes ownership of fd, closing it on failure.
+    Use an inactive state and keep id valid until the handshake completes or is closed. *)
+PROCEDURE BeginEd25519*(host: ARRAY OF CHAR; fd: Internet.Socket; id: TLSIdentity.Identity;
+    VAR pin: TLSBytes.Buffer; VAR s: State): BOOLEAN;
+VAR publicKey, spki: TLSBytes.Buffer; now: TLSX509Validity.Time;
+BEGIN
+  TLSNow.Current(now);
+  IF (pin.len # 32) OR (id = NIL) OR (id.kind # TLSIdentity.Ed25519) OR (id.n # 1) OR
+     (id.certs[0].len > MaxPlain-13) OR
+     ~TLSIdentity.PublicKey(id^, publicKey) OR
+     ~TLS13Auth.PinnedEd25519(id.certs[0], publicKey, now, FALSE, spki) THEN
+    IF fd >= 0 THEN Internet.Disconnect(fd) END;
+    Init(s); COPY("invalid local Ed25519 identity or peer pin", lastError); RETURN FALSE
+  END;
+  IF ~Begin(host, fd, s) THEN RETURN FALSE END;
+  s.async.localIdentity := id; s.async.strictEd25519 := TRUE; TLSBytes.Copy(pin, s.async.peerPin);
+  RETURN TRUE
+END BeginEd25519;
+
+PROCEDURE CheckCapturedEd25519(h: Async): BOOLEAN;
+VAR message, certificate, spki, context: TLSBytes.Buffer; now: TLSX509Validity.Time;
+BEGIN
+  TLSNow.Current(now);
+  IF (h.serverFrag.len # 0) OR ~TLS13EncHandshake.CertificateVerifyOK() OR
+     ~TLS13EncHandshake.CapturedCertificateMessage(message) OR ~TLS13Auth.Certificate(message, certificate) OR
+     ~TLS13Auth.PinnedEd25519(certificate, h.peerPin, now, TRUE, spki) THEN
+    Abort(BadCertificate, "the server does not match the pinned Ed25519 identity"); RETURN FALSE
+  END;
+  IF ~TLS13EncHandshake.CertificateRequested(context) OR ~TLS13EncHandshake.SignatureRequested(TLSIdentity.Ed25519Scheme) THEN
+    Abort(HandshakeFailure, "the server did not request Ed25519 client authentication"); RETURN FALSE
+  END;
+  RETURN TRUE
+END CheckCapturedEd25519;
+
 PROCEDURE AsyncHello(h: Async; VAR s: State): BOOLEAN;
 BEGIN
   IF ~TLS13Random.Fill(h.privArr, 32) THEN RETURN FALSE END;
@@ -930,7 +984,7 @@ BEGIN
     (* the transcript: message_hash with the hash of the first ClientHello, then the HelloRetryRequest (RFC 8446 4.4.1) *)
     TLS13Keys.HashMessages(h.clientHelloMsg, h.h);
     TLSBytes.Init(h.th); TLSBytes.AppendByte(h.th, 254); TLSBytes.PutBE24(h.th, h.h.len); TLSBytes.Append(h.th, h.h);
-    TLSBytes.Append(h.th, h.serverHelloMsg);
+    IF ~AppendTranscript(h.th, h.serverHelloMsg) THEN RETURN FALSE END;
     IF h.group = TLS13Handshake.GroupP256 THEN
       h.tries := 0;
       REPEAT
@@ -943,14 +997,14 @@ BEGIN
       TLS13Handshake.BuildClientHello2(h.host, h.clientRandom, h.group, h.clientPub, h.cookie, h.clientHelloMsg)
     END;
     TLS13Handshake.BuildPlainHandshakeRecord(h.clientHelloMsg, h.clientHelloRec);
-    TLSBytes.Append(h.th, h.clientHelloMsg);
+    IF ~AppendTranscript(h.th, h.clientHelloMsg) THEN RETURN FALSE END;
   QueueRecord(s, h.clientHelloRec); RETURN TRUE
 END AsyncRetry;
 
 PROCEDURE AsyncKeys(h: Async; VAR s: State): BOOLEAN;
 BEGIN
   IF ~TLS13Handshake.CheckServerHelloGroup(h.serverHelloMsg, h.clientRandom, h.group, h.serverPub, h.why) THEN Abort(IllegalParameter, h.why); RETURN FALSE END;  (* the session id we sent is clientRandom *)
-  TLSBytes.Append(h.th, h.serverHelloMsg);
+  IF ~AppendTranscript(h.th, h.serverHelloMsg) THEN RETURN FALSE END;
   DumpBuffer("server pub", h.serverPub);
 
   IF h.group = TLS13Handshake.GroupP256 THEN
@@ -1002,33 +1056,39 @@ BEGIN
   IF TLS13EncHandshake.CertificateRequested(h.reqCtx) THEN
     (* RFC 8446 4.4.2: our Certificate echoing the request context, empty without an identity;
        with one its CertificateVerify (4.4.3); the Finished covers them *)
+    h.sendIdentity := (h.localIdentity # NIL) & TLS13EncHandshake.SignatureRequested(TLSIdentity.Scheme(h.localIdentity));
+    IF h.strictEd25519 & (~h.sendIdentity OR (h.localIdentity.kind # TLSIdentity.Ed25519) OR (h.localIdentity.n # 1)) THEN
+      Abort(HandshakeFailure, "the local Ed25519 identity is unavailable"); RETURN FALSE
+    END;
     TLSBytes.Init(h.list); h.i := 0;
-    WHILE (identity # NIL) & (h.i < identity.n) DO
-      TLSBytes.PutBE24(h.list, identity.certs[h.i].len); TLSBytes.Append(h.list, identity.certs[h.i]); TLSBytes.PutBE16(h.list, 0); INC(h.i)
+    WHILE h.sendIdentity & (h.i < h.localIdentity.n) DO
+      TLSBytes.PutBE24(h.list, h.localIdentity.certs[h.i].len); TLSBytes.Append(h.list, h.localIdentity.certs[h.i]); TLSBytes.PutBE16(h.list, 0); INC(h.i)
     END;
     TLSBytes.Init(h.certMsg); TLSBytes.AppendByte(h.certMsg, TLS13EncHandshake.Certificate);
     TLSBytes.PutBE24(h.certMsg, 1 + h.reqCtx.len + 3 + h.list.len);
     TLSBytes.AppendByte(h.certMsg, h.reqCtx.len); TLSBytes.Append(h.certMsg, h.reqCtx); TLSBytes.PutBE24(h.certMsg, h.list.len);
     TLSBytes.Append(h.certMsg, h.list);
+    IF ~AppendTranscript(h.thClient, h.certMsg) THEN RETURN FALSE END;
     TLS13Records.ProtectRecord(h.cHsKey, h.cHsIV, h.clientHSSeq, TLS13Records.Handshake, h.certMsg, h.rec);
     TLSBytes.Append(s.outgoing, h.rec);
-    TLSBytes.Append(h.thClient, h.certMsg); INC(h.clientHSSeq); s.clientAppSeq := h.clientHSSeq;
-    IF identity # NIL THEN
+    INC(h.clientHSSeq); s.clientAppSeq := h.clientHSSeq;
+    IF h.sendIdentity THEN
       TLS13Keys.HashMessages(h.thClient, h.h);
       TLSBytes.Init(h.list); h.i := 0; WHILE h.i < 64 DO TLSBytes.AppendByte(h.list, 20H); INC(h.i) END;
       TLSBytes.AppendString(h.list, "TLS 1.3, client CertificateVerify"); TLSBytes.AppendByte(h.list, 0); TLSBytes.Append(h.list, h.h);
-      IF ~TLSIdentity.Sign(identity, h.list, h.sig) THEN Abort(InternalError, "signing the client CertificateVerify failed"); RETURN FALSE END;
+      IF ~TLSIdentity.Sign(h.localIdentity, h.list, h.sig) THEN Abort(InternalError, "signing the client CertificateVerify failed"); RETURN FALSE END;
       TLSBytes.Init(h.certMsg); TLSBytes.AppendByte(h.certMsg, 15);  (* CertificateVerify *)
-      TLSBytes.PutBE24(h.certMsg, 4 + h.sig.len); TLSBytes.PutBE16(h.certMsg, TLSIdentity.Scheme(identity));
+      TLSBytes.PutBE24(h.certMsg, 4 + h.sig.len); TLSBytes.PutBE16(h.certMsg, TLSIdentity.Scheme(h.localIdentity));
       TLSBytes.PutBE16(h.certMsg, h.sig.len); TLSBytes.Append(h.certMsg, h.sig);
+      IF ~AppendTranscript(h.thClient, h.certMsg) THEN RETURN FALSE END;
       TLS13Records.ProtectRecord(h.cHsKey, h.cHsIV, h.clientHSSeq, TLS13Records.Handshake, h.certMsg, h.rec);
       TLSBytes.Append(s.outgoing, h.rec);
-      TLSBytes.Append(h.thClient, h.certMsg); INC(h.clientHSSeq); s.clientAppSeq := h.clientHSSeq;
-      identitySent := TRUE
+      INC(h.clientHSSeq); s.clientAppSeq := h.clientHSSeq;
+      identitySent := TRUE; s.identitySent := TRUE
     END;
     IF verbose THEN
       Out.String("TLS13Live: the server asked for a client certificate, ");
-      IF identity # NIL THEN Out.String("sent it") ELSE Out.String("sent none") END; Out.Ln
+      IF h.sendIdentity THEN Out.String("sent it") ELSE Out.String("sent none") END; Out.Ln
     END
   END;
   IF verbose THEN Out.String("TLS13Live: building client Finished"); Out.Ln END;
@@ -1046,7 +1106,7 @@ BEGIN
   IF verbose THEN Out.String("TLS13Live: application keys ready"); Out.Ln END;
 
   IF verbose THEN Out.String("TLS13Live: appending client Finished to transcript"); Out.Ln END;
-  TLS13ClientFinished.AppendClientFinished(h.th, h.clientFinishedMsg);
+  IF ~AppendTranscript(h.th, h.clientFinishedMsg) THEN RETURN FALSE END;
   IF verbose THEN Out.String("TLS13Live: transcript len after client Finished="); Out.Int(h.th.len, 0); Out.Ln END;
   IF verbose THEN Out.String("TLS13Live: writing client Finished"); Out.Ln END;
   TLSBytes.Append(s.outgoing, h.clientFinishedRec);
@@ -1075,7 +1135,8 @@ BEGIN
       IF result = 0 THEN RETURN 0 END;
       IF result < 0 THEN ok := FALSE
       ELSIF h.phase = 6 THEN
-        s.handshakeDone := TRUE; asyncOwner := NIL; s.async := NIL; ClearAsync(h); RETURN 1
+        s.handshakeDone := TRUE; s.peerAuthenticated := h.strictEd25519 & s.identitySent;
+        asyncOwner := NIL; s.async := NIL; ClearAsync(h); RETURN 1
       ELSE INC(h.phase)
       END
   | 2, 4:
@@ -1102,7 +1163,11 @@ BEGIN
         ok := AsyncEncrypted(h, s);
         IF ok & h.sawFinished THEN
           ok := h.finishedOK;
-          IF ok THEN ok := CheckCapturedCertificateChain(h.host) END;
+          IF ok THEN
+            IF h.strictEd25519 THEN ok := CheckCapturedEd25519(h)
+            ELSE ok := CheckCapturedCertificateChain(h.host)
+            END
+          END;
           IF ok THEN ok := AsyncFinish(h, s); h.phase := 6 END
         END
       END

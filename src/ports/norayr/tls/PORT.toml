@@ -3,8 +3,8 @@ package = "tls"
 kind = "library"
 origin = "Norayr Chilingarian's pure-Oberon TLS 1.3 implementation"
 upstream_url = "https://github.com/norayr/tls"
-upstream_revision = "8521761fc2c7ca6abaa4a921a4dffcee20ca4955"
-revision_status = "synchronized with upstream, including incremental SHA-512 and Ed25519"
+upstream_revision = "d50eca6cd6c93eb412ad334da05e3d22554a49da"
+revision_status = "synchronized with upstream, including pinned Ed25519 mutual TLS"
 sources = [
   "TLSBytes.Mod", "TLSSHA256.Mod", "TLSHKDF.Mod", "TLSSHA512.Mod", "TLSEd25519.Mod", "TLSNum.Mod",
   "TLSECDSA.Mod", "TLSX25519.Mod", "TLSAESGCM.Mod", "TLS13Records.Mod", "TLS13Handshake.Mod",
@@ -12,12 +12,12 @@ sources = [
   "TLSASN1.Mod", "TLSX509.Mod", "TLSX509Validity.Mod", "TLSRSA.Mod", "TLSX509Names.Mod",
   "TLSX509Ext.Mod", "TLSSig.Mod", "TLSNameConstraints.Mod", "TLSX509Chain.Mod", "TLSCABundle.Mod",
   "TLS13EncHandshake.Mod", "TLS13ClientFinished.Mod", "TLS13Application.Mod", "TLS13Random.Mod", "TLSEd25519Keys.Mod",
-  "TLSNow.Mod", "TLSIdentity.Mod", "TLSCertGen.Mod", "TLS13Live.Mod", "TLS13Server.Mod", "httpsPure.Mod",
+  "TLSNow.Mod", "TLSIdentity.Mod", "TLS13Auth.Mod", "TLSCertGen.Mod", "TLS13Live.Mod", "TLS13Server.Mod", "httpsPure.Mod",
 ]
 license = "LGPL version 3 in LICENSE, with the referenced GPL version 3 in COPYING; shared ETH BIT retains separate provenance in s3"
-source_map = ["src/*.Mod -> same filenames (37 selected libraries only)", "LICENSE and COPYING -> same filenames", "Ed25519.md -> same filename (adapting build paths)", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/{TestAsync.Mod,TestAsyncRecords.Mod,async.py,ed25519.py} -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
+source_map = ["src/*.Mod -> same filenames (38 selected libraries only)", "LICENSE and COPYING -> same filenames", "Ed25519.md -> same filename (adapting build paths)", "src/BIT.Mod -> existing src/ports/s3/BIT.Mod (byte-identical)", "src/TLSTest*.Mod -> src/test/ports/tls/", "test/{*.Mod,*.py} -> src/test/ports/tls/", "test/certs/* -> src/test/ports/tls/certs/ (public test fixtures, not production keys)", "tools/* -> src/test/ports/tls/tools/", "src/{certGen,tlsConnect,httpsGet,tlsServe,tlsIdent,testHttpsPure}.Mod -> src/examples/network/tls/"]
 adaptations = [
-  "keeping implementation sources, native tests and the Ed25519 interoperability driver byte-identical to the recorded upstream revision",
+  "keeping implementation sources, native tests and Ed25519 authentication interoperability drivers byte-identical to the recorded upstream revision",
   "copying five hexadecimal-dump tests byte-for-byte from Polpo c9795fc1 through the shared TLS upstream",
   "reusing the ETH BIT in s3 instead of importing a duplicate",
   "keeping test programs and example applications out of distribution libraries",
@@ -26,4 +26,4 @@ adaptations = [
   "retaining TLSNow's signed 32-bit seconds interface (2038 limit)",
 ]
 build = "make (Linux model 2; WITH_NETWORK=0 disables); make modular-library WITH_NETWORK=1"
-test = "make -C src/test/ports test; make modular-library-test; including Ed25519 RFC vectors, incremental SHA-512, resumable record/KeyUpdate and live interoperability tests; optional Python cryptography comparisons in src/test/ports/tls/ed25519.py; fixtures selected with TLS_TEST_CERTS"
+test = "make -C src/test/ports test; make modular-library-test; including Ed25519 RFC vectors, incremental SHA-512, certificate requests, pinned identities, resumable record/KeyUpdate and live interoperability tests; optional Python cryptography and mutual-TLS interoperability drivers in src/test/ports/tls/; fixtures selected with TLS_TEST_CERTS"
