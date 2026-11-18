@@ -54,3 +54,7 @@ Native TLS programs and independent local interoperability checks cover
 signatures, certificate policy, client and server authentication, fragmented
 I/O, cancellation, queued handshakes and record readiness. Live pinned TLS
 validation is on 64-bit Linux; other platform bindings need separate testing.
+
+Release checks on x86-64 Linux with GCC pass the full model-2 confidence suite,
+41 TLS test programs, six independent TLS/signature drivers and the modular
+runtime, tools and bundled-library ABI/load checks.
