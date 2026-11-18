@@ -37,6 +37,7 @@ BEGIN
 END GetRecord;
 
 BEGIN
+  TLS.Init(state); ASSERT(~TLS.WantsWrite(state)); ASSERT(~TLS.PendingPlaintext(state));
   Sockets.AnyAddress(Sockets.Inet4, local); listener := Sockets.ListenNonblocking(local, 0, 2);
   ASSERT(listener # NIL); ASSERT(Sockets.LocalEndpoint(listener, endpoint));
   ASSERT(Sockets.ParseAddress("127.0.0.1", endpoint.address));
@@ -53,8 +54,10 @@ BEGIN
   B.Init(plain); B.AppendString(plain, "abc");
   Records.ProtectRecord(keyB, ivB, 0, Records.ApplicationData, plain, record);
   Send(0, 2); Pump; Send(2, 3); Pump; Send(5, 1); Pump; Send(6, record.len - 6);
-  REPEAT n := TLS.ReadSome(state, bytes, 0, LEN(bytes)) UNTIL n # -2;
-  ASSERT(n = 3); ASSERT(bytes[0] = "a"); ASSERT(bytes[2] = "c");
+  REPEAT n := TLS.ReadSome(state, bytes, 0, 1) UNTIL n # -2;
+  ASSERT(n = 1); ASSERT(bytes[0] = "a"); ASSERT(TLS.PendingPlaintext(state));
+  n := TLS.ReadSome(state, bytes, 0, LEN(bytes));
+  ASSERT(n = 2); ASSERT(bytes[0] = "b"); ASSERT(bytes[1] = "c"); ASSERT(~TLS.PendingPlaintext(state));
 
   B.Init(plain); B.AppendByte(plain, 24); B.PutBE24(plain, 1); B.AppendByte(plain, 1);
   Records.ProtectRecord(keyB, ivB, 1, Records.Handshake, plain, record); Send(0, record.len);
@@ -65,6 +68,7 @@ BEGIN
   UNTIL state.serverAppSeq = 0;
   REPEAT n := TLS.FlushOutput(state); Platform.Delay(1) UNTIL n # 0;
   ASSERT(n = 1);
+  ASSERT(~TLS.WantsWrite(state));
   B.Init(empty); HKDF.ExpandLabel(b, "traffic upd", empty, 32, next); B.Copy(next, b);
   Keys.TrafficKey(b, keyB); Keys.TrafficIV(b, ivB);
   ASSERT(B.EqualConstTime(keyB, state.serverAppKey)); ASSERT(state.serverAppSeq = 0);
@@ -84,5 +88,6 @@ BEGIN
   REPEAT n := TLS.ReadSome(state, bytes, 0, LEN(bytes)) UNTIL n # -2;
   ASSERT(n = 0); ASSERT(state.closeNotify);
   TLS.CloseNow(state); Sockets.Close(peer);
+  ASSERT(~TLS.WantsWrite(state)); ASSERT(~TLS.PendingPlaintext(state));
   Out.String("PASS: partial TLS records, KeyUpdate request/response, new keys and close_notify"); Out.Ln
 END TestAsyncRecords.

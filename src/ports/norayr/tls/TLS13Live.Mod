@@ -1180,6 +1180,18 @@ BEGIN
   RETURN 0
 END PollHandshake;
 
+(** Whether resumable I/O has encrypted bytes awaiting a writable descriptor. *)
+PROCEDURE WantsWrite*(VAR s: State): BOOLEAN;
+BEGIN
+  RETURN s.connected & ((s.outPos < s.outgoing.len) OR (s.controlPos < s.controlOut.len))
+END WantsWrite;
+
+(** Whether decrypted application bytes can be read without another socket read. *)
+PROCEDURE PendingPlaintext*(VAR s: State): BOOLEAN;
+BEGIN
+  RETURN s.connected & s.handshakeDone & (s.pendingPos < s.pending.len)
+END PendingPlaintext;
+
 PROCEDURE WriteSome*(VAR s: State; VAR data: ARRAY OF CHAR; offset, count: LONGINT): LONGINT;
 VAR plain: TLSBytes.Buffer; result: INTEGER; n, i: LONGINT;
 BEGIN

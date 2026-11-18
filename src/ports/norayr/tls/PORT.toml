@@ -3,7 +3,7 @@ package = "tls"
 kind = "library"
 origin = "Norayr Chilingarian's pure-Oberon TLS 1.3 implementation"
 upstream_url = "https://github.com/norayr/tls"
-upstream_revision = "d50eca6cd6c93eb412ad334da05e3d22554a49da"
+upstream_revision = "84cdd281afd59b6dd75c15b2ede93c6d4f4685a2"
 revision_status = "synchronized with upstream, including pinned Ed25519 mutual TLS"
 sources = [
   "TLSBytes.Mod", "TLSSHA256.Mod", "TLSHKDF.Mod", "TLSSHA512.Mod", "TLSEd25519.Mod", "TLSNum.Mod",
