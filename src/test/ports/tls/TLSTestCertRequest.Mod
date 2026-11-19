@@ -86,5 +86,5 @@ BEGIN
   Check(~TLS13EncHandshake.CertificateRequested(context));
   Out.String("TLSTestCertRequest: "); Out.Int(checks, 0); Out.String(" checks, ");
   Out.Int(failures, 0); Out.String(" failed"); Out.Ln;
-  IF failures # 0 THEN HALT(1) END
+  IF failures # 0 THEN HALT(100) END
 END TLSTestCertRequest.

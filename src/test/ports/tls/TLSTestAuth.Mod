@@ -48,5 +48,5 @@ BEGIN
   TLSIdentity.Clear(id); Check(~TLS13Auth.Sign(id, transcript, TRUE, message) & (message.len = 0));
   Check(~TLS13Auth.Present(id, message) & (message.len = 0));
   Out.String("TLSTestAuth: "); Out.Int(checks, 0); Out.String(" checks, "); Out.Int(failures, 0); Out.String(" failed"); Out.Ln;
-  IF failures # 0 THEN HALT(1) END
+  IF failures # 0 THEN HALT(100) END
 END TLSTestAuth.
