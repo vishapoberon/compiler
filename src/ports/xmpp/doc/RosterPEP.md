@@ -1,7 +1,7 @@
 # Roster and personal publishing
 
 `XmppRoster` implements RFC 6121 roster retrieval, edits and server pushes.
-`XmppPubSub` supplies XEP-0060 publish, retrieval and retraction operations and
+`XmppPubSub` supplies XEP-0060 publish, subscription, retrieval and retraction operations and
 XEP-0163 personal-event parsing. Both use `XmppIQ` for peer-checked replies,
 cancellation and application-driven deadlines. Strings use UTF-16 code units;
 convert UTF-8 with `XmppItems.UTF8`.
@@ -53,6 +53,34 @@ roster requests. Presence subscription decisions remain application-owned;
 explicitly request or authorize presence separately from editing roster entries.
 See [presence](Presence.md) for subscription builders and resource tracking.
 
+## Explicit subscriptions
+
+`Subscribe(router, peer, node, jid, timeoutMS, action, error)` requests a
+subscription to a PubSub node. `peer` identifies the service, `node` the feed,
+and `jid` the subscriber's bare or full JID. Subscriber domains are canonicalized
+without changing the resource. `BuildSubscribe` returns the detached payload.
+
+In the completion callback, `ReadSubscription(request)` returns a checked
+subscription record or `NIL`. Its `node` and canonical `jid` must match the
+request. The record retains the optional subscription `id`, the server's `state`
+and whether `configurationRequired` is set. States are `subscriptionNone`,
+`subscriptionPending`, `subscriptionUnconfigured` and `subscriptionSubscribed`.
+Only `subscriptionSubscribed` without required configuration establishes an
+active subscription; pending approval and configuration remain explicit.
+An empty successful IQ does not establish a subscription.
+
+`Unsubscribe(router, peer, node, jid, id, timeoutMS, action, error)` cancels a
+subscription. Pass the returned subscription ID when the service requires it,
+or an empty string when there is no ID. `BuildUnsubscribe` exposes the payload.
+`Unsubscribed(request)` requires an empty successful result for that exact
+unsubscribe operation. Timeouts, cancellation, errors and unrelated replies do
+not establish or cancel local follow state automatically.
+
+The IQ router checks response senders and request IDs. Subscription results
+also reject mismatched nodes/JIDs, duplicate result operations, invalid states,
+malformed configuration markers and over-limit IDs. Choosing feeds, subscriber
+identities, access models and authorization remains application policy.
+
 ## Publishing and retrieving personal events
 
 Use the account's bare JID, or an empty peer for its local server, for personal
@@ -94,8 +122,8 @@ kind `purged` or `deleted` and no updates; deletion redirects are unsupported.
 Choose trusted publishers explicitly and interpret their payload namespaces
 in application code. Subscriptions and publisher authorization are application
 decisions. Advertise the node's `+notify` feature through `XmppDisco` and send
-presence when the chosen PEP service requires them. Access models, explicit
-subscriptions, node configuration, publish options and retry policy remain
+presence when the chosen PEP service requires them. Access models, subscription
+policy, node configuration, publish options and retry policy remain
 application-owned. Retain item IDs when implementing idempotent retries;
 a failed connection after sending can leave the publication outcome uncertain.
 

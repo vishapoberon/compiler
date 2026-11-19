@@ -21,6 +21,14 @@ TYPE
 
 VAR checks: LONGINT;
 
+PROCEDURE Check(value: BOOLEAN; message: ARRAY OF CHAR);
+BEGIN
+  INC(checks);
+  IF ~value THEN
+    Out.String("TestXmppRosterPubSub: "); Out.String(message); Out.Ln; HALT(100)
+  END
+END Check;
+
 PROCEDURE (t: Fake) AuthenticatedFor(domain: ARRAY OF CHAR): BOOLEAN;
 BEGIN RETURN ~t.ended & (domain = "example.org") END AuthenticatedFor;
 PROCEDURE (t: Fake) Read(VAR bytes: ARRAY OF CHAR; VAR count: LONGINT): BOOLEAN;
@@ -282,6 +290,107 @@ BEGIN
   r.Stop; c.Abort; t.output.Close
 END PubSubs;
 
+PROCEDURE SubscriptionData(node, jid, id: ARRAY OF T.CodeUnit; state: ARRAY OF CHAR): Items.Item;
+  VAR root, item: Items.Item; value: T.String;
+BEGIN
+  root := Items.New("pubsub", PubSub.namespaceURI);
+  item := Items.New("subscription", PubSub.namespaceURI); root.AddChild(item);
+  item.SetParam("node", node); item.SetParam("jid", jid); value := Items.Latin1(state);
+  item.SetParam("subscription", value^);
+  IF id[0] # 0 THEN item.SetParam("subid", id) END;
+  RETURN root
+END SubscriptionData;
+
+PROCEDURE Subscriptions;
+  VAR c: C.Client; t: Fake; h: Hook; r: IQ.Router; roster: Roster.Roster; rh: RosterHook;
+    request: IQ.Request; a: Action; error: Msg.Msg; peer, node, jid, canonical, id, empty, value: T.String;
+    payload, item, options, required: Items.Item; sub: PubSub.Subscription; i: LONGINT;
+BEGIN
+  c := New(t, h, r, roster, rh); NEW(a); peer := Items.Latin1("pubsub.example.net");
+  node := Items.UTF8("Հրապարակումներ"); jid := Items.UTF8("օբերոն@xn--cbbu1a.xn--y9a3aq/reader");
+  canonical := Items.UTF8("օբերոն@ծոց.հայ/reader"); id := Items.UTF8("բաժանորդ😀"); empty := Items.Latin1("");
+  payload := PubSub.BuildSubscribe(node^, jid^); item := payload.First(PubSub.namespaceURI, "subscribe");
+  value := item.GetAttribute("", "jid"); Check(S.Equal(value^, canonical^), "canonical subscription JID");
+  Check(item.GetAttribute("", "subid") = NIL, "subscribe does not invent a subscription ID");
+  request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error);
+  Check((request # NIL) & (error = NIL), "queued subscription");
+  payload := SubscriptionData(node^, canonical^, id^, "subscribed");
+  r.Received(c, IQ.Response(h.last, payload)); sub := PubSub.ReadSubscription(request);
+  Check((sub # NIL) & (a.calls = 1), "subscription completion");
+  Check((sub.state = PubSub.subscriptionSubscribed) & ~sub.configurationRequired &
+    S.Equal(sub.jid^, canonical^) & S.Equal(sub.id^, id^), "subscription identity and state");
+  FOR i := PubSub.subscriptionNone TO PubSub.subscriptionSubscribed DO
+    request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error);
+    CASE i OF
+    | PubSub.subscriptionNone: payload := SubscriptionData(node^, canonical^, empty^, "none")
+    | PubSub.subscriptionPending: payload := SubscriptionData(node^, canonical^, empty^, "pending")
+    | PubSub.subscriptionUnconfigured: payload := SubscriptionData(node^, canonical^, empty^, "unconfigured")
+    | PubSub.subscriptionSubscribed: payload := SubscriptionData(node^, canonical^, empty^, "subscribed")
+    ELSE HALT(100)
+    END;
+    r.Received(c, IQ.Response(h.last, payload)); sub := PubSub.ReadSubscription(request);
+    Check((sub # NIL) & (sub.state = i) & (sub.id[0] = 0), "subscription state decoding");
+    Check(sub.configurationRequired = (i = PubSub.subscriptionUnconfigured), "configuration state remains explicit")
+  END;
+  request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error);
+  payload := SubscriptionData(node^, canonical^, id^, "unconfigured");
+  options := Items.New("subscribe-options", PubSub.namespaceURI);
+  required := Items.New("required", PubSub.namespaceURI); options.AddChild(required);
+  item := payload.First(PubSub.namespaceURI, "subscription"); item.AddChild(options);
+  r.Received(c, IQ.Response(h.last, payload)); sub := PubSub.ReadSubscription(request);
+  Check((sub # NIL) & sub.configurationRequired, "required configuration marker");
+  FOR i := 0 TO 7 DO
+    request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error);
+    payload := SubscriptionData(node^, canonical^, id^, "subscribed");
+    item := payload.First(PubSub.namespaceURI, "subscription"); value := Items.Latin1("wrong");
+    CASE i OF
+    | 0: item.SetParam("node", value^)
+    | 1: value := Items.Latin1("other@example.net"); item.SetParam("jid", value^)
+    | 2: item.SetParam("subscription", value^)
+    | 3: item.SetParam("subid", empty^)
+    | 4: payload.AddChild(Items.New("subscription", PubSub.namespaceURI))
+    | 5: item.AddChild(Items.New("subscribe-options", "urn:wrong"))
+    | 6: options := Items.New("subscribe-options", PubSub.namespaceURI); item.AddChild(options)
+    | 7: value := Items.UTF8("օբերոն@ծոց.հայ/other"); item.SetParam("jid", value^)
+    ELSE HALT(100)
+    END;
+    r.Received(c, IQ.Response(h.last, payload));
+    Check(PubSub.ReadSubscription(request) = NIL, "rejecting malformed or mismatched subscription")
+  END;
+  request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error);
+  r.Received(c, IQ.Response(h.last, NIL));
+  Check(PubSub.ReadSubscription(request) = NIL, "empty success does not establish a subscription");
+  payload := PubSub.BuildUnsubscribe(node^, jid^, id^);
+  item := payload.First(PubSub.namespaceURI, "unsubscribe"); value := item.GetAttribute("", "subid");
+  Check(S.Equal(value^, id^), "unsubscribe retains exact subscription ID");
+  request := PubSub.Unsubscribe(r, peer^, node^, jid^, id^, 100, a, error);
+  r.Received(c, IQ.Response(h.last, NIL));
+  Check(PubSub.Unsubscribed(request) & (PubSub.ReadSubscription(request) = NIL), "unsubscribe acknowledgement");
+  payload := PubSub.BuildUnsubscribe(node^, jid^, empty^);
+  item := payload.First(PubSub.namespaceURI, "unsubscribe");
+  Check(item.GetAttribute("", "subid") = NIL, "optional subscription ID is omitted");
+  value := Items.Latin1("invalid..example");
+  Check(PubSub.BuildSubscribe(node^, value^) = NIL, "rejecting malformed subscriber JID");
+  Check(PubSub.BuildSubscribe(empty^, jid^) = NIL, "rejecting empty node");
+  NEW(value, PubSub.maxIDUnits+2);
+  FOR i := 0 TO PubSub.maxIDUnits DO value[i] := ORD("x") END; value[PubSub.maxIDUnits+1] := 0;
+  Check(PubSub.BuildUnsubscribe(node^, jid^, value^) = NIL, "bounding subscription ID");
+  jid := Items.Latin1("user@example.org"); node := Items.Latin1("feed");
+  FOR i := 1 TO 3 DO
+    t.chunk := i; request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error);
+    Reply(c, t, request, 'from="attacker.example.net" type="result"', '');
+    Check((request.status = IQ.pending) & (PubSub.ReadSubscription(request) = NIL), "rejecting foreign reply");
+    Reply(c, t, request, 'from="pubsub.example.net" type="result"',
+      '<pubsub xmlns="http://jabber.org/protocol/pubsub"><subscription node="feed" jid="user@example.org" subscription="subscribed"/></pubsub>');
+    Check(PubSub.ReadSubscription(request) # NIL, "fragmented subscription result")
+  END;
+  request := PubSub.Subscribe(r, peer^, node^, jid^, 100, a, error); r.Tick(100);
+  Check((request.status = IQ.timedOut) & (PubSub.ReadSubscription(request) = NIL), "subscription timeout");
+  request := PubSub.Unsubscribe(r, peer^, node^, jid^, empty^, 100, a, error); r.Stop;
+  Check((request.status = IQ.cancelled) & ~PubSub.Unsubscribed(request), "cancelled unsubscribe is not acknowledged");
+  c.Abort; t.output.Close
+END Subscriptions;
+
 PROCEDURE Events;
   VAR stanza: Core.Stanza; root, event, operation, item, payload: Items.Item; e: PubSub.Event;
     peer, node, value: T.String; i: LONGINT;
@@ -363,6 +472,6 @@ BEGIN
 END PubSubBounds;
 
 BEGIN
-  checks := 0; Rosters; Boundaries; PubSubs; Events; PubSubBounds;
+  checks := 0; Rosters; Boundaries; PubSubs; Subscriptions; Events; PubSubBounds;
   Out.String("XMPP roster and PubSub/PEP checks passed: "); Out.Int(checks, 0); Out.Ln
 END TestXmppRosterPubSub.

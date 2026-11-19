@@ -11,6 +11,8 @@ CONST
   maxItems* = 64; maxNodeUnits* = 1024; maxIDUnits* = 1024;
   maxPayloadBytes* = 65536;
   published* = 1; retracted* = 2; purged* = 3; deleted* = 4;
+  subscriptionNone* = 0; subscriptionPending* = 1;
+  subscriptionUnconfigured* = 2; subscriptionSubscribed* = 3;
 
 TYPE
   Update* = RECORD kind-: SHORTINT; id-: T.String; payload-: Items.Item END;
@@ -20,6 +22,11 @@ TYPE
     kind-: SHORTINT;
     count-: LONGINT;
     updates-: ARRAY maxItems OF Update;
+  END;
+  Subscription* = POINTER TO RECORD
+    node*, jid*, id*: T.String;
+    state*: SHORTINT;
+    configurationRequired*: BOOLEAN;
   END;
 
 PROCEDURE Value(text: ARRAY OF T.CodeUnit; maximum: LONGINT): BOOLEAN;
@@ -83,6 +90,26 @@ BEGIN
   RETURN pubsub
 END BuildRetract;
 
+PROCEDURE BuildSubscribe*(node, jid: ARRAY OF T.CodeUnit): Items.Item;
+  VAR pubsub, subscribe: Items.Item; canonical: T.String;
+BEGIN
+  IF ~Value(node, maxNodeUnits) THEN RETURN NIL END;
+  canonical := IQ.CanonicalJID(jid); IF canonical = NIL THEN RETURN NIL END;
+  pubsub := Operation("subscribe", node, subscribe);
+  subscribe.SetParam("jid", canonical^); RETURN pubsub
+END BuildSubscribe;
+
+PROCEDURE BuildUnsubscribe*(node, jid, id: ARRAY OF T.CodeUnit): Items.Item;
+  VAR pubsub, unsubscribe: Items.Item; canonical: T.String;
+BEGIN
+  IF ~Value(node, maxNodeUnits) OR ~IQ.Value(id, maxIDUnits) THEN RETURN NIL END;
+  canonical := IQ.CanonicalJID(jid); IF canonical = NIL THEN RETURN NIL END;
+  pubsub := Operation("unsubscribe", node, unsubscribe);
+  unsubscribe.SetParam("jid", canonical^);
+  IF id[0] # 0 THEN unsubscribe.SetParam("subid", id) END;
+  RETURN pubsub
+END BuildUnsubscribe;
+
 PROCEDURE Publish*(router: IQ.Router; peer, node, id: ARRAY OF T.CodeUnit; payload: Items.Item;
                    timeoutMS: LONGINT; action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
 BEGIN RETURN router.Query(peer, BuildPublish(node, id, payload), TRUE, timeoutMS, action, error) END Publish;
@@ -94,6 +121,14 @@ BEGIN RETURN router.Query(peer, BuildItems(node, id, maximum), FALSE, timeoutMS,
 PROCEDURE Retract*(router: IQ.Router; peer, node, id: ARRAY OF T.CodeUnit; notify: BOOLEAN;
                    timeoutMS: LONGINT; action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
 BEGIN RETURN router.Query(peer, BuildRetract(node, id, notify), TRUE, timeoutMS, action, error) END Retract;
+
+PROCEDURE Subscribe*(router: IQ.Router; peer, node, jid: ARRAY OF T.CodeUnit;
+                     timeoutMS: LONGINT; action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
+BEGIN RETURN router.Query(peer, BuildSubscribe(node, jid), TRUE, timeoutMS, action, error) END Subscribe;
+
+PROCEDURE Unsubscribe*(router: IQ.Router; peer, node, jid, id: ARRAY OF T.CodeUnit;
+                       timeoutMS: LONGINT; action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
+BEGIN RETURN router.Query(peer, BuildUnsubscribe(node, jid, id), TRUE, timeoutMS, action, error) END Unsubscribe;
 
 PROCEDURE Expected(request: IQ.Request; name: ARRAY OF CHAR): Items.Item;
   VAR child: Items.Item;
@@ -125,6 +160,44 @@ END Published;
 
 PROCEDURE Retracted*(request: IQ.Request): BOOLEAN;
 BEGIN RETURN (Expected(request, "retract") # NIL) & IQ.EmptyResult(request) END Retracted;
+
+PROCEDURE ReadSubscription*(request: IQ.Request): Subscription;
+  VAR expected, pubsub, subscription, options, required: Items.Item;
+    wanted, jid, value: T.String; result: Subscription;
+BEGIN
+  expected := Expected(request, "subscribe"); IF expected = NIL THEN RETURN NIL END;
+  pubsub := IQ.Payload(request, namespaceURI, "pubsub");
+  IF (pubsub = NIL) OR ~Single(pubsub, subscription) OR
+     ~IQ.Named(subscription, namespaceURI, "subscription") OR ~SameNode(subscription, expected) THEN RETURN NIL END;
+  wanted := expected.GetAttribute("", "jid"); value := subscription.GetAttribute("", "jid");
+  IF (wanted = NIL) OR (value = NIL) THEN RETURN NIL END;
+  wanted := IQ.CanonicalJID(wanted^); jid := IQ.CanonicalJID(value^);
+  IF (wanted = NIL) OR (jid = NIL) OR ~S.Equal(wanted^, jid^) THEN RETURN NIL END;
+  value := subscription.GetAttribute("", "subscription"); IF value = NIL THEN RETURN NIL END;
+  NEW(result);
+  IF S.Equal8(value^, "none") THEN result.state := subscriptionNone
+  ELSIF S.Equal8(value^, "pending") THEN result.state := subscriptionPending
+  ELSIF S.Equal8(value^, "unconfigured") THEN result.state := subscriptionUnconfigured
+  ELSIF S.Equal8(value^, "subscribed") THEN result.state := subscriptionSubscribed
+  ELSE RETURN NIL
+  END;
+  result.node := subscription.GetAttribute("", "node"); result.jid := jid;
+  result.id := subscription.GetAttribute("", "subid");
+  IF result.id = NIL THEN result.id := Items.Latin1("")
+  ELSIF ~Value(result.id^, maxIDUnits) THEN RETURN NIL
+  END;
+  result.configurationRequired := result.state = subscriptionUnconfigured;
+  IF ~IQ.Empty(subscription) THEN
+    IF ~Single(subscription, options) OR ~IQ.Named(options, namespaceURI, "subscribe-options") OR
+       ~Single(options, required) OR ~IQ.Named(required, namespaceURI, "required") OR
+       ~IQ.Empty(required) THEN RETURN NIL END;
+    result.configurationRequired := TRUE
+  END;
+  RETURN result
+END ReadSubscription;
+
+PROCEDURE Unsubscribed*(request: IQ.Request): BOOLEAN;
+BEGIN RETURN (Expected(request, "unsubscribe") # NIL) & IQ.EmptyResult(request) END Unsubscribed;
 
 PROCEDURE ValidItems(items: Items.Item; event: BOOLEAN; limit: LONGINT; expectedID: T.String; out: Event): BOOLEAN;
   VAR content: Items.Content; item, payload: Items.Item; id: T.String; kind: SHORTINT;
