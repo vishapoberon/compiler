@@ -27,6 +27,12 @@ differs within its final 99 bytes; both versions remain preserved. See the
 [complete history record](https://github.com/norayr/xmpp/blob/master/doc/History.md)
 for the archive source, conversion details and verification instructions.
 
+The author-supplied checkout at Mercurial revision
+`61608fcd3235855d1db556a760e433254c8a6482` matches all 56 tracked files of the
+corresponding recovered revision. It precedes the 3 March 2015 `XmlStream` change;
+the later recovered source remains the basis of the port.
+
 Some source headers reference `Docu/BB-License`; that file is absent from the
-recovered history and supplied snapshot. Author notices are retained, and
-licensing confirmation remains pending.
+recovered history and supplied snapshot. The [BSD 2-Clause License](../LICENSE)
+uses the same terms as BlackBox Component Builder and retains the XMPP authors'
+notices. The archived documents remain unchanged.

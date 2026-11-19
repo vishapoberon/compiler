@@ -113,6 +113,11 @@ tests and the preserved Component Pascal snapshot at revision
 `upstream/` retains all 88 supplied files, including 31 paired `.txt`/`.odc`
 modules. The manifest records their sizes and SHA-256 hashes. The `.odc`
 documents retain Unicode text that was lost in some text exports. Original
-notices are retained. Some headers refer to `Docu/BB-License`, which is absent
-from the recovered history and supplied snapshot; licensing confirmation is
-still needed.
+notices are retained.
+
+## License
+
+The XMPP library and its VOC port use the [BSD 2-Clause License](LICENSE), the
+same license terms used by BlackBox Component Builder. Original author notices
+are retained, including historical references to `Docu/BB-License`. The preserved
+source snapshots remain unchanged.
