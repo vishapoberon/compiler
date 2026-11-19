@@ -2,13 +2,13 @@ MODULE optsosv; (* v for vishap *)
 (* os/compiler dependent argument functions to use in opts.Mod *)
 (* voc version, uses Args module. should work with ofront as well *)
 
-IMPORT Args, Strings;
+IMPORT Args, Strings := oocStrings;
 
 TYPE
   string* = POINTER TO ARRAY OF CHAR;
 
 VAR
-  argscount-: INTEGER;
+  argscount*: INTEGER;
   cur:        INTEGER;
 
 PROCEDURE Get*(): string;

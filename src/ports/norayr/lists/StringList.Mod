@@ -1,6 +1,6 @@
 MODULE StringList;
 (* Oberon implementation without methods *)
-IMPORT Files, Out, Strings, List, strTypes, strUtils;
+IMPORT Files, Out, Strings := oocStrings, List, strTypes, strUtils;
 
 TYPE
 

@@ -1,5 +1,5 @@
 MODULE StringBase64;
- IMPORT Out, Strings;  (* polpo: Out := out, Strings := strings *)
+ IMPORT Out, Strings := oocStrings;
 VAR
   EncodingTable : ARRAY 65 OF CHAR;  (* 64 characters and 0X: with 64, COPY dropped the "/" *)
   fixToIncludeEOL*: BOOLEAN;

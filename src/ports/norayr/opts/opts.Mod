@@ -1,6 +1,6 @@
 MODULE opts;
 
-IMPORT Out, Strings, Platform, optsos := optsosv;
+IMPORT Out, Strings := oocStrings, Platform, optsos := optsosv;
 
 TYPE
    string* = optsos.string;

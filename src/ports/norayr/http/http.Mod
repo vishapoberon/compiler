@@ -1,8 +1,7 @@
 MODULE http;  (** an HTTP/1.1 client: GET, with Content-Length, chunked or to the end of the connection *)
-(* The same file serves voc and polpo; only the imports of Strings and Out differ.
-   The transport (Connect, Read, ReadBuf, Write, Disconnect) are procedure fields of the client:
+(* The transport (Connect, Read, ReadBuf, Write, Disconnect) are procedure fields of the client:
    https replaces them with TLS. Read with bytesToRead >= 0 reads exactly that many bytes. *)
-IMPORT IntStr, Strings, Files, Out,  (* polpo: Strings := strings, Out := out *)
+IMPORT IntStr, Strings := oocStrings, Files, Out,
        hexIntStr, Internet, strTypes, strUtils, Base64 := StringBase64;
 CONST
   defName = "unknown.html";
@@ -769,13 +768,15 @@ END save;
 PROCEDURE appendUserPasswdHdr*(h: Client; user, password: ARRAY OF CHAR);
 VAR
   credentials, b64credentials, aHdrVal, authHeader: strTypes.pstring;
+  length: LONGINT;
 BEGIN
-  NEW(credentials, Strings.Length(user)+ Strings.Length(password) + 1(* +1 is enough since we don't want string to be fixed in Base64.fix *));
+  length := Strings.Length(user); INC(length, Strings.Length(password)); INC(length);
+  NEW(credentials, length+1);
   Base64.fixToIncludeEOL := FALSE;
   COPY(user, credentials^);
   Strings.Append(":", credentials^);
   Strings.Append(password, credentials^);
-  NEW(b64credentials, Strings.Length(credentials^)*2(* to certainly fit base64 encoded string *));
+  NEW(b64credentials, (length+2) DIV 3*4+1);
   Base64.EncodeString(credentials^, b64credentials^);
   NEW(aHdrVal,  Strings.Length(defAuth) (* Basic *) + Strings.Length(b64credentials^) + 3 (* whitespace and null *));
   COPY(defAuth, aHdrVal^); Strings.Append(" ", aHdrVal^);

@@ -12,6 +12,8 @@ OBERON="$build;${OBERON-}"
 export OBERON
 "$compiler" -O"$model" "$flags" "$source/Internet/TestServerInit.Mod"
 ./TestServerInit
+"$compiler" -O"$model" "$flags" "$source/http/TestHttpAuth.Mod"
+./TestHttpAuth
 count=0
 for path in "$source"/tls/TLSTest*.Mod; do
   name=${path##*/}
