@@ -3,7 +3,7 @@ MODULE XmppPubSub;
 (* XEP-0060 payloads, correlated results and XEP-0163 personal notifications. *)
 
 IMPORT Msg, S := LongStrings, IntStr, T := XmppTypes, Items := XmppItems,
-  Core := XmppCore, IQ := XmppIQ, XML := XmppXmlGen;
+  Core := XmppCore, IQ := XmppIQ, XML := XmppXmlGen, RSM := XmppRSM;
 
 CONST
   namespaceURI* = "http://jabber.org/protocol/pubsub";
@@ -27,6 +27,11 @@ TYPE
     node*, jid*, id*: T.String;
     state*: SHORTINT;
     configurationRequired*: BOOLEAN;
+  END;
+  Page* = POINTER TO RECORD
+    items*: Items.Item;
+    size*: LONGINT;
+    info*: RSM.Result;
   END;
 
 PROCEDURE Value(text: ARRAY OF T.CodeUnit; maximum: LONGINT): BOOLEAN;
@@ -80,6 +85,14 @@ BEGIN
   RETURN pubsub
 END BuildItems;
 
+PROCEDURE BuildPage*(node, cursor: ARRAY OF T.CodeUnit; direction, maximum: LONGINT): Items.Item;
+  VAR pubsub, items, set: Items.Item;
+BEGIN
+  IF ~Value(node, maxNodeUnits) OR (maximum < 0) OR (maximum > maxItems) THEN RETURN NIL END;
+  set := RSM.Build(direction, maximum, cursor); IF set = NIL THEN RETURN NIL END;
+  pubsub := Operation("items", node, items); pubsub.AddChild(set); RETURN pubsub
+END BuildPage;
+
 PROCEDURE BuildRetract*(node, id: ARRAY OF T.CodeUnit; notify: BOOLEAN): Items.Item;
   VAR pubsub, retract, item: Items.Item; value: T.String;
 BEGIN
@@ -117,6 +130,10 @@ BEGIN RETURN router.Query(peer, BuildPublish(node, id, payload), TRUE, timeoutMS
 PROCEDURE Fetch*(router: IQ.Router; peer, node, id: ARRAY OF T.CodeUnit; maximum, timeoutMS: LONGINT;
                  action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
 BEGIN RETURN router.Query(peer, BuildItems(node, id, maximum), FALSE, timeoutMS, action, error) END Fetch;
+
+PROCEDURE FetchPage*(router: IQ.Router; peer, node, cursor: ARRAY OF T.CodeUnit;
+                     direction, maximum, timeoutMS: LONGINT; action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
+BEGIN RETURN router.Query(peer, BuildPage(node, cursor, direction, maximum), FALSE, timeoutMS, action, error) END FetchPage;
 
 PROCEDURE Retract*(router: IQ.Router; peer, node, id: ARRAY OF T.CodeUnit; notify: BOOLEAN;
                    timeoutMS: LONGINT; action: IQ.Action; VAR error: Msg.Msg): IQ.Request;
@@ -242,12 +259,97 @@ BEGIN
   RETURN TRUE
 END ValidItems;
 
-PROCEDURE ReadItems*(request: IQ.Request): Items.Item;
-  VAR expected, pubsub, items, sent: Items.Item; id, number: T.String; limit, i: LONGINT;
+PROCEDURE ItemParts(pubsub: Items.Item; VAR items, set: Items.Item): BOOLEAN;
+  VAR content: Items.Content; child: Items.Item;
 BEGIN
-  expected := Expected(request, "items"); IF expected = NIL THEN RETURN NIL END;
+  items := NIL; set := NIL;
+  IF ~IQ.Named(pubsub, namespaceURI, "pubsub") THEN RETURN FALSE END;
+  content := pubsub.content;
+  WHILE content # NIL DO
+    child := content.element;
+    IF child # NIL THEN
+      IF IQ.Named(child, namespaceURI, "items") THEN
+        IF items # NIL THEN RETURN FALSE END; items := child
+      ELSIF IQ.Named(child, RSM.namespaceURI, "set") THEN
+        IF set # NIL THEN RETURN FALSE END; set := child
+      ELSE RETURN FALSE
+      END
+    ELSIF ~White(content.text) THEN RETURN FALSE
+    END;
+    content := content.next
+  END;
+  RETURN TRUE
+END ItemParts;
+
+PROCEDURE PageData(items, set: Items.Item; limit: LONGINT): Page;
+  VAR page: Page; content: Items.Content; first, last: T.String;
+BEGIN
+  IF (items = NIL) OR (set = NIL) OR ~ValidItems(items, FALSE, limit, NIL, NIL) THEN RETURN NIL END;
+  NEW(page); IF ~RSM.ReadResult(set, page.info) THEN RETURN NIL END;
+  page.items := items; page.size := 0; first := NIL; last := NIL; content := items.content;
+  WHILE content # NIL DO
+    IF content.element # NIL THEN
+      last := content.element.GetAttribute("", "id"); IF first = NIL THEN first := last END;
+      INC(page.size)
+    END;
+    content := content.next
+  END;
+  IF page.size = 0 THEN
+    IF (page.info.first # NIL) OR (page.info.last # NIL) THEN RETURN NIL END
+  ELSE
+    IF (page.info.first = NIL) OR (page.info.last = NIL) OR
+       ~S.Equal(page.info.first^, first^) OR ~S.Equal(page.info.last^, last^) THEN RETURN NIL END
+  END;
+  IF page.info.hasCount THEN
+    IF page.size > page.info.count THEN RETURN NIL END;
+    IF page.info.hasIndex & (page.size > page.info.count-page.info.index) THEN RETURN NIL END
+  END;
+  RETURN page
+END PageData;
+
+PROCEDURE ReadPage*(request: IQ.Request): Page;
+  VAR expected, asked, pubsub, items, set: Items.Item; selection: RSM.Request;
+    page: Page; content: Items.Content; id, node: T.String; limit: LONGINT;
+BEGIN
+  IF (request = NIL) OR ~ItemParts(request.payload, expected, asked) OR
+     (expected = NIL) OR (asked = NIL) OR ~IQ.Empty(expected) OR
+     ~RSM.ReadRequest(asked, selection) THEN RETURN NIL END;
+  node := expected.GetAttribute("", "node"); IF (node = NIL) OR ~Value(node^, maxNodeUnits) THEN RETURN NIL END;
+  limit := selection.maximum; IF limit = -1 THEN limit := maxItems END;
+  IF (limit < 0) OR (limit > maxItems) THEN RETURN NIL END;
   pubsub := IQ.Payload(request, namespaceURI, "pubsub");
-  IF (pubsub = NIL) OR ~Single(pubsub, items) OR ~IQ.Named(items, namespaceURI, "items") OR
+  IF ~ItemParts(pubsub, items, set) OR (set = NIL) THEN RETURN NIL END;
+  IF items = NIL THEN
+    items := Items.New("items", namespaceURI); items.SetParam("node", node^)
+  ELSIF ~SameNode(items, expected) THEN RETURN NIL
+  END;
+  page := PageData(items, set, limit); IF page = NIL THEN RETURN NIL END;
+  IF (selection.direction = RSM.indexedPage) & page.info.hasIndex &
+     (selection.index # page.info.index) THEN RETURN NIL END;
+  IF (selection.direction = RSM.afterPage) OR
+     ((selection.direction = RSM.beforePage) & (selection.cursor[0] # 0)) THEN
+    content := items.content;
+    WHILE content # NIL DO
+      IF content.element # NIL THEN
+        id := content.element.GetAttribute("", "id");
+        IF S.Equal(id^, selection.cursor^) THEN RETURN NIL END
+      END;
+      content := content.next
+    END
+  END;
+  RETURN page
+END ReadPage;
+
+PROCEDURE ReadItems*(request: IQ.Request): Items.Item;
+  VAR expected, pubsub, items, sent, set: Items.Item; id, number: T.String; limit, i: LONGINT; page: Page;
+BEGIN
+  expected := Expected(request, "items");
+  IF expected = NIL THEN
+    page := ReadPage(request); IF page # NIL THEN RETURN page.items END;
+    RETURN NIL
+  END;
+  pubsub := IQ.Payload(request, namespaceURI, "pubsub");
+  IF ~ItemParts(pubsub, items, set) OR (items = NIL) OR
      ~SameNode(items, expected) THEN RETURN NIL END;
   limit := maxItems; number := expected.GetAttribute("", "max_items");
   IF number # NIL THEN
@@ -261,6 +363,7 @@ BEGIN
   id := NIL;
   IF Single(expected, sent) THEN id := sent.GetAttribute("", "id"); limit := 1 END;
   IF ~ValidItems(items, FALSE, limit, id, NIL) THEN RETURN NIL END;
+  IF (set # NIL) & (PageData(items, set, limit) = NIL) THEN RETURN NIL END;
   RETURN items
 END ReadItems;
 

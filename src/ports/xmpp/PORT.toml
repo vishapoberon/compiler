@@ -3,9 +3,9 @@ package = "xmpp"
 kind = "library"
 origin = "VOC port of the supplied oberoncore-xmpp Component Pascal subsystem"
 upstream_url = "https://github.com/norayr/xmpp"
-upstream_revision = "81975ca116e944632d7fb9fa8f1e3f0949bd37e1"
+upstream_revision = "e4819fbcd26eb053cc1463fa00bc3ba70b7f45d1"
 original_revision = "a2cde5435bea63de16239c2c31e399ad0fd43ad2"
-revision_status = "synchronized explicit PubSub subscriptions and LGPL/BSD license scope; original snapshots preserved"
+revision_status = "synchronized explicit PubSub subscriptions, bounded RSM paging and LGPL/BSD license scope; original snapshots preserved"
 license = "LGPL-3.0-or-later for the VOC port and additions; BSD-2-Clause for the original BlackBox component"
 sources = ["Xmpp*.Mod"]
 build = "make xmpp; make -C src/ports/xmpp network"
@@ -21,6 +21,7 @@ adaptations = [
   "routing bounded IQ requests with peer checks, deadlines, ping, version and service discovery",
   "adding bounded atomic rosters, sender-checked pushes and reusable PubSub/PEP operations",
   "adding explicit PubSub subscriptions with node/JID-matched states, configuration requirements and subscription IDs",
+  "adding bounded XEP-0059 request/result helpers and PubSub pages with item-correlated cursors and checked metadata",
   "adding bounded multilingual presence, explicit subscriptions and per-resource tracking",
   "adding bounded room-checked MUC stanzas, invitations, configuration and administration with exact-peer IQ matching",
   "tracking explicit room membership and occupants with bounded caches, reentrant deadlines and disconnect cleanup",

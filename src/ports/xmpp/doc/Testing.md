@@ -72,12 +72,22 @@ role/affiliation changes, configuration cancellation, destruction and deadlines.
 Typed admin lists cover canonical identities, optional undisclosed fields,
 filter checks, duplicates, empty lists and exact entry-capacity limits.
 
-Roster and PubSub/PEP tests add 176 checks, including 110 push split sizes,
+Roster and PubSub/PEP tests include 248 checks, including 110 push split sizes,
 Unicode contact/group/item data, forged pushes, atomic snapshots, stale fetches,
 reentrant completion, cancellation, synchronous failures, contact/group/text
 budgets, matched publication results, retrieval limits and trusted-publisher
 notification parsing. Payloadless items, retractions, purge/deletion events,
 duplicate IDs and shared payload-byte budgets are covered.
+Explicit subscriptions cover canonical subscriber identities, pending approval,
+required configuration, exact subscription IDs, spoofed replies, fragmented
+results, cancellation and deadlines. Paged retrieval covers item/metadata
+correlation, count-only queries, absent metadata, cursor exclusion and malformed
+or duplicate RSM operations.
+
+`TestXmppRSM` runs 77 standalone checks for XEP-0059 requests and metadata:
+Unicode cursors, first/last/indexed pages, count-only queries, decimal overflow,
+duplicate fields, nested markup, exact namespaces and atomic output on failure.
+These tests use the existing VOC Oberon-2 XMPP item-tree interfaces.
 
 Presence tests add 167 checks for explicit subscription construction, multilingual
 status parsing, all 110 transport split sizes, recipient checks, per-resource

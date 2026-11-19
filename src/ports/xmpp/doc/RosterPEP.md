@@ -59,6 +59,7 @@ See [presence](Presence.md) for subscription builders and resource tracking.
 subscription to a PubSub node. `peer` identifies the service, `node` the feed,
 and `jid` the subscriber's bare or full JID. Subscriber domains are canonicalized
 without changing the resource. `BuildSubscribe` returns the detached payload.
+Supply a non-NIL `XmppIQ.Action` callback, as with other router queries.
 
 In the completion callback, `ReadSubscription(request)` returns a checked
 subscription record or `NIL`. Its `node` and canonical `jid` must match the
@@ -109,6 +110,42 @@ At most 64 items are accepted, bounded further by the requested maximum and
 by a single-ID selection. Nodes and IDs are limited to 1,024 UTF-16 units.
 Serialized XML payloads have a 65,536-byte budget, shared across a received
 item list or event. Incoming stanzas also retain the client's XML limits.
+
+### Paged history
+
+After discovering the service's `http://jabber.org/protocol/pubsub#rsm` feature,
+use `FetchPage(router, peer, node, cursor, direction, maximum, timeoutMS, action,
+error)`. `BuildPage` returns its detached payload. The XEP-0059 `<set>` element
+is a sibling of `<items>` inside `<pubsub>`.
+
+Directions come from `XmppRSM`:
+
+- `firstPage` with an empty cursor requests the first page.
+- `afterPage` requires the preceding page's opaque last UID.
+- `beforePage` uses the following page's first UID; an empty cursor requests the
+  final page.
+
+Page maxima range from zero to 64. Zero requests count metadata without items.
+`ReadPage(request)` returns a checked page or `NIL`. A page exposes its `items`
+tree, actual `size`, and RSM `info`: first/last UIDs, count and first-item index.
+`hasCount` and `hasIndex` distinguish omitted metadata from a genuine zero.
+The first and last UIDs must match the returned items. Duplicate operations,
+mismatched nodes, repeated requested cursors, inconsistent counts and malformed
+metadata are rejected. A page request without RSM reply metadata is not accepted.
+`ReadItems` can read the validated item tree of a paged request and accepts valid
+RSM metadata accompanying an ordinary `Fetch` result.
+
+Treat returned trees and metadata strings as read-only. RSM cursors identify
+items, not timestamps or arithmetic offsets. Pages describe a changing result
+set, not a frozen snapshot. An incomplete, failed or truncated traversal must
+not be interpreted as deletion of cached posts.
+
+`XmppRSM` also exposes generic `Build`, `BuildIndex`, `ReadRequest` and
+`ReadResult` helpers. A decoded request has `maximum = -1` when the peer omits
+the maximum; the application must impose its own resource bound. Request and
+result parsers preserve the previous output record on failure, bound Unicode
+cursors to 1,024 units and reject decimal overflow. These helpers describe
+payloads; authorization and history retention remain service decisions.
 
 In the application's `Received` callback, call
 `ReadEvent(stanza, expectedPublisher, expectedNode)`. It requires a matching

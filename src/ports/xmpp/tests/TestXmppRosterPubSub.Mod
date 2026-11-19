@@ -2,7 +2,8 @@ MODULE TestXmppRosterPubSub;
 
 IMPORT SYSTEM, Out, Msg, Channel, S := LongStrings, Strings := oocStrings, Mem := IOMemory,
   T := XmppTypes, Items := XmppItems, Wire := XmppWire, C := XmppClient,
-  Core := XmppCore, IQ := XmppIQ, Roster := XmppRoster, PubSub := XmppPubSub;
+  Core := XmppCore, IQ := XmppIQ, Roster := XmppRoster, PubSub := XmppPubSub,
+  RSM := XmppRSM, XML := XmppXmlGen;
 
 TYPE
   Fake = POINTER TO FakeDesc;
@@ -391,6 +392,106 @@ BEGIN
   c.Abort; t.output.Close
 END Subscriptions;
 
+PROCEDURE PageField(parent: Items.Item; name, text: ARRAY OF CHAR): Items.Item;
+  VAR item: Items.Item; value: T.String;
+BEGIN
+  item := Items.New(name, RSM.namespaceURI); value := Items.Latin1(text);
+  item.AddText(value^, 0, S.Length(value^)); parent.AddChild(item); RETURN item
+END PageField;
+
+PROCEDURE PageReplyCount(node: ARRAY OF T.CodeUnit; count: ARRAY OF CHAR): Items.Item;
+  VAR root, items, item, set, first, unused: Items.Item; value: T.String;
+BEGIN
+  root := Items.New("pubsub", PubSub.namespaceURI); items := Items.New("items", PubSub.namespaceURI);
+  items.SetParam("node", node); root.AddChild(items);
+  item := Items.New("item", PubSub.namespaceURI); value := Items.Latin1("a"); item.SetParam("id", value^); items.AddChild(item);
+  item := Items.New("item", PubSub.namespaceURI); value := Items.Latin1("b"); item.SetParam("id", value^); items.AddChild(item);
+  set := Items.New("set", RSM.namespaceURI); root.AddChild(set); first := PageField(set, "first", "a");
+  value := Items.Latin1("0"); first.SetParam("index", value^);
+  unused := PageField(set, "last", "b"); unused := PageField(set, "count", count); RETURN root
+END PageReplyCount;
+
+PROCEDURE PageReply(node: ARRAY OF T.CodeUnit): Items.Item;
+BEGIN RETURN PageReplyCount(node, "2")
+END PageReply;
+
+PROCEDURE Pages;
+  VAR c: C.Client; t: Fake; h: Hook; r: IQ.Router; roster: Roster.Roster; rh: RosterHook;
+    request: IQ.Request; a: Action; error: Msg.Msg; peer, node, empty, value, cursor: T.String;
+    payload, items, item, set, field: Items.Item; page: PubSub.Page; bytes: Items.Bytes; length, i: LONGINT;
+BEGIN
+  c := New(t, h, r, roster, rh); NEW(a); peer := Items.Latin1("pubsub.example.net");
+  node := Items.Latin1("feed"); empty := Items.Latin1("");
+  request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.firstPage, 2, 100, a, error);
+  Check((request # NIL) & (error = NIL), "queued paged item request");
+  payload := PageReply(node^); r.Received(c, IQ.Response(h.last, payload)); page := PubSub.ReadPage(request);
+  Check((page # NIL) & (a.calls = 1), "paged result completion");
+  Check((page.size = 2) & page.info.hasCount & (page.info.count = 2) &
+    page.info.hasIndex & (page.info.index = 0), "checked page size and metadata");
+  Check(PubSub.ReadItems(request) = page.items, "paged result available through item reader");
+  Check(PubSub.BuildPage(node^, empty^, RSM.firstPage, PubSub.maxItems+1) = NIL, "bounding requested page size");
+  Check(PubSub.BuildPage(node^, empty^, RSM.afterPage, 2) = NIL, "after-page request needs cursor");
+  FOR i := 0 TO 12 DO
+    request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.firstPage, 2, 100, a, error);
+    payload := PageReply(node^); items := payload.First(PubSub.namespaceURI, "items");
+    set := payload.First(RSM.namespaceURI, "set"); value := Items.Latin1("wrong");
+    CASE i OF
+    | 0: items.SetParam("node", value^)
+    | 1: payload.AddChild(Items.New("set", RSM.namespaceURI))
+    | 2: payload.AddChild(Items.New("items", PubSub.namespaceURI))
+    | 3: field := PageField(set, "first", "a")
+    | 4: field := set.First(RSM.namespaceURI, "first"); value := Items.Latin1("2"); field.SetParam("index", value^)
+    | 5: item := Items.New("item", PubSub.namespaceURI); item.SetParam("id", value^); items.AddChild(item)
+    | 6: field := set.First(RSM.namespaceURI, "last"); field.AddChild(Items.New("x", RSM.namespaceURI))
+    | 7: payload.AddChild(Items.New("set", "urn:wrong"))
+    | 8: field := set.First(RSM.namespaceURI, "count"); field.AddText(value^, 0, S.Length(value^))
+    | 9: field := set.First(RSM.namespaceURI, "first"); field.AddText(value^, 0, S.Length(value^))
+    | 10: field := set.First(RSM.namespaceURI, "last"); field.AddText(value^, 0, S.Length(value^))
+    | 11: payload := PageReplyCount(node^, "1")
+    | 12: payload := Items.New("pubsub", PubSub.namespaceURI);
+      items := Items.New("items", PubSub.namespaceURI); items.SetParam("node", node^); payload.AddChild(items);
+      item := Items.New("item", PubSub.namespaceURI); item.SetParam("id", value^); items.AddChild(item);
+      set := Items.New("set", RSM.namespaceURI); payload.AddChild(set); field := PageField(set, "count", "2")
+    ELSE HALT(100)
+    END;
+    r.Received(c, IQ.Response(h.last, payload));
+    Check((PubSub.ReadPage(request) = NIL) & (PubSub.ReadItems(request) = NIL), "rejecting malformed page result")
+  END;
+  request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.firstPage, 2, 100, a, error);
+  payload := Items.New("pubsub", PubSub.namespaceURI); items := Items.New("items", PubSub.namespaceURI);
+  items.SetParam("node", node^); payload.AddChild(items);
+  r.Received(c, IQ.Response(h.last, payload));
+  Check(PubSub.ReadPage(request) = NIL, "missing RSM metadata does not establish a complete page");
+  request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.firstPage, 0, 100, a, error);
+  payload := Items.New("pubsub", PubSub.namespaceURI); set := Items.New("set", RSM.namespaceURI); payload.AddChild(set);
+  field := PageField(set, "count", "5"); r.Received(c, IQ.Response(h.last, payload)); page := PubSub.ReadPage(request);
+  Check((page # NIL) & (page.size = 0) & page.info.hasCount & (page.info.count = 5), "count-only result without item wrapper");
+  request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.beforePage, 2, 100, a, error);
+  payload := PageReply(node^); r.Received(c, IQ.Response(h.last, payload));
+  Check(PubSub.ReadPage(request) # NIL, "last-page retrieval");
+  cursor := Items.Latin1("a"); request := PubSub.FetchPage(r, peer^, node^, cursor^, RSM.afterPage, 2, 100, a, error);
+  payload := PageReply(node^); r.Received(c, IQ.Response(h.last, payload));
+  Check(PubSub.ReadPage(request) = NIL, "after-page result must exclude requested cursor");
+  cursor := Items.Latin1("z"); request := PubSub.FetchPage(r, peer^, node^, cursor^, RSM.beforePage, 2, 100, a, error);
+  payload := PageReply(node^); r.Received(c, IQ.Response(h.last, payload));
+  Check(PubSub.ReadPage(request) # NIL, "before-page retrieval with opaque cursor");
+  request := PubSub.Fetch(r, peer^, node^, empty^, 2, 100, a, error);
+  payload := PageReply(node^); r.Received(c, IQ.Response(h.last, payload));
+  Check((PubSub.ReadItems(request) # NIL) & (PubSub.ReadPage(request) = NIL), "legacy fetch accepts valid sibling RSM metadata");
+  FOR i := 1 TO 3 DO
+    request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.firstPage, 2, 100, a, error);
+    Reply(c, t, request, 'from="attacker.example.net" type="result"', '');
+    Check((request.status = IQ.pending) & (PubSub.ReadPage(request) = NIL), "rejecting foreign page reply");
+    payload := PageReply(node^); XML.Encode(payload, 4096, bytes, length, error);
+    Check(error = NIL, "serializing paged fixture"); t.chunk := i;
+    Reply(c, t, request, 'from="pubsub.example.net" type="result"', bytes^);
+    Check(PubSub.ReadPage(request) # NIL, "fragmented paged reply")
+  END;
+  request := PubSub.FetchPage(r, peer^, node^, empty^, RSM.firstPage, 2, 100, a, error); r.Stop;
+  Check((request.status = IQ.cancelled) & (PubSub.ReadPage(request) = NIL), "cancelled page is not accepted");
+  c.Abort; t.output.Close
+END Pages;
+
 PROCEDURE Events;
   VAR stanza: Core.Stanza; root, event, operation, item, payload: Items.Item; e: PubSub.Event;
     peer, node, value: T.String; i: LONGINT;
@@ -472,6 +573,6 @@ BEGIN
 END PubSubBounds;
 
 BEGIN
-  checks := 0; Rosters; Boundaries; PubSubs; Subscriptions; Events; PubSubBounds;
+  checks := 0; Rosters; Boundaries; PubSubs; Subscriptions; Pages; Events; PubSubBounds;
   Out.String("XMPP roster and PubSub/PEP checks passed: "); Out.Int(checks, 0); Out.Ln
 END TestXmppRosterPubSub.

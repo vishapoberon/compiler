@@ -15,7 +15,8 @@ still need porting. Negotiated IBB file sending and reception have local coverag
 Roster retrieval/edits/pushes and PubSub/PEP publication, retrieval, retraction
 and notifications have offline and local TLS coverage. Explicit PubSub
 subscription/unsubscription helpers retain pending approval, configuration and
-subscription IDs with peer-checked offline regression coverage.
+subscription IDs with peer-checked offline regression coverage. XEP-0059 paging
+provides bounded history reads with checked item cursors and count metadata.
 Presence construction/decoding and explicit-contact resource tracking have the
 same local coverage; subscription approvals remain application decisions.
 In-band account registration supports bounded legacy fields, verified TLS before
