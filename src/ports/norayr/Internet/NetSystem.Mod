@@ -3,7 +3,7 @@ MODULE NetSystem;  (** the NetSystem of ETH Native Oberon, over Sockets and DNS 
 (* The portable network interface of ETH Oberon System 3 (NetSystem, mg 16.08.96) with the same
    names, types and results, for programs written for it. Native Oberon had its own TCP/IP stack
    under it (NetBase, NetIP, NetTCP, NetUDP, NetDNS); here it is the Linux socket calls, through
-   Sockets, DNS and Linux0 (in voc Linux0 := unixNet).
+   Sockets, DNS and unixNet.
 
    IPAdr is an IPv4 address in network byte order, as in Native Oberon: the four bytes in memory
    order. Ports are INTEGER: ports above 32767 are negative numbers, as they were.
@@ -22,7 +22,7 @@ MODULE NetSystem;  (** the NetSystem of ETH Native Oberon, over Sockets and DNS 
    - Start and Stop only set started; Show prints to the terminal (Out), not to the Log.
    - Only IPv4: IPAdr has 32 bits, as in Native Oberon. *)
 
-IMPORT Sockets, DNS, Linux0 := unixNet, Out, SYSTEM;
+IMPORT Sockets, DNS, unixNet, Out, SYSTEM;
 
 CONST
   anyport* = 0;  (** any port value *)
@@ -114,7 +114,7 @@ END FromAddress;
 (* can fd be read without blocking (data, a request or the end), waiting at most ms milliseconds? *)
 PROCEDURE Ready(fd: LONGINT; ms: LONGINT): BOOLEAN;
 BEGIN
-  RETURN Linux0.Poll0(fd, FALSE, ms) > 0
+  RETURN unixNet.Poll0(fd, FALSE, ms) > 0
 END Ready;
 
 (* Complete asynchronous opening once readiness says the connect has finished.
@@ -150,7 +150,7 @@ VAR n: LONGINT;
 BEGIN
   IF (C.bpos = C.blen) & ((C.state = inout) OR (C.state = in)) & (C.s # NIL) THEN
     IF block OR Ready(C.s.fd, 0) THEN
-      n := Linux0.RecvFrom0(C.s.fd, SYSTEM.ADR(C.buf[0]), BufLen, 0, 0, 0);
+      n := unixNet.RecvFrom0(C.s.fd, SYSTEM.ADR(C.buf[0]), BufLen, 0, 0, 0);
       IF n > 0 THEN C.bpos := 0; C.blen := n ELSE PeerClosed(C) END
     END
   END
@@ -186,7 +186,7 @@ BEGIN
   END;
   C.res := done;
   WHILE (len > 0) & (C.res = done) DO
-    n := Linux0.SendTo0(C.s.fd, SYSTEM.ADR(buf[beg]), len, MSGNOSIGNAL, 0, 0);
+    n := unixNet.SendTo0(C.s.fd, SYSTEM.ADR(buf[beg]), len, MSGNOSIGNAL, 0, 0);
     IF n > 0 THEN INC(beg, n); DEC(len, n) ELSE C.res := error; SendFailed(C) END
   END
 END Send;
@@ -482,7 +482,7 @@ VAR b: ARRAY 1 OF CHAR; n: LONGINT;
 BEGIN
   n := 0;
   IF (S.s # NIL) & Ready(S.s.fd, 0) THEN
-    n := Linux0.RecvFrom0(S.s.fd, SYSTEM.ADR(b[0]), 1, MSGPEEK + MSGTRUNC, 0, 0);
+    n := unixNet.RecvFrom0(S.s.fd, SYSTEM.ADR(b[0]), 1, MSGPEEK + MSGTRUNC, 0, 0);
     IF n < 0 THEN n := 0 END
   END;
   RETURN n
@@ -581,9 +581,9 @@ PROCEDURE FindHost;
 VAR fd, n, r: LONGINT; path: ARRAY 32 OF CHAR; s: Sockets.Socket; sa: ARRAY 16 OF CHAR; a: Sockets.Address; port: LONGINT;
 BEGIN
   path := "/proc/sys/kernel/hostname"; hostName := "";
-  fd := Linux0.Openat0(Linux0.ATFDCWD, SYSTEM.ADR(path[0]), Linux0.ORDonly, 0);
+  fd := unixNet.Openat0(unixNet.ATFDCWD, SYSTEM.ADR(path[0]), unixNet.ORDonly, 0);
   IF fd >= 0 THEN
-    n := Linux0.Read0(fd, SYSTEM.ADR(hostName[0]), LEN(hostName) - 1); r := Linux0.Close0(fd);
+    n := unixNet.Read0(fd, SYSTEM.ADR(hostName[0]), LEN(hostName) - 1); r := unixNet.Close0(fd);
     IF n < 0 THEN n := 0 END;
     WHILE (n > 0) & (hostName[n-1] <= " ") DO DEC(n) END;
     hostName[n] := 0X
@@ -593,7 +593,7 @@ BEGIN
   IF s # NIL THEN
     n := 0; WHILE n < 16 DO sa[n] := 0X; INC(n) END;
     sa[0] := 2X; sa[2] := 0X; sa[3] := CHR(53); sa[4] := CHR(192); sa[5] := 0X; sa[6] := 2X; sa[7] := CHR(1);  (* 192.0.2.1:53 *)
-    IF (Linux0.Connect0(s.fd, SYSTEM.ADR(sa[0]), 16) >= 0) & Sockets.LocalAddress(s, a, port) THEN hostIP := FromAddress(a) END;
+    IF (unixNet.Connect0(s.fd, SYSTEM.ADR(sa[0]), 16) >= 0) & Sockets.LocalAddress(s, a, port) THEN hostIP := FromAddress(a) END;
     Sockets.Close(s)
   END
 END FindHost;

@@ -202,8 +202,7 @@ The tests in `tools/` start real servers to test against (`testservers.py`, `key
 
 ## In polpo
 
-polpo keeps a copy in `src/lib/tls`, copied with `loksh vocsync.From tls/src/X.Mod ... src/lib/tls`,
-which adapts platform imports (`Linux0` for `Linux0 := unixNet`). Both systems import `Out`
-directly. Its tests are in
+polpo keeps a copy in `src/lib/tls`, copied with `loksh vocsync.From tls/src/X.Mod ... src/lib/tls`:
+the same files, as polpo has `unixNet`, `oocStrings` and `Out` too. Its tests are in
 `src/lib/tls/test` (`TLS_TEST_CERTS=src/lib/tls/test/certs loksh TLSTestChain.Run` and so on). The
 Gemini clients (dcs, DCS, Pishmish) and servers (agena, cobweb) of polpo are built on it.

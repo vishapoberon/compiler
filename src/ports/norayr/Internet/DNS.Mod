@@ -10,7 +10,7 @@ MODULE DNS;  (** host names to addresses and back: /etc/hosts, then the name ser
    (IPv4, also an IPv4 address mapped into IPv6) or of the 32 hexadecimal digits under ip6.arpa.
    Bytes are read with LONG(ORD(c)): ORD gives an INTEGER (16 bits). *)
 
-IMPORT Kernel, Linux0 := unixNet, Sockets, SYSTEM;
+IMPORT Kernel, unixNet, Sockets, SYSTEM;
 
 CONST
   Any* = 0;  (** Lookup family: IPv6 and IPv4 addresses *)
@@ -37,15 +37,15 @@ PROCEDURE ReadFile(path: ARRAY OF CHAR): BOOLEAN;
 VAR fd, r: LONGINT;
 BEGIN
   flen := 0;
-  fd := Linux0.Openat0(Linux0.ATFDCWD, SYSTEM.ADR(path[0]), Linux0.ORDonly, 0);
+  fd := unixNet.Openat0(unixNet.ATFDCWD, SYSTEM.ADR(path[0]), unixNet.ORDonly, 0);
   IF fd < 0 THEN RETURN FALSE END;
   LOOP
-    r := Linux0.Read0(fd, SYSTEM.ADR(file[flen]), LEN(file) - 1 - flen);
+    r := unixNet.Read0(fd, SYSTEM.ADR(file[flen]), LEN(file) - 1 - flen);
     IF r <= 0 THEN EXIT END;
     INC(flen, r);
     IF flen >= LEN(file) - 1 THEN EXIT END
   END;
-  file[flen] := 0X; r := Linux0.Close0(fd);
+  file[flen] := 0X; r := unixNet.Close0(fd);
   RETURN TRUE
 END ReadFile;
 
@@ -193,9 +193,9 @@ PROCEDURE NewId(): LONGINT;
 VAR fd, r: LONGINT; b: ARRAY 2 OF CHAR; path: ARRAY 16 OF CHAR;
 BEGIN
   INC(seq); path := "/dev/urandom";
-  fd := Linux0.Openat0(Linux0.ATFDCWD, SYSTEM.ADR(path[0]), Linux0.ORDonly, 0);
+  fd := unixNet.Openat0(unixNet.ATFDCWD, SYSTEM.ADR(path[0]), unixNet.ORDonly, 0);
   IF fd >= 0 THEN
-    r := Linux0.Read0(fd, SYSTEM.ADR(b[0]), 2); r := Linux0.Close0(fd);
+    r := unixNet.Read0(fd, SYSTEM.ADR(b[0]), 2); r := unixNet.Close0(fd);
     IF r = 2 THEN RETURN Get16(b, 0) END
   END;
   RETURN seq * 7919 MOD 65536

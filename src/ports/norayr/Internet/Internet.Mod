@@ -1,9 +1,9 @@
 MODULE Internet; (*noch 14.4.2017 / 14.4.2017*)
 (** TCP connections by host name and port, on a file descriptor: the interface of the voc
    Internet module (github.com/norayr/Internet), over polpo's Sockets and DNS.
-   The same file serves voc and polpo; only the import of Linux0 differs (voc: Linux0 := unixNet). *)
+   The same file serves voc and polpo. *)
 
-IMPORT Sockets, DNS, Linux0 := unixNet, Out, SYSTEM;
+IMPORT Sockets, DNS, unixNet, Out, SYSTEM;
 
 CONST
   MSGNOSIGNAL = 4000H;  (* no SIGPIPE when the other side has closed *)
@@ -21,7 +21,7 @@ BEGIN
   IF n > LEN(buf) THEN n := LEN(buf) END;
   done := 0;
   WHILE done < n DO
-    r := Linux0.SendTo0(fd, SYSTEM.ADR(buf[done]), n - done, MSGNOSIGNAL, 0, 0);
+    r := unixNet.SendTo0(fd, SYSTEM.ADR(buf[done]), n - done, MSGNOSIGNAL, 0, 0);
     IF r <= 0 THEN
       Out.String("Internet.Write: write failed, error "); Out.Int(-r, 0); Out.Ln;
       RETURN FALSE
@@ -46,7 +46,7 @@ VAR max: LONGINT;
 BEGIN
   max := LEN(buf);
   IF (n > 0) & (n < max) THEN max := n END;
-  n := Linux0.Read0(fd, SYSTEM.ADR(buf[0]), max);
+  n := unixNet.Read0(fd, SYSTEM.ADR(buf[0]), max);
   RETURN n >= 0
 END ReadBuf;
 
@@ -57,7 +57,7 @@ VAR n: LONGINT;
 BEGIN
   n := LEN(buf) - 1;
   IF n <= 0 THEN RETURN FALSE END;
-  n := Linux0.Read0(fd, SYSTEM.ADR(buf[0]), n);
+  n := unixNet.Read0(fd, SYSTEM.ADR(buf[0]), n);
   IF n < 0 THEN buf[0] := 0X; RETURN FALSE END;
   buf[n] := 0X;
   RETURN n > 0
@@ -74,7 +74,7 @@ BEGIN
   END;
   done := 0; r := 1;
   WHILE (done < count) & (r > 0) DO
-    r := Linux0.Read0(fd, SYSTEM.ADR(buf[done]), count - done);
+    r := unixNet.Read0(fd, SYSTEM.ADR(buf[done]), count - done);
     IF r > 0 THEN INC(done, r) END
   END;
   IF done >= 0 THEN buf[done] := 0X END;
@@ -120,7 +120,7 @@ END Connect;
 PROCEDURE Disconnect*(fd: Socket);
 VAR r: LONGINT;
 BEGIN
-  r := Linux0.Shutdown0(fd, 2); r := Linux0.Close0(fd)
+  r := unixNet.Shutdown0(fd, 2); r := unixNet.Close0(fd)
 END Disconnect;
 
 BEGIN

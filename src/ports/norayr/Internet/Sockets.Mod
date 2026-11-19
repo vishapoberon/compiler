@@ -1,11 +1,11 @@
-MODULE Sockets;  (** TCP and UDP over IPv4 and IPv6, with the socket system calls of Linux0 *)
+MODULE Sockets;  (** TCP and UDP over IPv4 and IPv6, with the socket system calls of unixNet *)
 
 (* Addresses are IPv4 (4 bytes) or IPv6 (16 bytes), in network byte order; ports are numbers.
    Bytes are read with LONG(ORD(c)): ORD gives an INTEGER (16 bits), and b * 256 would overflow.
    Errors: the procedures return FALSE or a negative count, res of the socket (or the variable
    res of the module) holds the negative Linux error number. *)
 
-IMPORT Linux0 := unixNet, SYSTEM;
+IMPORT unixNet, SYSTEM;
 
 CONST
   Inet4* = 4; Inet6* = 6;  (** address families *)
@@ -221,7 +221,7 @@ PROCEDURE New(family: INTEGER; type: LONGINT): Socket;
 VAR s: Socket; fd, f: LONGINT;
 BEGIN
   IF family = Inet6 THEN f := AFINET6 ELSE f := AFINET END;
-  fd := Linux0.Socket0(f, type + SOCKCLOEXEC, 0);
+  fd := unixNet.Socket0(f, type + SOCKCLOEXEC, 0);
   IF fd < 0 THEN res := fd; RETURN NIL END;
   NEW(s); s.fd := fd; s.res := 0; res := 0; RETURN s
 END New;
@@ -233,8 +233,8 @@ BEGIN
   s := New(a.family, sockStream);
   IF s = NIL THEN RETURN NIL END;
   SockAddr(a, port, sa, len);
-  r := Linux0.Connect0(s.fd, SYSTEM.ADR(sa[0]), len);
-  IF r < 0 THEN res := r; r := Linux0.Close0(s.fd); RETURN NIL END;
+  r := unixNet.Connect0(s.fd, SYSTEM.ADR(sa[0]), len);
+  IF r < 0 THEN res := r; r := unixNet.Close0(s.fd); RETURN NIL END;
   RETURN s
 END Connect;
 
@@ -247,12 +247,12 @@ BEGIN
   s := New(a.family, sockStream);
   IF s = NIL THEN RETURN NIL END;
   one := 1; zero := 0;
-  r := Linux0.SetSockOpt0(s.fd, solSocket, soReuseAddr, SYSTEM.ADR(one), 4);
-  IF a.family = Inet6 THEN r := Linux0.SetSockOpt0(s.fd, IPPROTOIPV6, IPV6V6ONLY, SYSTEM.ADR(zero), 4) END;
+  r := unixNet.SetSockOpt0(s.fd, solSocket, soReuseAddr, SYSTEM.ADR(one), 4);
+  IF a.family = Inet6 THEN r := unixNet.SetSockOpt0(s.fd, IPPROTOIPV6, IPV6V6ONLY, SYSTEM.ADR(zero), 4) END;
   SockAddr(a, port, sa, len);
-  r := Linux0.Bind0(s.fd, SYSTEM.ADR(sa[0]), len);
-  IF r >= 0 THEN r := Linux0.Listen0(s.fd, backlog) END;
-  IF r < 0 THEN res := r; r := Linux0.Close0(s.fd); RETURN NIL END;
+  r := unixNet.Bind0(s.fd, SYSTEM.ADR(sa[0]), len);
+  IF r >= 0 THEN r := unixNet.Listen0(s.fd, backlog) END;
+  IF r < 0 THEN res := r; r := unixNet.Close0(s.fd); RETURN NIL END;
   RETURN s
 END ListenAt;
 
@@ -271,7 +271,7 @@ PROCEDURE Accept*(s: Socket; VAR peer: Address; VAR port: LONGINT): Socket;
 VAR c: Socket; sa: ARRAY 28 OF CHAR; len, fd: LONGINT;
 BEGIN
   len := 28;
-  fd := Linux0.Accept40(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len), SOCKCLOEXEC);
+  fd := unixNet.Accept40(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len), SOCKCLOEXEC);
   IF fd < 0 THEN s.res := fd; RETURN NIL END;
   FromSockAddr(sa, peer, port);
   NEW(c); c.fd := fd; c.res := 0; RETURN c
@@ -283,7 +283,7 @@ VAR done, r: LONGINT;
 BEGIN
   done := 0;
   WHILE done < len DO
-    r := Linux0.SendTo0(s.fd, SYSTEM.ADR(buf[done]), len - done, MSGNOSIGNAL, 0, 0);
+    r := unixNet.SendTo0(s.fd, SYSTEM.ADR(buf[done]), len - done, MSGNOSIGNAL, 0, 0);
     IF r < 0 THEN s.res := r; RETURN r END;
     done := done + r
   END;
@@ -304,7 +304,7 @@ PROCEDURE Receive*(s: Socket; VAR buf: ARRAY OF SYSTEM.BYTE; len: LONGINT): LONG
 VAR r: LONGINT;
 BEGIN
   IF len > LEN(buf) THEN len := LEN(buf) END;
-  r := Linux0.RecvFrom0(s.fd, SYSTEM.ADR(buf[0]), len, 0, 0, 0);
+  r := unixNet.RecvFrom0(s.fd, SYSTEM.ADR(buf[0]), len, 0, 0, 0);
   IF r < 0 THEN s.res := r END;
   RETURN r
 END Receive;
@@ -312,20 +312,20 @@ END Receive;
 (** no more sending (how = 1), receiving (0), or both (2) *)
 PROCEDURE Shutdown*(s: Socket; how: LONGINT);
 VAR r: LONGINT;
-BEGIN r := Linux0.Shutdown0(s.fd, how)
+BEGIN r := unixNet.Shutdown0(s.fd, how)
 END Shutdown;
 
 PROCEDURE Close*(s: Socket);
 VAR r: LONGINT;
 BEGIN
-  IF (s # NIL) & (s.fd >= 0) THEN r := Linux0.Close0(s.fd); s.fd := -1 END
+  IF (s # NIL) & (s.fd >= 0) THEN r := unixNet.Close0(s.fd); s.fd := -1 END
 END Close;
 
 (** the address and port of the other side of s *)
 PROCEDURE PeerAddress*(s: Socket; VAR a: Address; VAR port: LONGINT): BOOLEAN;
 VAR sa: ARRAY 28 OF CHAR; len, r: LONGINT;
 BEGIN
-  len := 28; r := Linux0.GetPeerName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  len := 28; r := unixNet.GetPeerName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
   IF r < 0 THEN s.res := r; RETURN FALSE END;
   FromSockAddr(sa, a, port); RETURN TRUE
 END PeerAddress;
@@ -334,7 +334,7 @@ END PeerAddress;
 PROCEDURE LocalAddress*(s: Socket; VAR a: Address; VAR port: LONGINT): BOOLEAN;
 VAR sa: ARRAY 28 OF CHAR; len, r: LONGINT;
 BEGIN
-  len := 28; r := Linux0.GetSockName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  len := 28; r := unixNet.GetSockName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
   IF r < 0 THEN s.res := r; RETURN FALSE END;
   FromSockAddr(sa, a, port); RETURN TRUE
 END LocalAddress;
@@ -345,8 +345,8 @@ PROCEDURE SetTimeout*(s: Socket; ms: LONGINT);
 VAR tv: ARRAY 2 OF LONGINT; r: LONGINT;
 BEGIN
   tv[0] := ms DIV 1000; tv[1] := ms MOD 1000 * 1000;  (* struct timeval: seconds, microseconds *)
-  r := Linux0.SetSockOpt0(s.fd, solSocket, soRcvTimeo, SYSTEM.ADR(tv[0]), 8);
-  IF r >= 0 THEN r := Linux0.SetSockOpt0(s.fd, solSocket, soSndTimeo, SYSTEM.ADR(tv[0]), 8) END;
+  r := unixNet.SetSockOpt0(s.fd, solSocket, soRcvTimeo, SYSTEM.ADR(tv[0]), 8);
+  IF r >= 0 THEN r := unixNet.SetSockOpt0(s.fd, solSocket, soSndTimeo, SYSTEM.ADR(tv[0]), 8) END;
   IF r < 0 THEN s.res := r END
 END SetTimeout;
 
@@ -355,13 +355,13 @@ END SetTimeout;
 (** Negative results retain the native error number, including temporary errors.
     SendSome and ReceiveSome perform one operation and report exact progress. *)
 PROCEDURE Pending*(result: LONGINT): BOOLEAN;
-BEGIN RETURN Linux0.Pending0(result) END Pending;
+BEGIN RETURN unixNet.Pending0(result) END Pending;
 
 PROCEDURE WouldBlock*(result: LONGINT): BOOLEAN;
-BEGIN RETURN Linux0.WouldBlock0(result) END WouldBlock;
+BEGIN RETURN unixNet.WouldBlock0(result) END WouldBlock;
 
 PROCEDURE Interrupted*(result: LONGINT): BOOLEAN;
-BEGIN RETURN Linux0.Interrupted0(result) END Interrupted;
+BEGIN RETURN unixNet.Interrupted0(result) END Interrupted;
 
 PROCEDURE NewNonblocking(family: INTEGER): Socket;
 VAR s: Socket; f, fd: LONGINT;
@@ -370,7 +370,7 @@ BEGIN
   ELSIF family = Inet4 THEN f := AFINET
   ELSE res := -22; RETURN NIL
   END;
-  fd := Linux0.SocketNonblocking0(f, sockStream, 0);
+  fd := unixNet.SocketNonblocking0(f, sockStream, 0);
   IF fd < 0 THEN res := fd; RETURN NIL END;
   NEW(s); s.fd := fd; s.res := 0; res := 0; RETURN s
 END NewNonblocking;
@@ -380,15 +380,15 @@ VAR sa: ARRAY 28 OF CHAR; len, one, r: LONGINT;
 BEGIN
   one := 1;
   IF local.family = Inet6 THEN
-    r := Linux0.SetSockOpt0(s.fd, IPPROTOIPV6, IPV6V6ONLY, SYSTEM.ADR(one), 4);
+    r := unixNet.SetSockOpt0(s.fd, IPPROTOIPV6, IPV6V6ONLY, SYSTEM.ADR(one), 4);
     IF r < 0 THEN s.res := r; RETURN FALSE END
   END;
   IF reuse THEN
-    r := Linux0.SetSockOpt0(s.fd, solSocket, soReuseAddr, SYSTEM.ADR(one), 4);
+    r := unixNet.SetSockOpt0(s.fd, solSocket, soReuseAddr, SYSTEM.ADR(one), 4);
     IF r < 0 THEN s.res := r; RETURN FALSE END
   END;
   SockAddr(local, port, sa, len);
-  r := Linux0.Bind0(s.fd, SYSTEM.ADR(sa[0]), len); s.res := r; RETURN r = 0
+  r := unixNet.Bind0(s.fd, SYSTEM.ADR(sa[0]), len); s.res := r; RETURN r = 0
 END BindNonblocking;
 
 (** Connect from the chosen local address and port (zero: system-selected port).
@@ -401,7 +401,7 @@ BEGIN
   s := NewNonblocking(local.family); IF s = NIL THEN RETURN NIL END;
   IF ~BindNonblocking(s, local, localPort, FALSE) THEN res := s.res; Close(s); RETURN NIL END;
   SockAddr(remote, port, sa, len);
-  r := Linux0.Connect0(s.fd, SYSTEM.ADR(sa[0]), len); s.res := r;
+  r := unixNet.Connect0(s.fd, SYSTEM.ADR(sa[0]), len); s.res := r;
   IF (r < 0) & ~Pending(r) THEN res := r; Close(s); RETURN NIL END;
   res := r; RETURN s
 END ConnectFromPort;
@@ -417,7 +417,7 @@ BEGIN
   IF (port < 0) OR (port > 65535) OR (backlog < 1) THEN res := -22; RETURN NIL END;
   s := NewNonblocking(local.family); IF s = NIL THEN RETURN NIL END;
   IF ~BindNonblocking(s, local, port, TRUE) THEN res := s.res; Close(s); RETURN NIL END;
-  r := Linux0.Listen0(s.fd, backlog);
+  r := unixNet.Listen0(s.fd, backlog);
   IF r < 0 THEN res := r; Close(s); RETURN NIL END;
   RETURN s
 END ListenNonblocking;
@@ -439,16 +439,16 @@ PROCEDURE AcceptNonblocking*(listener: Socket; VAR peer: Endpoint): Socket;
 VAR s: Socket; sa: ARRAY 28 OF CHAR; len, fd, r: LONGINT;
 BEGIN
   IF (listener = NIL) OR (listener.fd < 0) THEN res := -9; RETURN NIL END;
-  len := LEN(sa); fd := Linux0.AcceptNonblocking0(listener.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  len := LEN(sa); fd := unixNet.AcceptNonblocking0(listener.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
   IF fd < 0 THEN listener.res := fd; res := fd; RETURN NIL END;
-  IF ~DecodeEndpoint(sa, len, peer) THEN r := Linux0.Close0(fd); listener.res := -22; res := -22; RETURN NIL END;
+  IF ~DecodeEndpoint(sa, len, peer) THEN r := unixNet.Close0(fd); listener.res := -22; res := -22; RETURN NIL END;
   NEW(s); s.fd := fd; s.res := 0; listener.res := 0; res := 0; RETURN s
 END AcceptNonblocking;
 
 PROCEDURE ConnectError*(s: Socket): LONGINT;
 BEGIN
   IF (s = NIL) OR (s.fd < 0) THEN RETURN -9 END;
-  s.res := Linux0.SocketError0(s.fd); RETURN s.res
+  s.res := unixNet.SocketError0(s.fd); RETURN s.res
 END ConnectError;
 
 (** Check connection completion without waiting: 0 connected, 1 still pending,
@@ -457,7 +457,7 @@ PROCEDURE PollConnect*(s: Socket): LONGINT;
 VAR r: LONGINT;
 BEGIN
   IF (s = NIL) OR (s.fd < 0) THEN RETURN -9 END;
-  r := Linux0.Poll0(s.fd, TRUE, 0);
+  r := unixNet.Poll0(s.fd, TRUE, 0);
   IF (r = 0) OR Interrupted(r) THEN RETURN 1 END;
   IF r < 0 THEN s.res := r; RETURN r END;
   r := ConnectError(s);
@@ -469,14 +469,14 @@ END PollConnect;
 PROCEDURE SetBlocking*(s: Socket; blocking: BOOLEAN): BOOLEAN;
 BEGIN
   IF (s = NIL) OR (s.fd < 0) THEN RETURN FALSE END;
-  s.res := Linux0.SetBlocking0(s.fd, blocking); RETURN s.res = 0
+  s.res := unixNet.SetBlocking0(s.fd, blocking); RETURN s.res = 0
 END SetBlocking;
 
 PROCEDURE LocalEndpoint*(s: Socket; VAR endpoint: Endpoint): BOOLEAN;
 VAR sa: ARRAY 28 OF CHAR; len, r: LONGINT;
 BEGIN
   IF (s = NIL) OR (s.fd < 0) THEN RETURN FALSE END;
-  len := LEN(sa); r := Linux0.GetSockName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  len := LEN(sa); r := unixNet.GetSockName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
   IF r < 0 THEN s.res := r; RETURN FALSE END;
   IF ~DecodeEndpoint(sa, len, endpoint) THEN s.res := -22; RETURN FALSE END;
   s.res := 0; RETURN TRUE
@@ -486,7 +486,7 @@ PROCEDURE PeerEndpoint*(s: Socket; VAR endpoint: Endpoint): BOOLEAN;
 VAR sa: ARRAY 28 OF CHAR; len, r: LONGINT;
 BEGIN
   IF (s = NIL) OR (s.fd < 0) THEN RETURN FALSE END;
-  len := LEN(sa); r := Linux0.GetPeerName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
+  len := LEN(sa); r := unixNet.GetPeerName0(s.fd, SYSTEM.ADR(sa[0]), SYSTEM.ADR(len));
   IF r < 0 THEN s.res := r; RETURN FALSE END;
   IF ~DecodeEndpoint(sa, len, endpoint) THEN s.res := -22; RETURN FALSE END;
   s.res := 0; RETURN TRUE
@@ -498,7 +498,7 @@ BEGIN
   IF fd < 0 THEN RETURN -9 END;
   IF (offset < 0) OR (length < 0) OR (offset > LEN(bytes)) OR (length > LEN(bytes)-offset) THEN RETURN -22 END;
   IF length = 0 THEN RETURN 0 END;
-  RETURN Linux0.SendTo0(fd, SYSTEM.ADR(bytes[offset]), length, MSGNOSIGNAL, 0, 0)
+  RETURN unixNet.SendTo0(fd, SYSTEM.ADR(bytes[offset]), length, MSGNOSIGNAL, 0, 0)
 END WriteDescriptor;
 
 PROCEDURE ReadDescriptor*(fd: LONGINT; VAR bytes: ARRAY OF CHAR; offset, length: LONGINT): LONGINT;
@@ -506,7 +506,7 @@ BEGIN
   IF fd < 0 THEN RETURN -9 END;
   IF (offset < 0) OR (length < 0) OR (offset > LEN(bytes)) OR (length > LEN(bytes)-offset) THEN RETURN -22 END;
   IF length = 0 THEN RETURN 0 END;
-  RETURN Linux0.RecvFrom0(fd, SYSTEM.ADR(bytes[offset]), length, 0, 0, 0)
+  RETURN unixNet.RecvFrom0(fd, SYSTEM.ADR(bytes[offset]), length, 0, 0, 0)
 END ReadDescriptor;
 
 PROCEDURE SendSome*(s: Socket; VAR bytes: ARRAY OF CHAR; offset, length: LONGINT): LONGINT;
@@ -528,7 +528,7 @@ END ReceiveSome;
 PROCEDURE AbortDescriptor*(fd: LONGINT): BOOLEAN;
 BEGIN
   IF fd < 0 THEN res := -9; RETURN FALSE END;
-  res := Linux0.Abortive0(fd); RETURN res = 0
+  res := unixNet.Abortive0(fd); RETURN res = 0
 END AbortDescriptor;
 
 (** Transfer descriptor ownership without closing it. The socket becomes closed. *)
@@ -549,8 +549,8 @@ BEGIN
   IF s = NIL THEN RETURN NIL END;
   IF port # 0 THEN
     AnyAddress(family, a); SockAddr(a, port, sa, len);
-    r := Linux0.Bind0(s.fd, SYSTEM.ADR(sa[0]), len);
-    IF r < 0 THEN res := r; r := Linux0.Close0(s.fd); RETURN NIL END
+    r := unixNet.Bind0(s.fd, SYSTEM.ADR(sa[0]), len);
+    IF r < 0 THEN res := r; r := unixNet.Close0(s.fd); RETURN NIL END
   END;
   RETURN s
 END OpenUDP;
@@ -560,7 +560,7 @@ PROCEDURE SendTo*(s: Socket; VAR a: Address; port: LONGINT; VAR buf: ARRAY OF SY
 VAR sa: ARRAY 28 OF CHAR; salen, r: LONGINT;
 BEGIN
   SockAddr(a, port, sa, salen);
-  r := Linux0.SendTo0(s.fd, SYSTEM.ADR(buf[0]), len, MSGNOSIGNAL, SYSTEM.ADR(sa[0]), salen);
+  r := unixNet.SendTo0(s.fd, SYSTEM.ADR(buf[0]), len, MSGNOSIGNAL, SYSTEM.ADR(sa[0]), salen);
   IF r < 0 THEN s.res := r END;
   RETURN r
 END SendTo;
@@ -571,16 +571,16 @@ VAR sa: ARRAY 28 OF CHAR; salen, r: LONGINT;
 BEGIN
   IF len > LEN(buf) THEN len := LEN(buf) END;
   salen := 28;
-  r := Linux0.RecvFrom0(s.fd, SYSTEM.ADR(buf[0]), len, 0, SYSTEM.ADR(sa[0]), SYSTEM.ADR(salen));
+  r := unixNet.RecvFrom0(s.fd, SYSTEM.ADR(buf[0]), len, 0, SYSTEM.ADR(sa[0]), SYSTEM.ADR(salen));
   IF r < 0 THEN s.res := r ELSE FromSockAddr(sa, a, port) END;
   RETURN r
 END ReceiveFrom;
 
 BEGIN
   res := 0;
-  IF (Linux0.ARCH = "MIPS") OR (Linux0.ARCH = "MIPSBE") THEN
+  IF (unixNet.ARCH = "MIPS") OR (unixNet.ARCH = "MIPSBE") THEN
     sockStream := 2; sockDgram := 1; solSocket := 0FFFFH; soReuseAddr := 4; soRcvTimeo := 1006H; soSndTimeo := 1005H
-  ELSIF Linux0.ARCH = "PPC" THEN  (* polpo: PowerPC has SO_RCVTIMEO 18, SO_SNDTIMEO 19 *)
+  ELSIF unixNet.ARCH = "PPC" THEN  (* polpo: PowerPC has SO_RCVTIMEO 18, SO_SNDTIMEO 19 *)
     sockStream := 1; sockDgram := 2; solSocket := 1; soReuseAddr := 2; soRcvTimeo := 18; soSndTimeo := 19
   ELSE sockStream := 1; sockDgram := 2; solSocket := 1; soReuseAddr := 2; soRcvTimeo := 20; soSndTimeo := 21
   END

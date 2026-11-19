@@ -1,5 +1,5 @@
 MODULE TLS13Live;
-IMPORT SYSTEM, Linux0 := unixNet, Out,
+IMPORT SYSTEM, unixNet, Out,
        Internet, Sockets, TLSBytes, TLS13Random, TLSX25519,
        TLS13Handshake, TLS13Keys, TLS13Records,
        TLS13EncHandshake, TLS13ClientFinished, TLS13Application,
@@ -142,7 +142,7 @@ VAR got, r: LONGINT;
 BEGIN
   got := 0;
   WHILE got < n DO
-    r := Linux0.Read0(fd, SYSTEM.ADR(b.data[pos + got]), n - got);
+    r := unixNet.Read0(fd, SYSTEM.ADR(b.data[pos + got]), n - got);
     IF r <= 0 THEN RETURN FALSE END;
     INC(got, r)
   END;

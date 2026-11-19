@@ -1,7 +1,7 @@
 MODULE TLSTestChain;  (* path validation with chains made by tools/gentestcerts.py: the directory
   is the environment variable TLS_TEST_CERTS (default test/certs); now is 2026-06-01 *)
 
-IMPORT Linux0 := unixNet, Kernel, SYSTEM, TLSBytes, TLSCABundle, TLSX509Validity, TLSX509Chain, TLSX509Names, Out;
+IMPORT unixNet, Kernel, SYSTEM, TLSBytes, TLSCABundle, TLSX509Validity, TLSX509Chain, TLSX509Names, Out;
 
 TYPE
   BundlePtr = POINTER TO TLSCABundle.Bundle;
@@ -34,11 +34,11 @@ PROCEDURE Load(name: ARRAY OF CHAR; VAR b: TLSBytes.Buffer);
 VAR path: ARRAY 512 OF CHAR; fd, n, r: LONGINT;
 BEGIN
   Path(name, path); TLSBytes.Init(b);
-  fd := Linux0.Openat0(Linux0.ATFDCWD, SYSTEM.ADR(path[0]), Linux0.ORDonly, 0);
+  fd := unixNet.Openat0(unixNet.ATFDCWD, SYSTEM.ADR(path[0]), unixNet.ORDonly, 0);
   IF fd < 0 THEN Out.String("cannot open "); Out.String(path); Out.Ln; RETURN END;
-  n := Linux0.Read0(fd, SYSTEM.ADR(b.data[0]), TLSBytes.MaxLen);
+  n := unixNet.Read0(fd, SYSTEM.ADR(b.data[0]), TLSBytes.MaxLen);
   IF n > 0 THEN b.len := n END;
-  r := Linux0.Close0(fd)
+  r := unixNet.Close0(fd)
 END Load;
 
 (* the chain of the files leaf, int (or "") against rootFile (or "") and against the PEM bundle *)
