@@ -33,6 +33,8 @@ corresponding recovered revision. It precedes the 3 March 2015 `XmlStream` chang
 the later recovered source remains the basis of the port.
 
 Some source headers reference `Docu/BB-License`; that file is absent from the
-recovered history and supplied snapshot. The [BSD 2-Clause License](../LICENSE)
-uses the same terms as BlackBox Component Builder and retains the XMPP authors'
-notices. The archived documents remain unchanged.
+recovered history and supplied snapshot. The original component's
+[BSD 2-Clause License](../LICENSE-BSD-2-Clause) uses the same terms as BlackBox
+Component Builder. Norayr Chilingarian's VOC port and additions use
+LGPL-3.0-or-later; see [NOTICE](../NOTICE) and the [LGPL text](../LICENSE).
+Original author notices and archived documents remain unchanged.

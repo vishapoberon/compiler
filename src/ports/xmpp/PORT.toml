@@ -3,14 +3,14 @@ package = "xmpp"
 kind = "library"
 origin = "VOC port of the supplied oberoncore-xmpp Component Pascal subsystem"
 upstream_url = "https://github.com/norayr/xmpp"
-upstream_revision = "82caf7bb53ccab95cf01122e8a936e39075e2cbe"
+upstream_revision = "8dcb88599d2dfadbb2cb08ebe01a598e47bc311e"
 original_revision = "a2cde5435bea63de16239c2c31e399ad0fd43ad2"
-revision_status = "synchronized implementation and BSD-2-Clause licensing; original snapshots preserved"
-license = "BSD-2-Clause; retaining original XMPP author notices and unchanged historical snapshots"
+revision_status = "synchronized implementation and LGPL/BSD license scope; original snapshots preserved"
+license = "LGPL-3.0-or-later for the VOC port and additions; BSD-2-Clause for the original BlackBox component"
 sources = ["Xmpp*.Mod"]
 build = "make xmpp; make -C src/ports/xmpp network"
 test = "make -C src/ports/xmpp test"
-source_map = ["src/Xmpp*.Mod -> Xmpp*.Mod", "LICENSE -> LICENSE", "tests, tools, doc, upstream -> same paths"]
+source_map = ["src/Xmpp*.Mod -> Xmpp*.Mod", "LICENSE, COPYING, LICENSE-BSD-2-Clause and NOTICE -> same filenames", "tests, tools, doc, upstream -> same paths"]
 adaptations = [
   "recording Component Pascal widths explicitly for VOC's Oberon-2 model",
   "receiving byte-fed bounded stanzas through XMLStream and the namespace-aware ooc-xml parser",

@@ -1,0 +1,21 @@
+XMPP for VOC
+
+Original BlackBox XMPP component:
+Copyright (c) Pyotr Mikhailovich Kushnir and contributors.
+Distributed under the BSD 2-Clause License in LICENSE-BSD-2-Clause.
+Original author notices and archived source documents are retained.
+
+VOC port and additions:
+Copyright (c) 2019, 2026 Norayr Chilingarian.
+
+The VOC port and additions are free software: you can redistribute them and/or
+modify them under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+They are distributed in the hope that they will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE. See the GNU Lesser General Public License for details.
+
+The LGPL version 3 text is in LICENSE. Its incorporated GPL version 3 terms are
+in COPYING. Redistributions must also retain the original BSD notices.

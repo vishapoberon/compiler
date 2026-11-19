@@ -117,7 +117,12 @@ notices are retained.
 
 ## License
 
-The XMPP library and its VOC port use the [BSD 2-Clause License](LICENSE), the
-same license terms used by BlackBox Component Builder. Original author notices
-are retained, including historical references to `Docu/BB-License`. The preserved
-source snapshots remain unchanged.
+Norayr Chilingarian's VOC port and additions use **LGPL-3.0-or-later**. The
+[LGPL version 3 text](LICENSE) and its incorporated [GPL version 3 terms](COPYING)
+are included.
+
+Pyotr Mikhailovich Kushnir's original BlackBox component retains the
+[BSD 2-Clause License](LICENSE-BSD-2-Clause), using the same terms as BlackBox
+Component Builder. Original notices, including historical references to
+`Docu/BB-License`, and the preserved source snapshots remain unchanged. See
+[NOTICE](NOTICE) for attribution and the scope of each license.
