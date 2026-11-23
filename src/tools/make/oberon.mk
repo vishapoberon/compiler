@@ -379,6 +379,7 @@ confidence:
 	cd src/test/confidence/language;        $(RUNTEST)
 	cd src/test/confidence/arrayassignment; $(RUNTEST)
 	cd src/test/confidence/arrayparameters; $(RUNTEST)
+	cd src/test/confidence/readonly;        $(RUNTEST)
 	cd src/test/confidence/filesafety;      $(RUNTEST)
 	cd src/test/confidence/heaproots;       $(RUNTEST)
 	cd src/test/confidence/ckeywords;       $(RUNTEST)

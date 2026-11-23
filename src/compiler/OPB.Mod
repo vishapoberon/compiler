@@ -1206,7 +1206,9 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                    IF (x^.class = OPT.Ntype) OR (x^.class = OPT.Nproc) THEN err(126)
                    ELSIF f IN {OPT.Undef..OPT.Set, OPT.Pointer, OPT.ProcTyp} THEN
                      IF (fctno = OPT.getfn) OR (fctno = OPT.getrfn) THEN
-                       IF NotVar(x) THEN err(112) END ;
+                       IF NotVar(x) THEN err(112)
+                       ELSIF x^.readonly THEN err(76)
+                       END ;
                        t := x; x := p; p := t
                      END ;
                      p := NewOp(OPT.Nassign, fctno, p, x)
@@ -1237,7 +1239,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
                      (* Convert integer constants in place allowing usage in CONST section. *)
                      Convert(x, p.typ)
                    ELSE
-                     t := OPT.NewNode(OPT.Nmop); t^.subcl := OPT.val; t^.left := x; x := t;
+                     t := OPT.NewNode(OPT.Nmop); t^.subcl := OPT.val; t^.left := x; t^.readonly := x^.readonly; x := t;
                      (*
                      IF (x^.class >= OPT.Nconst) OR ((f IN OPT.realSet) # (p^.typ^.form IN OPT.realSet)) THEN
                        t := OPT.NewNode(OPT.Nmop); t^.subcl := val; t^.left := x; x := t

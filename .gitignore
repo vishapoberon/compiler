@@ -51,6 +51,13 @@
 !/src/test/confidence/arrayparameters/TestNestedArrayLengths.mod
 !/src/test/confidence/arrayparameters/TestFixedArrayValues.mod
 !/src/test/confidence/arrayparameters/BadFixedArrayValues.mod
+!/src/test/confidence/readonly/
+!/src/test/confidence/readonly/ReadOnlyData.mod
+!/src/test/confidence/readonly/TestReadOnly.mod
+!/src/test/confidence/readonly/BadReadOnlyGet.mod
+!/src/test/confidence/readonly/BadReadOnlyGetReg.mod
+!/src/test/confidence/readonly/expected
+!/src/test/confidence/readonly/test.sh
 !/src/test/confidence/filesafety/
 !/src/test/confidence/filesafety/TestFileStrings.mod
 !/src/test/confidence/filesafety/expected
