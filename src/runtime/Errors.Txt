@@ -156,6 +156,8 @@ Compiler error messages
 177 reduction bounds and values cannot call procedures
 178 reduction operation is not supported
 179 reduction range bounds must be integers
+180 ALL destination mapping is not provably one-to-one
+181 ALL memory independence cannot be established
 
 Limitations of implementation
 200 not yet implemented

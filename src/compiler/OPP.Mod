@@ -739,6 +739,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     IF n # NIL THEN
       IF n^.class = OPT.Ncall THEN err(162) END;
       IF n^.class = OPT.Nreduce THEN err(176) END;
+      IF (n^.class IN {OPT.Nmop, OPT.Ndop}) & (n^.subcl IN {OPT.bit, OPT.cc}) THEN err(181) END;
       IF (n^.class = OPT.Nvar) & (n^.obj # NIL) & (n^.obj^.mode = OPT.AllLocal) &
           (n^.obj^.adr = 0) THEN err(167) END;
       CheckAllExpression(n^.left); CheckAllExpression(n^.right); CheckAllExpression(n^.link)
@@ -830,79 +831,235 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     RETURN FALSE
   END UnitIndex;
 
-  PROCEDURE SameAllArray(n, target: OPT.Node): BOOLEAN;
+  PROCEDURE AllMultiple(range: OPT.Node): BOOLEAN;
   BEGIN
-    WHILE (n^.class = OPT.Nindex) & (target^.class = OPT.Nindex) DO
-      n := n^.left; target := target^.left
-    END;
-    RETURN (n^.class IN {OPT.Nvar, OPT.Nvarpar}) &
-      (target^.class IN {OPT.Nvar, OPT.Nvarpar}) & (n^.obj = target^.obj)
-  END SameAllArray;
+    RETURN (range^.left^.class # OPT.Nconst) OR (range^.right^.class # OPT.Nconst) OR
+      (range^.left^.conval^.intval < range^.right^.conval^.intval)
+  END AllMultiple;
 
-  PROCEDURE CheckAllAccess(n, target, range: OPT.Node; targetOffset: SYSTEM.INT64; strict: BOOLEAN);
-    VAR offset, distance, low, high, index: SYSTEM.INT64; overlaps, known: BOOLEAN;
+  PROCEDURE AllInvariant(n: OPT.Node): BOOLEAN;
+  BEGIN
+    IF n = NIL THEN RETURN TRUE END;
+    IF (n^.obj # NIL) & (n^.obj^.mode IN {OPT.Range, OPT.AllLocal}) THEN RETURN FALSE END;
+    RETURN AllInvariant(n^.left) & AllInvariant(n^.right) & AllInvariant(n^.link)
+  END AllInvariant;
+
+  PROCEDURE AllAffine(n: OPT.Node; range: OPT.Object): BOOLEAN;
+  BEGIN
+    IF (n = NIL) OR (n^.typ^.form # OPT.Int) OR (n^.typ^.size < range^.typ^.size) THEN RETURN FALSE END;
+    IF (n^.class = OPT.Nvar) & (n^.obj = range) THEN RETURN TRUE END;
+    IF (n^.class = OPT.Nmop) & (n^.subcl = OPT.conv) THEN
+      RETURN (n^.typ^.size >= n^.left^.typ^.size) & AllAffine(n^.left, range)
+    ELSIF (n^.class = OPT.Nmop) & (n^.subcl = OPS.minus) THEN
+      RETURN AllAffine(n^.left, range)
+    END;
+    IF (n^.class = OPT.Ndop) & (n^.subcl IN {OPS.plus, OPS.minus}) THEN
+      RETURN (AllAffine(n^.left, range) & AllInvariant(n^.right)) OR
+        (AllInvariant(n^.left) & AllAffine(n^.right, range))
+    END;
+    RETURN FALSE
+  END AllAffine;
+
+  PROCEDURE AllInjective(n: OPT.Node; range: OPT.Object): BOOLEAN;
+  BEGIN
+    WHILE n # NIL DO
+      IF (n^.class = OPT.Nvar) & (n^.obj # NIL) & (n^.obj^.mode = OPT.AllLocal) THEN RETURN TRUE END;
+      IF n^.class = OPT.Nindex THEN
+        IF AllAffine(n^.right, range) THEN RETURN TRUE END
+      ELSIF n^.class # OPT.Nfield THEN RETURN FALSE
+      END;
+      n := n^.left
+    END;
+    RETURN FALSE
+  END AllInjective;
+
+  PROCEDURE AllRoot(n: OPT.Node; VAR heap: BOOLEAN): OPT.Object;
+  BEGIN
+    heap := FALSE;
+    WHILE (n # NIL) & (n^.class IN {OPT.Nindex, OPT.Nfield}) DO
+      IF n^.typ^.sysflag # 0 THEN RETURN NIL END;
+      n := n^.left
+    END;
+    IF (n # NIL) & (n^.class = OPT.Nderef) THEN
+      IF n^.typ^.sysflag # 0 THEN RETURN NIL END;
+      heap := TRUE; n := n^.left
+    END;
+    IF (n # NIL) & (n^.class IN {OPT.Nvar, OPT.Nvarpar}) & (n^.typ^.sysflag = 0) THEN RETURN n^.obj END;
+    RETURN NIL
+  END AllRoot;
+
+  PROCEDURE AllOwned(obj: OPT.Object; heap: BOOLEAN): BOOLEAN;
+  BEGIN RETURN ~heap & (obj^.mode = OPT.Var) & (obj^.typ^.sysflag = 0) END AllOwned;
+
+  PROCEDURE AllSeparate(a, b: OPT.Object; ah, bh: BOOLEAN): BOOLEAN;
+  BEGIN
+    IF AllOwned(a, ah) THEN
+      IF AllOwned(b, bh) THEN RETURN a # b END;
+      (* Typed heap allocations are disjoint from inline variables.
+         Local value storage is fresh for the current activation. *)
+      IF bh OR ((level > 0) & (a^.mnolev = level)) THEN RETURN TRUE END
+    END;
+    IF AllOwned(b, bh) THEN
+      IF ah OR ((level > 0) & (b^.mnolev = level)) THEN RETURN TRUE END
+    END;
+    RETURN FALSE
+  END AllSeparate;
+
+  PROCEDURE AllPathLength(n: OPT.Node): INTEGER;
+    VAR length: INTEGER;
+  BEGIN
+    length := 0;
+    WHILE n^.class IN {OPT.Nindex, OPT.Nfield} DO INC(length); n := n^.left END;
+    RETURN length
+  END AllPathLength;
+
+  PROCEDURE AllPathPart(n: OPT.Node; length, position: INTEGER): OPT.Node;
+  BEGIN
+    WHILE length > position DO n := n^.left; DEC(length) END;
+    RETURN n
+  END AllPathPart;
+
+  PROCEDURE SameAllIndex(a, b: OPT.Node): BOOLEAN;
+  BEGIN
+    IF (a = NIL) OR (b = NIL) THEN RETURN a = b END;
+    IF (a^.class # b^.class) OR (a^.typ # b^.typ) OR (a^.obj # b^.obj) THEN RETURN FALSE END;
+    IF (a^.class IN {OPT.Nmop, OPT.Ndop}) & (a^.subcl # b^.subcl) THEN RETURN FALSE END;
+    IF a^.class = OPT.Nconst THEN
+      IF a^.typ^.form IN {OPT.Real, OPT.LReal} THEN RETURN a^.conval^.realval = b^.conval^.realval END;
+      IF a^.typ^.form = OPT.Set THEN RETURN a^.conval^.setval = b^.conval^.setval END;
+      IF a^.typ^.form = OPT.String THEN RETURN a = b END;
+      RETURN a^.conval^.intval = b^.conval^.intval
+    END;
+    RETURN SameAllIndex(a^.left, b^.left) & SameAllIndex(a^.right, b^.right) & SameAllIndex(a^.link, b^.link)
+  END SameAllIndex;
+
+  PROCEDURE AllIndexBounds(n, ranges: OPT.Node; VAR low, high: SYSTEM.INT64): BOOLEAN;
+    VAR offset: SYSTEM.INT64;
+  BEGIN
+    IF (n^.class = OPT.Nconst) & (n^.typ^.form = OPT.Int) THEN
+      low := n^.conval^.intval; high := low; RETURN TRUE
+    END;
+    WHILE ranges # NIL DO
+      IF (ranges^.left^.class = OPT.Nconst) & (ranges^.right^.class = OPT.Nconst) &
+          UnitIndex(n, ranges^.obj, offset) THEN
+        low := ranges^.left^.conval^.intval; high := ranges^.right^.conval^.intval;
+        IF ((offset > 0) & (high > OPM.SignedMaximum(8) - offset)) OR
+            ((offset < 0) & (low < OPM.SignedMinimum(8) - offset)) THEN RETURN FALSE END;
+        low := low + offset; high := high + offset; RETURN TRUE
+      END;
+      ranges := ranges^.link
+    END;
+    RETURN FALSE
+  END AllIndexBounds;
+
+  PROCEDURE AllAccessProof(a, b, ranges: OPT.Node): INTEGER;
+    VAR ar, br: OPT.Object; ah, bh, tied, shifted: BOOLEAN;
+      al, bl, common, i: INTEGER; ap, bp, r: OPT.Node;
+      alo, ahi, blo, bhi, ao, bo: SYSTEM.INT64;
+  BEGIN
+    ar := AllRoot(a, ah); br := AllRoot(b, bh);
+    IF (ar = NIL) OR (br = NIL) THEN RETURN 181 END;
+    IF AllSeparate(ar, br, ah, bh) THEN RETURN 0 END;
+    IF (ar # br) OR (ah # bh) THEN RETURN 181 END;
+    al := AllPathLength(a); bl := AllPathLength(b); common := al;
+    IF bl < common THEN common := bl END;
+    i := 1;
+    WHILE i <= common DO
+      ap := AllPathPart(a, al, i); bp := AllPathPart(b, bl, i);
+      IF ap^.class # bp^.class THEN common := i-1
+      ELSIF ap^.class = OPT.Nfield THEN
+        IF ap^.obj # bp^.obj THEN RETURN 0 END
+      ELSIF AllIndexBounds(ap^.right, ranges, alo, ahi) & AllIndexBounds(bp^.right, ranges, blo, bhi) &
+          ((ahi < blo) OR (bhi < alo)) THEN RETURN 0
+      END;
+      INC(i)
+    END;
+    (* Equal accesses must force equality of every varying range coordinate. *)
+    r := ranges;
+    WHILE r # NIL DO
+      IF AllMultiple(r) THEN
+        tied := FALSE; shifted := FALSE; i := 1;
+        WHILE i <= common DO
+          ap := AllPathPart(a, al, i); bp := AllPathPart(b, bl, i);
+          IF ap^.class = OPT.Nindex THEN
+            IF SameAllIndex(ap^.right, bp^.right) & AllAffine(ap^.right, r^.obj) THEN tied := TRUE END;
+            IF UnitIndex(ap^.right, r^.obj, ao) THEN
+              IF UnitIndex(bp^.right, r^.obj, bo) THEN
+                IF ao # bo THEN shifted := TRUE END
+              ELSIF bp^.right^.class = OPT.Nconst THEN shifted := TRUE
+              END
+            ELSIF (ap^.right^.class = OPT.Nconst) & UnitIndex(bp^.right, r^.obj, bo) THEN shifted := TRUE
+            END
+          END;
+          INC(i)
+        END;
+        IF ~tied THEN
+          IF shifted THEN RETURN 166 ELSE RETURN 181 END
+        END
+      END;
+      r := r^.link
+    END;
+    RETURN 0
+  END AllAccessProof;
+
+  PROCEDURE ^CheckAllAccess(n, target, ranges: OPT.Node);
+
+  PROCEDURE CheckAllAddress(n, target, ranges: OPT.Node);
   BEGIN
     IF n = NIL THEN RETURN END;
-    IF (n^.class = OPT.Nindex) & SameAllArray(n^.left, target^.left) THEN
-      known := (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst);
-      low := 0; high := 0;
-      IF known THEN low := range^.left^.conval^.intval; high := range^.right^.conval^.intval END;
-      overlaps := FALSE;
-      IF UnitIndex(n^.right, range^.obj, offset) &
-          ~((targetOffset > 0) & (offset < OPM.SignedMinimum(8) + targetOffset)) &
-          ~((targetOffset < 0) & (offset > OPM.SignedMaximum(8) + targetOffset)) &
-          (offset - targetOffset # OPM.SignedMinimum(8)) THEN
-        distance := ABS(offset - targetOffset);
-        IF distance > 0 THEN
-          overlaps := ~known OR ((low <= OPM.SignedMaximum(8) - distance) & (low + distance <= high))
-        END;
-      ELSIF (n^.right^.class = OPT.Nconst) & (n^.right^.typ^.form = OPT.Int) THEN
-        index := n^.right^.conval^.intval;
-        IF ((targetOffset >= 0) & (index >= OPM.SignedMinimum(8) + targetOffset)) OR
-            ((targetOffset < 0) & (index <= OPM.SignedMaximum(8) + targetOffset)) THEN
-          index := index - targetOffset;
-          overlaps := ~known OR ((low <= index) & (index <= high))
-        END
-      ELSIF strict THEN overlaps := TRUE
-      END;
-      IF overlaps THEN err(166) END
+    IF n^.class = OPT.Nindex THEN
+      CheckAllAccess(n^.right, target, ranges); CheckAllAddress(n^.left, target, ranges)
+    ELSIF n^.class = OPT.Nfield THEN CheckAllAddress(n^.left, target, ranges)
+    ELSIF n^.class = OPT.Nderef THEN CheckAllAccess(n^.left, target, ranges)
+    END
+  END CheckAllAddress;
+
+  PROCEDURE CheckAllAccess(n, target, ranges: OPT.Node);
+    VAR proof: INTEGER;
+  BEGIN
+    IF n = NIL THEN RETURN END;
+    IF n^.class IN {OPT.Nvar, OPT.Nvarpar, OPT.Nfield, OPT.Nindex, OPT.Nderef, OPT.Nguard, OPT.Neguard} THEN
+      IF (n^.obj = NIL) OR ~(n^.obj^.mode IN {OPT.Range, OPT.AllLocal}) THEN
+        proof := AllAccessProof(target, n, ranges); IF proof # 0 THEN err(proof) END;
+        CheckAllAddress(n, target, ranges)
+      END
+    ELSIF (n^.class = OPT.Nmop) & (n^.subcl IN {OPT.len, OPT.adr}) THEN
+      CheckAllAddress(n^.left, target, ranges); CheckAllAccess(n^.right, target, ranges)
+    ELSE
+      CheckAllAccess(n^.left, target, ranges); CheckAllAccess(n^.right, target, ranges)
     END;
-    CheckAllAccess(n^.left, target, range, targetOffset, strict);
-    CheckAllAccess(n^.right, target, range, targetOffset, strict);
-    CheckAllAccess(n^.link, target, range, targetOffset, strict)
+    CheckAllAccess(n^.link, target, ranges)
   END CheckAllAccess;
 
-  PROCEDURE CheckAllAssignments(body, range: OPT.Node);
-    VAR s, target, dimension: OPT.Node; offset: SYSTEM.INT64; multiple, strict: BOOLEAN;
+  PROCEDURE CheckAllAssignments(body, ranges: OPT.Node);
+    VAR s, other, range: OPT.Node; multiple, valid: BOOLEAN;
   BEGIN
-    strict := range^.link # NIL;
-    dimension := range;
-    WHILE dimension # NIL DO
-      IF (dimension^.left^.class = OPT.Nconst) & (dimension^.right^.class = OPT.Nconst) &
-          (dimension^.left^.conval^.intval > dimension^.right^.conval^.intval) THEN RETURN END;
-      dimension := dimension^.link
-    END;
+    range := ranges; multiple := FALSE;
     WHILE range # NIL DO
-      multiple := TRUE;
-      IF (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst) THEN
-        multiple := range^.left^.conval^.intval < range^.right^.conval^.intval
-      END;
-      s := body;
-      WHILE s # NIL DO
-        OPM.errpos := OPM.Longint(s^.conval^.intval);
-        target := s^.left;
-        IF multiple THEN
-          IF ~AllDestination(target, range^.obj) THEN err(163) END;
-          WHILE target^.class = OPT.Nindex DO
-            IF UnitIndex(target^.right, range^.obj, offset) THEN
-              CheckAllAccess(body, target, range, offset, strict)
-            END;
-            target := target^.left
+      IF (range^.left^.class = OPT.Nconst) & (range^.right^.class = OPT.Nconst) &
+          (range^.left^.conval^.intval > range^.right^.conval^.intval) THEN RETURN END;
+      multiple := multiple OR AllMultiple(range); range := range^.link
+    END;
+    IF ~multiple THEN RETURN END;
+    s := body;
+    WHILE s # NIL DO
+      OPM.errpos := OPM.Longint(s^.conval^.intval); range := ranges; valid := TRUE;
+      WHILE range # NIL DO
+        IF AllMultiple(range) THEN
+          IF ~AllDestination(s^.left, range^.obj) THEN err(163); valid := FALSE
+          ELSIF ~AllInjective(s^.left, range^.obj) THEN err(180); valid := FALSE
           END
         END;
-        s := s^.link
+        range := range^.link
       END;
-      range := range^.link
+      IF valid & ~((s^.left^.class = OPT.Nvar) & (s^.left^.obj # NIL) & (s^.left^.obj^.mode = OPT.AllLocal)) THEN
+        other := body;
+        WHILE other # NIL DO
+          CheckAllAccess(other^.left, s^.left, ranges); CheckAllAccess(other^.right, s^.left, ranges);
+          other := other^.link
+        END
+      END;
+      s := s^.link
     END
   END CheckAllAssignments;
 

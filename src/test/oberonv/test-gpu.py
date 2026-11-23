@@ -163,9 +163,9 @@ for name, body, error in invalid:
     assert re.search(r'err\s+' + str(error) + r'\s', output), (name, output)
 
 for name, parameters, body, call, error in (
-    ('Alias', 'VAR x, y: ARRAY OF REAL', 'ALL r = 0 .. 7 DO x[r] := y[r] END', 'Process(values, values)', 169),
+    ('Alias', 'VAR x, y: ARRAY OF REAL', 'ALL r = 0 .. 7 DO x[r] := y[r] END', 'Process(values, values)', 181),
     ('ScalarRef', 'VAR x: ARRAY OF REAL; VAR amount: REAL',
-     'ALL r = 0 .. 7 DO x[r] := x[r] + amount END', 'Process(values, values[0])', 168),
+     'ALL r = 0 .. 7 DO x[r] := x[r] + amount END', 'Process(values, values[0])', 181),
 ):
     path = module('BadGPU' + name, declarations + '\nPROCEDURE Process(' + parameters + ');\nBEGIN\n' +
                   body + '\nEND Process;', call)

@@ -18,13 +18,18 @@ GPU_BENCH_ARGS ?=
 RUN_PYTHON = sh "$(ROOT)/src/tools/make/python.sh"
 ARGS = --voc "$(VOC)" --vocroot "$(VOCROOT)" --model "$(MODEL)"
 
-.PHONY: test test-cpu test-cpu-vectorization test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark benchmark-cpu benchmark-gpu test-reductions test-reductions-cpu test-reductions-gpu test-reductions-device
+.PHONY: test test-independence test-cpu test-cpu-vectorization test-shared test-gpu test-gpu-compile test-gpu-shared test-gpu-device benchmark benchmark-cpu benchmark-gpu test-reductions test-reductions-cpu test-reductions-gpu test-reductions-device
 test:
 	$(RUN_PYTHON) test.py $(ARGS) --work "$(BUILD)/sequential"
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --work "$(BUILD)/reductions-sequential"
+	$(RUN_PYTHON) test-independence.py $(ARGS) --work "$(BUILD)/independence"
+
+test-independence:
+	$(RUN_PYTHON) test-independence.py $(ARGS) --work "$(BUILD)/independence"
 
 test-cpu:
 	$(RUN_PYTHON) test.py $(ARGS) --cpu --work "$(BUILD)/cpu"
+	$(RUN_PYTHON) test-independence.py $(ARGS) --cpu --cc "$(CPU_CC)" --work "$(BUILD)/independence-cpu"
 	$(RUN_PYTHON) test-openmp.py $(ARGS) --work "$(BUILD)/driver"
 	$(RUN_PYTHON) test-reductions.py $(ARGS) --mode cpu --work "$(BUILD)/reductions-cpu"
 

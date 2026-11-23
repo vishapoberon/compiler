@@ -104,9 +104,12 @@ dependency between neighbouring elements and needs an ordered loop. A shared
 sum can use the [SUM reduction](Reductions.md) to combine independently
 computed values.
 
-The compiler checks types, body syntax and some simple overlaps. The
-programmer remains responsible for independence through pointers, aliased
-parameters and indirect indices.
+The compiler requires a static independence proof for `ALL` in every execution
+mode. It checks destinations, read/write accesses and index computations across
+the assignment sequence. Potentially aliased reference parameters and unproved
+index mappings are rejected. A single array's elementwise update remains valid;
+ordinary value array parameters provide copied inputs. See the
+[independence rules](../readme.md#independence) for supported storage and mappings.
 
 The bounds are evaluated once, lower bound first. An empty range performs
 zero assignments. The range identifier is read-only and belongs to the

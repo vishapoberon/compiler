@@ -179,7 +179,7 @@ matrix_declarations = "VAR m: ARRAY 8, 8 OF LONGINT; s: LONGINT;"
 for name, body, error in (
     ("RowDependence", "ALL i, j = 1 .. 3 DO m[i, j] := m[i-1, j] END", 166),
     ("ColumnDependence", "ALL i, j = 1 .. 3 DO m[i, j] := m[i, j-1] END", 166),
-    ("Transposed", "ALL i, j = 0 .. 3 DO m[i, j] := m[j, i] END", 166),
+    ("Transposed", "ALL i, j = 0 .. 3 DO m[i, j] := m[j, i] END", 181),
     ("OverlappingWrites", "ALL i, j = 0 .. 3 DO m[i, j] := 1; m[i, j+1] := 2 END", 166),
     ("Duplicate", "ALL i, i = 0 .. 3 DO m[i, i] := 0 END", 1),
     ("ReadOnly", "ALL i, j = 0 .. 3 DO j := 0 END", 76),

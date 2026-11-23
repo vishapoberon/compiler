@@ -355,25 +355,41 @@ by another. This applies across the whole assignment sequence. For example,
 ordered loop. A shared accumulator such as `sum := sum + a[r]` needs a
 sequential loop or a reduction algorithm.
 
-The compiler checks types, read-only range identifiers, and body syntax. For
-ranges that may contain multiple values, destinations must depend on each
-such range identifier. It also checks direct accesses to the same named
-array with unit-stride constant offsets, and constant-index accesses to that
-array. Overlapping accesses are rejected. With variable bounds, these checks
-conservatively reject possible overlaps; constant bounds can establish that
-the accessed sections are disjoint.
+The compiler requires a static independence proof in every execution mode:
+`-j`, `-jP` and `-jG`. Ambiguous aliasing or indexing is a compile-time error.
+There is no unchecked mode or independence assertion. An ordered `FOR` loop
+can express computations whose independence cannot be established.
 
-For multidimensional arrays, these checks inspect each indexed dimension.
-They conservatively reject shifted accesses and unrecognized mappings of
-the same named array, including in-place transposition. Separate arrays can
-be used for independent input and output.
+For each range that may contain several values, a shared destination needs an
+injective index in at least one array dimension. The supported mappings use
+the range identifier with slope `+1` or `-1` and iteration-invariant offsets,
+including widening conversions. Division, modulo, indirect indices and lossy
+conversions do not establish injectivity. Other dimensions can still establish
+that distinct iterations write distinct rows or cells.
 
-The programmer must also check
-pointer and parameter aliasing, indirect indices, repeated indices such as
-`a[r MOD 2]`, multidimensional overlaps, and dependencies through record
-fields or other designators outside those simple checks. An accepted program
-that violates independence has an undefined `ALL` result in every execution
-mode.
+The proof checks reads, writes and address/index computations across the whole
+assignment sequence. Matching per-iteration accesses, distinct declared storage,
+disjoint record fields and statically disjoint array sections can establish
+independence. Unknown pointer chains and potentially overlapping reference
+parameters are rejected, including a read-only reference that might alias an
+output. Repeated reads and aliases between read-only inputs are permitted when
+the output is provably separate.
+
+For example, two `VAR` array parameters cannot be assumed disjoint merely
+because their names differ. A single array parameter can support an in-place
+elementwise update. Ordinary value array parameters are copied on entry and
+can provide independent input snapshots. Fresh local arrays can provide output
+storage independent of incoming reference parameters.
+
+Errors distinguish recognized overlapping accesses (166), an unproved
+destination mapping (180), and unproved memory independence (181). Empty and
+statically single-iteration statements need no cross-iteration proof. Ordinary
+bounds and type checks still apply. The proof assumes typed storage and valid
+operations; forged aliases through `SYSTEM` or native code and concurrent
+external mutation remain outside these guarantees.
+
+Rebuild existing modules containing `ALL` when upgrading the compiler so their
+bodies are checked under these rules.
 
 ### C compiler requirements and testing
 
