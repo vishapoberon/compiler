@@ -93,7 +93,7 @@ CONST  (* error codes *)
   multipleIDs = 18;
   invalidIDREF = 19;
   invalidStandaloneWhitespace = 20;
-  invalidStandaloneAttrNormalization = 21;
+  invalidStandaloneAttrNormalize = 21;
   invalidStandaloneAttrEntityRef = 22;
   invalidStandaloneDefaultAttr = 23;
   invalidStandaloneElemEntityRef = 24;
@@ -840,7 +840,7 @@ PROCEDURE (b: Builder) Attribute* (namespaceDecl: DTD.NamespaceDeclaration;
            normalization, if the attribute was declared in an external markup
            declaration *)
         IF didNormalization & attrDecl. externalMarkupDecl THEN
-          Err (b, invalidStandaloneAttrNormalization)
+          Err (b, invalidStandaloneAttrNormalize)
         END;
         
         (* with standalone='yes', an attribute's replacement text must not
@@ -1050,7 +1050,7 @@ PROCEDURE SetErrorMessages;
         t := "No matching ID attribute for IDREF `${name}'"
       | invalidStandaloneWhitespace:
         t := "With standalone='yes', `${element}' cannot have white space content"
-      | invalidStandaloneAttrNormalization:
+      | invalidStandaloneAttrNormalize:
         t := "With standalone='yes', this attribute value must not change with normalization"
       | invalidStandaloneAttrEntityRef:
         t := "With standalone='yes', the attribute value refers to the externally declared entity `&${name};'"

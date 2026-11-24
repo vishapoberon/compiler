@@ -30,12 +30,12 @@ BEGIN RETURN NewNode(0) END Root;
 
 PROCEDURE (node: Node) SetLocator(locator: L.Locator);
 BEGIN
-  ASSERT(~node.located & (locator # NIL), 1);
+  ASSERT(~node.located & (locator # NIL), 201);
   node.located := TRUE; node.position := locator^; INC(located)
 END SetLocator;
 
 PROCEDURE (node: Node) IsChildName(name: E.String): BOOLEAN;
-BEGIN ASSERT(node.located, 2); RETURN S.Equal(name^, rootName^) END IsChildName;
+BEGIN ASSERT(node.located, 202); RETURN S.Equal(name^, rootName^) END IsChildName;
 
 PROCEDURE (node: Node) NewChild(name: E.String): E.Element;
 BEGIN
@@ -44,7 +44,7 @@ BEGIN
 END NewChild;
 
 PROCEDURE (node: Node) AddChild(child: E.Element);
-BEGIN ASSERT(node.located, 3); node.children.Append(child) END AddChild;
+BEGIN ASSERT(node.located, 203); node.children.Append(child) END AddChild;
 
 PROCEDURE (node: Node) MissingChild(): E.String;
 BEGIN
@@ -53,11 +53,11 @@ BEGIN
 END MissingChild;
 
 PROCEDURE (node: Node) IsAttributeName(name: E.String): BOOLEAN;
-BEGIN ASSERT(node.located, 4); RETURN S.Equal8(name^, "n") OR S.Equal8(name^, "href") END IsAttributeName;
+BEGIN ASSERT(node.located, 204); RETURN S.Equal8(name^, "n") OR S.Equal8(name^, "href") END IsAttributeName;
 
 PROCEDURE (node: Node) AddAttribute(name: E.String; value: E.AttValue): BOOLEAN;
 BEGIN
-  ASSERT(node.located, 5);
+  ASSERT(node.located, 205);
   IF S.Equal8(name^, "n") THEN
     node.hasNumber := T.GetIntAttr(value, node.number); RETURN node.hasNumber
   ELSE RETURN T.GetURIAttr(value, node.position.entity.baseURI, node.href)
@@ -74,7 +74,7 @@ PROCEDURE (node: Node) HasMixedContent(): BOOLEAN;
 BEGIN RETURN ~(3 IN options) END HasMixedContent;
 
 PROCEDURE (node: Node) AddCharacters(VAR chars: E.StringVar; start, end: E.CharPos);
-BEGIN ASSERT(node.located, 6); node.text.AddCharacters(chars, start, end) END AddCharacters;
+BEGIN ASSERT(node.located, 206); node.text.AddCharacters(chars, start, end) END AddCharacters;
 
 PROCEDURE (node: Node) CheckElement(): E.String;
 BEGIN
@@ -93,7 +93,7 @@ END Write;
 PROCEDURE Memory(): Mem.Channel;
   VAR ch: Mem.Channel; res: M.Msg;
 BEGIN
-  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 7); RETURN ch
+  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 207); RETURN ch
 END Memory;
 
 PROCEDURE Errors(list: Err.List);
@@ -112,10 +112,10 @@ BEGIN
   created := 0; located := 0; completed := 0;
   node := P.Parse(ch.NewReader(), base, NIL, factory, depth, flags, list); ch.Close;
   IF (node # NIL) # valid THEN Errors(list); Out.String(text); Out.Ln END;
-  ASSERT((node # NIL) = valid, 8); ASSERT((list = NIL) = valid, 9);
+  ASSERT((node # NIL) = valid, 208); ASSERT((list = NIL) = valid, 209);
   IF valid THEN
-    ASSERT((created = located) & (created = completed), 10); RETURN node(Node)
-  ELSE ASSERT(list.msgCount > 0, 11); RETURN NIL
+    ASSERT((created = located) & (created = completed), 210); RETURN node(Node)
+  ELSE ASSERT(list.msgCount > 0, 211); RETURN NIL
   END
 END Parse;
 
@@ -124,18 +124,18 @@ PROCEDURE ParserChecks;
     i, pos: LONGINT;
 BEGIN
   options := {}; node := Parse('<r n="42" href="child"><r/>text</r>', -1, {}, TRUE);
-  ASSERT((node.number = 42) & (node.position.charIndex = 1), 12);
-  node.href.GetString(bytes); ASSERT(bytes = "file:/xml-tests/child", 13);
-  ASSERT(S.Equal8(node.text.chars.array^, "text"), 14);
-  ASSERT(node.children.head = node.children.tail, 15);
-  child := node.children.head(Node); ASSERT((child.depth = 1) & child.children.IsEmpty(), 16);
+  ASSERT((node.number = 42) & (node.position.charIndex = 1), 212);
+  node.href.GetString(bytes); ASSERT(bytes = "file:/xml-tests/child", 213);
+  ASSERT(S.Equal8(node.text.chars.array^, "text"), 214);
+  ASSERT(node.children.head = node.children.tail, 215);
+  child := node.children.head(Node); ASSERT((child.depth = 1) & child.children.IsEmpty(), 216);
   ch := Memory(); writer := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   node.Write(writer); writer.EndOfText;
-  ASSERT((ch.Length() = 25) & (writer.writer.res = NIL), 17); ch.Close;
+  ASSERT((ch.Length() = 25) & (writer.writer.res = NIL), 217); ch.Close;
   options := {0}; node := Parse('<r n="-2147483648"/>', 0, {}, TRUE);
-  ASSERT(node.number = MIN(LONGINT), 18);
+  ASSERT(node.number = MIN(LONGINT), 218);
   node := Parse('<!DOCTYPE r [<!ELEMENT r EMPTY><!ATTLIST r n CDATA "7">]><r/>', 0, {P.validate}, TRUE);
-  ASSERT(node.number = 7, 19);
+  ASSERT(node.number = 7, 219);
   node := Parse('<!DOCTYPE r [<!ELEMENT r EMPTY><!ATTLIST r n CDATA #REQUIRED>]><r/>', 0, {P.validate}, FALSE);
   node := Parse('<r/>', 0, {}, FALSE);
   options := {}; node := Parse('<unknown><r/></unknown>', -1, {}, FALSE);
@@ -157,8 +157,8 @@ BEGIN
     bytes[pos] := "<"; bytes[pos+1] := "/"; bytes[pos+2] := "r"; bytes[pos+3] := ">"; INC(pos, 4)
   END;
   bytes[pos] := 0X; node := Parse(bytes, -1, {}, TRUE);
-  ASSERT((created = 64) & (node.depth = 0), 20);
-  FOR i := 1 TO 63 DO node := node.children.head(Node); ASSERT(node.depth = i, 21) END
+  ASSERT((created = 64) & (node.depth = 0), 220);
+  FOR i := 1 TO 63 DO node := node.children.head(Node); ASSERT(node.depth = i, 221) END
 END ParserChecks;
 
 PROCEDURE Value(text: ARRAY OF CHAR): D.AttValue;
@@ -172,21 +172,21 @@ PROCEDURE DataChecks;
   VAR value: D.AttValue; number, i: LONGINT; bytes: ARRAY 8 OF CHAR;
     long: ARRAY 40001 OF CHAR; uri: URI.URI; units: ARRAY 8 OF D.Char;
 BEGIN
-  ASSERT(T.GetIntAttr(Value("2147483647"), number) & (number = MAX(LONGINT)), 22);
-  ASSERT(~T.GetIntAttr(Value("2147483648"), number), 23);
-  ASSERT(~T.GetIntAttr(Value("-2147483649"), number), 24);
+  ASSERT(T.GetIntAttr(Value("2147483647"), number) & (number = MAX(LONGINT)), 222);
+  ASSERT(~T.GetIntAttr(Value("2147483648"), number), 223);
+  ASSERT(~T.GetIntAttr(Value("-2147483649"), number), 224);
   FOR i := 0 TO 39998 DO long[i] := "0" END; long[39999] := "x"; long[40000] := 0X;
-  ASSERT(~T.GetIntAttr(Value(long), number), 25);
+  ASSERT(~T.GetIntAttr(Value(long), number), 225);
   bytes := "keep";
-  ASSERT(~T.GetStringLatin1Attr(Value("too long"), bytes) & (bytes = "keep"), 26);
+  ASSERT(~T.GetStringLatin1Attr(Value("too long"), bytes) & (bytes = "keep"), 226);
   units[0] := 531H; units[1] := 0;
   value := Value("x"); value.fragmentList(D.Characters).source[0] := units[0];
-  ASSERT(~T.GetStringLatin1Attr(value, bytes) & (bytes = "keep"), 27);
-  ASSERT(T.GetStringLatin1Attr(Value("short"), bytes) & (bytes = "short"), 28);
-  value := Value("path"); ASSERT(T.GetURIAttr(value, base, uri), 29);
-  value := Value("bad%"); ASSERT(~T.GetURIAttr(value, base, uri), 30);
+  ASSERT(~T.GetStringLatin1Attr(value, bytes) & (bytes = "keep"), 227);
+  ASSERT(T.GetStringLatin1Attr(Value("short"), bytes) & (bytes = "short"), 228);
+  value := Value("path"); ASSERT(T.GetURIAttr(value, base, uri), 229);
+  value := Value("bad%"); ASSERT(~T.GetURIAttr(value, base, uri), 230);
   value := Value("a"); value.fragmentList(D.Characters).source[0] := 0D800H;
-  ASSERT(~T.GetURIAttr(value, base, uri) & (uri = NIL), 31)
+  ASSERT(~T.GetURIAttr(value, base, uri) & (uri = NIL), 231)
 END DataChecks;
 
 PROCEDURE BufferChecks;

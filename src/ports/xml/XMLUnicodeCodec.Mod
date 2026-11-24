@@ -1,7 +1,7 @@
 MODULE XMLUnicodeCodec;
 
 IMPORT
-  Strings, Unicode := oocUnicode;
+  Strings := oocStrings, Unicode := oocUnicode;
 
 
 CONST
@@ -373,7 +373,7 @@ PROCEDURE Register* (name: ARRAY OF CHAR; factory: Factory);
     END ScanList;
   
   BEGIN
-    Strings.Cap (name);
+    Strings.Capitalize (name);
     ScanList (factoryList)
   END Register;
 
@@ -394,7 +394,7 @@ PROCEDURE Unregister* (name: ARRAY OF CHAR);
     END ScanList;
   
   BEGIN
-    Strings.Cap (name);
+    Strings.Capitalize (name);
     ScanList (factoryList)
   END Unregister;
 
@@ -404,7 +404,7 @@ PROCEDURE GetFactory* (name: ARRAY OF CHAR): Factory;
   VAR
     n: Node;
   BEGIN
-    Strings.Cap (name);
+    Strings.Capitalize (name);
     n := factoryList;
     WHILE (n # NIL) & (n. name^ # name) DO
       n := n. next

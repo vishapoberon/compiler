@@ -68,7 +68,7 @@ PROCEDURE (b: Capture) Characters(VAR chars: D.StringVar; charsStart, charsEnd: 
   elementWhitespace: D.ElementWhitespaceType);
   VAR i: LONGINT;
 BEGIN
-  ASSERT(b.length+charsEnd-charsStart < LEN(b.text), 1);
+  ASSERT(b.length+charsEnd-charsStart < LEN(b.text), 201);
   FOR i := charsStart TO charsEnd-1 DO
     b.text[b.length] := chars[i]; INC(b.length)
   END;
@@ -98,9 +98,9 @@ END NewCapture;
 PROCEDURE File(VAR bytes: ARRAY OF CHAR; length: LONGINT): Mem.Channel;
   VAR ch: Mem.Channel; res: M.Msg; writer: Ch.Writer;
 BEGIN
-  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 2);
+  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 202);
   writer := ch.NewWriter(); writer.WriteBytes(bytes, 0, length);
-  ASSERT(writer.res = NIL, 3); RETURN ch
+  ASSERT(writer.res = NIL, 203); RETURN ch
 END File;
 
 PROCEDURE Parse(VAR bytes: ARRAY OF CHAR; length, chunk: LONGINT;
@@ -114,7 +114,7 @@ BEGIN
   END;
   p := P.NewReader(reader, base, factory, NIL, b);
   p.followExternalRef := FALSE; p.ParseDocument; ch.Close;
-  ASSERT(b.documents = 1, 4); RETURN p
+  ASSERT(b.documents = 1, 204); RETURN p
 END Parse;
 
 PROCEDURE Document(text: ARRAY OF CHAR; b: Capture): P.Parser;
@@ -125,24 +125,24 @@ PROCEDURE Good(p: P.Parser);
 BEGIN
   msg := p.errList.msgList;
   WHILE msg # NIL DO msg.GetText(text); Out.String(text); Out.Ln; msg := msg.nextMsg END;
-  ASSERT(p.errList.msgCount = 0, 5)
+  ASSERT(p.errList.msgCount = 0, 205)
 END Good;
 
 PROCEDURE BasicChecks;
   VAR b: Capture; p: P.Parser;
 BEGIN
   b := NewCapture(); p := Document("<root/>", b); Good(p);
-  ASSERT((b.starts = 1) & (b.ends = 1) & S.Equal8(b.firstName^, "root"), 6);
-  ASSERT((b.firstPos.charIndex = 1) & (b.firstPos.line = 0) & (b.firstPos.column = 1), 7);
+  ASSERT((b.starts = 1) & (b.ends = 1) & S.Equal8(b.firstName^, "root"), 206);
+  ASSERT((b.firstPos.charIndex = 1) & (b.firstPos.line = 0) & (b.firstPos.column = 1), 207);
   b := NewCapture();
   p := Document('<?xml version="1.0"?><root a="x &amp; y">hi<child/>there<![CDATA[<&>]]><!--note--><?pi data?></root>', b);
   Good(p);
-  ASSERT((b.starts = 2) & (b.ends = 2) & (b.attributes = 1), 8);
-  ASSERT(S.Equal8(b.lastAttribute^, "a") & S.Equal8(b.lastValue^, "x & y"), 9);
-  ASSERT(S.Equal8(b.text, "hithere<&>") & (b.comments = 1) & (b.pis = 1) & (b.cdatas = 1), 10);
+  ASSERT((b.starts = 2) & (b.ends = 2) & (b.attributes = 1), 208);
+  ASSERT(S.Equal8(b.lastAttribute^, "a") & S.Equal8(b.lastValue^, "x & y"), 209);
+  ASSERT(S.Equal8(b.text, "hithere<&>") & (b.comments = 1) & (b.pis = 1) & (b.cdatas = 1), 210);
   b := NewCapture(); p := Document('<r>&lt;&gt;&amp;&quot;&apos;&#65;&#x531;&#x1F642;</r>', b); Good(p);
   ASSERT((b.length = 9) & (b.text[0] = ORD("<")) & (b.text[5] = ORD("A")) &
-    (b.text[6] = 531H) & (b.text[7] = 0D83DH) & (b.text[8] = 0DE42H), 11)
+    (b.text[6] = 531H) & (b.text[7] = 0D83DH) & (b.text[8] = 0DE42H), 211)
 END BasicChecks;
 
 PROCEDURE CharacterClassChecks;
@@ -156,7 +156,7 @@ BEGIN
     IF P.IsNameChar(ch) THEN INC(names); INC(flags, 2) END;
     fingerprint := (fingerprint*33+flags) MOD 65521
   END;
-  ASSERT((starts = 34516) & (names = 35122) & (fingerprint = 6038), 25)
+  ASSERT((starts = 34516) & (names = 35122) & (fingerprint = 6038), 225)
 END CharacterClassChecks;
 
 PROCEDURE DTDChecks;
@@ -165,24 +165,24 @@ BEGIN
   b := NewCapture();
   p := Document('<!DOCTYPE r [<!ELEMENT r (#PCDATA)><!ENTITY word "hello"><!ATTLIST r a NMTOKENS " a   b ">]><r>&word;</r>', b);
   Good(p);
-  ASSERT((b.dtos = 1) & b.complete & (b.dtd # NIL) & S.Equal8(b.dtd.rootName^, "r"), 12);
-  ASSERT(S.Equal8(b.text, "hello") & (b.defaults = 1) & S.Equal8(b.lastValue^, "a b"), 13);
+  ASSERT((b.dtos = 1) & b.complete & (b.dtd # NIL) & S.Equal8(b.dtd.rootName^, "r"), 212);
+  ASSERT(S.Equal8(b.text, "hello") & (b.defaults = 1) & S.Equal8(b.lastValue^, "a b"), 213);
   b := NewCapture();
   p := Document('<!DOCTYPE r [<!ENTITY a "A"><!ENTITY b "&a;B">]><r a="&b;">&b;</r>', b); Good(p);
-  ASSERT(S.Equal8(b.text, "AB") & S.Equal8(b.lastValue^, "AB"), 14);
+  ASSERT(S.Equal8(b.text, "AB") & S.Equal8(b.lastValue^, "AB"), 214);
   b := NewCapture(); p := Document('<!DOCTYPE r [<!ENTITY e "">]><r a="&e;">&e;</r>', b); Good(p);
-  ASSERT((b.length = 0) & S.Equal8(b.lastValue^, ""), 24);
+  ASSERT((b.length = 0) & S.Equal8(b.lastValue^, ""), 224);
   b := NewCapture(); p := Document('<!DOCTYPE r [<!ENTITY e "&#9;&#10;&#13;">]><r a="&e;"/>', b); Good(p);
-  ASSERT(S.Equal8(b.lastValue^, "   "), 26);
+  ASSERT(S.Equal8(b.lastValue^, "   "), 226);
   b := NewCapture();
   p := Document('<!DOCTYPE r [<!ENTITY % decl "<!ELEMENT r EMPTY>">%decl;]><r/>', b); Good(p);
-  ASSERT((b.dtd.elementNamespace.Get(b.dtd.rootName) # NIL) & b.complete, 15);
+  ASSERT((b.dtd.elementNamespace.Get(b.dtd.rootName) # NIL) & b.complete, 215);
   b := NewCapture(); p := Document('<!DOCTYPE r SYSTEM "missing.dtd"><r/>', b); Good(p);
-  ASSERT(~b.complete, 16);
+  ASSERT(~b.complete, 216);
   b := NewCapture(); p := Document('<!DOCTYPE r [<!ATTLIST r a NMTOKENS " a  b ">]><r/>', b); Good(p);
-  ASSERT((b.defaults = 1) & S.Equal8(b.lastValue^, "a b"), 29);
+  ASSERT((b.defaults = 1) & S.Equal8(b.lastValue^, "a b"), 229);
   b := NewCapture(); p := Document('<!DOCTYPE r [<!ATTLIST r a NMTOKENS #IMPLIED>]><r a=" a  b "/>', b); Good(p);
-  ASSERT((b.attributes = 1) & S.Equal8(b.lastValue^, "a b"), 30)
+  ASSERT((b.attributes = 1) & S.Equal8(b.lastValue^, "a b"), 230)
 END DTDChecks;
 
 PROCEDURE UnicodeChecks;
@@ -196,7 +196,7 @@ BEGIN
   FOR i := 1 TO 13 DO
     b := NewCapture(); p := Parse(bytes, 13, i, NIL, b); Good(p);
     ASSERT((b.firstName[0] = 531H) & (b.firstName[1] = 0) &
-      (b.length = 2) & (b.text[0] = 0D83DH) & (b.text[1] = 0DE42H), 17)
+      (b.length = 2) & (b.text[0] = 0D83DH) & (b.text[1] = 0DE42H), 217)
   END;
   S.Long("<r>", units); units[3] := 531H; units[4] := 0D83DH; units[5] := 0DE42H;
   units[6] := ORD("<"); units[7] := ORD("/"); units[8] := ORD("r"); units[9] := ORD(">"); units[10] := 0;
@@ -211,7 +211,7 @@ BEGIN
     END;
     output.Write16(units); output.Flush;
     b := NewCapture(); p := P.NewChannel(ch, base, NIL, NIL, b); p.ParseDocument; Good(p);
-    ASSERT((b.length = 3) & (b.text[0] = 531H) & (b.text[1] = 0D83DH) & (b.text[2] = 0DE42H), 18);
+    ASSERT((b.length = 3) & (b.text[0] = 531H) & (b.text[1] = 0D83DH) & (b.text[2] = 0DE42H), 218);
     ch.Close
   END
 END UnicodeChecks;
@@ -224,8 +224,8 @@ BEGIN
   FOR i := 3 TO n+2 DO bytes[i] := "x" END;
   bytes[n+3] := "<"; bytes[n+4] := "/"; bytes[n+5] := "r"; bytes[n+6] := ">";
   b := NewCapture(); p := Parse(bytes^, n+7, 7, NIL, b); Good(p);
-  ASSERT((b.length = n) & (b.starts = 1) & (b.ends = 1), 19);
-  FOR i := 0 TO n-1 DO ASSERT(b.text[i] = ORD("x"), 20) END
+  ASSERT((b.length = n) & (b.starts = 1) & (b.ends = 1), 219);
+  FOR i := 0 TO n-1 DO ASSERT(b.text[i] = ORD("x"), 220) END
 END StreamingChecks;
 
 PROCEDURE Bad(text: ARRAY OF CHAR);
@@ -233,9 +233,9 @@ PROCEDURE Bad(text: ARRAY OF CHAR);
 BEGIN
   b := NewCapture(); p := Document(text, b);
   IF p.errList.msgCount = 0 THEN Out.String("Accepted: "); Out.String(text); Out.Ln END;
-  ASSERT(p.errList.msgCount > 0, 21);
+  ASSERT(p.errList.msgCount > 0, 221);
   output := Mem.Tmp("", {Mem.read, Mem.write}, res); p.errList.Write(output);
-  ASSERT(output.Length() > 0, 22); output.Close
+  ASSERT(output.Length() > 0, 222); output.Close
 END Bad;
 
 PROCEDURE MissingBaseChecks;
@@ -243,13 +243,13 @@ PROCEDURE MissingBaseChecks;
 BEGIN
   bytes := "<r>"; bytes[3] := 0FFX; bytes[4] := "<"; bytes[5] := "/"; bytes[6] := "r"; bytes[7] := ">";
   ch := File(bytes, 8); b := NewCapture(); p := P.NewChannel(ch, NIL, NIL, NIL, b);
-  p.ParseDocument; ASSERT(p.errList.msgCount > 0, 27);
+  p.ParseDocument; ASSERT(p.errList.msgCount > 0, 227);
   output := Mem.Tmp("", {Mem.read, Mem.write}, res); p.errList.Write(output);
-  ASSERT(output.Length() > 0, 28); output.Close; ch.Close
+  ASSERT(output.Length() > 0, 228); output.Close; ch.Close
 END MissingBaseChecks;
 
 BEGIN
-  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 23);
+  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 223);
   CharacterClassChecks; BasicChecks; DTDChecks; UnicodeChecks; StreamingChecks; MissingBaseChecks;
   Bad(""); Bad("<r>"); Bad("<r></s>"); Bad("<r/><s/>"); Bad('<r a="1" a="2"/>');
   Bad("<r>&missing;</r>"); Bad("<r>&#0;</r>"); Bad("<r>&#xD800;</r>"); Bad("<r>&#x110000;</r>");

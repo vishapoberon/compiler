@@ -54,7 +54,7 @@ END Characters;
 PROCEDURE Memory(): Mem.Channel;
   VAR ch: Mem.Channel; res: M.Msg;
 BEGIN
-  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 1); RETURN ch
+  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 201); RETURN ch
 END Memory;
 
 PROCEDURE Trace(text: ARRAY OF CHAR; uri: URI.URI; namespaces, validating, valid: BOOLEAN): Capture;
@@ -74,9 +74,9 @@ BEGIN
     Out.String(text); Out.Ln; msg := p.errList.msgList;
     WHILE msg # NIL DO msg.GetText(error); Out.String(error); Out.Ln; msg := msg.nextMsg END
   END;
-  ASSERT((p.errList.msgCount = 0) = valid, 2);
+  ASSERT((p.errList.msgCount = 0) = valid, 202);
   ASSERT((protocol.locator # NIL) & (protocol.w.writer.res = NIL) &
-    (protocol.w.codec.invalidChars = 0), 3);
+    (protocol.w.codec.invalidChars = 0), 203);
   NEW(capture); B.Init(capture);
   capture.starts := 0; capture.ends := 0; capture.elements := 0; capture.attributes := 0;
   capture.characters := 0; capture.comments := 0; capture.instructions := 0;
@@ -86,11 +86,11 @@ BEGIN
   capture.skipped := 0; capture.armenian := 0; capture.high := 0; capture.low := 0;
   p := P.NewChannel(output, base, NIL, NIL, capture); p.followExternalRef := FALSE;
   p.ParseDocument;
-  ASSERT(p.errList.msgCount = 0, 4);
-  ASSERT((capture.starts = 1) & (capture.ends = 1), 5);
-  ASSERT(capture.locators > 0, 6);
-  IF uri = NIL THEN ASSERT(capture.positions = 0, 7)
-  ELSE ASSERT(capture.positions = capture.locators, 8)
+  ASSERT(p.errList.msgCount = 0, 204);
+  ASSERT((capture.starts = 1) & (capture.ends = 1), 205);
+  ASSERT(capture.locators > 0, 206);
+  IF uri = NIL THEN ASSERT(capture.positions = 0, 207)
+  ELSE ASSERT(capture.positions = capture.locators, 208)
   END;
   input.Close; output.Close; RETURN capture
 END Trace;
@@ -108,29 +108,29 @@ PROCEDURE Checks;
 
 BEGIN
   b := Trace('<!DOCTYPE r [<!ELEMENT r (#PCDATA)><!ATTLIST r a CDATA "A"><!ENTITY e "x"><!NOTATION n SYSTEM "n">]><r><!--comment--><?pi data?><![CDATA[y]]>&e;</r>', base, FALSE, TRUE, TRUE);
-  ASSERT((b.elements = 1) & (b.attributes = 1) & (b.comments = 1) & (b.instructions = 1), 9);
-  ASSERT((b.dtdStarts = 1) & (b.dtdEnds = 1) & (b.notations = 1), 10);
-  ASSERT((b.cdataStarts = 1) & (b.cdataEnds = 1) & (b.entityStarts = 1) & (b.entityEnds = 1), 11);
-  b := Trace('<r/>', NIL, FALSE, FALSE, TRUE); ASSERT(b.elements = 1, 12);
-  b := Trace('<r><a></r>', base, FALSE, FALSE, FALSE); ASSERT(b.elements = 2, 13);
+  ASSERT((b.elements = 1) & (b.attributes = 1) & (b.comments = 1) & (b.instructions = 1), 209);
+  ASSERT((b.dtdStarts = 1) & (b.dtdEnds = 1) & (b.notations = 1), 210);
+  ASSERT((b.cdataStarts = 1) & (b.cdataEnds = 1) & (b.entityStarts = 1) & (b.entityEnds = 1), 211);
+  b := Trace('<r/>', NIL, FALSE, FALSE, TRUE); ASSERT(b.elements = 1, 212);
+  b := Trace('<r><a></r>', base, FALSE, FALSE, FALSE); ASSERT(b.elements = 2, 213);
   b := Trace('<!DOCTYPE r [<!ENTITY e SYSTEM "unopened.ent">]><r>&e;</r>', base, FALSE, FALSE, TRUE);
-  ASSERT((b.skipped > 0) & (b.dtdEnds = 1), 14);
+  ASSERT((b.skipped > 0) & (b.dtdEnds = 1), 214);
   pos := 0; Append('<p:'); Append(0D4X); Append(0B1X);
   Append(' xmlns:p="urn:'); Append(0D4X); Append(0B1X);
   Append('" a="&#x531;&#x1F642;&#13;&#10;&#9;">&#x531;&#x1F642;</p:');
   Append(0D4X); Append(0B1X); Append('>');
   b := Trace(text, base, TRUE, FALSE, TRUE);
-  ASSERT((b.namespaces >= 2) & (b.armenian >= 3) & (b.high = 2) & (b.low = 2), 15);
+  ASSERT((b.namespaces >= 2) & (b.armenian >= 3) & (b.high = 2) & (b.low = 2), 215);
   pos := 0; Append('<r>');
   FOR i := 0 TO 39999 DO Append('x') END;
   Append('&#x531;&#x1F642;');
   FOR i := 0 TO 39999 DO Append('y') END;
   Append('</r>');
   b := Trace(text, base, FALSE, FALSE, TRUE);
-  ASSERT((b.characters >= 1) & (b.armenian = 1) & (b.high = 1) & (b.low = 1), 16)
+  ASSERT((b.characters >= 1) & (b.armenian = 1) & (b.high = 1) & (b.low = 1), 216)
 END Checks;
 
 BEGIN
-  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 17);
+  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 217);
   Checks; Out.String("XML parser protocol checks passed"); Out.Ln
 END TestProtocol.

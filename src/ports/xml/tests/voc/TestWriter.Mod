@@ -38,7 +38,7 @@ PROCEDURE (b: Capture) Characters(VAR chars: D.StringVar; charsStart, charsEnd: 
   elementWhitespace: D.ElementWhitespaceType);
   VAR i: LONGINT;
 BEGIN
-  ASSERT(b.length+charsEnd-charsStart < LEN(b.text), 1);
+  ASSERT(b.length+charsEnd-charsStart < LEN(b.text), 201);
   FOR i := charsStart TO charsEnd-1 DO b.text[b.length] := chars[i]; INC(b.length) END;
   b.text[b.length] := 0
 END Characters;
@@ -56,7 +56,7 @@ END WriteBytes;
 PROCEDURE Memory(): Mem.Channel;
   VAR ch: Mem.Channel; res: M.Msg;
 BEGIN
-  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 2); RETURN ch
+  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 202); RETURN ch
 END Memory;
 
 PROCEDURE Good(p: P.Parser);
@@ -64,7 +64,7 @@ PROCEDURE Good(p: P.Parser);
 BEGIN
   msg := p.errList.msgList;
   WHILE msg # NIL DO msg.GetText(error); Out.String(error); Out.Ln; msg := msg.nextMsg END;
-  ASSERT(p.errList.msgCount = 0, 3)
+  ASSERT(p.errList.msgCount = 0, 203)
 END Good;
 
 PROCEDURE Parse(ch: Mem.Channel): Capture;
@@ -74,7 +74,7 @@ BEGIN
   b.attributes := 0; b.length := 0; b.text[0] := 0; b.name := NIL; b.value := NIL;
   p := P.NewChannel(ch, base, NIL, NIL, b); p.followExternalRef := FALSE;
   p.ParseDocument; Good(p);
-  ASSERT((b.documents = 1) & (b.starts = b.ends), 4); RETURN b
+  ASSERT((b.documents = 1) & (b.starts = b.ends), 204); RETURN b
 END Parse;
 
 PROCEDURE Expect(ch: Mem.Channel; expected: ARRAY OF CHAR);
@@ -82,8 +82,8 @@ PROCEDURE Expect(ch: Mem.Channel; expected: ARRAY OF CHAR);
 BEGIN
   length := S.Length8(expected);
   IF ch.Length() # length THEN Out.String("Output length: "); Out.Int(ch.Length(), 0); Out.Ln END;
-  ASSERT(ch.Length() = length, 5);
-  FOR i := 0 TO length-1 DO ASSERT(ch.file.data[i] = expected[i], 6) END
+  ASSERT(ch.Length() = length, 205);
+  FOR i := 0 TO length-1 DO ASSERT(ch.file.data[i] = expected[i], 206) END
 END Expect;
 
 PROCEDURE BasicChecks;
@@ -95,7 +95,7 @@ BEGIN
   S.Long("flag", name); w.AttrBool(name, TRUE);
   w.WriteLatin1("x<&>"); w.EmptyTagLatin1("e"); w.EndTag; w.EndOfText;
   Expect(ch, "<?xml version='1.0' encoding='UTF-8' standalone='yes'?><r a='&lt;&amp;&gt;&apos;' flag='yes'>x&lt;&amp;&gt;<e/></r>");
-  b := Parse(ch); ASSERT((b.starts = 2) & (b.attributes = 2) & S.Equal8(b.text, "x<&>"), 7);
+  b := Parse(ch); ASSERT((b.starts = 2) & (b.attributes = 2) & S.Equal8(b.text, "x<&>"), 207);
   ch.Close;
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   w.StartTagLatin1("r", TRUE); S.Long("n", name); w.AttrInt(name, MIN(LONGINT));
@@ -135,10 +135,10 @@ BEGIN
     END;
     w.WriteTextDecl("1.0", ""); w.StartTag(name, TRUE); w.AttrString(name, value);
     w.WriteI(value, 0, 2); w.WriteI(value, 2, 10); w.EndTag; w.EndOfText;
-    ASSERT((w.writer.res = NIL) & (w.codec.invalidChars = 0), 8);
+    ASSERT((w.writer.res = NIL) & (w.codec.invalidChars = 0), 208);
     b := Parse(ch);
-    ASSERT((b.name[0] = 531H) & (b.attributes = 1) & (b.length = 10), 9);
-    FOR i := 0 TO 9 DO ASSERT((b.value[i] = value[i]) & (b.text[i] = value[i]), 10) END;
+    ASSERT((b.name[0] = 531H) & (b.attributes = 1) & (b.length = 10), 209);
+    FOR i := 0 TO 9 DO ASSERT((b.value[i] = value[i]) & (b.text[i] = value[i]), 210) END;
     ch.Close
   END;
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
@@ -148,7 +148,7 @@ BEGIN
   w.WriteLatin1(latin); w.EndTag; w.EndOfText;
   b := Parse(ch);
   ASSERT((b.value[0] = 0E9H) & (b.value[1] = 9) & (b.value[2] = 10) &
-    (b.value[3] = 13) & (b.length = 2) & (b.text[0] = 0E9H) & (b.text[1] = 13), 11);
+    (b.value[3] = 13) & (b.length = 2) & (b.text[0] = 0E9H) & (b.text[1] = 13), 211);
   ch.Close
 END UnicodeChecks;
 
@@ -161,37 +161,37 @@ BEGIN
   name[n] := 0X; text[n] := 0X;
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   w.StartTagLatin1(name^, TRUE); w.WriteLatin1(text^); w.EndTag; w.EndOfText;
-  b := Parse(ch); ASSERT((S.Length(b.name^) = n) & (b.length = n), 12); ch.Close;
+  b := Parse(ch); ASSERT((S.Length(b.name^) = n) & (b.length = n), 212); ch.Close;
   NEW(units, 70001);
   FOR i := 0 TO 69999 DO units[i] := 531H END;
   units[8191] := 0D83DH; units[8192] := 0DE42H; units[70000] := 0;
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   w.StartTagLatin1("r", TRUE); w.Write(units^); w.EndTag; w.EndOfText;
-  b := Parse(ch); ASSERT(b.length = 70000, 13);
-  FOR i := 0 TO 69999 DO ASSERT(b.text[i] = units[i], 14) END;
+  b := Parse(ch); ASSERT(b.length = 70000, 213);
+  FOR i := 0 TO 69999 DO ASSERT(b.text[i] = units[i], 214) END;
   ch.Close;
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   FOR i := 0 TO 63 DO w.StartTagLatin1("r", TRUE) END;
   FOR i := 0 TO 63 DO w.EndTag END;
-  w.EndOfText; b := Parse(ch); ASSERT(b.starts = 64, 15); ch.Close
+  w.EndOfText; b := Parse(ch); ASSERT(b.starts = 64, 215); ch.Close
 END GrowthChecks;
 
 PROCEDURE URIChecks;
   VAR ch: Mem.Channel; w: W.Writer; uri: URI.URI; name: ARRAY 8 OF W.Char;
     b: Capture; text: Bytes; i: LONGINT;
 BEGIN
-  uri := URIParser.NewURI("file:/xml-tests/a&b", NIL, result); ASSERT(result = NIL, 16);
+  uri := URIParser.NewURI("file:/xml-tests/a&b", NIL, result); ASSERT(result = NIL, 216);
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   w.SetBaseURI(base(URI.HierarchicalURI)); w.StartTagLatin1("r", TRUE);
   S.Long("href", name); w.AttrURI(name, uri, FALSE); w.WriteURI(uri, FALSE);
   w.EndTag; w.EndOfText; Expect(ch, "<r href='a&amp;b'>a&amp;b</r>"); ch.Close;
   NEW(text, 40007); COPY("file:/", text^);
   FOR i := 6 TO 40005 DO text[i] := "a" END; text[40006] := 0X;
-  uri := URIParser.NewURI(text^, NIL, result); ASSERT(result = NIL, 17);
+  uri := URIParser.NewURI(text^, NIL, result); ASSERT(result = NIL, 217);
   ch := Memory(); w := W.New(ch.NewWriter(), C.GetFactory("UTF-8"), FALSE, -1);
   w.StartTagLatin1("r", TRUE); w.AttrURI(name, uri, TRUE); w.WriteURI(uri, TRUE);
   w.EndTag; w.EndOfText; b := Parse(ch);
-  ASSERT(S.Equal8(b.value^, text^) & S.Equal8(b.text, text^), 18); ch.Close
+  ASSERT(S.Equal8(b.value^, text^) & S.Equal8(b.text, text^), 218); ch.Close
 END URIChecks;
 
 PROCEDURE PartialChecks;
@@ -202,8 +202,8 @@ BEGIN
     partial.res := NIL; partial.bytesWritten := 0; partial.fail := fail = 1;
     w := W.New(partial, C.GetFactory("UTF-8"), FALSE, -1);
     w.StartTagLatin1("r", TRUE); w.WriteLatin1("<&>"); w.EndTag; w.EndOfText;
-    IF fail = 1 THEN ASSERT(partial.res # NIL, 19); partial.res := NIL; w.Flush END;
-    ASSERT(partial.res = NIL, 20); Expect(ch, "<r>&lt;&amp;&gt;</r>"); ch.Close
+    IF fail = 1 THEN ASSERT(partial.res # NIL, 219); partial.res := NIL; w.Flush END;
+    ASSERT(partial.res = NIL, 220); Expect(ch, "<r>&lt;&amp;&gt;</r>"); ch.Close
   END
 END PartialChecks;
 
@@ -214,7 +214,7 @@ BEGIN
   output := Memory(); builder := Canon.New(output, C.GetFactory("UTF-8"), format);
   p := P.NewChannel(input, base, NIL, NIL, builder); p.followExternalRef := FALSE;
   p.ParseDocument; Good(p);
-  ASSERT((builder.out.writer.res = NIL) & (builder.out.codec.invalidChars = 0), 21);
+  ASSERT((builder.out.writer.res = NIL) & (builder.out.codec.invalidChars = 0), 221);
   input.Close; RETURN output
 END Canonical;
 
@@ -234,11 +234,11 @@ BEGIN
   Str.Append("]>", text); Str.Append(0AX, text); Str.Append("<r></r>", text);
   Expect(ch, text); ch.Close;
   text := '<!DOCTYPE r [<!NOTATION a SYSTEM "a'; Str.Append("'b", text); Str.Append('">]><r/>', text);
-  ch := Canonical(text, Canon.secondCanonicalForm); b := Parse(ch); ASSERT(b.starts = 1, 22); ch.Close
+  ch := Canonical(text, Canon.secondCanonicalForm); b := Parse(ch); ASSERT(b.starts = 1, 222); ch.Close
 END CanonicalChecks;
 
 BEGIN
-  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 23);
+  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 223);
   NEW(context); M.InitContext(context, "TestWriter");
   BasicChecks; IndentChecks; UnicodeChecks; GrowthChecks; URIChecks; PartialChecks; CanonicalChecks;
   Out.String("XML writer and canonical output checks passed"); Out.Ln

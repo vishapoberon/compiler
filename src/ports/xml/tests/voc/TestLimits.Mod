@@ -13,11 +13,11 @@ TYPE
   CaptureDesc = RECORD (B.BuilderDesc) ends: LONGINT; budget: L.Budget END;
 
 PROCEDURE (capture: Capture) StartElement(namespace: D.NamespaceDeclaration; localName: D.String);
-BEGIN ASSERT(capture.budget.error = NIL, 7) END StartElement;
+BEGIN ASSERT(capture.budget.error = NIL, 207) END StartElement;
 
 PROCEDURE (capture: Capture) Characters(VAR text: D.StringVar; start, end: D.CharPos;
   whitespace: D.ElementWhitespaceType);
-BEGIN ASSERT(capture.budget.error = NIL, 8) END Characters;
+BEGIN ASSERT(capture.budget.error = NIL, 208) END Characters;
 
 PROCEDURE (capture: Capture) EndDocument;
 BEGIN INC(capture.ends) END EndDocument;
@@ -27,7 +27,7 @@ PROCEDURE Check(text: ARRAY OF CHAR; budget: L.Budget; kind: SHORTINT);
     capture: Capture; error: ARRAY 512 OF CHAR; found: BOOLEAN;
     builder: B.Builder;
 BEGIN
-  input := Mem.Tmp("", {Mem.read, Mem.write}, result); ASSERT(result = NIL, 1);
+  input := Mem.Tmp("", {Mem.read, Mem.write}, result); ASSERT(result = NIL, 201);
   writer := input.NewWriter(); writer.WriteBytes(text, 0, S.Length8(text));
   NEW(capture); B.Init(capture); capture.ends := 0; capture.budget := budget;
   builder := capture;
@@ -41,7 +41,7 @@ BEGIN
       msg := parser.errList.msgList;
       WHILE msg # NIL DO msg.GetText(error); Out.String(error); Out.Ln; msg := msg.nextMsg END
     END;
-    ASSERT((budget.error = NIL) & ~parser.aborted & (parser.errList.msgCount = 0), 2)
+    ASSERT((budget.error = NIL) & ~parser.aborted & (parser.errList.msgCount = 0), 202)
   ELSE
     found := FALSE; msg := parser.errList.msgList;
     WHILE msg # NIL DO
@@ -53,10 +53,10 @@ BEGIN
       msg := parser.errList.msgList;
       WHILE msg # NIL DO msg.GetText(error); Out.String(error); Out.Ln; msg := msg.nextMsg END
     END;
-    ASSERT(parser.aborted & found, 3);
-    IF kind > 0 THEN ASSERT(budget.error.code = L.codeBase+kind, 4) END
+    ASSERT(parser.aborted & found, 203);
+    IF kind > 0 THEN ASSERT(budget.error.code = L.codeBase+kind, 204) END
   END;
-  ASSERT(budget.depth = 0, 5); ASSERT(capture.ends = 1, 6); input.Close
+  ASSERT(budget.depth = 0, 205); ASSERT(capture.ends = 1, 206); input.Close
 END Check;
 
 PROCEDURE Checks;
@@ -115,20 +115,20 @@ BEGIN
   text := '<r a="&amp;">&lt;</r>';
   FOR form := 0 TO 1 DO
     FOR i := 0 TO 256 DO
-      input := Mem.Tmp("", {Mem.read, Mem.write}, result); ASSERT(result = NIL, 10);
+      input := Mem.Tmp("", {Mem.read, Mem.write}, result); ASSERT(result = NIL, 210);
       writer := input.NewWriter(); writer.WriteBytes(text, 0, S.Length8(text));
-      output := Mem.Tmp("", {Mem.read, Mem.write}, result); ASSERT(result = NIL, 11);
+      output := Mem.Tmp("", {Mem.read, Mem.write}, result); ASSERT(result = NIL, 211);
       budget := L.New(); budget.maxOutputBytes := i;
       IF form = 0 THEN builder := Canon.New(output, Codec.GetFactory("UTF-8"), Canon.firstCanonicalForm)
       ELSE builder := Protocol.New(output, Codec.GetFactory("UTF-8"))
       END;
       parser := P.NewReaderLimited(input.NewReader(), NIL, NIL, NIL, builder, budget);
       parser.followExternalRef := FALSE; parser.ParseDocument;
-      ASSERT(output.Length() <= i, 12); ASSERT(budget.bytesWritten = output.Length(), 13);
-      ASSERT(budget.depth = 0, 14);
+      ASSERT(output.Length() <= i, 212); ASSERT(budget.bytesWritten = output.Length(), 213);
+      ASSERT(budget.depth = 0, 214);
       IF budget.error # NIL THEN
-        ASSERT(parser.aborted, 15); ASSERT(budget.error.code = L.codeBase+L.outputBytes, 16)
-      ELSE ASSERT(~parser.aborted & (parser.errList.msgCount = 0), 17)
+        ASSERT(parser.aborted, 215); ASSERT(budget.error.code = L.codeBase+L.outputBytes, 216)
+      ELSE ASSERT(~parser.aborted & (parser.errList.msgCount = 0), 217)
       END;
       input.Close; output.Close
     END
@@ -147,15 +147,15 @@ BEGIN
     outer.Append(b.NewEntityRef(name, entity));
     budget := L.New(); budget.maxWork := i; outer.SetLimits(budget);
     flattened := outer.Flatten(NIL);
-    IF budget.error = NIL THEN ASSERT(S.Equal8(flattened^, "texttext"), 18) END;
-    ASSERT(budget.depth = 0, 19)
+    IF budget.error = NIL THEN ASSERT(S.Equal8(flattened^, "texttext"), 218) END;
+    ASSERT(budget.depth = 0, 219)
   END;
   value := b.NewAttValue(); entity := b.NewInternalEntity(name, D.entityInternalGeneral, text, FALSE);
   entity.attValue := value;
   value.Append(b.NewEntityRef(name, entity)); budget := L.New(); value.SetLimits(budget);
   flattened := value.Flatten(NIL);
-  ASSERT((budget.error # NIL) & (budget.error.code = L.codeBase+L.nesting), 20);
-  ASSERT((budget.depth = 0) & (flattened[0] = 0), 21)
+  ASSERT((budget.error # NIL) & (budget.error.code = L.codeBase+L.nesting), 220);
+  ASSERT((budget.depth = 0) & (flattened[0] = 0), 221)
 END ValueChecks;
 
 BEGIN

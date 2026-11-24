@@ -36,13 +36,13 @@ PROCEDURE Parse(text: ARRAY OF CHAR; namespaces: BOOLEAN; VAR b: Capture): P.Par
 BEGIN
   NEW(b); B.Init(b); b.starts := 0; b.ends := 0; b.documents := 0;
   b.attributes := 0; b.whitespace := 0;
-  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 1);
+  ch := Mem.Tmp("", {Mem.read, Mem.write}, res); ASSERT(res = NIL, 201);
   writer := ch.NewWriter(); writer.WriteBytes(text, 0, S.Length8(text));
   builder := b; IF namespaces THEN builder := N.New(builder) END;
   p := P.NewChannel(ch, base, NIL, NIL, V.New(builder));
   p.validating := TRUE; p.enforceQNames := namespaces; p.followExternalRef := FALSE;
   p.ParseDocument; ch.Close;
-  ASSERT(b.documents = 1, 2); RETURN p
+  ASSERT(b.documents = 1, 202); RETURN p
 END Parse;
 
 PROCEDURE Check(text: ARRAY OF CHAR; valid: BOOLEAN);
@@ -54,8 +54,8 @@ BEGIN
     msg := p.errList.msgList;
     WHILE msg # NIL DO msg.GetText(error); Out.String(error); Out.Ln; msg := msg.nextMsg END
   END;
-  ASSERT((p.errList.msgCount = 0) = valid, 3);
-  IF valid THEN ASSERT(b.starts = b.ends, 4) END
+  ASSERT((p.errList.msgCount = 0) = valid, 203);
+  IF valid THEN ASSERT(b.starts = b.ends, 204) END
 END Check;
 
 PROCEDURE ContentChecks;
@@ -138,9 +138,9 @@ BEGIN
   FOR i := 0 TO 63 DO Append('<r>') END;
   FOR i := 0 TO 63 DO Append('</r>') END;
   p := Parse(text, FALSE, b);
-  ASSERT((p.errList.msgCount = 0) & (b.starts = 64) & (b.ends = 64), 5);
+  ASSERT((p.errList.msgCount = 0) & (b.starts = 64) & (b.ends = 64), 205);
   p := Parse('<!DOCTYPE p:r [<!ELEMENT p:r (p:s)><!ELEMENT p:s EMPTY><!ATTLIST p:r xmlns:p CDATA #FIXED "urn:p">]><p:r> <p:s/> </p:r>', TRUE, b);
-  ASSERT((p.errList.msgCount = 0) & (b.starts = 2) & (b.whitespace = 2), 6)
+  ASSERT((p.errList.msgCount = 0) & (b.starts = 2) & (b.whitespace = 2), 206)
 END GrowthChecks;
 
 PROCEDURE LongUnicodeChecks;
@@ -165,15 +165,15 @@ BEGIN
   FOR i := 0 TO 19999 DO IF i > 0 THEN Append(' ') END; Armenian END;
   Append('"/>');
   p := Parse(text, FALSE, b);
-  ASSERT((p.errList.msgCount = 0) & (b.attributes = 2), 8);
+  ASSERT((p.errList.msgCount = 0) & (b.attributes = 2), 208);
   pos := 0; Append('<!DOCTYPE r [<!ELEMENT r (#PCDATA|');
   FOR i := 1 TO 80 DO Append('a') END;
   Append('|b)*><!ELEMENT x EMPTY>]><r><x/></r>');
-  p := Parse(text, FALSE, b); ASSERT(p.errList.msgCount > 0, 9)
+  p := Parse(text, FALSE, b); ASSERT(p.errList.msgCount > 0, 209)
 END LongUnicodeChecks;
 
 BEGIN
-  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 7);
+  base := URIParser.NewURI("file:/xml-tests/document.xml", NIL, result); ASSERT(result = NIL, 207);
   ContentChecks; AttributeChecks; NotationChecks; GrowthChecks; LongUnicodeChecks;
   Out.String("XML validation checks passed"); Out.Ln
 END TestValidation.
