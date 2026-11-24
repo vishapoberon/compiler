@@ -18,8 +18,8 @@ default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 [4.0 release history](doc/ReleaseNotes-4.0.md)
 
 Version 5.4.1 adds alternate-stack fatal-fault reporting and conservative
-stack-overflow diagnostics. Native validation covers x86-64 Linux; BSD-specific
-stack-bound discovery is implemented but awaits native validation.
+stack-overflow diagnostics. Native validation covers x86-64 Linux and NetBSD
+9.3 amd64; FreeBSD and OpenBSD validation remains pending.
 
 Version 5.4 adds default-on NIL checks, source locations for NIL and array-bounds
 failures, and editor-readable compiler diagnostics. It also enforces read-only

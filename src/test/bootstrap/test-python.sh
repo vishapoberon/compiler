@@ -27,12 +27,14 @@ cp "$temporary/interpreter" "$temporary/python-only/python"
 cp "$temporary/interpreter" "$temporary/with spaces/custom python"
 
 run() {
-    PATH="$1" PYTHON="$2" "$shell" "$launcher" 'argument with spaces' --flag
+    PATH="$1" PYTHON="$2" PYTHON3_STATUS="${3:-0}" \
+        PYTHON_STATUS="${4:-0}" RUN_STATUS="${5:-0}" \
+        "$shell" "$launcher" 'argument with spaces' --flag
 }
 
 expect_selected() {
     expected=$(printf '%s\n' "$3" 'argument with spaces' --flag)
-    actual=$(run "$1" "$2" 2>"$temporary/selection")
+    actual=$(run "$1" "$2" "${4:-0}" 2>"$temporary/selection")
     test "$actual" = "$expected"
     if [ "$3" = python ] && [ -z "$2" ]; then
         test "$(cat "$temporary/selection")" = 'Using python (verified Python 3; no usable python3 command).'
@@ -43,7 +45,7 @@ expect_selected() {
 
 expect_selected "$temporary/both" '' python3
 expect_selected "$temporary/python-only" '' python
-PYTHON3_STATUS=1 expect_selected "$temporary/both" '' python
+expect_selected "$temporary/both" '' python 1
 expect_selected "$temporary/both" "$temporary/with spaces/custom python" 'custom python'
 
 status=0
@@ -52,16 +54,16 @@ test "$status" -eq 127
 grep -F 'Python 3 is required' "$temporary/error" >/dev/null
 
 status=0
-PYTHON3_STATUS=1 PYTHON_STATUS=1 run "$temporary/both" '' >"$temporary/error" 2>&1 || status=$?
+run "$temporary/both" '' 1 1 >"$temporary/error" 2>&1 || status=$?
 test "$status" -eq 127
 
 status=0
-PYTHON_STATUS=1 run "$temporary/both" "$temporary/both/python" >"$temporary/error" 2>&1 || status=$?
+run "$temporary/both" "$temporary/both/python" 0 1 >"$temporary/error" 2>&1 || status=$?
 test "$status" -eq 2
 grep -F 'PYTHON must name a Python 3 interpreter' "$temporary/error" >/dev/null
 
 status=0
-RUN_STATUS=7 run "$temporary/both" '' >"$temporary/output" 2>&1 || status=$?
+run "$temporary/both" '' 0 0 7 >"$temporary/output" 2>&1 || status=$?
 test "$status" -eq 7
 
 echo 'Python interpreter selection tests passed.'

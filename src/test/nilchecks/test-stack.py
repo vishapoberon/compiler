@@ -61,6 +61,9 @@ def main():
         result = run([probe], limited=True)
         assert result.returncode in (0, 77, 78), (cc, result)
         classified = result.returncode == 0
+        status = {0: "main-stack classification enabled", 77: "no cached stack bounds",
+                  78: "unsupported saved-stack-pointer layout"}[result.returncode]
+        print(cc + ": " + status, flush=True)
         if (sys.platform.startswith("linux") and result.returncode != 78
                 and os.access("/proc/self/maps", os.R_OK)):
             assert classified, (cc, "Linux main-stack discovery failed", result)
@@ -82,12 +85,8 @@ def main():
             assert result.returncode == 0, (cc, case, result)
             assert result.stdout == "alternate signal stack used\n" and not result.stderr, result
 
-        failed = work / ("SYSTEM-failed-" + cc + ".o")
-        result = run([*common, "-Dsigaltstack=TestSigaltstack", "-I" + str(runtime),
-                      "-c", runtime / "SYSTEM.c", "-o", failed])
-        assert result.returncode == 0, result.stdout + result.stderr
         executable = work / ("AltStackFailure-" + cc)
-        result = run([*common, source / "AltStackFailure.c", failed, *libraries, "-o", executable])
+        result = run([*common, source / "AltStackFailure.c", *libraries, "-o", executable])
         assert result.returncode == 0, result.stdout + result.stderr
         for case in ("query", "install"):
             result = run([executable, case])

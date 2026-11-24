@@ -37,6 +37,8 @@ the saved bootstrap C sources. The non-network shared-module profile passes
 with embedded and dynamically linked cores.
 
 Stack-fault, fallback, NIL-check and diagnostic regressions pass on x86-64 Linux
-with GCC, Clang and TCC in both type models. BSD VM-map query branches pass
-synthetic-interface checks; native BSD execution, other architectures and
-Windows validation remain pending.
+with GCC, Clang and TCC in both type models. With post-release test-harness
+portability fixes, the full confidence suite also passes on NetBSD 9.3 amd64
+with GCC, including enabled main-stack classification in both type models.
+BSD VM-map query branches pass synthetic-interface checks; native FreeBSD,
+OpenBSD, other architectures and Windows validation remain pending.
