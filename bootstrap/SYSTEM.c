@@ -54,6 +54,7 @@ BOOLEAN SYSTEM_ModuleActive(void *owner)
 #include <errno.h>
 #include <setjmp.h>
 #include <stddef.h>
+#include <unistd.h>
 
 static sigjmp_buf command_context;
 static volatile sig_atomic_t command_running;
@@ -275,29 +276,40 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
 
 #ifndef _WIN32
     // Unix signal handling
-    SystemSignalHandler handler[10] = {0};  // Adjust the array size to include signal 11
+    SystemSignalHandler handler[10] = {0};
+
+    /* Module callback enumeration reserves slot 9 for SIGSEGV. */
+    static int signalIndex(int s) {
+        if (s == SIGSEGV) return 9;
+        return s >= 2 && s <= 4 ? s - 2 : -1;
+    }
 
     ADDRESS SYSTEM_ModuleCallback(INT32 index) {
         return index >= 0 && index < 10 ? (ADDRESS)handler[index] : 0;
     }
 
-    void segfaultHandler(int signal) {
-      __HALT(-10);
-    }
-    // Revised signal handler to accommodate additional signals like SIGSEGV
-    void signalHandler(int s) {
-        if ((s >= 2 && s <= 4) || s == 11) {  // Include SIGSEGV (usually signal 11)
-            if (handler[s-2]) {
-                handler[s-2](s);
-            }
+    static void segfaultHandler(int signal) {
+        static const char message[] = "Fatal error: invalid memory access (SIGSEGV).\n";
+        size_t offset = 0;
+        (void)signal;
+        while (offset < sizeof(message) - 1) {
+            ssize_t count = write(STDERR_FILENO, message + offset, sizeof(message) - 1 - offset);
+            if (count > 0) offset += (size_t)count;
+            else if (count < 0 && errno == EINTR) continue;
+            else break;
         }
-        // Ignore other signals
+        _exit(128 + SIGSEGV);
+    }
+    void signalHandler(int s) {
+        int index = signalIndex(s);
+        if (index >= 0 && handler[index]) handler[index](s);
     }
 
     void SystemSetHandler(int s, ADDRESS h) {
-        if ((s >= 2 && s <= 4) || s == 11) {
-            int needtosetsystemhandler = handler[s-2] == 0;
-            handler[s-2] = (SystemSignalHandler)h;
+        int index = signalIndex(s);
+        if (index >= 0) {
+            int needtosetsystemhandler = handler[index] == 0;
+            handler[index] = (SystemSignalHandler)h;
             if (needtosetsystemhandler) {
                 struct sigaction action = {0};
                 action.sa_handler = signalHandler;
@@ -309,11 +321,10 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     }
 
     void setupAutomaticSegfaultHandler(void) {
-        SystemSetHandler(11, (ADDRESS)segfaultHandler);  // Register handler for SIGSEGV
+        SystemSetHandler(SIGSEGV, (ADDRESS)segfaultHandler);
     }
 
 #else
-    // Windows system remains as is since Windows does not use SIGSEGV in the same way
     #include "WindowsWrapper.h"
 
     SystemSignalHandler SystemInterruptHandler = 0;

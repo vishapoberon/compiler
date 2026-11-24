@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -22,6 +22,7 @@ export INT16 OPS_numtyp;
 export INT64 OPS_intval;
 export REAL OPS_realval;
 export LONGREAL OPS_lrlval;
+export INT32 OPS_pos;
 static CHAR OPS_ch;
 
 
@@ -57,11 +58,11 @@ static void OPS_Str (INT8 *sym)
 			OPS_err(241);
 			break;
 		}
-		OPS_str[__X(i, 1024)] = OPS_ch;
+		OPS_str[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 75, 11, 3105)] = OPS_ch;
 		i += 1;
 	}
 	OPM_Get(&OPS_ch);
-	OPS_str[__X(i, 1024)] = 0x00;
+	OPS_str[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 77, 22, 3153)] = 0x00;
 	OPS_intval = i + 1;
 	if (OPS_intval == 2) {
 		*sym = 35;
@@ -77,7 +78,7 @@ static void OPS_Identifier (INT8 *sym)
 	INT16 i;
 	i = 0;
 	do {
-		OPS_name[__X(i, 256)] = OPS_ch;
+		OPS_name[__X_AT(i, 256, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 88, 12, 3403)] = OPS_ch;
 		i += 1;
 		OPM_Get(&OPS_ch);
 	} while (!(((OPS_ch < '0' || ('9' < OPS_ch && __CAP(OPS_ch) < 'A')) || 'Z' < __CAP(OPS_ch)) || i == 256));
@@ -85,7 +86,7 @@ static void OPS_Identifier (INT8 *sym)
 		OPS_err(240);
 		i -= 1;
 	}
-	OPS_name[__X(i, 256)] = 0x00;
+	OPS_name[__X_AT(i, 256, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 91, 10, 3581)] = 0x00;
 	*sym = 38;
 }
 
@@ -129,7 +130,7 @@ static void OPS_Number (void)
 		if (('0' <= OPS_ch && OPS_ch <= '9') || (((d == 0 && 'A' <= OPS_ch)) && OPS_ch <= 'F')) {
 			if (m > 0 || OPS_ch != '0') {
 				if (n < 1100) {
-					dig[__X(n, 1100)] = OPS_ch;
+					dig[__X_AT(n, 1100, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 114, 36, 4489)] = OPS_ch;
 					n += 1;
 				} else {
 					sticky = sticky || OPS_ch != '0';
@@ -161,7 +162,7 @@ static void OPS_Number (void)
 				OPS_numtyp = 1;
 				if (n <= 2) {
 					while (i < (INT64)n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X(i, 1100)], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X_AT(i, 1100, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 131, 59, 5083)], 1);
 						i += 1;
 					}
 				} else {
@@ -175,7 +176,7 @@ static void OPS_Number (void)
 						OPS_intval = -1;
 					}
 					while (i < (INT64)n) {
-						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X(i, 1100)], 1);
+						OPS_intval = __ASHL(OPS_intval, 4) + (INT64)Ord__7(dig[__X_AT(i, 1100, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 137, 59, 5412)], 1);
 						i += 1;
 					}
 				} else {
@@ -184,7 +185,7 @@ static void OPS_Number (void)
 			} else {
 				OPS_numtyp = 2;
 				while (i < (INT64)n) {
-					d = Ord__7(dig[__X(i, 1100)], 0);
+					d = Ord__7(dig[__X_AT(i, 1100, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 141, 39, 5556)], 0);
 					i += 1;
 					if (OPS_intval <= __DIV(9223372036854775807LL - d, 10)) {
 						OPS_intval = OPS_intval * 10 + d;
@@ -204,12 +205,12 @@ static void OPS_Number (void)
 		k = 2;
 		j = 0;
 		while (j < n) {
-			num[__X(k, 1132)] = __CHRF(Ord__7(dig[__X(j, 1100)], 0) + 48);
+			num[__X_AT(k, 1132, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 152, 26, 5888)] = __CHRF(Ord__7(dig[__X_AT(j, 1100, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 152, 44, 5906)], 0) + 48);
 			k += 1;
 			j += 1;
 		}
 		if (sticky) {
-			num[__X(k, 1132)] = '1';
+			num[__X_AT(k, 1132, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 153, 26, 5973)] = '1';
 			k += 1;
 		}
 		if (OPS_ch == 'E' || OPS_ch == 'D') {
@@ -252,25 +253,25 @@ static void OPS_Number (void)
 		} else if (e < -1000000) {
 			e = -1000000;
 		}
-		num[__X(k, 1132)] = 'e';
+		num[__X_AT(k, 1132, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 173, 11, 6853)] = 'e';
 		k += 1;
 		if (e < 0) {
-			num[__X(k, 1132)] = '-';
+			num[__X_AT(k, 1132, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 173, 48, 6890)] = '-';
 			k += 1;
 		}
 		power = __ABS(e);
 		n = 0;
 		do {
-			exp[__X(n, 24)] = __CHR(48 + __MOD(power, 10));
+			exp[__X_AT(n, 24, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 175, 18, 6961)] = __CHR(48 + __MOD(power, 10));
 			power = __DIV(power, 10);
 			n += 1;
 		} while (!(power == 0));
 		while (n > 0) {
 			n -= 1;
-			num[__X(k, 1132)] = exp[__X(n, 24)];
+			num[__X_AT(k, 1132, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 176, 34, 7077)] = exp[__X_AT(n, 24, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 176, 44, 7087)];
 			k += 1;
 		}
-		num[__X(k, 1132)] = 0x00;
+		num[__X_AT(k, 1132, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 177, 11, 7113)] = 0x00;
 		if (expCh == 'E') {
 			OPS_numtyp = 3;
 			if ((e > -400 && e < 400)) {
@@ -310,7 +311,7 @@ static void Comment__2 (void)
 	CHAR prevCh;
 	i = 0;
 	while (i <= 1023) {
-		commentText[__X(i, 1024)] = 0x00;
+		commentText[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 202, 21, 8032)] = 0x00;
 		i += 1;
 	}
 	isExported = 0;
@@ -345,8 +346,8 @@ static void Comment__2 (void)
 			if ((isExported && nestLevel == 1)) {
 				if (i < 1023) {
 					if (OPS_ch == 0x0d || OPS_ch == 0x0a) {
-						if (i == 0 || commentText[__X(i - 1, 1024)] != 0x0a) {
-							commentText[__X(i, 1024)] = 0x0a;
+						if (i == 0 || commentText[__X_AT(i - 1, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 243, 44, 9300)] != 0x0a) {
+							commentText[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 244, 31, 9347)] = 0x0a;
 							i += 1;
 						}
 						if (OPS_ch == 0x0d) {
@@ -361,7 +362,7 @@ static void Comment__2 (void)
 							OPM_Get(&OPS_ch);
 						}
 					} else if (OPS_ch >= ' ') {
-						commentText[__X(i, 1024)] = OPS_ch;
+						commentText[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 256, 29, 9788)] = OPS_ch;
 						i += 1;
 						prevCh = OPS_ch;
 						OPM_Get(&OPS_ch);
@@ -388,7 +389,7 @@ static void Comment__2 (void)
 			OPM_LogWLn();
 			i = 1023;
 		}
-		commentText[__X(i, 1024)] = 0x00;
+		commentText[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPS.Mod", 27, (CHAR*)"OPS", 4, 280, 21, 10393)] = 0x00;
 		OPM_StoreComment(commentText, 1024);
 	}
 }
@@ -402,6 +403,8 @@ void OPS_Get (INT8 *sym)
 	OPM_errpos = OPM_curpos - 1;
 	while (OPS_ch <= ' ') {
 		if (OPS_ch == 0x00) {
+			OPS_pos = OPM_curpos;
+			OPM_errpos = OPS_pos;
 			*sym = 64;
 			Get__1_s = _s.lnk;
 			return;
@@ -409,6 +412,8 @@ void OPS_Get (INT8 *sym)
 			OPM_Get(&OPS_ch);
 		}
 	}
+	OPS_pos = OPM_curpos;
+	OPM_errpos = OPS_pos;
 	switch (OPS_ch) {
 		case '"': case '\'': 
 			OPS_Str(&s);
@@ -697,6 +702,7 @@ void OPS_Get (INT8 *sym)
 void OPS_Init (void)
 {
 	OPS_ch = ' ';
+	OPS_pos = 0;
 }
 
 

@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -19,6 +19,6 @@ export void *Configuration__init(void)
 	__DEFMOD;
 	__REGMOD("Configuration", 0);
 /* BEGIN */
-	__MOVE("5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8.", Configuration_versionLong, 76);
+	__MOVE("5.4.0 [2026/11/24]. Bootstrapping compiler for address size 4, alignment 8.", Configuration_versionLong, 76);
 	__ENDMOD;
 }

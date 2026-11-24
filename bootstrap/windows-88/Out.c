@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -54,7 +54,7 @@ void Out_Char (CHAR ch)
 	if (Out_in >= 128) {
 		Out_Flush();
 	}
-	Out_buf[__X(Out_in, 128)] = ch;
+	Out_buf[__X_AT(Out_in, 128, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 33, 7, 859)] = ch;
 	Out_in += 1;
 	if (ch == 0x0a) {
 		Out_Flush();
@@ -66,7 +66,7 @@ static INT32 Out_Length (CHAR *s, ADDRESS s__len)
 {
 	INT32 l;
 	l = 0;
-	while ((l < s__len && s[__X(l, s__len)] != 0x00)) {
+	while ((l < s__len && s[__X_AT(l, s__len, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 40, 39, 1057)] != 0x00)) {
 		l += 1;
 	}
 	return l;
@@ -85,7 +85,7 @@ void Out_String (CHAR *str, ADDRESS str__len)
 	if (l > 128) {
 		error = Platform_Write(Platform_StdOut, (ADDRESS)str, l);
 	} else {
-		__MOVE((ADDRESS)str, (ADDRESS)&Out_buf[__X(Out_in, 128)], l);
+		__MOVE((ADDRESS)str, (ADDRESS)&Out_buf[__X_AT(Out_in, 128, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 53, 49, 1577)], l);
 		Out_in += __SHORT(l, 32768);
 	}
 	Platform_CommandCritical(0);
@@ -109,13 +109,13 @@ void Out_Int (INT64 x, INT64 n)
 		x = __DIV(x, 10);
 		i = 1;
 		while (x != 0) {
-			s[__X(i, 22)] = __CHR(48 + __MOD(x, 10));
+			s[__X_AT(i, 22, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 73, 9, 2244)] = __CHR(48 + __MOD(x, 10));
 			x = __DIV(x, 10);
 			i += 1;
 		}
 	}
 	if (negative) {
-		s[__X(i, 22)] = '-';
+		s[__X_AT(i, 22, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 78, 22, 2344)] = '-';
 		i += 1;
 	}
 	while (n > (INT64)i) {
@@ -124,7 +124,7 @@ void Out_Int (INT64 x, INT64 n)
 	}
 	while (i > 0) {
 		i -= 1;
-		Out_Char(s[__X(i, 22)]);
+		Out_Char(s[__X_AT(i, 22, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 80, 33, 2439)]);
 	}
 }
 
@@ -172,7 +172,7 @@ void Out_Ln (void)
 static void Out_digit (INT64 n, CHAR *s, ADDRESS s__len, INT16 *i)
 {
 	*i -= 1;
-	s[__X(*i, s__len)] = __CHR(__MOD(n, 10) + 48);
+	s[__X_AT(*i, s__len, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 118, 13, 3573)] = __CHR(__MOD(n, 10) + 48);
 }
 
 static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16 *i)
@@ -187,7 +187,7 @@ static void Out_prepend (CHAR *t, ADDRESS t__len, CHAR *s, ADDRESS s__len, INT16
 	*i -= __SHORT(l, 32768);
 	j = 0;
 	while (j < l) {
-		s[__X(*i + j, s__len)] = t[__X(j, t__len)];
+		s[__X_AT(*i + j, s__len, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 126, 20, 3813)] = t[__X_AT(j, t__len, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 126, 30, 3823)];
 		j += 1;
 	}
 	__DEL(t);
@@ -256,11 +256,11 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 		if (e == 0) {
 			while (el > 0) {
 				i -= 1;
-				s[__X(i, 30)] = '0';
+				s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 192, 33, 6421)] = '0';
 				el -= 1;
 			}
 			i -= 1;
-			s[__X(i, 30)] = '+';
+			s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 193, 17, 6461)] = '+';
 			m = 0;
 		} else {
 			if (nn) {
@@ -295,16 +295,16 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 			}
 			i -= 1;
 			if (en) {
-				s[__X(i, 30)] = '-';
+				s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 217, 28, 7512)] = '-';
 			} else {
-				s[__X(i, 30)] = '+';
+				s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 217, 45, 7529)] = '+';
 			}
 		}
 		i -= 1;
 		if (long_) {
-			s[__X(i, 30)] = 'D';
+			s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 220, 28, 7580)] = 'D';
 		} else {
-			s[__X(i, 30)] = 'E';
+			s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 220, 45, 7597)] = 'E';
 		}
 		if (dr < 2) {
 			dr = 2;
@@ -319,7 +319,7 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 			d -= 1;
 		}
 		i -= 1;
-		s[__X(i, 30)] = '.';
+		s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 228, 15, 7895)] = '.';
 		Out_digit(m, (void*)s, 30, &i);
 	}
 	n -= 30 - i;
@@ -331,7 +331,7 @@ static void Out_RealP (LONGREAL x, INT16 n, BOOLEAN long_)
 		Out_Char('-');
 	}
 	while (i < 30) {
-		Out_Char(s[__X(i, 30)]);
+		Out_Char(s[__X_AT(i, 30, (CHAR*)"../../src/library/Out.Mod", 26, (CHAR*)"Out", 4, 237, 30, 8141)]);
 		i += 1;
 	}
 }

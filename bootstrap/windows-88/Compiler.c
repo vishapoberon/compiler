@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspamS */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspamSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -107,20 +107,20 @@ void Compiler_Module (BOOLEAN *done)
 static void Compiler_PropagateElementaryTypeSizes (void)
 {
 	OPT_Struct adrinttyp = NIL;
-	OPT_sysptrtyp->size = OPM_AddressSize;
-	OPT_sysptrtyp->idfp = OPT_sysptrtyp->form;
-	OPM_FPrint(&OPT_sysptrtyp->idfp, OPT_sysptrtyp->size);
-	OPT_adrtyp->size = OPM_AddressSize;
-	OPT_adrtyp->idfp = OPT_adrtyp->form;
-	OPM_FPrint(&OPT_adrtyp->idfp, OPT_adrtyp->size);
+	((OPT_Struct)__NIL_AT((ADDRESS)(OPT_sysptrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 77, 18, 2772))->size = OPM_AddressSize;
+	((OPT_Struct)__NIL_AT((ADDRESS)(OPT_sysptrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 78, 18, 2815))->idfp = ((OPT_Struct)__NIL_AT((ADDRESS)(OPT_sysptrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 78, 40, 2837))->form;
+	OPM_FPrint(&((OPT_Struct)__NIL_AT((ADDRESS)(OPT_sysptrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 79, 29, 2872))->idfp, ((OPT_Struct)__NIL_AT((ADDRESS)(OPT_sysptrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 79, 49, 2892))->size);
+	((OPT_Struct)__NIL_AT((ADDRESS)(OPT_adrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 81, 15, 2915))->size = OPM_AddressSize;
+	((OPT_Struct)__NIL_AT((ADDRESS)(OPT_adrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 82, 15, 2955))->idfp = ((OPT_Struct)__NIL_AT((ADDRESS)(OPT_adrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 82, 34, 2974))->form;
+	OPM_FPrint(&((OPT_Struct)__NIL_AT((ADDRESS)(OPT_adrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 83, 26, 3006))->idfp, ((OPT_Struct)__NIL_AT((ADDRESS)(OPT_adrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 83, 43, 3023))->size);
 	adrinttyp = OPT_IntType(OPM_AddressSize);
-	OPT_adrtyp->strobj = adrinttyp->strobj;
+	((OPT_Struct)__NIL_AT((ADDRESS)(OPT_adrtyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 86, 15, 3093))->strobj = ((OPT_Struct)__NIL_AT((ADDRESS)(adrinttyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 86, 35, 3113))->strobj;
 	OPT_sinttyp = OPT_IntType(OPM_ShortintSize);
 	OPT_inttyp = OPT_IntType(OPM_IntegerSize);
 	OPT_linttyp = OPT_IntType(OPM_LongintSize);
-	OPT_sintobj->typ = OPT_sinttyp;
-	OPT_intobj->typ = OPT_inttyp;
-	OPT_lintobj->typ = OPT_linttyp;
+	((OPT_Object)__NIL_AT((ADDRESS)(OPT_sintobj), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 92, 16, 3287))->typ = OPT_sinttyp;
+	((OPT_Object)__NIL_AT((ADDRESS)(OPT_intobj), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 93, 15, 3324))->typ = OPT_inttyp;
+	((OPT_Object)__NIL_AT((ADDRESS)(OPT_lintobj), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 94, 16, 3362))->typ = OPT_linttyp;
 	switch (OPM_SetSize) {
 		case 4: 
 			OPT_settyp = OPT_set32typ;
@@ -129,11 +129,11 @@ static void Compiler_PropagateElementaryTypeSizes (void)
 			OPT_settyp = OPT_set64typ;
 			break;
 	}
-	OPT_setobj->typ = OPT_settyp;
+	((OPT_Object)__NIL_AT((ADDRESS)(OPT_setobj), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 100, 15, 3505))->typ = OPT_settyp;
 	if (__STRCMP(OPM_Model, "C") == 0) {
-		OPT_cpbytetyp->strobj->name[4] = 0x00;
+		((OPT_Object)__NIL_AT((ADDRESS)(((OPT_Struct)__NIL_AT((ADDRESS)(OPT_cpbytetyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 104, 20, 3624))->strobj), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 104, 27, 3631))->name[4] = 0x00;
 	} else {
-		OPT_cpbytetyp->strobj->name[4] = '@';
+		((OPT_Object)__NIL_AT((ADDRESS)(((OPT_Struct)__NIL_AT((ADDRESS)(OPT_cpbytetyp), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 106, 20, 3726))->strobj), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 106, 27, 3733))->name[4] = '@';
 	}
 }
 
@@ -145,10 +145,10 @@ static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectname
 	objectnames[0] = 0x00;
 	l = OPT_Links;
 	while (l != NIL) {
-		__COPY(l->name, fn, 64);
+		__COPY(((OPT_Link)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 121, 13, 4224))->name, fn, 64);
 		Strings_Append((CHAR*)".sym", 5, (void*)fn, 64);
 		if (Platform_IdentifyByName(fn, 64, &id, Platform_FileIdentity__typ) == 0) {
-			__COPY(l->name, fn, 64);
+			__COPY(((OPT_Link)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 123, 15, 4328))->name, fn, 64);
 			Strings_Append((CHAR*)".o", 3, (void*)fn, 64);
 			if (Platform_IdentifyByName(fn, 64, &id, Platform_FileIdentity__typ) == 0) {
 				Strings_Append((CHAR*)" ", 2, (void*)objectnames, objectnames__len);
@@ -156,7 +156,7 @@ static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectname
 			} else {
 				OPM_LogVT100((CHAR*)"91m", 4);
 				OPM_LogWStr((CHAR*)"Link warning: a local symbol file is present for module ", 57);
-				OPM_LogWStr(l->name, 256);
+				OPM_LogWStr(((OPT_Link)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 130, 97, 4724))->name, 256);
 				OPM_LogWStr((CHAR*)", but local object file '", 26);
 				OPM_LogWStr(fn, 64);
 				OPM_LogWStr((CHAR*)"' is missing.", 14);
@@ -164,7 +164,7 @@ static void Compiler_FindLocalObjectFiles (CHAR *objectnames, ADDRESS objectname
 				OPM_LogWLn();
 			}
 		}
-		l = l->next;
+		l = ((OPT_Link)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/compiler/Compiler.Mod", 32, (CHAR*)"Compiler", 9, 138, 13, 5045))->next;
 	}
 }
 

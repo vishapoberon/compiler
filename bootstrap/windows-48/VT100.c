@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -48,9 +48,9 @@ static void VT100_Reverse0 (CHAR *str, ADDRESS str__len, INT16 start, INT16 end)
 {
 	CHAR h;
 	while (start < end) {
-		h = str[__X(start, str__len)];
-		str[__X(start, str__len)] = str[__X(end, str__len)];
-		str[__X(end, str__len)] = h;
+		h = str[__X_AT(start, str__len, (CHAR*)"../../src/runtime/VT100.Mod", 28, (CHAR*)"VT100", 6, 82, 17, 2217)];
+		str[__X_AT(start, str__len, (CHAR*)"../../src/runtime/VT100.Mod", 28, (CHAR*)"VT100", 6, 82, 29, 2229)] = str[__X_AT(end, str__len, (CHAR*)"../../src/runtime/VT100.Mod", 28, (CHAR*)"VT100", 6, 82, 43, 2243)];
+		str[__X_AT(end, str__len, (CHAR*)"../../src/runtime/VT100.Mod", 28, (CHAR*)"VT100", 6, 82, 53, 2253)] = h;
 		start += 1;
 		end -= 1;
 	}
@@ -75,11 +75,11 @@ void VT100_IntToStr (INT32 int_, CHAR *str, ADDRESS str__len)
 		}
 		e = s;
 		do {
-			b[__X(e, 21)] = __CHR((int)__MOD(int_, 10) + 48);
+			b[__X_AT(e, 21, (CHAR*)"../../src/runtime/VT100.Mod", 28, (CHAR*)"VT100", 6, 114, 12, 3281)] = __CHR((int)__MOD(int_, 10) + 48);
 			int_ = __DIV(int_, 10);
 			e += 1;
 		} while (!(int_ == 0));
-		b[__X(e, 21)] = 0x00;
+		b[__X_AT(e, 21, (CHAR*)"../../src/runtime/VT100.Mod", 28, (CHAR*)"VT100", 6, 118, 10, 3388)] = 0x00;
 		VT100_Reverse0((void*)b, 21, s, e - 1);
 	}
 	__COPY(b, str, str__len);

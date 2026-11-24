@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -187,7 +187,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 
 INT32 Platform_RunCommand (Platform_Command command)
 {
-	(*command)();
+	((Platform_Command)__NIL_AT((ADDRESS)(command), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 53, 7, 1570))();
 	return 0;
 }
 
@@ -375,7 +375,7 @@ INT16 Platform_OpenDirectory (CHAR *path, ADDRESS path__len, INT64 *handle)
 		return __SHORTF(PlatformNative_DirectoryError(), 32768);
 	}
 	n = 0;
-	while ((n < path__len && path[__X(n, path__len)] != 0x00)) {
+	while ((n < path__len && path[__X_AT(n, path__len, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 275, 41, 9210)] != 0x00)) {
 		n += 1;
 	}
 	if (n == path__len || n + 3 > 4096) {
@@ -383,29 +383,29 @@ INT16 Platform_OpenDirectory (CHAR *path, ADDRESS path__len, INT64 *handle)
 		return __SHORTF(PlatformNative_NameTooLong(), 32768);
 	}
 	__COPY(path, pattern, 4096);
-	if ((((n > 0 && pattern[__X(n - 1, 4096)] != '/')) && pattern[__X(n - 1, 4096)] != '\\')) {
-		pattern[__X(n, 4096)] = '/';
+	if ((((n > 0 && pattern[__X_AT(n - 1, 4096, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 278, 25, 9381)] != '/')) && pattern[__X_AT(n - 1, 4096, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 278, 50, 9406)] != '\\')) {
+		pattern[__X_AT(n, 4096, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 278, 77, 9433)] = '/';
 		n += 1;
 	}
-	pattern[__X(n, 4096)] = '*';
-	pattern[__X(n + 1, 4096)] = 0x00;
+	pattern[__X_AT(n, 4096, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 279, 11, 9466)] = '*';
+	pattern[__X_AT(n + 1, 4096, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 279, 30, 9485)] = 0x00;
 	dir = (Platform_Directory)(ADDRESS)Platform_OSAllocate(24);
 	if (dir == NIL) {
 		__DEL(path);
 		return __SHORTF(PlatformNative_NoMemory(), 32768);
 	}
-	dir->entry = Platform_OSAllocate(PlatformNative_EntrySize());
-	if (dir->entry == 0) {
+	((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 282, 6, 9634))->entry = Platform_OSAllocate(PlatformNative_EntrySize());
+	if (((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 283, 9, 9692))->entry == 0) {
 		Platform_OSFree((INT64)(ADDRESS)dir);
 		__DEL(path);
 		return __SHORTF(PlatformNative_NoMemory(), 32768);
 	}
-	dir->search = PlatformNative_First(pattern, 4096, dir->entry);
-	dir->first = dir->search != PlatformNative_Invalid();
-	if (!dir->first) {
+	((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 284, 6, 9799))->search = PlatformNative_First(pattern, 4096, ((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 284, 50, 9843))->entry);
+	((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 285, 6, 9857))->first = ((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 285, 19, 9870))->search != PlatformNative_Invalid();
+	if (!((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 286, 10, 9915))->first) {
 		error = PlatformNative_Error();
 		if (!PlatformNative_NoFiles(error)) {
-			Platform_OSFree(dir->entry);
+			Platform_OSFree(((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 289, 17, 10023))->entry);
 			Platform_OSFree((INT64)(ADDRESS)dir);
 			__DEL(path);
 			return __SHORT(error, 32768);
@@ -427,11 +427,11 @@ INT16 Platform_ReadDirectory (INT64 handle, CHAR *name, ADDRESS name__len, BOOLE
 	if (name__len > 0) {
 		name[0] = 0x00;
 	}
-	if (dir->search == PlatformNative_Invalid()) {
+	if (((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 301, 9, 10503))->search == PlatformNative_Invalid()) {
 		*done = 1;
 		return 0;
 	}
-	if ((!dir->first && !PlatformNative_Next(dir->search, dir->entry))) {
+	if ((!((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 302, 10, 10580))->first && !PlatformNative_Next(((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 302, 43, 10613))->search, ((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 302, 55, 10625))->entry))) {
 		*done = 1;
 		error = PlatformNative_Error();
 		if (PlatformNative_NoMoreFiles(error)) {
@@ -440,8 +440,8 @@ INT16 Platform_ReadDirectory (INT64 handle, CHAR *name, ADDRESS name__len, BOOLE
 			return __SHORT(error, 32768);
 		}
 	}
-	dir->first = 0;
-	address = PlatformNative_EntryName(dir->entry);
+	((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 306, 6, 10785))->first = 0;
+	address = PlatformNative_EntryName(((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 306, 62, 10841))->entry);
 	i = 0;
 	for (;;) {
 		__GET(address + i, ch, CHAR);
@@ -449,12 +449,12 @@ INT16 Platform_ReadDirectory (INT64 handle, CHAR *name, ADDRESS name__len, BOOLE
 			return __SHORTF(PlatformNative_NameTooLong(), 32768);
 		}
 		if (i == (INT64)(name__len - 1)) {
-			name[__X(i, name__len)] = 0x00;
+			name[__X_AT(i, name__len, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 311, 12, 11014)] = 0x00;
 			if (ch != 0x00) {
 				return __SHORTF(PlatformNative_NameTooLong(), 32768);
 			}
 		} else {
-			name[__X(i, name__len)] = ch;
+			name[__X_AT(i, name__len, (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 313, 15, 11107)] = ch;
 		}
 		if (ch == 0x00) {
 			return 0;
@@ -474,10 +474,10 @@ INT16 Platform_CloseDirectory (INT64 *handle)
 	dir = (Platform_Directory)(ADDRESS)*handle;
 	*handle = 0;
 	error = 0;
-	if ((dir->search != PlatformNative_Invalid() && !PlatformNative_Close(dir->search))) {
+	if ((((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 325, 10, 11419))->search != PlatformNative_Invalid() && !PlatformNative_Close(((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 325, 73, 11482))->search))) {
 		error = PlatformNative_Error();
 	}
-	Platform_OSFree(dir->entry);
+	Platform_OSFree(((Platform_Directory)__NIL_AT((ADDRESS)(dir), (CHAR*)"../../src/runtime/Platformwindows.Mod", 38, (CHAR*)"Platform", 9, 326, 13, 11545))->entry);
 	Platform_OSFree((INT64)(ADDRESS)dir);
 	return __SHORT(error, 32768);
 }

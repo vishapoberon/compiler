@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -22,10 +22,18 @@ typedef
 typedef
 	CHAR OPM_FileName[128];
 
+typedef
+	struct {
+		ADDRESS len[1];
+		INT32 data[1];
+	} *OPM_LineStarts;
+
 
 static CHAR OPM_currentComment[1024];
 static BOOLEAN OPM_hasComment;
-static CHAR OPM_SourceFileName[256];
+export CHAR OPM_SourceFileName[256];
+static OPM_LineStarts OPM_sourceLines;
+static INT32 OPM_sourceLineCount;
 static CHAR OPM_GlobalModel[10];
 export CHAR OPM_Model[10];
 static INT16 OPM_GlobalAddressSize;
@@ -41,7 +49,7 @@ export INT32 OPM_curpos, OPM_errpos, OPM_breakpc;
 export INT16 OPM_currFile, OPM_level, OPM_pc, OPM_entno;
 export CHAR OPM_modName[64];
 export CHAR OPM_objname[64];
-static INT32 OPM_ErrorLineStartPos, OPM_ErrorLineLimitPos, OPM_ErrorLineNumber, OPM_lasterrpos;
+static INT32 OPM_lasterrpos;
 static Texts_Reader OPM_inR;
 static Texts_Text OPM_Log, OPM_Errors;
 static Files_Rider OPM_oldSF, OPM_newSF;
@@ -69,7 +77,6 @@ export void OPM_FPrintReal (INT32 *fp, REAL val);
 export void OPM_FPrintSet (INT32 *fp, UINT64 val);
 static void OPM_FindInstallDir (void);
 static void OPM_FindLibraryDir (BOOLEAN local);
-static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos);
 static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__len);
 export void OPM_Get (CHAR *ch);
 static void OPM_GetArgument (INT16 n, CHAR *value, ADDRESS value__len);
@@ -96,9 +103,10 @@ export void OPM_RegisterNewSym (void);
 static void OPM_ScanOptions (CHAR *s, ADDRESS s__len);
 export void OPM_SetArguments (INT16 count, OPM_ArgumentReader reader);
 static void OPM_SetMaxReals (void);
-static void OPM_ShowLine (INT64 pos);
+static void OPM_ShowLine (INT32 pos);
 export INT64 OPM_SignedMaximum (INT32 bytecount);
 export INT64 OPM_SignedMinimum (INT32 bytecount);
+export void OPM_SourceLocation (INT32 pos, INT32 *line, INT32 *column);
 export void OPM_StoreComment (CHAR *text, ADDRESS text__len);
 export void OPM_SymRCh (CHAR *ch);
 export INT32 OPM_SymRInt (void);
@@ -181,11 +189,11 @@ void OPM_StoreComment (CHAR *text, ADDRESS text__len)
 	INT16 i;
 	__DUP(text, text__len, CHAR);
 	i = 0;
-	while ((i < 1023 && text[__X(i, text__len)] != 0x00)) {
-		OPM_currentComment[__X(i, 1024)] = text[__X(i, text__len)];
+	while ((i < 1023 && text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 177, 43, 6057)] != 0x00)) {
+		OPM_currentComment[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 178, 22, 6090)] = text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 178, 33, 6101)];
 		i += 1;
 	}
-	OPM_currentComment[__X(i, 1024)] = 0x00;
+	OPM_currentComment[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 180, 20, 6140)] = 0x00;
 	OPM_hasComment = 1;
 	__DEL(text);
 }
@@ -195,11 +203,11 @@ void OPM_GetComment (CHAR *text, ADDRESS text__len)
 	INT16 i;
 	if (OPM_hasComment) {
 		i = 0;
-		while ((((i < text__len && i < 1024)) && OPM_currentComment[__X(i, 1024)] != 0x00)) {
-			text[__X(i, text__len)] = OPM_currentComment[__X(i, 1024)];
+		while ((((i < text__len && i < 1024)) && OPM_currentComment[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 189, 69, 6376)] != 0x00)) {
+			text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 190, 14, 6401)] = OPM_currentComment[__X_AT(i, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 190, 35, 6422)];
 			i += 1;
 		}
-		text[__X(i, text__len)] = 0x00;
+		text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 192, 12, 6455)] = 0x00;
 		OPM_hasComment = 0;
 	} else {
 		text[0] = 0x00;
@@ -261,7 +269,7 @@ static void OPM_GetArgument (INT16 n, CHAR *value, ADDRESS value__len)
 	if (OPM_argumentReader == NIL) {
 		Modules_GetArg(n, (void*)value, value__len);
 	} else {
-		(*OPM_argumentReader)(n, (void*)value, value__len);
+		((OPM_ArgumentReader)__NIL_AT((ADDRESS)(OPM_argumentReader), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 261, 10, 8271))(n, (void*)value, value__len);
 	}
 }
 
@@ -270,8 +278,11 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 	INT16 i;
 	__DUP(s, s__len, CHAR);
 	i = 1;
-	while (s[__X(i, s__len)] != 0x00) {
-		switch (s[__X(i, s__len)]) {
+	while (s[__X_AT(i, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 269, 13, 8430)] != 0x00) {
+		switch (s[__X_AT(i, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 270, 14, 8454)]) {
+			case 'n':
+				OPM_Options = OPM_Options ^ 0x02;
+				break;
 			case 'p': 
 				OPM_Options = OPM_Options ^ 0x20;
 				break;
@@ -340,7 +351,7 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 					OPM_LogWStr((CHAR*)"-O option requires following size model character.", 51);
 					OPM_LogWLn();
 				} else {
-					OPM_Model[0] = s[__X(i + 1, s__len)];
+					OPM_Model[0] = s[__X_AT(i + 1, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 304, 30, 10625)];
 					OPM_Model[1] = 0x00;
 					if ((((OPM_Model[0] != '2' && OPM_Model[0] != 'C')) && OPM_Model[0] != 'V')) {
 						OPM_LogWStr((CHAR*)"Unrecognised size model character following -O.", 48);
@@ -354,15 +365,15 @@ static void OPM_ScanOptions (CHAR *s, ADDRESS s__len)
 					OPM_LogWStr((CHAR*)"-M option requires two following digits.", 41);
 					OPM_LogWLn();
 				} else {
-					OPM_AddressSize = (INT16)s[__X(i + 1, s__len)] - 48;
-					OPM_Alignment = (INT16)s[__X(i + 2, s__len)] - 48;
+					OPM_AddressSize = (INT16)s[__X_AT(i + 1, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 313, 37, 11070)] - 48;
+					OPM_Alignment = (INT16)s[__X_AT(i + 2, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 313, 74, 11107)] - 48;
 					i += 2;
 				}
 				break;
 			default: 
 				OPM_LogWStr((CHAR*)"  warning: option ", 19);
 				OPM_LogW('-');
-				OPM_LogW(s[__X(i, s__len)]);
+				OPM_LogW(s[__X_AT(i, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 319, 16, 11258)]);
 				OPM_LogWStr((CHAR*)" ignored", 9);
 				OPM_LogWLn();
 				break;
@@ -402,6 +413,8 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_LogWLn();
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"  Run time safety", 18);
+		OPM_LogWLn();
+		OPM_LogWStr((CHAR*)"    -n   Halt on NIL pointer dereference. On by default.", 57);
 		OPM_LogWLn();
 		OPM_LogWStr((CHAR*)"    -p   Initialise pointers to NIL. On by default.", 52);
 		OPM_LogWLn();
@@ -495,7 +508,7 @@ BOOLEAN OPM_OpenPar (void)
 		OPM_AddressSize = 4;
 		OPM_GetAlignment(&OPM_Alignment);
 		__MOVE("2", OPM_Model, 2);
-		OPM_Options = 0xa9;
+		OPM_Options = 0xab;
 		OPM_S = 1;
 		OPM_GetArgument(OPM_S, (void*)s, 256);
 		while (s[0] == '-') {
@@ -643,6 +656,9 @@ void OPM_Init (BOOLEAN *done)
 	CHAR s[256];
 	*done = 0;
 	OPM_curpos = 0;
+	OPM_sourceLines = __NEWARR(NIL, 4, 4, 1, 1, 256);
+	(((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 512, 39, 22563))->data)[0] = 0;
+	OPM_sourceLineCount = 1;
 	if (OPM_S >= OPM_CountArguments()) {
 		return;
 	}
@@ -652,9 +668,10 @@ void OPM_Init (BOOLEAN *done)
 	OPM_LogWStr(s, 256);
 	OPM_LogWStr((CHAR*)"  ", 3);
 	__COPY(s, OPM_SourceFileName, 256);
-	if (T->len == 0) {
+	if (((Texts_Text)__NIL_AT((ADDRESS)(T), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 521, 9, 22811))->len == 0) {
+		OPM_LogWLn();
 		OPM_LogWStr(s, 256);
-		OPM_LogWStr((CHAR*)" not found.", 12);
+		OPM_LogWStr((CHAR*)": error: source file is empty or cannot be opened", 50);
 		OPM_LogWLn();
 	} else {
 		Texts_OpenReader(&OPM_inR, Texts_Reader__typ, T, 0);
@@ -665,18 +682,53 @@ void OPM_Init (BOOLEAN *done)
 	OPM_noerr = *done;
 	OPM_errpos = OPM_curpos;
 	OPM_lasterrpos = OPM_curpos - 10;
-	OPM_ErrorLineStartPos = 0;
-	OPM_ErrorLineLimitPos = 0;
-	OPM_ErrorLineNumber = 0;
 }
 
 void OPM_Get (CHAR *ch)
 {
+	OPM_LineStarts lines = NIL;
+	INT32 i, _for__15;
 	OPM_curpos = Texts_Pos(&OPM_inR, Texts_Reader__typ);
 	Texts_Read(&OPM_inR, Texts_Reader__typ, &*ch);
+	if (*ch == 0x0d || *ch == 0x0a) {
+		if (OPM_sourceLineCount == ((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 543, 43, 23441))->len[0]) {
+			lines = __NEWARR(NIL, 4, 4, 1, 1, ((ADDRESS)((__ASHL(((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 544, 35, 23483))->len[0], 1)))));
+			_for__15 = OPM_sourceLineCount - 1;
+			i = 0;
+			while (i <= _for__15) {
+				(((OPM_LineStarts)__NIL_AT((ADDRESS)(lines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 545, 49, 23540))->data)[__X_AT(i, ((OPM_LineStarts)__NIL_AT((ADDRESS)(lines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 545, 49, 23540))->len[0], (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 545, 50, 23541)] = (((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 545, 67, 23558))->data)[__X_AT(i, ((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 545, 67, 23558))->len[0], (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 545, 68, 23559)];
+				i += 1;
+			}
+			OPM_sourceLines = lines;
+		}
+		(((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 549, 18, 23690))->data)[__X_AT(OPM_sourceLineCount, ((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 549, 18, 23690))->len[0], (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 549, 19, 23691)] = Texts_Pos(&OPM_inR, Texts_Reader__typ);
+		OPM_sourceLineCount += 1;
+	}
 	if ((*ch < 0x09 && !OPM_inR.eot)) {
 		*ch = ' ';
 	}
+}
+
+void OPM_SourceLocation (INT32 pos, INT32 *line, INT32 *column)
+{
+	INT32 low, high, middle;
+	if (OPM_sourceLines == NIL || OPM_sourceLineCount == 0) {
+		*line = 1;
+		*column = pos + 1;
+		return;
+	}
+	low = 0;
+	high = OPM_sourceLineCount;
+	while (low + 1 < high) {
+		middle = low + __ASHR(high - low, 1);
+		if ((((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 562, 21, 24160))->data)[__X_AT(middle, ((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 562, 21, 24160))->len[0], (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 562, 22, 24161)] <= pos) {
+			low = middle;
+		} else {
+			high = middle;
+		}
+	}
+	*line = low + 1;
+	*column = (pos - (((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 564, 49, 24276))->data)[__X_AT(low, ((OPM_LineStarts)__NIL_AT((ADDRESS)(OPM_sourceLines), (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 564, 49, 24276))->len[0], (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 564, 50, 24277)]) + 1;
 }
 
 static void OPM_MakeFileName (CHAR *name, ADDRESS name__len, CHAR *FName, ADDRESS FName__len, CHAR *ext, ADDRESS ext__len)
@@ -686,17 +738,17 @@ static void OPM_MakeFileName (CHAR *name, ADDRESS name__len, CHAR *FName, ADDRES
 	__DUP(ext, ext__len, CHAR);
 	i = 0;
 	for (;;) {
-		ch = name[__X(i, name__len)];
+		ch = name[__X_AT(i, name__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 571, 21, 24457)];
 		if (ch == 0x00) {
 			break;
 		}
-		FName[__X(i, FName__len)] = ch;
+		FName[__X_AT(i, FName__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 573, 13, 24506)] = ch;
 		i += 1;
 	}
 	j = 0;
 	do {
-		ch = ext[__X(j, ext__len)];
-		FName[__X(i, FName__len)] = ch;
+		ch = ext[__X_AT(j, ext__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 576, 22, 24566)];
+		FName[__X_AT(i, FName__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 576, 32, 24576)] = ch;
 		i += 1;
 		j += 1;
 	} while (!(ch == 0x00));
@@ -708,18 +760,9 @@ static void OPM_LogErrMsg (INT16 n)
 	INT16 l;
 	Texts_Scanner S;
 	CHAR c;
-	if (n >= 0) {
-		OPM_LogVT100((CHAR*)"31m", 4);
-		OPM_LogWStr((CHAR*)"  err ", 7);
-		OPM_LogVT100((CHAR*)"0m", 3);
-	} else {
-		OPM_LogVT100((CHAR*)"35m", 4);
-		OPM_LogWStr((CHAR*)"  warning ", 11);
+	if (n < 0) {
 		n = -n;
-		OPM_LogVT100((CHAR*)"0m", 3);
 	}
-	OPM_LogWNum(n, 1);
-	OPM_LogWStr((CHAR*)"  ", 3);
 	if (OPM_Errors == NIL) {
 		__NEW(OPM_Errors, Texts_TextDesc);
 		Texts_Open(OPM_Errors, (CHAR*)"Errors.Txt", 11);
@@ -731,6 +774,9 @@ static void OPM_LogErrMsg (INT16 n)
 	} while (!((((l != S.line && S.class == 3)) && S.i == n) || S.eot));
 	if (!S.eot) {
 		Texts_Read((void*)&S, Texts_Scanner__typ, &c);
+		while (c == ' ' || c == 0x09) {
+			Texts_Read((void*)&S, Texts_Scanner__typ, &c);
+		}
 		while ((!S.eot && c >= ' ')) {
 			Out_Char(c);
 			Texts_Read((void*)&S, Texts_Scanner__typ, &c);
@@ -738,69 +784,54 @@ static void OPM_LogErrMsg (INT16 n)
 	}
 }
 
-static void OPM_FindLine (Files_File f, Files_Rider *r, ADDRESS *r__typ, INT64 pos)
-{
-	CHAR ch, cheol;
-	if (pos < (INT64)OPM_ErrorLineStartPos) {
-		OPM_ErrorLineStartPos = 0;
-		OPM_ErrorLineLimitPos = 0;
-		OPM_ErrorLineNumber = 0;
-	}
-	if (pos < (INT64)OPM_ErrorLineLimitPos) {
-		Files_Set(&*r, r__typ, f, OPM_ErrorLineStartPos);
-		return;
-	}
-	Files_Set(&*r, r__typ, f, OPM_ErrorLineLimitPos);
-	Files_Read(&*r, r__typ, (void*)&ch);
-	while (((INT64)OPM_ErrorLineLimitPos < pos && !(*r).eof)) {
-		OPM_ErrorLineStartPos = OPM_ErrorLineLimitPos;
-		OPM_ErrorLineNumber += 1;
-		while ((((ch != 0x00 && ch != 0x0d)) && ch != 0x0a)) {
-			Files_Read(&*r, r__typ, (void*)&ch);
-			OPM_ErrorLineLimitPos += 1;
-		}
-		cheol = ch;
-		Files_Read(&*r, r__typ, (void*)&ch);
-		OPM_ErrorLineLimitPos += 1;
-		if ((cheol == 0x0d && ch == 0x0a)) {
-			OPM_ErrorLineLimitPos += 1;
-			Files_Read(&*r, r__typ, (void*)&ch);
-		}
-	}
-	Files_Set(&*r, r__typ, f, OPM_ErrorLineStartPos);
-}
-
-static void OPM_ShowLine (INT64 pos)
+static void OPM_ShowLine (INT32 pos)
 {
 	Files_File f = NIL;
 	Files_Rider r;
 	CHAR line[1023];
-	INT16 i;
+	INT32 i, lineNumber, column, digits, number, length;
 	CHAR ch;
 	f = Files_Old(OPM_SourceFileName, 256);
-	OPM_FindLine(f, &r, Files_Rider__typ, pos);
+	if (f == NIL) {
+		return;
+	}
+	OPM_SourceLocation(pos, &lineNumber, &column);
+	Files_Set(&r, Files_Rider__typ, f, (pos - column) + 1);
 	i = 0;
 	Files_Read(&r, Files_Rider__typ, (void*)&ch);
 	while ((((((ch != 0x00 && ch != 0x0d)) && ch != 0x0a)) && i < 1022)) {
-		line[__X(i, 1023)] = ch;
+		line[__X_AT(i, 1023, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 613, 12, 25647)] = ch;
 		i += 1;
 		Files_Read(&r, Files_Rider__typ, (void*)&ch);
 	}
-	line[__X(i, 1023)] = 0x00;
-	OPM_LogWLn();
-	OPM_LogWLn();
-	OPM_LogWNum(OPM_ErrorLineNumber, 4);
+	line[__X_AT(i, 1023, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 615, 10, 25701)] = 0x00;
+	length = i;
+	OPM_LogWNum(lineNumber, 4);
 	OPM_LogWStr((CHAR*)": ", 3);
 	OPM_LogWStr(line, 1023);
 	OPM_LogWLn();
-	OPM_LogWStr((CHAR*)"      ", 7);
-	if (pos >= (INT64)OPM_ErrorLineLimitPos) {
-		pos = OPM_ErrorLineLimitPos - 1;
+	digits = 1;
+	number = lineNumber;
+	while (number >= 10) {
+		digits += 1;
+		number = __DIV(number, 10);
 	}
-	i = __SHORTF(OPM_Longint(pos - (INT64)OPM_ErrorLineStartPos), 32768);
+	if (digits < 4) {
+		digits = 4;
+	}
+	i = digits + 2;
 	while (i > 0) {
 		OPM_LogW(' ');
 		i -= 1;
+	}
+	i = 0;
+	while ((i < column - 1 && i < length)) {
+		if (line[__X_AT(i, 1023, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 625, 15, 26072)] == 0x09) {
+			OPM_LogW(0x09);
+		} else {
+			OPM_LogW(' ');
+		}
+		i += 1;
 	}
 	OPM_LogVT100((CHAR*)"32m", 4);
 	OPM_LogW('^');
@@ -809,53 +840,72 @@ static void OPM_ShowLine (INT64 pos)
 
 void OPM_Mark (INT16 n, INT32 pos)
 {
+	INT32 line, column;
 	if (pos == -1) {
 		pos = 0;
 	}
 	if (n >= 0) {
 		OPM_noerr = 0;
-		if (pos < OPM_lasterrpos || OPM_lasterrpos + 9 < pos) {
-			OPM_lasterrpos = pos;
-			OPM_ShowLine(pos);
-			OPM_LogWLn();
-			OPM_LogWStr((CHAR*)"  ", 3);
-			if (n < 249) {
-				OPM_LogWStr((CHAR*)"  pos", 6);
-				OPM_LogWNum(pos, 6);
-				OPM_LogErrMsg(n);
-			} else if (n == 255) {
-				OPM_LogWStr((CHAR*)"pos", 4);
-				OPM_LogWNum(pos, 6);
-				OPM_LogWStr((CHAR*)"  pc ", 6);
-				OPM_LogWNum(OPM_breakpc, 1);
-			} else if (n == 254) {
-				OPM_LogWStr((CHAR*)"pc not found", 13);
-			} else {
-				OPM_LogWStr(OPM_objname, 64);
-				if (n == 253) {
-					OPM_LogWStr((CHAR*)" is new, compile with option e", 31);
-				} else if (n == 252) {
-					OPM_LogWStr((CHAR*)" is redefined, compile with option s", 37);
-				} else if (n == 251) {
-					OPM_LogWStr((CHAR*)" is redefined (private part only), compile with option s", 57);
-				} else if (n == 250) {
-					OPM_LogWStr((CHAR*)" is no longer visible, compile with option s", 45);
-				} else if (n == 249) {
-					OPM_LogWStr((CHAR*)" is not consistently imported, recompile imports", 49);
-				}
-			}
+		if ((pos >= OPM_lasterrpos && pos <= OPM_lasterrpos + 9)) {
+			return;
 		}
+		OPM_lasterrpos = pos;
+	}
+	OPM_LogWLn();
+	OPM_LogWLn();
+	if (pos >= 0) {
+		OPM_SourceLocation(pos, &line, &column);
+		OPM_LogWStr(OPM_SourceFileName, 256);
+		OPM_LogW(':');
+		OPM_LogWNum(line, 1);
+		OPM_LogW(':');
+		OPM_LogWNum(column, 1);
+		OPM_LogWStr((CHAR*)": ", 3);
+	}
+	if (n >= 0) {
+		OPM_LogVT100((CHAR*)"31m", 4);
+		OPM_LogWStr((CHAR*)"error: ", 8);
 	} else {
-		if (pos >= 0) {
-			OPM_ShowLine(pos);
-			OPM_LogWLn();
-			OPM_LogWStr((CHAR*)"  pos", 6);
-			OPM_LogWNum(pos, 6);
-		}
+		OPM_LogVT100((CHAR*)"35m", 4);
+		OPM_LogWStr((CHAR*)"warning: ", 10);
+	}
+	OPM_LogVT100((CHAR*)"0m", 3);
+	if (n < 249) {
 		OPM_LogErrMsg(n);
-		if (pos < 0) {
-			OPM_LogWLn();
+	} else if (n == 255) {
+		OPM_LogWStr((CHAR*)"pc ", 4);
+		OPM_LogWNum(OPM_breakpc, 1);
+	} else if (n == 254) {
+		OPM_LogWStr((CHAR*)"pc not found", 13);
+	} else {
+		OPM_LogWStr(OPM_objname, 64);
+		if (n == 253) {
+			OPM_LogWStr((CHAR*)" is new, compile with option e", 31);
+		} else if (n == 252) {
+			OPM_LogWStr((CHAR*)" is redefined, compile with option s", 37);
+		} else if (n == 251) {
+			OPM_LogWStr((CHAR*)" is redefined (private part only), compile with option s", 57);
+		} else if (n == 250) {
+			OPM_LogWStr((CHAR*)" is no longer visible, compile with option s", 45);
+		} else if (n == 249) {
+			OPM_LogWStr((CHAR*)" is not consistently imported, recompile imports", 49);
 		}
+	}
+	if (n >= 0) {
+		OPM_LogWStr((CHAR*)" [err ", 7);
+	} else {
+		OPM_LogWStr((CHAR*)" [warning ", 11);
+	}
+	OPM_LogWNum(__ABS(n), 1);
+	if (pos >= 0) {
+		OPM_LogWStr((CHAR*)" at pos ", 9);
+		OPM_LogWNum(pos, 1);
+	}
+	OPM_LogW(']');
+	OPM_LogWLn();
+	if (pos >= 0) {
+		OPM_ShowLine(pos);
+		OPM_LogWLn();
 	}
 }
 
@@ -871,7 +921,7 @@ static void OPM_FingerprintBytes (INT32 *fp, SYSTEM_BYTE *bytes, ADDRESS bytes__
 	__ASSERT(__MASK(bytes__len, -4) == 0, 0);
 	i = 0;
 	while (i < bytes__len) {
-		__GET((ADDRESS)&bytes[__X(i, bytes__len)], l, INT32);
+		__GET((ADDRESS)&bytes[__X_AT(i, bytes__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 681, 35, 28032)], l, INT32);
 		*fp = __ROTL((INT32)((UINT32)*fp ^ (UINT32)l), 1, 32);
 		i += 4;
 	}
@@ -1029,27 +1079,27 @@ void OPM_NewSym (CHAR *modName, ADDRESS modName__len)
 
 void OPM_Write (CHAR ch)
 {
-	Files_Write(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, ch);
+	Files_Write(&OPM_R[__X_AT(OPM_currFile, 3, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 805, 23, 31695)], Files_Rider__typ, ch);
 }
 
 void OPM_WriteString (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	i = 0;
-	while (s[__X(i, s__len)] != 0x00) {
+	while (s[__X_AT(i, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 811, 13, 31820)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
+	Files_WriteBytes(&OPM_R[__X_AT(OPM_currFile, 3, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 812, 24, 31867)], Files_Rider__typ, (void*)s, s__len * 1, i);
 }
 
 void OPM_WriteStringVar (CHAR *s, ADDRESS s__len)
 {
 	INT16 i;
 	i = 0;
-	while (s[__X(i, s__len)] != 0x00) {
+	while (s[__X_AT(i, s__len, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 818, 13, 32003)] != 0x00) {
 		i += 1;
 	}
-	Files_WriteBytes(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, (void*)s, s__len * 1, i);
+	Files_WriteBytes(&OPM_R[__X_AT(OPM_currFile, 3, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 819, 24, 32050)], Files_Rider__typ, (void*)s, s__len * 1, i);
 }
 
 void OPM_WriteHex (INT64 i)
@@ -1088,21 +1138,21 @@ void OPM_WriteInt (INT64 i)
 			__MOVE("LL", s, 3);
 			k = 2;
 		}
-		s[__X(k, 26)] = __CHR(__MOD(i1, 10) + 48);
+		s[__X_AT(k, 26, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 845, 9, 33203)] = __CHR(__MOD(i1, 10) + 48);
 		i1 = __DIV(i1, 10);
 		k += 1;
 		while (i1 > 0) {
-			s[__X(k, 26)] = __CHR(__MOD(i1, 10) + 48);
+			s[__X_AT(k, 26, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 846, 25, 33285)] = __CHR(__MOD(i1, 10) + 48);
 			i1 = __DIV(i1, 10);
 			k += 1;
 		}
 		if (i < 0) {
-			s[__X(k, 26)] = '-';
+			s[__X_AT(k, 26, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 847, 23, 33370)] = '-';
 			k += 1;
 		}
 		while (k > 0) {
 			k -= 1;
-			OPM_Write(s[__X(k, 26)]);
+			OPM_Write(s[__X_AT(k, 26, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 848, 39, 33432)]);
 		}
 	}
 }
@@ -1143,19 +1193,19 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 		i = 0;
 		Texts_Read(&R, Texts_Reader__typ, &ch);
 		while (ch != 0x00) {
-			s[__X(i, 32)] = ch;
+			s[__X_AT(i, 32, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 870, 26, 34263)] = ch;
 			i += 1;
 			Texts_Read(&R, Texts_Reader__typ, &ch);
 		}
-		s[__X(i, 32)] = 0x00;
+		s[__X_AT(i, 32, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 873, 9, 34380)] = 0x00;
 		i = 0;
 		ch = s[0];
 		while ((ch != 'D' && ch != 0x00)) {
 			i += 1;
-			ch = s[__X(i, 32)];
+			ch = s[__X_AT(i, 32, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 875, 55, 34470)];
 		}
 		if (ch == 'D') {
-			s[__X(i, 32)] = 'e';
+			s[__X_AT(i, 32, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 876, 26, 34504)] = 'e';
 		}
 		OPM_WriteString(s, 32);
 	}
@@ -1163,7 +1213,7 @@ void OPM_WriteReal (LONGREAL r, CHAR suffx)
 
 void OPM_WriteLn (void)
 {
-	Files_Write(&OPM_R[__X(OPM_currFile, 3)], Files_Rider__typ, 0x0a);
+	Files_Write(&OPM_R[__X_AT(OPM_currFile, 3, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 882, 23, 34614)], Files_Rider__typ, 0x0a);
 }
 
 static void OPM_Append (Files_Rider *R, ADDRESS *R__typ, Files_File F)
@@ -1309,11 +1359,11 @@ static void OPM_FindInstallDir (void)
 	}
 	__COPY(Modules_BinaryDir, OPM_InstallDir, 1024);
 	i = Strings_Length(OPM_InstallDir, 1024);
-	while ((i > 0 && OPM_InstallDir[__X(i - 1, 1024)] != '/')) {
+	while ((i > 0 && OPM_InstallDir[__X_AT(i - 1, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 992, 33, 38517)] != '/')) {
 		i -= 1;
 	}
-	if ((i > 0 && OPM_InstallDir[__X(i - 1, 1024)] == '/')) {
-		OPM_InstallDir[__X(i - 1, 1024)] = 0x00;
+	if ((i > 0 && OPM_InstallDir[__X_AT(i - 1, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 993, 30, 38573)] == '/')) {
+		OPM_InstallDir[__X_AT(i - 1, 1024, (CHAR*)"../../src/compiler/OPM.Mod", 27, (CHAR*)"OPM", 4, 994, 18, 38607)] = 0x00;
 		if (OPM_IsProbablyInstallDir(OPM_InstallDir, 1024)) {
 			OPM_FindLibraryDir(1);
 			return;
@@ -1337,6 +1387,7 @@ static void OPM_SetMaxReals (void)
 
 static void EnumPtrs(void (*P)(void*))
 {
+	P(OPM_sourceLines);
 	__ENUMR(&OPM_inR, Texts_Reader__typ, 48, 1, P);
 	P(OPM_Log);
 	P(OPM_Errors);

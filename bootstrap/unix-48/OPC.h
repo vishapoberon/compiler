@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #ifndef OPC__h
 #define OPC__h
@@ -41,8 +41,10 @@ import void OPC_IntLiteral (INT64 n, INT32 size);
 import void OPC_Len (OPT_Object obj, OPT_Struct array, INT64 dim);
 import BOOLEAN OPC_NeedsRetval (OPT_Object proc);
 import INT32 OPC_NofPtrs (OPT_Struct typ);
+import void OPC_PointerCast (OPT_Struct typ);
 import void OPC_RegisterBody (void);
 import void OPC_SetInclude (BOOLEAN exclude);
+import void OPC_SourceLocation (INT32 pos);
 import void OPC_TDescDecl (OPT_Struct typ);
 import void OPC_TypeDefs (OPT_Object obj, INT16 vis);
 import void OPC_TypeOf (OPT_Object ap);

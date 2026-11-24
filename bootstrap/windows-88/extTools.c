@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -136,15 +136,15 @@ static void extTools_Quote (CHAR *text, ADDRESS text__len, CHAR *target, ADDRESS
 	extTools_Add((CHAR*)"'", 2, (void*)target, target__len);
 	ch[1] = 0x00;
 	i = 0;
-	while (text[__X(i, text__len)] != 0x00) {
-		if (text[__X(i, text__len)] == '\'') {
+	while (text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 67, 14, 2080)] != 0x00) {
+		if (text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 68, 13, 2103)] == '\'') {
 			extTools_Add((CHAR*)"'", 2, (void*)target, target__len);
 			extTools_Add((CHAR*)"\"", 2, (void*)target, target__len);
 			extTools_Add((CHAR*)"'", 2, (void*)target, target__len);
 			extTools_Add((CHAR*)"\"", 2, (void*)target, target__len);
 			extTools_Add((CHAR*)"'", 2, (void*)target, target__len);
 		} else {
-			ch[0] = text[__X(i, text__len)];
+			ch[0] = text[__X_AT(i, text__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 71, 24, 2241)];
 			extTools_Add(ch, 2, (void*)target, target__len);
 		}
 		i += 1;
@@ -181,13 +181,13 @@ static BOOLEAN extTools_NextDirectory (CHAR *path, ADDRESS path__len, INT16 *pos
 		return 0;
 	}
 	i = 0;
-	while ((path[__X(*pos, path__len)] != 0x00 && path[__X(*pos, path__len)] != ':')) {
-		dir[__X(i, 4096)] = path[__X(*pos, path__len)];
+	while ((path[__X_AT(*pos, path__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 95, 15, 2904)] != 0x00 && path[__X_AT(*pos, path__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 95, 34, 2923)] != ':')) {
+		dir[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 95, 53, 2942)] = path[__X_AT(*pos, path__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 95, 64, 2953)];
 		i += 1;
 		*pos += 1;
 	}
-	dir[__X(i, 4096)] = 0x00;
-	if (path[__X(*pos, path__len)] == 0x00) {
+	dir[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 96, 7, 2987)] = 0x00;
+	if (path[__X_AT(*pos, path__len, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 97, 11, 3007)] == 0x00) {
 		*pos = -1;
 	} else {
 		*pos += 1;
@@ -253,13 +253,13 @@ static BOOLEAN extTools_IsTCC (void)
 	}
 	i = 0;
 	start = 0;
-	while ((compiler[__X(i, 4096)] != 0x00 && compiler[__X(i, 4096)] != ' ')) {
-		if (compiler[__X(i, 4096)] == '/') {
+	while ((compiler[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 126, 19, 4168)] != 0x00 && compiler[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 126, 40, 4189)] != ' ')) {
+		if (compiler[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 127, 17, 4218)] == '/') {
 			start = i + 1;
 		}
 		i += 1;
 	}
-	return (((((i - start == 3 && compiler[__X(start, 4096)] == 't')) && compiler[__X(start + 1, 4096)] == 'c')) && compiler[__X(start + 2, 4096)] == 'c');
+	return (((((i - start == 3 && compiler[__X_AT(start, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 130, 38, 4307)] == 't')) && compiler[__X_AT(start + 1, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 131, 15, 4337)] == 'c')) && compiler[__X_AT(start + 2, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 131, 45, 4367)] == 'c');
 }
 
 static void extTools_OpenMPFlags (CHAR *cmd, ADDRESS cmd__len, BOOLEAN linking)
@@ -284,8 +284,8 @@ static void extTools_OpenMPFlags (CHAR *cmd, ADDRESS cmd__len, BOOLEAN linking)
 		} else {
 			i = 0;
 			start = 0;
-			while ((compiler[__X(i, 4096)] != 0x00 && compiler[__X(i, 4096)] != ' ')) {
-				if (compiler[__X(i, 4096)] == '/') {
+			while ((compiler[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 146, 23, 4966)] != 0x00 && compiler[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 146, 44, 4987)] != ' ')) {
+				if (compiler[__X_AT(i, 4096, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 147, 21, 5020)] == '/') {
 					start = i + 1;
 				}
 				i += 1;
@@ -395,8 +395,8 @@ static void extTools_Dependencies (CHAR *cmd)
 	extTools_Path full;
 	i = 0;
 	while (i < OPM_SharedImportCount) {
-		if (!extTools_IsCore(OPM_SharedImports[__X(i, 64)], 64)) {
-			extTools_FindLibrary(OPM_SharedImports[__X(i, 64)], 64, (CHAR*)".so", 4, full);
+		if (!extTools_IsCore(OPM_SharedImports[__X_AT(i, 64, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 220, 34, 8103)], 64)) {
+			extTools_FindLibrary(OPM_SharedImports[__X_AT(i, 64, (CHAR*)"../../src/compiler/extTools.Mod", 32, (CHAR*)"extTools", 9, 221, 37, 8148)], 64, (CHAR*)".so", 4, full);
 			extTools_Quote(full, 4096, (void*)cmd, 8192);
 			extTools_Add((CHAR*)" ", 2, (void*)cmd, 8192);
 		}

@@ -75,6 +75,7 @@ typedef unsigned char        UINT8;
 
 #define NIL          ((void*)0)
 #define __MAXEXT     16
+#define __BASEOFF    (__MAXEXT+1)
 #define VOC_SHARED_ABI_FORMAT 2
 #define VOC_CORE_ABI_PROFILE  3
 #ifndef VOC_MAIN_PROGRAM
@@ -118,10 +119,26 @@ extern void    Platform_OSFree     (ADDRESS addr);
 // Assertions and Halts
 
 extern void Modules_Halt(INT32 x);
+extern void Modules_HaltAt(INT32 code, CHAR *source, ADDRESS source_len,
+                           CHAR *module, ADDRESS module_len,
+                           INT32 line, INT32 column, INT32 pos);
 extern void Modules_AssertFail(INT32 x);
 
 #define __HALT(x)         Modules_Halt((INT32)(x))
 #define __ASSERT(cond, x) if (!(cond)) Modules_AssertFail((INT32)(x))
+#define __HALT_AT(code, f, fl, m, ml, l, c, p) Modules_HaltAt(code, f, fl, m, ml, l, c, p)
+
+static inline ADDRESS __NIL(ADDRESS p) {
+  if (!p) __HALT(-10);
+  return p;
+}
+
+static inline ADDRESS __NIL_AT(ADDRESS p, CHAR *source, ADDRESS source_len,
+                              CHAR *module, ADDRESS module_len,
+                              INT32 line, INT32 column, INT32 pos) {
+  if (!p) __HALT_AT(-10, source, source_len, module, module_len, line, column, pos);
+  return p;
+}
 
 
 // Index checking
@@ -131,6 +148,15 @@ static inline INT64 __XF(INT64 i, UINT64 ub) {
   return i;
 }
 #define __X(i, ub) (((i) >= 0 && (i) < (ub)) ? (i) : (__HALT(-2),0))
+
+static inline INT64 __XF_AT(INT64 i, UINT64 ub, CHAR *source, ADDRESS source_len,
+                            CHAR *module, ADDRESS module_len,
+                            INT32 line, INT32 column, INT32 pos) {
+  if (i < 0 || (UINT64)i >= ub) __HALT_AT(-2, source, source_len, module, module_len, line, column, pos);
+  return i;
+}
+#define __X_AT(i, ub, f, fl, m, ml, l, c, p) \
+  (((i) >= 0 && (i) < (ub)) ? (i) : (__HALT_AT(-2, f, fl, m, ml, l, c, p),0))
 
 // Range checking, and checked SHORT and CHR functions
 
@@ -255,7 +281,51 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 
 #define __IS(tag, typ, level) (*(tag-(__BASEOFF-level))==(ADDRESS)typ##__typ)
 #define  __TYPEOF(p)          (*(((ADDRESS**)(p))-1))
-#define __ISP(p, typ, level)  __IS(__TYPEOF(p),typ,level)
+static inline BOOLEAN __ISPF(ADDRESS p, ADDRESS *typ, INT32 level) {
+  return p && *(__TYPEOF(p) - (__BASEOFF - level)) == (ADDRESS)typ;
+}
+#define __ISP(p, typ, level) __ISPF((ADDRESS)(p), typ##__typ, level)
+
+static inline ADDRESS __GUARDPF(ADDRESS p, ADDRESS *typ, INT32 level) {
+  p = __NIL(p);
+  if (!__ISPF(p, typ, level)) __HALT(-5);
+  return p;
+}
+
+static inline ADDRESS __GUARDEQPF(ADDRESS p, ADDRESS *typ) {
+  p = __NIL(p);
+  if (__TYPEOF(p) != typ) __HALT(-6);
+  return p;
+}
+
+#define __GUARDPN(p, typ, level) ((typ*)__GUARDPF((ADDRESS)(p), typ##__typ, level))
+#define __GUARDAN(p, typ, level) ((struct typ*)__GUARDPF((ADDRESS)(p), typ##__typ, level))
+#define __GUARDEQPN(p, typ)      (*((typ*)__GUARDEQPF((ADDRESS)(p), typ##__typ)))
+
+static inline ADDRESS __GUARDPF_AT(ADDRESS p, ADDRESS *typ, INT32 level,
+                                  CHAR *source, ADDRESS source_len,
+                                  CHAR *module, ADDRESS module_len,
+                                  INT32 line, INT32 column, INT32 pos) {
+  p = __NIL_AT(p, source, source_len, module, module_len, line, column, pos);
+  if (!__ISPF(p, typ, level)) __HALT_AT(-5, source, source_len, module, module_len, line, column, pos);
+  return p;
+}
+
+static inline ADDRESS __GUARDEQPF_AT(ADDRESS p, ADDRESS *typ,
+                                    CHAR *source, ADDRESS source_len,
+                                    CHAR *module, ADDRESS module_len,
+                                    INT32 line, INT32 column, INT32 pos) {
+  p = __NIL_AT(p, source, source_len, module, module_len, line, column, pos);
+  if (__TYPEOF(p) != typ) __HALT_AT(-6, source, source_len, module, module_len, line, column, pos);
+  return p;
+}
+
+#define __GUARDPN_AT(p, typ, level, f, fl, m, ml, l, c, pos) \
+  ((typ*)__GUARDPF_AT((ADDRESS)(p), typ##__typ, level, f, fl, m, ml, l, c, pos))
+#define __GUARDAN_AT(p, typ, level, f, fl, m, ml, l, c, pos) \
+  ((struct typ*)__GUARDPF_AT((ADDRESS)(p), typ##__typ, level, f, fl, m, ml, l, c, pos))
+#define __GUARDEQPN_AT(p, typ, f, fl, m, ml, l, c, pos) \
+  (*((typ*)__GUARDEQPF_AT((ADDRESS)(p), typ##__typ, f, fl, m, ml, l, c, pos)))
 
 
 #define __GUARDP(p, typ, level)    ((typ*)(__ISP(p,typ,level)?p:(__HALT(-5),p)))
@@ -357,7 +427,6 @@ extern void SYSTEM_ENUMR  (void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, voi
     ADDRESS  ptr[n+1];         /* Offsets of ptrs up to -ve sentinel */ \
   } t##__desc
 
-#define __BASEOFF   (__MAXEXT+1)                           // blksz as index to base.
 #define __TPROC0OFF (__BASEOFF+24/sizeof(ADDRESS)+5)       // blksz as index to tproc IFF m=1.
 #define __EOM 1
 #define __TDFLDS(name, size)          {__EOM}, 1, 0, 0, 0, name, {0}, 0, size

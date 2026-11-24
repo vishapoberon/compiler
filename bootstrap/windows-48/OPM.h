@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #ifndef OPM__h
 #define OPM__h
@@ -9,6 +9,7 @@ typedef
 	void (*OPM_ArgumentReader)(INT16, CHAR*, ADDRESS );
 
 
+import CHAR OPM_SourceFileName[256];
 import CHAR OPM_Model[10];
 import INT16 OPM_AddressSize, OPM_Alignment;
 import UINT32 OPM_GlobalOptions, OPM_Options;
@@ -57,6 +58,7 @@ import void OPM_RegisterNewSym (void);
 import void OPM_SetArguments (INT16 count, OPM_ArgumentReader reader);
 import INT64 OPM_SignedMaximum (INT32 bytecount);
 import INT64 OPM_SignedMinimum (INT32 bytecount);
+import void OPM_SourceLocation (INT32 pos, INT32 *line, INT32 *column);
 import void OPM_StoreComment (CHAR *text, ADDRESS text__len);
 import void OPM_SymRCh (CHAR *ch);
 import INT32 OPM_SymRInt (void);

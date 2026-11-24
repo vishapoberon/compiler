@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -30,6 +30,7 @@ export INT16 Modules_ArgPos (CHAR *s, ADDRESS s__len);
 export void Modules_AssertFail (INT32 code);
 static void Modules_Canonify (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len);
 static INT16 Modules_CharCount (CHAR *s, ADDRESS s__len);
+static void Modules_DisplayHalt (INT32 code);
 static void Modules_DisplayHaltCode (INT32 code);
 static void Modules_ExtractPart (CHAR *s, ADDRESS s__len, INT16 *i, CHAR *p, ADDRESS p__len, CHAR *d, ADDRESS d__len);
 static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len);
@@ -37,6 +38,7 @@ export void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all);
 export void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len);
 export void Modules_GetIntArg (INT16 n, INT32 *val);
 export void Modules_Halt (INT32 code);
+export void Modules_HaltAt (INT32 code, CHAR *sourceName, ADDRESS sourceName__len, CHAR *moduleName, ADDRESS moduleName__len, INT32 line, INT32 column, INT32 pos);
 export void Modules_Init (INT32 argc, INT32 argvadr);
 export void Modules_InstallFreeHandler (Modules_FreeHandler handler);
 export void Modules_InstallTermHandler (Heap_Command handler);
@@ -70,14 +72,14 @@ void Modules_Init (INT32 argc, INT32 argvadr)
 }
 
 typedef
-	CHAR (*argptr__16)[1024];
+	CHAR (*argptr__17)[1024];
 
 void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len)
 {
-	argptr__16 arg = NIL;
+	argptr__17 arg = NIL;
 	if (n < Modules_ArgCount) {
-		__GET(Modules_ArgVector + __ASHL(n, 2), arg, argptr__16);
-		__COPY(*arg, val, val__len);
+		__GET(Modules_ArgVector + __ASHL(n, 2), arg, argptr__17);
+		__COPY(*((argptr__17)__NIL_AT((ADDRESS)(arg), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 58, 15, 1795)), val, val__len);
 	}
 }
 
@@ -92,11 +94,11 @@ void Modules_GetIntArg (INT16 n, INT32 *val)
 		i = 1;
 	}
 	k = 0;
-	d = (INT16)s[__X(i, 64)] - 48;
+	d = (INT16)s[__X_AT(i, 64, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 67, 24, 2028)] - 48;
 	while ((d >= 0 && d <= 9)) {
 		k = k * 10 + d;
 		i += 1;
-		d = (INT16)s[__X(i, 64)] - 48;
+		d = (INT16)s[__X_AT(i, 64, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 68, 69, 2112)] - 48;
 	}
 	if (s[0] == '-') {
 		k = -k;
@@ -127,7 +129,7 @@ static INT16 Modules_CharCount (CHAR *s, ADDRESS s__len)
 	INT16 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
-	while ((i < s__len && s[__X(i, s__len)] != 0x00)) {
+	while ((i < s__len && s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 87, 37, 2628)] != 0x00)) {
 		i += 1;
 	}
 	__DEL(s);
@@ -140,12 +142,12 @@ static void Modules_Append (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len)
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	j = Modules_CharCount(d, d__len);
-	while (s[__X(i, s__len)] != 0x00) {
-		d[__X(j, d__len)] = s[__X(i, s__len)];
+	while (s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 95, 13, 2815)] != 0x00) {
+		d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 95, 26, 2828)] = s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 95, 34, 2836)];
 		i += 1;
 		j += 1;
 	}
-	d[__X(j, d__len)] = 0x00;
+	d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 96, 7, 2866)] = 0x00;
 	__DEL(s);
 }
 
@@ -155,16 +157,16 @@ static void Modules_AppendPart (CHAR c, CHAR *s, ADDRESS s__len, CHAR *d, ADDRES
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	j = Modules_CharCount(d, d__len);
-	if ((j > 0 && d[__X(j - 1, d__len)] != c)) {
-		d[__X(j, d__len)] = c;
+	if ((j > 0 && d[__X_AT(j - 1, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 105, 21, 3141)] != c)) {
+		d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 105, 38, 3158)] = c;
 		j += 1;
 	}
-	while (s[__X(i, s__len)] != 0x00) {
-		d[__X(j, d__len)] = s[__X(i, s__len)];
+	while (s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 107, 13, 3215)] != 0x00) {
+		d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 107, 26, 3228)] = s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 107, 34, 3236)];
 		i += 1;
 		j += 1;
 	}
-	d[__X(j, d__len)] = 0x00;
+	d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 108, 7, 3266)] = 0x00;
 	__DEL(s);
 }
 
@@ -177,11 +179,11 @@ static BOOLEAN Modules_IsOneOf (CHAR c, CHAR *s, ADDRESS s__len)
 		return 0;
 	}
 	i = 0;
-	while ((s[__X(i, s__len)] != c && s[__X(i, s__len)] != 0x00)) {
+	while ((s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 115, 22, 3436)] != c && s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 115, 35, 3449)] != 0x00)) {
 		i += 1;
 	}
 	__DEL(s);
-	return s[__X(i, s__len)] == c;
+	return s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 116, 14, 3486)] == c;
 }
 
 static BOOLEAN Modules_IsAbsolute (CHAR *d, ADDRESS d__len)
@@ -195,7 +197,7 @@ static BOOLEAN Modules_IsAbsolute (CHAR *d, ADDRESS d__len)
 		__DEL(d);
 		return 1;
 	}
-	if (d[__X(1, d__len)] == ':') {
+	if (d[__X_AT(1, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 123, 10, 3677)] == ':') {
 		__DEL(d);
 		return 1;
 	}
@@ -229,13 +231,13 @@ static void Modules_ExtractPart (CHAR *s, ADDRESS s__len, INT16 *i, CHAR *p, ADD
 	__DUP(s, s__len, CHAR);
 	__DUP(p, p__len, CHAR);
 	j = 0;
-	while ((s[__X(*i, s__len)] != 0x00 && !Modules_IsOneOf(s[__X(*i, s__len)], p, p__len))) {
-		d[__X(j, d__len)] = s[__X(*i, s__len)];
+	while ((s[__X_AT(*i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 151, 14, 4530)] != 0x00 && !Modules_IsOneOf(s[__X_AT(*i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 151, 36, 4552)], p, p__len))) {
+		d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 152, 9, 4570)] = s[__X_AT(*i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 152, 17, 4578)];
 		*i += 1;
 		j += 1;
 	}
-	d[__X(j, d__len)] = 0x00;
-	while (Modules_IsOneOf(s[__X(*i, s__len)], p, p__len)) {
+	d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 154, 7, 4612)] = 0x00;
+	while (Modules_IsOneOf(s[__X_AT(*i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 155, 21, 4642)], p, p__len)) {
 		*i += 1;
 	}
 	__DEL(s);
@@ -249,13 +251,13 @@ static void Modules_Trim (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len)
 	__DUP(s, s__len, CHAR);
 	i = 0;
 	j = 0;
-	while ((i < 2 && Modules_IsOneOf(s[__X(i, s__len)], (CHAR*)"/\\", 3))) {
+	while ((i < 2 && Modules_IsOneOf(s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 168, 29, 5183)], (CHAR*)"/\\", 3))) {
 		i += 1;
-		d[__X(j, d__len)] = '/';
+		d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 168, 52, 5206)] = '/';
 		j += 1;
 	}
-	d[__X(j, d__len)] = 0x00;
-	while (s[__X(i, s__len)] != 0x00) {
+	d[__X_AT(j, d__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 169, 7, 5235)] = 0x00;
+	while (s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 171, 13, 5314)] != 0x00) {
 		Modules_ExtractPart(s, s__len, &i, (CHAR*)"/\\", 3, (void*)part, 1024);
 		if ((part[0] != 0x00 && __STRCMP(part, ".") != 0)) {
 			Modules_AppendPart('/', part, 1024, (void*)d, d__len);
@@ -265,11 +267,11 @@ static void Modules_Trim (CHAR *s, ADDRESS s__len, CHAR *d, ADDRESS d__len)
 }
 
 typedef
-	CHAR pathstring__12[4096];
+	CHAR pathstring__13[4096];
 
 static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 {
-	pathstring__12 arg0, pathlist, pathdir, tempstr;
+	pathstring__13 arg0, pathlist, pathdir, tempstr;
 	INT16 i, j, k;
 	BOOLEAN present;
 	if (Platform_ExecutablePath((void*)arg0, 4096)) {
@@ -285,10 +287,10 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 	} else {
 		Modules_GetArg(0, (void*)arg0, 4096);
 		i = 0;
-		while ((((arg0[__X(i, 4096)] != 0x00 && arg0[__X(i, 4096)] != '/')) && arg0[__X(i, 4096)] != '\\')) {
+		while ((((arg0[__X_AT(i, 4096, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 199, 27, 6470)] != 0x00 && arg0[__X_AT(i, 4096, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 199, 44, 6487)] != '/')) && arg0[__X_AT(i, 4096, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 199, 62, 6505)] != '\\')) {
 			i += 1;
 		}
-		if (arg0[__X(i, 4096)] == '/' || arg0[__X(i, 4096)] == '\\') {
+		if (arg0[__X_AT(i, 4096, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 200, 16, 6545)] == '/' || arg0[__X_AT(i, 4096, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 200, 35, 6564)] == '\\') {
 			Modules_Trim(arg0, 4096, (void*)tempstr, 4096);
 			Modules_Canonify(tempstr, 4096, (void*)binarydir, binarydir__len);
 			present = Modules_IsFilePresent(binarydir, binarydir__len);
@@ -296,7 +298,7 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 			Platform_GetEnv((CHAR*)"PATH", 5, (void*)pathlist, 4096);
 			i = 0;
 			present = 0;
-			while ((!present && pathlist[__X(i, 4096)] != 0x00)) {
+			while ((!present && pathlist[__X_AT(i, 4096, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 209, 38, 6982)] != 0x00)) {
 				Modules_ExtractPart(pathlist, 4096, &i, (CHAR*)":;", 3, (void*)pathdir, 4096);
 				Modules_AppendPart('/', arg0, 4096, (void*)pathdir, 4096);
 				Modules_Trim(pathdir, 4096, (void*)tempstr, 4096);
@@ -307,13 +309,13 @@ static void Modules_FindBinaryDir (CHAR *binarydir, ADDRESS binarydir__len)
 	}
 	if (present) {
 		k = Modules_CharCount(binarydir, binarydir__len);
-		while ((k > 0 && !Modules_IsOneOf(binarydir[__X(k - 1, binarydir__len)], (CHAR*)"/\\", 3))) {
+		while ((k > 0 && !Modules_IsOneOf(binarydir[__X_AT(k - 1, binarydir__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 221, 42, 7371)], (CHAR*)"/\\", 3))) {
 			k -= 1;
 		}
-		if ((k == 0 || k == 1) || (k == 3 && binarydir[__X(1, binarydir__len)] == ':')) {
-			binarydir[__X(k, binarydir__len)] = 0x00;
+		if ((k == 0 || k == 1) || (k == 3 && binarydir[__X_AT(1, binarydir__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 223, 54, 7492)] == ':')) {
+			binarydir[__X_AT(k, binarydir__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 224, 19, 7526)] = 0x00;
 		} else {
-			binarydir[__X(k - 1, binarydir__len)] = 0x00;
+			binarydir[__X_AT(k - 1, binarydir__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 225, 22, 7556)] = 0x00;
 		}
 	} else {
 		binarydir[0] = 0x00;
@@ -327,8 +329,8 @@ Heap_Module Modules_ThisMod (CHAR *name, ADDRESS name__len)
 	Heap_Command body;
 	__DUP(name, name__len, CHAR);
 	m = Modules_modules();
-	while ((m != NIL && __STRCMP(m->name, name) != 0)) {
-		m = m->next;
+	while ((m != NIL && __STRCMP(((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 241, 25, 8013))->name, name) != 0)) {
+		m = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 241, 48, 8036))->next;
 	}
 	if (m != NIL) {
 		Modules_res = 0;
@@ -354,20 +356,20 @@ Heap_Command Modules_ThisCommand (Heap_Module mod, CHAR *name, ADDRESS name__len
 		__DEL(name);
 		return NIL;
 	}
-	c = mod->cmds;
-	while ((c != NIL && __STRCMP(c->name, name) != 0)) {
-		c = c->next;
+	c = ((Heap_Module)__NIL_AT((ADDRESS)(mod), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 255, 13, 8498))->cmds;
+	while ((c != NIL && __STRCMP(((Heap_Cmd)__NIL_AT((ADDRESS)(c), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 256, 25, 8529))->name, name) != 0)) {
+		c = ((Heap_Cmd)__NIL_AT((ADDRESS)(c), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 256, 48, 8552))->next;
 	}
 	if (c != NIL) {
 		Modules_res = 0;
 		Modules_resMsg[0] = 0x00;
 		__DEL(name);
-		return c->cmd;
+		return ((Heap_Cmd)__NIL_AT((ADDRESS)(c), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 257, 53, 8616))->cmd;
 	} else {
 		Modules_res = 2;
 		__MOVE(" command \"", Modules_resMsg, 11);
 		__COPY(name, Modules_importing, 20);
-		Modules_Append(mod->name, 20, (void*)Modules_resMsg, 256);
+		Modules_Append(((Heap_Module)__NIL_AT((ADDRESS)(mod), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 259, 17, 8703))->name, 20, (void*)Modules_resMsg, 256);
 		Modules_Append((CHAR*)".", 2, (void*)Modules_resMsg, 256);
 		Modules_Append(name, name__len, (void*)Modules_resMsg, 256);
 		Modules_Append((CHAR*)"\" not found", 12, (void*)Modules_resMsg, 256);
@@ -383,7 +385,7 @@ void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all)
 	INT32 refcount;
 	__DUP(name, name__len, CHAR);
 	if (Modules_freeHandler != NIL) {
-		(*Modules_freeHandler)(name, name__len, all);
+		((Modules_FreeHandler)__NIL_AT((ADDRESS)(Modules_freeHandler), (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 267, 31, 8971))(name, name__len, all);
 		__DEL(name);
 		return;
 	}
@@ -482,8 +484,8 @@ static void Modules_errstring (CHAR *s, ADDRESS s__len)
 	INT32 i;
 	__DUP(s, s__len, CHAR);
 	i = 0;
-	while ((i < s__len && s[__X(i, s__len)] != 0x00)) {
-		Modules_errch(s[__X(i, s__len)]);
+	while ((i < s__len && s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 343, 35, 11502)] != 0x00)) {
+		Modules_errch(s[__X_AT(i, s__len, (CHAR*)"../../src/runtime/Modules.Mod", 30, (CHAR*)"Modules", 8, 343, 55, 11522)]);
 		i += 1;
 	}
 	__DEL(s);
@@ -532,7 +534,7 @@ static void Modules_DisplayHaltCode (INT32 code)
 			Modules_errstring((CHAR*)"Heap interrupted while locked, but lockdepth = 0 at unlock.", 60);
 			break;
 		case -10: 
-			Modules_errstring((CHAR*)"NIL access.", 12);
+			Modules_errstring((CHAR*)"NIL pointer dereference.", 25);
 			break;
 		case -11: 
 			Modules_errstring((CHAR*)"Alignment error.", 17);
@@ -557,16 +559,41 @@ static void Modules_DisplayHaltCode (INT32 code)
 	}
 }
 
-void Modules_Halt (INT32 code)
+static void Modules_DisplayHalt (INT32 code)
 {
-	Modules_StopRecovery();
-	Heap_FINALL();
 	Modules_errstring((CHAR*)"Terminated by Halt(", 20);
 	Modules_errint(code);
 	Modules_errstring((CHAR*)"). ", 4);
 	if (code < 0) {
 		Modules_DisplayHaltCode(code);
 	}
+}
+
+void Modules_Halt (INT32 code)
+{
+	Modules_StopRecovery();
+	Heap_FINALL();
+	Modules_DisplayHalt(code);
+	Modules_errstring(Platform_NL, 3);
+	Platform_Exit(code);
+}
+
+void Modules_HaltAt (INT32 code, CHAR *sourceName, ADDRESS sourceName__len, CHAR *moduleName, ADDRESS moduleName__len, INT32 line, INT32 column, INT32 pos)
+{
+	Modules_StopRecovery();
+	Heap_FINALL();
+	Modules_errstring(sourceName, sourceName__len);
+	Modules_errch(':');
+	Modules_errint(line);
+	Modules_errch(':');
+	Modules_errint(column);
+	Modules_errstring((CHAR*)": runtime error: ", 18);
+	Modules_DisplayHalt(code);
+	Modules_errstring((CHAR*)" (module ", 10);
+	Modules_errstring(moduleName, moduleName__len);
+	Modules_errstring((CHAR*)", pos ", 7);
+	Modules_errint(pos);
+	Modules_errch(')');
 	Modules_errstring(Platform_NL, 3);
 	Platform_Exit(code);
 }

@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #ifndef OPT__h
 #define OPT__h
@@ -44,6 +44,7 @@ typedef
 		OPT_Node left, right, link;
 		INT8 class, subcl;
 		BOOLEAN readonly;
+		INT32 pos;
 		OPT_Struct typ;
 		OPT_Object obj;
 		OPT_Const conval;

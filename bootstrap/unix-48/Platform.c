@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -266,7 +266,7 @@ BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__le
 	__DUP(var, var__len, CHAR);
 	p = (EnvPtr__126)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
-		__COPY(*p, val, val__len);
+		__COPY(*((EnvPtr__126)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 156, 25, 5073)), val, val__len);
 	}
 	__DEL(var);
 	return p != NIL;
@@ -405,12 +405,12 @@ INT16 Platform_ReadDirectory (INT32 handle, CHAR *name, ADDRESS name__len, BOOLE
 			return __SHORTF(PlatformNative_NameTooLong(), 32768);
 		}
 		if (i == name__len - 1) {
-			name[__X(i, name__len)] = 0x00;
+			name[__X_AT(i, name__len, (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 298, 12, 9476)] = 0x00;
 			if (ch != 0x00) {
 				return __SHORTF(PlatformNative_NameTooLong(), 32768);
 			}
 		} else {
-			name[__X(i, name__len)] = ch;
+			name[__X_AT(i, name__len, (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 300, 15, 9569)] = ch;
 		}
 		if (ch == 0x00) {
 			return 0;

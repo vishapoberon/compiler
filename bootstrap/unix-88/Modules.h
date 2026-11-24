@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #ifndef Modules__h
 #define Modules__h
@@ -25,6 +25,7 @@ import void Modules_Free (CHAR *name, ADDRESS name__len, BOOLEAN all);
 import void Modules_GetArg (INT16 n, CHAR *val, ADDRESS val__len);
 import void Modules_GetIntArg (INT16 n, INT32 *val);
 import void Modules_Halt (INT32 code);
+import void Modules_HaltAt (INT32 code, CHAR *sourceName, ADDRESS sourceName__len, CHAR *moduleName, ADDRESS moduleName__len, INT32 line, INT32 column, INT32 pos);
 import void Modules_Init (INT32 argc, INT64 argvadr);
 import void Modules_InstallFreeHandler (Modules_FreeHandler handler);
 import void Modules_InstallTermHandler (Heap_Command handler);

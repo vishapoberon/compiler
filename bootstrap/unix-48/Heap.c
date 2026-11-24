@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. rtsSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo nrtsSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
@@ -260,12 +260,12 @@ SYSTEM_PTR Heap_REGMOD (CHAR *name, Heap_EnumProc enumPtrs)
 	} else {
 		__NEW(m, Heap_ModuleDesc);
 	}
-	m->types = 0;
-	m->cmds = NIL;
-	__COPY(name, m->name, 20);
-	m->refcnt = 0;
-	m->enumPtrs = enumPtrs;
-	m->next = (Heap_Module)(ADDRESS)Heap_modules;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 183, 6, 5698))->types = 0;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 183, 20, 5712))->cmds = NIL;
+	__COPY(name, ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 184, 17, 5742))->name, 20);
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 185, 44, 5793))->refcnt = 0;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 186, 6, 5816))->enumPtrs = enumPtrs;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 186, 30, 5840))->next = (Heap_Module)(ADDRESS)Heap_modules;
 	Heap_modules = (SYSTEM_PTR)m;
 	return (void*)m;
 }
@@ -275,15 +275,15 @@ INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
 	Heap_Module m, p;
 	__DUP(name, name__len, CHAR);
 	m = (Heap_Module)(ADDRESS)Heap_modules;
-	while ((m != NIL && __STRCMP(m->name, name) != 0)) {
+	while ((m != NIL && __STRCMP(((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 195, 25, 6138))->name, name) != 0)) {
 		p = m;
-		m = m->next;
+		m = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 195, 56, 6169))->next;
 	}
-	if ((m != NIL && m->refcnt == 0)) {
+	if ((m != NIL && ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 196, 22, 6201))->refcnt == 0)) {
 		if (m == (Heap_Module)(ADDRESS)Heap_modules) {
-			Heap_modules = (SYSTEM_PTR)m->next;
+			Heap_modules = (SYSTEM_PTR)((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 197, 54, 6272))->next;
 		} else {
-			p->next = m->next;
+			((Heap_Module)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 198, 13, 6290))->next = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 198, 23, 6300))->next;
 		}
 		__DEL(name);
 		return 0;
@@ -293,7 +293,7 @@ INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
 			return -1;
 		} else {
 			__DEL(name);
-			return m->refcnt;
+			return ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 202, 46, 6386))->refcnt;
 		}
 	}
 	__RETCHK;
@@ -302,40 +302,40 @@ INT32 Heap_FreeModule (CHAR *name, ADDRESS name__len)
 void Heap_REGCMD (Heap_Module m, CHAR *name, Heap_Command cmd)
 {
 	Heap_Cmd c;
-	if (__STRCMP(m->name, "Heap") == 0) {
+	if (__STRCMP(((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 214, 9, 6822))->name, "Heap") == 0) {
 		__SYSNEW(c, 32);
 	} else {
 		__NEW(c, Heap_CmdDesc);
 	}
-	__COPY(name, c->name, 24);
-	c->cmd = cmd;
-	c->next = m->cmds;
-	m->cmds = c;
+	__COPY(name, ((Heap_Cmd)__NIL_AT((ADDRESS)(c), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 219, 17, 6919))->name, 24);
+	((Heap_Cmd)__NIL_AT((ADDRESS)(c), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 219, 26, 6928))->cmd = cmd;
+	((Heap_Cmd)__NIL_AT((ADDRESS)(c), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 219, 40, 6942))->next = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 219, 50, 6952))->cmds;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 219, 58, 6960))->cmds = c;
 }
 
 void Heap_REGTYP (Heap_Module m, INT32 typ)
 {
-	__PUT(typ, m->types, INT32);
-	m->types = typ;
+	__PUT(typ, ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 223, 21, 7054))->types, INT32);
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 223, 31, 7064))->types = typ;
 }
 
 void Heap_INCREF (Heap_Module m)
 {
-	m->refcnt += 1;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 231, 10, 7262))->refcnt += 1;
 }
 
 static Heap_Lifetime Heap_Life (Heap_Module owner, BOOLEAN create)
 {
 	Heap_Lifetime l;
 	l = Heap_lifetimes;
-	while ((l != NIL && l->owner != owner)) {
-		l = l->next;
+	while ((l != NIL && ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 238, 25, 7419))->owner != owner)) {
+		l = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 238, 50, 7444))->next;
 	}
 	if ((l == NIL && create)) {
 		__NEW(l, Heap_LifetimeDesc);
-		l->owner = owner;
-		l->state = 1;
-		l->next = Heap_lifetimes;
+		((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 240, 16, 7501))->owner = owner;
+		((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 240, 34, 7519))->state = 1;
+		((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 241, 8, 7539))->next = Heap_lifetimes;
 		Heap_lifetimes = l;
 	}
 	return l;
@@ -348,7 +348,7 @@ INT16 Heap_ModuleState (Heap_Module owner)
 	if (l == NIL) {
 		return 0;
 	} else {
-		return l->state;
+		return ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 250, 43, 7759))->state;
 	}
 	__RETCHK;
 }
@@ -359,19 +359,19 @@ void Heap_REGIMPORT (Heap_Module owner, Heap_Module imported)
 	Heap_Import i;
 	l = Heap_Life(owner, 1);
 	__NEW(i, Heap_ImportDesc);
-	i->imported = imported;
-	i->next = l->imports;
-	l->imports = i;
+	((Heap_Import)__NIL_AT((ADDRESS)(i), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 257, 14, 7920))->imported = imported;
+	((Heap_Import)__NIL_AT((ADDRESS)(i), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 257, 38, 7944))->next = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 257, 48, 7954))->imports;
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 257, 59, 7965))->imports = i;
 }
 
 void Heap_MODREADY (Heap_Module owner, INT32 initializer)
 {
 	Heap_Lifetime l;
 	l = Heap_Life(owner, 1);
-	l->state = 2;
-	l->initializer = initializer;
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 263, 30, 8117))->state = 2;
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 263, 44, 8131))->initializer = initializer;
 	if (Heap_notifier != NIL) {
-		(*Heap_notifier)(owner, initializer);
+		((Heap_ModuleNotifier)__NIL_AT((ADDRESS)(Heap_notifier), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 264, 28, 8187))(owner, initializer);
 	}
 }
 
@@ -382,10 +382,10 @@ void Heap_SetModuleNotifier (Heap_ModuleNotifier handler)
 	Heap_notifierRetention = Heap_RetainProcedure(Heap_NotifierAddress(handler));
 		l = Heap_lifetimes;
 	while (l != NIL) {
-		if ((l->state == 2 && l->initializer != 0)) {
-			(*Heap_notifier)(l->owner, l->initializer);
+		if ((((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 280, 12, 8837))->state == 2 && ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 280, 28, 8853))->initializer != 0)) {
+			((Heap_ModuleNotifier)__NIL_AT((ADDRESS)(Heap_notifier), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 280, 51, 8876))(((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 280, 61, 8886))->owner, ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 280, 70, 8895))->initializer);
 		}
-		l = l->next;
+		l = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 281, 13, 8926))->next;
 	}
 }
 
@@ -397,14 +397,14 @@ Heap_Retention Heap_RetainModule (Heap_Module owner)
 		return NIL;
 	}
 	l = Heap_Life(owner, 0);
-	if (l == NIL || l->state != 2) {
+	if (l == NIL || ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 290, 23, 9153))->state != 2) {
 		return NIL;
 	}
 	__NEW(r, Heap_RetentionDesc);
-	r->owner = owner;
-	r->next = Heap_retentions;
+	((Heap_Retention)__NIL_AT((ADDRESS)(r), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 291, 14, 9199))->owner = owner;
+	((Heap_Retention)__NIL_AT((ADDRESS)(r), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 291, 32, 9217))->next = Heap_retentions;
 	Heap_retentions = r;
-	l->retained += 1;
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 292, 10, 9264))->retained += 1;
 	return r;
 }
 
@@ -416,20 +416,20 @@ BOOLEAN Heap_ReleaseModule (Heap_Retention r)
 	previous = NIL;
 	while ((p != NIL && p != r)) {
 		previous = p;
-		p = p->next;
+		p = ((Heap_Retention)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 300, 55, 9506))->next;
 	}
 	if (p == NIL) {
 		return 0;
 	}
-	l = Heap_Life(p->owner, 0);
-			l->retained -= 1;
+	l = Heap_Life(((Heap_Retention)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 302, 16, 9570))->owner, 0);
+			((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 303, 10, 9636))->retained -= 1;
 	if (previous == NIL) {
-		Heap_retentions = p->next;
+		Heap_retentions = ((Heap_Retention)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 304, 43, 9690))->next;
 	} else {
-		previous->next = p->next;
+		((Heap_Retention)__NIL_AT((ADDRESS)(previous), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 304, 62, 9709))->next = ((Heap_Retention)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 304, 72, 9719))->next;
 	}
-	p->owner = NIL;
-	p->next = NIL;
+	((Heap_Retention)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 305, 6, 9735))->owner = NIL;
+	((Heap_Retention)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 305, 22, 9751))->next = NIL;
 	return 1;
 }
 
@@ -440,7 +440,7 @@ INT32 Heap_Retained (Heap_Module owner)
 	if (l == NIL) {
 		return 0;
 	} else {
-		return l->retained;
+		return ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 313, 43, 9950))->retained;
 	}
 	__RETCHK;
 }
@@ -453,15 +453,15 @@ Heap_Module Heap_Imported (Heap_Module owner, INT16 index)
 	if (l == NIL) {
 		return NIL;
 	}
-	i = l->imports;
+	i = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 321, 11, 10158))->imports;
 	while ((i != NIL && index > 0)) {
-		i = i->next;
+		i = ((Heap_Import)__NIL_AT((ADDRESS)(i), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 322, 44, 10211))->next;
 		index -= 1;
 	}
 	if (i == NIL) {
 		return NIL;
 	} else {
-		return i->imported;
+		return ((Heap_Import)__NIL_AT((ADDRESS)(i), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 323, 45, 10278))->imported;
 	}
 	__RETCHK;
 }
@@ -470,9 +470,9 @@ void Heap_REGPROC (Heap_Module m, INT32 address)
 {
 	Heap_Procedure p;
 	__NEW(p, Heap_ProcedureDesc);
-	p->owner = m;
-	p->address = address;
-	p->next = Heap_procedures;
+	((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 331, 14, 10559))->owner = m;
+	((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 331, 28, 10573))->address = address;
+	((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 332, 6, 10599))->next = Heap_procedures;
 	Heap_procedures = p;
 }
 
@@ -480,13 +480,13 @@ Heap_Module Heap_ProcedureModule (INT32 address)
 {
 	Heap_Procedure p;
 	p = Heap_procedures;
-	while ((p != NIL && p->address != address)) {
-		p = p->next;
+	while ((p != NIL && ((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 339, 25, 10785))->address != address)) {
+		p = ((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 339, 54, 10814))->next;
 	}
 	if (p == NIL) {
 		return NIL;
 	} else {
-		return p->owner;
+		return ((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 340, 45, 10869))->owner;
 	}
 	__RETCHK;
 }
@@ -501,14 +501,14 @@ Heap_Retention Heap_RetainProcedure (INT32 address)
 		return NIL;
 	}
 	l = Heap_Life(owner, 1);
-	if (l->state > 2) {
+	if (((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 351, 9, 11297))->state > 2) {
 		return NIL;
 	}
 	__NEW(r, Heap_RetentionDesc);
-	r->owner = owner;
-	r->next = Heap_retentions;
+	((Heap_Retention)__NIL_AT((ADDRESS)(r), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 352, 14, 11342))->owner = owner;
+	((Heap_Retention)__NIL_AT((ADDRESS)(r), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 352, 32, 11360))->next = Heap_retentions;
 	Heap_retentions = r;
-	l->retained += 1;
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 353, 10, 11407))->retained += 1;
 	return r;
 }
 
@@ -521,8 +521,8 @@ BOOLEAN Heap_RegisterUnloadHook (Heap_UnloadHandler handler)
 		return 0;
 	}
 	h = Heap_unloadHooks;
-	while ((h != NIL && h->handler != handler)) {
-		h = h->next;
+	while ((h != NIL && ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 366, 25, 11910))->handler != handler)) {
+		h = ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 366, 54, 11939))->next;
 	}
 	if (h != NIL) {
 		return 1;
@@ -532,15 +532,15 @@ BOOLEAN Heap_RegisterUnloadHook (Heap_UnloadHandler handler)
 		return 0;
 	}
 	l = Heap_Life(owner, 1);
-	if (l->state > 2) {
+	if (((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 371, 9, 12117))->state > 2) {
 		return 0;
 	}
 	__NEW(h, Heap_UnloadHookDesc);
-	h->owner = owner;
-	h->handler = handler;
-	h->next = Heap_unloadHooks;
+	((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 372, 14, 12164))->owner = owner;
+	((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 372, 32, 12182))->handler = handler;
+	((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 373, 6, 12208))->next = Heap_unloadHooks;
 	Heap_unloadHooks = h;
-	l->retained += 1;
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 373, 51, 12253))->retained += 1;
 	return 1;
 }
 
@@ -550,19 +550,19 @@ BOOLEAN Heap_UnregisterUnloadHook (Heap_UnloadHandler handler)
 	Heap_Lifetime l;
 	h = Heap_unloadHooks;
 	previous = NIL;
-	while ((h != NIL && h->handler != handler)) {
+	while ((h != NIL && ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 381, 25, 12493))->handler != handler)) {
 		previous = h;
-		h = h->next;
+		h = ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 381, 69, 12537))->next;
 	}
 	if (h == NIL) {
 		return 0;
 	}
-	l = Heap_Life(h->owner, 0);
-	l->retained -= 1;
+	l = Heap_Life(((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 383, 16, 12601))->owner, 0);
+	((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 383, 37, 12622))->retained -= 1;
 	if (previous == NIL) {
-		Heap_unloadHooks = h->next;
+		Heap_unloadHooks = ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 384, 44, 12677))->next;
 	} else {
-		previous->next = h->next;
+		((Heap_UnloadHook)__NIL_AT((ADDRESS)(previous), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 384, 63, 12696))->next = ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 384, 73, 12706))->next;
 	}
 	return 1;
 }
@@ -572,8 +572,8 @@ void Heap_DetachCallbacks (Heap_Module owner)
 	Heap_UnloadHook h;
 	h = Heap_unloadHooks;
 	while (h != NIL) {
-		(*h->handler)(owner);
-		h = h->next;
+		((Heap_UnloadHandler)__NIL_AT((ADDRESS)(((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 392, 23, 12882))->handler), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 392, 23, 12882))(owner);
+		h = ((Heap_UnloadHook)__NIL_AT((ADDRESS)(h), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 392, 46, 12905))->next;
 	}
 }
 
@@ -599,16 +599,16 @@ INT16 Heap_CheckModule (Heap_Module owner)
 	if (l == NIL) {
 		return 1;
 	}
-	if (l->state != 2) {
+	if (((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 415, 9, 13607))->state != 2) {
 		return 2;
 	}
-	if (owner->refcnt != 1) {
+	if (((Heap_Module)__NIL_AT((ADDRESS)(owner), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 416, 13, 13649))->refcnt != 1) {
 		return 3;
 	}
 	if (Heap_Active(owner)) {
 		return 4;
 	}
-	if (l->retained != 0 || Heap_NativeCallbacks(owner)) {
+	if (((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 418, 10, 13729))->retained != 0 || Heap_NativeCallbacks(owner)) {
 		return 5;
 	}
 	if (Heap_lockdepth != 0) {
@@ -621,14 +621,14 @@ void Heap_BeginFree (Heap_Module owner)
 {
 	Heap_Lifetime l;
 	l = Heap_Life(owner, 0);
-		l->state = 3;
+		((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 425, 52, 13973))->state = 3;
 }
 
 BOOLEAN Heap_Finishable (Heap_Module owner)
 {
 	Heap_Lifetime l;
 	l = Heap_Life(owner, 0);
-	return (((((((((l != NIL && l->state == 3)) && l->retained == 0)) && owner->refcnt == 1)) && !Heap_Active(owner))) && !Heap_NativeCallbacks(owner));
+	return (((((((((l != NIL && ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 432, 26, 14135))->state == 3)) && ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 432, 42, 14151))->retained == 0)) && ((Heap_Module)__NIL_AT((ADDRESS)(owner), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 432, 65, 14174))->refcnt == 1)) && !Heap_Active(owner))) && !Heap_NativeCallbacks(owner));
 }
 
 BOOLEAN Heap_HasFinalizers (Heap_Module owner)
@@ -636,10 +636,10 @@ BOOLEAN Heap_HasFinalizers (Heap_Module owner)
 	Heap_FinNode f;
 	f = Heap_fin;
 	while (f != NIL) {
-		if (Heap_ProcedureModule(Heap_FinalizerAddress(f->finalize)) == owner) {
+		if (Heap_ProcedureModule(Heap_FinalizerAddress(((Heap_FinNode)__NIL_AT((ADDRESS)(f), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 441, 44, 14413))->finalize)) == owner) {
 			return 1;
 		}
-		f = f->next;
+		f = ((Heap_FinNode)__NIL_AT((ADDRESS)(f), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 442, 13, 14467))->next;
 	}
 	return 0;
 }
@@ -648,9 +648,9 @@ void Heap_DisableModule (Heap_Module owner)
 {
 	Heap_Lifetime l;
 	l = Heap_Life(owner, 0);
-		l->state = 4;
-	owner->cmds = NIL;
-	owner->enumPtrs = NIL;
+		((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 450, 48, 14640))->state = 4;
+	((Heap_Module)__NIL_AT((ADDRESS)(owner), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 451, 10, 14662))->cmds = NIL;
+	((Heap_Module)__NIL_AT((ADDRESS)(owner), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 451, 29, 14681))->enumPtrs = NIL;
 }
 
 void Heap_CommitFree (Heap_Module owner)
@@ -662,29 +662,29 @@ void Heap_CommitFree (Heap_Module owner)
 	Heap_Termination t, tp;
 	l = Heap_lifetimes;
 	lp = NIL;
-	while ((l != NIL && l->owner != owner)) {
+	while ((l != NIL && ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 459, 25, 14928))->owner != owner)) {
 		lp = l;
-		l = l->next;
+		l = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 459, 59, 14962))->next;
 	}
-			i = l->imports;
+			i = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 461, 11, 15028))->imports;
 	while (i != NIL) {
-				i->imported->refcnt -= 1;
-		i = i->next;
+				((Heap_Module)__NIL_AT((ADDRESS)(((Heap_Import)__NIL_AT((ADDRESS)(i), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 462, 58, 15095))->imported), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 462, 67, 15104))->refcnt -= 1;
+		i = ((Heap_Import)__NIL_AT((ADDRESS)(i), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 462, 83, 15120))->next;
 	}
 	if (lp == NIL) {
-		Heap_lifetimes = l->next;
+		Heap_lifetimes = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 463, 36, 15166))->next;
 	} else {
-		lp->next = l->next;
+		((Heap_Lifetime)__NIL_AT((ADDRESS)(lp), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 463, 49, 15179))->next = ((Heap_Lifetime)__NIL_AT((ADDRESS)(l), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 463, 59, 15189))->next;
 	}
 	p = Heap_procedures;
 	pp = NIL;
 	while (p != NIL) {
-		pn = p->next;
-		if (p->owner == owner) {
+		pn = ((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 466, 14, 15266))->next;
+		if (((Heap_Procedure)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 467, 11, 15283))->owner == owner) {
 			if (pp == NIL) {
 				Heap_procedures = pn;
 			} else {
-				pp->next = pn;
+				((Heap_Procedure)__NIL_AT((ADDRESS)(pp), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 468, 50, 15352))->next = pn;
 			}
 		} else {
 			pp = p;
@@ -693,33 +693,33 @@ void Heap_CommitFree (Heap_Module owner)
 	}
 	t = Heap_terminations;
 	tp = NIL;
-	while ((t != NIL && t->owner != owner)) {
+	while ((t != NIL && ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 473, 25, 15473))->owner != owner)) {
 		tp = t;
-		t = t->next;
+		t = ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 473, 59, 15507))->next;
 	}
 	if (t != NIL) {
 		if (tp == NIL) {
-			Heap_terminations = t->next;
+			Heap_terminations = ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 475, 41, 15578))->next;
 		} else {
-			tp->next = t->next;
+			((Heap_Termination)__NIL_AT((ADDRESS)(tp), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 475, 54, 15591))->next = ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 475, 64, 15601))->next;
 		}
 	}
 	m = (Heap_Module)(ADDRESS)Heap_modules;
 	previous = NIL;
 	while ((m != NIL && m != owner)) {
 		previous = m;
-		m = m->next;
+		m = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 478, 59, 15728))->next;
 	}
 		if (previous == NIL) {
-		Heap_modules = (SYSTEM_PTR)m->next;
+		Heap_modules = (SYSTEM_PTR)((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 480, 40, 15799))->next;
 	} else {
-		previous->next = m->next;
+		((Heap_Module)__NIL_AT((ADDRESS)(previous), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 480, 59, 15818))->next = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 480, 69, 15828))->next;
 	}
-	m->cmds = NIL;
-	m->enumPtrs = NIL;
-	m->types = 0;
-	m->next = NIL;
-	m->refcnt = 0;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 481, 6, 15844))->cmds = NIL;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 481, 21, 15859))->enumPtrs = NIL;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 481, 40, 15878))->types = 0;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 481, 54, 15892))->next = NIL;
+	((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 481, 69, 15907))->refcnt = 0;
 }
 
 BOOLEAN Heap_InstallTermHandler (Heap_Command handler)
@@ -737,16 +737,16 @@ BOOLEAN Heap_InstallTermHandler (Heap_Command handler)
 		return 0;
 	}
 	t = Heap_terminations;
-	while ((t != NIL && t->owner != owner)) {
-		t = t->next;
+	while ((t != NIL && ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 492, 25, 16287))->owner != owner)) {
+		t = ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 492, 50, 16312))->next;
 	}
 	if (t == NIL) {
 		__NEW(t, Heap_TerminationDesc);
-		t->owner = owner;
-		t->next = Heap_terminations;
+		((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 494, 16, 16358))->owner = owner;
+		((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 494, 34, 16376))->next = Heap_terminations;
 		Heap_terminations = t;
 	}
-	t->handler = handler;
+	((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 496, 6, 16431))->handler = handler;
 	return 1;
 }
 
@@ -755,13 +755,13 @@ static void Heap_Terminate (Heap_Module owner)
 	Heap_Termination t;
 	Heap_Command handler;
 	t = Heap_terminations;
-	while ((t != NIL && t->owner != owner)) {
-		t = t->next;
+	while ((t != NIL && ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 504, 25, 16630))->owner != owner)) {
+		t = ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 504, 50, 16655))->next;
 	}
-	if ((t != NIL && t->handler != NIL)) {
-		handler = t->handler;
-		t->handler = NIL;
-		(*handler)();
+	if ((t != NIL && ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 505, 22, 16687))->handler != NIL)) {
+		handler = ((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 506, 19, 16726))->handler;
+		((Heap_Termination)__NIL_AT((ADDRESS)(t), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 506, 30, 16737))->handler = NIL;
+		((Heap_Command)__NIL_AT((ADDRESS)(handler), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 507, 7, 16818))();
 	}
 }
 
@@ -1137,14 +1137,14 @@ static void Heap_CheckFin (void)
 	INT32 tag;
 	n = Heap_fin;
 	while (n != NIL) {
-		__GET(n->obj - 4, tag, INT32);
+		__GET(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 812, 14, 27780))->obj - 4, tag, INT32);
 		if (!__ODD(tag)) {
-			n->marked = 0;
-			Heap_Mark(n->obj);
+			((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 813, 26, 27823))->marked = 0;
+			Heap_Mark(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 813, 50, 27847))->obj);
 		} else {
-			n->marked = 1;
+			((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 814, 13, 27865))->marked = 1;
 		}
-		n = n->next;
+		n = ((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 816, 13, 27904))->next;
 	}
 }
 
@@ -1154,21 +1154,21 @@ static void Heap_Finalize (void)
 	n = Heap_fin;
 	prev = NIL;
 	while (n != NIL) {
-		if (!n->marked) {
+		if (!((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 824, 12, 28046))->marked) {
 			if (n == Heap_fin) {
-				Heap_fin = Heap_fin->next;
+				Heap_fin = ((Heap_FinNode)__NIL_AT((ADDRESS)(Heap_fin), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 825, 35, 28093))->next;
 			} else {
-				prev->next = n->next;
+				((Heap_FinNode)__NIL_AT((ADDRESS)(prev), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 825, 50, 28108))->next = ((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 825, 60, 28118))->next;
 			}
-			(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
+			((Heap_Finalizer)__NIL_AT((ADDRESS)(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 826, 10, 28138))->finalize), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 826, 10, 28138))((SYSTEM_PTR)(ADDRESS)((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 826, 34, 28162))->obj);
 			if (prev == NIL) {
 				n = Heap_fin;
 			} else {
-				n = n->next;
+				n = ((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 828, 48, 28288))->next;
 			}
 		} else {
 			prev = n;
-			n = n->next;
+			n = ((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 830, 26, 28334))->next;
 		}
 	}
 }
@@ -1180,13 +1180,13 @@ void Heap_FINALL (void)
 	Heap_Lock();
 	while (Heap_fin != NIL) {
 		n = Heap_fin;
-		Heap_fin = Heap_fin->next;
-		(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
+		Heap_fin = ((Heap_FinNode)__NIL_AT((ADDRESS)(Heap_fin), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 840, 27, 28494))->next;
+		((Heap_Finalizer)__NIL_AT((ADDRESS)(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 841, 8, 28508))->finalize), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 841, 8, 28508))((SYSTEM_PTR)(ADDRESS)((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 841, 32, 28532))->obj);
 	}
 	m = (Heap_Module)(ADDRESS)Heap_modules;
 	while (m != NIL) {
 		Heap_Terminate(m);
-		m = m->next;
+		m = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 845, 42, 28701))->next;
 	}
 	Heap_Unlock();
 }
@@ -1201,14 +1201,14 @@ void Heap_FINALMOD (Heap_Module owner)
 	n = Heap_fin;
 	previous = NIL;
 	while (n != NIL) {
-		next = n->next;
-		if (Heap_ProcedureModule(Heap_FinalizerAddress(n->finalize)) == owner) {
+		next = ((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 857, 16, 29015))->next;
+		if (Heap_ProcedureModule(Heap_FinalizerAddress(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 858, 44, 29065))->finalize)) == owner) {
 			if (previous == NIL) {
 				Heap_fin = next;
 			} else {
-				previous->next = next;
+				((Heap_FinNode)__NIL_AT((ADDRESS)(previous), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 859, 57, 29146))->next = next;
 			}
-			(*n->finalize)((SYSTEM_PTR)(ADDRESS)n->obj);
+			((Heap_Finalizer)__NIL_AT((ADDRESS)(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 860, 10, 29174))->finalize), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 860, 10, 29174))((SYSTEM_PTR)(ADDRESS)((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 860, 34, 29198))->obj);
 			n = Heap_fin;
 			previous = NIL;
 		} else {
@@ -1267,10 +1267,10 @@ static void Heap_MarkRoots (Heap_Module excluded, BOOLEAN markStack)
 	INT32 cand[10000];
 	m = (Heap_Module)(ADDRESS)Heap_modules;
 	while (m != NIL) {
-		if ((m != excluded && m->enumPtrs != NIL)) {
-			(*m->enumPtrs)(Heap_MarkP);
+		if ((m != excluded && ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 915, 29, 31090))->enumPtrs != NIL)) {
+			((Heap_EnumProc)__NIL_AT((ADDRESS)(((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 915, 52, 31113))->enumPtrs), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 915, 52, 31113))(Heap_MarkP);
 		}
-		m = m->next;
+		m = ((Heap_Module)__NIL_AT((ADDRESS)(m), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 916, 13, 31147))->next;
 	}
 	if (markStack) {
 		Heap_SaveRegisters();
@@ -1337,7 +1337,7 @@ static void Heap_MarkRoots (Heap_Module excluded, BOOLEAN markStack)
 static BOOLEAN Heap_OwnedType (Heap_Module owner, INT32 tag)
 {
 	INT32 t;
-	t = owner->types;
+	t = ((Heap_Module)__NIL_AT((ADDRESS)(owner), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 948, 15, 32706))->types;
 	while (t != 0) {
 		if (Heap_TypeTag(t) == tag) {
 			return 1;
@@ -1385,10 +1385,10 @@ BOOLEAN Heap_LiveTypes (Heap_Module owner)
 	Heap_MarkRoots(owner, 1);
 	n = Heap_fin;
 	while (n != NIL) {
-		if (Heap_ProcedureModule(Heap_FinalizerAddress(n->finalize)) != owner) {
-			Heap_Mark(n->obj);
+		if (Heap_ProcedureModule(Heap_FinalizerAddress(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 987, 44, 33946))->finalize)) != owner) {
+			Heap_Mark(((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 987, 75, 33977))->obj);
 		}
-		n = n->next;
+		n = ((Heap_FinNode)__NIL_AT((ADDRESS)(n), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 988, 13, 34000))->next;
 	}
 	found = Heap_TypeReferences(owner, 1);
 	Heap_Unlock();
@@ -1424,10 +1424,10 @@ void Heap_RegisterFinalizer (SYSTEM_PTR obj, Heap_Finalizer finalize)
 {
 	Heap_FinNode f;
 	__NEW(f, Heap_FinDesc);
-	f->obj = (INT32)(ADDRESS)obj;
-	f->finalize = finalize;
-	f->marked = 1;
-	f->next = Heap_fin;
+	((Heap_FinNode)__NIL_AT((ADDRESS)(f), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 1018, 6, 34671))->obj = (INT32)(ADDRESS)obj;
+	((Heap_FinNode)__NIL_AT((ADDRESS)(f), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 1018, 38, 34703))->finalize = finalize;
+	((Heap_FinNode)__NIL_AT((ADDRESS)(f), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 1018, 62, 34727))->marked = 1;
+	((Heap_FinNode)__NIL_AT((ADDRESS)(f), (CHAR*)"../../src/runtime/Heap.Mod", 27, (CHAR*)"Heap", 5, 1019, 6, 34749))->next = Heap_fin;
 	Heap_fin = f;
 }
 

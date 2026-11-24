@@ -1,4 +1,4 @@
-/* voc 5.2.0 [2026/11/15]. Bootstrapping compiler for address size 8, alignment 8. xrtspaSF */
+/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspaSF */
 
 #ifndef OPS__h
 #define OPS__h
@@ -18,6 +18,7 @@ import INT16 OPS_numtyp;
 import INT64 OPS_intval;
 import REAL OPS_realval;
 import LONGREAL OPS_lrlval;
+import INT32 OPS_pos;
 
 
 import void OPS_Get (INT8 *sym);
