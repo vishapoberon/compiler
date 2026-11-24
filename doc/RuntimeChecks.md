@@ -114,8 +114,10 @@ x86-64, ARM and AArch64; FreeBSD x86, x86-64 and AArch64; NetBSD targets exposin
 `_UC_MACHINE_SP`; and OpenBSD x86, x86-64 and AArch64. These paths assume a
 downward-growing main stack. Missing mappings, unavailable or unlimited stack
 limits, unsupported contexts and ambiguous faults retain generic reporting.
-Native validation currently covers x86-64 Linux and NetBSD 9.3 amd64 with GCC
-in both type models. Other listed targets remain pending.
+Native validation currently covers x86-64 Linux, NetBSD 9.3 amd64 and FreeBSD
+15.1-RELEASE-p7 amd64. Both BSD systems pass the full confidence suite, including
+stack-fault regressions in both type models. NetBSD confirms enabled main-stack
+classification with GCC. Other listed targets remain pending.
 
 The bounds describe the startup stack and limit. Native code that changes the
 stack limit or switches stacks must disable classification with

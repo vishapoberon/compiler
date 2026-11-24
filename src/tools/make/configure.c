@@ -8,7 +8,7 @@
 // Derived from vocparam.c originally by J. Templ 23.6.95
 
 
-#define O_VER 5.4.1
+#define O_VER 5.4.2
 #define O_NAME voc    // Compiler name used for binary, install dir and references in text.
 
 
