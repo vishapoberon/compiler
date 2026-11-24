@@ -1,4 +1,4 @@
-/* voc 5.4.1 [2026/11/24] for gcc LP64 on gentoo nrtsSF */
+/* voc 5.4.2 [2026/11/24] for gcc LP64 on gentoo nrtsSF */
 
 #ifndef Heap__h
 #define Heap__h
