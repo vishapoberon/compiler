@@ -265,6 +265,10 @@ for name, body, options in (
         assert "unexpected continuation" not in result.stdout, result
 print("SIGSEGV faults reported separately without running finalizers", flush=True)
 
+subprocess.run([sys.executable, str(source / "test-stack.py"), "--voc", voc,
+                "--vocroot", str(image), "--model", args.model, "--work", str(work / "stack"),
+                "--cc", *compilers], cwd=work, env=env, check=True, timeout=180)
+
 subprocess.run([sys.executable, str(source / "test-diagnostics.py"), "--voc", voc,
                 "--vocroot", str(image), "--model", args.model, "--work", str(work / "diagnostics")],
                cwd=work, env=env, check=True, timeout=60)

@@ -82,6 +82,25 @@ cleanup, or normal exit handlers. Ordinary checked NIL errors use the regular
 halt path, including finalization. SIGSEGV handling does not identify the faulty
 Oberon expression; it does not imply that the pointer was NIL.
 
+### Stack exhaustion
+
+On Unix, program startup reserves a 128 KiB alternate signal stack for the main
+thread and enables alternate-stack delivery for SIGSEGV. An already enabled
+alternate stack supplied by an embedding host is preserved. Repeated setup
+reuses the enabled stack. Host-provided stacks must have sufficient capacity
+for their handlers. Other signal handlers retain their existing stack behavior.
+
+When stack exhaustion raises SIGSEGV, the emergency handler can therefore run
+without space on the ordinary stack. It reports the same generic invalid-memory
+diagnostic and exits without finalizers or buffered-I/O cleanup. This does not
+classify the fault as stack overflow or provide an Oberon source location.
+
+If alternate-stack setup fails, startup writes a warning and retains ordinary
+SIGSEGV handling; reporting after stack exhaustion is then unreliable. Alternate
+signal stacks are per-thread. Additional native threads must provide separate
+alternate stacks. Applications that replace or disable the signal stack or
+handler control their subsequent fault behavior.
+
 ## Regression tests
 
 Run `make -C src/test/nilchecks test`, selecting `VOC`, `VOCROOT`, `MODEL` and
@@ -89,6 +108,12 @@ Run `make -C src/test/nilchecks test`, selecting `VOC`, `VOCROOT`, `MODEL` and
 programs in separate processes and disables core dumps. It checks confirmed NIL
 errors, generic memory faults, finalization behavior, safety-option independence,
 and valid pointer operations. Both type models `2` and `C` are supported.
+
+The suite also runs recursive and large-local-array exhaustion with a 256 KiB
+stack limit, checks that fatal faults do not flush output or run finalizers,
+verifies actual alternate-stack delivery and preservation of host-provided
+stacks, and injects alternate-stack query/registration failures. Run only these
+checks with `make -C src/test/nilchecks stack`, using the same build variables.
 
 These are VOC-specific tests: they exercise Oberon-2 methods, pointer-based open
 arrays, compiler safety options and Unix signal handling.

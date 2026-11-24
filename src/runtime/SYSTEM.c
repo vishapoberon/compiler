@@ -278,6 +278,22 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     // Unix signal handling
     SystemSignalHandler handler[10] = {0};
 
+    /* Signal delivery must not depend on space remaining on the main stack. */
+    static union {
+        long double alignment;
+        unsigned char bytes[128 * 1024];
+    } signalStackStorage;
+
+    static int setupSignalStack(void) {
+        stack_t current, alternate = {0};
+        if (sigaltstack(NULL, &current) < 0) return 0;
+        /* Preserve an alternate stack supplied by an embedding host. */
+        if (!(current.ss_flags & SS_DISABLE)) return 1;
+        alternate.ss_sp = signalStackStorage.bytes;
+        alternate.ss_size = sizeof(signalStackStorage.bytes);
+        return sigaltstack(&alternate, NULL) == 0;
+    }
+
     /* Module callback enumeration reserves slot 9 for SIGSEGV. */
     static int signalIndex(int s) {
         if (s == SIGSEGV) return 9;
@@ -288,16 +304,20 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
         return index >= 0 && index < 10 ? (ADDRESS)handler[index] : 0;
     }
 
-    static void segfaultHandler(int signal) {
-        static const char message[] = "Fatal error: invalid memory access (SIGSEGV).\n";
+    static void writeSignalDiagnostic(const char *message, size_t length) {
         size_t offset = 0;
-        (void)signal;
-        while (offset < sizeof(message) - 1) {
-            ssize_t count = write(STDERR_FILENO, message + offset, sizeof(message) - 1 - offset);
+        while (offset < length) {
+            ssize_t count = write(STDERR_FILENO, message + offset, length - offset);
             if (count > 0) offset += (size_t)count;
             else if (count < 0 && errno == EINTR) continue;
             else break;
         }
+    }
+
+    static void segfaultHandler(int signal) {
+        static const char message[] = "Fatal error: invalid memory access (SIGSEGV).\n";
+        (void)signal;
+        writeSignalDiagnostic(message, sizeof(message) - 1);
         _exit(128 + SIGSEGV);
     }
     void signalHandler(int s) {
@@ -314,6 +334,7 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
                 struct sigaction action = {0};
                 action.sa_handler = signalHandler;
                 action.sa_flags = SA_RESTART;
+                if (s == SIGSEGV) action.sa_flags |= SA_ONSTACK;
                 sigemptyset(&action.sa_mask);
                 sigaction(s, &action, NULL);
             }
@@ -321,6 +342,8 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     }
 
     void setupAutomaticSegfaultHandler(void) {
+        static const char warning[] = "Warning: alternate signal stack unavailable; stack exhaustion may prevent fault reporting.\n";
+        if (!setupSignalStack()) writeSignalDiagnostic(warning, sizeof(warning) - 1);
         SystemSetHandler(SIGSEGV, (ADDRESS)segfaultHandler);
     }
 

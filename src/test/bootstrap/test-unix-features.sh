@@ -44,8 +44,9 @@ for source in "$root/src/runtime/SYSTEM.c" "$root/bootstrap/SYSTEM.c"; do
 #include <signal.h>
 int voc_signal_features(void) {
     struct sigaction action = {0};
-    action.sa_flags = SA_RESTART;
-    return action.sa_flags;
+    stack_t alternate = {0};
+    action.sa_flags = SA_RESTART | SA_ONSTACK;
+    return sigaltstack(0, &alternate) + action.sa_flags;
 }
 EOF
     ${CC:-cc} -Werror=implicit-function-declaration \
