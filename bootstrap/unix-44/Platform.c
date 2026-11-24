@@ -50,9 +50,11 @@ export void Platform_GetTimeOfDay (INT32 *sec, INT32 *usec);
 export INT16 Platform_Identify (INT32 h, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 export INT16 Platform_IdentifyByName (CHAR *n, ADDRESS n__len, Platform_FileIdentity *identity, ADDRESS *identity__typ);
 export BOOLEAN Platform_Inaccessible (INT16 e);
+static void Platform_InitStackBounds (void);
 export BOOLEAN Platform_Interrupted (INT16 e);
 export BOOLEAN Platform_IsConsole (INT32 h);
 export BOOLEAN Platform_IsDirectory (CHAR *path, ADDRESS path__len);
+static INT64 Platform_LinuxStackTop (INT64 marker);
 export void Platform_MTimeAsClock (Platform_FileIdentity i, INT32 *t, INT32 *d);
 export void Platform_MakeTerminalRaw (INT32 state);
 export INT16 Platform_MaxNameLength (void);
@@ -176,6 +178,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_seekcur()	SEEK_CUR
 #define Platform_seekend()	SEEK_END
 #define Platform_seekset()	SEEK_SET
+#define Platform_setStackBounds(low, high)	SYSTEM_SetStackBounds(low, high)
 #define Platform_setTerminalEcho(h, enabled)	({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { if (enabled) t.c_lflag |= ECHO; else t.c_lflag &= ~ECHO; rc = tcsetattr(h, TCSANOW, &t); } rc; })
 #define Platform_setTerminalInputCooked(h)	({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { t.c_iflag |= ICRNL; t.c_lflag |= ICANON; t.c_cc[VEOF] = 4; t.c_cc[VEOL] = '\n'; rc = tcsetattr(h, TCSANOW, &t); } rc; })
 #define Platform_setTerminalInputRaw(h)	({ struct termios t; int rc = tcgetattr(h, &t); if (rc == 0) { t.c_iflag &= ~ICRNL; t.c_lflag &= ~ICANON; t.c_cc[VMIN] = 1; t.c_cc[VTIME] = 0; rc = tcsetattr(h, TCSANOW, &t); } rc; })
@@ -183,6 +186,7 @@ export BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS 
 #define Platform_sethandler(s, h)	SystemSetHandler(s, (ADDRESS)h)
 #define Platform_setmtimedate(year, month, day)	mtm.tm_year = (int)year-1900; mtm.tm_mon = (int)month-1; mtm.tm_mday = (int)day
 #define Platform_setmtimetime(hour, minute, second)	mtm.tm_hour = (int)hour; mtm.tm_min = (int)minute; mtm.tm_sec = (int)second; mtm.tm_isdst = -1
+#define Platform_stackAddress(value)	(INT64)(size_t)value
 #define Platform_stat(n, n__len)	stat((char*)n, &s)
 #define Platform_statdev()	(LONGINT)s.st_dev
 #define Platform_statino()	(LONGINT)s.st_ino
@@ -258,15 +262,15 @@ void Platform_OSFree (INT32 address)
 }
 
 typedef
-	CHAR (*EnvPtr__126)[1024];
+	CHAR (*EnvPtr__128)[1024];
 
 BOOLEAN Platform_getEnv (CHAR *var, ADDRESS var__len, CHAR *val, ADDRESS val__len)
 {
-	EnvPtr__126 p = NIL;
+	EnvPtr__128 p = NIL;
 	__DUP(var, var__len, CHAR);
-	p = (EnvPtr__126)(ADDRESS)Platform_getenv(var, var__len);
+	p = (EnvPtr__128)(ADDRESS)Platform_getenv(var, var__len);
 	if (p != NIL) {
-		__COPY(*((EnvPtr__126)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 156, 25, 5073)), val, val__len);
+		__COPY(*((EnvPtr__128)__NIL_AT((ADDRESS)(p), (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 156, 25, 5073)), val, val__len);
 	}
 	__DEL(var);
 	return p != NIL;
@@ -894,6 +898,133 @@ static void Platform_TestLittleEndian (void)
 	__GET((ADDRESS)&i, Platform_LittleEndian, BOOLEAN);
 }
 
+static INT64 Platform_LinuxStackTop (INT64 marker)
+{
+	INT32 file;
+	CHAR buffer[2048];
+	CHAR path[32];
+	CHAR label[8];
+	INT32 count, i, field, digits, lines, total;
+	INT16 error, matched;
+	INT64 low, high, value;
+	CHAR ch;
+	BOOLEAN valid, writable, found;
+	__MOVE("/proc/self/maps", path, 16);
+	__MOVE("[stack]", label, 8);
+	if (Platform_OpenFile((void*)path, 32, 0, 0, &file) != 0) {
+		return 0;
+	}
+	field = 0;
+	digits = 0;
+	value = 0;
+	low = 0;
+	high = 0;
+	valid = 1;
+	writable = 0;
+	found = 0;
+	lines = 0;
+	total = 0;
+	matched = 0;
+	for (;;) {
+		do {
+			error = Platform_Read(file, (ADDRESS)buffer, 2048, &count);
+		} while (!(!Platform_Interrupted(error)));
+		if (error != 0) {
+			break;
+		}
+		total += count;
+		i = 0;
+		while (i < count) {
+			ch = buffer[__X_AT(i, 2048, (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 736, 20, 24642)];
+			i += 1;
+			if (ch == 0x0a) {
+				lines += 1;
+				if ((((((((((valid && writable)) && field == 4)) && matched == 7)) && low <= marker)) && marker < high)) {
+					found = 1;
+					goto exit__0;
+				}
+				field = 0;
+				digits = 0;
+				value = 0;
+				valid = 1;
+				writable = 0;
+				matched = 0;
+			} else if (field < 2) {
+				if ((ch >= '0' && ch <= '9')) {
+					if (value > 576460752303423487LL) {
+						valid = 0;
+					} else {
+						value = (__ASHL(value, 4) + (INT64)ch) - 48;
+						digits += 1;
+					}
+				} else if ((ch >= 'a' && ch <= 'f')) {
+					if (value > 576460752303423487LL) {
+						valid = 0;
+					} else {
+						value = ((__ASHL(value, 4) + (INT64)ch) - 97) + 10;
+						digits += 1;
+					}
+				} else if ((((field == 0 && ch == '-')) && digits > 0)) {
+					low = value;
+					field = 1;
+					digits = 0;
+					value = 0;
+				} else if ((((field == 1 && ch == ' ')) && digits > 0)) {
+					high = value;
+					field = 2;
+				} else {
+					valid = 0;
+				}
+			} else if (field == 2) {
+				if (ch == 'r') {
+					field = 3;
+				} else {
+					valid = 0;
+				}
+			} else if (field == 3) {
+				writable = ch == 'w';
+				field = 4;
+			} else {
+				if ((matched < 7 && ch == label[__X_AT(matched, 8, (CHAR*)"../../src/runtime/Platformunix.Mod", 35, (CHAR*)"Platform", 9, 761, 40, 25786)])) {
+					matched += 1;
+				} else if (ch == '[') {
+					matched = 1;
+				} else {
+					matched = 0;
+				}
+			}
+		}
+		if ((lines > 65536 || total > 4194304) || count == 0) {
+			break;
+		}
+	}
+	exit__0:;
+	error = Platform_Close(file);
+	if ((found && error == 0)) {
+		return high;
+	} else {
+		return 0;
+	}
+	__RETCHK;
+}
+
+static void Platform_InitStackBounds (void)
+{
+	CHAR marker;
+	INT64 top, limit;
+	limit = PlatformNative_StackLimit();
+	if (limit <= 0) {
+		return;
+	}
+	top = PlatformNative_NativeStackTop((ADDRESS)&marker);
+	if (top < 0) {
+		top = Platform_LinuxStackTop(Platform_stackAddress((ADDRESS)&marker));
+	}
+	if ((((top > limit && Platform_stackAddress((ADDRESS)&marker) >= top - limit)) && Platform_stackAddress((ADDRESS)&marker) < top)) {
+		Platform_setStackBounds(top - limit, top);
+	}
+}
+
 __TDESC(Platform_FileIdentity, 1, 0) = {__TDFLDS("FileIdentity", 12), {-4}};
 
 export void *Platform__init(void)
@@ -915,5 +1046,6 @@ export void *Platform__init(void)
 	Platform_SeekEnd = Platform_seekend();
 	Platform_NL[0] = 0x0a;
 	Platform_NL[1] = 0x00;
+	Platform_InitStackBounds();
 	__ENDMOD;
 }

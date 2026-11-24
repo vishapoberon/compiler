@@ -14,6 +14,9 @@
 */
 
 #ifndef _WIN32
+#if defined(__linux__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+#endif
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
@@ -54,7 +57,9 @@ BOOLEAN SYSTEM_ModuleActive(void *owner)
 #include <errno.h>
 #include <setjmp.h>
 #include <stddef.h>
+#include <limits.h>
 #include <unistd.h>
+#include "UnixSignal.h"
 
 static sigjmp_buf command_context;
 static volatile sig_atomic_t command_running;
@@ -277,6 +282,51 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
 #ifndef _WIN32
     // Unix signal handling
     SystemSignalHandler handler[10] = {0};
+    static uintptr_t stackAnchor;
+    #define STACK_ADDRESS_PARTS ((sizeof(uintptr_t) * CHAR_BIT + 6) / 7)
+    static volatile sig_atomic_t stackBoundsReady;
+    static volatile sig_atomic_t stackBoundsData[2][STACK_ADDRESS_PARTS];
+
+    void SYSTEM_SetStackBounds(INT64 low, INT64 high) {
+        unsigned int part;
+        stackBoundsReady = 0;
+        if (low > 0 && high > low && (UINT64)high <= UINTPTR_MAX &&
+            stackAnchor >= (uintptr_t)low && stackAnchor < (uintptr_t)high) {
+            /* Seven-bit parts fit even a minimally sized sig_atomic_t. */
+            for (part = 0; part < STACK_ADDRESS_PARTS; ++part) {
+                stackBoundsData[0][part] = ((uintptr_t)low >> (7 * part)) & 127;
+                stackBoundsData[1][part] = ((uintptr_t)high >> (7 * part)) & 127;
+            }
+            stackBoundsReady = 1;
+        }
+    }
+
+    static int readStackBounds(uintptr_t *low, uintptr_t *high) {
+        unsigned int part;
+        if (!stackBoundsReady) return 0;
+        *low = *high = 0;
+        /* Only sig_atomic_t objects carry the published signal-handler metadata. */
+        for (part = 0; part < STACK_ADDRESS_PARTS; ++part) {
+            *low |= (uintptr_t)stackBoundsData[0][part] << (7 * part);
+            *high |= (uintptr_t)stackBoundsData[1][part] << (7 * part);
+        }
+        return 1;
+    }
+
+    static int stackFaultMatches(uintptr_t sp, uintptr_t address) {
+        uintptr_t bottom, stackLower, stackUpper;
+        if (!readStackBounds(&stackLower, &stackUpper)) return 0;
+        /* Bound classification to the main stack and nearby frame jumps. */
+        bottom = stackLower > 16 * 1024 * 1024 ? stackLower - 16 * 1024 * 1024 : 0;
+        if (!sp || !address || sp < bottom || sp >= stackUpper || address >= stackLower) return 0;
+        if (sp >= stackLower && sp - stackLower > 128) return 0;
+        return sp >= address ? sp - address <= 65536 : address - sp <= 65536;
+    }
+
+    static int isStackOverflow(siginfo_t *info, void *context) {
+        if (!info || (info->si_code != SEGV_MAPERR && info->si_code != SEGV_ACCERR)) return 0;
+        return stackFaultMatches(voc_interrupted_stack(context), (uintptr_t)info->si_addr);
+    }
 
     /* Signal delivery must not depend on space remaining on the main stack. */
     static union {
@@ -314,15 +364,25 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
         }
     }
 
-    static void segfaultHandler(int signal) {
+    static void fatalMemoryFault(int overflow) {
         static const char message[] = "Fatal error: invalid memory access (SIGSEGV).\n";
-        (void)signal;
-        writeSignalDiagnostic(message, sizeof(message) - 1);
+        static const char stackMessage[] = "Fatal error: stack overflow (SIGSEGV).\n";
+        if (overflow) writeSignalDiagnostic(stackMessage, sizeof(stackMessage) - 1);
+        else writeSignalDiagnostic(message, sizeof(message) - 1);
         _exit(128 + SIGSEGV);
+    }
+    static void segfaultHandler(int signal) {
+        (void)signal;
+        fatalMemoryFault(0);
     }
     void signalHandler(int s) {
         int index = signalIndex(s);
         if (index >= 0 && handler[index]) handler[index](s);
+    }
+
+    static void segfaultDispatcher(int s, siginfo_t *info, void *context) {
+        if (handler[9] == segfaultHandler) fatalMemoryFault(isStackOverflow(info, context));
+        else signalHandler(s);
     }
 
     void SystemSetHandler(int s, ADDRESS h) {
@@ -332,9 +392,11 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
             handler[index] = (SystemSignalHandler)h;
             if (needtosetsystemhandler) {
                 struct sigaction action = {0};
-                action.sa_handler = signalHandler;
                 action.sa_flags = SA_RESTART;
-                if (s == SIGSEGV) action.sa_flags |= SA_ONSTACK;
+                if (s == SIGSEGV) {
+                    action.sa_sigaction = segfaultDispatcher;
+                    action.sa_flags |= SA_ONSTACK | SA_SIGINFO;
+                } else action.sa_handler = signalHandler;
                 sigemptyset(&action.sa_mask);
                 sigaction(s, &action, NULL);
             }
@@ -342,7 +404,9 @@ typedef void (*SystemSignalHandler)(INT32); // = Platform_SignalHandler
     }
 
     void setupAutomaticSegfaultHandler(void) {
+        unsigned char marker;
         static const char warning[] = "Warning: alternate signal stack unavailable; stack exhaustion may prevent fault reporting.\n";
+        if (!stackAnchor) stackAnchor = (uintptr_t)&marker;
         if (!setupSignalStack()) writeSignalDiagnostic(warning, sizeof(warning) - 1);
         SystemSetHandler(SIGSEGV, (ADDRESS)segfaultHandler);
     }

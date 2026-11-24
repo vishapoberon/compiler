@@ -91,9 +91,40 @@ reuses the enabled stack. Host-provided stacks must have sufficient capacity
 for their handlers. Other signal handlers retain their existing stack behavior.
 
 When stack exhaustion raises SIGSEGV, the emergency handler can therefore run
-without space on the ordinary stack. It reports the same generic invalid-memory
-diagnostic and exits without finalizers or buffered-I/O cleanup. This does not
-classify the fault as stack overflow or provide an Oberon source location.
+without space on the ordinary stack. When the fault address and interrupted
+stack pointer match the known main-stack boundary, it reports:
+
+```text
+Fatal error: stack overflow (SIGSEGV).
+```
+
+Otherwise it retains the generic invalid-memory diagnostic. Both paths exit
+with status `128 + SIGSEGV`, without finalizers or buffered-I/O cleanup. Neither
+path supplies an Oberon source location.
+
+Startup reads the finite soft stack limit with `getrlimit()`. Linux discovers
+the main-stack mapping through `/proc/self/maps`; FreeBSD, NetBSD and OpenBSD
+use their native `sysctl()` VM-map interfaces. Mapping interpretation on Linux
+is implemented in Oberon. Native structure layouts stay in the Unix binding
+layer. No mapping query, allocation or resource-limit query runs in the signal
+handler.
+
+Classification requires a supported saved-stack-pointer layout: Linux x86,
+x86-64, ARM and AArch64; FreeBSD x86, x86-64 and AArch64; NetBSD targets exposing
+`_UC_MACHINE_SP`; and OpenBSD x86, x86-64 and AArch64. These paths assume a
+downward-growing main stack. Missing mappings, unavailable or unlimited stack
+limits, unsupported contexts and ambiguous faults retain generic reporting.
+Native validation currently covers x86-64 Linux; other listed targets remain
+pending.
+
+The bounds describe the startup stack and limit. Native code that changes the
+stack limit or switches stacks must disable classification with
+`SYSTEM_SetStackBounds(0, 0)`. Replacement bounds must contain the original
+startup stack anchor. Classification
+recognizes nearby stack accesses and frame jumps up to 16 MiB below the cached
+lower bound; larger or unrelated faults remain generic. A matching fault
+describes the stack-boundary violation, not the cause of earlier memory
+corruption.
 
 If alternate-stack setup fails, startup writes a warning and retains ordinary
 SIGSEGV handling; reporting after stack exhaustion is then unreliable. Alternate
@@ -112,8 +143,10 @@ and valid pointer operations. Both type models `2` and `C` are supported.
 The suite also runs recursive and large-local-array exhaustion with a 256 KiB
 stack limit, checks that fatal faults do not flush output or run finalizers,
 verifies actual alternate-stack delivery and preservation of host-provided
-stacks, and injects alternate-stack query/registration failures. Run only these
-checks with `make -C src/test/nilchecks stack`, using the same build variables.
+stacks, checks classification boundaries and injects alternate-stack
+query/registration and stack-limit failures. Unlimited stack limits are also
+checked for generic reporting. Run only these checks with
+`make -C src/test/nilchecks stack`, using the same build variables.
 
 These are VOC-specific tests: they exercise Oberon-2 methods, pointer-based open
 arrays, compiler safety options and Unix signal handling.

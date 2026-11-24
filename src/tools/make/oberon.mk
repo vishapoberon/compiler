@@ -341,6 +341,7 @@ library:
 	rm -rf $(BUILDDIR)/$(MODEL)
 	mkdir -p $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/SYSTEM.[ho] $(BUILDDIR)/$(MODEL)
+	cp src/runtime/UnixStack.h src/runtime/UnixSignal.h $(BUILDDIR)/$(MODEL)
 	cp src/runtime/*.Txt  $(BUILDDIR)/$(MODEL)
 	cp $(BUILDDIR)/WindowsWrapper.h $(BUILDDIR)/$(MODEL)
 	@$(MAKE) -f src/tools/make/oberon.mk -s O$(MODEL)library MODEL=$(MODEL)

@@ -173,6 +173,7 @@ static inline INT64 __RF(UINT64 i, UINT64 ub) {if (i >= ub) {__HALT(-8);} return
 
 #ifndef _WIN32
   extern void SystemSetHandler(int s, ADDRESS h);
+  extern void SYSTEM_SetStackBounds(INT64 low, INT64 high);
 #else
   extern void SystemSetInterruptHandler(ADDRESS h);
   extern void SystemSetQuitHandler     (ADDRESS h);

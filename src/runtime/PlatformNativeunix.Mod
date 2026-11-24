@@ -7,6 +7,15 @@ IMPORT SYSTEM;
 PROCEDURE -A0Feature '#ifndef _POSIX_C_SOURCE';
 PROCEDURE -A0Feature1 '#define _POSIX_C_SOURCE 200809L';
 PROCEDURE -A0Feature2 '#endif';
+PROCEDURE -A0Native0 '#if defined(__OpenBSD__) && !defined(_BSD_SOURCE)';
+PROCEDURE -A0Native1 '#define _BSD_SOURCE 1';
+PROCEDURE -A0Native2 '#endif';
+PROCEDURE -A0Native3 '#if defined(__NetBSD__) && !defined(_NETBSD_SOURCE)';
+PROCEDURE -A0Native4 '#define _NETBSD_SOURCE 1';
+PROCEDURE -A0Native5 '#endif';
+PROCEDURE -A0Native6 '#if defined(__FreeBSD__) && !defined(__BSD_VISIBLE)';
+PROCEDURE -A0Native7 '#define __BSD_VISIBLE 1';
+PROCEDURE -A0Native8 '#endif';
 PROCEDURE -A0XOpen '#ifndef _XOPEN_SOURCE';
 PROCEDURE -A0XOpen1 '#define _XOPEN_SOURCE 700';
 PROCEDURE -A0XOpen2 '#endif';
@@ -22,6 +31,15 @@ PROCEDURE -AInclude7 '#else';
 PROCEDURE -AInclude8 '#include <termios.h>';
 PROCEDURE -AInclude9 '#endif';
 PROCEDURE -AIncludeTime '#include <time.h>';
+PROCEDURE -AIncludeUnixStack '#include "UnixStack.h"';
+
+PROCEDURE -stackLimit(): SYSTEM.INT64 'voc_stack_limit()';
+PROCEDURE StackLimit*(): SYSTEM.INT64;
+BEGIN RETURN stackLimit() END StackLimit;
+PROCEDURE -stackTop(marker: SYSTEM.ADDRESS): SYSTEM.INT64 'voc_native_stack_top(marker)';
+(* -1 selects Linux procfs discovery; 0 means unavailable. *)
+PROCEDURE NativeStackTop*(marker: SYSTEM.ADDRESS): SYSTEM.INT64;
+BEGIN RETURN stackTop(marker) END NativeStackTop;
 
 PROCEDURE -error(): SYSTEM.INT32 'errno';
 PROCEDURE Error*(): SYSTEM.INT32;

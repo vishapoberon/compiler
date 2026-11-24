@@ -24,6 +24,7 @@ export BOOLEAN PlatformNative_LocalTime (INT64 seconds, INT32 *ye, INT32 *mo, IN
 export INT32 PlatformNative_MakeDirectory (CHAR *path, ADDRESS path__len);
 export INT32 PlatformNative_MinIndex (void);
 export INT32 PlatformNative_NameTooLong (void);
+export INT64 PlatformNative_NativeStackTop (INT32 marker);
 export INT32 PlatformNative_NoMemory (void);
 export INT32 PlatformNative_OpenDirectory (CHAR *path, ADDRESS path__len);
 export INT32 PlatformNative_Overflow (void);
@@ -33,12 +34,22 @@ export void PlatformNative_SetControl (INT32 state, INT32 index, INT32 value);
 export void PlatformNative_SetInputFlags (INT32 state, UINT64 flags);
 export void PlatformNative_SetLocalFlags (INT32 state, UINT64 flags);
 export INT32 PlatformNative_SetTerminal (INT32 fd, INT32 state);
+export INT64 PlatformNative_StackLimit (void);
 export INT32 PlatformNative_TerminalSize (void);
 export INT32 PlatformNative_TimeIndex (void);
 export INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);
 
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
+#endif
+#if defined(__OpenBSD__) && !defined(_BSD_SOURCE)
+#define _BSD_SOURCE 1
+#endif
+#if defined(__NetBSD__) && !defined(_NETBSD_SOURCE)
+#define _NETBSD_SOURCE 1
+#endif
+#if defined(__FreeBSD__) && !defined(__BSD_VISIBLE)
+#define __BSD_VISIBLE 1
 #endif
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
@@ -54,6 +65,7 @@ export INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);
 #include <termios.h>
 #endif
 #include <time.h>
+#include "UnixStack.h"
 #define PlatformNative_badFD()	EBADF
 #define PlatformNative_clearError()	errno = 0
 #define PlatformNative_closeDirectory(handle)	closedir((DIR*)handle)
@@ -88,6 +100,8 @@ export INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);
 #define PlatformNative_setLocalFlags(state, flags)	((struct termios*)state)->c_lflag = (tcflag_t)flags
 #define PlatformNative_setTerminal(fd, state)	tcsetattr(fd, TCSANOW, (const struct termios*)state)
 #define PlatformNative_setTime(seconds)	value = (time_t)seconds
+#define PlatformNative_stackLimit()	voc_stack_limit()
+#define PlatformNative_stackTop(marker)	voc_native_stack_top(marker)
 #define PlatformNative_stat(path, path__len)	stat((char*)path, &info)
 #define PlatformNative_statBuffer()	struct stat info
 #define PlatformNative_terminalSize()	sizeof(struct termios)
@@ -96,6 +110,16 @@ export INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);
 #define PlatformNative_timeIndex()	VTIME
 #define PlatformNative_windowBuffer()	struct winsize window
 #define PlatformNative_year()	local.tm_year
+
+INT64 PlatformNative_StackLimit (void)
+{
+	return PlatformNative_stackLimit();
+}
+
+INT64 PlatformNative_NativeStackTop (INT32 marker)
+{
+	return PlatformNative_stackTop(marker);
+}
 
 INT32 PlatformNative_Error (void)
 {

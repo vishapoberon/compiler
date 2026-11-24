@@ -21,6 +21,8 @@
 !/src/test/oberonv/NumericalProbe.c
 !/src/test/nilchecks/AltStackProbe.c
 !/src/test/nilchecks/AltStackFailure.c
+!/src/test/nilchecks/StackBoundsProbe.c
+!/src/test/nilchecks/StackLimitFailure.c
 /src/test/**/*.h
 /src/test/**/*.o
 /src/test/**/*.obj

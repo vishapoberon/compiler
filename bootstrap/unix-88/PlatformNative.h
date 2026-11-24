@@ -22,6 +22,7 @@ import BOOLEAN PlatformNative_LocalTime (INT64 seconds, INT32 *ye, INT32 *mo, IN
 import INT32 PlatformNative_MakeDirectory (CHAR *path, ADDRESS path__len);
 import INT32 PlatformNative_MinIndex (void);
 import INT32 PlatformNative_NameTooLong (void);
+import INT64 PlatformNative_NativeStackTop (INT64 marker);
 import INT32 PlatformNative_NoMemory (void);
 import INT64 PlatformNative_OpenDirectory (CHAR *path, ADDRESS path__len);
 import INT32 PlatformNative_Overflow (void);
@@ -31,6 +32,7 @@ import void PlatformNative_SetControl (INT64 state, INT32 index, INT32 value);
 import void PlatformNative_SetInputFlags (INT64 state, UINT64 flags);
 import void PlatformNative_SetLocalFlags (INT64 state, UINT64 flags);
 import INT32 PlatformNative_SetTerminal (INT32 fd, INT64 state);
+import INT64 PlatformNative_StackLimit (void);
 import INT64 PlatformNative_TerminalSize (void);
 import INT32 PlatformNative_TimeIndex (void);
 import INT32 PlatformNative_WindowSize (INT32 fd, INT32 *lines, INT32 *cols);

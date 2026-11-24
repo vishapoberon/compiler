@@ -712,6 +712,74 @@ PROCEDURE TestLittleEndian;
 
 PROCEDURE -getpid(): INTEGER   "(INTEGER)getpid()";
 
+PROCEDURE -setStackBounds(low, high: SYSTEM.INT64) 'SYSTEM_SetStackBounds(low, high)';
+PROCEDURE -stackAddress(value: SYSTEM.ADDRESS): SYSTEM.INT64 '(INT64)(size_t)value';
+
+PROCEDURE LinuxStackTop(marker: SYSTEM.INT64): SYSTEM.INT64;
+  VAR file: FileHandle; buffer: ARRAY 2048 OF CHAR;
+    path: ARRAY 32 OF CHAR; label: ARRAY 8 OF CHAR;
+    count, i, field, digits, lines, total: LONGINT; error: ErrorCode;
+    matched: INTEGER;
+    low, high, value: SYSTEM.INT64; ch: CHAR;
+    valid, writable, found: BOOLEAN;
+BEGIN
+  path := "/proc/self/maps"; label := "[stack]";
+  IF OpenFile(path, ReadOnly, OpenExisting, file) # 0 THEN RETURN 0 END;
+  field := 0; digits := 0; value := 0; low := 0; high := 0;
+  valid := TRUE; writable := FALSE; found := FALSE; lines := 0; total := 0; matched := 0;
+  LOOP
+    REPEAT error := Read(file, SYSTEM.ADR(buffer), LEN(buffer), count) UNTIL ~Interrupted(error);
+    IF error # 0 THEN EXIT END;
+    INC(total, count);
+    i := 0;
+    WHILE i < count DO
+      ch := buffer[i]; INC(i);
+      IF ch = 0AX THEN
+        INC(lines);
+        IF valid & writable & (field = 4) & (matched = 7) & (low <= marker) & (marker < high) THEN
+          found := TRUE; EXIT
+        END;
+        field := 0; digits := 0; value := 0; valid := TRUE; writable := FALSE; matched := 0
+      ELSIF field < 2 THEN
+        IF (ch >= "0") & (ch <= "9") THEN
+          IF value > (MAX(SYSTEM.INT64)-9) DIV 16 THEN valid := FALSE
+          ELSE value := value*16 + ORD(ch)-ORD("0"); INC(digits) END
+        ELSIF (ch >= "a") & (ch <= "f") THEN
+          IF value > (MAX(SYSTEM.INT64)-15) DIV 16 THEN valid := FALSE
+          ELSE value := value*16 + ORD(ch)-ORD("a")+10; INC(digits) END
+        ELSIF (field = 0) & (ch = "-") & (digits > 0) THEN
+          low := value; field := 1; digits := 0; value := 0
+        ELSIF (field = 1) & (ch = " ") & (digits > 0) THEN
+          high := value; field := 2
+        ELSE valid := FALSE
+        END
+      ELSIF field = 2 THEN
+        IF ch = "r" THEN field := 3 ELSE valid := FALSE END
+      ELSIF field = 3 THEN
+        writable := ch = "w"; field := 4
+      ELSE
+        IF (matched < 7) & (ch = label[matched]) THEN INC(matched)
+        ELSIF ch = "[" THEN matched := 1 ELSE matched := 0 END
+      END
+    END;
+    IF (lines > 65536) OR (total > 4*1024*1024) OR (count = 0) THEN EXIT END
+  END;
+  error := Close(file);
+  IF found & (error = 0) THEN RETURN high ELSE RETURN 0 END
+END LinuxStackTop;
+
+PROCEDURE InitStackBounds;
+  VAR marker: CHAR; top, limit: SYSTEM.INT64;
+BEGIN
+  limit := PlatformNative.StackLimit();
+  IF limit <= 0 THEN RETURN END;
+  top := PlatformNative.NativeStackTop(SYSTEM.ADR(marker));
+  IF top < 0 THEN top := LinuxStackTop(stackAddress(SYSTEM.ADR(marker))) END;
+  IF (top > limit) & (stackAddress(SYSTEM.ADR(marker)) >= top-limit) & (stackAddress(SYSTEM.ADR(marker)) < top) THEN
+    setStackBounds(top-limit, top)
+  END
+END InitStackBounds;
+
 BEGIN
   TestLittleEndian;
 
@@ -725,4 +793,5 @@ BEGIN
 
   NL[0] := 0AX; (* LF *)
   NL[1] := 0X;
+  InitStackBounds
 END Platform.
