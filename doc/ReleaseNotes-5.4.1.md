@@ -31,6 +31,11 @@ and native integration requirements.
 Rebuild the runtime, dependent programs and shared modules to use the new
 diagnostics. Unix bootstrap sources and build-time header staging are updated.
 
+A clean GCC build on x86-64 Linux passes the confidence suite and reproduces
+the saved bootstrap C sources. The non-network shared-module profile passes
+271 ABI/load checks and its consumer tests, including stack-fault diagnostics
+with embedded and dynamically linked cores.
+
 Stack-fault, fallback, NIL-check and diagnostic regressions pass on x86-64 Linux
 with GCC, Clang and TCC in both type models. BSD VM-map query branches pass
 synthetic-interface checks; native BSD execution, other architectures and
