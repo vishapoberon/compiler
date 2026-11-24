@@ -25,4 +25,8 @@ Native builds and the full confidence suite pass on NetBSD 9.3 amd64 and
 FreeBSD 15.1-RELEASE-p7 amd64. Both systems pass stack-fault regressions in both
 type models; NetBSD confirms enabled main-stack classification with GCC.
 
+A clean GCC release build on x86-64 Linux reproduces the saved bootstrap C
+sources and passes the full confidence suite. Stack-fault regressions pass
+with GCC, Clang and TCC in both type models.
+
 Native OpenBSD, other architectures and Windows validation remain pending.
