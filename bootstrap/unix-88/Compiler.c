@@ -1,4 +1,4 @@
-/* voc 5.4.0 [2026/11/24] for gcc LP64 on gentoo xnrtspamSF */
+/* voc 5.4.1 [2026/11/24] for gcc LP64 on gentoo xnrtspamSF */
 
 #define SHORTINT INT8
 #define INTEGER  INT16
