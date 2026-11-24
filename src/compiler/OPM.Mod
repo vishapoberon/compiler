@@ -13,6 +13,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     (* compiler option flag bits; don't change the encoding *)
     inxchk*         = 0;  (* index check on *)
+    nilchk*         = 1;  (* NIL dereference check on *)
     ranchk*         = 2;  (* range check on *)
     typchk*         = 3;  (* type check on *)
     newsf*          = 4;  (* generation of new symbol file allowed *)
@@ -268,6 +269,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       CASE s[i] OF
 
       (* Run time safety *)
+      | "n": Options := Options / {nilchk}           (* Halt on NIL dereference. *)
       | "p": Options := Options / {ptrinit}          (* Initialise pointers to NIL. *)
       | "a": Options := Options / {assert}           (* Halt on assertion failures. *)
       | "r": Options := Options / {ranchk}           (* Halt on range check failures. *)
@@ -342,6 +344,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       LogWStr('Options:');                                                                                         LogWLn;
       LogWLn;
       LogWStr("  Run time safety");                                                                                LogWLn;
+      LogWStr("    -n   Halt on NIL pointer dereference. On by default.");                                         LogWLn;
       LogWStr("    -p   Initialise pointers to NIL. On by default.");                                              LogWLn;
       LogWStr("    -a   Halt on assertion failures. On by default.");                                              LogWLn;
       LogWStr("    -r   Halt on range check failures.");                                                           LogWLn;
@@ -395,7 +398,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
       AddressSize := SIZE(SYSTEM.ADDRESS); (* This compilers address size *)
       GetAlignment(Alignment);             (* This compilers alignment *)
       Model := "2";                        (* Size model of common Oberon-2 implementations: S8/I16/L32  *)
-      Options := {inxchk, typchk, ptrinit, assert};  (* Default options *)
+      Options := {inxchk, nilchk, typchk, ptrinit, assert};  (* Default options *)
 
       (* Pick up global option changes from start of command line *)
       S:=1; GetArgument(S, s);

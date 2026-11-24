@@ -75,6 +75,7 @@ typedef unsigned char        UINT8;
 
 #define NIL          ((void*)0)
 #define __MAXEXT     16
+#define __BASEOFF    (__MAXEXT+1)
 #define VOC_SHARED_ABI_FORMAT 2
 #define VOC_CORE_ABI_PROFILE  3
 #ifndef VOC_MAIN_PROGRAM
@@ -122,6 +123,11 @@ extern void Modules_AssertFail(INT32 x);
 
 #define __HALT(x)         Modules_Halt((INT32)(x))
 #define __ASSERT(cond, x) if (!(cond)) Modules_AssertFail((INT32)(x))
+
+static inline ADDRESS __NIL(ADDRESS p) {
+  if (!p) __HALT(-10);
+  return p;
+}
 
 
 // Index checking
@@ -255,7 +261,26 @@ static inline double SYSTEM_ABSD(double i) {return i >= 0.0 ? i : -i;}
 
 #define __IS(tag, typ, level) (*(tag-(__BASEOFF-level))==(ADDRESS)typ##__typ)
 #define  __TYPEOF(p)          (*(((ADDRESS**)(p))-1))
-#define __ISP(p, typ, level)  __IS(__TYPEOF(p),typ,level)
+static inline BOOLEAN __ISPF(ADDRESS p, ADDRESS *typ, INT32 level) {
+  return p && *(__TYPEOF(p) - (__BASEOFF - level)) == (ADDRESS)typ;
+}
+#define __ISP(p, typ, level) __ISPF((ADDRESS)(p), typ##__typ, level)
+
+static inline ADDRESS __GUARDPF(ADDRESS p, ADDRESS *typ, INT32 level) {
+  p = __NIL(p);
+  if (!__ISPF(p, typ, level)) __HALT(-5);
+  return p;
+}
+
+static inline ADDRESS __GUARDEQPF(ADDRESS p, ADDRESS *typ) {
+  p = __NIL(p);
+  if (__TYPEOF(p) != typ) __HALT(-6);
+  return p;
+}
+
+#define __GUARDPN(p, typ, level) ((typ*)__GUARDPF((ADDRESS)(p), typ##__typ, level))
+#define __GUARDAN(p, typ, level) ((struct typ*)__GUARDPF((ADDRESS)(p), typ##__typ, level))
+#define __GUARDEQPN(p, typ)      (*((typ*)__GUARDEQPF((ADDRESS)(p), typ##__typ)))
 
 
 #define __GUARDP(p, typ, level)    ((typ*)(__ISP(p,typ,level)?p:(__HALT(-5),p)))
@@ -357,7 +382,6 @@ extern void SYSTEM_ENUMR  (void *adr, ADDRESS *typ, ADDRESS size, ADDRESS n, voi
     ADDRESS  ptr[n+1];         /* Offsets of ptrs up to -ve sentinel */ \
   } t##__desc
 
-#define __BASEOFF   (__MAXEXT+1)                           // blksz as index to base.
 #define __TPROC0OFF (__BASEOFF+24/sizeof(ADDRESS)+5)       // blksz as index to tproc IFF m=1.
 #define __EOM 1
 #define __TDFLDS(name, size)          {__EOM}, 1, 0, 0, 0, name, {0}, 0, size

@@ -362,7 +362,7 @@ MODULE Modules;  (* jt 6.1.96 *)
     | -7: errstring("Invalid case in WITH statement.")
     | -8: errstring("Value out of range.")
     | -9: errstring("Heap interrupted while locked, but lockdepth = 0 at unlock.")
-    |-10: errstring("NIL access.");
+    |-10: errstring("NIL pointer dereference.");
     |-11: errstring("Alignment error.");
     |-12: errstring("Divide by zero.");
     |-13: errstring("Arithmetic overflow/underflow.");

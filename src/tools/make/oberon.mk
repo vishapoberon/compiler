@@ -365,6 +365,7 @@ confidence:
 	sh src/test/bootstrap/test-sourcechanges.sh
 	sh src/test/bootstrap/test-unix-features.sh
 	sh src/test/bootstrap/test-python.sh
+	@if [ "$(PLATFORM)" = unix ]; then for model in 2 C; do $(STAGED_ENV) sh src/tools/make/python.sh src/test/nilchecks/test.py --voc "$(ROOTDIR)/install/bin/$(OBECOMP)" --vocroot "$(ROOTDIR)/install" --model $$model $(if $(filter tcc,$(COMPILER)),--cc tcc,) --work "$(ROOTDIR)/$(BUILDDIR)/nilcheck-tests/$$model" || exit; done; fi
 	@if [ "$(PLATFORM)" = unix ]; then \
 	  for model in 2 C; do $(STAGED_ENV) $(MAKE) -C src/test/reals test VOC="$(ROOTDIR)/install/bin/$(OBECOMP)" VOCROOT="$(ROOTDIR)/install" ONAME="$(ONAME)" MODEL=$$model BUILD="$(ROOTDIR)/$(BUILDDIR)/reals-tests/$$model" || exit; done; \
 	fi

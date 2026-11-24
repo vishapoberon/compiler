@@ -263,6 +263,18 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     END
   END DeclareBase;
 
+  PROCEDURE PointerCast*(typ: OPT.Struct);
+    VAR obj: OPT.Object;
+  BEGIN
+    OPM.Write("(");
+    IF (typ^.strobj # NIL) & (typ^.strobj^.name # "") THEN Ident(typ^.strobj)
+    ELSE
+      obj := OPT.NewObj(); obj^.mode := OPT.Var; obj^.typ := typ;
+      DeclareBase(obj); OPM.Write(" "); DeclareObj(obj, FALSE)
+    END;
+    OPM.Write(")")
+  END PointerCast;
+
   PROCEDURE NofPtrs* (typ: OPT.Struct): LONGINT;
     VAR fld: OPT.Object; btyp: OPT.Struct; n: LONGINT;
   BEGIN
@@ -354,7 +366,6 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     WHILE par # NIL DO
       IF macro THEN OPM.WriteStringVar(par.name)
       ELSE
-        IF (par^.mode = OPT.Var) & (par^.typ^.form = OPT.Real) THEN OPM.Write("_") END ;
         Ident(par)
       END ;
       IF par^.typ^.comp = OPT.DynArr THEN
@@ -413,17 +424,34 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
   END BaseTProc;
 
   PROCEDURE DefineTProcMacros(obj: OPT.Object; VAR empty: BOOLEAN);
+    VAR checked: BOOLEAN;
   BEGIN
     IF obj # NIL THEN
       DefineTProcMacros(obj^.left, empty);
       IF (obj^.mode = OPT.TProc) & (obj = BaseTProc(obj)) THEN
           IF (OPM.currFile = OPM.BodyFile) OR ((OPM.currFile = OPM.HeaderFile) & (obj^.vis = OPT.external)) THEN
-              OPM.WriteString("#define __");
+              checked := (OPM.nilchk IN OPM.Options) & (obj^.link^.typ^.form = OPT.Pointer);
+              IF checked THEN
+                OPM.WriteString("#ifndef __"); Ident(obj); OPM.WriteString("__defined"); OPM.WriteLn;
+                OPM.WriteString("#define __"); Ident(obj); OPM.WriteString("__defined"); OPM.WriteLn;
+                OPM.WriteString("static inline ");
+                IF obj^.typ = OPT.notyp THEN OPM.WriteString("void") ELSE Ident(obj^.typ^.strobj) END;
+                OPM.WriteString(" __")
+              ELSE OPM.WriteString("#define __")
+              END;
               Ident(obj);
-              DeclareParams(obj^.link, TRUE);
+              IF checked THEN
+                AnsiParamList(obj^.link, TRUE); OPM.WriteString(" { ");
+                IF obj^.typ # OPT.notyp THEN OPM.WriteString("return ") END
+              ELSE DeclareParams(obj^.link, TRUE)
+              END;
               OPM.WriteString(" __SEND(");
               IF obj^.link^.typ^.form = OPT.Pointer THEN
-                  OPM.WriteString("__TYPEOF("); Ident(obj^.link); OPM.Write(")")
+                  OPM.WriteString("__TYPEOF(");
+                  IF checked THEN OPM.WriteString("__NIL((ADDRESS)") END;
+                  Ident(obj^.link);
+                  IF checked THEN OPM.Write(")") END;
+                  OPM.Write(")")
               ELSE Ident(obj^.link); OPM.WriteString(TagExt)
               END ;
               Str1(", #, ", obj^.adr DIV 10000H);
@@ -431,8 +459,11 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
               OPM.WriteString("(*)");
               AnsiParamList(obj^.link, FALSE);
               OPM.WriteString(", ");
-              DeclareParams(obj^.link, TRUE);
-              OPM.Write(")"); OPM.WriteLn
+              DeclareParams(obj^.link, ~checked);
+              OPM.Write(")");
+              IF checked THEN OPM.WriteString("; }") END;
+              OPM.WriteLn;
+              IF checked THEN OPM.WriteString("#endif"); OPM.WriteLn END
           END
       END ;
       DefineTProcMacros(obj^.right, empty)
@@ -829,6 +860,7 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
       IF i IN OPM.Options THEN
         CASE i OF  (* c.f. ScanOptions in OPM *)
         | OPM.inxchk:         OPM.Write("x")
+        | OPM.nilchk:         OPM.Write("n")
         | OPM.ranchk:         OPM.Write("r")
         | OPM.typchk:         OPM.Write("t")
         | OPM.newsf:          OPM.Write("s")

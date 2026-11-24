@@ -31,6 +31,9 @@ and the XML, XMPP, Unicode, image and editor additions from the 4.0 series.
 [Hexadecimal output](doc/HexadecimalOutput.md) documents ETH-compatible
 `Out.Hex(i)` and the unsigned, minimum-width `Out.HexDigits(x, n)` interface.
 
+[Runtime pointer checks](doc/RuntimeChecks.md) describes default-on NIL checks
+and the separate Unix diagnostic for invalid memory accesses.
+
 ### Contents
 
 &nbsp;&nbsp;&nbsp;&nbsp;[**Installation**](#installation)<br>
