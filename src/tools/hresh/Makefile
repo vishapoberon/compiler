@@ -337,6 +337,9 @@ test-library: libraries
 	$(MAKE) -C "$(ROOT)/src/test/ports/sts-q" test-bundled VOC="$(NEWVOC)" VOCROOT="$(VOCROOT)" VOCLIBDIR="$(MODULES)" SYMBOLS="$(MODULES)" MODEL=$(MODEL) FLAGS=-smD BUILD="$(BUILD)/kbd-tests"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestAsciiCodes.mod"
 	"$(BUILD)/TestAsciiCodes"
+	cd "$(BUILD)" && for name in TestOakStrings TestOakNumbers; do $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/$$name.mod" && "./$$name" || exit; done
+	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestOakOut.mod"
+	sh "$(ROOT)/src/tools/make/python.sh" "$(ROOT)/src/ports/ooc/tests/check-oakout.py" "$(BUILD)/TestOakOut"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -smD "$(ROOT)/src/test/confidence/library/TestOocUnified.mod"
 	"$(BUILD)/TestOocUnified"
 	cd "$(BUILD)" && $(ENV) "$(NEWVOC)" -O$(MODEL) -sFl "$(ROOT)/src/test/confidence/library/TypeAliases.mod"

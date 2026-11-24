@@ -28,6 +28,10 @@ def main():
                 raise AssertionError(f"line {index}: integer limit mismatch: {actual!r}")
         elif actual != wanted:
             raise AssertionError(f"line {index}: expected {wanted!r}, got {actual!r}")
+    minimum = int(lines[2].split("|")[0])
+    maximum = int(lines[3].split("|")[0])
+    if minimum not in (-(2**31), -(2**63)) or maximum != -minimum - 1:
+        raise AssertionError(f"unexpected LONGINT limits: {minimum}, {maximum}")
     if result.stderr:
         raise AssertionError(f"unexpected stderr: {result.stderr!r}")
     print("OakOut: 9 output checks, 0 failed")

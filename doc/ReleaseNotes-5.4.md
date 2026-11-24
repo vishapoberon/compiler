@@ -38,8 +38,29 @@ runtime location.
   rejected; proven pointwise updates, disjoint fields and copied inputs remain
   supported.
 
+## Bundled libraries
+
+- XML incorporates upstream revision `036b15a`, using the shared `oocStrings`
+  interface, shorter identifiers and portable assertion codes in its tests.
+- `OakOut` supplies the oo2c Oakwood output interface, including immediate
+  flushing and padded real exponents. `OakStrings` has regression coverage for
+  all exported operations and fixes substring truncation at an exact-size
+  destination boundary. Its capitalization routine and `oocStrings.Capitalize`
+  preserve punctuation, digits and high-bit bytes.
+- `LowLReal` handles IEEE exponent and fraction fields through 32-bit set
+  words, allowing the Oakwood real converters to work with 64-bit `LONGINT`.
+
 ## Building and upgrading
 
 Rebuild the compiler, runtime, dependent programs and shared modules together.
 Location-bearing checks require the updated runtime. Recompile existing `ALL`
 bodies to apply the independence checks.
+
+## Validation
+
+Runtime checks and source diagnostics pass with GCC, Clang and TCC on x86-64
+Linux in both type models. Oakwood string and numeric regressions pass the
+same matrix. A clean GCC build passes the confidence suite; the non-network
+shared-module profile passes 271 ABI/load checks and its consumer tests. XML
+passes its integration, conformance, resource-limit and deterministic mutation
+suites. Native Windows and polpo execution remain untested for this release.
