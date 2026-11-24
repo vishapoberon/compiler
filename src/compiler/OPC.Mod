@@ -275,6 +275,20 @@ MODULE OPC;  (* copyright (c) J. Templ 12.7.95 / 3.7.96 *)
     OPM.Write(")")
   END PointerCast;
 
+  PROCEDURE ^StringLiteral(s: ARRAY OF CHAR; l: LONGINT);
+
+  PROCEDURE SourceLocation*(pos: LONGINT);
+    VAR line, column: LONGINT;
+  BEGIN
+    IF pos < 0 THEN pos := 0 END;
+    OPM.SourceLocation(pos, line, column);
+    OPM.WriteString(', (CHAR*)'); StringLiteral(OPM.SourceFileName, Strings.Length(OPM.SourceFileName));
+    OPM.WriteString(", "); OPM.WriteInt(Strings.Length(OPM.SourceFileName) + 1);
+    OPM.WriteString(', (CHAR*)"'); OPM.WriteStringVar(OPM.modName); OPM.WriteString('", ');
+    OPM.WriteInt(Strings.Length(OPM.modName) + 1); OPM.WriteString(", ");
+    OPM.WriteInt(line); OPM.WriteString(", "); OPM.WriteInt(column); OPM.WriteString(", "); OPM.WriteInt(pos)
+  END SourceLocation;
+
   PROCEDURE NofPtrs* (typ: OPT.Struct): LONGINT;
     VAR fld: OPT.Object; btyp: OPT.Struct; n: LONGINT;
   BEGIN

@@ -9,11 +9,16 @@ Oberon programs under Unix, Mac or Windows. Vishap Oberon includes
 libraries from the Ulm, oo2c and Ofront Oberon compilers, as well as
 default libraries complying with the Oakwood Guidelines for Oberon-2 compilers.
 
-[Release notes for 5.3](doc/ReleaseNotes-5.3.md) ·
+[Release notes for 5.4](doc/ReleaseNotes-5.4.md) ·
+[5.3 release notes](doc/ReleaseNotes-5.3.md) ·
 [5.2 release notes](doc/ReleaseNotes-5.2.md) ·
 [5.1 release notes](doc/ReleaseNotes-5.1.md) ·
 [5.0 release notes](doc/ReleaseNotes-5.0.md) ·
 [4.0 release history](doc/ReleaseNotes-4.0.md)
+
+Version 5.4 adds default-on NIL checks, source locations for NIL and array-bounds
+failures, and editor-readable compiler diagnostics. It also enforces read-only
+destinations for memory loads and static independence for `ALL`.
 
 Version 5.3 adds native Ed25519 signatures, incremental SHA-512 and resumable
 mutual TLS 1.3 authentication with manually pinned Ed25519 keys. The `none`
@@ -50,6 +55,10 @@ and the separate Unix diagnostic for invalid memory accesses.
 
 
 ## Installation
+
+Gentoo users can install `dev-lang/voc` from
+[norayr-overlay](https://github.com/norayr/norayr-overlay). See the
+[Gentoo installation commands](doc/Installation.md#gentoo).
 
 It is easy to build the Oberon compiler and libraries
 with the following simple steps:

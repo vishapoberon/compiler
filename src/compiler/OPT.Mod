@@ -115,6 +115,7 @@ TYPE
     left*, right*, link*: Node;
     class*, subcl*:       SHORTINT;
     readonly*:            BOOLEAN;
+    pos*:                 LONGINT;  (* source byte offset *)
     typ*:                 Struct;
     obj*:                 Object;
     conval*:              Const
@@ -393,7 +394,7 @@ END NewStr;
 
 PROCEDURE NewNode*(class: SHORTINT): Node;
   VAR node: Node;
-BEGIN NEW(node); node^.class := class; RETURN node
+BEGIN NEW(node); node^.class := class; node^.pos := OPS.pos; RETURN node
 END NewNode;
 
 PROCEDURE NewExt*(): ConstExt;

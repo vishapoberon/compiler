@@ -3,6 +3,7 @@ import argparse
 import os
 from pathlib import Path
 import resource
+import re
 import shutil
 import signal
 import subprocess
@@ -38,10 +39,10 @@ def translate(path, options=""):
     return work / (path.stem + ".c")
 
 
-def compile(csource, cc, optimization="-O2"):
+def compile(csource, cc, optimization="-O2", extra_sources=()):
     executable = work / (csource.stem + "-" + cc + optimization)
     result = run([cc, optimization, "-fno-strict-aliasing", "-DVOC_MAIN_PROGRAM=1",
-                  "-I" + str(image / args.model / "include"), csource,
+                  "-I" + str(image / args.model / "include"), csource, *extra_sources,
                   image / "lib" / ("libvoc-O" + args.model + ".a"),
                   *(["-ldl"] if sys.platform.startswith("linux") else []), "-lm", "-o", executable])
     assert result.returncode == 0, result.stdout + result.stderr
@@ -62,15 +63,21 @@ VAR p, sentinel: P; q: Q; fixed: Fixed; dynamic: Dynamic; matrix: Matrix;
   simple: SP;
   action: PROCEDURE; function: PROCEDURE(): LONGINT;
   value: LONGINT; record: R; pointers: ARRAY 2 OF P;
+  storage: ARRAY 2 OF LONGINT; grid: ARRAY 2, 3 OF LONGINT;
   anonymous: RECORD dynamic: POINTER TO ARRAY OF LONGINT; fixed: POINTER TO ARRAY 2 OF LONGINT END;
 PROCEDURE Finish(obj: SYSTEM.PTR);
-BEGIN Out.String("finalizer ran"); Out.Ln; Out.Flush END Finish;
+BEGIN
+  sentinel.value := 0; value := 0; value := storage[value];
+  Out.String("finalizer ran"); Out.Ln; Out.Flush
+END Finish;
 PROCEDURE Use(VAR x: LONGINT); BEGIN x := 1 END Use;
 PROCEDURE Open(values: ARRAY OF LONGINT); BEGIN value := values[0] END Open;
 PROCEDURE Copy(VAR x: R); BEGIN x.value := 1 END Copy;
 PROCEDURE (p: P) Empty; BEGIN END Empty;
 PROCEDURE (p: P) Get(): LONGINT; BEGIN RETURN 1 END Get;
 PROCEDURE (VAR r: SR) RecordMethod; BEGIN END RecordMethod;
+PROCEDURE BadIndex(): LONGINT;
+BEGIN Out.String("index evaluated"); Out.Ln; RETURN 2 END BadIndex;
 """
 cases = [
     ("ReadField", "value := p.value"),
@@ -113,6 +120,21 @@ def module(name, body):
     return path
 
 
+def check_location(result, path, marker=None, module_name=None):
+    pattern = (rf"^{re.escape(str(path))}:(\d+):(\d+): runtime error: .*"
+               rf"\(module {re.escape(module_name or path.stem)}, pos (\d+)\)$")
+    match = re.search(pattern, result.stdout, re.MULTILINE)
+    assert match, (path, result)
+    data = path.read_bytes()
+    pos = int(match[3])
+    if marker is not None:
+        assert pos == data.rindex(marker.encode()), (path, marker, result)
+    prefix = data[:pos]
+    line = prefix.replace(b"\r\n", b"\n").replace(b"\r", b"\n").count(b"\n") + 1
+    column = pos - max(prefix.rfind(b"\r"), prefix.rfind(b"\n"))
+    assert (int(match[1]), int(match[2])) == (line, column), (path, result)
+
+
 positive = translate(source / "TestNilChecks.Mod")
 for cc in compilers:
     for optimization in (("-O0", "-O2") if cc != "tcc" else ("-O2",)):
@@ -126,6 +148,7 @@ for name, body in cases:
         result = run([compile(csource, cc)])
         assert result.returncode == (-10) % 256, (name, cc, result)
         assert "Terminated by Halt(-10). NIL pointer dereference." in result.stdout, result
+        check_location(result, work / ("Nil" + name + ".Mod"))
         assert "finalizer ran" in result.stdout, result
         assert "SIGSEGV" not in result.stdout + result.stderr, result
         assert "unexpected continuation" not in result.stdout, result
@@ -141,8 +164,82 @@ for name, body, code, diagnostic in (
         result = run([compile(csource, cc)])
         assert result.returncode == code % 256, (name, cc, result)
         assert f"Terminated by Halt({code}). {diagnostic}" in result.stdout, result
+        check_location(result, work / (name + ".Mod"))
         assert "SIGSEGV" not in result.stdout + result.stderr, result
 print("Type-guard, record-assignment and bounds diagnostics preserved", flush=True)
+
+locations = [
+    ("LocNilField", "value := p.value", ".value", -10),
+    ("LocNilChain", "NEW(p); value := p.next.value", ".value", -10),
+    ("LocNilExplicit", "record := p^", "^", -10),
+    ("LocNilLength", "value := LEN(dynamic^)", "^", -10),
+    ("LocNilMethod", "p.Empty", ".Empty", -10),
+    ("LocNilProcedure", "action()", "action()", -10),
+    ("LocBounds", "value := 2; value := storage[value]", "value]", -2),
+    ("LocNegative", "value := -1; value := storage[value]", "value]", -2),
+    ("LocDynamic", "NEW(dynamic, 2); value := dynamic[2]", "2]", -2),
+    ("LocMatrix", "value := 3; value := grid[0, value]", "value]", -2),
+    ("LocIndexCall", "value := storage[BadIndex()]", "BadIndex()", -2),
+    ("LocRepeated", "value := 1; storage[value] := 1;\nvalue := 2; value := storage[value]", "value]", -2),
+]
+for name, body, marker, code in locations:
+    path = module(name, body)
+    csource = translate(path)
+    result = run([compile(csource, compilers[0])])
+    assert result.returncode == code % 256, result
+    check_location(result, path, marker)
+    if name == "LocIndexCall":
+        assert result.stdout.count("index evaluated") == 1, result
+
+path = module("LocArrayCopy", "NEW(dynamic, 3); CopyTooMuch(dynamic^)")
+procedure = """PROCEDURE CopyTooMuch(values: ARRAY OF LONGINT);
+BEGIN storage := values END CopyTooMuch;
+"""
+path.write_text(path.read_text().replace("PROCEDURE Finish", procedure + "PROCEDURE Finish"))
+csource = translate(path)
+result = run([compile(csource, compilers[0])])
+assert result.returncode == (-2) % 256, result
+check_location(result, path, "storage := values")
+
+for name, ending in (("LocCRLF", "\r\n"), ("LocCR", "\r"), ("LocLF", "\n")):
+    path = module(name, "value := 2;\nvalue := storage[\n  (* index position *) value\n]")
+    text = path.read_text().replace("BEGIN\nNEW(sentinel)", "(* source padding *)\n" * 300 + "BEGIN\nNEW(sentinel)")
+    path.write_bytes(text.replace("\n", ending).encode())
+    csource = translate(path)
+    result = run([compile(csource, compilers[0])])
+    assert result.returncode == (-2) % 256, result
+    check_location(result, path, "value" + ending + "]")
+
+callee = work / "LocationCallee.Mod"
+callee.write_text("""MODULE LocationCallee;
+IMPORT Out;
+PROCEDURE Fail*;
+VAR values: ARRAY 2 OF LONGINT; index: LONGINT;
+BEGIN
+  index := 2;
+  Out.Int(values[index], 0)
+END Fail;
+END LocationCallee.
+""")
+result = run([voc, "-O" + args.model, "-sSF", callee])
+assert result.returncode == 0, result
+caller = work / "LocationCaller.Mod"
+caller.write_text("MODULE LocationCaller; IMPORT LocationCallee; BEGIN LocationCallee.Fail END LocationCaller.\n")
+csource = translate(caller)
+result = run([compile(csource, compilers[0], extra_sources=[work / "LocationCallee.c"])])
+assert result.returncode == (-2) % 256, result
+check_location(result, callee, "index]")
+original = module("LocationFilename", "value := p.value")
+directory = work / 'source files'
+directory.mkdir(exist_ok=True)
+path = directory / 'actual "quoted"\\source.mod'
+path.write_bytes(original.read_bytes())
+result = run([voc, "-O" + args.model, "-sSFm", path])
+assert result.returncode == 0, result
+result = run([compile(work / 'LocationFilename.c', compilers[0])])
+assert result.returncode == (-10) % 256, result
+check_location(result, path, ".value", module_name="LocationFilename")
+print("Exact source filenames, modules, lines, columns and offsets passed, including imports and line endings", flush=True)
 
 # Other safety toggles must not disable NIL checking.
 path = module("NilIndependent", "p.value := 1")
@@ -158,7 +255,7 @@ for name, body, options in (
         ("Unchecked", "p.value := 1", "n")):
     csource = translate(module(name, body), options)
     if options == "n":
-        assert "__NIL(" not in csource.read_text(), csource
+        assert "__NIL(" not in csource.read_text() and "__NIL_AT(" not in csource.read_text(), csource
     for cc in compilers:
         result = run([compile(csource, cc)])
         assert result.returncode == 128 + signal.SIGSEGV, (name, cc, result)
@@ -167,3 +264,7 @@ for name, body, options in (
         assert "finalizer ran" not in result.stdout, result
         assert "unexpected continuation" not in result.stdout, result
 print("SIGSEGV faults reported separately without running finalizers", flush=True)
+
+subprocess.run([sys.executable, str(source / "test-diagnostics.py"), "--voc", voc,
+                "--vocroot", str(image), "--model", args.model, "--work", str(work / "diagnostics")],
+               cwd=work, env=env, check=True, timeout=60)

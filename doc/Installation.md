@@ -2,6 +2,22 @@
 
 The Oberon compiler and libraries may be built and installed on Linux based, BSD based or Windows based systems.
 
+### Gentoo
+
+The [norayr-overlay](https://github.com/norayr/norayr-overlay) provides the
+`dev-lang/voc` package. To enable the overlay and install VOC, run as root:
+
+```sh
+emerge --ask app-eselect/eselect-repository
+eselect repository add norayr-overlay git https://github.com/norayr/norayr-overlay.git
+emaint sync -r norayr-overlay
+emerge --ask dev-lang/voc::norayr-overlay
+```
+
+The versioned ebuild is keyworded `~amd64`; accept that keyword for
+`dev-lang/voc` if Portage requests it. Package USE flags select the C backend
+and optional tools, networking, bindings, examples and tests.
+
 ### Windows systems
 
 Bulding on Windows is not so simple largely because there is more than one way to do it:

@@ -1,15 +1,18 @@
 IntSyntax.mod  Compiling IntSyntax.
 
+IntSyntax.mod:14:9: error: incompatible assignment [err 113 at pos 341]
   14:   i := l;   (* Bad, INTEGER shorter than LONGINT *)
-             ^
-    pos   340  err 113  incompatible assignment
+              ^
 
+
+IntSyntax.mod:15:9: error: incompatible assignment [err 113 at pos 393]
   15:   s := l;   (* Bad, SHORTINT shorter than LONGINT *)
-             ^
-    pos   392  err 113  incompatible assignment
+              ^
 
+
+IntSyntax.mod:16:9: error: incompatible assignment [err 113 at pos 446]
   16:   i := l;   (* Bad, SHORTINT shorter than INTEGER *)
-             ^
-    pos   445  err 113  incompatible assignment
+              ^
+
 
 Module compilation failed.

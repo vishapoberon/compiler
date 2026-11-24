@@ -50,6 +50,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
       node: OPT.Node;
       number: LONGINT;
       maximum: SYSTEM.INT64;
+      maximumPos, rangedPos: LONGINT;
       array, written, ranged: BOOLEAN
     END;
     Reduction = POINTER TO ReductionDesc;
@@ -233,11 +234,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE^ design(n: OPT.Node; prec: INTEGER);
   PROCEDURE^ ReductionCall(n: OPT.Node);
 
-  PROCEDURE Pointer(n: OPT.Node; prec: INTEGER);
+  PROCEDURE Pointer(n: OPT.Node; prec: INTEGER; site: OPT.Node);
   BEGIN
     IF OPM.nilchk IN OPM.Options THEN
-      OPM.Write("("); OPC.PointerCast(n^.typ); OPM.WriteString("__NIL((ADDRESS)(");
-      expr(n, MinPrec); OPM.WriteString(")))")
+      OPM.Write("("); OPC.PointerCast(n^.typ); OPM.WriteString("__NIL_AT((ADDRESS)(");
+      expr(n, MinPrec); OPM.Write(")"); OPC.SourceLocation(site^.pos); OPM.WriteString("))")
     ELSE expr(n, prec)
     END
   END Pointer;
@@ -274,7 +275,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
 	  d := dim; array := n^.typ;
 	  WHILE d > 0 DO array := array^.BaseTyp; DEC(d) END;
 	  IF array^.comp = OPT.DynArr THEN
-        Pointer(n^.left, 10); OPM.WriteString("->len["); OPM.WriteInt(dim); OPM.Write("]")
+        Pointer(n^.left, 10, n); OPM.WriteString("->len["); OPM.WriteInt(dim); OPM.Write("]")
 	  ELSE
         OPM.WriteInt(array^.n)
 	  END
@@ -337,11 +338,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
   PROCEDURE TypeOf(n: OPT.Node);
   BEGIN
     IF n^.typ^.form = OPT.Pointer THEN
-      OPM.WriteString(TypeFunc); Pointer(n, MinPrec); OPM.Write(")")
+      OPM.WriteString(TypeFunc); Pointer(n, MinPrec, n); OPM.Write(")")
     ELSIF n^.class IN {OPT.Nvar, OPT.Nindex, OPT.Nfield} THEN  (* dyn rec type = stat rec type *)
       OPC.Andent(n^.typ); OPM.WriteString(DynTypExt)
     ELSIF n^.class = OPT.Nderef THEN  (* p^ *)
-      OPM.WriteString(TypeFunc); Pointer(n^.left, MinPrec); OPM.Write(")")
+      OPM.WriteString(TypeFunc); Pointer(n^.left, MinPrec, n); OPM.Write(")")
     ELSIF n^.class = OPT.Nguard THEN  (* r(T) *)
       TypeOf(n^.left)  (* skip guard *)
     ELSIF (n^.class = OPT.Nmop) & (n^.subcl = OPT.val) THEN
@@ -379,8 +380,8 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OR ParallelIndexSafe(n) THEN
       expr(n^.right, prec)
     ELSE
-      IF SideEffects(n^.right) THEN OPM.WriteString("__XF(") ELSE OPM.WriteString("__X(") END ;
-      expr(n^.right, MinPrec); OPM.WriteString(Comma); Len(d, dim); OPM.Write(CloseParen)
+      IF SideEffects(n^.right) THEN OPM.WriteString("__XF_AT(") ELSE OPM.WriteString("__X_AT(") END ;
+      expr(n^.right, MinPrec); OPM.WriteString(Comma); Len(d, dim); OPC.SourceLocation(n^.pos); OPM.Write(CloseParen)
     END
   END Index;
 
@@ -404,12 +405,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      IF ~(comp IN {OPT.Array, OPT.DynArr}) THEN OPM.Write(Deref) END;
                      OPC.CompleteIdent(n^.obj)
                    END
-    | OPT.Nfield:  IF n^.left^.class = OPT.Nderef THEN Pointer(n^.left^.left, designPrec); OPM.WriteString("->")
+    | OPT.Nfield:  IF n^.left^.class = OPT.Nderef THEN Pointer(n^.left^.left, designPrec, n^.left); OPM.WriteString("->")
                    ELSE design(n^.left, designPrec); OPM.Write(".")
                    END ;
                    OPC.Ident(n^.obj)
-    | OPT.Nderef:  IF n^.typ^.comp = OPT.DynArr THEN Pointer(n^.left, 10); OPM.WriteString("->data")
-                   ELSE OPM.Write(Deref); Pointer(n^.left, designPrec)
+    | OPT.Nderef:  IF n^.typ^.comp = OPT.DynArr THEN Pointer(n^.left, 10, n); OPM.WriteString("->data")
+                   ELSE OPM.Write(Deref); Pointer(n^.left, designPrec, n)
                    END
     | OPT.Nindex:  d := n^.left;
                    IF d^.typ^.comp = OPT.DynArr THEN dims := 0;
@@ -453,7 +454,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        END ;
                      ELSE (*Pointer*)
                        IF OPM.nilchk IN OPM.Options THEN
-                         IF typ^.BaseTyp^.strobj = NIL THEN OPM.WriteString("__GUARDAN(") ELSE OPM.WriteString("__GUARDPN(") END
+                         IF typ^.BaseTyp^.strobj = NIL THEN OPM.WriteString("__GUARDAN_AT(") ELSE OPM.WriteString("__GUARDPN_AT(") END
                        ELSE
                          IF typ^.BaseTyp^.strobj = NIL THEN OPM.WriteString("__GUARDA(") ELSE OPM.WriteString(GuardPtrFunc) END
                        END ;
@@ -461,7 +462,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      END ;
                      OPM.WriteString(Comma);
                      OPC.Andent(typ); OPM.WriteString(Comma);
-                     OPM.WriteInt(typ^.extlev); OPM.Write(")")
+                     OPM.WriteInt(typ^.extlev);
+                     IF (n^.typ^.form = OPT.Pointer) & (OPM.nilchk IN OPM.Options) THEN OPC.SourceLocation(n^.pos) END;
+                     OPM.Write(")")
                    ELSE
                      IF typ^.comp = OPT.Record THEN (* do not cast record directly, cast pointer to record *)
                        OPM.WriteString("*("); OPC.Ident(typ^.strobj); OPM.WriteString("*)"); OPC.CompleteIdent(obj)
@@ -473,10 +476,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                      IF n^.left^.class = OPT.Nvarpar THEN OPM.WriteString("__GUARDEQR(");
                        OPC.CompleteIdent(n^.left^.obj); OPM.WriteString(Comma); TypeOf(n^.left);
                      ELSE
-                       IF OPM.nilchk IN OPM.Options THEN OPM.WriteString("__GUARDEQPN(") ELSE OPM.WriteString("__GUARDEQP(") END;
+                       IF OPM.nilchk IN OPM.Options THEN OPM.WriteString("__GUARDEQPN_AT(") ELSE OPM.WriteString("__GUARDEQP(") END;
                        expr(n^.left^.left, MinPrec)
                      END ; (* __GUARDEQx includes deref *)
-                     OPM.WriteString(Comma); OPC.Ident(n^.left^.typ^.strobj); OPM.Write(")")
+                     OPM.WriteString(Comma); OPC.Ident(n^.left^.typ^.strobj);
+                     IF (n^.left^.class # OPT.Nvarpar) & (OPM.nilchk IN OPM.Options) THEN OPC.SourceLocation(n^.pos) END;
+                     OPM.Write(")")
                    ELSE
                      expr(n^.left, MinPrec)  (* always lhs of assignment *)
                    END
@@ -492,7 +497,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
     OPM.WriteInt(n)
   END ParIntLiteral;
 
-  PROCEDURE ActualPar(n: OPT.Node; fp: OPT.Object; receiver: BOOLEAN);
+  PROCEDURE ActualPar(n: OPT.Node; fp: OPT.Object; receiver: BOOLEAN; site: OPT.Node);
     VAR typ, aptyp: OPT.Struct; comp, form, mode, prec, dim: INTEGER;
   BEGIN
     OPM.Write(OpenParen);
@@ -526,7 +531,7 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         OPM.Write("("); OPC.Ident(typ^.strobj); OPM.WriteString("){");
         expr(n, MinPrec); OPM.Write("}")
       ELSIF receiver & (form = OPT.Pointer) THEN
-        Pointer(n, prec)
+        Pointer(n, prec, site)
       ELSE
         expr(n, prec)
       END;
@@ -736,9 +741,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                     OPC.Ident(proc);
                     n^.obj := proc^.link
                   ELSIF l^.class = OPT.Nproc THEN design(l, 10)
-                  ELSE Pointer(l, ProcTypeVar)
+                  ELSE Pointer(l, ProcTypeVar, n)
                   END ;
-                  ActualPar(r, n^.obj, (l^.obj # NIL) & (l^.obj^.mode = OPT.TProc));
+                  ActualPar(r, n^.obj, (l^.obj # NIL) & (l^.obj^.mode = OPT.TProc), n);
                   IF (OPM.permodules IN OPM.Options) & (l.obj # NIL) & (l.obj.mode = OPT.CProc) THEN OPM.Write(")") END
     ELSE          design(n, prec); (* not exprPrec! *)
     END;
@@ -957,9 +962,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
         index := n^.right;
         WHILE (index^.class = OPT.Nmop) & (index^.subcl = OPT.conv) &
             (index^.typ^.size >= index^.left^.typ^.size) DO index := index^.left END;
-        IF (index^.class = OPT.Nvar) & (index^.obj = range^.obj) THEN value^.ranged := TRUE
+        IF (index^.class = OPT.Nvar) & (index^.obj = range^.obj) THEN value^.ranged := TRUE; value^.rangedPos := n^.pos
         ELSIF (index^.class = OPT.Nconst) & (index^.typ^.form = OPT.Int) & (index^.conval^.intval >= 0) THEN
-          IF index^.conval^.intval > value^.maximum THEN value^.maximum := index^.conval^.intval END
+          IF index^.conval^.intval > value^.maximum THEN value^.maximum := index^.conval^.intval; value^.maximumPos := n^.pos END
         ELSE OPM.err(170)
         END
     | OPT.Nmop:
@@ -1021,12 +1026,12 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
           OPC.BegStat; OPM.WriteString("if ("); AllName(range, "__start");
           OPM.WriteString(" < 0 || (UINT64)"); AllName(range, "__end");
           OPM.WriteString(" >= (UINT64)"); GPUName(range, value, "__len");
-          OPM.WriteString(") __HALT(-2)"); OPC.EndStat
+          OPM.WriteString(") __HALT_AT(-2"); OPC.SourceLocation(value^.rangedPos); OPM.Write(")"); OPC.EndStat
         END;
         IF value^.maximum >= 0 THEN
           OPC.BegStat; OPM.WriteString("if ((UINT64)"); OPC.IntLiteral(value^.maximum, 8);
           OPM.WriteString(" >= (UINT64)"); GPUName(range, value, "__len");
-          OPM.WriteString(") __HALT(-2)"); OPC.EndStat
+          OPM.WriteString(") __HALT_AT(-2"); OPC.SourceLocation(value^.maximumPos); OPM.Write(")"); OPC.EndStat
         END
       END;
       value := value^.next
@@ -1530,10 +1535,11 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                                         IF r^.typ = OPT.stringtyp THEN OPM.WriteInt(r^.conval^.intval2)
                                         ELSIF r.typ.comp = OPT.DynArr THEN
                                           (* Dynamic array to array copy *)
-                                          OPM.WriteString("__X(");
+                                          OPM.WriteString("__X_AT(");
                                           Len(r, 0); OPM.WriteString(" * "); OPM.WriteInt(r.typ.BaseTyp.size);
                                           OPM.WriteString(", ");
                                           OPM.WriteInt(l.typ.size+1); (* _X validates 0 .. n-1 so we need top+1. *)
+                                          OPC.SourceLocation(n^.pos);
                                           OPM.Write(")")
                                         ELSE (* Array to array copy. *)
                                           ASSERT(r.typ.comp = OPT.Array); ASSERT(r.typ.size <= l.typ.size);
@@ -1608,9 +1614,9 @@ MODULE OPV;  (* J. Templ 16.2.95 / 3.7.96
                        OPC.Ident(proc);
                        n^.obj := proc^.link
                      ELSIF n^.left^.class = OPT.Nproc THEN design(n^.left, 10)
-                     ELSE Pointer(n^.left, ProcTypeVar)
+                     ELSE Pointer(n^.left, ProcTypeVar, n)
                      END ;
-                     ActualPar(n^.right, n^.obj, (n^.left^.obj # NIL) & (n^.left^.obj^.mode = OPT.TProc));
+                     ActualPar(n^.right, n^.obj, (n^.left^.obj # NIL) & (n^.left^.obj^.mode = OPT.TProc), n);
                      IF (OPM.permodules IN OPM.Options) & (n.left.obj # NIL) & (n.left.obj.mode = OPT.CProc) THEN
                        OPC.EndStat; OPC.BegStat; OPM.WriteString("SYSTEM_CommandCritical(0)")
                      END

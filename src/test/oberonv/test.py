@@ -44,7 +44,7 @@ language = "-sSjm" + ("P" if args.cpu else "")
 run([voc, language, sources / "TestAll.Mod"])
 generated = (work / "TestAll.c").read_text()
 assert ("#pragma omp" in generated) == args.cpu
-assert "__all" in generated and "__X(" in generated
+assert "__all" in generated and "__X_AT(" in generated
 
 compilers = args.cc or [cc for cc in ("gcc", "clang", "tcc") if shutil.which(cc)]
 if args.cpu:

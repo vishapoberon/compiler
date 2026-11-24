@@ -91,13 +91,16 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
   TYPE
     FileName = ARRAY 128 OF CHAR;
+    LineStarts = POINTER TO ARRAY OF LONGINT;
     ArgumentReader* = PROCEDURE(n: INTEGER; VAR value: ARRAY OF CHAR);
 
   VAR
     currentComment: ARRAY MaxCommentLen OF CHAR;
     hasComment: BOOLEAN;
 
-    SourceFileName : ARRAY 256 OF CHAR;
+    SourceFileName*: ARRAY 256 OF CHAR;
+    sourceLines: LineStarts;
+    sourceLineCount: LONGINT;
 
     GlobalModel,       Model*:       ARRAY 10 OF CHAR;  (* 2: S8/I16/L32, C: S16/I32/L64, V:S8/I32/L64 *)
     GlobalAddressSize, AddressSize*: INTEGER;
@@ -118,8 +121,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     pc*, entno*:      INTEGER;  (* entry number *)
     modName*:         ARRAY ModularNameLen OF CHAR;
     objname*:         ARRAY 64 OF CHAR;
-
-    ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber: LONGINT;  (* Limit = start of next line *)
 
     lasterrpos:   LONGINT;
     inR:          Texts.Reader;
@@ -508,6 +509,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   BEGIN
     done := FALSE;
     curpos := 0;
+    NEW(sourceLines, 256); sourceLines[0] := 0; sourceLineCount := 1;
     IF S >= CountArguments() THEN RETURN END ;
 
     GetArgument(S, s);
@@ -517,7 +519,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     COPY(s, SourceFileName); (* to keep it also in this module -- noch *)
 
     IF T.len = 0 THEN
-      LogWStr(s); LogWStr(" not found."); LogWLn
+      LogWLn; LogWStr(s); LogWStr(": error: source file is empty or cannot be opened"); LogWLn
     ELSE
       Texts.OpenReader(inR, T, 0);
       done := TRUE
@@ -525,7 +527,6 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
 
     INC(S);
     level := 0; noerr := done; errpos := curpos; lasterrpos := curpos -10;
-    ErrorLineStartPos := 0; ErrorLineLimitPos := 0; ErrorLineNumber := 0;
   END Init;
 
 
@@ -533,15 +534,35 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   (* ------------------------- read source text -------------------------*)
 
   PROCEDURE Get*(VAR ch: CHAR);  (* read next character from source text, 0X if eof *)
+    VAR lines: LineStarts; i: LONGINT;
   BEGIN
     curpos := Texts.Pos(inR);
     Texts.Read(inR, ch);
 
-    (* TODO, remove curpos var, and provide fn returning Texts.Pos(inR) - 1. *)
-    (* Or, better still, record symbol position in OPS. *)
+    IF (ch = 0DX) OR (ch = 0AX) THEN
+      IF sourceLineCount = LEN(sourceLines^) THEN
+        NEW(lines, LEN(sourceLines^) * 2);
+        FOR i := 0 TO sourceLineCount-1 DO lines[i] := sourceLines[i] END;
+        sourceLines := lines
+      END;
+      (* Texts.Read consumes both bytes of a CRLF line ending. *)
+      sourceLines[sourceLineCount] := Texts.Pos(inR); INC(sourceLineCount)
+    END;
 
     IF (ch < 09X) & ~inR.eot THEN ch := " " END
   END Get;
+
+  PROCEDURE SourceLocation*(pos: LONGINT; VAR line, column: LONGINT);
+    VAR low, high, middle: LONGINT;
+  BEGIN
+    IF (sourceLines = NIL) OR (sourceLineCount = 0) THEN line := 1; column := pos + 1; RETURN END;
+    low := 0; high := sourceLineCount;
+    WHILE low + 1 < high DO
+      middle := low + (high - low) DIV 2;
+      IF sourceLines[middle] <= pos THEN low := middle ELSE high := middle END
+    END;
+    line := low + 1; column := pos - sourceLines[low] + 1
+  END SourceLocation;
 
 
   PROCEDURE MakeFileName(VAR name, FName: ARRAY OF CHAR; ext: ARRAY OF CHAR);
@@ -560,14 +581,7 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
   PROCEDURE LogErrMsg(n: INTEGER);
   VAR l: INTEGER; S: Texts.Scanner; c: CHAR;
   BEGIN
-    IF n >= 0 THEN
-      LogVT100(VT100.Red); LogWStr("  err "); LogVT100(VT100.ResetAll)
-    ELSE
-      LogVT100(VT100.Magenta); LogWStr("  warning "); n := -n; LogVT100(VT100.ResetAll)
-    END;
-    LogWNum(n, 1);
-    LogWStr("  ");
-
+    IF n < 0 THEN n := -n END;
     IF Errors = NIL THEN NEW(Errors); Texts.Open(Errors, "Errors.Txt") END;
 
     Texts.OpenScanner(S, Errors, 0);
@@ -575,95 +589,80 @@ MODULE OPM;  (* RC 6.3.89 / 28.6.89, J.Templ 10.7.89 / 22.7.96  *)
     UNTIL (l # S.line) & (S.class = Texts.Int) & (S.i = n)  OR  S.eot;
     IF ~S.eot THEN
       Texts.Read(S, c);
+      WHILE (c = " ") OR (c = 09X) DO Texts.Read(S, c) END;
       WHILE ~S.eot & (c >= ' ') DO Out.Char(c); Texts.Read(S, c) END
     END
   END LogErrMsg;
 
 
-  PROCEDURE FindLine(f: Files.File; VAR r: Files.Rider; pos: SYSTEM.INT64);
-  (* Updates ErrorLineStartPos, ErrorLineLimitPos, ErrorLineNumber to
-     describe the line containing pos.
-     Exits with the rider set to the start of the line conaining pos. *)
-  VAR
-    ch, cheol: CHAR;
-  BEGIN
-    IF pos < ErrorLineStartPos THEN  (* Desired position is before saved position, start again at the begnning of file *)
-      ErrorLineStartPos := 0; ErrorLineLimitPos := 0; ErrorLineNumber := 0
-    END;
-    IF pos < ErrorLineLimitPos THEN (* Current saved line positions contain pos *)
-      Files.Set(r, f, ErrorLineStartPos);
-      RETURN
-    END;
-
-    Files.Set(r, f, ErrorLineLimitPos);
-    Files.Read(r, ch);
-    WHILE (ErrorLineLimitPos < pos) & ~r.eof DO
-      ErrorLineStartPos := ErrorLineLimitPos;
-      INC(ErrorLineNumber);
-      WHILE (ch # 0X) & (ch # 0DX) & (ch # 0AX) DO
-        Files.Read(r, ch); INC(ErrorLineLimitPos)
-      END;
-      cheol := ch; Files.Read(r, ch); INC(ErrorLineLimitPos);
-      IF (cheol = 0DX) & (ch = 0AX) THEN
-        INC(ErrorLineLimitPos); Files.Read(r, ch)
-      END
-    END;
-    Files.Set(r, f, ErrorLineStartPos);
-  END FindLine;
-
-
-  PROCEDURE ShowLine(pos: SYSTEM.INT64);
+  PROCEDURE ShowLine(pos: LONGINT);
   VAR
     f:    Files.File;
     r:    Files.Rider;
     line: ARRAY 1023 OF CHAR;
-    i:    INTEGER;
+    i, lineNumber, column, digits, number, length: LONGINT;
     ch:   CHAR;
   BEGIN
     f := Files.Old(SourceFileName);
-    FindLine(f, r, pos);
+    IF f = NIL THEN RETURN END;
+    SourceLocation(pos, lineNumber, column);
+    Files.Set(r, f, pos - column + 1);
 
     i := 0; Files.Read(r, ch);
     WHILE (ch # 0X) & (ch # 0DX) & (ch # 0AX) & (i < LEN(line)-1) DO
       line[i] := ch; INC(i); Files.Read(r, ch)
     END;
-    line[i] := 0X;
+    line[i] := 0X; length := i;
 
-    LogWLn; LogWLn;
-    LogWNum(ErrorLineNumber, 4); LogWStr(": "); LogWStr(line); LogWLn;
-    LogWStr("      ");
-
-    IF pos >= ErrorLineLimitPos THEN pos := ErrorLineLimitPos-1 END;
-    i := SHORT(Longint(pos - ErrorLineStartPos));
+    LogWNum(lineNumber, 4); LogWStr(": "); LogWStr(line); LogWLn;
+    digits := 1; number := lineNumber;
+    WHILE number >= 10 DO INC(digits); number := number DIV 10 END;
+    IF digits < 4 THEN digits := 4 END;
+    i := digits + 2;
     WHILE i > 0 DO LogW(" "); DEC(i) END;
+    i := 0;
+    WHILE (i < column - 1) & (i < length) DO
+      IF line[i] = 09X THEN LogW(09X) ELSE LogW(" ") END;
+      INC(i)
+    END;
 
     LogVT100(VT100.Green); LogW("^"); LogVT100(VT100.ResetAll);
   END ShowLine;
 
 
   PROCEDURE Mark*(n: INTEGER; pos: LONGINT);
+    VAR line, column: LONGINT;
   BEGIN
     IF pos = -1 THEN pos := 0 END;
-    IF n >= 0 THEN
-      noerr := FALSE;
-      IF (pos < lasterrpos) OR (lasterrpos + 9 < pos) THEN lasterrpos := pos; ShowLine(pos); LogWLn; LogWStr("  ");
-        IF n < 249 THEN LogWStr("  pos"); LogWNum(pos, 6); LogErrMsg(n)
-        ELSIF n = 255 THEN LogWStr("pos"); LogWNum(pos, 6); LogWStr("  pc "); LogWNum(breakpc, 1)
-        ELSIF n = 254 THEN LogWStr("pc not found")
-        ELSE LogWStr(objname);
-          IF    n = 253 THEN LogWStr(" is new, compile with option e")
-          ELSIF n = 252 THEN LogWStr(" is redefined, compile with option s")
-          ELSIF n = 251 THEN LogWStr(" is redefined (private part only), compile with option s")
-          ELSIF n = 250 THEN LogWStr(" is no longer visible, compile with option s")
-          ELSIF n = 249 THEN LogWStr(" is not consistently imported, recompile imports")
-          END
-        END
+    IF n >= 0 THEN noerr := FALSE;
+      IF (pos >= lasterrpos) & (pos <= lasterrpos + 9) THEN RETURN END;
+      lasterrpos := pos
+    END;
+    LogWLn; LogWLn;
+    IF pos >= 0 THEN
+      SourceLocation(pos, line, column);
+      LogWStr(SourceFileName); LogW(':'); LogWNum(line, 1); LogW(':'); LogWNum(column, 1); LogWStr(": ")
+    END;
+    IF n >= 0 THEN LogVT100(VT100.Red); LogWStr("error: ")
+    ELSE LogVT100(VT100.Magenta); LogWStr("warning: ")
+    END;
+    LogVT100(VT100.ResetAll);
+    IF n < 249 THEN LogErrMsg(n)
+    ELSIF n = 255 THEN LogWStr("pc "); LogWNum(breakpc, 1)
+    ELSIF n = 254 THEN LogWStr("pc not found")
+    ELSE LogWStr(objname);
+      IF    n = 253 THEN LogWStr(" is new, compile with option e")
+      ELSIF n = 252 THEN LogWStr(" is redefined, compile with option s")
+      ELSIF n = 251 THEN LogWStr(" is redefined (private part only), compile with option s")
+      ELSIF n = 250 THEN LogWStr(" is no longer visible, compile with option s")
+      ELSIF n = 249 THEN LogWStr(" is not consistently imported, recompile imports")
       END
-    ELSE
-      IF pos >= 0 THEN ShowLine(pos); LogWLn; LogWStr("  pos"); LogWNum(pos, 6) END ;
-      LogErrMsg(n);
-      IF pos < 0 THEN LogWLn END
-    END
+    END;
+    IF n >= 0 THEN LogWStr(" [err ") ELSE LogWStr(" [warning ") END;
+    LogWNum(ABS(n), 1);
+    IF pos >= 0 THEN LogWStr(" at pos "); LogWNum(pos, 1) END;
+    LogW(']'); LogWLn;
+    IF pos >= 0 THEN ShowLine(pos); LogWLn END
   END Mark;
 
 

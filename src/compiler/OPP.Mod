@@ -303,22 +303,23 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   END Type;
 
   PROCEDURE selector(VAR x: OPT.Node);
-    VAR obj, proc: OPT.Object; y: OPT.Node; typ: OPT.Struct; name: OPS.Name;
+    VAR obj, proc: OPT.Object; y: OPT.Node; typ: OPT.Struct; name: OPS.Name; pos, indexPos: LONGINT;
   BEGIN
     LOOP
+      pos := OPS.pos;
       IF sym = OPS.lbrak THEN OPS.Get(sym);
         LOOP
-          IF (x^.typ # NIL) & (x^.typ^.form = OPT.Pointer) THEN OPB.DeRef(x) END ;
-          Expression(y); OPB.Index(x, y);
+          IF (x^.typ # NIL) & (x^.typ^.form = OPT.Pointer) THEN OPB.DeRef(x); x^.pos := pos END ;
+          indexPos := OPS.pos; Expression(y); OPB.Index(x, y); x^.pos := indexPos;
           IF sym = OPS.comma THEN OPS.Get(sym) ELSE EXIT END
         END ;
         CheckSym(OPS.rbrak)
       ELSIF sym = OPS.period THEN OPS.Get(sym);
         IF sym = OPS.ident THEN name := OPS.name; OPS.Get(sym);
           IF x^.typ # NIL THEN
-            IF x^.typ^.form = OPT.Pointer THEN OPB.DeRef(x) END ;
+            IF x^.typ^.form = OPT.Pointer THEN OPB.DeRef(x); x^.pos := pos END ;
             IF x^.typ^.comp = OPT.Record THEN
-              OPT.FindField(name, x^.typ, obj); OPB.Field(x, obj);
+              OPT.FindField(name, x^.typ, obj); OPB.Field(x, obj); x^.pos := pos;
               IF (obj # NIL) & (obj^.mode = OPT.TProc) THEN
                 IF sym = OPS.arrow THEN  (* super call *) OPS.Get(sym);
                   y := x^.left;
@@ -342,13 +343,13 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
           END
         ELSE err(OPS.ident)
         END
-      ELSIF sym = OPS.arrow THEN OPS.Get(sym); OPB.DeRef(x)
+      ELSIF sym = OPS.arrow THEN OPS.Get(sym); OPB.DeRef(x); x^.pos := pos
       ELSIF (sym = OPS.lparen) & (x^.class < OPT.Nconst) & (x^.typ^.form # OPT.ProcTyp) &
           ((x^.obj = NIL) OR (x^.obj^.mode # OPT.TProc)) THEN
         OPS.Get(sym);
         IF sym = OPS.ident THEN
           qualident(obj);
-          IF obj^.mode = OPT.Typ THEN OPB.TypTest(x, obj, TRUE)
+          IF obj^.mode = OPT.Typ THEN OPB.TypTest(x, obj, TRUE); x^.pos := pos
           ELSE err(52)
           END
         ELSE err(OPS.ident)
@@ -358,6 +359,12 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
       END
     END
   END selector;
+
+  PROCEDURE Designator(VAR x: OPT.Node);
+    VAR id: OPT.Object; pos: LONGINT;
+  BEGIN
+    pos := OPS.pos; qualident(id); x := OPB.NewLeaf(id); x^.pos := pos; selector(x)
+  END Designator;
 
   PROCEDURE ActualParameters(VAR aparlist: OPT.Node; fpar: OPT.Object);
     VAR apar, last: OPT.Node;
@@ -430,13 +437,13 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
   END Sets;
 
   PROCEDURE Factor(VAR x: OPT.Node);
-    VAR fpar, id: OPT.Object; apar: OPT.Node;
+    VAR fpar: OPT.Object; apar: OPT.Node;
   BEGIN
     IF sym < OPS.lparen THEN err(13);
       REPEAT OPS.Get(sym) UNTIL sym >= OPS.lparen
     END ;
     IF sym = OPS.ident THEN
-      qualident(id); x := OPB.NewLeaf(id); selector(x);
+      Designator(x);
       IF (x^.class = OPT.Nproc) & (x^.obj^.mode = OPT.SProc) THEN StandProcCall(x)  (* x may be NIL *)
       ELSIF sym = OPS.lparen THEN
         OPS.Get(sym); OPB.PrepCall(x, fpar);
@@ -1158,7 +1165,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
     LOOP
       IF sym # OPS.ident THEN EXIT END;
       pos := OPM.errpos;
-      qualident(id); s := OPB.NewLeaf(id); selector(s);
+      Designator(s);
       IF sym # OPS.becomes THEN err(161); SkipAllTail; EXIT END;
       OPS.Get(sym); Expression(y);
       IF s^.class # OPT.Nvar THEN CheckAllExpression(s) END;
@@ -1233,7 +1240,7 @@ MODULE OPP;  (* NW, RC 6.3.89 / 10.2.94 *)  (* object model 4.12.93 *)
         REPEAT OPS.Get(sym) UNTIL sym >= OPS.ident
       END ;
       IF sym = OPS.ident THEN
-        qualident(id); x := OPB.NewLeaf(id); selector(x);
+        Designator(x);
         IF sym = OPS.becomes THEN
           OPS.Get(sym); Expression(y); OPB.Assign(x, y)
         ELSIF sym = OPS.eql THEN

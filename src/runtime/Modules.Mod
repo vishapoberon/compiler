@@ -373,15 +373,32 @@ MODULE Modules;  (* jt 6.1.96 *)
     END
   END DisplayHaltCode;
 
+  PROCEDURE DisplayHalt(code: SYSTEM.INT32);
+  BEGIN
+    errstring("Terminated by Halt("); errint(code); errstring("). ");
+    IF code < 0 THEN DisplayHaltCode(code) END
+  END DisplayHalt;
+
   PROCEDURE Halt*(code: SYSTEM.INT32);
   BEGIN
     StopRecovery;
     Heap.FINALL;
-    errstring("Terminated by Halt("); errint(code); errstring("). ");
-    IF code < 0 THEN DisplayHaltCode(code) END;
+    DisplayHalt(code);
     errstring(Platform.NL);
     Platform.Exit(code);
   END Halt;
+
+  PROCEDURE HaltAt*(code: SYSTEM.INT32; sourceName-, moduleName-: ARRAY OF CHAR;
+                    line, column, pos: SYSTEM.INT32);
+  BEGIN
+    StopRecovery;
+    Heap.FINALL;
+    errstring(sourceName); errch(':'); errint(line); errch(':'); errint(column);
+    errstring(": runtime error: "); DisplayHalt(code);
+    errstring(" (module "); errstring(moduleName); errstring(", pos "); errint(pos); errch(')');
+    errstring(Platform.NL);
+    Platform.Exit(code)
+  END HaltAt;
 
   PROCEDURE AssertFail*(code: SYSTEM.INT32);
   BEGIN

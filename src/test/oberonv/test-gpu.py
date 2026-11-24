@@ -124,7 +124,7 @@ for region in generated.split('#pragma omp target teams distribute parallel for'
                 break
     assert depth == 0
     body = region[start:end]
-    assert not any(name in body for name in ('__HALT', '__X(', '__SHORT', '__CHR',
+    assert not any(name in body for name in ('__HALT', '__X(', '__X_AT(', '__SHORT', '__CHR',
                                             '__DIV(', '__MOD(', '__ENTIER', '__curr',
                                             'SYSTEM_CheckCommandInterrupt')), body
 print('numerical arrays, open arrays, captures, private variables, bounds and integer endpoints passed', flush=True)
@@ -182,7 +182,14 @@ path = module('GPUOpenBound', 'VAR a: ARRAY 4 OF REAL;\n'
               'PROCEDURE Process(VAR x: ARRAY OF REAL);\n'
               'BEGIN ALL r = 0 .. 0 DO x[r] := x[4] END END Process;', 'Process(a)')
 run([voc, '-O' + args.model, '-sjmG', path])
-assert 'Halt(-2)' in run([work / 'GPUOpenBound'], success=False)
+output = run([work / 'GPUOpenBound'], success=False)
+assert 'Halt(-2)' in output, output
+text = path.read_text()
+position = text.index('4]')
+line = text[:position].count('\n') + 1
+column = position - text.rfind('\n', 0, position)
+assert f'{path}:{line}:{column}: runtime error:' in output, output
+assert f'(module GPUOpenBound, pos {position})' in output, output
 print('invalid fixed/open-array bounds trap on the calling thread', flush=True)
 
 run([voc, '-O' + args.model, '-sSjmG', sources / 'TestGPU.Mod'])

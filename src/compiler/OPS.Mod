@@ -57,6 +57,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
     intval*:  SYSTEM.INT64;  (* integer value or string length *)
     realval*: REAL;
     lrlval*:  LONGREAL;
+    pos*: LONGINT;  (* first source byte of the current token *)
 
     ch: CHAR;     (*current character*)
 
@@ -285,10 +286,11 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   BEGIN
     OPM.errpos := OPM.curpos-1;
     WHILE ch <= " " DO (*ignore control characters*)
-      IF ch = OPM.Eot THEN sym := eof; RETURN
+      IF ch = OPM.Eot THEN pos := OPM.curpos; OPM.errpos := pos; sym := eof; RETURN
       ELSE OPM.Get(ch)
       END
     END ;
+    pos := OPM.curpos; OPM.errpos := pos;
     CASE ch OF   (* ch > " " *)
     | 22X,
       27X:      Str(s)
@@ -391,7 +393,7 @@ MODULE OPS;  (* NW, RC 6.3.89 / 18.10.92 *)    (* object model 3.6.92 *)
   END Get;
 
   PROCEDURE Init*;
-  BEGIN ch := " "
+  BEGIN ch := " "; pos := 0
   END Init;
 
 END OPS.

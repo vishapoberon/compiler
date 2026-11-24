@@ -156,6 +156,7 @@ MODULE OPB;  (* RC 6.3.89 / 21.2.94 *)  (* object model 17.1.93 *)
     VAR node: OPT.Node;
   BEGIN
     node := OPT.NewNode(class); node^.typ := typ;
+    IF x # NIL THEN node^.pos := x^.pos END;
     node^.left := x; node^.right := y; x := node
   END BindNodes;
 
