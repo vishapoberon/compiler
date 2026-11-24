@@ -19,6 +19,10 @@ adaptations = [
   "updating Channel and its file/text rider users for Unicode-safe diagnostics",
   "providing seekable memory channels through IOMemory",
   "adapting ooc-libxml URI parsing and file/memory schemes with LONGINT offsets",
+  "porting oo2c 1.5.9 OakOut through Out with immediate flushing and three-digit LONGREAL exponents",
+  "preserving oo2c OakStrings while reserving substring terminator space; recording Oakwood source checksums in Oakwood-provenance.md",
+  "guarding OakStrings.Cap and oocStrings.Capitalize to preserve non-letter bytes under VOC CAP semantics",
+  "using 32-bit SET words for LowLReal exponent and fraction operations independently of LONGINT width",
 ]
 build = "make"
 test = "make -C src/ports/ooc test; make confidence; make modular-library-test"

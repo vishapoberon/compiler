@@ -133,8 +133,8 @@ PROCEDURE Extract* (src: ARRAY OF CHAR; pos, n: INTEGER; VAR dst: ARRAY OF CHAR)
   VAR
     i: INTEGER;
   BEGIN
-    (* set n to Max(n, LEN(dst)-1) *)
-    IF (n > LEN(dst)) THEN
+    (* Reserve one character for the terminator. *)
+    IF (n >= LEN(dst)) THEN
       n := SHORT (LEN(dst))-1
     END;
     (* copy upto n characters into dst *)
@@ -173,7 +173,7 @@ PROCEDURE Cap* (VAR s: ARRAY OF CHAR);
   BEGIN
     i := 0;
     WHILE (s[i] # 0X) DO
-      s[i] := CAP (s[i]);
+      IF (s[i] >= "a") & (s[i] <= "z") THEN s[i] := CAP (s[i]) END;
       INC (i)
     END
   END Cap;

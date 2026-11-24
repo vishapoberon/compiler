@@ -493,7 +493,9 @@ PROCEDURE Capitalize* (VAR stringVar: ARRAY OF CHAR);
   BEGIN
     i := 0;
     WHILE (stringVar[i] # 0X) DO
-      stringVar[i] := CAP (stringVar[i]);
+      IF (stringVar[i] >= "a") & (stringVar[i] <= "z") THEN
+        stringVar[i] := CAP (stringVar[i])
+      END;
       INC (i)
     END
   END Capitalize;

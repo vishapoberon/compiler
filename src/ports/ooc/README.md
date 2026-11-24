@@ -2,7 +2,9 @@
 
 This package provides oo2c-compatible strings, diagnostics, channels, file and
 memory I/O, numeric conversions and riders. It is built as part of VOC's
-standard library in both the Oberon-2 and Component Pascal type models.
+standard library in the Oberon-2 type model. The core runtime also supports
+the Component Pascal type model; individual oo2c modules have separate
+type-model requirements.
 
 ## Unicode strings and messages
 
@@ -32,7 +34,7 @@ Unicode strings and messages, memory channels, file diagnostics, text and
 binary riders, and command-line channels. `make modular-library-test` also
 checks the shared-library build.
 
-For an isolated rebuild and the seven ooc regression programs, use an installed
+For an isolated rebuild and the ooc regression programs, use an installed
 VOC compiler with matching runtime libraries:
 
 ```sh
@@ -87,6 +89,20 @@ describes the preparation policy, limits and tests. The `idna` and `test-idna`
 targets here forward to that package.
 
 ## Source provenance
+
+`OakOut` and `OakStrings` provide the Oakwood output and string interfaces from
+oo2c 1.5.9. `OakOut.Open` enables output; calls before it are ignored. Output is
+flushed after each operation through VOC's `Out` module. The real converters
+retain oo2c's mantissa trimming, with two-digit REAL and three-digit LONGREAL
+exponents. `OakStrings.Extract` reserves space for the terminating zero when
+truncating a substring. The standalone `TestOakStrings` program covers the
+string operations and truncation boundaries; `check-oakout.py` checks the
+output fixture byte-for-byte after normalizing platform line endings.
+
+The original source revisions, checksums and port adaptations are recorded in
+[Oakwood-provenance.md](Oakwood-provenance.md). `Out.Flush` is a VOC backend
+dependency; output capture in the fixture runner requires Python. The string
+regression program runs independently of that runner.
 
 The Unicode-safe support implementations and their regression tests were
 ported and tested in

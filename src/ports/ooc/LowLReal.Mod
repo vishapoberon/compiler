@@ -193,12 +193,17 @@ PROCEDURE exponent*(x: LONGREAL): INTEGER;
    that lies between `expoMin' and `expoMax'.  An exception shall occur
    and may be raised if `x' is equal to 0.0.
  *)
-  VAR ra: LongInt;
+  VAR ra: LongSet; e, bit: INTEGER;
 BEGIN
   (* NOTE: x=0.0 should raise exception *)
   IF x=ZERO THEN RETURN 0
-  ELSE Move(x, ra);
-    RETURN SHORT(S.LSH(ra[0],-expBit) MOD 2048)-expOffset
+  ELSE MoveSet(x, ra);
+    e := 0;
+    FOR bit := 30 TO expBit BY -1 DO
+      e := e*2;
+      IF bit IN ra[0] THEN INC(e) END
+    END;
+    RETURN e-expOffset
   END
 END exponent;
 
@@ -224,12 +229,12 @@ PROCEDURE fraction*(x: LONGREAL): LONGREAL;
    hold: x = scale(fraction(x), exponent(x)).
 *)
   CONST eZero={(hiBit+2)..29};
-  VAR ra: LongInt;
+  VAR ra: LongSet;
 BEGIN
   IF x=ZERO THEN RETURN ZERO
-  ELSE Move(x, ra);
-    ra[0]:=S.VAL(LONGINT, S.VAL(SET,ra[0])*nMask+eZero);
-    RETURN Real(ra)*2.0D0
+  ELSE MoveSet(x, ra);
+    ra[0]:=ra[0]*nMask+eZero;
+    RETURN ToReal(ra)*2.0D0
   END
 END fraction;
 
@@ -264,17 +269,21 @@ PROCEDURE scale*(x: LONGREAL; n: INTEGER): LONGREAL;
   The value of the call scale(x,n) shall be the value x*radix^n if such
   a value exists; otherwise an exception shall occur and may be raised.
 *)
-  VAR exp: LONGINT; lexp: SET; ra: LongInt;
+  VAR exp: LONGINT; lexp: SET; ra: LongSet; e, bit: INTEGER;
 BEGIN
   IF x=ZERO THEN RETURN ZERO END;                     (* can't scale zero *)
   exp:= exponent(x)+n;                                (* new exponent *)
   IF exp>expoMax THEN RETURN large*sign(x)            (* exception raised here *)
   ELSIF exp<expoMin THEN RETURN small*sign(x)         (* exception here as well *)
   END;
-  lexp:=S.VAL(SET,S.LSH(exp+expOffset,expBit));       (* shifted exponent bits *)
-  Move(x, ra);
-  ra[0]:=S.VAL(LONGINT, S.VAL(SET,ra[0])*nMask+lexp); (* insert new exponent *)
-  RETURN Real(ra)
+  lexp := {}; e := SHORT(exp+expOffset); bit := expBit;
+  WHILE e > 0 DO
+    IF ODD(e) THEN INCL(lexp, bit) END;
+    e := e DIV 2; INC(bit)
+  END;
+  MoveSet(x, ra);
+  ra[0]:=ra[0]*nMask+lexp; (* insert new exponent *)
+  RETURN ToReal(ra)
 END scale;
 
 PROCEDURE ulp*(x: LONGREAL): LONGREAL;

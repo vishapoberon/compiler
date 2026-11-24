@@ -9,7 +9,7 @@ MODULAR_OOC = LowReal LowLReal RealMath OakMath LRealMath \
  ConvTypes LRealConv LRealStr RealConv RealStr IntConv \
  IntStr oocUnicode LongStrings Msg SysClock Time Channel IOMemory ProgramArgsHost \
  ProgramArgs Strings2 Rts Filenames TextRider BinaryRider \
- JulianDay FilesHost oocFiles wrapperlibc OakStrings oocRandomNumbers \
+ JulianDay FilesHost oocFiles wrapperlibc OakStrings OakOut oocRandomNumbers \
   Real0 oo2c2LRealConv URICharClass URIString URIError URI \
  URIAuthorityUnparsed URIAuthorityRegistryBased URIAuthorityServerBased \
  URIQueryUnparsed URIFragmentUnparsed URISchemeHierarchical URISchemeOpaque \

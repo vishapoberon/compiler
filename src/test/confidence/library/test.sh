@@ -10,6 +10,16 @@ $OBECOMP TestAsciiCodes.mod -m
 ./TestAsciiCodes >result
 printf 'ascii control code tests passed\n' >result-expected
 diff -b result-expected result
+$OBECOMP TestOakStrings.mod -m
+./TestOakStrings >result
+printf 'TestOakStrings: 30 checks, 0 failed\n' >result-expected
+diff -b result-expected result
+$OBECOMP TestOakOut.mod -m
+sh ../../../tools/make/python.sh ../../../ports/ooc/tests/check-oakout.py ./TestOakOut
+$OBECOMP TestOakNumbers.mod -m
+./TestOakNumbers >result
+printf 'TestOakNumbers: 16 checks, 0 failed\n' >result-expected
+diff -b result-expected result
 $OBECOMP TestOocUnified.mod -m
 ./TestOocUnified >result
 printf 'unified oo2c library tests passed\n' >result-expected
